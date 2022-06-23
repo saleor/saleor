@@ -2,7 +2,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
@@ -48,14 +48,13 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     from ..discount.models import Sale
-    from ..graphql.discount.mutations.sale_base_discount_catalogue import (
-        NodeCatalogueInfo,
-    )
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData, TransactionActionData
     from ..payment.models import Payment
     from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
+
+NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 ADDRESS_FIELDS = (

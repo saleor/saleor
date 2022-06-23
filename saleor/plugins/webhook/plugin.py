@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
 
@@ -55,9 +55,6 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
-    from ...graphql.discount.mutations.sale_base_discount_catalogue import (
-        NodeCatalogueInfo,
-    )
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
@@ -75,6 +72,7 @@ if TYPE_CHECKING:
     from ...warehouse.models import Stock, Warehouse
 
 logger = logging.getLogger(__name__)
+NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 class WebhookPlugin(BasePlugin):

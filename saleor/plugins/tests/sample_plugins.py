@@ -1,5 +1,14 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Iterable,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -23,11 +32,10 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...discount.models import Sale
-    from ...graphql.discount.mutations.sale_base_discount_catalogue import (
-        NodeCatalogueInfo,
-    )
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
+
+NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 class PluginSample(BasePlugin):

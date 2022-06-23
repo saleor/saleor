@@ -7,7 +7,7 @@ from ...channel import ChannelContext
 from ...core.types import DiscountError
 from ..types import Sale
 from .sale_base_catalogue import SaleBaseCatalogueMutation
-from .sale_base_discount_catalogue import convert_catalogue_info_to_global_ids
+from .utils import convert_catalogue_info_to_global_ids
 
 
 class SaleAddCatalogues(SaleBaseCatalogueMutation):

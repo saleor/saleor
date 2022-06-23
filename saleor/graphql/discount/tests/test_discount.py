@@ -20,9 +20,7 @@ from ...tests.utils import (
     get_graphql_content_from_response,
 )
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
-from ..mutations.sale_base_discount_catalogue import (
-    convert_catalogue_info_to_global_ids,
-)
+from ..mutations.utils import convert_catalogue_info_to_global_ids
 
 
 @pytest.fixture

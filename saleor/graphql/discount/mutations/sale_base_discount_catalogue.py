@@ -1,32 +1,14 @@
-from collections import defaultdict
 from typing import DefaultDict, Set
 
-import graphene
 from django.core.exceptions import ValidationError
 
 from ....discount.error_codes import DiscountErrorCode
-from ....discount.utils import CatalogueInfo
 from ....product.tasks import update_products_discounted_prices_of_catalogues_task
 from ....product.utils import get_products_ids_without_variants
 from ...core.mutations import BaseMutation
 from ...product.types import Category, Collection, Product, ProductVariant
 
 NodeCatalogueInfo = DefaultDict[str, Set[str]]
-
-
-def convert_catalogue_info_to_global_ids(
-    catalogue_info: CatalogueInfo,
-) -> NodeCatalogueInfo:
-    catalogue_fields = ["categories", "collections", "products", "variants"]
-    type_names = ["Category", "Collection", "Product", "ProductVariant"]
-    converted_catalogue_info: NodeCatalogueInfo = defaultdict(set)
-
-    for type_name, catalogue_field in zip(type_names, catalogue_fields):
-        converted_catalogue_info[catalogue_field].update(
-            graphene.Node.to_global_id(type_name, id_)
-            for id_ in catalogue_info[catalogue_field]
-        )
-    return converted_catalogue_info
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):

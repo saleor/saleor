@@ -1,7 +1,18 @@
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    DefaultDict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -38,9 +49,6 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo, Voucher
     from ..discount.models import Sale
     from ..giftcard.models import GiftCard
-    from ..graphql.discount.mutations.sale_base_discount_catalogue import (
-        NodeCatalogueInfo,
-    )
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
@@ -59,6 +67,7 @@ if TYPE_CHECKING:
 PluginConfigurationType = List[dict]
 NoneType = type(None)
 RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
+NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 class ConfigurationTypeField:

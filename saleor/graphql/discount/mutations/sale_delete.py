@@ -8,8 +8,8 @@ from ....discount.utils import fetch_catalogue_info
 from ....graphql.core.mutations import ModelDeleteMutation
 from ...core.types import DiscountError
 from ..types import Sale
-from .sale_base_discount_catalogue import convert_catalogue_info_to_global_ids
 from .sale_create import SaleUpdateDiscountedPriceMixin
+from .utils import convert_catalogue_info_to_global_ids
 
 
 class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):

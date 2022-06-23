@@ -16,7 +16,7 @@ from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
 from ..enums import DiscountValueTypeEnum
 from ..types import Sale
-from .sale_base_discount_catalogue import convert_catalogue_info_to_global_ids
+from .utils import convert_catalogue_info_to_global_ids
 
 
 class SaleUpdateDiscountedPriceMixin:
