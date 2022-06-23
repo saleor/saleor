@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce plain text attribute - #9907 by @IKarbowiak
 - Stop auto-assigning default addresses to checkout - #9933 by @SzymJ
 - Added `OrderFilter.numbers` filter  - #9967 by @SzymJ
+- Improve click & collect and stock allocation - #10043 by @IKarbowiak
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
