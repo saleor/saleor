@@ -104,7 +104,9 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
     checkout_line_delete = CheckoutLineDelete.Field(
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `checkoutLinesDelete` instead."
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `checkoutLinesDelete` instead."
+        )
     )
     checkout_lines_delete = CheckoutLinesDelete.Field()
     checkout_lines_add = CheckoutLinesAdd.Field()

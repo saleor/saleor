@@ -13,7 +13,7 @@ from ...core.permissions import (
 )
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error
