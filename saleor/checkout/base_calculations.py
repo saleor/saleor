@@ -8,10 +8,11 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
 from prices import TaxedMoney
+from stripe import TaxCode
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
-from ..discount import DiscountInfo
+from ..discount import DiscountInfo, VoucherType
 from ..order.interface import OrderTaxedPricesData
 from .fetch import CheckoutLineInfo, ShippingMethodInfo
 from .interface import CheckoutPricesData, CheckoutTaxedPricesData
@@ -224,15 +225,32 @@ def base_checkout_total(
     shipping_price = base_checkout_delivery_price(checkout_info, lines)
     discount = checkout_info.checkout.discount
 
-    zero = zero_taxed_money(currency)
-    total = subtotal + shipping_price - discount
+    is_shipping_voucher = (
+        checkout_info.voucher.type == VoucherType.SHIPPING
+        if checkout_info.voucher
+        else False
+    )
     # Discount is subtracted from both gross and net values, which may cause negative
     # net value if we are having a discount that covers whole price.
-    # Comparing TaxedMoney objects works only on gross values. That is why we are
-    # explicitly returning zero_taxed_money if total.gross is less or equal zero.
-    if total.gross <= zero.gross:
+    if is_shipping_voucher:
+        shipping_price = _return_zero_when_price_is_negative(
+            shipping_price - discount, currency
+        )
+    else:
+        subtotal = _return_zero_when_price_is_negative(subtotal - discount, currency)
+    return subtotal + shipping_price
+
+
+def _return_zero_when_price_is_negative(price: TaxCode, currency: str):
+    """Return zero when the price is negative, otherwise return unchanged price.
+
+    Comparing TaxedMoney objects works only on gross values. That is why we are
+    explicitly returning zero_taxed_money if total.gross is less or equal zero.
+    """
+    zero = zero_taxed_money(currency)
+    if price.gross <= zero.gross:
         return zero
-    return total
+    return price
 
 
 def base_checkout_lines_total(
