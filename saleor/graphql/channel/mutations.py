@@ -1,11 +1,9 @@
 import datetime
-from collections import defaultdict
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
 import pytz
 from django.core.exceptions import ValidationError
-from django.db.models.expressions import Exists, OuterRef
 from django.utils.text import slugify
 
 from ...channel import models
@@ -14,7 +12,6 @@ from ...core.permissions import ChannelPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
-from ...shipping.models import ShippingZone
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
 from ..core.descriptions import ADDED_IN_31
@@ -321,57 +318,6 @@ class ChannelDelete(ModelDeleteMutation):
             channel_deletion=True,
         )
         return super().perform_mutation(_root, info, **data)
-
-    @classmethod
-    def delete_invalid_warehouse_to_shipping_zone_relations(cls, channel):
-        ChannelWarehouse = models.Channel.warehouses.through
-        channel_warehouses = ChannelWarehouse.objects.filter(
-            warehouse_id__in=channel.warehouses.values("id")
-        )
-
-        ShippingZoneWarehouse = ShippingZone.warehouses.through
-        shipping_zone_warehouses = ShippingZoneWarehouse.objects.filter(
-            Exists(channel_warehouses.filter(warehouse_id=OuterRef("warehouse_id")))
-        )
-
-        ShippingZoneChannel = ShippingZone.channels.through
-        shipping_zone_channels = ShippingZoneChannel.objects.filter(
-            Exists(
-                shipping_zone_warehouses.filter(
-                    shippingzone_id=OuterRef("shippingzone_id")
-                )
-            )
-        )
-
-        warehouse_to_channel_ids = defaultdict(set)
-        for warehouse_id, channel_id in channel_warehouses.values_list(
-            "warehouse_id", "channel_id"
-        ):
-            # the channel will be deleted so we do not want this channel in warehouse
-            # channels set
-            if channel_id != channel.id:
-                warehouse_to_channel_ids[warehouse_id].add(channel_id)
-
-        zone_to_channel_ids = defaultdict(set)
-        for zone_id, channel_id in shipping_zone_channels.values_list(
-            "shippingzone_id", "channel_id"
-        ):
-            zone_to_channel_ids[zone_id].add(channel_id)
-
-        shipping_zone_warehouses_to_delete = []
-        for id, zone_id, warehouse_id in shipping_zone_warehouses.values_list(
-            "id", "shippingzone_id", "warehouse_id"
-        ):
-            warehouse_channels = warehouse_to_channel_ids.get(warehouse_id, set())
-            zone_channels = zone_to_channel_ids.get(zone_id, set())
-            # if there is no common channels between shipping zone and warehouse
-            # the relation should be deleted
-            if not warehouse_channels.intersection(zone_channels):
-                shipping_zone_warehouses_to_delete.append(id)
-
-        ShippingZoneWarehouse.objects.filter(
-            id__in=shipping_zone_warehouses_to_delete
-        ).delete()
 
 
 ErrorType = DefaultDict[str, List[ValidationError]]

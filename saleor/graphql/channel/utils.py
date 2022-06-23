@@ -104,6 +104,21 @@ def delete_invalid_warehouse_to_shipping_zone_relations(
         )
     )
 
+    warehouse_to_channel_ids = _get_warehouse_to_channels_mapping(
+        channel, channel_warehouses, channel_deletion
+    )
+    zone_to_channel_ids = _get_shipping_zone_to_channels_mapping(shipping_zone_channels)
+    shipping_zone_warehouses_to_delete = _get_invalid_shipping_zone_warehouses_ids(
+        shipping_zone_warehouses, warehouse_to_channel_ids, zone_to_channel_ids
+    )
+
+    # delete invalid shipping zone - warehouse relations
+    ShippingZoneWarehouse.objects.filter(
+        id__in=shipping_zone_warehouses_to_delete
+    ).delete()
+
+
+def _get_warehouse_to_channels_mapping(channel, channel_warehouses, channel_deletion):
     warehouse_to_channel_ids = defaultdict(set)
     for warehouse_id, channel_id in channel_warehouses.values_list(
         "warehouse_id", "channel_id"
@@ -112,13 +127,21 @@ def delete_invalid_warehouse_to_shipping_zone_relations(
         # channels set
         if not channel_deletion or channel_id != channel.id:
             warehouse_to_channel_ids[warehouse_id].add(channel_id)
+    return warehouse_to_channel_ids
 
+
+def _get_shipping_zone_to_channels_mapping(shipping_zone_channels):
     zone_to_channel_ids = defaultdict(set)
     for zone_id, channel_id in shipping_zone_channels.values_list(
         "shippingzone_id", "channel_id"
     ):
         zone_to_channel_ids[zone_id].add(channel_id)
+    return zone_to_channel_ids
 
+
+def _get_invalid_shipping_zone_warehouses_ids(
+    shipping_zone_warehouses, warehouse_to_channel_ids, zone_to_channel_ids
+):
     shipping_zone_warehouses_to_delete = []
     for id, zone_id, warehouse_id in shipping_zone_warehouses.values_list(
         "id", "shippingzone_id", "warehouse_id"
@@ -129,7 +152,4 @@ def delete_invalid_warehouse_to_shipping_zone_relations(
         # the relation should be deleted
         if not warehouse_channels.intersection(zone_channels):
             shipping_zone_warehouses_to_delete.append(id)
-
-    ShippingZoneWarehouse.objects.filter(
-        id__in=shipping_zone_warehouses_to_delete
-    ).delete()
+    return shipping_zone_warehouses_to_delete
