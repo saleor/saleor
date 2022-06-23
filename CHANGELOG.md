@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Stop auto-assigning default addresses to checkout - #9933 by @SzymJ
 - Added `OrderFilter.numbers` filter  - #9967 by @SzymJ
 - Added `metadata` fields to `OrderLine` and `CheckoutLine` models - #10040 by @SzymJ
+- Improve checkout total base calculations - #10048 by @IKarbowiak
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
