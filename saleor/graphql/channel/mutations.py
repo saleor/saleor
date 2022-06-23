@@ -167,6 +167,20 @@ class ChannelUpdate(ModelMutation):
         super()._save_m2m(info, instance, cleaned_data)
         cls._update_shipping_zones(instance, cleaned_data)
         cls._update_warehouses(instance, cleaned_data)
+        if (
+            "remove_shipping_zones" in cleaned_data
+            or "remove_warehouses" in cleaned_data
+        ):
+            warehouse_ids = [
+                warehouse.id for warehouse in cleaned_data.get("remove_warehouses", [])
+            ]
+            shipping_zone_ids = [
+                warehouse.id
+                for warehouse in cleaned_data.get("remove_shipping_zones", [])
+            ]
+            delete_invalid_warehouse_to_shipping_zone_relations(
+                instance, warehouse_ids, shipping_zone_ids
+            )
 
     @classmethod
     def _update_shipping_zones(cls, instance, cleaned_data):
@@ -195,8 +209,6 @@ class ChannelUpdate(ModelMutation):
         remove_warehouses = cleaned_data.get("remove_warehouses")
         if remove_warehouses:
             instance.warehouses.remove(*remove_warehouses)
-            warehouse_ids = [warehouse.id for warehouse in remove_warehouses]
-            delete_invalid_warehouse_to_shipping_zone_relations(instance, warehouse_ids)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
@@ -304,7 +316,9 @@ class ChannelDelete(ModelDeleteMutation):
         else:
             cls.perform_delete_channel_without_order(origin_channel)
         delete_invalid_warehouse_to_shipping_zone_relations(
-            origin_channel, origin_channel.warehouses.values("id")
+            origin_channel,
+            origin_channel.warehouses.values("id"),
+            channel_deletion=True,
         )
         return super().perform_mutation(_root, info, **data)
 

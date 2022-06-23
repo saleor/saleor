@@ -281,9 +281,18 @@ def test_channel_update_mutation_remove_shipping_zone(
     staff_api_client,
     channel_USD,
     shipping_zones,
+    warehouses,
+    channel_PLN,
 ):
     # given
     channel_USD.shipping_zones.add(*shipping_zones)
+    channel_PLN.shipping_zones.add(*shipping_zones)
+
+    for warehouse in warehouses:
+        warehouse.shipping_zones.add(*shipping_zones)
+
+    # add another common channel with zone to warehouses on index 1
+    channel_PLN.warehouses.add(warehouses[0])
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
@@ -325,6 +334,13 @@ def test_channel_update_mutation_remove_shipping_zone(
     mocked_drop_invalid_shipping_methods_relations.assert_called_once_with(
         list(shipping_method_ids), [channel_USD.id]
     )
+    # ensure one warehouse was removed from shipping zone as they do not have
+    # common channel anymore
+    assert warehouses[0].id not in shipping_zones[0].warehouses.values("id")
+
+    # ensure another shipping zone has all warehouses assigned
+    for zone in shipping_zones[1:]:
+        assert zone.warehouses.count() == len(warehouses)
 
 
 def test_channel_update_mutation_add_and_remove_shipping_zone(
