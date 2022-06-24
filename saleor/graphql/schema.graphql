@@ -1933,7 +1933,7 @@ type App implements Node & ObjectWithMetadata {
   aboutApp: String
 
   """Description of the data privacy defined for this app."""
-  dataPrivacy: String
+  dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
 
   """Url to details about the privacy policy on the app owner page."""
   dataPrivacyUrl: String
@@ -1945,7 +1945,7 @@ type App implements Node & ObjectWithMetadata {
   supportUrl: String
 
   """Url to iframe with the configuration for the app."""
-  configurationUrl: String
+  configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
 
   """Url to iframe with the app."""
   appUrl: String
@@ -12844,7 +12844,7 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
+  ): CheckoutLineDelete @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
 
   """Deletes checkout lines."""
   checkoutLinesDelete(
@@ -19859,9 +19859,13 @@ type Manifest {
   about: String
   permissions: [Permission!]
   appUrl: String
-  configurationUrl: String
+
+  """Url to iframe with the configuration for the app."""
+  configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
   tokenTargetUrl: String
-  dataPrivacy: String
+
+  """Description of the data privacy defined for this app."""
+  dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
   dataPrivacyUrl: String
   homepageUrl: String
   supportUrl: String
