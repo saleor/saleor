@@ -770,7 +770,7 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
         + shipping_channel_listings.price
         - discount_amount
     )
-    assert total == TaxedMoney(net=expected_price, gross=expected_price)
+    assert total == expected_price
 
 
 def test_base_checkout_total_high_discount_on_entire_order(
@@ -778,8 +778,8 @@ def test_base_checkout_total_high_discount_on_entire_order(
 ):
     # given
     manager = get_plugins_manager()
-
     currency = checkout_with_item.currency
+
     discount_amount = Money(100, currency)
     checkout_with_item.shipping_method = shipping_method
     checkout_with_item.voucher_code = voucher_percentage.code
@@ -797,7 +797,7 @@ def test_base_checkout_total_high_discount_on_entire_order(
     total = base_checkout_total(checkout_info, [], checkout_lines)
 
     # then
-    assert total == TaxedMoney(gross=shipping_price, net=shipping_price)
+    assert total == shipping_price
 
 
 def test_base_checkout_total_high_discount_on_shipping(
@@ -826,4 +826,4 @@ def test_base_checkout_total_high_discount_on_shipping(
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(variant.product, [], channel, channel_listing)
     expected_price = net * checkout_with_item.lines.first().quantity
-    assert total == TaxedMoney(net=expected_price, gross=expected_price)
+    assert total == expected_price

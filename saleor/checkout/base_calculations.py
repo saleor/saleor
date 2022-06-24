@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import zero_money
 from ..discount import DiscountInfo, VoucherType
 from ..order.interface import OrderTaxedPricesData
 from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -161,9 +161,7 @@ def base_checkout_total(
     checkout_info: "CheckoutInfo",
     discounts: Iterable[DiscountInfo],
     lines: Iterable["CheckoutLineInfo"],
-) -> TaxedMoney:
-    # TODO In separate PR:
-    # Shouldn't return Money?
+) -> Money:
     """Return the total cost of the checkout."""
     currency = checkout_info.checkout.currency
     line_totals = [
@@ -174,7 +172,7 @@ def base_checkout_total(
         )
         for line_info in lines
     ]
-    subtotal = sum(line_totals, zero_taxed_money(currency))
+    subtotal = sum(line_totals, zero_money(currency))
 
     shipping_price = base_checkout_delivery_price(checkout_info, lines)
     discount = checkout_info.checkout.discount
@@ -188,14 +186,10 @@ def base_checkout_total(
     # net value if we are having a discount that covers whole price.
     if is_shipping_voucher:
         shipping_price = max(zero_money(currency), shipping_price - discount)
-        shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
     else:
-        subtotal = subtotal - discount
         # Comparing TaxedMoney objects works only on gross values. That is why we are
         # explicitly returning zero_taxed_money if total.gross is less or equal zero.
-        zero = zero_taxed_money(currency)
-        if subtotal.gross <= zero.gross:
-            subtotal = zero
+        subtotal = max(zero_money(currency), subtotal - discount)
     return subtotal + shipping_price
 
 

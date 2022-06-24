@@ -29,7 +29,7 @@ from ..checkout import base_calculations
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxType, zero_taxed_money
+from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
@@ -225,17 +225,18 @@ class PluginsManager(PaymentInterface):
             discounts,
             lines,
         )
+        taxed_default_value = TaxedMoney(net=default_value, gross=default_value)
 
-        if default_value <= zero_taxed_money(currency):
+        if default_value <= zero_money(currency):
             return quantize_price(
-                default_value,
+                taxed_default_value,
                 currency,
             )
 
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_total",
-                default_value,
+                taxed_default_value,
                 checkout_info,
                 lines,
                 address,

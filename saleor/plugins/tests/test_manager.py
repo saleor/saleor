@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...core.taxes import TaxType, zero_taxed_money
+from ...core.taxes import TaxType, zero_money, zero_taxed_money
 from ...discount.utils import fetch_catalogue_info
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ...payment.interface import PaymentGateway
@@ -1131,7 +1131,7 @@ def test_calculate_checkout_total_zero_default_value(
     # given
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     currency = checkout_with_item.currency
-    mocked_base_checkout_total.return_value = zero_taxed_money(currency)
+    mocked_base_checkout_total.return_value = zero_money(currency)
     manager = PluginsManager(plugins=plugins)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
