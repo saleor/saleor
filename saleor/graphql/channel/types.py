@@ -6,7 +6,7 @@ from graphene.types.resolver import get_default_resolver
 
 from ...channel import models
 from ...core.permissions import ChannelPermissions
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -142,7 +142,9 @@ class Channel(ModelObjectType):
     )
     warehouses = NonNullList(
         Warehouse,
-        description="List of warehouses assigned to this channel.",
+        description="List of warehouses assigned to this channel."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
         required=True,
     )
 

@@ -3594,7 +3594,13 @@ type Channel implements Node {
   """
   defaultCountry: CountryDisplay!
 
-  """List of warehouses assigned to this channel."""
+  """
+  List of warehouses assigned to this channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   warehouses: [Warehouse!]!
 }
 
@@ -19266,7 +19272,13 @@ input ChannelCreateInput {
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
-  """List of warehouses to assign to the channel."""
+  """
+  List of warehouses to assign to the channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   addWarehouses: [ID!]
 
   """Name of the channel."""
@@ -19282,6 +19294,8 @@ input ChannelCreateInput {
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
   
   Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultCountry: CountryCode!
 }
@@ -19304,7 +19318,13 @@ input ChannelUpdateInput {
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
-  """List of warehouses to assign to the channel."""
+  """
+  List of warehouses to assign to the channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   addWarehouses: [ID!]
 
   """Name of the channel."""
@@ -19323,7 +19343,13 @@ input ChannelUpdateInput {
   """List of shipping zones to unassign from the channel."""
   removeShippingZones: [ID!]
 
-  """List of warehouses to unassign from the channel."""
+  """
+  List of warehouses to unassign from the channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   removeWarehouses: [ID!]
 }
 

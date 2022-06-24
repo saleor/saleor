@@ -14,7 +14,7 @@ from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import ChannelError, ChannelErrorCode, NonNullList
 from ..core.utils import get_duplicated_values, get_duplicates_items
@@ -32,7 +32,9 @@ class ChannelInput(graphene.InputObjectType):
     )
     add_warehouses = NonNullList(
         graphene.ID,
-        description="List of warehouses to assign to the channel.",
+        description="List of warehouses to assign to the channel."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -47,7 +49,9 @@ class ChannelCreateInput(ChannelInput):
         description=(
             "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided." + ADDED_IN_31
+            "when the country was not explicitly provided."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
         required=True,
     )
@@ -113,7 +117,9 @@ class ChannelUpdateInput(ChannelInput):
     )
     remove_warehouses = NonNullList(
         graphene.ID,
-        description="List of warehouses to unassign from the channel.",
+        description="List of warehouses to unassign from the channel."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
         required=False,
     )
 
