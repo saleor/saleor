@@ -1950,6 +1950,13 @@ type App implements Node & ObjectWithMetadata {
   """Url to iframe with the app."""
   appUrl: String
 
+  """
+  Url to manifest used during app's installation.
+  
+  Added in Saleor 3.5.
+  """
+  manifestUrl: String
+
   """Version number of the app."""
   version: String
 
