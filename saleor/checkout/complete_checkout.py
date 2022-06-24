@@ -53,7 +53,11 @@ from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
-from .base_calculations import calculate_base_line_unit_price
+from .base_calculations import (
+    calculate_base_line_unit_price,
+    calculate_undiscounted_base_line_total_price,
+    calculate_undiscounted_base_line_unit_price,
+)
 from .calculations import fetch_checkout_prices_if_expired
 from .checkout_cleaner import (
     _validate_gift_cards,
@@ -181,6 +185,20 @@ def _create_line_for_order(
     base_prices_data = calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=checkout_info.channel, discounts=discounts
     )
+    undiscounted_base_unit_price_data = calculate_undiscounted_base_line_unit_price(
+        line_info=checkout_line_info,
+        channel=checkout_info.channel,
+    )
+    undiscounted_base_total_price_data = calculate_undiscounted_base_line_total_price(
+        line_info=checkout_line_info,
+        channel=checkout_info.channel,
+    )
+    undiscounted_unit_price = TaxedMoney(
+        net=undiscounted_base_unit_price_data, gross=undiscounted_base_unit_price_data
+    )
+    undiscounted_total_price = TaxedMoney(
+        net=undiscounted_base_total_price_data, gross=undiscounted_base_total_price_data
+    )
     total_line_price_data = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -223,13 +241,7 @@ def _create_line_for_order(
     if checkout_line_info.voucher:
         voucher_code = checkout_line_info.voucher.code
 
-    # TODO In separate PR:
-    # Calculate line discount
-    # Maybe line_info.voucher.get_discount_amount_for(unit_price, channel=channel),
-    # discount_price_data = (
-    #     unit_price_data.undiscounted_price - unit_price_data.price_with_discounts
-    # )
-    discount_price_data = zero_taxed_money(checkout_info.checkout.currency)
+    discount_price_data = undiscounted_unit_price - unit_price_data
     if taxes_included_in_prices:
         discount_amount = discount_price_data.gross
     else:
@@ -244,8 +256,6 @@ def _create_line_for_order(
         else:
             unit_discount_reason = f"Voucher code: {voucher_code}"
 
-    # TODO In separate PR:
-    # Clear OrderLine Types from useless types or change to untaxed.
     line = OrderLine(
         product_name=product_name,
         variant_name=variant_name,
@@ -258,8 +268,8 @@ def _create_line_for_order(
         quantity=quantity,
         variant=variant,
         unit_price=unit_price_data,  # type: ignore
-        undiscounted_unit_price=unit_price_data,  # type: ignore
-        undiscounted_total_price=(total_line_price_data),  # type: ignore
+        undiscounted_unit_price=undiscounted_unit_price,  # type: ignore
+        undiscounted_total_price=undiscounted_total_price,  # type: ignore
         total_price=total_line_price_data,  # type: ignore
         tax_rate=tax_rate,
         sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
@@ -267,12 +277,8 @@ def _create_line_for_order(
         unit_discount=discount_amount,  # type: ignore
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
-        # TODO In separate PR:
-        # Consider thouse two values
-        # base_unit_price=base_prices_data.price_with_discounts,
-        # undiscounted_base_unit_price=base_prices_data.undiscounted_price,
         base_unit_price=base_prices_data,
-        undiscounted_base_unit_price=base_prices_data,
+        undiscounted_base_unit_price=undiscounted_base_unit_price_data,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
     )

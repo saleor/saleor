@@ -370,9 +370,8 @@ def test_calculate_checkout_total_with_excluded_country(
     [
         (True, "20.35", "25.00", True),
         (False, "40.65", "50.00", True),
-        # TODO: fix discount calculations
-        # (True, "25.00", "30.75", False),
-        # (False, "50.00", "61.50", False),
+        (True, "25.00", "30.75", False),
+        (False, "50.00", "61.50", False),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
