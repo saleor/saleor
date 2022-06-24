@@ -938,7 +938,7 @@ def test_handle_failed_payment_intent_for_checkout(
 
     assert not payment.order_id
     assert not payment.is_active
-    assert payment.charge_status == ChargeStatus.CANCELLED
+    assert payment.charge_status == ChargeStatus.CANCELED
     assert payment.transactions.filter(kind=TransactionKind.CANCEL).exists()
 
 
@@ -968,7 +968,7 @@ def test_handle_failed_payment_intent_for_order(
     payment.refresh_from_db()
 
     assert not payment.is_active
-    assert payment.charge_status == ChargeStatus.CANCELLED
+    assert payment.charge_status == ChargeStatus.CANCELED
     assert payment.transactions.filter(kind=TransactionKind.CANCEL).exists()
 
 

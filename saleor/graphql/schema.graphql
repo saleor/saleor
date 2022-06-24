@@ -8523,7 +8523,7 @@ enum PaymentChargeStatusEnum {
   PARTIALLY_REFUNDED
   FULLY_REFUNDED
   REFUSED
-  CANCELLED
+  CANCELED
 }
 
 """

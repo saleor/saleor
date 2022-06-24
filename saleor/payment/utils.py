@@ -476,7 +476,7 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         payment.charge_status = ChargeStatus.PENDING
         changed_fields += ["charge_status"]
     elif transaction_kind == TransactionKind.CANCEL:
-        payment.charge_status = ChargeStatus.CANCELLED
+        payment.charge_status = ChargeStatus.CANCELED
         payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
     elif transaction_kind == TransactionKind.CAPTURE_FAILED:

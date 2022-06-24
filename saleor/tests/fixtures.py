@@ -4987,7 +4987,7 @@ def payment(payment_dummy, payment_app):
 
 @pytest.fixture
 def payment_cancelled(payment_dummy):
-    payment_dummy.charge_status = ChargeStatus.CANCELLED
+    payment_dummy.charge_status = ChargeStatus.CANCELED
     payment_dummy.save()
     return payment_dummy
 

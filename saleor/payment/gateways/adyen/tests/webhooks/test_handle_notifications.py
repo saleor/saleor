@@ -1434,7 +1434,7 @@ def test_handle_not_created_order_void_when_create_order_raises(
         ChargeStatus.PARTIALLY_REFUNDED,
         ChargeStatus.REFUSED,
         ChargeStatus.FULLY_REFUNDED,
-        ChargeStatus.CANCELLED,
+        ChargeStatus.CANCELED,
     ],
 )
 def test_handle_not_created_order_return_none(

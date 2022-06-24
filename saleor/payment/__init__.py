@@ -107,7 +107,7 @@ class ChargeStatus:
     PARTIALLY_REFUNDED = "partially-refunded"
     FULLY_REFUNDED = "fully-refunded"
     REFUSED = "refused"
-    CANCELLED = "cancelled"
+    CANCELED = "canceled"
 
     CHOICES = [
         (NOT_CHARGED, "Not charged"),
@@ -117,7 +117,7 @@ class ChargeStatus:
         (PARTIALLY_REFUNDED, "Partially refunded"),
         (FULLY_REFUNDED, "Fully refunded"),
         (REFUSED, "Refused"),
-        (CANCELLED, "Cancelled"),
+        (CANCELED, "Canceled"),
     ]
 
 
