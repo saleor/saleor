@@ -72,7 +72,6 @@ if TYPE_CHECKING:
     from ...warehouse.models import Stock, Warehouse
 
 logger = logging.getLogger(__name__)
-NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 class WebhookPlugin(BasePlugin):
@@ -351,7 +350,10 @@ class WebhookPlugin(BasePlugin):
             )
 
     def sale_created(
-        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        current_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value
@@ -370,8 +372,8 @@ class WebhookPlugin(BasePlugin):
     def sale_updated(
         self,
         sale: "Sale",
-        previous_catalogue: "NodeCatalogueInfo",
-        current_catalogue: "NodeCatalogueInfo",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ) -> Any:
         if not self.active:
@@ -386,7 +388,10 @@ class WebhookPlugin(BasePlugin):
             )
 
     def sale_deleted(
-        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value

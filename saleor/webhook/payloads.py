@@ -54,8 +54,6 @@ if TYPE_CHECKING:
     from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
 
-NodeCatalogueInfo = DefaultDict[str, Set[str]]
-
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -361,16 +359,16 @@ def _generate_order_payment_payload(payments: Iterable["Payment"]):
 
 
 def _calculate_added(
-    previous_catalogue: "NodeCatalogueInfo",
-    current_catalogue: "NodeCatalogueInfo",
+    previous_catalogue: DefaultDict[str, Set[str]],
+    current_catalogue: DefaultDict[str, Set[str]],
     key: str,
 ) -> List[str]:
     return list(current_catalogue[key] - previous_catalogue[key])
 
 
 def _calculate_removed(
-    previous_catalogue: "NodeCatalogueInfo",
-    current_catalogue: "NodeCatalogueInfo",
+    previous_catalogue: DefaultDict[str, Set[str]],
+    current_catalogue: DefaultDict[str, Set[str]],
     key: str,
 ) -> List[str]:
     return _calculate_added(current_catalogue, previous_catalogue, key)
@@ -379,8 +377,8 @@ def _calculate_removed(
 @traced_payload_generator
 def generate_sale_payload(
     sale: "Sale",
-    previous_catalogue: Optional["NodeCatalogueInfo"] = None,
-    current_catalogue: Optional["NodeCatalogueInfo"] = None,
+    previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
+    current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     if previous_catalogue is None:

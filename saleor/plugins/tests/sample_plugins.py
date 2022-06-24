@@ -35,8 +35,6 @@ if TYPE_CHECKING:
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
 
-NodeCatalogueInfo = DefaultDict[str, Set[str]]
-
 
 class PluginSample(BasePlugin):
     PLUGIN_ID = "plugin.sample"
@@ -216,21 +214,27 @@ class PluginSample(BasePlugin):
         return {"logoutUrl": "http://www.auth.provider.com/logout/"}
 
     def sale_created(
-        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        current_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ):
         return sale, current_catalogue
 
     def sale_updated(
         self,
         sale: "Sale",
-        previous_catalogue: "NodeCatalogueInfo",
-        current_catalogue: "NodeCatalogueInfo",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ):
         return sale, previous_catalogue, current_catalogue
 
     def sale_deleted(
-        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ):
         return sale, previous_catalogue
 

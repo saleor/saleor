@@ -67,7 +67,6 @@ if TYPE_CHECKING:
 PluginConfigurationType = List[dict]
 NoneType = type(None)
 RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
-NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 class ConfigurationTypeField:
@@ -716,17 +715,19 @@ class BasePlugin:
     #  Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
-    sale_created: Callable[["Sale", "NodeCatalogueInfo", Any], Any]
+    sale_created: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
 
     #  Trigger when sale is deleted.
     #
     #  Overwrite this method if you need to trigger specific logic after sale is deleted.
-    sale_deleted: Callable[["Sale", "NodeCatalogueInfo", Any], Any]
+    sale_deleted: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
 
     #  Trigger when sale is updated.
     #
     #  Overwrite this method if you need to trigger specific logic after sale is updated.
-    sale_updated: Callable[["Sale", "NodeCatalogueInfo", "NodeCatalogueInfo", Any], Any]
+    sale_updated: Callable[
+        ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
+    ]
 
     #  Trigger when shipping price is created.
     #

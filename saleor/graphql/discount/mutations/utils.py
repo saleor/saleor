@@ -1,19 +1,17 @@
 from collections import defaultdict
+from typing import DefaultDict, Set
 
 import graphene
 
-from saleor.discount.utils import CatalogueInfo
-from saleor.graphql.discount.mutations.sale_base_discount_catalogue import (
-    NodeCatalogueInfo,
-)
+from ....discount.utils import CatalogueInfo
 
 
 def convert_catalogue_info_to_global_ids(
     catalogue_info: CatalogueInfo,
-) -> NodeCatalogueInfo:
+) -> DefaultDict[str, Set[str]]:
     catalogue_fields = ["categories", "collections", "products", "variants"]
     type_names = ["Category", "Collection", "Product", "ProductVariant"]
-    converted_catalogue_info: NodeCatalogueInfo = defaultdict(set)
+    converted_catalogue_info: DefaultDict[str, Set[str]] = defaultdict(set)
 
     for type_name, catalogue_field in zip(type_names, catalogue_fields):
         converted_catalogue_info[catalogue_field].update(
