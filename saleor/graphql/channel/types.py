@@ -11,9 +11,10 @@ from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
+from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
-from .dataloaders import ChannelWithHasOrdersByIdLoader, WarehousesByChannelIdLoader
+from .dataloaders import ChannelWithHasOrdersByIdLoader
 
 
 class ChannelContextTypeForObjectType(graphene.ObjectType):
