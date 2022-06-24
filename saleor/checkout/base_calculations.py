@@ -8,7 +8,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
 from prices import TaxedMoney
-from stripe import TaxCode
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
@@ -233,24 +232,17 @@ def base_checkout_total(
     # Discount is subtracted from both gross and net values, which may cause negative
     # net value if we are having a discount that covers whole price.
     if is_shipping_voucher:
-        shipping_price = _return_zero_when_price_is_negative(
-            shipping_price - discount, currency
-        )
+        # we can operate on amount as the base shipping net and gross is the same
+        shipping_price = max(zero_money(currency), shipping_price.gross - discount)
+        shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
     else:
-        subtotal = _return_zero_when_price_is_negative(subtotal - discount, currency)
+        subtotal = subtotal - discount
+        # Comparing TaxedMoney objects works only on gross values. That is why we are
+        # explicitly returning zero_taxed_money if total.gross is less or equal zero.
+        zero = zero_taxed_money(currency)
+        if subtotal.gross <= zero.gross:
+            subtotal = zero
     return subtotal + shipping_price
-
-
-def _return_zero_when_price_is_negative(price: TaxCode, currency: str):
-    """Return zero when the price is negative, otherwise return unchanged price.
-
-    Comparing TaxedMoney objects works only on gross values. That is why we are
-    explicitly returning zero_taxed_money if total.gross is less or equal zero.
-    """
-    zero = zero_taxed_money(currency)
-    if price.gross <= zero.gross:
-        return zero
-    return price
 
 
 def base_checkout_lines_total(
