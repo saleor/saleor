@@ -1671,7 +1671,7 @@ def test_generate_excluded_shipping_methods_for_checkout(checkout):
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     response = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout_info, lines, [shipping_method]
+            checkout_info, [shipping_method]
         )
     )
 

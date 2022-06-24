@@ -358,14 +358,10 @@ def change_shipping_address_in_checkout(
 
 
 def _get_shipping_voucher_discount_for_checkout(
-    # TODO: In separete PR.
-    # remove not needed args
-    manager: PluginsManager,
     voucher: Voucher,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate discount value for a voucher of shipping type."""
     if not is_shipping_required(lines):
@@ -476,12 +472,10 @@ def get_voucher_discount_for_checkout(
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
-            manager,
             voucher,
             checkout_info,
             lines,
             address,
-            discounts,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         # The specific product voucher is propagated on specific line's prices

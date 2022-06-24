@@ -617,7 +617,7 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
     # when
     json_payload = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout_info, lines, available_shipping_methods=methods
+            checkout_info, available_shipping_methods=methods
         )
     )
     # then

@@ -289,10 +289,7 @@ def fetch_checkout_prices_if_expired(
 
 
 def _calculate_checkout_total(checkout, currency):
-    # TODO In separate PR:
-    # FIX, Voucher should be included in ShippingPrice or Subtotal before tax is
-    # applied, depends on voucher type
-    total = checkout.subtotal + checkout.shipping_price - checkout.discount
+    total = checkout.subtotal + checkout.shipping_price
     return quantize_price(
         total,
         currency,

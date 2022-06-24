@@ -1342,7 +1342,7 @@ class WebhookPlugin(BasePlugin):
     ) -> List[ExcludedShippingMethod]:
         def payload_function():
             return generate_excluded_shipping_methods_for_checkout_payload(
-                checkout_info, lines, available_shipping_methods
+                checkout_info, available_shipping_methods
             )
 
         cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_info.checkout.token)

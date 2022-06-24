@@ -1142,11 +1142,8 @@ def generate_excluded_shipping_methods_for_order_payload(
 
 
 @traced_payload_generator
-# TODO in separate PR:
-# Clear args.
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
     available_shipping_methods: List[ShippingMethodData],
 ):
     checkout_data = json.loads(generate_checkout_payload(checkout_info.checkout))[0]

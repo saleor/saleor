@@ -211,8 +211,6 @@ def append_line_to_data(
     tax_included: Optional[bool] = None,
     discounted: Optional[bool] = False,
     tax_override_data: Optional[dict] = None,
-    # TODO In separate PR:
-    # Remove it in order changes
     ref1: Optional[str] = None,
     ref2: Optional[str] = None,
 ):
