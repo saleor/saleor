@@ -98,13 +98,14 @@ mysqlclient==1.4.6
 
 
 # Proprietary Oye Saleor Plugin
--e git+git@github.com:tillkolter/saleor-oye-records.git@master#egg=saleor_oye
+git+ssh://git@github.com/tillkolter/saleor-oye-records.git@master#egg=saleor_oye
+
 
 # Fixed migration overkill by sorting currencies
 # -e git+git@github.com:tillkolter/django-prices-openexchangerates@master#egg=django-prices-openexchangerates
 
 # Extended django-extensions
--e git+git@github.com:tillkolter/django-extensions.git@master#egg=django_extensions
+git+ssh://git@github.com/tillkolter/django-extensions.git@master#egg=django_extensions
 
 discogs-client==2.2.1
 

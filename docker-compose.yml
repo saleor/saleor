@@ -1,4 +1,4 @@
-version: '2'
+version: '3.3'
 services:
 
   redis:
@@ -6,7 +6,6 @@ services:
     restart: always
     ports:
       - 6379
-    network_mode: "host"
 
   search:
     image: elasticsearch:5.5
@@ -26,7 +25,6 @@ services:
     mem_limit: 8g
     volumes:
        - ${OYE_ELASTIC_DATA}:/usr/share/elasticsearch/data
-    network_mode: "host"
 
   rabbitmq:
     image: 'rabbitmq:3'
@@ -34,12 +32,10 @@ services:
     entrypoint: /app/rabbitmq-entrypoint.sh
     env_file: .env
     ports:
-      - '14672:15672'
       - 5672
     volumes:
       - ./docker/rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
       - rabbit:/var/lib/rabbitmq
-    network_mode: "host"
 
   kibana:
     labels:
@@ -49,10 +45,9 @@ services:
     ports:
       - "5601:5601"
     environment:
-      - ELASTICSEARCH_URL=http://127.0.0.1:9200
+      - ELASTICSEARCH_URL=http://search:9200
     depends_on:
       - search
-    network_mode: "host"
 
   logstash:
     labels:
@@ -64,7 +59,6 @@ services:
     command: logstash -f /logstash_dir/logstash.conf
     depends_on:
       - search
-    network_mode: "host"
 
   web: &web
     image: oyelogic:latest
@@ -76,14 +70,13 @@ services:
       - search
       - rabbitmq
     ports:
-      - '8000'
+      - '8000:8000'
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
       - ${DOCKER_HOST_OYE_STATIC_ROOT}:${STATIC_ROOT}
       - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
       - ${DOCKER_HOST_ORIGINAL_IMAGES_ROOT}:/var/www/images/
       - ./logs/:/srv/logs/
-    network_mode: "host"
 
   celeryworker:
     image: oyelogic:latest
@@ -98,7 +91,6 @@ services:
       - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
       - ./docker/celery-entrypoint.sh:/app/celery-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
-    network_mode: "host"
 
   celerybeat:
     image: oyelogic:latest
@@ -110,9 +102,8 @@ services:
     volumes:
       - ./docker/celerybeat-entrypoint.sh:/app/celerybeat-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
-    network_mode: "host"
-
 
 volumes:
   rabbit:
     driver: local
+

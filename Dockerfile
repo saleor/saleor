@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.2
+
 FROM python:3.5-buster
 ENV PYTHONUNBUFFERED 1
 
@@ -9,15 +11,13 @@ WORKDIR /app
 # add the authorized host key for github (avoids "Host key verification failed")
 RUN mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
+RUN useradd -m user
+RUN mkdir -p /home/user/.ssh && ln -s /run/secrets/user_ssh_key /home/user/.ssh/id_rsa
+RUN chown -R user:user /home/user/.ssh
 
-ARG host
-
-ENV PRIVATE_KEY /root/.ssh/id_rsa
-
-RUN wget -O $PRIVATE_KEY http://$host:8080/v1/secrets/file/id_rsa \
-  && chmod 0600 $PRIVATE_KEY \
-  && pip install -r requirements.txt \
-  && rm $PRIVATE_KEY
+RUN --mount=type=ssh,id=github_ssh_key pip install \
+    --no-cache \
+    --requirement requirements.txt
 
 RUN pip install gunicorn
 
