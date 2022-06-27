@@ -4818,6 +4818,57 @@ def test_query_checkout_lines(
     assert expected_lines_ids == checkout_lines_ids
 
 
+def test_query_checkout_lines_with_meta(
+    checkout_with_item, staff_api_client, permission_manage_checkouts
+):
+    query = """
+    {
+        checkoutLines(first: 20) {
+            edges {
+                node {
+                    id
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    }
+    """
+    checkout = checkout_with_item
+    items = [item for item in checkout]
+
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    for item in items:
+        item.store_value_in_private_metadata({metadata_key: metadata_value})
+        item.store_value_in_metadata({metadata_key: metadata_value})
+        item.save()
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_checkouts]
+    )
+    content = get_graphql_content(response)
+    lines = content["data"]["checkoutLines"]["edges"]
+    expected_lines = [
+        {
+            "node": {
+                "id": graphene.Node.to_global_id("CheckoutLine", item.pk),
+                "metadata": [{"key": metadata_key, "value": metadata_value}],
+                "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+            }
+        }
+        for item in items
+    ]
+    assert lines == expected_lines
+
+
 def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_method):
     checkout = checkout_with_item
     checkout.shipping_address = address

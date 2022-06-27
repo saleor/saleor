@@ -171,7 +171,7 @@ class Checkout(ModelWithMetadata):
         return country_code
 
 
-class CheckoutLine(models.Model):
+class CheckoutLine(ModelWithMetadata):
     """A single checkout line.
 
     Multiple lines in the same checkout can refer to the same product variant if
@@ -195,7 +195,7 @@ class CheckoutLine(models.Model):
         null=True,
     )
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
     def __str__(self):
