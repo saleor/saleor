@@ -34,6 +34,18 @@ def generate_attribute_payload(attribute):
     )
 
 
+def generate_attribute_value_payload(attribute_value):
+    return json.dumps(
+        {
+            "attributeValue": {
+                "name": attribute_value.name,
+                "slug": attribute_value.slug,
+                "value": attribute_value.value,
+            }
+        }
+    )
+
+
 def generate_taxed_money_payload(taxed_money):
     return {
         "currency": taxed_money.currency,

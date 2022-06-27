@@ -101,7 +101,10 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def bulk_action(cls, info, queryset):
         attributes = {value.attribute for value in queryset}
+        values = list(queryset)
         queryset.delete()
+        for value in values:
+            info.context.plugins.attribute_value_deleted(value)
         for attribute in attributes:
             info.context.plugins.attribute_updated(attribute)
 

@@ -202,10 +202,11 @@ def test_delete_attribute_values_trigger_webhook(
         permissions=[permission_manage_page_types_and_attributes],
     )
     content = get_graphql_content(response)
+    expected_call_count = len(attributes) + len(attribute_value_list)
 
     # then
     assert content["data"]["attributeValueBulkDelete"]["count"] == 3
-    assert mocked_webhook_trigger.call_count == len(attributes)
+    assert mocked_webhook_trigger.call_count == expected_call_count
 
 
 def test_delete_attribute_values_search_document_updated(
