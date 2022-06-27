@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
 
@@ -56,7 +56,6 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
-    from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
@@ -385,7 +384,10 @@ class WebhookPlugin(BasePlugin):
             )
 
     def sale_created(
-        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        current_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value
@@ -404,8 +406,8 @@ class WebhookPlugin(BasePlugin):
     def sale_updated(
         self,
         sale: "Sale",
-        previous_catalogue: "NodeCatalogueInfo",
-        current_catalogue: "NodeCatalogueInfo",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ) -> Any:
         if not self.active:
@@ -420,7 +422,10 @@ class WebhookPlugin(BasePlugin):
             )
 
     def sale_deleted(
-        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value
