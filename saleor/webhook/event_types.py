@@ -32,6 +32,10 @@ class WebhookEventAsyncType:
     ATTRIBUTE_UPDATED = "attribute_updated"
     ATTRIBUTE_DELETED = "attribute_deleted"
 
+    ATTRIBUTE_VALUE_CREATED = "attribute_value_created"
+    ATTRIBUTE_VALUE_UPDATED = "attribute_value_updated"
+    ATTRIBUTE_VALUE_DELETED = "attribute_value_deleted"
+
     CATEGORY_CREATED = "category_created"
     CATEGORY_UPDATED = "category_updated"
     CATEGORY_DELETED = "category_deleted"
@@ -145,6 +149,9 @@ class WebhookEventAsyncType:
         ATTRIBUTE_CREATED: "Attribute created",
         ATTRIBUTE_UPDATED: "Attribute updated",
         ATTRIBUTE_DELETED: "Attribute deleted",
+        ATTRIBUTE_VALUE_CREATED: "Attribute value created",
+        ATTRIBUTE_VALUE_UPDATED: "Attribute value updated",
+        ATTRIBUTE_VALUE_DELETED: "Attribute value deleted",
         CATEGORY_CREATED: "Category created",
         CATEGORY_UPDATED: "Category updated",
         CATEGORY_DELETED: "Category deleted",
@@ -234,6 +241,9 @@ class WebhookEventAsyncType:
         (ATTRIBUTE_CREATED, DISPLAY_LABELS[ATTRIBUTE_CREATED]),
         (ATTRIBUTE_UPDATED, DISPLAY_LABELS[ATTRIBUTE_UPDATED]),
         (ATTRIBUTE_DELETED, DISPLAY_LABELS[ATTRIBUTE_DELETED]),
+        (ATTRIBUTE_VALUE_CREATED, DISPLAY_LABELS[ATTRIBUTE_VALUE_CREATED]),
+        (ATTRIBUTE_VALUE_UPDATED, DISPLAY_LABELS[ATTRIBUTE_VALUE_UPDATED]),
+        (ATTRIBUTE_VALUE_DELETED, DISPLAY_LABELS[ATTRIBUTE_VALUE_DELETED]),
         (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
         (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
         (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
@@ -324,6 +334,9 @@ class WebhookEventAsyncType:
         ATTRIBUTE_CREATED: None,
         ATTRIBUTE_UPDATED: None,
         ATTRIBUTE_DELETED: None,
+        ATTRIBUTE_VALUE_CREATED: None,
+        ATTRIBUTE_VALUE_UPDATED: None,
+        ATTRIBUTE_VALUE_DELETED: None,
         CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -484,6 +497,9 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.ATTRIBUTE_CREATED,
     WebhookEventAsyncType.ATTRIBUTE_UPDATED,
     WebhookEventAsyncType.ATTRIBUTE_DELETED,
+    WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+    WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
+    WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
     WebhookEventAsyncType.CATEGORY_CREATED,
     WebhookEventAsyncType.CATEGORY_UPDATED,
     WebhookEventAsyncType.CATEGORY_DELETED,

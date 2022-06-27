@@ -701,6 +701,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.attribute_value_created(instance)
         info.context.plugins.attribute_updated(instance.attribute)
 
 
@@ -753,6 +754,7 @@ class AttributeValueUpdate(AttributeValueCreate):
             | Q(Exists(variants.filter(product_id=OuterRef("id"))))
         )
         update_products_search_vector(products)
+        info.context.plugins.attribute_value_updated(instance)
         info.context.plugins.attribute_updated(instance.attribute)
 
 
@@ -779,6 +781,7 @@ class AttributeValueDelete(ModelDeleteMutation):
         update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
+        info.context.plugins.attribute_value_deleted(instance)
         info.context.plugins.attribute_updated(instance.attribute)
         return response
 
@@ -839,7 +842,7 @@ class AttributeReorderValues(BaseMutation):
                 }
             )
 
-        values_m2m = attribute.values
+        values_m2m = attribute.values.all()
         operations = {}
 
         # Resolve the values
@@ -864,5 +867,9 @@ class AttributeReorderValues(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
+
+        for value in [v for v in values_m2m if v.id in operations.keys()]:
+            info.context.plugins.attribute_value_updated(value)
         info.context.plugins.attribute_updated(attribute)
+
         return AttributeReorderValues(attribute=attribute)

@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..app.models import App
-    from ..attribute.models import Attribute
+    from ..attribute.models import Attribute, AttributeValue
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
@@ -216,6 +216,24 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic after an attribute is
     #  updated.
     attribute_updated: Callable[["Attribute", None], None]
+
+    #  Trigger when attribute value is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute
+    #  value is installed.
+    attribute_value_created: Callable[["AttributeValue", None], None]
+
+    #  Trigger when attribute value is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute
+    #  value is deleted.
+    attribute_value_deleted: Callable[["AttributeValue", None], None]
+
+    #  Trigger when attribute value is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute
+    #  value is updated.
+    attribute_value_updated: Callable[["AttributeValue", None], None]
 
     #  Authenticate user which should be assigned to the request.
     #
