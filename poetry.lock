@@ -830,17 +830,23 @@ sftp = ["paramiko"]
 
 [[package]]
 name = "django-stubs"
-version = "1.8.0"
+version = "1.12.0"
 description = "Mypy stubs for Django"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 django = "*"
-django-stubs-ext = "*"
-mypy = ">=0.790"
+django-stubs-ext = ">=0.4.0"
+mypy = ">=0.930"
+tomli = "*"
+types-pytz = "*"
+types-PyYAML = "*"
 typing-extensions = "*"
+
+[package.extras]
+compatible-mypy = ["mypy (>=0.930,<0.970)"]
 
 [[package]]
 name = "django-stubs-ext"
@@ -2698,6 +2704,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "types-pyyaml"
+version = "6.0.9"
+description = "Typing stubs for PyYAML"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-redis"
 version = "4.2.8"
 description = "Typing stubs for redis"
@@ -2940,7 +2954,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "4957552e7f38e00804ed6ecad21b76834e94d3636adcfb93f1b99b1fefa6516a"
+content-hash = "2266031178e54a7f2f7aac388786ce51015b2585056d58418addd1ed2f5e1ec1"
 
 [metadata.files]
 adyen = [
@@ -3418,8 +3432,8 @@ django-storages = [
     {file = "django_storages-1.12.3-py3-none-any.whl", hash = "sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84"},
 ]
 django-stubs = [
-    {file = "django-stubs-1.8.0.tar.gz", hash = "sha256:717967d7fee0a6af0746724a0be80d72831a982a40fa8f245a6a46f4cafd157b"},
-    {file = "django_stubs-1.8.0-py3-none-any.whl", hash = "sha256:bde9e44e3c4574c2454e74a3e607cc3bc23b0441bb7d1312cd677d5e30984b74"},
+    {file = "django-stubs-1.12.0.tar.gz", hash = "sha256:ea8b35d0da49f7b2ee99a79125f1943e033431dd114726d6643cc35de619230e"},
+    {file = "django_stubs-1.12.0-py3-none-any.whl", hash = "sha256:0dff8ec0ba3abe046450b3d8a29ce9e72629893d2c1ef679189cc2bfdb6d2f64"},
 ]
 django-stubs-ext = [
     {file = "django-stubs-ext-0.5.0.tar.gz", hash = "sha256:9bd7418376ab00b7f88d6d56be9fece85bfa0c7c348ac621155fa4d7a91146f2"},
@@ -4505,6 +4519,10 @@ types-python-dateutil = [
 types-pytz = [
     {file = "types-pytz-2021.3.8.tar.gz", hash = "sha256:41253a3a2bf028b6a3f17b58749a692d955af0f74e975de94f6f4d2d3cd01dbd"},
     {file = "types_pytz-2021.3.8-py3-none-any.whl", hash = "sha256:aef4a917ab28c585d3f474bfce4f4b44b91e95d9d47d4de29dd845e0db8e3910"},
+]
+types-pyyaml = [
+    {file = "types-PyYAML-6.0.9.tar.gz", hash = "sha256:33ae75c84b8f61fddf0c63e9c7e557db9db1694ad3c2ee8628ec5efebb5a5e9b"},
+    {file = "types_PyYAML-6.0.9-py3-none-any.whl", hash = "sha256:b738e9ef120da0af8c235ba49d3b72510f56ef9bcc308fc8e7357100ff122284"},
 ]
 types-redis = [
     {file = "types-redis-4.2.8.tar.gz", hash = "sha256:2fe34d40bc7851db8752cda6210c4a8becd1bafd9adb5df189e11583770bf9a0"},
