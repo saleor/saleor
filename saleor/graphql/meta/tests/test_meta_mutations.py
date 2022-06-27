@@ -387,6 +387,21 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
 
+def test_add_public_metadata_for_checkout_line(api_client, checkout_line):
+    # given
+    checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, checkout_line_id, "CheckoutLine"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], checkout_line, checkout_line_id
+    )
+
+
 def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
@@ -476,6 +491,21 @@ def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
+    )
+
+
+def test_add_public_metadata_for_order_line(api_client, order_line):
+    # given
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, order_line_id, "OrderLine"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], order_line, order_line_id
     )
 
 
@@ -895,6 +925,46 @@ def test_update_public_metadata_for_item(api_client, checkout):
         response["data"]["updateMetadata"]["item"],
         checkout,
         checkout_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_public_metadata_for_checkout_line(api_client, checkout_line):
+    # given
+    checkout_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout_line.save(update_fields=["metadata"])
+    checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, checkout_line_id, "CheckoutLine", value="NewMetaValue"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        checkout_line,
+        checkout_line_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_public_metadata_for_order_line(api_client, order_line):
+    # given
+    order_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order_line.save(update_fields=["metadata"])
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, order_line_id, "OrderLine", value="NewMetaValue"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        order_line,
+        order_line_id,
         value="NewMetaValue",
     )
 
@@ -1327,6 +1397,23 @@ def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
     )
 
 
+def test_delete_public_metadata_for_checkout_line(api_client, checkout_line):
+    # given
+    checkout_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout_line.save(update_fields=["metadata"])
+    checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_line_id, "CheckoutLine"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], checkout_line, checkout_line_id
+    )
+
+
 def test_delete_public_metadata_for_order_by_id(api_client, order):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
@@ -1392,6 +1479,23 @@ def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order
     # then
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
+    )
+
+
+def test_delete_public_metadata_for_order_line(api_client, order_line):
+    # given
+    order_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order_line.save(update_fields=["metadata"])
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, order_line_id, "OrderLine"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], order_line, order_line_id
     )
 
 
@@ -2117,6 +2221,25 @@ def test_add_private_metadata_for_checkout(
     )
 
 
+def test_add_private_metadata_for_checkout_line(
+    staff_api_client, checkout_line, permission_manage_checkouts
+):
+    # given
+    checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout_line_id, "CheckoutLine"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        checkout_line,
+        checkout_line_id,
+    )
+
+
 def test_add_private_metadata_for_checkout_by_token(
     staff_api_client, checkout, permission_manage_checkouts
 ):
@@ -2199,6 +2322,23 @@ def test_add_private_metadata_for_draft_order_by_token(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
+    )
+
+
+def test_add_private_metadata_for_order_line(
+    staff_api_client, order_line, permission_manage_orders
+):
+    # given
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order_line_id, "OrderLine"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], order_line, order_line_id
     )
 
 
@@ -2741,6 +2881,58 @@ def test_update_private_metadata_by_customer(user_api_client, payment):
     assert_no_permission(response)
 
 
+def test_update_private_metadata_for_checkout_line(
+    staff_api_client, checkout_line, permission_manage_checkouts
+):
+    # given
+    checkout_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout_line.save(update_fields=["private_metadata"])
+    checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_checkouts,
+        checkout_line_id,
+        "CheckoutLine",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        checkout_line,
+        checkout_line_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_private_metadata_for_order_line(
+    staff_api_client, order_line, permission_manage_orders
+):
+    # given
+    order_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order_line.save(update_fields=["private_metadata"])
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_orders,
+        order_line_id,
+        "OrderLine",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        order_line,
+        order_line_id,
+        value="NewMetaValue",
+    )
+
+
 def test_add_private_metadata_for_warehouse(
     staff_api_client, permission_manage_products, warehouse
 ):
@@ -3052,6 +3244,27 @@ def test_delete_private_metadata_for_checkout_by_token(
     )
 
 
+def test_delete_private_metadata_for_checkout_line(
+    staff_api_client, checkout_line, permission_manage_checkouts
+):
+    # given
+    checkout_line.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    checkout_line.save(update_fields=["private_metadata"])
+    checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout_line_id, "CheckoutLine"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        checkout_line,
+        checkout_line_id,
+    )
+
+
 def test_delete_private_metadata_for_order_by_id(
     staff_api_client, order, permission_manage_orders
 ):
@@ -3125,6 +3338,25 @@ def test_delete_private_metadata_for_draft_order_by_token(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
+    )
+
+
+def test_delete_private_metadata_for_order_line(
+    staff_api_client, order_line, permission_manage_orders
+):
+    # given
+    order_line.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    order_line.save(update_fields=["private_metadata"])
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order_line_id, "OrderLine"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], order_line, order_line_id
     )
 
 
