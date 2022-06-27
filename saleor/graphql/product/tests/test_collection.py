@@ -676,8 +676,13 @@ MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
     }"""
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_update_collection_with_background_image(
-    staff_api_client, collection_with_image, permission_manage_products, media_root
+    delete_from_storage_task_mock,
+    staff_api_client,
+    collection_with_image,
+    permission_manage_products,
+    media_root,
 ):
     # given
     image_file, image_name = create_image()
@@ -688,7 +693,10 @@ def test_update_collection_with_background_image(
     size = 128
     thumbnail_mock = MagicMock(spec=File)
     thumbnail_mock.name = "thumbnail_image.jpg"
-    Thumbnail.objects.create(collection=collection, size=size, image=thumbnail_mock)
+    thumbnail = Thumbnail.objects.create(
+        collection=collection, size=size, image=thumbnail_mock
+    )
+    img_path = thumbnail.image.path
 
     variables = {
         "name": "new-name",
@@ -722,10 +730,16 @@ def test_update_collection_with_background_image(
 
     # ensure that thumbnails for old background image has been deleted
     assert not Thumbnail.objects.filter(collection_id=collection.id)
+    delete_from_storage_task_mock.assert_called_once_with(img_path)
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_update_collection_invalid_background_image(
-    staff_api_client, collection, permission_manage_products, media_root
+    delete_from_storage_task_mock,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    media_root,
 ):
     # given
     image_file, image_name = create_pdf_file_with_image_ext()
@@ -762,6 +776,7 @@ def test_update_collection_invalid_background_image(
     assert data["errors"][0]["message"] == "Invalid file type."
     # ensure that thumbnails for old background image hasn't been deleted
     assert Thumbnail.objects.filter(collection_id=collection.id)
+    delete_from_storage_task_mock.assert_not_called()
 
 
 UPDATE_COLLECTION_SLUG_MUTATION = """
@@ -956,7 +971,9 @@ def test_delete_collection(
     deleted_webhook_mock.assert_called_once()
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_delete_collection_with_background_image(
+    delete_from_storage_task_mock,
     staff_api_client,
     collection_with_image,
     permission_manage_products,
@@ -986,6 +1003,7 @@ def test_delete_collection_with_background_image(
         collection.refresh_from_db()
     # ensure all related thumbnails has been deleted
     assert not Thumbnail.objects.filter(collection_id=collection_id)
+    assert delete_from_storage_task_mock.call_count == 2
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

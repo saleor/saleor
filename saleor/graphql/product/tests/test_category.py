@@ -701,8 +701,14 @@ def test_category_update_trigger_webhook(
     )
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_update_background_image_mutation(
-    monkeypatch, staff_api_client, category, permission_manage_products, media_root
+    delete_from_storage_task_mock,
+    monkeypatch,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    media_root,
 ):
     # given
     alt_text = "Alt text for an image."
@@ -715,7 +721,10 @@ def test_category_update_background_image_mutation(
     size = 128
     thumbnail_mock = MagicMock(spec=File)
     thumbnail_mock.name = "thumbnail_image.jpg"
-    Thumbnail.objects.create(category=category, size=size, image=thumbnail_mock)
+    thumbnail = Thumbnail.objects.create(
+        category=category, size=size, image=thumbnail_mock
+    )
+    img_path = thumbnail.image.path
 
     category_name = "Updated name"
 
@@ -755,10 +764,16 @@ def test_category_update_background_image_mutation(
 
     # ensure that thumbnails for old background image has been deleted
     assert not Thumbnail.objects.filter(category_id=category.id)
+    delete_from_storage_task_mock.assert_called_once_with(img_path)
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_update_mutation_invalid_background_image(
-    staff_api_client, category, permission_manage_products, media_root
+    delete_from_storage_task_mock,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    media_root,
 ):
     # given
     image_file, image_name = create_pdf_file_with_image_ext()
@@ -793,6 +808,7 @@ def test_category_update_mutation_invalid_background_image(
 
     # ensure that thumbnails for old background image hasn't been deleted
     assert Thumbnail.objects.filter(category_id=category.id)
+    delete_from_storage_task_mock.assert_not_called()
 
 
 def test_category_update_mutation_without_background_image(
@@ -1001,7 +1017,9 @@ MUTATION_CATEGORY_DELETE = """
 """
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_delete_mutation(
+    delete_from_storage_task_mock,
     staff_api_client,
     category,
     media_root,
@@ -1030,6 +1048,7 @@ def test_category_delete_mutation(
         category.refresh_from_db()
     # ensure all related thumbnails has been deleted
     assert not Thumbnail.objects.filter(category_id=category_id)
+    assert delete_from_storage_task_mock.call_count == 2
 
 
 @freeze_time("2022-05-12 12:00:00")
