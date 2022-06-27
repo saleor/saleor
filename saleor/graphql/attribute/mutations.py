@@ -842,7 +842,7 @@ class AttributeReorderValues(BaseMutation):
                 }
             )
 
-        values_m2m = attribute.values
+        values_m2m = attribute.values.all()
         operations = {}
 
         # Resolve the values
@@ -868,7 +868,7 @@ class AttributeReorderValues(BaseMutation):
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
 
-        for value in values_m2m.filter(id__in=operations.keys()):
+        for value in [v for v in values_m2m if v.id in operations.keys()]:
             info.context.plugins.attribute_value_updated(value)
         info.context.plugins.attribute_updated(attribute)
 
