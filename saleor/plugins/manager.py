@@ -570,6 +570,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
 
+    def customer_deleted(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("customer_deleted", default_value, customer)
+
     def customer_updated(self, customer: "User"):
         default_value = None
         return self.__run_method_on_plugins("customer_updated", default_value, customer)

@@ -1455,6 +1455,9 @@ enum WebhookEventTypeEnum {
   """A customer account is updated."""
   CUSTOMER_UPDATED
 
+  """A customer account is deleted."""
+  CUSTOMER_DELETED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1737,6 +1740,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A customer account is updated."""
   CUSTOMER_UPDATED
+
+  """A customer account is deleted."""
+  CUSTOMER_DELETED
 
   """A new collection is created."""
   COLLECTION_CREATED
@@ -2357,6 +2363,7 @@ enum WebhookSampleEventTypeEnum {
   INVOICE_SENT
   CUSTOMER_CREATED
   CUSTOMER_UPDATED
+  CUSTOMER_DELETED
   COLLECTION_CREATED
   COLLECTION_UPDATED
   COLLECTION_DELETED

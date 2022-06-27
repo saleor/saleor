@@ -77,6 +77,7 @@ class WebhookEventAsyncType:
 
     CUSTOMER_CREATED = "customer_created"
     CUSTOMER_UPDATED = "customer_updated"
+    CUSTOMER_DELETED = "customer_deleted"
 
     COLLECTION_CREATED = "collection_created"
     COLLECTION_UPDATED = "collection_updated"
@@ -179,6 +180,7 @@ class WebhookEventAsyncType:
         INVOICE_SENT: "Invoice sent",
         CUSTOMER_CREATED: "Customer created",
         CUSTOMER_UPDATED: "Customer updated",
+        CUSTOMER_DELETED: "Customer deleted",
         COLLECTION_CREATED: "Collection created",
         COLLECTION_UPDATED: "Collection updated",
         COLLECTION_DELETED: "Collection deleted",
@@ -268,6 +270,7 @@ class WebhookEventAsyncType:
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (CUSTOMER_UPDATED, DISPLAY_LABELS[CUSTOMER_UPDATED]),
+        (CUSTOMER_DELETED, DISPLAY_LABELS[CUSTOMER_DELETED]),
         (COLLECTION_CREATED, DISPLAY_LABELS[COLLECTION_CREATED]),
         (COLLECTION_UPDATED, DISPLAY_LABELS[COLLECTION_UPDATED]),
         (COLLECTION_DELETED, DISPLAY_LABELS[COLLECTION_DELETED]),
@@ -358,6 +361,7 @@ class WebhookEventAsyncType:
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         CUSTOMER_UPDATED: AccountPermissions.MANAGE_USERS,
+        CUSTOMER_DELETED: AccountPermissions.MANAGE_USERS,
         COLLECTION_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         COLLECTION_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         COLLECTION_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -528,6 +532,7 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.FULFILLMENT_CANCELED,
     WebhookEventAsyncType.CUSTOMER_CREATED,
     WebhookEventAsyncType.CUSTOMER_UPDATED,
+    WebhookEventAsyncType.CUSTOMER_DELETED,
     WebhookEventAsyncType.COLLECTION_CREATED,
     WebhookEventAsyncType.COLLECTION_UPDATED,
     WebhookEventAsyncType.COLLECTION_DELETED,

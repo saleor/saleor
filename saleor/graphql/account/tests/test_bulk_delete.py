@@ -58,6 +58,37 @@ def test_delete_customers(
     )
 
 
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_customers_trigger_webhooks(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    staff_user,
+    user_list,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "ids": [graphene.Node.to_global_id("User", user.id) for user in user_list]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["customerBulkDelete"]["count"] == 2
+    assert mocked_webhook_trigger.call_count == 2
+
+
 @patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_delete_customers_by_app(
     mocked_deletion_event,

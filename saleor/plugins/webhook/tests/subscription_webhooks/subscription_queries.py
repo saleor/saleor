@@ -906,6 +906,23 @@ CUSTOMER_UPDATED = (
 """
 )
 
+
+CUSTOMER_DELETED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on CustomerDeleted{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 COLLECTION_CREATED = (
     fragments.COLLECTION
     + """
@@ -920,6 +937,7 @@ COLLECTION_CREATED = (
     }
     """
 )
+
 
 COLLECTION_UPDATED = (
     fragments.COLLECTION
