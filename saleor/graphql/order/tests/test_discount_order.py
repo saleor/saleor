@@ -215,21 +215,18 @@ mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!
 """
 
 
-@patch("saleor.order.calculations.PluginsManager.calculate_order_shipping")
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_percentage_order_discount_to_order(
-    mocked_calculate_order_shipping,
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_manage_orders,
 ):
     order = draft_order_with_fixed_discount_order
-    mocked_calculate_order_shipping.return_value = order.shipping_price
     order.status = status
     order.save(update_fields=["status"])
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
-    # current_undiscounted_total = order.undiscounted_total
+    current_undiscounted_total = order.undiscounted_total
 
     reason = "The reason of the discount"
     value = Decimal("10.000")
@@ -248,26 +245,26 @@ def test_update_percentage_order_discount_to_order(
 
     order.refresh_from_db()
 
-    # discount = partial(percentage_discount, percentage=value)
-    # expected_net_total = discount(current_undiscounted_total.net)
-    # expected_gross_total = discount(current_undiscounted_total.gross)
-    # expected_total = TaxedMoney(expected_net_total, expected_gross_total)
+    discount = partial(percentage_discount, percentage=value)
+    expected_net_total = discount(current_undiscounted_total.net)
+    expected_gross_total = discount(current_undiscounted_total.gross)
+    expected_total = TaxedMoney(expected_net_total, expected_gross_total)
 
     errors = data["errors"]
     assert len(errors) == 0
 
-    # TODO: In separate PR:
-    # Confirm calculations
-    # assert order.undiscounted_total == current_undiscounted_total
-
-    # assert expected_total == order.total
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert expected_net_total == order.total.net
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
-    # assert order_discount.amount ==
-    # (current_undiscounted_total - expected_total).gross
+    discount_amount = current_undiscounted_total.net - expected_total.net
+    assert order_discount.amount == discount_amount
     assert order_discount.reason == reason
 
     event = order.events.get()
@@ -319,11 +316,11 @@ def test_update_fixed_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    # TODO: Fix in separate PR
-    # Check Values
-    # assert order.undiscounted_total == current_undiscounted_total
-
-    # assert expected_total == order.total
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert expected_total.net == order.total.net
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()

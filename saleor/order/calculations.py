@@ -50,7 +50,6 @@ def _recalculate_order_prices(
                 pass
 
         subtotal += line.total_price
-
     try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
@@ -91,15 +90,18 @@ def _apply_tax_data(
 
 def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> None:
     """Recalculate all order discounts and update order/lines prices."""
+    undiscounted_subtotal = zero_taxed_money(order.currency)
     for line in lines:
         line.undiscounted_unit_price = line.unit_price + line.unit_discount
-        line.undiscounted_total_price = (
+        undiscounted_total_price = (
             line.undiscounted_unit_price * line.quantity
             if line.unit_discount
             else line.total_price
         )
+        line.undiscounted_total_price = undiscounted_total_price
+        undiscounted_subtotal += undiscounted_total_price
 
-    order.undiscounted_total = order.total
+    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
 
     order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
     for order_discount in order_discounts:
@@ -143,7 +145,6 @@ def fetch_order_prices_if_expired(
     with transaction.atomic(savepoint=False):
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
-
         # TODO in separete PR:
         # discount should be calculated before taxes.
         _recalculate_order_discounts(order, lines)

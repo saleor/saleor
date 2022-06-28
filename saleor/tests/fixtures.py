@@ -3790,10 +3790,10 @@ def order_with_lines(
     )
     stock.refresh_from_db()
 
-    net = variant.get_price(product, [], channel_USD, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    unit_price = TaxedMoney(net=net, gross=gross)
+    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = base_price.currency
+    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=base_price, gross=gross)
     quantity = 2
     line = order.lines.create(
         product_name=str(variant.product),
@@ -3808,8 +3808,8 @@ def order_with_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
-        base_unit_price=unit_price.gross,
-        undiscounted_base_unit_price=unit_price.gross,
+        base_unit_price=base_price,
+        undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -4342,7 +4342,6 @@ def draft_order(order_with_lines, shipping_method):
 def draft_order_with_fixed_discount_order(draft_order):
     value = Decimal("20")
     discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
-    draft_order.undiscounted_total = draft_order.total
     draft_order.total = discount(draft_order.total)
     draft_order.discounts.create(
         value_type=DiscountValueType.FIXED,
