@@ -50,6 +50,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.COLLECTION_DELETED: "A collection is deleted.",
     WebhookEventAsyncType.CUSTOMER_CREATED: "A new customer account is created.",
     WebhookEventAsyncType.CUSTOMER_UPDATED: "A customer account is updated.",
+    WebhookEventAsyncType.CUSTOMER_DELETED: "A customer account is deleted.",
     WebhookEventAsyncType.GIFT_CARD_CREATED: "A new gift card created.",
     WebhookEventAsyncType.GIFT_CARD_UPDATED: "A gift card is updated.",
     WebhookEventAsyncType.GIFT_CARD_DELETED: "A gift card is deleted.",

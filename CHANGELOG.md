@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add webhooks `STAFF_CREATED`, `STAFF_UPDATED` and `STAFF_DELETED` - #9949 by @SzymJ
 - Add webhooks `ATTRIBUTE_CREATED`, `ATTRIBUTE_UPDATED` and `ATTRIBUTE_DELETED` - #9991 by @SzymJ
 - Add webhooks `ATTRIBUTE_VALUE_CREATED`, `ATTRIBUTE_VALUE_UPDATED` and `ATTRIBUTE_VALUE_DELETED` - #10035 by @SzymJ
+- Add webhook `CUSTOMER_DELETED` - #10060 by @SzymJ
 - Fix returning errors in subscription webhooks payloads - #9905 by @SzymJ
 
 # 3.4.0
