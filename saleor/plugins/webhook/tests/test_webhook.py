@@ -28,7 +28,7 @@ from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
-from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
+from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ....payment import TransactionAction
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem

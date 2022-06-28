@@ -1,7 +1,18 @@
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    DefaultDict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -29,6 +40,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..app.models import App
+    from ..attribute.models import Attribute, AttributeValue
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
@@ -38,7 +50,6 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo, Voucher
     from ..discount.models import Sale
     from ..giftcard.models import GiftCard
-    from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
@@ -187,6 +198,42 @@ class BasePlugin:
     assign_tax_code_to_object_meta: Callable[
         [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
     ]
+
+    #  Trigger when attribute is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute is
+    #  installed.
+    attribute_created: Callable[["Attribute", None], None]
+
+    #  Trigger when attribute is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute is
+    #  deleted.
+    attribute_deleted: Callable[["Attribute", None], None]
+
+    #  Trigger when attribute is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute is
+    #  updated.
+    attribute_updated: Callable[["Attribute", None], None]
+
+    #  Trigger when attribute value is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute
+    #  value is installed.
+    attribute_value_created: Callable[["AttributeValue", None], None]
+
+    #  Trigger when attribute value is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute
+    #  value is deleted.
+    attribute_value_deleted: Callable[["AttributeValue", None], None]
+
+    #  Trigger when attribute value is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute
+    #  value is updated.
+    attribute_value_updated: Callable[["AttributeValue", None], None]
 
     #  Authenticate user which should be assigned to the request.
     #
@@ -705,17 +752,19 @@ class BasePlugin:
     #  Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
-    sale_created: Callable[["Sale", "NodeCatalogueInfo", Any], Any]
+    sale_created: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
 
     #  Trigger when sale is deleted.
     #
     #  Overwrite this method if you need to trigger specific logic after sale is deleted.
-    sale_deleted: Callable[["Sale", "NodeCatalogueInfo", Any], Any]
+    sale_deleted: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
 
     #  Trigger when sale is updated.
     #
     #  Overwrite this method if you need to trigger specific logic after sale is updated.
-    sale_updated: Callable[["Sale", "NodeCatalogueInfo", "NodeCatalogueInfo", Any], Any]
+    sale_updated: Callable[
+        ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
+    ]
 
     #  Trigger when shipping price is created.
     #

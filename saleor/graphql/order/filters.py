@@ -1,8 +1,10 @@
 from uuid import UUID
 
 import django_filters
+import graphene
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
+from graphql.error import GraphQLError
 
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
@@ -154,6 +156,12 @@ def filter_order_by_id(qs, _, value):
     return qs.filter(Q(id__in=pks) | (Q(use_old_id=True) & Q(number__in=old_pks)))
 
 
+def filter_by_order_number(qs, _, values):
+    if not values:
+        return qs
+    return qs.filter(number__in=values)
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -190,7 +198,17 @@ class OrderFilter(DraftOrderFilter):
     ids = GlobalIDMultipleChoiceFilter(method=filter_order_by_id)
     gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
     gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
+    numbers = ListObjectTypeFilter(
+        input_class=graphene.String, method=filter_by_order_number
+    )
 
     class Meta:
         model = Order
         fields = ["payment_status", "status", "customer", "created", "search"]
+
+    def is_valid(self):
+        if "ids" in self.data and "numbers" in self.data:
+            raise GraphQLError(
+                message="'ids' and 'numbers` are not allowed to use together in filter."
+            )
+        return super().is_valid()

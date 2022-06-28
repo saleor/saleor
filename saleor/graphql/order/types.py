@@ -588,7 +588,7 @@ class OrderLine(ModelObjectType):
     class Meta:
         description = "Represents order line of particular order."
         model = models.OrderLine
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
 
     @staticmethod
     @traced_resolver

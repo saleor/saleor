@@ -28,6 +28,14 @@ class WebhookEventAsyncType:
     APP_DELETED = "app_deleted"
     APP_STATUS_CHANGED = "app_status_changed"
 
+    ATTRIBUTE_CREATED = "attribute_created"
+    ATTRIBUTE_UPDATED = "attribute_updated"
+    ATTRIBUTE_DELETED = "attribute_deleted"
+
+    ATTRIBUTE_VALUE_CREATED = "attribute_value_created"
+    ATTRIBUTE_VALUE_UPDATED = "attribute_value_updated"
+    ATTRIBUTE_VALUE_DELETED = "attribute_value_deleted"
+
     CATEGORY_CREATED = "category_created"
     CATEGORY_UPDATED = "category_updated"
     CATEGORY_DELETED = "category_deleted"
@@ -138,6 +146,12 @@ class WebhookEventAsyncType:
         APP_UPDATED: "App updated",
         APP_DELETED: "App deleted",
         APP_STATUS_CHANGED: "App status changed",
+        ATTRIBUTE_CREATED: "Attribute created",
+        ATTRIBUTE_UPDATED: "Attribute updated",
+        ATTRIBUTE_DELETED: "Attribute deleted",
+        ATTRIBUTE_VALUE_CREATED: "Attribute value created",
+        ATTRIBUTE_VALUE_UPDATED: "Attribute value updated",
+        ATTRIBUTE_VALUE_DELETED: "Attribute value deleted",
         CATEGORY_CREATED: "Category created",
         CATEGORY_UPDATED: "Category updated",
         CATEGORY_DELETED: "Category deleted",
@@ -185,8 +199,8 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant back in stock",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
-        FULFILLMENT_CREATED: "Fulfillment_created",
-        FULFILLMENT_CANCELED: "Fulfillment_cancelled",
+        FULFILLMENT_CREATED: "Fulfillment created",
+        FULFILLMENT_CANCELED: "Fulfillment cancelled",
         NOTIFY_USER: "Notify user",
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
@@ -224,6 +238,12 @@ class WebhookEventAsyncType:
         (APP_UPDATED, DISPLAY_LABELS[APP_UPDATED]),
         (APP_DELETED, DISPLAY_LABELS[APP_DELETED]),
         (APP_STATUS_CHANGED, DISPLAY_LABELS[APP_STATUS_CHANGED]),
+        (ATTRIBUTE_CREATED, DISPLAY_LABELS[ATTRIBUTE_CREATED]),
+        (ATTRIBUTE_UPDATED, DISPLAY_LABELS[ATTRIBUTE_UPDATED]),
+        (ATTRIBUTE_DELETED, DISPLAY_LABELS[ATTRIBUTE_DELETED]),
+        (ATTRIBUTE_VALUE_CREATED, DISPLAY_LABELS[ATTRIBUTE_VALUE_CREATED]),
+        (ATTRIBUTE_VALUE_UPDATED, DISPLAY_LABELS[ATTRIBUTE_VALUE_UPDATED]),
+        (ATTRIBUTE_VALUE_DELETED, DISPLAY_LABELS[ATTRIBUTE_VALUE_DELETED]),
         (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
         (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
         (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
@@ -311,6 +331,12 @@ class WebhookEventAsyncType:
         APP_UPDATED: AppPermission.MANAGE_APPS,
         APP_DELETED: AppPermission.MANAGE_APPS,
         APP_STATUS_CHANGED: AppPermission.MANAGE_APPS,
+        ATTRIBUTE_CREATED: None,
+        ATTRIBUTE_UPDATED: None,
+        ATTRIBUTE_DELETED: None,
+        ATTRIBUTE_VALUE_CREATED: None,
+        ATTRIBUTE_VALUE_UPDATED: None,
+        ATTRIBUTE_VALUE_DELETED: None,
         CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -468,6 +494,12 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.APP_UPDATED,
     WebhookEventAsyncType.APP_DELETED,
     WebhookEventAsyncType.APP_STATUS_CHANGED,
+    WebhookEventAsyncType.ATTRIBUTE_CREATED,
+    WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+    WebhookEventAsyncType.ATTRIBUTE_DELETED,
+    WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+    WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
+    WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
     WebhookEventAsyncType.CATEGORY_CREATED,
     WebhookEventAsyncType.CATEGORY_UPDATED,
     WebhookEventAsyncType.CATEGORY_DELETED,

@@ -12,7 +12,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
-from ....order.search import update_order_search_document
+from ....order.search import update_order_search_vector
 from ....order.utils import add_variant_to_order, recalculate_order, update_order_prices
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -329,4 +329,4 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Post-process the results
         recalculate_order(instance)
-        update_order_search_document(instance)
+        update_order_search_vector(instance)

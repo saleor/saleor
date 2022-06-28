@@ -301,15 +301,23 @@ def get_checkout_lines_data(
             undiscounted_amount = prices_data.undiscounted_price.net.amount
             price_with_discounts_amount = prices_data.price_with_discounts.net.amount
 
+        # This is a workaround for Avatax and sending a lines with amount 0. Like
+        # order lines which are fully discounted for some reason. If we use a
+        # standard tax_code, Avatax will raise an exception: "When shipping
+        # cross-border into CIF countries, Tax Included is not supported with mixed
+        # positive and negative line amounts."
+        # This is also a workaround for Avatax when the tax_override_data is used.
+        # Otherwise Avatax will raise an exception: "TaxIncluded is not supported in
+        # combination with caps, thresholds, or base rules."
+        tax_code = (
+            tax_code
+            if undiscounted_amount and not tax_override_data
+            else DEFAULT_TAX_CODE
+        )
         append_line_to_data_kwargs = {
             "data": data,
             "quantity": line_info.line.quantity,
-            # This is a workaround for Avatax and sending a lines with amount 0. Like
-            # order lines which are fully discounted for some reason. If we use a
-            # standard tax_code, Avatax will raise an exception: "When shipping
-            # cross-border into CIF countries, Tax Included is not supported with mixed
-            # positive and negative line amounts."
-            "tax_code": tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
+            "tax_code": tax_code,
             "item_code": item_code,
             "name": name,
             "tax_included": tax_included,
@@ -468,7 +476,7 @@ def generate_request_data_from_checkout(
     discount_amount = (
         checkout_info.checkout.discount.amount
         if voucher
-        and voucher.type == VoucherType.ENTIRE_ORDER
+        and voucher.type != VoucherType.SPECIFIC_PRODUCT
         and not voucher.apply_once_per_order
         else 0
     )

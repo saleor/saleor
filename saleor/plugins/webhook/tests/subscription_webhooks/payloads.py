@@ -4,6 +4,7 @@ import graphene
 from django.utils import timezone
 
 from ..... import __version__
+from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
 from .....product.models import Product
 
 
@@ -15,6 +16,31 @@ def generate_app_payload(app, app_global_id):
                 "isActive": app.is_active,
                 "name": app.name,
                 "appUrl": app.app_url,
+            }
+        }
+    )
+
+
+def generate_attribute_payload(attribute):
+    return json.dumps(
+        {
+            "attribute": {
+                "name": attribute.name,
+                "slug": attribute.slug,
+                "type": AttributeTypeEnum.get(attribute.type).name,
+                "inputType": AttributeInputTypeEnum.get(attribute.input_type).name,
+            }
+        }
+    )
+
+
+def generate_attribute_value_payload(attribute_value):
+    return json.dumps(
+        {
+            "attributeValue": {
+                "name": attribute_value.name,
+                "slug": attribute_value.slug,
+                "value": attribute_value.value,
             }
         }
     )

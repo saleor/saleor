@@ -1,6 +1,6 @@
 import json
 from decimal import Decimal, InvalidOperation
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.conf import settings
@@ -54,21 +54,24 @@ def get_field_value(instance: DjangoModel, field_name: str):
 def _prepare_filter_by_rank_expression(
     cursor: List[str],
     sorting_direction: str,
+    coerce_id: Callable[[str], Any],
 ) -> Q:
+    if len(cursor) != 2:
+        raise GraphQLError("Received cursor is invalid.")
     try:
         rank = Decimal(cursor[0])
-        int(cursor[1])
-    except (InvalidOperation, ValueError, TypeError, KeyError):
-        raise ValueError("Invalid cursor for sorting by rank.")
+        id = coerce_id(cursor[1])
+    except (InvalidOperation, ValueError, TypeError):
+        raise GraphQLError("Received cursor is invalid.")
 
     # Because rank is float number, it gets mangled by PostgreSQL's query parser
     # making equal comparisons impossible. Instead we compare rank against small
     # range of values, constructed using epsilon.
     if sorting_direction == "gt":
-        return Q(
-            search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=cursor[1]
-        ) | Q(search_rank__gt=rank + EPSILON)
-    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=cursor[1]) | Q(
+        return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=id) | Q(
+            search_rank__gt=rank + EPSILON
+        )
+    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=id) | Q(
         search_rank__lt=rank - EPSILON
     )
 
@@ -98,7 +101,10 @@ def _prepare_filter_expression(
 
 
 def _prepare_filter(
-    cursor: List[str], sorting_fields: List[str], sorting_direction: str
+    cursor: List[str],
+    sorting_fields: List[str],
+    sorting_direction: str,
+    coerce_id: Callable[[str], Any],
 ) -> Q:
     """Create filter arguments based on sorting fields.
 
@@ -116,7 +122,7 @@ def _prepare_filter(
     """
     if sorting_fields == ["search_rank", "id"]:
         # Fast path for filtering by rank
-        return _prepare_filter_by_rank_expression(cursor, sorting_direction)
+        return _prepare_filter_by_rank_expression(cursor, sorting_direction, coerce_id)
     filter_kwargs = Q()
     for index, field_name in enumerate(sorting_fields):
         if cursor[index] is None and sorting_direction == "gt":
@@ -177,12 +183,12 @@ def _get_page_info(matching_records, cursor, first, last):
     records_left = False
     if requested_count is not None:
         records_left = len(matching_records) > requested_count
-    has_pages_before = True if cursor else False
+    has_other_pages = bool(cursor)
     if first:
         page_info["has_next_page"] = records_left
-        page_info["has_previous_page"] = has_pages_before
+        page_info["has_previous_page"] = has_other_pages
     elif last:
-        page_info["has_next_page"] = has_pages_before
+        page_info["has_next_page"] = has_other_pages
         page_info["has_previous_page"] = records_left
 
     return page_info
@@ -228,6 +234,10 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
     return edges, page_info
 
 
+def _get_id_coercion(qs: QuerySet) -> Callable[[str], Any]:
+    return qs.model.id.field.to_python if hasattr(qs.model, "id") else int
+
+
 def connection_from_queryset_slice(
     qs: QuerySet,
     args: ConnectionArguments = None,
@@ -258,7 +268,14 @@ def connection_from_queryset_slice(
     if cursor and len(cursor) != len(sorting_fields):
         raise GraphQLError("Received cursor is invalid.")
     filter_kwargs = (
-        _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
+        _prepare_filter(
+            cursor,
+            sorting_fields,
+            sorting_direction,
+            _get_id_coercion(qs),
+        )
+        if cursor
+        else Q()
     )
     try:
         filtered_qs = qs.filter(filter_kwargs)
