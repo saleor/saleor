@@ -6,8 +6,6 @@ from django.core.files import File
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from saleor.saleor.thumbnail.models import Thumbnail
-
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -29,6 +27,7 @@ from ....product.models import (
     VariantMedia,
 )
 from ....tests.utils import flush_post_commit_hooks
+from ....thumbnail.models import Thumbnail
 from ...tests.utils import get_graphql_content
 
 
