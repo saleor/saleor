@@ -53,6 +53,7 @@ class App(ModelWithMetadata):
     support_url = models.URLField(blank=True, null=True)
     configuration_url = models.URLField(blank=True, null=True)
     app_url = models.URLField(blank=True, null=True)
+    manifest_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
 
     objects = models.Manager.from_queryset(AppQueryset)()
