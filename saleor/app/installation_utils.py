@@ -48,6 +48,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         configuration_url=manifest_data.get("configurationUrl"),
         app_url=manifest_data.get("appUrl"),
         version=manifest_data.get("version"),
+        manifest_url=app_installation.manifest_url,
         type=AppType.THIRDPARTY,
     )
     app.permissions.set(app_installation.permissions.all())
