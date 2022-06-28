@@ -8523,8 +8523,19 @@ type OrderLine implements Node & ObjectWithMetadata {
 
   """The main thumbnail for the ordered product."""
   thumbnail(
-    """Size of thumbnail."""
+    """
+    Size of the avatar. If not provided the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the avatar. When not provided format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.5.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Price of the single item in the order line."""

@@ -9,6 +9,7 @@ import pytest
 import pytz
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.db.models import Sum
 from django.utils import timezone
 from freezegun import freeze_time
@@ -43,8 +44,10 @@ from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
+from ...core.enums import ThumbnailFormatEnum
 from ...core.utils import to_global_id_or_none
 from ...payment.enums import TransactionStatusEnum
 from ...payment.types import PaymentChargeStatusEnum
@@ -1247,6 +1250,228 @@ def test_order_query_shows_non_draft_orders(
     edges = get_graphql_content(response)["data"]["orders"]["edges"]
 
     assert len(edges) == Order.objects.non_draft().count()
+
+
+ORDERS_QUERY_LINE_THUMBNAIL = """
+    query OrdersQuery($size: Int, $format: ThumbnailFormatEnum) {
+        orders(first: 1) {
+            edges {
+                node {
+                    lines {
+                        id
+                        thumbnail(size: $size, format: $format) {
+                            url
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_query_no_thumbnail(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert len(order_data["lines"]) == 1
+    assert not order_data["lines"][0]["thumbnail"]
+
+
+def test_order_query_product_image_size_and_format_given_proxy_url_returned(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    product_with_image,
+):
+    # given
+    order_line.variant.product = product_with_image
+    media = product_with_image.media.first()
+    format = ThumbnailFormatEnum.WEBP.name
+    variables = {
+        "size": 120,
+        "format": format,
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    assert len(order_data["lines"]) == 1
+    assert (
+        order_data["lines"][0]["thumbnail"]["url"]
+        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+    )
+
+
+def test_order_query_product_image_size_given_proxy_url_returned(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    product_with_image,
+):
+    # given
+    order_line.variant.product = product_with_image
+    media = product_with_image.media.first()
+    variables = {
+        "size": 120,
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    assert len(order_data["lines"]) == 1
+    assert (
+        order_data["lines"][0]["thumbnail"]["url"]
+        == f"http://testserver/thumbnail/{media_id}/128/"
+    )
+
+
+def test_order_query_product_image_size_given_thumbnail_url_returned(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    product_with_image,
+):
+    # given
+    order_line.variant.product = product_with_image
+    media = product_with_image.media.first()
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(product_media=media, size=128, image=thumbnail_mock)
+
+    variables = {
+        "size": 120,
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert len(order_data["lines"]) == 1
+    assert (
+        order_data["lines"][0]["thumbnail"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    variant_with_image,
+):
+    # given
+    order_line.variant = variant_with_image
+    media = variant_with_image.media.first()
+    format = ThumbnailFormatEnum.WEBP.name
+    variables = {
+        "size": 120,
+        "format": format,
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    assert len(order_data["lines"]) == 1
+    assert (
+        order_data["lines"][0]["thumbnail"]["url"]
+        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+    )
+
+
+def test_order_query_variant_image_size_given_proxy_url_returned(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    variant_with_image,
+):
+    # given
+    order_line.variant = variant_with_image
+    media = variant_with_image.media.first()
+    variables = {
+        "size": 120,
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    assert len(order_data["lines"]) == 1
+    assert (
+        order_data["lines"][0]["thumbnail"]["url"]
+        == f"http://testserver/thumbnail/{media_id}/128/"
+    )
+
+
+def test_order_query_variant_image_size_given_thumbnail_url_returned(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    variant_with_image,
+):
+    # given
+    order_line.variant = variant_with_image
+    media = variant_with_image.media.first()
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(product_media=media, size=128, image=thumbnail_mock)
+
+    variables = {
+        "size": 120,
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert len(order_data["lines"]) == 1
+    assert (
+        order_data["lines"][0]["thumbnail"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
 
 
 ORDER_CONFIRM_MUTATION = """

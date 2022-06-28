@@ -43,10 +43,10 @@ from ...payment.model_helpers import (
 )
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ...product.product_images import get_product_image_thumbnail
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
+from ...thumbnail.utils import get_thumbnail_size, prepare_image_proxy_url
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import (
@@ -62,10 +62,11 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.enums import LanguageCodeEnum
+from ..core.enums import LanguageCodeEnum, ThumbnailFormatEnum
 from ..core.fields import PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -96,6 +97,7 @@ from ..product.dataloaders import (
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
+    ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
 from ..product.types import DigitalContentUrl, ProductVariant
 from ..shipping.dataloaders import (
@@ -523,7 +525,22 @@ class OrderLine(ModelObjectType):
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for the ordered product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
+        size=graphene.Argument(
+            graphene.Int,
+            description=(
+                "Size of the avatar. If not provided the original image "
+                "will be returned."
+            ),
+        ),
+        format=ThumbnailFormatEnum(
+            description=(
+                "The format of the avatar. When not provided format of the original "
+                "image will be used. Must be provided together with the size value, "
+                "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
+            )
+        ),
     )
     unit_price = graphene.Field(
         TaxedMoney,
@@ -591,14 +608,27 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
+    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
         if not root.variant_id:
             return None
 
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
         def _get_image_from_media(image):
-            url = get_product_image_thumbnail(image, size, method="thumbnail")
-            alt = image.alt
-            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+            def _resolve_url(thumbnail):
+                url = (
+                    prepare_image_proxy_url(image.id, "ProductMedia", size, format)
+                    if thumbnail is None
+                    else thumbnail.image.url
+                )
+                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+
+            return (
+                ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+                .load((image.id, size, format))
+                .then(_resolve_url)
+            )
 
         def _get_first_variant_image(all_medias):
             if image := next(
