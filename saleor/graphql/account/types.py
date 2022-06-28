@@ -24,7 +24,7 @@ from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_35, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum, ThumbnailFormatEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
@@ -303,6 +303,8 @@ class User(ModelObjectType):
                 "The format of the avatar. When not provided format of the original "
                 "image will be used. Must be provided together with the size value, "
                 "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
             )
         ),
     )

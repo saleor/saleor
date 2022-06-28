@@ -1503,6 +1503,8 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
                 "The format of the image. When not provided, format of the original "
                 "image will be used. Must be provided together with the size value, "
                 "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
             )
         ),
     )
@@ -1657,6 +1659,8 @@ class Category(ModelObjectType):
                 "The format of the image. When not provided, format of the original "
                 "image will be used. Must be provided together with the size value, "
                 "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
             )
         ),
     )
@@ -1781,6 +1785,8 @@ class ProductMedia(ModelObjectType):
                 "The format of the image. When not provided, format of the original "
                 "image will be used. Must be provided together with the size value, "
                 "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
             )
         ),
     )
@@ -1850,6 +1856,8 @@ class ProductImage(graphene.ObjectType):
                 "The format of the image. When not provided, format of the original "
                 "image will be used. Must be provided together with the size value, "
                 "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
             )
         ),
     )
