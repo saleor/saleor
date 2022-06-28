@@ -1959,7 +1959,7 @@ type App implements Node & ObjectWithMetadata {
   """Description of the data privacy defined for this app."""
   dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
 
-  """Url to details about the privacy policy on the app owner page."""
+  """URL to details about the privacy policy on the app owner page."""
   dataPrivacyUrl: String
 
   """Homepage of the app."""
@@ -1968,14 +1968,14 @@ type App implements Node & ObjectWithMetadata {
   """Support page for the app."""
   supportUrl: String
 
-  """Url to iframe with the configuration for the app."""
+  """URL to iframe with the configuration for the app."""
   configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
 
-  """Url to iframe with the app."""
+  """URL to iframe with the app."""
   appUrl: String
 
   """
-  Url to manifest used during app's installation.
+  URL to manifest used during app's installation.
   
   Added in Saleor 3.5.
   """
@@ -19987,7 +19987,7 @@ type Manifest {
   permissions: [Permission!]
   appUrl: String
 
-  """Url to iframe with the configuration for the app."""
+  """URL to iframe with the configuration for the app."""
   configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
   tokenTargetUrl: String
 
