@@ -19,7 +19,6 @@ from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
-from ....product.product_images import get_product_image_thumbnail
 from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
     get_product_availability,
@@ -49,6 +48,7 @@ from ...core.connection import (
 )
 from ...core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_35,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -773,7 +773,22 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
+        size=graphene.Argument(
+            graphene.Int,
+            description=(
+                "Size of the avatar. If not provided the original image "
+                "will be returned."
+            ),
+        ),
+        format=ThumbnailFormatEnum(
+            description=(
+                "The format of the avatar. When not provided format of the original "
+                "image will be used. Must be provided together with the size value, "
+                "otherwise original image will be returned."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
+            )
+        ),
     )
     pricing = graphene.Field(
         ProductPricingInfo,
@@ -907,21 +922,35 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: ChannelContext[models.Product], info, *, size=255):
+    def resolve_thumbnail(
+        root: ChannelContext[models.Product], info, *, size=256, format=None
+    ):
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
         def return_first_thumbnail(product_media):
-            if product_media:
-                image = product_media[0]
-                oembed_data = image.oembed_data
+            if not product_media:
+                return None
 
-                if oembed_data.get("thumbnail_url"):
-                    return Image(
-                        alt=oembed_data["title"], url=oembed_data["thumbnail_url"]
-                    )
+            image = product_media[0]
+            oembed_data = image.oembed_data
 
-                url = get_product_image_thumbnail(image, size, method="thumbnail")
-                alt = image.alt
-                return Image(alt=alt, url=info.context.build_absolute_uri(url))
-            return None
+            if oembed_data.get("thumbnail_url"):
+                return Image(alt=oembed_data["title"], url=oembed_data["thumbnail_url"])
+
+            def _resolve_url(thumbnail):
+                url = (
+                    prepare_image_proxy_url(image.id, "ProductMedia", size, format)
+                    if thumbnail is None
+                    else thumbnail.image.url
+                )
+                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+
+            return (
+                ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+                .load((image.id, size, format))
+                .then(_resolve_url)
+            )
 
         return (
             MediaByProductIdLoader(info.context)
