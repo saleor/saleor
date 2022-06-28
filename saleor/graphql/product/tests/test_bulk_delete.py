@@ -996,13 +996,13 @@ def test_delete_product_variants_removes_checkout_lines(
     assert old_quantity == calculate_checkout_quantity(lines) + 2
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_from_storage_task")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_with_images(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     product_variant_list,
     image_list,
@@ -1046,7 +1046,7 @@ def test_delete_product_variants_with_images(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    delete_versatile_image_mock.assert_not_called()
+    delete_from_storage_task_mock.assert_not_called()
 
 
 def test_product_delete_removes_reference_to_product(
