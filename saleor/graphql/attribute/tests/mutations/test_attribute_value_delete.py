@@ -71,23 +71,43 @@ def test_delete_attribute_value_trigger_webhooks(
         permissions=[permission_manage_product_types_and_attributes],
     )
 
-    # then
-    mocked_webhook_trigger.assert_called_once_with(
+    meta = generate_meta(
+        requestor_data=generate_requestor(
+            SimpleLazyObject(lambda: staff_api_client.user)
+        )
+    )
+
+    attribute_updated_call = mock.call(
         {
             "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
             "name": color_attribute.name,
             "slug": color_attribute.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
+            "meta": meta,
         },
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+    attribute_value_created_call = mock.call(
+        {
+            "id": graphene.Node.to_global_id("AttributeValue", value.id),
+            "name": value.name,
+            "slug": value.slug,
+            "value": value.value,
+            "meta": meta,
+        },
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+        [any_webhook],
+        value,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+    # then
+    assert len(mocked_webhook_trigger.call_args_list) == 2
+    assert attribute_updated_call in mocked_webhook_trigger.call_args_list
+    assert attribute_value_created_call in mocked_webhook_trigger.call_args_list
 
 
 def test_delete_file_attribute_value(

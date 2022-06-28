@@ -446,7 +446,7 @@ class OrderLineQueryset(models.QuerySet):
                 yield line
 
 
-class OrderLine(models.Model):
+class OrderLine(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -611,7 +611,7 @@ class OrderLine(models.Model):
 
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
     def __str__(self):

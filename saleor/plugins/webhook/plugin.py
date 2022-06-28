@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
 
@@ -51,12 +51,11 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ...account.models import Address, User
-    from ...attribute.models import Attribute
+    from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
-    from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
@@ -186,6 +185,46 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_attribute_event(
             WebhookEventAsyncType.ATTRIBUTE_DELETED, attribute
+        )
+
+    def _trigger_attribute_value_event(self, event_type, attribute_value):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("AttributeValue", attribute_value.id),
+                "name": attribute_value.name,
+                "slug": attribute_value.slug,
+                "value": attribute_value.value,
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, attribute_value, self.requestor
+            )
+
+    def attribute_value_created(
+        self, attribute_value: "AttributeValue", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_attribute_value_event(
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED, attribute_value
+        )
+
+    def attribute_value_updated(
+        self, attribute_value: "AttributeValue", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_attribute_value_event(
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED, attribute_value
+        )
+
+    def attribute_value_deleted(
+        self, attribute_value: "AttributeValue", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_attribute_value_event(
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED, attribute_value
         )
 
     def __trigger_category_event(self, event_type, category):
@@ -385,7 +424,10 @@ class WebhookPlugin(BasePlugin):
             )
 
     def sale_created(
-        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        current_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value
@@ -404,8 +446,8 @@ class WebhookPlugin(BasePlugin):
     def sale_updated(
         self,
         sale: "Sale",
-        previous_catalogue: "NodeCatalogueInfo",
-        current_catalogue: "NodeCatalogueInfo",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        current_catalogue: DefaultDict[str, Set[str]],
         previous_value: Any,
     ) -> Any:
         if not self.active:
@@ -420,7 +462,10 @@ class WebhookPlugin(BasePlugin):
             )
 
     def sale_deleted(
-        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
+        self,
+        sale: "Sale",
+        previous_catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value

@@ -124,26 +124,46 @@ def test_create_attribute_value_trigger_webhooks(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
+    attribute_value = AttributeValue.objects.get(attribute=color_attribute, name=name)
+    meta = generate_meta(
+        requestor_data=generate_requestor(
+            SimpleLazyObject(lambda: staff_api_client.user)
+        )
+    )
 
-    # then
-    assert not data["errors"]
-    assert data["attributeValue"]
-    mocked_webhook_trigger.assert_called_once_with(
+    attribute_updated_call = mock.call(
         {
             "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
             "name": color_attribute.name,
             "slug": color_attribute.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
+            "meta": meta,
         },
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+    attribute_value_created_call = mock.call(
+        {
+            "id": graphene.Node.to_global_id("AttributeValue", attribute_value.id),
+            "name": attribute_value.name,
+            "slug": attribute_value.slug,
+            "value": attribute_value.value,
+            "meta": meta,
+        },
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+        [any_webhook],
+        attribute_value,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+    # then
+    assert not data["errors"]
+    assert data["attributeValue"]
+    assert len(mocked_webhook_trigger.call_args_list) == 2
+    assert attribute_updated_call in mocked_webhook_trigger.call_args_list
+    assert attribute_value_created_call in mocked_webhook_trigger.call_args_list
 
 
 def test_create_swatch_attribute_value_with_value(
