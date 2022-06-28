@@ -604,6 +604,16 @@ class WebhookPlugin(BasePlugin):
                 customer_data, event_type, webhooks, customer, self.requestor
             )
 
+    def customer_deleted(self, customer: "User", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CUSTOMER_DELETED
+        if webhooks := get_webhooks_for_event(event_type):
+            customer_data = generate_customer_payload(customer, self.requestor)
+            trigger_webhooks_async(
+                customer_data, event_type, webhooks, customer, self.requestor
+            )
+
     def collection_created(self, collection: "Collection", previous_value: Any) -> Any:
         if not self.active:
             return previous_value

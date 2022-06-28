@@ -37,6 +37,13 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         cls.post_process(info, count)
         return count, errors
 
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        instances = list(queryset)
+        queryset.delete()
+        for instance in instances:
+            info.context.plugins.customer_deleted(instance)
+
 
 class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:
