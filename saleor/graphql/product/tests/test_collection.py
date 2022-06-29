@@ -1003,7 +1003,7 @@ def test_delete_collection_with_background_image(
         collection.refresh_from_db()
     # ensure all related thumbnails has been deleted
     assert not Thumbnail.objects.filter(collection_id=collection_id)
-    assert delete_from_storage_task_mock.call_count == 2
+    assert delete_from_storage_task_mock.call_count == 3
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

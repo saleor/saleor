@@ -485,14 +485,15 @@ VERSATILEIMAGEFIELD_SETTINGS = {
 }
 
 PLACEHOLDER_IMAGES = {
-    60: "images/placeholder60x60.png",
-    120: "images/placeholder120x120.png",
-    255: "images/placeholder255x255.png",
-    540: "images/placeholder540x540.png",
-    1080: "images/placeholder1080x1080.png",
+    32: "images/placeholder32.png",
+    64: "images/placeholder64.png",
+    128: "images/placeholder128.png",
+    256: "images/placeholder256.png",
+    512: "images/placeholder512.png",
+    1024: "images/placeholder1024.png",
+    2048: "images/placeholder2048.png",
+    4096: "images/placeholder4096.png",
 }
-
-DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
 
 AUTHENTICATION_BACKENDS = [

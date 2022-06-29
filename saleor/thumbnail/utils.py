@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import Optional
+from typing import Optional, Union
 
 import graphene
 import magic
@@ -20,7 +20,7 @@ def prepare_image_proxy_url(
     return reverse("thumbnail", kwargs=kwargs)
 
 
-def get_thumbnail_size(size: str) -> int:
+def get_thumbnail_size(size: Union[str, int]) -> int:
     """Return the closest size to the given one of the available sizes."""
     size = int(size)
     if size in THUMBNAIL_SIZES:

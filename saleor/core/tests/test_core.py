@@ -1,5 +1,3 @@
-import io
-from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
@@ -17,12 +15,11 @@ from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannel
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...product import ProductTypeKind
-from ...product.models import ProductMedia, ProductType
+from ...product.models import ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
 from ..utils import (
     build_absolute_uri,
-    create_thumbnails,
     generate_unique_slug,
     get_client_ip,
     get_currency_for_country,
@@ -191,37 +188,6 @@ def test_create_gift_card(
         pass
     assert GiftCard.objects.count() == amount * 2
     assert GiftCardEvent.objects.count() == amount * 2
-
-
-@override_settings(VERSATILEIMAGEFIELD_SETTINGS={"create_images_on_demand": False})
-def test_create_thumbnails(product_with_image, settings, monkeypatch):
-    monkeypatch.setattr("django.core.cache.cache.get", Mock(return_value=None))
-    sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS["products"]
-    product_image = product_with_image.media.first()
-
-    # There's no way to list images created by versatile prewarmer
-    # So we delete all created thumbnails/crops and count them
-    log_deleted_images = io.StringIO()
-    with redirect_stdout(log_deleted_images):
-        product_image.image.delete_all_created_images()
-    log_deleted_images = log_deleted_images.getvalue()
-    # Image didn't have any thumbnails/crops created, so there's no log
-    assert not log_deleted_images
-
-    create_thumbnails(product_image.pk, ProductMedia, "products")
-    log_deleted_images = io.StringIO()
-    with redirect_stdout(log_deleted_images):
-        product_image.image.delete_all_created_images()
-    log_deleted_images = log_deleted_images.getvalue()
-
-    for image_name, method_size in sizeset:
-        method, size = method_size.split("__")
-        if method == "crop":
-            assert product_image.image.crop[size].name in log_deleted_images
-        elif method == "thumbnail":
-            assert (
-                product_image.image.thumbnail[size].name in log_deleted_images
-            )  # noqa
 
 
 @patch("storages.backends.s3boto3.S3Boto3Storage")

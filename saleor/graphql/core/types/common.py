@@ -4,7 +4,6 @@ import graphene
 from django.conf import settings
 
 from ....core.tracing import traced_resolver
-from ....product.product_images import get_thumbnail
 from ...account.enums import AddressTypeEnum
 from ..enums import (
     AccountErrorCode,
@@ -419,21 +418,6 @@ class Image(graphene.ObjectType):
     @staticmethod
     def resolve_url(root, info):
         return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
-
-    @staticmethod
-    def get_adjusted(image, alt, size, rendition_key_set, info):
-        """Return Image adjusted with given size."""
-        if size:
-            url = get_thumbnail(
-                image_file=image,
-                size=size,
-                method="thumbnail",
-                rendition_key_set=rendition_key_set,
-            )
-        else:
-            url = image.url
-        url = info.context.build_absolute_uri(url)
-        return Image(url, alt)
 
 
 class File(graphene.ObjectType):
