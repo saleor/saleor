@@ -11,6 +11,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management.color import color_style
 from django.utils.module_loading import import_string
 from jwt.algorithms import RSAAlgorithm
+from jwt import api_jws
+
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +118,16 @@ class JWTManager(JWTManagerBase):
     def encode(cls, payload):
         return jwt.encode(
             payload, cls.get_private_key(), algorithm="RS256", headers={"kid": KID}
+        )
+
+    @classmethod
+    def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> bytes:
+        return api_jws.encode(
+            payload,
+            key=cls.get_private_key(),
+            algorithm="RS256",
+            headers={"kid": KID},
+            is_payload_detached=is_payload_detached,
         )
 
     @classmethod
