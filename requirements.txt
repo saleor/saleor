@@ -62,7 +62,7 @@ google-cloud-core==2.3.1; python_version >= "3.7"
 google-cloud-pubsub==2.13.0; python_version >= "3.6"
 google-cloud-storage==2.4.0; python_version >= "3.7"
 google-crc32c==1.3.0; python_version >= "3.7"
-google-i18n-address==2.5.1
+google-i18n-address==2.5.2
 google-measurement-protocol==1.1.0
 google-resumable-media==2.3.3; python_version >= "3.7"
 googleapis-common-protos==1.56.3; python_version >= "3.7"
