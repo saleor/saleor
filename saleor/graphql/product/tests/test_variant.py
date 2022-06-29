@@ -95,6 +95,7 @@ def test_fetch_variant(
                 unit
                 value
             }
+            created
         }
     }
     """
@@ -117,6 +118,7 @@ def test_fetch_variant(
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["name"] == variant.name
+    assert data["created"] == variant.created_at.isoformat()
 
     stocks_count = variant.stocks.count()
     assert len(data["deprecatedStocksByCountry"]) == stocks_count
