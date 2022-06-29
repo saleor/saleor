@@ -63,6 +63,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -837,7 +838,6 @@ class Order(ModelObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
-
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -846,7 +846,6 @@ class Order(ModelObjectType):
         description="Shipping method for this order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
-
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -859,7 +858,6 @@ class Order(ModelObjectType):
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
-    display_gross_prices = graphene.Boolean(required=True)
     customerNote = graphene.Boolean(required=True)
     customer_note = graphene.String(required=True)
     weight = graphene.Field(Weight, required=True)
@@ -939,14 +937,12 @@ class Order(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
         ),
     )
-
     translated_discount_name = graphene.String(
         description="Translated discount name.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
         ),
     )
-
     discounts = NonNullList(
         "saleor.graphql.discount.types.OrderDiscount",
         description="List of all discounts assigned to the order.",
@@ -961,7 +957,7 @@ class Order(ModelObjectType):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront."
+            "in a storefront." + ADDED_IN_35 + PREVIEW_FEATURE
         ),
         required=True,
     )

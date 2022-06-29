@@ -5574,6 +5574,10 @@ type ProductPricingInfo {
 
   """
   Determines whether this product's price displayed in a storefront should include taxes.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
 }
@@ -7936,6 +7940,10 @@ type Checkout implements Node & ObjectWithMetadata {
 
   """
   Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
 }
@@ -8686,6 +8694,10 @@ type Order implements Node & ObjectWithMetadata {
 
   """
   Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
 }
