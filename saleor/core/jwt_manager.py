@@ -10,9 +10,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.color import color_style
 from django.utils.module_loading import import_string
-from jwt.algorithms import RSAAlgorithm
 from jwt import api_jws
-
+from jwt.algorithms import RSAAlgorithm
 
 logger = logging.getLogger(__name__)
 
