@@ -628,19 +628,19 @@ def validate_attributes_input(
             attr_values,
             attribute_errors,
         )
-        if attribute.input_type == AttributeInputType.FILE:
-            validate_file_attributes_input(*attrs)
-        elif attribute.input_type == AttributeInputType.REFERENCE:
-            validate_reference_attributes_input(*attrs)
-        elif attribute.input_type == AttributeInputType.RICH_TEXT:
-            validate_rich_text_attributes_input(*attrs)
-        elif attribute.input_type == AttributeInputType.BOOLEAN:
-            validate_boolean_input(*attrs)
-        elif attribute.input_type in [
-            AttributeInputType.DATE,
-            AttributeInputType.DATE_TIME,
-        ]:
-            validate_date_time_input(*attrs)
+        input_type_to_validation_func_mapping = {
+            AttributeInputType.FILE: validate_file_attributes_input,
+            AttributeInputType.REFERENCE: validate_reference_attributes_input,
+            AttributeInputType.RICH_TEXT: validate_rich_text_attributes_input,
+            AttributeInputType.PLAIN_TEXT: validate_plain_text_attributes_input,
+            AttributeInputType.BOOLEAN: validate_boolean_input,
+            AttributeInputType.DATE: validate_date_time_input,
+            AttributeInputType.DATE_TIME: validate_date_time_input,
+        }
+        if validation_func := input_type_to_validation_func_mapping.get(
+            attribute.input_type
+        ):
+            validation_func(*attrs)
         # validation for other input types
         else:
             validate_standard_attributes_input(*attrs)
@@ -711,6 +711,19 @@ def validate_rich_text_attributes_input(
     text = clean_editor_js(attr_values.rich_text or {}, to_string=True)
 
     if not text.strip() and attribute.value_required:
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
+
+
+def validate_plain_text_attributes_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+):
+    attribute_id = attr_values.global_id
+
+    if (
+        not attr_values.plain_text or not attr_values.plain_text.strip()
+    ) and attribute.value_required:
         attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
 
 
