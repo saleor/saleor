@@ -170,4 +170,4 @@ def test_update_percentage_order_discount_by_old_id(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
-    # assert discount_data["amount_value"] == str(order_discount.amount.amount)
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
