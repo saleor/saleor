@@ -145,8 +145,7 @@ def fetch_order_prices_if_expired(
     with transaction.atomic(savepoint=False):
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
-        # TODO in separete PR:
-        # discount should be calculated before taxes.
+
         _recalculate_order_discounts(order, lines)
 
         order.save(

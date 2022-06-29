@@ -62,7 +62,6 @@ def create_order_taxed_prices_data(
     )
 
 
-@pytest.mark.skip(reason="TODO: Fix This when refactoring plugins")
 def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     # given
     order = order_with_lines
@@ -79,12 +78,17 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
         )
     )
 
-    unit_prices = [
-        get_order_priced_taxes_data(line, "unit", currency) for line in tax_data.lines
-    ]
     total_prices = [
         get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
     ]
+    unit_prices = []
+    for line, total_price in zip(lines, total_prices):
+        unit_prices.append(
+            OrderTaxedPricesData(
+                undiscounted_price=total_price.undiscounted_price / line.quantity,
+                price_with_discounts=total_price.price_with_discounts / line.quantity,
+            )
+        )
     tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = tax_data.shipping_tax_rate
     shipping = get_taxed_money(tax_data, "shipping_price", currency)
@@ -130,7 +134,6 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
         "get_order_shipping_tax_rate",
     ],
 )
-@pytest.mark.skip(reason="TODO: Fix This when refactoring plugins")
 def test_recalculate_order_prices_tax_error(
     order_with_lines, order_lines, mocked_method_name
 ):
@@ -159,12 +162,12 @@ def test_recalculate_order_prices_tax_error(
     # no exception is raised
 
 
-@pytest.mark.skip(reason="TODO: Fix This when refactoring plugins")
 def test_recalculate_order_prices_tax_error_line_prices(
     order_with_lines, order_lines, tax_data
 ):
     # given
     order = order_with_lines
+    currency = order.currency
     lines = list(order_lines)
     lines.append(
         Mock(
@@ -172,7 +175,7 @@ def test_recalculate_order_prices_tax_error_line_prices(
             total_price=create_taxed_money(
                 net=Decimal("33.33"),
                 gross=Decimal("44.44"),
-                currency=order.currency,
+                currency=currency,
             ),
         )
     )
@@ -183,21 +186,28 @@ def test_recalculate_order_prices_tax_error_line_prices(
     old_line_undiscounted_total_price = error_line.undiscounted_total_price
     old_line_tax_rate = error_line.tax_rate
 
-    unit_prices = [get_order_priced_taxes_data(line, "unit") for line in tax_data.lines]
     total_prices = [
-        get_order_priced_taxes_data(line, "total") for line in tax_data.lines
+        get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
     ]
+    unit_prices = []
+    for line, total_price in zip(lines, total_prices):
+        unit_prices.append(
+            OrderTaxedPricesData(
+                undiscounted_price=total_price.undiscounted_price / line.quantity,
+                price_with_discounts=total_price.price_with_discounts / line.quantity,
+            )
+        )
     tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = tax_data.shipping_tax_rate
-    shipping = get_taxed_money(tax_data, "shipping_price")
+    shipping = get_taxed_money(tax_data, "shipping_price", currency)
 
     subtotal = (
         error_line.total_price
         + sum(
-            [get_taxed_money(line, "total") for line in tax_data.lines[1:]],
-            zero_taxed_money(order.currency),
+            [get_taxed_money(line, "total", currency) for line in tax_data.lines[1:]],
+            zero_taxed_money(currency),
         )
-        + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
+        + create_taxed_money(Decimal("33.33"), Decimal("44.44"), currency)
     )
     total = shipping + subtotal
 
@@ -233,12 +243,12 @@ def test_recalculate_order_prices_tax_error_line_prices(
         assert tax_rate == line.tax_rate
 
 
-@pytest.mark.skip(reason="TODO: Fix This when refactoring plugins")
 def test_recalculate_order_prices_tax_error_shipping_price(
     order_with_lines, order_lines, tax_data
 ):
     # given
     order = order_with_lines
+    currency = order.currency
     lines = list(order_lines)
     lines.append(
         Mock(
@@ -246,26 +256,31 @@ def test_recalculate_order_prices_tax_error_shipping_price(
             total_price=create_taxed_money(
                 net=Decimal("33.33"),
                 gross=Decimal("44.44"),
-                currency=order.currency,
+                currency=currency,
             ),
         )
     )
     old_shipping_price = order.shipping_price
     old_shipping_tax_rate = order.shipping_tax_rate
 
-    unit_prices: list = [
-        get_order_priced_taxes_data(line, "unit") for line in tax_data.lines
-    ]
     total_prices = [
-        get_order_priced_taxes_data(line, "total") for line in tax_data.lines
+        get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
     ]
+    unit_prices = []
+    for line, total_price in zip(lines, total_prices):
+        unit_prices.append(
+            OrderTaxedPricesData(
+                undiscounted_price=total_price.undiscounted_price / line.quantity,
+                price_with_discounts=total_price.price_with_discounts / line.quantity,
+            )
+        )
     tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = tax_data.shipping_tax_rate
 
     subtotal = sum(
-        [get_taxed_money(line, "total") for line in tax_data.lines],
-        zero_taxed_money(order.currency),
-    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
+        [get_taxed_money(line, "total", currency) for line in tax_data.lines],
+        zero_taxed_money(currency),
+    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), currency)
 
     manager = Mock(
         calculate_order_line_unit=Mock(side_effect=unit_prices),
@@ -320,7 +335,6 @@ def manager(db):
     return manager
 
 
-# TODO: Use in other tests
 @pytest.fixture
 def manager_with_mocked_plugins_calculations(manager, tax_data, order_with_lines):
     currency = order_with_lines.currency
@@ -393,7 +407,6 @@ def get_order_priced_taxes_data(
     )
 
 
-@pytest.mark.skip(reason="TODO: Fix This when refactoring plugins")
 def test_fetch_order_prices_if_expired_plugins(
     manager,
     fetch_kwargs,
@@ -402,15 +415,24 @@ def test_fetch_order_prices_if_expired_plugins(
 ):
     # given
     currency = order_with_lines.currency
-    unit_prices = [
-        get_order_priced_taxes_data(line, "unit", currency) for line in tax_data.lines
-    ]
     total_prices = [
         get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
     ]
+    subtotal = zero_taxed_money(currency)
+    unit_prices = []
+    for line, total_price in zip(order_with_lines.lines.all(), total_prices):
+        subtotal += total_price.price_with_discounts
+        unit_prices.append(
+            OrderTaxedPricesData(
+                undiscounted_price=total_price.undiscounted_price / line.quantity,
+                price_with_discounts=total_price.price_with_discounts / line.quantity,
+            )
+        )
     tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = tax_data.shipping_tax_rate
     shipping = get_taxed_money(tax_data, "shipping_price", currency)
+
+    total = subtotal + shipping
 
     manager.calculate_order_line_unit = Mock(side_effect=unit_prices)
     manager.calculate_order_line_total = Mock(side_effect=total_prices)
@@ -428,9 +450,11 @@ def test_fetch_order_prices_if_expired_plugins(
         tax_data, "shipping_price", currency
     )
     assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate
-    assert order_with_lines.total == get_taxed_money(tax_data, "total", currency)
-    for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
-        assert order_line.unit_price == get_taxed_money(tax_line, "unit", currency)
+    assert order_with_lines.total == total
+    for order_line, tax_line, unit_price in zip(
+        order_with_lines.lines.all(), tax_data.lines, unit_prices
+    ):
+        assert order_line.unit_price == unit_price.price_with_discounts
         assert order_line.total_price == get_taxed_money(tax_line, "total", currency)
         assert order_line.tax_rate == tax_line.tax_rate
 
