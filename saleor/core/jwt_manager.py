@@ -34,6 +34,10 @@ class JWTManagerBase:
         return NotImplemented
 
     @classmethod
+    def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> str:
+        return NotImplemented
+
+    @classmethod
     def decode(cls, token: str, verify_expiration: bool = True) -> dict:
         return NotImplemented
 
@@ -121,10 +125,10 @@ class JWTManager(JWTManagerBase):
         )
 
     @classmethod
-    def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> bytes:
+    def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> str:
         return api_jws.encode(
             payload,
-            key=cls.get_private_key(),
+            key=cls.get_private_key(),  # type: ignore
             algorithm="RS256",
             headers={"kid": KID},
             is_payload_detached=is_payload_detached,
