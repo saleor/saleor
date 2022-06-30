@@ -420,11 +420,13 @@ def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gif
 
 
 @pytest.fixture
-def checkout_with_digital_item(checkout, digital_content):
+def checkout_with_digital_item(checkout, digital_content, address):
     """Create a checkout with a digital line."""
     variant = digital_content.product_variant
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
+    checkout.discount_amount = Decimal(0)
+    checkout.billing_address = address
     checkout.email = "customer@example.com"
     checkout.save()
     return checkout

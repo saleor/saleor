@@ -13,6 +13,7 @@ from graphene.utils.str_converters import to_camel_case
 from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
+from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
@@ -1195,7 +1196,7 @@ def generate_checkout_payload_for_tax_calculation(
     if shipping_method:
         shipping_method_name = shipping_method.name
     shipping_method_amount = quantize_price(
-        get_base_price(checkout.shipping_price, included_taxes_in_prices),
+        base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,
     )
 

@@ -4,7 +4,12 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ...checkout import base_calculations
-from ...checkout.fetch import fetch_active_discounts, fetch_checkout_lines
+from ...checkout.fetch import (
+    fetch_active_discounts,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
+from ...plugins.manager import get_plugins_manager
 
 
 @pytest.fixture
@@ -17,10 +22,19 @@ def checkout_with_prices(
     shipping_method,
     voucher,
 ):
+    # Need to save shipping_method before fetching checkout info.
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.save(update_fields=["shipping_method"])
+
+    manager = get_plugins_manager()
     channel = checkout_with_items.channel
     discounts_info = fetch_active_discounts()
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(
+        checkout_with_items, lines, discounts_info, manager
+    )
+
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.base_checkout_line_total(
             line_info, channel, discounts_info
@@ -32,14 +46,16 @@ def checkout_with_prices(
     checkout_with_items.user = customer_user
     checkout_with_items.billing_address = address
     checkout_with_items.shipping_address = address_other_country
-    checkout_with_items.shipping_method = shipping_method
     checkout_with_items.collection_point = warehouse
     checkout_with_items.subtotal_net_amount = Decimal("100.000")
     checkout_with_items.subtotal_gross_amount = Decimal("123.000")
     checkout_with_items.total_net_amount = Decimal("150.000")
     checkout_with_items.total_gross_amount = Decimal("178.000")
-    checkout_with_items.shipping_price_net_amount = Decimal("10.000")
-    checkout_with_items.shipping_price_gross_amount = Decimal("11.000")
+    shipping_amount = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines_info
+    ).amount
+    checkout_with_items.shipping_price_net_amount = shipping_amount
+    checkout_with_items.shipping_price_gross_amount = shipping_amount * Decimal("1.08")
     checkout_with_items.metadata = {"meta_key": "meta_value"}
     checkout_with_items.private_metadata = {"priv_meta_key": "priv_meta_value"}
 
@@ -58,7 +74,6 @@ def checkout_with_prices(
             "user",
             "billing_address",
             "shipping_address",
-            "shipping_method",
             "collection_point",
             "subtotal_net_amount",
             "subtotal_gross_amount",

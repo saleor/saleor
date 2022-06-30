@@ -116,7 +116,10 @@ def calculate_undiscounted_base_line_total_price(
     return quantize_price(total_price, total_price.currency)
 
 
-def base_checkout_delivery_price(checkout_info: "CheckoutInfo", lines=None) -> Money:
+def base_checkout_delivery_price(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"] = None,
+) -> Money:
     """Calculate base (untaxed) price for any kind of delivery method."""
     from .fetch import ShippingMethodInfo
 
@@ -133,7 +136,7 @@ def base_checkout_delivery_price(checkout_info: "CheckoutInfo", lines=None) -> M
 def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: "ShippingMethodInfo",
-    lines=None,
+    lines: Iterable["CheckoutLineInfo"] = None,
 ) -> Money:
     """Return checkout shipping price."""
     from .fetch import CheckoutLineInfo

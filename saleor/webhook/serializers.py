@@ -82,12 +82,18 @@ def serialize_checkout_lines_for_tax_calculation(
     return [
         {
             **_get_checkout_line_payload_data(line_info),
-            "unit_amount": base_calculations.base_checkout_line_unit_price(
-                line_info, channel, discounts
-            ).amount,
-            "total_amount": base_calculations.base_checkout_line_total(
-                line_info, channel, discounts
-            ).amount,
+            "unit_amount": quantize_price(
+                base_calculations.base_checkout_line_unit_price(
+                    line_info, channel, discounts
+                ).amount,
+                checkout_info.checkout.currency,
+            ),
+            "total_amount": quantize_price(
+                base_calculations.base_checkout_line_total(
+                    line_info, channel, discounts
+                ).amount,
+                checkout_info.checkout.currency,
+            ),
         }
         for line_info in lines
     ]

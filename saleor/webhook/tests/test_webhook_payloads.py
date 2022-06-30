@@ -1384,6 +1384,14 @@ def test_generate_checkout_payload_for_tax_calculation(
     address = checkout.shipping_address
 
     # then
+    shipping_price = str(
+        quantize_price(
+            checkout.shipping_method.channel_listings.get(
+                channel_id=checkout.channel_id
+            ).price.amount,
+            currency,
+        )
+    )
     assert payload == {
         "type": "Checkout",
         "id": graphene.Node.to_global_id("Checkout", checkout.pk),
@@ -1419,11 +1427,7 @@ def test_generate_checkout_payload_for_tax_calculation(
         "total_amount": str(
             quantize_price(get_base_price(checkout.total, taxes_included), currency)
         ),
-        "shipping_amount": str(
-            quantize_price(
-                get_base_price(checkout.shipping_price, taxes_included), currency
-            )
-        ),
+        "shipping_amount": shipping_price,
     }
     mocked_fetch_checkout.assert_not_called()
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
@@ -1437,24 +1441,12 @@ def test_generate_checkout_payload_for_tax_calculation(
 def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     mocked_serialize_checkout_lines_for_tax_calculation,
     mocked_fetch_checkout,
-    checkout_with_prices,
+    checkout_with_digital_item,
     site_settings,
 ):
     taxes_included = True
     discounts_info = fetch_active_discounts()
-    checkout = checkout_with_prices
-    checkout.shipping_address = None
-    checkout.shipping_method = None
-    checkout.shipping_price_net_amount = Decimal(0)
-    checkout.shipping_price_gross_amount = Decimal(0)
-    checkout.save(
-        update_fields=[
-            "shipping_address",
-            "shipping_price_net_amount",
-            "shipping_price_gross_amount",
-            "shipping_method",
-        ]
-    )
+    checkout = checkout_with_digital_item
     currency = checkout.currency
 
     site_settings.include_taxes_in_prices = taxes_included
@@ -1464,10 +1456,10 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
         mocked_serialized_checkout_lines
     )
-    lines, _ = fetch_checkout_lines(checkout_with_prices)
+    lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
     discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
     # when
     payload = json.loads(
@@ -1478,7 +1470,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     # then
     assert payload == {
         "type": "Checkout",
-        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "id": graphene.Node.to_global_id("Checkout", checkout.id),
         "address": {
             "type": "Address",
             "id": graphene.Node.to_global_id("Address", address.pk),
@@ -1501,14 +1493,14 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
             "slug": checkout.channel.slug,
         },
         "currency": currency,
-        "discounts": [{"amount": "5.00", "name": "Voucher 5 USD"}],
+        "discounts": [],
         "included_taxes_in_prices": taxes_included,
         "lines": mocked_serialized_checkout_lines,
-        "metadata": {"meta_key": "meta_value"},
+        "metadata": {},
         "shipping_name": None,
-        "shipping_amount": str(quantize_price(Decimal(0), currency)),
-        "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
-        "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
+        "shipping_amount": str(quantize_price(Decimal("0.00"), currency)),
+        "user_id": None,
+        "user_public_metadata": {},
         "total_amount": str(
             quantize_price(get_base_price(checkout.total, taxes_included), currency)
         ),
