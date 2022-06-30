@@ -114,7 +114,7 @@ class CheckoutLine(ModelObjectType):
 
     class Meta:
         description = "Represents an item in the checkout."
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.CheckoutLine
 
     @staticmethod

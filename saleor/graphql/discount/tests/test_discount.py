@@ -12,7 +12,6 @@ from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
 from ....discount.utils import fetch_catalogue_info
-from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import (
@@ -21,6 +20,7 @@ from ...tests.utils import (
     get_graphql_content_from_response,
 )
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
+from ..mutations.utils import convert_catalogue_info_to_global_ids
 
 
 @pytest.fixture

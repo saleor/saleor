@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
 
-from django.db.models import Q, prefetch_related_objects
+from django.contrib.postgres.search import SearchVector
+from django.db.models import Q, Value, prefetch_related_objects
 
 if TYPE_CHECKING:
-    from .models import User
+    from .models import Address, User
 
 
 USER_SEARCH_FIELDS = ["email", "first_name", "last_name"]
@@ -50,7 +51,7 @@ def generate_user_fields_search_document_value(user: "User"):
     return value.lower()
 
 
-def generate_address_search_document_value(address):
+def generate_address_search_document_value(address: "Address"):
     fields_values = [
         str(getattr(address, field))
         if field != "country"
@@ -58,6 +59,34 @@ def generate_address_search_document_value(address):
         for field in ADDRESS_SEARCH_FIELDS
     ]
     return ("\n".join(fields_values) + "\n").lower()
+
+
+def generate_address_search_vector_value(
+    address: "Address", weight: str = "A"
+) -> SearchVector:
+    search_vector = SearchVector(
+        Value(address.first_name),
+        Value(address.last_name),
+        Value(address.street_address_1),
+        Value(address.country.name),
+        Value(address.country.code),
+        weight=weight,
+    )
+    if address.company_name:
+        search_vector += SearchVector(Value(address.company_name), weight=weight)
+    if address.country_area:
+        search_vector += SearchVector(Value(address.country_area), weight=weight)
+    if address.city:
+        search_vector += SearchVector(Value(address.city), weight=weight)
+    if address.city_area:
+        search_vector += SearchVector(Value(address.city_area), weight=weight)
+    if address.street_address_2:
+        search_vector += SearchVector(Value(address.street_address_2), weight=weight)
+    if address.postal_code:
+        search_vector += SearchVector(Value(address.postal_code), weight=weight)
+    if address.phone:
+        search_vector += SearchVector(Value(address.phone.as_e164), weight=weight)
+    return search_vector
 
 
 def search_users(qs, value):

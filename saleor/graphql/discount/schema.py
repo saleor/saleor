@@ -9,20 +9,18 @@ from ..core.utils import from_global_id_or_error
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .filters import SaleFilter, VoucherFilter
-from .mutations import (
-    SaleAddCatalogues,
-    SaleChannelListingUpdate,
-    SaleCreate,
-    SaleDelete,
-    SaleRemoveCatalogues,
-    SaleUpdate,
-    VoucherAddCatalogues,
-    VoucherChannelListingUpdate,
-    VoucherCreate,
-    VoucherDelete,
-    VoucherRemoveCatalogues,
-    VoucherUpdate,
-)
+from .mutations.sale_add_catalogues import SaleAddCatalogues
+from .mutations.sale_channel_listing_update import SaleChannelListingUpdate
+from .mutations.sale_create import SaleCreate
+from .mutations.sale_delete import SaleDelete
+from .mutations.sale_remove_catalogues import SaleRemoveCatalogues
+from .mutations.sale_update import SaleUpdate
+from .mutations.voucher_add_catalogues import VoucherAddCatalogues
+from .mutations.voucher_channel_listing_update import VoucherChannelListingUpdate
+from .mutations.voucher_create import VoucherCreate
+from .mutations.voucher_delete import VoucherDelete
+from .mutations.voucher_remove_catalogues import VoucherRemoveCatalogues
+from .mutations.voucher_update import VoucherUpdate
 from .resolvers import resolve_sale, resolve_sales, resolve_voucher, resolve_vouchers
 from .sorters import SaleSortingInput, VoucherSortingInput
 from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConnection

@@ -2,7 +2,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
@@ -48,7 +48,6 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     from ..discount.models import Sale
-    from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData, TransactionActionData
     from ..payment.models import Payment
@@ -360,16 +359,16 @@ def _generate_order_payment_payload(payments: Iterable["Payment"]):
 
 
 def _calculate_added(
-    previous_catalogue: "NodeCatalogueInfo",
-    current_catalogue: "NodeCatalogueInfo",
+    previous_catalogue: DefaultDict[str, Set[str]],
+    current_catalogue: DefaultDict[str, Set[str]],
     key: str,
 ) -> List[str]:
     return list(current_catalogue[key] - previous_catalogue[key])
 
 
 def _calculate_removed(
-    previous_catalogue: "NodeCatalogueInfo",
-    current_catalogue: "NodeCatalogueInfo",
+    previous_catalogue: DefaultDict[str, Set[str]],
+    current_catalogue: DefaultDict[str, Set[str]],
     key: str,
 ) -> List[str]:
     return _calculate_added(current_catalogue, previous_catalogue, key)
@@ -378,8 +377,8 @@ def _calculate_removed(
 @traced_payload_generator
 def generate_sale_payload(
     sale: "Sale",
-    previous_catalogue: Optional["NodeCatalogueInfo"] = None,
-    current_catalogue: Optional["NodeCatalogueInfo"] = None,
+    previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
+    current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     if previous_catalogue is None:

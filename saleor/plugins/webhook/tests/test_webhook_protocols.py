@@ -47,6 +47,7 @@ def test_trigger_webhooks_with_aws_sqs(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
     trigger_webhooks_async(
         expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
     )
@@ -62,6 +63,7 @@ def test_trigger_webhooks_with_aws_sqs(
         "MessageAttributes": {
             "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
             "EventType": {"DataType": "String", "StringValue": "order_created"},
+            "Signature": {"DataType": "String", "StringValue": expected_signature},
         },
         "MessageBody": expected_data,
     }
@@ -142,6 +144,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
 
     trigger_webhooks_async(
         expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
@@ -151,7 +154,7 @@ def test_trigger_webhooks_with_google_pub_sub(
         expected_data.encode("utf-8"),
         saleorDomain="mirumee.com",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
-        signature="",
+        signature=expected_signature,
     )
 
 
@@ -212,6 +215,9 @@ def test_trigger_webhooks_with_http(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(
+        expected_data.encode("utf-8"), webhook.secret_key
+    )
 
     trigger_webhooks_async(
         expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
@@ -222,10 +228,10 @@ def test_trigger_webhooks_with_http(
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-Signature": "",
+        "X-Saleor-Signature": expected_signature,
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
-        "Saleor-Signature": "",
+        "Saleor-Signature": expected_signature,
     }
 
     mock_request.assert_called_once_with(

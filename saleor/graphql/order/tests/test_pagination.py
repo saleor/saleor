@@ -9,8 +9,8 @@ from prices import Money, TaxedMoney
 from ....discount.models import OrderDiscount
 from ....order.models import Order, OrderStatus
 from ....order.search import (
-    prepare_order_search_document_value,
-    update_order_search_document,
+    prepare_order_search_vector_value,
+    update_order_search_vector,
 )
 from ....payment import ChargeStatus
 from ...tests.utils import get_graphql_content
@@ -36,8 +36,8 @@ def orders_for_pagination(db, channel_USD):
     )
 
     for order in orders:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(orders, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+    Order.objects.bulk_update(orders, ["search_vector"])
 
     return orders
 
@@ -392,22 +392,19 @@ def test_draft_order_query_pagination_with_filter_created(
 
 
 @pytest.mark.parametrize(
-    "orders_filter, expected_total_count, orders_order",
+    "orders_filter, expected_total_count",
     [
-        ({"search": "discount name"}, 2, [0.0, 0.0]),
-        ({"search": "Some other"}, 1, [0.0]),
-        ({"search": "translated"}, 1, [0.0]),
-        ({"search": "user_email"}, 2, [0.0, 0.0]),
-        ({"search": "test@mirumee.com"}, 1, [0.0]),
-        ({"search": "Leslie"}, 1, [0.0]),
-        ({"search": "Wade"}, 1, [0.0]),
-        ({"search": ""}, 6, [0.0, 0.0]),
+        ({"search": "discount name"}, 2),
+        ({"search": "Some other"}, 1),
+        ({"search": "test@mirumee.com"}, 1),
+        ({"search": "Leslie"}, 1),
+        ({"search": "Wade"}, 1),
+        ({"search": ""}, 6),
     ],
 )
 def test_orders_query_pagination_with_filter_search(
     orders_filter,
     expected_total_count,
-    orders_order,
     staff_api_client,
     permission_manage_orders,
     customer_user,
@@ -451,40 +448,42 @@ def test_orders_query_pagination_with_filter_search(
     )
 
     for order in orders:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(orders, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+    Order.objects.bulk_update(orders, ["search_vector"])
 
-    page_size = 2
-    variables = {"first": page_size, "after": None, "filter": orders_filter}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
-    content = get_graphql_content(response)
+    after = None
+    orders_seen = 0
+    while True:
+        variables = {"first": 1, "after": after, "filter": orders_filter}
+        staff_api_client.user.user_permissions.add(permission_manage_orders)
+        response = staff_api_client.post_graphql(
+            QUERY_ORDERS_WITH_PAGINATION, variables
+        )
+        content = get_graphql_content(response)
+        orders_seen += len(content["data"]["orders"]["edges"])
+        total_count = content["data"]["orders"]["totalCount"]
+        if not content["data"]["orders"]["pageInfo"]["hasNextPage"]:
+            break
+        after = content["data"]["orders"]["pageInfo"]["endCursor"]
 
-    orders = content["data"]["orders"]["edges"]
-    total_count = content["data"]["orders"]["totalCount"]
-
-    assert expected_total_count == total_count
-    for i in range(total_count if total_count < page_size else page_size):
-        assert orders[i]["node"]["total"]["gross"]["amount"] == orders_order[i]
+    assert orders_seen == total_count
+    assert total_count == expected_total_count
 
 
 @pytest.mark.parametrize(
-    "draft_orders_filter, expected_total_count, orders_order",
+    "draft_orders_filter, expected_total_count",
     [
-        ({"search": "discount name"}, 2, [0.0, 0.0]),
-        ({"search": "Some other"}, 1, [0.0]),
-        ({"search": "translated"}, 1, [0.0]),
-        ({"search": "user_email"}, 2, [0.0, 0.0]),
-        ({"search": "test@mirumee.com"}, 1, [0.0]),
-        ({"search": "Leslie"}, 1, [0.0]),
-        ({"search": "Wade"}, 1, [0.0]),
-        ({"search": ""}, 6, [0.0, 0.0]),
+        ({"search": "discount name"}, 2),
+        ({"search": "Some other"}, 1),
+        ({"search": "test@mirumee.com"}, 1),
+        ({"search": "Leslie"}, 1),
+        ({"search": "Wade"}, 1),
+        ({"search": ""}, 6),
     ],
 )
 def test_draft_orders_query_pagination_with_filter_search(
     draft_orders_filter,
     expected_total_count,
-    orders_order,
     staff_api_client,
     permission_manage_orders,
     customer_user,
@@ -531,8 +530,8 @@ def test_draft_orders_query_pagination_with_filter_search(
     )
 
     for order in orders:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(orders, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+    Order.objects.bulk_update(orders, ["search_vector"])
 
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": draft_orders_filter}
@@ -545,14 +544,12 @@ def test_draft_orders_query_pagination_with_filter_search(
     total_count = content["data"]["draftOrders"]["totalCount"]
 
     assert expected_total_count == total_count
-    for i in range(total_count if total_count < page_size else page_size):
-        assert orders[i]["node"]["total"]["gross"]["amount"] == orders_order[i]
 
 
 def test_orders_query_pagination_with_filter_search_by_number(
-    order_with_search_document_value, staff_api_client, permission_manage_orders
+    order_with_search_vector_value, staff_api_client, permission_manage_orders
 ):
-    order = order_with_search_document_value
+    order = order_with_search_vector_value
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": {"search": order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -566,7 +563,7 @@ def test_draft_orders_query_pagination_with_filter_search_by_number(
     staff_api_client,
     permission_manage_orders,
 ):
-    update_order_search_document(draft_order)
+    update_order_search_vector(draft_order)
     page_size = 2
     variables = {
         "first": page_size,

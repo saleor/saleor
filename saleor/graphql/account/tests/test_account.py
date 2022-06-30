@@ -3,7 +3,7 @@ import os
 import re
 from collections import defaultdict
 from datetime import timedelta
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, Mock, call, patch
 from urllib.parse import urlencode
 
 import graphene
@@ -36,7 +36,11 @@ from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.payloads import generate_meta, generate_requestor
+from ....webhook.payloads import (
+    generate_customer_payload,
+    generate_meta,
+    generate_requestor,
+)
 from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
@@ -2231,6 +2235,44 @@ def test_customer_delete(
     delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
 
 
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_delete_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerDelete"]
+
+    # then
+    assert data["errors"] == []
+    assert data["user"]["id"] == customer_id
+    mocked_webhook_trigger.assert_called_once_with(
+        generate_customer_payload(customer_user, staff_api_client.user),
+        WebhookEventAsyncType.CUSTOMER_DELETED,
+        [any_webhook],
+        customer_user,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
 @patch("saleor.account.signals.delete_versatile_image")
 @patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete_by_app(
@@ -2385,6 +2427,66 @@ def test_staff_create(
         payload=expected_payload,
         channel_slug=None,
     )
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_staff_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    staff_user,
+    permission_group_manage_users,
+    permission_manage_staff,
+    permission_manage_users,
+    channel_PLN,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user.user_permissions.add(permission_manage_users)
+    email = "api_user@example.com"
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": email,
+        "redirect_url": redirect_url,
+        "add_groups": [
+            graphene.Node.to_global_id("Group", permission_group_manage_users.pk)
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    new_staff_user = User.objects.get(email=email)
+
+    # then
+    assert not data["errors"]
+    assert data["user"]
+    expected_call = call(
+        {
+            "id": graphene.Node.to_global_id("User", new_staff_user.id),
+            "email": email,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.STAFF_CREATED,
+        [any_webhook],
+        new_staff_user,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+    assert expected_call in mocked_webhook_trigger.call_args_list
 
 
 def test_staff_create_app_no_permission(
@@ -2658,6 +2760,54 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert not data["user"]["isActive"]
     staff_user.refresh_from_db()
     assert not staff_user.search_document
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_staff_update_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_staff,
+    media_root,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    assert not staff_user.search_document
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": id, "input": {"isActive": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_UPDATE_MUTATIONS, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+
+    # then
+    assert not data["errors"]
+    assert data["user"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("User", staff_user.id),
+            "email": staff_user.email,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.STAFF_UPDATED,
+        [any_webhook],
+        staff_user,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_staff_update_email(staff_api_client, permission_manage_staff, media_root):
@@ -3142,6 +3292,51 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     data = content["data"]["staffDelete"]
     assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_staff_delete_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_staff,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": user_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_DELETE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+
+    # then
+    assert not data["errors"]
+    assert not User.objects.filter(pk=staff_user.id).exists()
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("User", staff_user.id),
+            "email": staff_user.email,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.STAFF_DELETED,
+        [any_webhook],
+        staff_user,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 @patch("saleor.account.signals.delete_versatile_image")

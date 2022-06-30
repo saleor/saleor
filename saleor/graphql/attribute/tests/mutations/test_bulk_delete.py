@@ -1,3 +1,5 @@
+from unittest import mock
+
 import graphene
 import pytest
 
@@ -50,6 +52,40 @@ def test_delete_attributes(
     assert not Attribute.objects.filter(
         id__in=[attr.id for attr in product_type_attribute_list]
     ).exists()
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_attributes_trigger_webhooks(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    product_type_attribute_list,
+    permission_manage_page_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Attribute", attr.id)
+            for attr in product_type_attribute_list
+        ]
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["attributeBulkDelete"]["count"] == 3
+    assert mocked_webhook_trigger.call_count == 3
 
 
 def test_delete_attributes_products_search_document_updated(
@@ -134,6 +170,43 @@ def test_delete_attribute_values(
     assert not AttributeValue.objects.filter(
         id__in=[val.id for val in attribute_value_list]
     ).exists()
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_attribute_values_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    attribute_value_list,
+    permission_manage_page_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    attributes = {value.attribute for value in attribute_value_list}
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("AttributeValue", val.id)
+            for val in attribute_value_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_BULK_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+    content = get_graphql_content(response)
+    expected_call_count = len(attributes) + len(attribute_value_list)
+
+    # then
+    assert content["data"]["attributeValueBulkDelete"]["count"] == 3
+    assert mocked_webhook_trigger.call_count == expected_call_count
 
 
 def test_delete_attribute_values_search_document_updated(

@@ -613,7 +613,7 @@ def add_voucher_code_to_checkout(
         raise ValidationError(
             {
                 "promo_code": ValidationError(
-                    "Voucher is not applicable to that checkout.",
+                    "Voucher is not applicable to this checkout.",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }

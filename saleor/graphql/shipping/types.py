@@ -315,12 +315,12 @@ class ShippingMethod(graphene.ObjectType):
     maximum_order_weight = graphene.Field(
         Weight,
         description="Maximum order weight for this shipping method.",
-        deprecation_reason="This field will be removed in Saleor 4.0.",
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     minimum_order_weight = graphene.Field(
         Weight,
         description="Minimum order weight for this shipping method.",
-        deprecation_reason="This field will be removed in Saleor 4.0.",
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     translation = TranslationField(
         ShippingMethodTranslation,

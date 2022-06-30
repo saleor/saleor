@@ -6,7 +6,7 @@ from ..account.models import User
 from ..account.search import prepare_user_search_document_value
 from ..celeryconf import app
 from ..order.models import Order
-from ..order.search import prepare_order_search_document_value
+from ..order.search import prepare_order_search_vector_value
 from ..product.models import Product
 from ..product.search import (
     PRODUCT_FIELDS_TO_PREFETCH,
@@ -52,7 +52,7 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
 @app.task
 def set_order_search_document_values(updated_count: int = 0) -> None:
     orders = list(
-        Order.objects.filter(search_document="")
+        Order.objects.filter(search_vector=None)
         .prefetch_related(
             "user",
             "billing_address",
@@ -68,9 +68,7 @@ def set_order_search_document_values(updated_count: int = 0) -> None:
         task_logger.info("No orders to update.")
         return
 
-    updated_count += set_search_document_values(
-        orders, prepare_order_search_document_value
-    )
+    updated_count += set_search_vector_values(orders, prepare_order_search_vector_value)
 
     task_logger.info("Updated %d orders", updated_count)
 

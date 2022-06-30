@@ -3,7 +3,7 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
-from ....order.search import update_order_search_document
+from ....order.search import update_order_search_vector
 from ....order.utils import remove_order_discount_from_order
 from ...core.types import OrderError
 from ..types import Order
@@ -44,6 +44,6 @@ class OrderDiscountDelete(OrderDiscountCommon):
         order.refresh_from_db()
 
         cls.recalculate_order(order)
-        update_order_search_document(order)
+        update_order_search_vector(order)
 
         return OrderDiscountDelete(order=order)
