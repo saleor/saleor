@@ -1300,7 +1300,11 @@ type Webhook implements Node {
   """Informs if webhook is activated."""
   isActive: Boolean!
 
-  """Used to create a hash signature with each payload."""
+  """
+  Used to create a hash signature with each payload.
+  
+  If not set, since Saleor 3.5, your payload will be signed using private key used also to sign JWT tokens.
+  """
   secretKey: String
 
   """Used to define payloads for specific events."""
@@ -1347,6 +1351,24 @@ enum WebhookEventTypeEnum {
 
   """An app status is changed."""
   APP_STATUS_CHANGED
+
+  """A new attribute is created."""
+  ATTRIBUTE_CREATED
+
+  """An attribute is updated."""
+  ATTRIBUTE_UPDATED
+
+  """An attribute is deleted."""
+  ATTRIBUTE_DELETED
+
+  """A new attribute value is created."""
+  ATTRIBUTE_VALUE_CREATED
+
+  """An attribute value is updated."""
+  ATTRIBUTE_VALUE_UPDATED
+
+  """An attribute value is deleted."""
+  ATTRIBUTE_VALUE_DELETED
 
   """A new category created."""
   CATEGORY_CREATED
@@ -1441,6 +1463,9 @@ enum WebhookEventTypeEnum {
 
   """A customer account is updated."""
   CUSTOMER_UPDATED
+
+  """A customer account is deleted."""
+  CUSTOMER_DELETED
 
   """A new collection is created."""
   COLLECTION_CREATED
@@ -1622,6 +1647,24 @@ enum WebhookEventTypeAsyncEnum {
   """An app status is changed."""
   APP_STATUS_CHANGED
 
+  """A new attribute is created."""
+  ATTRIBUTE_CREATED
+
+  """An attribute is updated."""
+  ATTRIBUTE_UPDATED
+
+  """An attribute is deleted."""
+  ATTRIBUTE_DELETED
+
+  """A new attribute value is created."""
+  ATTRIBUTE_VALUE_CREATED
+
+  """An attribute value is updated."""
+  ATTRIBUTE_VALUE_UPDATED
+
+  """An attribute value is deleted."""
+  ATTRIBUTE_VALUE_DELETED
+
   """A new category created."""
   CATEGORY_CREATED
 
@@ -1715,6 +1758,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A customer account is updated."""
   CUSTOMER_UPDATED
+
+  """A customer account is deleted."""
+  CUSTOMER_DELETED
 
   """A new collection is created."""
   COLLECTION_CREATED
@@ -1911,9 +1957,9 @@ type App implements Node & ObjectWithMetadata {
   aboutApp: String
 
   """Description of the data privacy defined for this app."""
-  dataPrivacy: String
+  dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
 
-  """Url to details about the privacy policy on the app owner page."""
+  """URL to details about the privacy policy on the app owner page."""
   dataPrivacyUrl: String
 
   """Homepage of the app."""
@@ -1922,11 +1968,18 @@ type App implements Node & ObjectWithMetadata {
   """Support page for the app."""
   supportUrl: String
 
-  """Url to iframe with the configuration for the app."""
-  configurationUrl: String
+  """URL to iframe with the configuration for the app."""
+  configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
 
-  """Url to iframe with the app."""
+  """URL to iframe with the app."""
   appUrl: String
+
+  """
+  URL to manifest used during app's installation.
+  
+  Added in Saleor 3.5.
+  """
+  manifestUrl: String
 
   """Version number of the app."""
   version: String
@@ -2298,6 +2351,12 @@ enum WebhookSampleEventTypeEnum {
   APP_UPDATED
   APP_DELETED
   APP_STATUS_CHANGED
+  ATTRIBUTE_CREATED
+  ATTRIBUTE_UPDATED
+  ATTRIBUTE_DELETED
+  ATTRIBUTE_VALUE_CREATED
+  ATTRIBUTE_VALUE_UPDATED
+  ATTRIBUTE_VALUE_DELETED
   CATEGORY_CREATED
   CATEGORY_UPDATED
   CATEGORY_DELETED
@@ -2332,6 +2391,7 @@ enum WebhookSampleEventTypeEnum {
   INVOICE_SENT
   CUSTOMER_CREATED
   CUSTOMER_UPDATED
+  CUSTOMER_DELETED
   COLLECTION_CREATED
   COLLECTION_UPDATED
   COLLECTION_DELETED
@@ -7780,8 +7840,54 @@ type GiftCardTag implements Node {
 }
 
 """Represents an item in the checkout."""
-type CheckoutLine implements Node {
+type CheckoutLine implements Node & ObjectWithMetadata {
   id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
   variant: ProductVariant!
   quantity: Int!
 
@@ -8302,8 +8408,54 @@ type FulfillmentLine implements Node {
 }
 
 """Represents order line of particular order."""
-type OrderLine implements Node {
+type OrderLine implements Node & ObjectWithMetadata {
   id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
   productName: String!
   variantName: String!
   productSku: String
@@ -12829,7 +12981,7 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
+  ): CheckoutLineDelete @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
 
   """Deletes checkout lines."""
   checkoutLinesDelete(
@@ -19876,9 +20028,13 @@ type Manifest {
   about: String
   permissions: [Permission!]
   appUrl: String
-  configurationUrl: String
+
+  """URL to iframe with the configuration for the app."""
+  configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
   tokenTargetUrl: String
-  dataPrivacy: String
+
+  """Description of the data privacy defined for this app."""
+  dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
   dataPrivacyUrl: String
   homepageUrl: String
   supportUrl: String
@@ -20931,6 +21087,144 @@ type AppStatusChanged implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   app: App
+}
+
+type AttributeCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attribute: Attribute
+}
+
+type AttributeUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attribute: Attribute
+}
+
+type AttributeDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attribute: Attribute
+}
+
+type AttributeValueCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute value the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attributeValue: AttributeValue
+}
+
+type AttributeValueUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute value the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attributeValue: AttributeValue
+}
+
+type AttributeValueDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute value the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attributeValue: AttributeValue
 }
 
 type CategoryCreated implements Event {

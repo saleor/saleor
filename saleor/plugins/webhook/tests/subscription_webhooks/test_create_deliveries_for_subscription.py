@@ -18,6 +18,8 @@ from . import subscription_queries
 from .payloads import (
     generate_address_payload,
     generate_app_payload,
+    generate_attribute_payload,
+    generate_attribute_value_payload,
     generate_category_payload,
     generate_collection_payload,
     generate_customer_payload,
@@ -193,6 +195,124 @@ def test_app_status_changed(status, app, subscription_app_status_changed_webhook
 
     # then
     expected_payload = generate_app_payload(app, app_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_attribute_created(color_attribute, subscription_attribute_created_webhook):
+    # given
+    webhooks = [subscription_attribute_created_webhook]
+    event_type = WebhookEventAsyncType.ATTRIBUTE_CREATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, color_attribute, webhooks
+    )
+
+    # then
+    expected_payload = generate_attribute_payload(color_attribute)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_attribute_updated(color_attribute, subscription_attribute_updated_webhook):
+    # given
+    webhooks = [subscription_attribute_updated_webhook]
+    event_type = WebhookEventAsyncType.ATTRIBUTE_UPDATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, color_attribute, webhooks
+    )
+
+    # then
+    expected_payload = generate_attribute_payload(color_attribute)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_attribute_deleted(color_attribute, subscription_attribute_deleted_webhook):
+    # given
+    webhooks = [subscription_attribute_deleted_webhook]
+
+    id = color_attribute.id
+    color_attribute.delete()
+    color_attribute.id = id
+
+    event_type = WebhookEventAsyncType.ATTRIBUTE_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, color_attribute, webhooks
+    )
+
+    # then
+    expected_payload = generate_attribute_payload(color_attribute)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_attribute_value_created(
+    pink_attribute_value, subscription_attribute_value_created_webhook
+):
+    # given
+    webhooks = [subscription_attribute_value_created_webhook]
+    event_type = WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, pink_attribute_value, webhooks
+    )
+
+    # then
+    expected_payload = generate_attribute_value_payload(pink_attribute_value)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_attribute_value_updated(
+    pink_attribute_value, subscription_attribute_value_updated_webhook
+):
+    # given
+    webhooks = [subscription_attribute_value_updated_webhook]
+    event_type = WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, pink_attribute_value, webhooks
+    )
+
+    # then
+    expected_payload = generate_attribute_value_payload(pink_attribute_value)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_attribute_value_deleted(
+    pink_attribute_value, subscription_attribute_value_deleted_webhook
+):
+    # given
+    webhooks = [subscription_attribute_value_deleted_webhook]
+
+    id = pink_attribute_value.id
+    pink_attribute_value.delete()
+    pink_attribute_value.id = id
+
+    event_type = WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, pink_attribute_value, webhooks
+    )
+
+    # then
+    expected_payload = generate_attribute_value_payload(pink_attribute_value)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -1096,6 +1216,27 @@ def test_customer_updated(customer_user, subscription_customer_updated_webhook):
     # given
     webhooks = [subscription_customer_updated_webhook]
     event_type = WebhookEventAsyncType.CUSTOMER_UPDATED
+    expected_payload = json.dumps(generate_customer_payload(customer_user))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, customer_user, webhooks
+    )
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_customer_deleted(customer_user, subscription_customer_created_webhook):
+    # given
+    customer_user_id = customer_user.id
+    customer_user.delete()
+    customer_user.id = customer_user_id
+
+    webhooks = [subscription_customer_created_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_CREATED
     expected_payload = json.dumps(generate_customer_payload(customer_user))
 
     # when

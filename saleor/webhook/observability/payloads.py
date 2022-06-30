@@ -1,7 +1,6 @@
 import json
 import uuid
 from collections.abc import Mapping
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import graphene
@@ -38,6 +37,8 @@ from .payload_schema import (
 from .sensitive_data import SENSITIVE_GQL_FIELDS
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from ...core.models import EventDeliveryAttempt
     from .utils import GraphQLOperationResponse
 
@@ -80,8 +81,10 @@ GQL_OPERATION_PLACEHOLDER = GraphQLOperation(
 GQL_OPERATION_PLACEHOLDER_SIZE = len(dump_payload(GQL_OPERATION_PLACEHOLDER))
 
 
-def serialize_headers(headers: Dict[str, str]) -> HttpHeaders:
-    return [(k, v) for k, v in hide_sensitive_headers(headers).items()]
+def serialize_headers(headers: Optional[Dict[str, str]]) -> HttpHeaders:
+    if headers:
+        return list(hide_sensitive_headers(headers).items())
+    return []
 
 
 def serialize_gql_operation_result(

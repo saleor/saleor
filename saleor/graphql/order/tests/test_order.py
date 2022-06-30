@@ -177,6 +177,14 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                                     amount
                                 }
                             }
+                            metadata {
+                                key
+                                value
+                            }
+                            privateMetadata {
+                                key
+                                value
+                            }
                         }
                     }
                 }
@@ -184,6 +192,12 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
         }
     """
     line = order.lines.first()
+
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    line.store_value_in_private_metadata({metadata_key: metadata_value})
+    line.store_value_in_metadata({metadata_key: metadata_value})
     line.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -197,7 +211,12 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     assert first_order_data_line["variant"]["id"] == variant_id
     assert first_order_data_line["quantity"] == line.quantity
     assert first_order_data_line["unitPrice"]["currency"] == line.unit_price.currency
-
+    assert first_order_data_line["metadata"] == [
+        {"key": metadata_key, "value": metadata_value}
+    ]
+    assert first_order_data_line["privateMetadata"] == [
+        {"key": metadata_key, "value": metadata_value}
+    ]
     expected_unit_price = Money(
         amount=str(first_order_data_line["unitPrice"]["gross"]["amount"]),
         currency="USD",

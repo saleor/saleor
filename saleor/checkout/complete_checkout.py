@@ -268,6 +268,8 @@ def _create_line_for_order(
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
         base_unit_price=base_prices_data.price_with_discounts,
         undiscounted_base_unit_price=base_prices_data.undiscounted_price,
+        metadata=checkout_line.metadata,
+        private_metadata=checkout_line.private_metadata,
     )
     is_digital = line.is_digital
     line_info = OrderLineInfo(

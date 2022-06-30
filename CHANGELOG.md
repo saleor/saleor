@@ -10,12 +10,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce plain text attribute - #9907 by @IKarbowiak
 - Stop auto-assigning default addresses to checkout - #9933 by @SzymJ
 - Added `OrderFilter.numbers` filter  - #9967 by @SzymJ
+- Added `metadata` fields to `OrderLine` and `CheckoutLine` models - #10040 by @SzymJ
+- Improve checkout total base calculations - #10048 by @IKarbowiak
 - Improve click & collect and stock allocation - #10043 by @IKarbowiak
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
 - Add webhooks `ADDRESS_CREATED`, `ADDRESS_UPDATED` and `ADDRESS_DELETED` - #9860 by @SzymJ
 - Add webhooks `STAFF_CREATED`, `STAFF_UPDATED` and `STAFF_DELETED` - #9949 by @SzymJ
+- Add webhooks `ATTRIBUTE_CREATED`, `ATTRIBUTE_UPDATED` and `ATTRIBUTE_DELETED` - #9991 by @SzymJ
+- Add webhooks `ATTRIBUTE_VALUE_CREATED`, `ATTRIBUTE_VALUE_UPDATED` and `ATTRIBUTE_VALUE_DELETED` - #10035 by @SzymJ
+- Add webhook `CUSTOMER_DELETED` - #10060 by @SzymJ
 - Fix returning errors in subscription webhooks payloads - #9905 by @SzymJ
 
 # 3.4.0

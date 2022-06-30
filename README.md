@@ -66,7 +66,7 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 - **Multichannel**: Per channel control of pricing, currencies, stock, product, and more
 - **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands
 - **CMS**: Content is king, that's why we have a kingdom built-in
-- **Dashboard**: User friendly, fast and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
+- **Dashboard**: User friendly, fast, and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
 - **Global by design** Multi-currency, multi-language, multi-warehouse, tutti multi!
 - **Orders**: A comprehensive system for orders, dispatch, and refunds
 - **Cart**: Advanced payment and tax options, with full control over discounts and promotions
@@ -94,7 +94,7 @@ The current production-ready version is 3.x and you should use this version for 
 - Storefront: https://github.com/saleor/react-storefront/releases/
 
 ### Saleor Cloud
-The fastest way to develop with Saleor are free developer accounts in [Saleor Cloud](https://cloud.saleor.io).
+The fastest way to develop with Saleor is by using developer accounts in [Saleor Cloud](https://cloud.saleor.io).
 
 Register [here](https://cloud.saleor.io/register) or install our [CLI tool](https://github.com/saleor/saleor-cli):
 
@@ -116,7 +116,7 @@ To contribute, please see the [`saleor/saleor-docs` repository](https://github.c
 
 ## Saleor Platform
 
-The easiest way to run all components of Saleor (API, storefront and dashboard) together on your local machine is to use the [saleor-platform](https://github.com/saleor/saleor-platform) project. Go to that repository for instructions on how to use it.
+The easiest way to run all components of Saleor (API, storefront, and dashboard) together on your local machine is to use the [saleor-platform](https://github.com/saleor/saleor-platform) project. Go to that repository for instructions on how to use it.
 
 [View saleor-platform](https://github.com/saleor/saleor-platform)
 
@@ -130,7 +130,7 @@ An open-source storefront in React.js with Next.js. Built for Headless Commerce,
 
 ## Dashboard
 
-For dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dashboard) repository.
+For the dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dashboard) repository.
 
 [View dashboard demo](https://demo.saleor.io/dashboard/)
 
@@ -138,9 +138,8 @@ For dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dash
 
 Want to see Saleor in action?
 
-* [View React Storefront](https://reactstorefront.vercel.app/)
+* [View React Storefront](https://demo.saleor.io/)
 * [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
-* [View Legacy Storefront](https://demo.saleor.io/)
 
 Or launch the demo on a free Heroku instance.
 

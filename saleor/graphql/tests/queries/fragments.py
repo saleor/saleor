@@ -384,3 +384,20 @@ MENU_ITEM_DETAILS = """
         }
     }
 """
+
+ATTRIBUTE_DETAILS = """
+fragment AttributeDetails on Attribute {
+  name
+  slug
+  type
+  inputType
+}
+"""
+
+ATTRIBUTE_VALUE_DETAILS = """
+fragment AttributeValueDetails on AttributeValue {
+  name
+  slug
+  value
+}
+"""

@@ -35,6 +35,7 @@ from ..payloads import (
     pretty_json,
     serialize_gql_operation_result,
     serialize_gql_operation_results,
+    serialize_headers,
     to_camel_case,
 )
 from ..utils import GraphQLOperationResponse
@@ -210,6 +211,21 @@ def test_serialize_gql_operation_results_when_too_low_bytes_limit(
         serialize_gql_operation_results(
             [first_result, second_result], 2 * GQL_OPERATION_PLACEHOLDER_SIZE - 1
         )
+
+
+@pytest.mark.parametrize(
+    "headers,expected",
+    [
+        ({}, []),
+        (None, []),
+        (
+            {"Content-Length": "19", "Content-Type": "application/json"},
+            [("Content-Length", "19"), ("Content-Type", "application/json")],
+        ),
+    ],
+)
+def test_serialize_headers(headers, expected):
+    assert serialize_headers(headers) == expected
 
 
 def test_generate_api_call_payload(app, rf, gql_operation_factory):

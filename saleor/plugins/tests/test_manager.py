@@ -12,7 +12,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_taxed_money
 from ...discount.utils import fetch_catalogue_info
-from ...graphql.discount.mutations import convert_catalogue_info_to_global_ids
+from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
 from ..base_plugin import ExternalAccessTokens
