@@ -43,9 +43,6 @@ def get_webhooks_for_event(
     )
 
 
-# TODO: In separate PR:
-# we should drop it or move to tests, prices sended to tax app should be
-# calculated from base prices insted of current values.
 def get_base_price(price: TaxedMoney, include_taxes_in_prices: bool) -> Decimal:
     if include_taxes_in_prices:
         return price.gross.amount

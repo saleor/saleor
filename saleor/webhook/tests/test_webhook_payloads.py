@@ -16,6 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ... import __version__
+from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -1425,7 +1426,12 @@ def test_generate_checkout_payload_for_tax_calculation(
         "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
-            quantize_price(get_base_price(checkout.total, taxes_included), currency)
+            quantize_price(
+                base_calculations.base_checkout_total(
+                    checkout_info, discounts_info, lines
+                ).amount,
+                currency,
+            )
         ),
         "shipping_amount": shipping_price,
     }
@@ -1502,7 +1508,12 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
         "user_id": None,
         "user_public_metadata": {},
         "total_amount": str(
-            quantize_price(get_base_price(checkout.total, taxes_included), currency)
+            quantize_price(
+                base_calculations.base_checkout_total(
+                    checkout_info, discounts_info, lines
+                ).amount,
+                currency,
+            )
         ),
     }
     mocked_fetch_checkout.assert_not_called()

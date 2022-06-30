@@ -1179,7 +1179,10 @@ def generate_checkout_payload_for_tax_calculation(
     checkout.id = checkout.token  # type:ignore
 
     total_amount = quantize_price(
-        get_base_price(checkout.total, included_taxes_in_prices), checkout.currency
+        base_calculations.base_checkout_total(
+            checkout_info, discount_infos, lines
+        ).amount,
+        checkout.currency,
     )
 
     # Prepare user data
