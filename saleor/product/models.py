@@ -38,7 +38,6 @@ from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import Money
-from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField

@@ -230,7 +230,6 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     # External apps
-    "versatileimagefield",
     "django_measurement",
     "django_prices",
     "django_prices_openexchangerates",
