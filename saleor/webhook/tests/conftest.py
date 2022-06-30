@@ -3,6 +3,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from ...checkout import base_calculations
+from ...checkout.fetch import fetch_active_discounts, fetch_checkout_lines
+
 
 @pytest.fixture
 def checkout_with_prices(
@@ -14,13 +17,15 @@ def checkout_with_prices(
     shipping_method,
     voucher,
 ):
+    channel = checkout_with_items.channel
+    discounts_info = fetch_active_discounts()
     lines = checkout_with_items.lines.all()
-    for i, line in enumerate(lines, start=1):
-
-        unit_price_net_amount = Decimal("10.000") + Decimal(i)
-        unit_price_gross_amount = Decimal("10.000") + Decimal(i) * Decimal("1.100")
-        line.total_price_gross_amount = unit_price_gross_amount * line.quantity
-        line.total_price_net_amount = unit_price_net_amount * line.quantity
+    lines_info, _ = fetch_checkout_lines(checkout_with_items)
+    for line, line_info in zip(lines, lines_info):
+        line.total_price_net_amount = base_calculations.base_checkout_line_total(
+            line_info, channel, discounts_info
+        ).amount
+        line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")
 
     checkout_with_items.discount_amount = Decimal("5.000")
     checkout_with_items.discount_name = "Voucher 5 USD"

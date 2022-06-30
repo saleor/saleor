@@ -4,6 +4,7 @@ from unittest.mock import ANY, sentinel
 import graphene
 import pytest
 
+from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...discount.utils import fetch_active_discounts
@@ -118,22 +119,26 @@ def test_serialize_checkout_lines(
 
 @pytest.mark.parametrize("taxes_included", [True, False])
 def test_serialize_checkout_lines_for_tax_calculation(
-    checkout_with_prices,
-    taxes_included,
-    site_settings,
+    checkout_with_prices, taxes_included, site_settings
 ):
+    # We should be sure that we always sends base prices to tax app.
+    # We shouldn't use previously calculated prices because they can be
+    # changed by tax app due to e.g.
+    # Checkout discount
+    # Propagating shipping tax to lines.
+
     # given
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    discounts_info = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout, lines, discounts_info, manager)
     site_settings.include_taxes_in_prices = taxes_included
     site_settings.save()
 
     # when
     checkout_lines_data = serialize_checkout_lines_for_tax_calculation(
-        checkout_info, lines, taxes_included
+        checkout_info, lines, discounts_info
     )
 
     # then
@@ -142,12 +147,12 @@ def test_serialize_checkout_lines_for_tax_calculation(
         variant = line.variant
         product = variant.product
 
-        total_price = (
-            line.total_price_gross_amount
-            if taxes_included
-            else line.total_price_net_amount
-        )
-        unit_price = total_price / line.quantity
+        total_price = base_calculations.base_checkout_line_total(
+            line_info, checkout_info.channel, discounts_info
+        ).amount
+        unit_price = base_calculations.base_checkout_line_unit_price(
+            line_info, checkout_info.channel, discounts_info
+        ).amount
 
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),

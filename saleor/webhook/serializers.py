@@ -1,16 +1,14 @@
 from datetime import date, datetime
-from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import graphene
-from prices import TaxedMoney
 
 from ..attribute import AttributeEntityType, AttributeInputType
+from ..checkout import base_calculations
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
 from ..discount import DiscountInfo
 from ..product.models import Product
-from .utils import get_base_price
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -77,22 +75,19 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, 
 def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    include_taxes_in_prices: bool,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[dict]:
-    # TODO: We should send base price here. Insted of taxed values.
-    # Some tax app like Avalara could raise gross value of lines.
-    currency = checkout_info.checkout.currency
-
-    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
-        return quantize_price(get_base_price(price, include_taxes_in_prices), currency)
+    channel = checkout_info.channel
 
     return [
         {
             **_get_checkout_line_payload_data(line_info),
-            "unit_amount": untaxed_price_amount(
-                line_info.line.total_price / line_info.line.quantity
-            ),
-            "total_amount": untaxed_price_amount(line_info.line.total_price),
+            "unit_amount": base_calculations.base_checkout_line_unit_price(
+                line_info, channel, discounts
+            ).amount,
+            "total_amount": base_calculations.base_checkout_line_total(
+                line_info, channel, discounts
+            ).amount,
         }
         for line_info in lines
     ]

@@ -1363,6 +1363,8 @@ def test_generate_checkout_payload_for_tax_calculation(
     checkout = checkout_with_prices
     currency = checkout.currency
 
+    discounts_info = fetch_active_discounts()
+
     site_settings.include_taxes_in_prices = taxes_included
     site_settings.save(update_fields=["include_taxes_in_prices"])
 
@@ -1427,7 +1429,7 @@ def test_generate_checkout_payload_for_tax_calculation(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        taxes_included,
+        discounts_info,
     )
 
 
@@ -1439,6 +1441,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     site_settings,
 ):
     taxes_included = True
+    discounts_info = fetch_active_discounts()
     checkout = checkout_with_prices
     checkout.shipping_address = None
     checkout.shipping_method = None
@@ -1514,13 +1517,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        taxes_included,
-    )
-    mocked_fetch_checkout.assert_not_called()
-    mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
-        checkout_info,
-        lines,
-        taxes_included,
+        discounts_info,
     )
 
 
