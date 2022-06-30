@@ -69,7 +69,7 @@ class WebhookEventSync(ModelObjectType):
     @staticmethod
     def resolve_name(root: models.WebhookEvent, _info):
         return (
-            WebhookEventAsyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
+            WebhookEventSyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
         )
 
 
@@ -177,7 +177,11 @@ class Webhook(ModelObjectType):
         required=True, description="Informs if webhook is activated."
     )
     secret_key = graphene.String(
-        description="Used to create a hash signature with each payload."
+        description=(
+            "Used to create a hash signature with each payload."
+            "\n\nIf not set, since Saleor 3.5, your payload will be "
+            "signed using private key used also to sign JWT tokens."
+        )
     )
     subscription_query = graphene.String(
         description="Used to define payloads for specific events."

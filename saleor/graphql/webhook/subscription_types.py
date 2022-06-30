@@ -77,6 +77,12 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.APP_UPDATED: AppUpdated,
             WebhookEventAsyncType.APP_DELETED: AppDeleted,
             WebhookEventAsyncType.APP_STATUS_CHANGED: AppStatusChanged,
+            WebhookEventAsyncType.ATTRIBUTE_CREATED: AttributeCreated,
+            WebhookEventAsyncType.ATTRIBUTE_UPDATED: AttributeUpdated,
+            WebhookEventAsyncType.ATTRIBUTE_DELETED: AttributeDeleted,
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED: AttributeValueCreated,
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED: AttributeValueUpdated,
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED: AttributeValueDeleted,
             WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
             WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
             WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
@@ -142,6 +148,9 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.SHIPPING_ZONE_CREATED: ShippingZoneCreated,
             WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
             WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
+            WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
+            WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
+            WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
             WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
             WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
             WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
@@ -235,6 +244,64 @@ class AppDeleted(ObjectType, AppBase):
 
 
 class AppStatusChanged(ObjectType, AppBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeBase(AbstractType):
+    attribute = graphene.Field(
+        "saleor.graphql.attribute.types.Attribute",
+        description="The attribute the event relates to."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_attribute(root, _info):
+        _, attribute = root
+        return attribute
+
+
+class AttributeCreated(ObjectType, AttributeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeUpdated(ObjectType, AttributeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeDeleted(ObjectType, AttributeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeValueBase(AbstractType):
+    attribute_value = graphene.Field(
+        "saleor.graphql.attribute.types.AttributeValue",
+        description="The attribute value the event relates to."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_attribute_value(root, _info):
+        _, attribute = root
+        return attribute
+
+
+class AttributeValueCreated(ObjectType, AttributeValueBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeValueUpdated(ObjectType, AttributeValueBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeValueDeleted(ObjectType, AttributeValueBase):
     class Meta:
         interfaces = (Event,)
 
@@ -870,6 +937,21 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
         interfaces = (Event,)
 
 
+class StaffCreated(ObjectType, UserBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class StaffUpdated(ObjectType, UserBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class StaffDeleted(ObjectType, UserBase):
+    class Meta:
+        interfaces = (Event,)
+
+
 class TransactionAction(ObjectType, AbstractType):
     action_type = graphene.Field(
         TransactionActionEnum,
@@ -1032,6 +1114,12 @@ SUBSCRIPTION_EVENTS_TYPES = [
     AppUpdated,
     AppDeleted,
     AppStatusChanged,
+    AttributeCreated,
+    AttributeUpdated,
+    AttributeDeleted,
+    AttributeValueCreated,
+    AttributeValueUpdated,
+    AttributeValueDeleted,
     CategoryCreated,
     CategoryUpdated,
     CategoryDeleted,
@@ -1093,6 +1181,9 @@ SUBSCRIPTION_EVENTS_TYPES = [
     ShippingZoneCreated,
     ShippingZoneUpdated,
     ShippingZoneDeleted,
+    StaffCreated,
+    StaffUpdated,
+    StaffDeleted,
     TransactionActionRequest,
     TranslationCreated,
     TranslationUpdated,

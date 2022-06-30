@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..app.models import App
+    from ..attribute.models import Attribute, AttributeValue
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
@@ -569,6 +570,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
 
+    def customer_deleted(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("customer_deleted", default_value, customer)
+
     def customer_updated(self, customer: "User"):
         default_value = None
         return self.__run_method_on_plugins("customer_updated", default_value, customer)
@@ -863,6 +868,42 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("app_status_changed", default_value, app)
 
+    def attribute_created(self, attribute: "Attribute"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_created", default_value, attribute
+        )
+
+    def attribute_updated(self, attribute: "Attribute"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_updated", default_value, attribute
+        )
+
+    def attribute_deleted(self, attribute: "Attribute"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_deleted", default_value, attribute
+        )
+
+    def attribute_value_created(self, attribute_value: "AttributeValue"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_value_created", default_value, attribute_value
+        )
+
+    def attribute_value_updated(self, attribute_value: "AttributeValue"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_value_updated", default_value, attribute_value
+        )
+
+    def attribute_value_deleted(self, attribute_value: "AttributeValue"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_value_deleted", default_value, attribute_value
+        )
+
     def category_created(self, category: "Category"):
         default_value = None
         return self.__run_method_on_plugins("category_created", default_value, category)
@@ -982,6 +1023,18 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "shipping_zone_deleted", default_value, shipping_zone
         )
+
+    def staff_created(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_created", default_value, staff_user)
+
+    def staff_updated(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_updated", default_value, staff_user)
+
+    def staff_deleted(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
 
     def warehouse_created(self, warehouse: "Warehouse"):
         default_value = None

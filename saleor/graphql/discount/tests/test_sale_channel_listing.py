@@ -34,7 +34,7 @@ mutation UpdateSaleChannelListing(
 
 
 @patch(
-    "saleor.graphql.discount.mutations"
+    "saleor.graphql.discount.mutations.sale_channel_listing_update"
     ".update_products_discounted_prices_of_discount_task"
 )
 def test_sale_channel_listing_create_as_staff_user(
@@ -82,7 +82,7 @@ def test_sale_channel_listing_create_as_staff_user(
 
 
 @patch(
-    "saleor.graphql.discount.mutations"
+    "saleor.graphql.discount.mutations.sale_channel_listing_update"
     ".update_products_discounted_prices_of_discount_task"
 )
 def test_sale_channel_listing_update_as_staff_user(

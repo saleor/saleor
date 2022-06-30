@@ -353,8 +353,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    def resolve_created(root: models.ProductVariant, _info):
-        return root.created_at
+    def resolve_created(root: ChannelContext[models.ProductVariant], _info):
+        return root.node.created_at
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], _info):

@@ -95,6 +95,7 @@ def test_fetch_variant(
                 unit
                 value
             }
+            created
         }
     }
     """
@@ -117,6 +118,7 @@ def test_fetch_variant(
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["name"] == variant.name
+    assert data["created"] == variant.created_at.isoformat()
 
     stocks_count = variant.stocks.count()
     assert len(data["deprecatedStocksByCountry"]) == stocks_count
@@ -2503,6 +2505,61 @@ def test_update_variant_with_plain_text_attribute(
     }
     plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
     plain_text_attribute_value.save()
+    values_count = plain_text_attribute.values.count()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, plain_text_attribute.values.first()
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == plain_text_attribute.slug
+    assert data["attributes"][-1]["values"][0]["plainText"] == text
+    assert plain_text_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_plain_text_attribute_value_required(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    plain_text_attribute,
+    warehouse,
+):
+    # given
+    product_type.variant_attributes.add(plain_text_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
+    plain_text_attribute_value = plain_text_attribute.values.first()
+    text = plain_text_attribute_value.plain_text
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attr_id, "plainText": text},
+        ],
+    }
+    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.save()
+
+    plain_text_attribute.value_required = True
+    plain_text_attribute.save(update_fields=["value_required"])
+
     values_count = plain_text_attribute.values.count()
     associate_attribute_values_to_instance(
         variant, plain_text_attribute, plain_text_attribute.values.first()

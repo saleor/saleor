@@ -111,6 +111,102 @@ APP_STATUS_CHANGED = (
 )
 
 
+ATTRIBUTE_CREATED = (
+    fragments.ATTRIBUTE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeCreated{
+          attribute{
+            ...AttributeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_UPDATED = (
+    fragments.ATTRIBUTE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeUpdated{
+          attribute{
+            ...AttributeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_DELETED = (
+    fragments.ATTRIBUTE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeDeleted{
+          attribute{
+            ...AttributeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_VALUE_CREATED = (
+    fragments.ATTRIBUTE_VALUE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeValueCreated{
+          attributeValue{
+            ...AttributeValueDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_VALUE_UPDATED = (
+    fragments.ATTRIBUTE_VALUE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeValueUpdated{
+          attributeValue{
+            ...AttributeValueDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_VALUE_DELETED = (
+    fragments.ATTRIBUTE_VALUE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeValueDeleted{
+          attributeValue{
+            ...AttributeValueDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 GIFT_CARD_CREATED = (
     fragments.GIFT_CARD_DETAILS
     + """
@@ -450,6 +546,53 @@ SHIPPING_ZONE_DELETED = """
     }
 """
 
+STAFF_CREATED = (
+    fragments.STAFF_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffCreated{
+          user{
+            ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+STAFF_UPDATED = (
+    fragments.STAFF_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffUpdated{
+          user{
+            ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+STAFF_DELETED = (
+    fragments.STAFF_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffDeleted{
+          user{
+            ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 PRODUCT_UPDATED = """
     subscription{
       event{
@@ -782,13 +925,13 @@ FULFILLMENT_CANCELED = (
 )
 
 CUSTOMER_CREATED = (
-    fragments.USER_DETAILS
+    fragments.CUSTOMER_DETAILS
     + """
     subscription{
       event{
         ...on CustomerCreated{
           user{
-            ...UserDetails
+            ...CustomerDetails
           }
         }
       }
@@ -797,19 +940,36 @@ CUSTOMER_CREATED = (
 )
 
 CUSTOMER_UPDATED = (
-    fragments.USER_DETAILS
+    fragments.CUSTOMER_DETAILS
     + """
     subscription{
       event{
         ...on CustomerUpdated{
           user{
-            ...UserDetails
+            ...CustomerDetails
           }
         }
       }
     }
 """
 )
+
+
+CUSTOMER_DELETED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on CustomerDeleted{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 
 COLLECTION_CREATED = (
     fragments.COLLECTION
@@ -825,6 +985,7 @@ COLLECTION_CREATED = (
     }
     """
 )
+
 
 COLLECTION_UPDATED = (
     fragments.COLLECTION

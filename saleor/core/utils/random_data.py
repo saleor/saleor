@@ -61,7 +61,7 @@ from ...giftcard.models import GiftCard, GiftCardTag
 from ...menu.models import Menu, MenuItem
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
-from ...order.search import prepare_order_search_document_value
+from ...order.search import prepare_order_search_vector_value
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
@@ -838,7 +838,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
-    order.search_document = prepare_order_search_document_value(order)
+    order.search_vector = prepare_order_search_vector_value(order)
     order.save()
 
     create_fake_payment(order=order)

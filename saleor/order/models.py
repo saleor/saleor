@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import connection, models
 from django.db.models import JSONField  # type: ignore
@@ -287,7 +288,7 @@ class Order(ModelWithMetadata):
     )
     redirect_url = models.URLField(blank=True, null=True)
     search_document = models.TextField(blank=True, default="")
-
+    search_vector = SearchVectorField(blank=True, null=True)
     objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:
@@ -300,6 +301,10 @@ class Order(ModelWithMetadata):
                 # `opclasses` and `fields` should be the same length
                 fields=["search_document"],
                 opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                name="order_tsearch",
+                fields=["search_vector"],
             ),
             GinIndex(
                 name="order_email_search_gin",
@@ -441,7 +446,7 @@ class OrderLineQueryset(models.QuerySet):
                 yield line
 
 
-class OrderLine(models.Model):
+class OrderLine(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -606,7 +611,7 @@ class OrderLine(models.Model):
 
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
     def __str__(self):

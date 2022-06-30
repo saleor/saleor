@@ -18,7 +18,7 @@ from django.db import transaction
 from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
-from ..account.models import Address, User
+from ..account.models import User
 from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
@@ -27,7 +27,7 @@ from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
-from ..discount.models import NotApplicable, Voucher
+from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     get_sale_id_applied_as_a_discount,
@@ -43,7 +43,7 @@ from ..order.actions import mark_order_as_paid, order_created
 from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
-from ..order.search import prepare_order_search_document_value
+from ..order.search import prepare_order_search_vector_value
 from ..order.utils import update_order_authorize_data, update_order_charge_data
 from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
@@ -60,13 +60,15 @@ from .checkout_cleaner import (
     clean_checkout_shipping,
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
-from .models import Checkout
 from .utils import get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
+    from ..account.models import Address
     from ..app.models import App
+    from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
+    from .models import Checkout
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -266,6 +268,8 @@ def _create_line_for_order(
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
         base_unit_price=base_prices_data.price_with_discounts,
         undiscounted_base_unit_price=base_prices_data.undiscounted_price,
+        metadata=checkout_line.metadata,
+        private_metadata=checkout_line.private_metadata,
     )
     is_digital = line.is_digital
     line_info = OrderLineInfo(
@@ -539,7 +543,7 @@ def _create_order(
     order.private_metadata = checkout.private_metadata
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
-    order.search_document = prepare_order_search_document_value(order)
+    order.search_vector = prepare_order_search_vector_value(order)
     order.save()
 
     order_info = OrderInfo(
@@ -1068,7 +1072,7 @@ def _create_order_from_checkout(
     update_order_authorize_data(order, with_save=False)
 
     # order search
-    order.search_document = prepare_order_search_document_value(order)
+    order.search_vector = prepare_order_search_vector_value(order)
     order.save()
 
     # post create actions

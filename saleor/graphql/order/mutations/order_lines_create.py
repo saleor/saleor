@@ -9,7 +9,7 @@ from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
-from ....order.search import update_order_search_document
+from ....order.search import update_order_search_vector
 from ....order.utils import add_variant_to_order, recalculate_order
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
@@ -136,7 +136,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         lines = [line for _, line in added_lines]
 
         recalculate_order(order)
-        update_order_search_document(order)
+        update_order_search_vector(order)
 
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
