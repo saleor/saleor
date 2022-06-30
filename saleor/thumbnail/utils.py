@@ -139,45 +139,23 @@ class ProcessedImage:
 
         return image, save_kwargs
 
-    def preprocess_GIF(self, image, **kwargs):
-        """Receive a PIL Image instance of a GIF and return 2-tuple.
-
-        Args:
-            image: Original Image instance (passed to `image`)
-            kwargs: Dict with a transparency key (to GIF transparency layer)
-
-        """
+    def preprocess_GIF(self, image):
+        """Receive a PIL Image instance of a GIF and return 2-tuple."""
         if "transparency" in image.info:
             save_kwargs = {"transparency": image.info["transparency"]}
         else:
             save_kwargs = {}
         return (image, save_kwargs)
 
-    def preprocess_JPEG(self, image, **kwargs):
-        """Receive a PIL Image instance of a JPEG and returns 2-tuple.
-
-        Args:
-            image: Image instance, converted to RGB
-            kwargs: Dict with a quality key (mapped to the value of `JPEG_QUAL`
-                    defined by the `VERSATILEIMAGEFIELD_JPEG_RESIZE_QUALITY`
-                    setting)
-
-        """
+    def preprocess_JPEG(self, image):
+        """Receive a PIL Image instance of a JPEG and returns 2-tuple."""
         save_kwargs = {"progressive": self.PROGRESSIVE_JPEG, "quality": self.JPEG_QUAL}
         if image.mode != "RGB":
             image = image.convert("RGB")
         return (image, save_kwargs)
 
-    def preprocess_WEBP(self, image, **kwargs):
-        """Receive a PIL Image instance of a WEBP and return 2-tuple.
-
-        Args:
-            image: Original Image instance (passed to `image`)
-            kwargs: Dict with a quality key (mapped to the value of `WEBP_QUAL`
-                    as defined by the `VERSATILEIMAGEFIELD_RESIZE_QUALITY`
-                    setting)
-
-        """
+    def preprocess_WEBP(self, image):
+        """Receive a PIL Image instance of a WEBP and return 2-tuple."""
         save_kwargs = {
             "quality": self.WEBP_QUAL,
             "lossless": self.LOSSLESS_WEBP,
