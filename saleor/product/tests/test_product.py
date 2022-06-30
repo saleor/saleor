@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 from datetime import datetime, timezone
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
@@ -375,3 +376,15 @@ def test_costs_get_margin_for_variant_channel_listing(
     variant_channel_listing.cost_price = cost
     variant_channel_listing.price = price
     assert not get_margin_for_variant_channel_listing(variant_channel_listing)
+
+
+@patch("saleor.product.signals.delete_from_storage_task.delay")
+def test_product_media_delete(delete_from_storage_task_mock, product_with_image):
+    # given
+    media = product_with_image.media.first()
+
+    # when
+    media.delete()
+
+    # then
+    delete_from_storage_task_mock.assert_called_once_with(media.image.path)

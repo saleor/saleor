@@ -11,6 +11,11 @@ def delete_digital_content_file(sender, instance, **kwargs):
         delete_from_storage_task.delay(file.path)
 
 
+def delete_product_media_image(sender, instance, **kwargs):
+    if file := instance.image:
+        delete_from_storage_task.delay(file.path)
+
+
 def delete_product_all_media(sender, instance, **kwargs):
     if all_media := instance.media.all():
         for media in all_media:
