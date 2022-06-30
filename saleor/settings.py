@@ -458,31 +458,10 @@ elif GS_BUCKET_NAME:
 
 if AWS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif AZURE_CONTAINER:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
-
-VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    "products": [
-        ("product_gallery", "thumbnail__540x540"),
-        ("product_gallery_2x", "thumbnail__1080x1080"),
-        ("product_small", "thumbnail__60x60"),
-        ("product_small_2x", "thumbnail__120x120"),
-        ("product_list", "thumbnail__255x255"),
-        ("product_list_2x", "thumbnail__510x510"),
-    ],
-    "background_images": [("header_image", "thumbnail__1080x440")],
-    "user_avatars": [("default", "thumbnail__445x445")],
-}
-
-VERSATILEIMAGEFIELD_SETTINGS = {
-    # Images should be pre-generated on Production environment
-    "create_images_on_demand": get_bool_from_env("CREATE_IMAGES_ON_DEMAND", DEBUG)
-}
 
 PLACEHOLDER_IMAGES = {
     32: "images/placeholder32.png",
