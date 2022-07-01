@@ -339,6 +339,8 @@ class GraphQLView(View):
 
                     if app := getattr(request, "app", None):
                         span.set_tag("app.name", app.name)
+                    if user := getattr(request, "user", None):
+                        span.set_tag("http.user_id", user.id)
 
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
