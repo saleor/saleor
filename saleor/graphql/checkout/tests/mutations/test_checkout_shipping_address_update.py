@@ -8,7 +8,7 @@ from django.utils import timezone
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import add_variant_to_checkout
+from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
 from .....warehouse.models import Reservation, Stock
@@ -427,3 +427,77 @@ def test_checkout_shipping_address_update_exclude_shipping_method(
     user_api_client.post_graphql(MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
     checkout.refresh_from_db()
     assert checkout.shipping_method is None
+
+
+def test_checkout_update_shipping_address_with_digital(
+    api_client, checkout_with_digital_item, graphql_address_data
+):
+    """Test updating the shipping address of a digital order throws an error."""
+
+    checkout = checkout_with_digital_item
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": graphql_address_data,
+    }
+
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+
+    assert data["errors"] == [
+        {
+            "field": "shippingAddress",
+            "message": "This checkout doesn't need shipping",
+            "code": CheckoutErrorCode.SHIPPING_NOT_REQUIRED.name,
+        }
+    ]
+
+    # Ensure the address was unchanged
+    checkout.refresh_from_db(fields=["shipping_address"])
+    assert checkout.shipping_address is None
+
+
+def test_checkout_shipping_address_update_with_not_applicable_voucher(
+    user_api_client,
+    checkout_with_item,
+    voucher_shipping_type,
+    graphql_address_data,
+    address_other_country,
+    shipping_method,
+):
+    assert checkout_with_item.shipping_address is None
+    assert checkout_with_item.voucher_code is None
+
+    checkout_with_item.shipping_address = address_other_country
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    assert checkout_with_item.shipping_address.country == address_other_country.country
+
+    voucher = voucher_shipping_type
+    assert voucher.countries[0].code == address_other_country.country
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    assert checkout_with_item.voucher_code == voucher.code
+
+    new_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "shippingAddress": new_address,
+    }
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+
+    checkout_with_item.refresh_from_db()
+    checkout_with_item.shipping_address.refresh_from_db()
+
+    assert checkout_with_item.shipping_address.country == new_address["country"]
+    assert checkout_with_item.voucher_code is None
