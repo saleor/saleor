@@ -61,6 +61,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
 
 ### Saleor Apps
+### Other changes
+- Fix inaccurate tax calculations - #9799 by @IKarbowiak
+- Fix incorrect default value used in `PaymentInput.storePaymentMethod` - #9943 by @korycins
+- Introduce plain text attribute - #9907 by @IKarbowiak
+- Stop auto-assigning default addresses to checkout - #9933 by @SzymJ
+- Added `OrderFilter.numbers` filter  - #9967 by @SzymJ
+- Added `metadata` fields to `OrderLine` and `CheckoutLine` models - #10040 by @SzymJ
+- Improve checkout total base calculations - #10048 by @IKarbowiak
+- Improve click & collect and stock allocation - #10043 by @IKarbowiak
+- Split variants in multiple lines
+
 
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
 - Add webhooks `ADDRESS_CREATED`, `ADDRESS_UPDATED` and `ADDRESS_DELETED` - #9860 by @SzymJ
