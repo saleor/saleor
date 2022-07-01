@@ -20,7 +20,12 @@ from ....product import models as product_models
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import (
+    ADDED_IN_34,
+    ADDED_IN_35,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -60,6 +65,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             required=False,
             description=(
                 "The rules for changing validation for recieved shipping address data."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
             ),
         )
 

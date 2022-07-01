@@ -13136,7 +13136,13 @@ type Mutation {
     """
     token: UUID
 
-    """The rules for changing validation for recieved shipping address data."""
+    """
+    The rules for changing validation for recieved shipping address data.
+    
+    Added in Saleor 3.5.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
     validationRules: CheckoutAddressValidationRules
   ): CheckoutShippingAddressUpdate
 
@@ -19109,7 +19115,13 @@ input CheckoutCreateInput {
   """Checkout language code."""
   languageCode: LanguageCodeEnum
 
-  """The checkout validation rules that can be changed."""
+  """
+  The checkout validation rules that can be changed.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   validationRules: CheckoutValidationRules
 }
 

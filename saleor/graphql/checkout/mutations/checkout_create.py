@@ -12,7 +12,12 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.utils import clean_channel
-from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -99,7 +104,12 @@ class CheckoutCreateInput(graphene.InputObjectType):
         LanguageCodeEnum, required=False, description="Checkout language code."
     )
     validation_rules = CheckoutValidationRules(
-        required=False, description="The checkout validation rules that can be changed."
+        required=False,
+        description=(
+            "The checkout validation rules that can be changed."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        ),
     )
 
 

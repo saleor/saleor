@@ -98,7 +98,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
     def validate_checkout_addresses(cls, shipping_address: "Address"):
         """Validate checkout addresses.
 
-        Mutations for updating addresses have option to turn of a validation. To keep
+        Mutations for updating addresses have option to turn off a validation. To keep
         consistency, we need to validate it. This will confirm that we have a correct
         address and we can finalize a checkout. Raises ValidationError when any address
         is not correct.
