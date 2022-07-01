@@ -232,7 +232,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             )
         if channel_slug:
             stocks = stocks.filter(
-                warehouse__shipping_zones__channels__slug=channel_slug
+                warehouse__shipping_zones__channels__slug=channel_slug,
+                warehouse__channels__slug=channel_slug,
             )
         stocks = stocks.annotate_available_quantity()
 
