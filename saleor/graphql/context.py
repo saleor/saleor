@@ -27,6 +27,7 @@ class RequestWithUser(Protocol):
     _cached_user: UserType
     app: Optional[App]
     user: Union[UserType, SimpleLazyObject]
+    user_id: Optional[int]
 
 
 def get_app(raw_auth_token) -> Optional[App]:
@@ -58,6 +59,8 @@ def set_app_on_context(request):
 def get_user(request: RequestWithUser) -> Optional[UserType]:
     if not hasattr(request, "_cached_user"):
         request._cached_user = cast(UserType, authenticate(request=request))
+        if request._cached_user and not request._cached_user.is_anonymous:
+            request.user_id = cast(int, request._cached_user.id)
     return request._cached_user
 
 
