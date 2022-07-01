@@ -1229,6 +1229,27 @@ def test_customer_updated(customer_user, subscription_customer_updated_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_customer_deleted(customer_user, subscription_customer_created_webhook):
+    # given
+    customer_user_id = customer_user.id
+    customer_user.delete()
+    customer_user.id = customer_user_id
+
+    webhooks = [subscription_customer_created_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_CREATED
+    expected_payload = json.dumps(generate_customer_payload(customer_user))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, customer_user, webhooks
+    )
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_collection_created(
     collection_with_products, subscription_collection_created_webhook
 ):

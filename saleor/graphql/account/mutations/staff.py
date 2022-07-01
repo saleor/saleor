@@ -174,6 +174,10 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         cls.post_process(info)
         return results
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.customer_deleted(instance)
+
 
 class StaffCreate(ModelMutation):
     class Arguments:

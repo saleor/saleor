@@ -1464,6 +1464,9 @@ enum WebhookEventTypeEnum {
   """A customer account is updated."""
   CUSTOMER_UPDATED
 
+  """A customer account is deleted."""
+  CUSTOMER_DELETED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1756,6 +1759,9 @@ enum WebhookEventTypeAsyncEnum {
   """A customer account is updated."""
   CUSTOMER_UPDATED
 
+  """A customer account is deleted."""
+  CUSTOMER_DELETED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1953,7 +1959,7 @@ type App implements Node & ObjectWithMetadata {
   """Description of the data privacy defined for this app."""
   dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
 
-  """Url to details about the privacy policy on the app owner page."""
+  """URL to details about the privacy policy on the app owner page."""
   dataPrivacyUrl: String
 
   """Homepage of the app."""
@@ -1962,11 +1968,18 @@ type App implements Node & ObjectWithMetadata {
   """Support page for the app."""
   supportUrl: String
 
-  """Url to iframe with the configuration for the app."""
+  """URL to iframe with the configuration for the app."""
   configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
 
-  """Url to iframe with the app."""
+  """URL to iframe with the app."""
   appUrl: String
+
+  """
+  URL to manifest used during app's installation.
+  
+  Added in Saleor 3.5.
+  """
+  manifestUrl: String
 
   """Version number of the app."""
   version: String
@@ -2378,6 +2391,7 @@ enum WebhookSampleEventTypeEnum {
   INVOICE_SENT
   CUSTOMER_CREATED
   CUSTOMER_UPDATED
+  CUSTOMER_DELETED
   COLLECTION_CREATED
   COLLECTION_UPDATED
   COLLECTION_DELETED
@@ -19973,7 +19987,7 @@ type Manifest {
   permissions: [Permission!]
   appUrl: String
 
-  """Url to iframe with the configuration for the app."""
+  """URL to iframe with the configuration for the app."""
   configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
   tokenTargetUrl: String
 
