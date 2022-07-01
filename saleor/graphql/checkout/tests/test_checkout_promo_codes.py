@@ -20,7 +20,9 @@ from ....plugins.manager import get_plugins_manager
 from ....warehouse.models import Stock
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
-from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
+from .mutations.test_checkout_shipping_address_update import (
+    MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+)
 from .test_checkout_lines import MUTATION_CHECKOUT_LINE_DELETE
 
 

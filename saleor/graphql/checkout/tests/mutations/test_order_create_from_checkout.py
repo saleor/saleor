@@ -9,20 +9,20 @@ from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
 
-from ....checkout import calculations
-from ....checkout.error_codes import OrderCreateFromCheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout
-from ....core.taxes import TaxError, zero_money, zero_taxed_money
-from ....giftcard import GiftCardEvents
-from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderOrigin, OrderStatus
-from ....order.models import Fulfillment, Order
-from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....tests.utils import flush_post_commit_hooks
-from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
-from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....checkout import calculations
+from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
+from .....core.taxes import TaxError, zero_money, zero_taxed_money
+from .....giftcard import GiftCardEvents
+from .....giftcard.models import GiftCard, GiftCardEvent
+from .....order import OrderOrigin, OrderStatus
+from .....order.models import Fulfillment, Order
+from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
+from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
+from .....warehouse.tests.utils import get_available_quantity_for_stock
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_CREATE_FROM_CHECKOUT = """
 mutation orderCreateFromCheckout($id: ID!){
