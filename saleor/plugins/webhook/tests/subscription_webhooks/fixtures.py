@@ -433,6 +433,20 @@ def subscription_sale_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_sale_started_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.SALE_STARTED, WebhookEventAsyncType.SALE_STARTED
+    )
+
+
+@pytest.fixture
+def subscription_sale_ended_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.SALE_ENDED, WebhookEventAsyncType.SALE_ENDED
+    )
+
+
+@pytest.fixture
 def subscription_invoice_requested_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.INVOICE_REQUESTED, WebhookEventAsyncType.INVOICE_REQUESTED

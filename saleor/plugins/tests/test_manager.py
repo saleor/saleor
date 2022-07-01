@@ -604,6 +604,30 @@ def test_manager_sale_deleted(sale):
     assert previous_catalogue == previous_catalogue_returned
 
 
+def test_manager_sale_started(sale):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    sale_returned, current_catalogue_returned = PluginsManager(
+        plugins=plugins
+    ).sale_started(sale, current_catalogue)
+
+    assert sale == sale_returned
+    assert current_catalogue == current_catalogue_returned
+
+
+def test_manager_sale_ended(sale):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    sale_returned, current_catalogue_returned = PluginsManager(
+        plugins=plugins
+    ).sale_ended(sale, current_catalogue)
+
+    assert sale == sale_returned
+    assert current_catalogue == current_catalogue_returned
+
+
 @pytest.mark.parametrize(
     "plugins, amount",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "15.0"), ([], "0")],

@@ -72,6 +72,8 @@ class WebhookEventAsyncType:
     SALE_CREATED = "sale_created"
     SALE_UPDATED = "sale_updated"
     SALE_DELETED = "sale_deleted"
+    SALE_STARTED = "sale_started"
+    SALE_ENDED = "sale_ended"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
@@ -182,6 +184,8 @@ class WebhookEventAsyncType:
         SALE_CREATED: "Sale created",
         SALE_UPDATED: "Sale updated",
         SALE_DELETED: "Sale deleted",
+        SALE_STARTED: "Sale started",
+        SALE_ENDED: "Sale ended",
         INVOICE_REQUESTED: "Invoice requested",
         INVOICE_DELETED: "Invoice deleted",
         INVOICE_SENT: "Invoice sent",
@@ -275,6 +279,8 @@ class WebhookEventAsyncType:
         (SALE_CREATED, DISPLAY_LABELS[SALE_CREATED]),
         (SALE_UPDATED, DISPLAY_LABELS[SALE_UPDATED]),
         (SALE_DELETED, DISPLAY_LABELS[SALE_DELETED]),
+        (SALE_STARTED, DISPLAY_LABELS[SALE_STARTED]),
+        (SALE_ENDED, DISPLAY_LABELS[SALE_ENDED]),
         (INVOICE_REQUESTED, DISPLAY_LABELS[INVOICE_REQUESTED]),
         (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
@@ -369,6 +375,8 @@ class WebhookEventAsyncType:
         SALE_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
         SALE_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         SALE_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
+        SALE_STARTED: DiscountPermissions.MANAGE_DISCOUNTS,
+        SALE_ENDED: DiscountPermissions.MANAGE_DISCOUNTS,
         INVOICE_REQUESTED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
@@ -541,6 +549,8 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.SALE_CREATED,
     WebhookEventAsyncType.SALE_UPDATED,
     WebhookEventAsyncType.SALE_DELETED,
+    WebhookEventAsyncType.SALE_STARTED,
+    WebhookEventAsyncType.SALE_ENDED,
     WebhookEventAsyncType.INVOICE_REQUESTED,
     WebhookEventAsyncType.INVOICE_DELETED,
     WebhookEventAsyncType.INVOICE_SENT,

@@ -696,6 +696,18 @@ class PluginsManager(PaymentInterface):
             "sale_updated", default_value, sale, previous_catalogue, current_catalogue
         )
 
+    def sale_started(self, sale: "Sale", catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_started", default_value, sale, catalogue
+        )
+
+    def sale_ended(self, sale: "Sale", catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_ended", default_value, sale, catalogue
+        )
+
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):

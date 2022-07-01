@@ -1448,6 +1448,8 @@ enum WebhookEventTypeEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+  SALE_STARTED
+  SALE_ENDED
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -1743,6 +1745,8 @@ enum WebhookEventTypeAsyncEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+  SALE_STARTED
+  SALE_ENDED
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -2386,6 +2390,8 @@ enum WebhookSampleEventTypeEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+  SALE_STARTED
+  SALE_ENDED
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -22191,6 +22197,58 @@ type SaleDeleted implements Event {
   The sale the event relates to.
   
   Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  sale(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Sale
+}
+
+type SaleStarted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The sale the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  sale(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Sale
+}
+
+type SaleEnded implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The sale the event relates to.
+  
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
