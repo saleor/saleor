@@ -80,7 +80,7 @@ from ..order.search import prepare_order_search_vector_value
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import AddressData, GatewayConfig, PaymentData
+from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
@@ -5968,3 +5968,28 @@ def event_deliveries(event_payload, webhook, app):
         "delivery_2_id": delivery_2,
         "delivery_3_id": delivery_3,
     }
+
+
+@pytest.fixture
+def action_required_gateway_response():
+    return GatewayResponse(
+        is_success=True,
+        action_required=True,
+        action_required_data={
+            "paymentData": "test",
+            "paymentMethodType": "scheme",
+            "url": "https://test.adyen.com/hpp/3d/validate.shtml",
+            "data": {
+                "MD": "md-test-data",
+                "PaReq": "PaReq-test-data",
+                "TermUrl": "http://127.0.0.1:3000/",
+            },
+            "method": "POST",
+            "type": "redirect",
+        },
+        kind=TransactionKind.CAPTURE,
+        amount=Decimal(3.0),
+        currency="usd",
+        transaction_id="1234",
+        error=None,
+    )

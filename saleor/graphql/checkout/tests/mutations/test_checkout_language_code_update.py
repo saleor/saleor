@@ -1,5 +1,5 @@
-from saleor.graphql.core.utils import to_global_id_or_none
-from saleor.graphql.tests.utils import get_graphql_content
+from ....core.utils import to_global_id_or_none
+from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE = """
 mutation checkoutLanguageCodeUpdate($id: ID, $languageCode: LanguageCodeEnum!){

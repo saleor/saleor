@@ -11,11 +11,11 @@ from ....plugins.manager import get_plugins_manager
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 from ..mutations.utils import update_checkout_shipping_method_if_invalid
-from .test_checkout import (
-    MUTATION_CHECKOUT_CREATE,
+from .mutations.test_checkout_create import MUTATION_CHECKOUT_CREATE
+from .mutations.test_checkout_shipping_address_update import (
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
-    MUTATION_UPDATE_SHIPPING_METHOD,
 )
+from .test_checkout import MUTATION_UPDATE_SHIPPING_METHOD
 from .test_checkout_lines import (
     MUTATION_CHECKOUT_LINE_DELETE,
     MUTATION_CHECKOUT_LINES_UPDATE,

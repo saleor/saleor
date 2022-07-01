@@ -12,9 +12,6 @@ from ...core.taxes import zero_money, zero_taxed_money
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
-from ...graphql.checkout.tests.test_checkout_complete import (
-    ACTION_REQUIRED_GATEWAY_RESPONSE,
-)
 from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
@@ -1203,18 +1200,20 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 @mock.patch("saleor.checkout.complete_checkout._create_order")
 @mock.patch(
     "saleor.checkout.complete_checkout._process_payment",
-    return_value=ACTION_REQUIRED_GATEWAY_RESPONSE,
 )
 def test_complete_checkout_action_required_voucher_once_per_customer(
-    _,
+    mocked_process_payment,
     mocked_create_order,
     voucher,
     customer_user,
     checkout,
     app,
     payment_txn_to_confirm,
+    action_required_gateway_response,
 ):
     # given
+    mocked_process_payment.return_value = action_required_gateway_response
+
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
     )
