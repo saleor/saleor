@@ -94,7 +94,7 @@ class I18nMixin:
         values_check=True,
         required_check=True
     ):
-        if address_data.get("country") is None and required_check:
+        if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}
             raise ValidationError(
                 {

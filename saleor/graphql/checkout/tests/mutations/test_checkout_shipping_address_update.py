@@ -20,10 +20,12 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
             $id: ID,
             $shippingAddress: AddressInput!,
+            $validationRules: CheckoutAddressValidationRules
         ) {
         checkoutShippingAddressUpdate(
                 id: $id,
                 shippingAddress: $shippingAddress,
+                validationRules: $validationRules
         ) {
             checkout {
                 token

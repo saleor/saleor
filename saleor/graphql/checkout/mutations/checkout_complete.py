@@ -9,6 +9,7 @@ from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.utils import is_shipping_required
 from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
@@ -104,8 +105,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         is not correct.
         """
         cls.validate_address(
-            {"country_code": shipping_address.country},
-            instance=shipping_address,
+            shipping_address.as_data(),
             address_type=AddressType.SHIPPING,
             values_check=True,
             required_check=True,
@@ -188,8 +188,8 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
-
-            cls.validate_checkout_addresses(checkout_info.shipping_address)
+            if is_shipping_required(lines) and checkout_info.shipping_address:
+                cls.validate_checkout_addresses(checkout_info.shipping_address)
 
             requestor = get_user_or_app_from_context(info.context)
             if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):

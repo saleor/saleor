@@ -10,6 +10,7 @@ from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
 
+from .....account.models import Address
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -2589,3 +2590,118 @@ def test_checkout_complete_0_total_value_from_giftcard(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_fields(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy_credit_card,
+    address,
+    shipping_method,
+):
+
+    shipping_address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        country="PL",
+        phone="+48713988102",
+    )  # missing postalCode
+
+    checkout = checkout_with_item
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy_credit_card
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = "123"
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+
+    assert data["errors"][0]["code"] == "REQUIRED"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fields(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy_credit_card,
+    address,
+    shipping_method,
+):
+
+    shipping_address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        country="PL",
+        phone="+48713988102",
+        postal_code="XX-ABC",
+    )  # incorrect postalCode
+
+    checkout = checkout_with_item
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy_credit_card
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = "123"
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert Order.objects.count() == orders_count
