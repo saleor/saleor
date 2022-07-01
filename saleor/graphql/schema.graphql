@@ -13135,6 +13135,9 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
+
+    """The rules for changing validation for recieved shipping address data."""
+    validationRules: CheckoutAddressValidationRules
   ): CheckoutShippingAddressUpdate
 
   """Updates the shipping method of the checkout."""
@@ -19105,6 +19108,9 @@ input CheckoutCreateInput {
 
   """Checkout language code."""
   languageCode: LanguageCodeEnum
+
+  """The checkout validation rules that can be changed."""
+  validationRules: CheckoutValidationRules
 }
 
 input CheckoutLineInput {
@@ -19122,6 +19128,25 @@ input CheckoutLineInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
+}
+
+input CheckoutValidationRules {
+  """
+  The validation rules that can be applied to provided shipping address data.
+  """
+  shippingAddress: CheckoutAddressValidationRules
+}
+
+input CheckoutAddressValidationRules {
+  """
+  Skip errors that will be raised when required fields for given country are not provided. Providing `country` code is always required.
+  """
+  skipRequired: Boolean = false
+
+  """
+  Skip errors that will be raised when the values of address fields don't match to expected format.
+  """
+  skipValueCheck: Boolean = false
 }
 
 """

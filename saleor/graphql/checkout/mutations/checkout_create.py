@@ -33,6 +33,32 @@ if TYPE_CHECKING:
     from .utils import CheckoutLineData
 
 
+class CheckoutAddressValidationRules(graphene.InputObjectType):
+    skip_required = graphene.Boolean(
+        description=(
+            "Skip errors that will be raised when required fields for given country are"
+            " not provided. Providing `country` code is always required."
+        ),
+        default_value=False,
+    )
+    skip_value_check = graphene.Boolean(
+        description=(
+            "Skip errors that will be raised when the values of address fields don't"
+            " match to expected format."
+        ),
+        default_value=False,
+    )
+
+
+class CheckoutValidationRules(graphene.InputObjectType):
+    shipping_address = CheckoutAddressValidationRules(
+        description=(
+            "The validation rules that can be applied to provided shipping address"
+            " data."
+        )
+    )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -71,6 +97,9 @@ class CheckoutCreateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="Checkout language code."
+    )
+    validation_rules = CheckoutValidationRules(
+        required=False, description="The checkout validation rules that can be changed."
     )
 
 
@@ -134,9 +163,17 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional["Address"]:
+        address_validation_rules = data.get("validation_rules", {}).get(
+            "shipping_address", {}
+        )
         if data.get("shipping_address") is not None:
             return cls.validate_address(
-                data["shipping_address"], address_type=AddressType.SHIPPING
+                data["shipping_address"],
+                address_type=AddressType.SHIPPING,
+                values_check=not address_validation_rules.get(
+                    "skip_value_check", False
+                ),
+                required_check=not address_validation_rules.get("skip_required", False),
             )
         return None
 

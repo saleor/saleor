@@ -1,7 +1,10 @@
+from typing import TYPE_CHECKING
+
 import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
+from ....checkout import AddressType
 from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.error_codes import CheckoutErrorCode
@@ -10,6 +13,7 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
+from ...account.i18n import I18nMixin
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -21,8 +25,11 @@ from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
+if TYPE_CHECKING:
+    from ....account.models import Address
 
-class CheckoutComplete(BaseMutation):
+
+class CheckoutComplete(BaseMutation, I18nMixin):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
         required=True,
@@ -86,6 +93,23 @@ class CheckoutComplete(BaseMutation):
         )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def validate_checkout_addresses(cls, shipping_address: "Address"):
+        """Validate checkout addresses.
+
+        Mutations for updating addresses have option to turn of a validation. To keep
+        consistency, we need to validate it. This will confirm that we have a correct
+        address and we can finalize a checkout. Raises ValidationError when any address
+        is not correct.
+        """
+        cls.validate_address(
+            {"country_code": shipping_address.country},
+            instance=shipping_address,
+            address_type=AddressType.SHIPPING,
+            values_check=True,
+            required_check=True,
+        )
 
     @classmethod
     def perform_mutation(
@@ -164,6 +188,8 @@ class CheckoutComplete(BaseMutation):
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
+
+            cls.validate_checkout_addresses(checkout_info.shipping_address)
 
             requestor = get_user_or_app_from_context(info.context)
             if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):

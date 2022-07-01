@@ -1583,3 +1583,325 @@ def test_create_checkout_with_unpublished_product(
     response = get_graphql_content(user_api_client.post_graphql(query, variables))
     error = response["data"]["checkoutCreate"]["errors"][0]
     assert error["code"] == CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.name
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {"country": "PL"},  # missing postalCode, streetAddress
+        {"country": "PL", "postalCode": "53-601"},  # missing streetAddress
+        {"country": "US"},
+        {
+            "country": "US",
+            "city": "New York",
+        },  # missing postalCode, streetAddress, countryArea
+    ],
+)
+def test_checkout_create_with_skip_required_doesnt_raise_error(
+    address_data, api_client, stock, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": address_data,
+            "validationRules": {"shippingAddress": {"skipRequired": True}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    created_checkout = Checkout.objects.first()
+
+    assert not data["errors"]
+    assert created_checkout
+    assert created_checkout.shipping_address
+
+
+def test_checkout_create_with_skip_required_raises_validation_error(
+    api_client, stock, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": {"country": "US", "postalCode": "XX-123"},
+            "validationRules": {"shippingAddress": {"skipRequired": True}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    created_checkout = Checkout.objects.first()
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert created_checkout is None
+
+
+def test_checkout_create_with_skip_required_saves_address(
+    api_client, stock, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": {"country": "PL", "postalCode": "53-601"},
+            "validationRules": {"shippingAddress": {"skipRequired": True}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    created_checkout = Checkout.objects.first()
+
+    assert not data["errors"]
+    assert created_checkout is not None
+    assert created_checkout.shipping_address
+    assert created_checkout.shipping_address.country.code == "PL"
+    assert created_checkout.shipping_address.postal_code == "53-601"
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {
+            "country": "PL",
+            "city": "Wroclaw",
+            "postalCode": "XYZ",
+            "streetAddress1": "Teczowa 7",
+        },  # incorrect postalCode
+        {
+            "country": "US",
+            "city": "New York",
+            "countryArea": "ABC",
+            "streetAddress1": "New street",
+            "postalCode": "53-601",
+        },  # incorrect postalCode
+    ],
+)
+def test_checkout_create_with_skip_value_check_doesnt_raise_error(
+    address_data, api_client, stock, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": address_data,
+            "validationRules": {"shippingAddress": {"skipValueCheck": True}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    created_checkout = Checkout.objects.first()
+
+    assert not data["errors"]
+    assert created_checkout
+    assert created_checkout.shipping_address
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {
+            "country": "PL",
+            "city": "Wroclaw",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode
+        {
+            "country": "US",
+            "city": "New York",
+            "countryArea": "XYZ",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode
+    ],
+)
+def test_checkout_create_with_skip_value_raises_required_fields_error(
+    address_data, api_client, stock, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": address_data,
+            "validationRules": {"shippingAddress": {"skipValueCheck": True}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    created_checkout = Checkout.objects.first()
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "REQUIRED"
+    assert data["errors"][0]["field"] == "streetAddress1"
+    assert created_checkout is None
+
+
+def test_checkout_create_with_skip_value_check_saves_address(
+    api_client, stock, channel_USD
+):
+    # given
+    city = "Wroclaw"
+    street_address = "Teczowa 7"
+    postal_code = "XX-601"  # incorrect format for PL
+    country_code = "PL"
+
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": {
+                "country": country_code,
+                "city": city,
+                "streetAddress1": street_address,
+                "postalCode": postal_code,
+            },
+            "validationRules": {"shippingAddress": {"skipValueCheck": True}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    created_checkout = Checkout.objects.first()
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+
+    assert created_checkout
+    assert created_checkout.shipping_address
+    assert created_checkout.shipping_address.street_address_1 == street_address
+    assert created_checkout.shipping_address.city == city
+    assert created_checkout.shipping_address.postal_code == postal_code
+    assert created_checkout.shipping_address.country.code == country_code
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {
+            "country": "PL",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode, missing city, streetAddress
+        {
+            "country": "US",
+            "countryArea": "DC",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode, missing city
+    ],
+)
+def test_checkout_create_with_skip_value_and_skip_required_fields(
+    address_data, api_client, stock, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": address_data,
+            "validationRules": {
+                "shippingAddress": {"skipValueCheck": True, "skipRequired": True}
+            },
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    created_checkout = Checkout.objects.first()
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert created_checkout.shipping_address
+
+
+def test_checkout_create_with_skip_value_and_skip_required_saves_address(
+    api_client, stock, channel_USD
+):
+    # given
+    city = "Wroclaw"
+    postal_code = "XX-601"  # incorrect format for PL
+    country_code = "PL"
+
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": {
+                "country": country_code,
+                "city": city,
+                "postalCode": postal_code,
+            },
+            "validationRules": {
+                "shippingAddress": {"skipValueCheck": True, "skipRequired": True}
+            },
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    created_checkout = Checkout.objects.first()
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+
+    assert created_checkout
+    assert created_checkout.shipping_address
+    assert created_checkout.shipping_address.country.code == country_code
+    assert created_checkout.shipping_address.postal_code == postal_code
+    assert created_checkout.shipping_address.city == city
+    assert created_checkout.shipping_address.street_address_1 == ""
