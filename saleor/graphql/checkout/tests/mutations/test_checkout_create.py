@@ -8,15 +8,15 @@ import pytz
 from django.test import override_settings
 from django.utils import timezone
 
-from ....channel.utils import DEPRECATION_WARNING_MESSAGE
-from ....checkout import AddressType
-from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_lines
-from ....checkout.models import Checkout
-from ....checkout.utils import calculate_checkout_quantity
-from ....product.models import ProductChannelListing
-from ....warehouse.models import Reservation, Stock
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....channel.utils import DEPRECATION_WARNING_MESSAGE
+from .....checkout import AddressType
+from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.fetch import fetch_checkout_lines
+from .....checkout.models import Checkout
+from .....checkout.utils import calculate_checkout_quantity
+from .....product.models import ProductChannelListing
+from .....warehouse.models import Reservation, Stock
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {

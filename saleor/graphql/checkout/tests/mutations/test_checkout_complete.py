@@ -10,25 +10,25 @@ from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
 
-from ....checkout import calculations
-from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout
-from ....core.exceptions import InsufficientStock, InsufficientStockData
-from ....core.taxes import TaxError, zero_money, zero_taxed_money
-from ....giftcard import GiftCardEvents
-from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderOrigin, OrderStatus
-from ....order.models import Fulfillment, Order
-from ....payment import ChargeStatus, PaymentError, TransactionKind
-from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
-from ....payment.interface import GatewayResponse
-from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....tests.utils import flush_post_commit_hooks
-from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
-from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...core.utils import to_global_id_or_none
-from ...tests.utils import get_graphql_content
+from .....checkout import calculations
+from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
+from .....core.exceptions import InsufficientStock, InsufficientStockData
+from .....core.taxes import TaxError, zero_money, zero_taxed_money
+from .....giftcard import GiftCardEvents
+from .....giftcard.models import GiftCard, GiftCardEvent
+from .....order import OrderOrigin, OrderStatus
+from .....order.models import Fulfillment, Order
+from .....payment import ChargeStatus, PaymentError, TransactionKind
+from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
+from .....payment.interface import GatewayResponse
+from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
+from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
+from .....warehouse.tests.utils import get_available_quantity_for_stock
+from ....core.utils import to_global_id_or_none
+from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
     mutation checkoutComplete($id: ID, $redirectUrl: String) {
@@ -58,29 +58,6 @@ MUTATION_CHECKOUT_COMPLETE = """
         }
     }
     """
-
-
-ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
-    is_success=True,
-    action_required=True,
-    action_required_data={
-        "paymentData": "test",
-        "paymentMethodType": "scheme",
-        "url": "https://test.adyen.com/hpp/3d/validate.shtml",
-        "data": {
-            "MD": "md-test-data",
-            "PaReq": "PaReq-test-data",
-            "TermUrl": "http://127.0.0.1:3000/",
-        },
-        "method": "POST",
-        "type": "redirect",
-    },
-    kind=TransactionKind.CAPTURE,
-    amount=Decimal(3.0),
-    currency="usd",
-    transaction_id="1234",
-    error=None,
-)
 
 
 def test_checkout_complete_unconfirmed_order_already_exists(
@@ -1079,8 +1056,9 @@ def test_checkout_complete_confirmation_needed(
     address,
     payment_dummy,
     shipping_method,
+    action_required_gateway_response,
 ):
-    mocked_process_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    mocked_process_payment.return_value = action_required_gateway_response
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -1133,8 +1111,9 @@ def test_checkout_confirm(
     payment_txn_to_confirm,
     address,
     shipping_method,
+    action_required_gateway_response,
 ):
-    response = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response = action_required_gateway_response
     response.action_required = False
     mocked_confirm_payment.return_value = response
 

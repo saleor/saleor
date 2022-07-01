@@ -5,27 +5,25 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 
-from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout
-from ....checkout.utils import add_variant_to_checkout
-from ....plugins.base_plugin import ExcludedShippingMethod
-from ....plugins.manager import get_plugins_manager
-from ....warehouse.models import Reservation, Stock
-from ...core.utils import to_global_id_or_none
-from ...tests.utils import get_graphql_content
-from ..mutations.utils import update_checkout_shipping_method_if_invalid
+from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
+from .....checkout.utils import add_variant_to_checkout
+from .....plugins.base_plugin import ExcludedShippingMethod
+from .....plugins.manager import get_plugins_manager
+from .....warehouse.models import Reservation, Stock
+from ....core.utils import to_global_id_or_none
+from ....tests.utils import get_graphql_content
+from ...mutations.utils import update_checkout_shipping_method_if_invalid
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
             $id: ID,
             $shippingAddress: AddressInput!,
-            $validationRules: CheckoutAddressValidationRules
         ) {
         checkoutShippingAddressUpdate(
                 id: $id,
                 shippingAddress: $shippingAddress,
-                validationRules: $validationRules
         ) {
             checkout {
                 token
