@@ -133,7 +133,7 @@ packaging==21.3; python_version >= "3.7" and python_full_version < "3.0.0" and p
 pathspec==0.9.0; python_full_version >= "3.6.2"
 petl==1.7.9; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.50
-pillow==9.1.1; python_version >= "3.7"
+pillow==9.2.0; python_version >= "3.7"
 platformdirs==2.5.2; python_version >= "3.7" and python_full_version >= "3.7.2" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7")
 pluggy==1.0.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
 posuto==2022.6.0
