@@ -64,7 +64,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         validation_rules = CheckoutAddressValidationRules(
             required=False,
             description=(
-                "The rules for changing validation for recieved shipping address data."
+                "The rules for changing validation for received shipping address data."
                 + ADDED_IN_35
                 + PREVIEW_FEATURE
             ),
