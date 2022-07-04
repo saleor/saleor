@@ -272,6 +272,7 @@ def test_checkout_shipping_method_update_with_not_all_required_shipping_address_
     shipping_method,
     checkout_with_item,
 ):
+    # given
     checkout = checkout_with_item
     checkout.shipping_address = Address.objects.create(country="US")
     checkout.save(update_fields=["shipping_address"])
@@ -280,10 +281,13 @@ def test_checkout_shipping_method_update_with_not_all_required_shipping_address_
     shipping_method.postal_code_rules.create(start="00123", end="12345")
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         {"id": to_global_id_or_none(checkout_with_item), "shippingMethodId": method_id},
     )
+
+    # then
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
 
     checkout.refresh_from_db()
@@ -297,6 +301,7 @@ def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
     shipping_method,
     checkout_with_item,
 ):
+    # given
     checkout = checkout_with_item
     checkout.shipping_address = Address.objects.create(
         country="US",
@@ -311,10 +316,13 @@ def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
     shipping_method.postal_code_rules.create(start="00123", end="12345")
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         {"id": to_global_id_or_none(checkout_with_item), "shippingMethodId": method_id},
     )
+
+    # then
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
 
     checkout.refresh_from_db()

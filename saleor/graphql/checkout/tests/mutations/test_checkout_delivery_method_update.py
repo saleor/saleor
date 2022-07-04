@@ -402,9 +402,12 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
 
     method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
 
+    # when
     response = api_client.post_graphql(
         query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
     )
+
+    # then
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
 
@@ -474,9 +477,12 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
 
     method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
 
+    # when
     response = api_client.post_graphql(
         query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
     )
+
+    # then
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
 

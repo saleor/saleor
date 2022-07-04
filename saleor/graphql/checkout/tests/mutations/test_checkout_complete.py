@@ -2600,7 +2600,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     address,
     shipping_method,
 ):
-
+    # given
     shipping_address = Address.objects.create(
         first_name="John",
         last_name="Doe",
@@ -2638,8 +2638,11 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert len(data["errors"]) == 1
@@ -2657,7 +2660,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     address,
     shipping_method,
 ):
-
+    # given
     shipping_address = Address.objects.create(
         first_name="John",
         last_name="Doe",
@@ -2696,8 +2699,11 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert len(data["errors"]) == 1
