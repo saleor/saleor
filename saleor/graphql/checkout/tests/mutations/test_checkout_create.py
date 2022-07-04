@@ -8,6 +8,7 @@ import pytz
 from django.test import override_settings
 from django.utils import timezone
 
+from .....account.models import Address
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....checkout import AddressType
 from .....checkout.error_codes import CheckoutErrorCode
@@ -1905,3 +1906,45 @@ def test_checkout_create_with_skip_value_and_skip_required_saves_address(
     assert created_checkout.shipping_address.postal_code == postal_code
     assert created_checkout.shipping_address.city == city
     assert created_checkout.shipping_address.street_address_1 == ""
+
+
+@pytest.mark.parametrize("with_shipping_address", (True, False))
+def test_create_checkout_with_digital(
+    api_client,
+    digital_content,
+    graphql_address_data,
+    with_shipping_address,
+    channel_USD,
+):
+    """Test creating a checkout with a shipping address gets the address ignored."""
+
+    address_count = Address.objects.count()
+
+    variant = digital_content.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    checkout_input = {
+        "channel": channel_USD.slug,
+        "lines": [{"quantity": 1, "variantId": variant_id}],
+        "email": "customer@example.com",
+    }
+
+    if with_shipping_address:
+        checkout_input["shippingAddress"] = graphql_address_data
+
+    get_graphql_content(
+        api_client.post_graphql(
+            MUTATION_CHECKOUT_CREATE, {"checkoutInput": checkout_input}
+        )
+    )["data"]["checkoutCreate"]
+
+    # Retrieve the created checkout
+    checkout = Checkout.objects.get()
+
+    # Check that the shipping address was ignored, thus not created
+    assert (
+        checkout.shipping_address is None
+    ), "The address shouldn't have been associated"
+    assert (
+        Address.objects.count() == address_count
+    ), "No address should have been created"
