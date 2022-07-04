@@ -424,6 +424,12 @@ class BasePlugin:
     #  created.
     customer_created: Callable[["User", Any], Any]
 
+    #  Trigger when user is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a user is
+    #  deleted.
+    customer_deleted: Callable[["User", Any], Any]
+
     #  Trigger when user is updated.
     #
     #  Overwrite this method if you need to trigger specific logic after a user is

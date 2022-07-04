@@ -484,6 +484,13 @@ def subscription_customer_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_customer_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.CUSTOMER_DELETED, WebhookEventAsyncType.CUSTOMER_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_collection_created_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.COLLECTION_CREATED,
