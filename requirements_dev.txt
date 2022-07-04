@@ -225,7 +225,7 @@ tzdata==2022.1; python_version >= "2"
 urllib3==1.26.9; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" and (python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.0") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0") or python_full_version >= "3.5.0" and python_version < "4" and python_version >= "3.7" and (python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.0") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0")
 uvicorn==0.17.6; python_version >= "3.7"
 uvloop==0.16.0; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy" and python_version >= "3.7"
-vcrpy==4.1.1; python_version >= "3.5"
+vcrpy==4.2.0; python_version >= "3.5"
 vine==5.0.0; python_version >= "3.7"
 virtualenv==20.15.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 watchgod==0.8.2; python_version >= "3.7"
