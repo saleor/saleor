@@ -1588,6 +1588,10 @@ subscription{
       order{
         id
       }
+      shippingMethods{
+      id
+      name
+      }
     }
   }
 }
@@ -1599,6 +1603,10 @@ subscription{
   event{
     ...on CheckoutFilterShippingMethods{
       checkout{
+        id
+      }
+      shippingMethods{
+        name
         id
       }
     }

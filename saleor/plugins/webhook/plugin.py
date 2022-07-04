@@ -1208,6 +1208,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
+            # consider lazy loading
             payload = generate_checkout_payload(checkout, self.requestor)
             for app in apps:
                 response_data = trigger_webhook_sync(

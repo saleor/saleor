@@ -1635,7 +1635,43 @@ def test_payment_list_gateways(checkout, subscription_payment_list_gateways_webh
 
 
 def test_checkout_filter_shipping_methods(
-    checkout, subscription_checkout_filter_shipping_methods_webhook
+    checkout_with_shipping_required,
+    subscription_checkout_filter_shipping_methods_webhook,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_shipping_required
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    webhooks = [subscription_checkout_filter_shipping_methods_webhook]
+    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    all_shipping_methods = ShippingMethod.objects.all()
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+    # then
+    expected_payload = {
+        "checkout": {"id": checkout_id},
+        "shippingMethods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+                "name": sm.name,
+            }
+            for sm in all_shipping_methods
+        ],
+    }
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_checkout_filter_shipping_methods_no_methods_in_channel(
+    checkout,
+    subscription_checkout_filter_shipping_methods_webhook,
+    address,
+    shipping_method,
+    shipping_method_channel_PLN,
 ):
     # given
     webhooks = [subscription_checkout_filter_shipping_methods_webhook]
@@ -1646,16 +1682,56 @@ def test_checkout_filter_shipping_methods(
     deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
 
     # then
-    expected_payload = {"checkout": {"id": checkout_id}}
+    expected_payload = {"checkout": {"id": checkout_id}, "shippingMethods": []}
     assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
 
 def test_order_filter_shipping_methods(
-    order, subscription_order_filter_shipping_methods_webhook
+    order_line_with_one_allocation,
+    subscription_order_filter_shipping_methods_webhook,
+    address,
 ):
     # given
+    order = order_line_with_one_allocation.order
+    order_line_with_one_allocation.is_shipping_required = True
+    order_line_with_one_allocation.save(update_fields=["is_shipping_required"])
+
+    order.currency = "USD"
+    order.shipping_address = address
+    order.save(update_fields=["shipping_address"])
+    webhooks = [subscription_order_filter_shipping_methods_webhook]
+    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    all_shipping_methods = ShippingMethod.objects.all()
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    # then
+    expected_payload = {
+        "order": {"id": order_id},
+        "shippingMethods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+                "name": sm.name,
+            }
+            for sm in all_shipping_methods
+        ],
+    }
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_order_filter_shipping_methods_no_methods_in_channel(
+    order_line_with_one_allocation,
+    subscription_order_filter_shipping_methods_webhook,
+    shipping_method_channel_PLN,
+):
+    # given
+    order = order_line_with_one_allocation.order
+    order.save(update_fields=["shipping_address"])
     webhooks = [subscription_order_filter_shipping_methods_webhook]
     event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -1664,7 +1740,8 @@ def test_order_filter_shipping_methods(
     deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
 
     # then
-    expected_payload = {"order": {"id": order_id}}
+    expected_payload = {"order": {"id": order_id}, "shippingMethods": []}
+
     assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

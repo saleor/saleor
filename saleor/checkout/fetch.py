@@ -372,6 +372,7 @@ def fetch_checkout_info(
     shipping_channel_listings: Optional[
         Iterable["ShippingMethodChannelListing"]
     ] = None,
+    fetch_delivery_methods=True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
@@ -394,16 +395,17 @@ def fetch_checkout_info(
         valid_pick_up_points=[],
         voucher=voucher,
     )
-    update_delivery_method_lists_for_checkout_info(
-        checkout_info,
-        checkout.shipping_method,
-        checkout.collection_point,
-        shipping_address,
-        lines,
-        discounts,
-        manager,
-        shipping_channel_listings,
-    )
+    if fetch_delivery_methods:
+        update_delivery_method_lists_for_checkout_info(
+            checkout_info,
+            checkout.shipping_method,
+            checkout.collection_point,
+            shipping_address,
+            lines,
+            discounts,
+            manager,
+            shipping_channel_listings,
+        )
 
     return checkout_info
 
@@ -530,6 +532,30 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     )
 
 
+def get_all_shipping_methods_list(
+    checkout_info,
+    shipping_address,
+    lines,
+    discounts,
+    shipping_channel_listings,
+    manager,
+):
+    return list(
+        itertools.chain(
+            get_valid_internal_shipping_method_list_for_checkout_info(
+                checkout_info,
+                shipping_address,
+                lines,
+                discounts,
+                shipping_channel_listings,
+            ),
+            get_valid_external_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+        )
+    )
+
+
 def update_delivery_method_lists_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_method: Optional["ShippingMethod"],
@@ -551,19 +577,13 @@ def update_delivery_method_lists_for_checkout_info(
 
     def _resolve_all_shipping_methods():
         # Fetch all shipping method from all sources, including sync webhooks
-        all_methods = list(
-            itertools.chain(
-                get_valid_internal_shipping_method_list_for_checkout_info(
-                    checkout_info,
-                    shipping_address,
-                    lines,
-                    discounts,
-                    shipping_channel_listings,
-                ),
-                get_valid_external_shipping_method_list_for_checkout_info(
-                    checkout_info, shipping_address, lines, discounts, manager
-                ),
-            )
+        all_methods = get_all_shipping_methods_list(
+            checkout_info,
+            shipping_address,
+            lines,
+            discounts,
+            shipping_channel_listings,
+            manager,
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(

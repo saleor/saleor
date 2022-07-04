@@ -674,6 +674,8 @@ def get_valid_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
+    *,
+    exclude_methods: bool = True
 ) -> List[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic.
 
@@ -703,9 +705,11 @@ def get_valid_shipping_methods_for_order(
         shipping_method_data = convert_to_shipping_method_data(method, listing)
         if shipping_method_data:
             valid_methods.append(shipping_method_data)
-
-    excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
-    initialize_shipping_method_active_status(valid_methods, excluded_methods)
+    if exclude_methods:
+        excluded_methods = manager.excluded_shipping_methods_for_order(
+            order, valid_methods
+        )
+        initialize_shipping_method_active_status(valid_methods, excluded_methods)
 
     return valid_methods
 
@@ -1068,8 +1072,10 @@ def _update_order_total_charged(order: Order):
         sum(order.payments.values_list("captured_amount", flat=True))  # type: ignore
         or 0
     )
-    order.total_charged_amount += sum(  # type: ignore
-        order.payment_transactions.values_list("charged_value", flat=True)
+    order.total_charged_amount += sum(
+        order.payment_transactions.values_list(
+            "charged_value", flat=True
+        )  # type: ignore
     )
 
 

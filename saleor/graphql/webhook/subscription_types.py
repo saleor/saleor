@@ -7,9 +7,15 @@ from rx import Observable
 from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    get_all_shipping_methods_list,
+)
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
+from ...order.utils import get_valid_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import TransactionActionData
 from ...product.models import (
@@ -23,10 +29,14 @@ from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
 from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, ADDED_IN_35, PREVIEW_FEATURE
 from ..core.scalars import PositiveDecimal
+from ..core.types import NonNullList
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
+from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
+from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
 
 TRANSLATIONS_TYPES_MAP = {
@@ -1093,7 +1103,7 @@ class WarehouseBase(AbstractType):
 class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
-        description="Look up a payment." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Look up a payment." + ADDED_IN_35 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -1143,11 +1153,64 @@ class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
 
 
 class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
+    shipping_methods = NonNullList(
+        ShippingMethod,
+        description="Shipping methods that can be used with this checkout.",
+    )
+
+    @staticmethod
+    def resolve_shipping_methods(root, info):
+        _, checkout = root
+        manager = info.context.plugins
+        discounts = info.context.discounts
+        lines, _ = fetch_checkout_lines(checkout)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        checkout_info = fetch_checkout_info(
+            checkout,
+            lines,
+            discounts,
+            manager,
+            shipping_channel_listings,
+            fetch_delivery_methods=False,
+        )
+        all_shipping_methods = get_all_shipping_methods_list(
+            checkout_info,
+            checkout.shipping_address,
+            lines,
+            info.context.discounts,
+            shipping_channel_listings,
+            manager,
+        )
+        return all_shipping_methods
+
     class Meta:
         interfaces = (Event,)
 
 
 class OrderFilterShippingMethods(ObjectType, OrderBase):
+    shipping_methods = NonNullList(
+        ShippingMethod,
+        description="Shipping methods that can be used with this checkout.",
+    )
+
+    @staticmethod
+    def resolve_shipping_methods(root, info):
+        _, order = root
+
+        def with_channel(channel):
+            def with_listings(channel_listings):
+                return get_valid_shipping_methods_for_order(
+                    order, channel_listings, info.context.plugins, exclude_methods=True
+                )
+
+            return (
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
+                .then(with_listings)
+            )
+
+        return ChannelByIdLoader(info.context).load(order.channel_id).then(with_channel)
+
     class Meta:
         interfaces = (Event,)
 
@@ -1277,4 +1340,5 @@ SUBSCRIPTION_EVENTS_TYPES = [
     PaymentListGateways,
     OrderFilterShippingMethods,
     CheckoutFilterShippingMethods,
+    ShippingListMethodsForCheckout,
 ]
