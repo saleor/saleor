@@ -183,6 +183,9 @@ class Event(graphene.Interface):
             WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
                 CheckoutFilterShippingMethods
             ),
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
+                ShippingListMethodsForCheckout
+            ),
         }
         return types.get(object_type)
 
