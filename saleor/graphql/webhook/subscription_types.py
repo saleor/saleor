@@ -1155,7 +1155,9 @@ class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
 class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
-        description="Shipping methods that can be used with this checkout.",
+        description="Shipping methods that can be used with this checkout."
+        + ADDED_IN_34
+        + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -1190,7 +1192,9 @@ class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
 class OrderFilterShippingMethods(ObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
-        description="Shipping methods that can be used with this checkout.",
+        description="Shipping methods that can be used with this checkout."
+        + ADDED_IN_34
+        + PREVIEW_FEATURE,
     )
 
     @staticmethod

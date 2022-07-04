@@ -23252,7 +23252,13 @@ type OrderFilterShippingMethods implements Event {
   """
   order: Order
 
-  """Shipping methods that can be used with this checkout."""
+  """
+  Shipping methods that can be used with this checkout.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   shippingMethods: [ShippingMethod!]
 }
 
@@ -23278,7 +23284,13 @@ type CheckoutFilterShippingMethods implements Event {
   """
   checkout: Checkout
 
-  """Shipping methods that can be used with this checkout."""
+  """
+  Shipping methods that can be used with this checkout.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   shippingMethods: [ShippingMethod!]
 }
 
