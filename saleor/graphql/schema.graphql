@@ -19151,14 +19151,14 @@ input CheckoutValidationRules {
 
 input CheckoutAddressValidationRules {
   """
-  Skip errors that will be raised when required fields for given country are not provided. Providing `country` code is always required.
+  Determines if an error should be raised when the provided address doesn't have all required fields. Providing `country` code is always required.
   """
-  skipRequired: Boolean = false
+  checkRequiredFields: Boolean = true
 
   """
-  Skip errors that will be raised when the values of address fields don't match to expected format.
+  Determines if an error should be raised when the provided address doesn'tmatch to expected format.
   """
-  skipValueCheck: Boolean = false
+  checkFieldsFormat: Boolean = true
 }
 
 """

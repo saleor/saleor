@@ -27,7 +27,7 @@ class I18nMixin:
         address_data: dict,
         address_type: Optional[str] = None,
         instance=None,
-        values_check=True,
+        format_check=True,
         required_check=True,
     ):
         phone = address_data.get("phone", None)
@@ -36,7 +36,7 @@ class I18nMixin:
             try:
                 validate_possible_number(phone, address_data.get("country"))
             except ValidationError as exc:
-                if values_check:
+                if format_check:
                     raise ValidationError(
                         {
                             "phone": ValidationError(
@@ -52,7 +52,7 @@ class I18nMixin:
         )
         if not address_form.is_valid():
             errors = cls.attach_params_to_address_form_errors(
-                address_form, params, values_check, required_check
+                address_form, params, format_check, required_check
             )
             if errors:
                 raise ValidationError(errors)
@@ -91,7 +91,7 @@ class I18nMixin:
         address_type: Optional[str] = None,
         instance: Optional[Address] = None,
         info=None,
-        values_check=True,
+        format_check=True,
         required_check=True
     ):
         if address_data.get("country") is None:
@@ -106,7 +106,7 @@ class I18nMixin:
         address_form = cls.validate_address_form(
             address_data,
             address_type,
-            values_check=values_check,
+            format_check=format_check,
             required_check=required_check,
         )
         if not instance:

@@ -1610,7 +1610,7 @@ def test_checkout_create_with_skip_required_doesnt_raise_error(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "shippingAddress": address_data,
-            "validationRules": {"shippingAddress": {"skipRequired": True}},
+            "validationRules": {"shippingAddress": {"checkRequiredFields": False}},
             "channel": channel_USD.slug,
         }
     }
@@ -1639,7 +1639,7 @@ def test_checkout_create_with_skip_required_raises_validation_error(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "shippingAddress": {"country": "US", "postalCode": "XX-123"},
-            "validationRules": {"shippingAddress": {"skipRequired": True}},
+            "validationRules": {"shippingAddress": {"checkRequiredFields": False}},
             "channel": channel_USD.slug,
         }
     }
@@ -1668,7 +1668,7 @@ def test_checkout_create_with_skip_required_saves_address(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "shippingAddress": {"country": "PL", "postalCode": "53-601"},
-            "validationRules": {"shippingAddress": {"skipRequired": True}},
+            "validationRules": {"shippingAddress": {"checkRequiredFields": False}},
             "channel": channel_USD.slug,
         }
     }
@@ -1717,7 +1717,7 @@ def test_checkout_create_with_skip_value_check_doesnt_raise_error(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "shippingAddress": address_data,
-            "validationRules": {"shippingAddress": {"skipValueCheck": True}},
+            "validationRules": {"shippingAddress": {"checkFieldsFormat": False}},
             "channel": channel_USD.slug,
         }
     }
@@ -1762,7 +1762,7 @@ def test_checkout_create_with_skip_value_raises_required_fields_error(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "shippingAddress": address_data,
-            "validationRules": {"shippingAddress": {"skipValueCheck": True}},
+            "validationRules": {"shippingAddress": {"checkFieldsFormat": False}},
             "channel": channel_USD.slug,
         }
     }
@@ -1801,7 +1801,7 @@ def test_checkout_create_with_skip_value_check_saves_address(
                 "streetAddress1": street_address,
                 "postalCode": postal_code,
             },
-            "validationRules": {"shippingAddress": {"skipValueCheck": True}},
+            "validationRules": {"shippingAddress": {"checkFieldsFormat": False}},
             "channel": channel_USD.slug,
         }
     }
@@ -1849,7 +1849,10 @@ def test_checkout_create_with_skip_value_and_skip_required_fields(
             "email": "test@example.com",
             "shippingAddress": address_data,
             "validationRules": {
-                "shippingAddress": {"skipValueCheck": True, "skipRequired": True}
+                "shippingAddress": {
+                    "checkFieldsFormat": False,
+                    "checkRequiredFields": False,
+                }
             },
             "channel": channel_USD.slug,
         }
@@ -1886,7 +1889,10 @@ def test_checkout_create_with_skip_value_and_skip_required_saves_address(
                 "postalCode": postal_code,
             },
             "validationRules": {
-                "shippingAddress": {"skipValueCheck": True, "skipRequired": True}
+                "shippingAddress": {
+                    "checkFieldsFormat": False,
+                    "checkRequiredFields": False,
+                }
             },
             "channel": channel_USD.slug,
         }

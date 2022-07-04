@@ -107,7 +107,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         cls.validate_address(
             shipping_address.as_data(),
             address_type=AddressType.SHIPPING,
-            values_check=True,
+            format_check=True,
             required_check=True,
         )
 

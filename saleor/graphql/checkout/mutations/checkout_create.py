@@ -39,19 +39,19 @@ if TYPE_CHECKING:
 
 
 class CheckoutAddressValidationRules(graphene.InputObjectType):
-    skip_required = graphene.Boolean(
+    check_required_fields = graphene.Boolean(
         description=(
-            "Skip errors that will be raised when required fields for given country are"
-            " not provided. Providing `country` code is always required."
+            "Determines if an error should be raised when the provided address doesn't "
+            "have all required fields. Providing `country` code is always required."
         ),
-        default_value=False,
+        default_value=True,
     )
-    skip_value_check = graphene.Boolean(
+    check_fields_format = graphene.Boolean(
         description=(
-            "Skip errors that will be raised when the values of address fields don't"
-            " match to expected format."
+            "Determines if an error should be raised when the provided address doesn't"
+            "match to expected format."
         ),
-        default_value=False,
+        default_value=True,
     )
 
 
@@ -180,10 +180,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             return cls.validate_address(
                 data["shipping_address"],
                 address_type=AddressType.SHIPPING,
-                values_check=not address_validation_rules.get(
-                    "skip_value_check", False
+                format_check=address_validation_rules.get("check_fields_format", True),
+                required_check=address_validation_rules.get(
+                    "check_required_fields", True
                 ),
-                required_check=not address_validation_rules.get("skip_required", False),
             )
         return None
 

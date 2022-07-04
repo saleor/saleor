@@ -450,7 +450,7 @@ def test_checkout_shipping_address_update_with_skip_required_doesnt_raise_error(
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
         "shippingAddress": address_data,
-        "validationRules": {"skipRequired": True},
+        "validationRules": {"checkRequiredFields": False},
     }
 
     # when
@@ -474,7 +474,7 @@ def test_checkout_shipping_address_update_with_skip_required_raises_validation_e
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
         "shippingAddress": {"country": "US", "postalCode": "XX-123"},
-        "validationRules": {"skipRequired": True},
+        "validationRules": {"checkRequiredFields": False},
     }
 
     # when
@@ -500,7 +500,7 @@ def test_checkout_shipping_address_update_with_skip_required_saves_address(
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
         "shippingAddress": {"country": "PL", "postalCode": "53-601"},
-        "validationRules": {"skipRequired": True},
+        "validationRules": {"checkRequiredFields": False},
     }
 
     # when
@@ -545,7 +545,7 @@ def test_checkout_shipping_address_update_with_skip_value_check_doesnt_raise_err
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
         "shippingAddress": address_data,
-        "validationRules": {"skipValueCheck": True},
+        "validationRules": {"checkFieldsFormat": False},
     }
 
     # when
@@ -585,7 +585,7 @@ def test_checkout_shipping_address_update_with_skip_value_raises_required_fields
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
         "shippingAddress": address_data,
-        "validationRules": {"skipValueCheck": True},
+        "validationRules": {"checkFieldsFormat": False},
     }
 
     # when
@@ -620,7 +620,7 @@ def test_checkout_shipping_address_update_with_skip_value_check_saves_address(
             "streetAddress1": street_address,
             "postalCode": postal_code,
         },
-        "validationRules": {"skipValueCheck": True},
+        "validationRules": {"checkFieldsFormat": False},
     }
 
     # when
@@ -665,7 +665,7 @@ def test_checkout_shipping_address_update_with_skip_value_and_skip_required_fiel
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
         "shippingAddress": address_data,
-        "validationRules": {"skipValueCheck": True, "skipRequired": True},
+        "validationRules": {"checkFieldsFormat": False, "checkRequiredFields": False},
     }
 
     # when
@@ -696,7 +696,7 @@ def test_checkout_address_update_with_skip_value_and_skip_required_saves_address
             "city": city,
             "postalCode": postal_code,
         },
-        "validationRules": {"skipValueCheck": True, "skipRequired": True},
+        "validationRules": {"checkFieldsFormat": False, "checkRequiredFields": False},
     }
 
     # when

@@ -142,8 +142,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             address_type=AddressType.SHIPPING,
             instance=checkout.shipping_address,
             info=info,
-            values_check=not address_validation_rules.get("skip_value_check", False),
-            required_check=not address_validation_rules.get("skip_required", False),
+            format_check=address_validation_rules.get("check_fields_format", True),
+            required_check=address_validation_rules.get("check_required_fields", True),
         )
 
         discounts = info.context.discounts
