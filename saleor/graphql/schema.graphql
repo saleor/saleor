@@ -13137,7 +13137,7 @@ type Mutation {
     token: UUID
 
     """
-    The rules for changing validation for recieved shipping address data.
+    The rules for changing validation for received shipping address data.
     
     Added in Saleor 3.5.
     
