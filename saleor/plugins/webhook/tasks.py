@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
 import requests
@@ -228,7 +228,9 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
         "sqs",
         region_name=region,
         aws_access_key_id=parts.username,
-        aws_secret_access_key=parts.password,
+        aws_secret_access_key=(
+            unquote(parts.password) if parts.password else parts.password
+        ),
     )
     queue_url = urlunparse(
         ("https", parts.hostname, parts.path, parts.params, parts.query, parts.fragment)
