@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ...account import models
 from ...account.error_codes import AccountErrorCode
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import AccountError, NonNullList, StaffError
@@ -70,6 +71,12 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     @classmethod
     def clean_instances(cls, info, users):
         errors = defaultdict(list)
+
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
         cls.check_if_requestor_can_manage_users(requestor, users, "ids", errors)

@@ -6,6 +6,7 @@ from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 
 from ....account.error_codes import PermissionGroupErrorCode
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, get_permissions
 from ....core.tracing import traced_atomic_transaction
 from ...account.utils import (
@@ -69,12 +70,13 @@ class PermissionGroupCreate(ModelMutation):
             instance.user_set.add(*users)
 
     @classmethod
-    def clean_input(
-        cls,
-        info,
-        instance,
-        data,
-    ):
+    def clean_input(cls, info, instance, data):
+
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         cleaned_input = super().clean_input(info, instance, data)
 
         requestor = info.context.user
@@ -215,6 +217,12 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         instance,
         data,
     ):
+
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         requestor = info.context.user
         cls.ensure_requestor_can_manage_group(requestor, instance)
 
@@ -421,6 +429,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         requestor = info.context.user
         if requestor.is_superuser:
             return

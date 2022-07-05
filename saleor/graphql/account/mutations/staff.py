@@ -16,6 +16,7 @@ from ....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
 from ....checkout import AddressType
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -198,6 +199,11 @@ class StaffCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         errors = defaultdict(list)
         if cleaned_input.get("redirect_url"):
             try:
@@ -300,6 +306,11 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def clean_input(cls, info, instance, data):
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         requestor = info.context.user
         # check if requestor can manage this user
         if not requestor.is_superuser and get_out_of_scope_users(requestor, [instance]):

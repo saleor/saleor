@@ -21,7 +21,11 @@ from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
 from ..payment.utils import metadata_contains_empty_key
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
-from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
+from .permissions import (
+    PRIVATE_META_PERMISSION_MAP,
+    PUBLIC_META_PERMISSION_MAP,
+    AccountPermissions,
+)
 from .types import ObjectWithMetadata
 
 logger = logging.getLogger(__name__)
@@ -184,6 +188,12 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(error)
         except ValidationError as e:
             return cls.handle_errors(e)
+
+        is_app = bool(getattr(info.context, "app", None))
+        if is_app and AccountPermissions.MANAGE_STAFF in permissions:
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
 
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied(permissions=permissions)

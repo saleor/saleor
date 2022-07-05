@@ -85,7 +85,14 @@ class StaffDeleteMixin(UserDeleteMixin):
     @classmethod
     def clean_instance(cls, info, instance):
         errors = defaultdict(list)
+
+        if bool(getattr(info.context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+
         requestor = info.context.user
+
         cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
         cls.check_if_requestor_can_manage_users(requestor, [instance], "id", errors)
         cls.check_if_removing_left_not_manageable_permissions(
