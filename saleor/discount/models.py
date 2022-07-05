@@ -268,6 +268,9 @@ class Sale(ModelWithMetadata):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
+    started_notification_sent = models.BooleanField(default=False)
+    ended_notification_sent = models.BooleanField(default=False)
+
     objects = models.Manager.from_queryset(SaleQueryset)()
     translated = TranslationProxy()
 
