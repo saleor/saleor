@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -22,12 +23,16 @@ CHANNEL_UPDATE_MUTATION = """
                     code
                     country
                 }
+                warehouses {
+                    slug
+                }
             }
             errors{
                 field
                 code
                 message
                 shippingZones
+                warehouses
             }
         }
     }
@@ -276,9 +281,18 @@ def test_channel_update_mutation_remove_shipping_zone(
     staff_api_client,
     channel_USD,
     shipping_zones,
+    warehouses,
+    channel_PLN,
 ):
     # given
     channel_USD.shipping_zones.add(*shipping_zones)
+    channel_PLN.shipping_zones.add(*shipping_zones)
+
+    for warehouse in warehouses:
+        warehouse.shipping_zones.add(*shipping_zones)
+
+    # add another common channel with zone to warehouses on index 1
+    channel_PLN.warehouses.add(warehouses[0])
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
@@ -320,6 +334,13 @@ def test_channel_update_mutation_remove_shipping_zone(
     mocked_drop_invalid_shipping_methods_relations.assert_called_once_with(
         list(shipping_method_ids), [channel_USD.id]
     )
+    # ensure one warehouse was removed from shipping zone as they do not have
+    # common channel anymore
+    assert warehouses[0].id not in shipping_zones[0].warehouses.values("id")
+
+    # ensure another shipping zone has all warehouses assigned
+    for zone in shipping_zones[1:]:
+        assert zone.warehouses.count() == len(warehouses)
 
 
 def test_channel_update_mutation_add_and_remove_shipping_zone(
@@ -465,3 +486,202 @@ def test_channel_update_mutation_trigger_webhook(
         channel_USD,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+
+def test_channel_update_mutation_add_warehouse(
+    permission_manage_channels, staff_api_client, channel_USD, warehouse
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    name = "newName"
+    slug = "new_slug"
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "id": channel_id,
+        "input": {"name": name, "slug": slug, "addWarehouses": [warehouse_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    warehouse.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    assert len(channel_data["warehouses"]) == 1
+    assert channel_data["warehouses"][0]["slug"] == warehouse.slug
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_channel_update_mutation_remove_warehouse(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    channel_PLN,
+    channel_JPY,
+    warehouses,
+    warehouse_JPY,
+    shipping_zones,
+    count_queries,
+):
+    """Ensure that removing warehouses from channel works properly.
+
+    Also, ensure that when the warehouse is removed from the channel it's also removed
+    from shipping zones with which the warehouse do not have a common channel anymore.
+    """
+    # given
+    channel_USD.warehouses.add(*(warehouses + [warehouse_JPY]))
+    channel_PLN.warehouses.add(*[warehouses[0], warehouse_JPY])
+    channel_JPY.warehouses.add(warehouses[1])
+    for shipping_zone in shipping_zones:
+        shipping_zone.warehouses.add(*warehouses)
+
+    # add additional common channel for warehouse[1]
+    shipping_zones[0].channels.add(channel_JPY)
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    name = "newName"
+    slug = "new_slug"
+    remove_warehouses = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses
+    ]
+    warehouses_count = channel_USD.warehouses.count()
+
+    variables = {
+        "id": channel_id,
+        "input": {
+            "name": name,
+            "slug": slug,
+            "removeWarehouses": remove_warehouses,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    assert len(channel_data["warehouses"]) == warehouses_count - 2
+    assert {
+        warehouse_data["slug"] for warehouse_data in channel_data["warehouses"]
+    } == {warehouse_JPY.slug}
+    # ensure warehouse from index 1 has not been deleted from any shipping zone
+    for zone in shipping_zones:
+        zone.refresh_from_db()
+        assert warehouses[0] in zone.warehouses.all()
+    # ensure warehouse from index 1 has not been deleted from shipping zone
+    # with JPY channel
+    assert warehouses[1] in shipping_zones[0].warehouses.all()
+    # ensure warehouse from index 1 has been deleted from shipping zone
+    # without JPY channel
+    assert warehouses[1] not in shipping_zones[1].warehouses.all()
+
+
+def test_channel_update_mutation_add_and_remove_warehouse(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    warehouses,
+    warehouse,
+):
+    # given
+    channel_USD.warehouses.add(*warehouses)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    name = "newName"
+    slug = "new_slug"
+    remove_warehouse = graphene.Node.to_global_id("Warehouse", warehouses[0].pk)
+    add_warehouse = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "name": name,
+            "slug": slug,
+            "addWarehouses": [add_warehouse],
+            "removeWarehouses": [remove_warehouse],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    assert {
+        warehouse_data["slug"] for warehouse_data in channel_data["warehouses"]
+    } == {warehouse.slug for warehouse in warehouses[1:] + [warehouse]}
+
+
+def test_channel_update_mutation_duplicated_warehouses(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    warehouses,
+    warehouse,
+):
+    # given
+    channel_USD.warehouses.add(*warehouses)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    name = "newName"
+    slug = "new_slug"
+    remove_warehouse = graphene.Node.to_global_id("Warehouse", warehouses[0].pk)
+    add_warehouse = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "name": name,
+            "slug": slug,
+            "addWarehouses": [add_warehouse],
+            "removeWarehouses": [remove_warehouse, add_warehouse],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["channel"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "warehouses"
+    assert errors[0]["code"] == ChannelErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["warehouses"] == [add_warehouse]

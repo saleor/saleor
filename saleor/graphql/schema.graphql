@@ -3653,6 +3653,15 @@ type Channel implements Node {
   Added in Saleor 3.1.
   """
   defaultCountry: CountryDisplay!
+
+  """
+  List of warehouses assigned to this channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  warehouses: [Warehouse!]!
 }
 
 """Represents shipping method postal code rule."""
@@ -5811,6 +5820,7 @@ input WarehouseFilterInput {
   search: String
   ids: [ID!]
   isPrivate: Boolean
+  channels: [ID!]
 }
 
 input WarehouseSortingInput {
@@ -19389,6 +19399,9 @@ type ChannelError {
 
   """List of shipping zone IDs which causes the error."""
   shippingZones: [ID!]
+
+  """List of warehouses IDs which causes the error."""
+  warehouses: [ID!]
 }
 
 """An enumeration."""
@@ -19408,6 +19421,18 @@ input ChannelCreateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """List of shipping zones to assign to the channel."""
+  addShippingZones: [ID!]
+
+  """
+  List of warehouses to assign to the channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addWarehouses: [ID!]
+
   """Name of the channel."""
   name: String!
 
@@ -19421,11 +19446,10 @@ input ChannelCreateInput {
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
   
   Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultCountry: CountryCode!
-
-  """List of shipping zones to assign to the channel."""
-  addShippingZones: [ID!]
 }
 
 """
@@ -19443,6 +19467,18 @@ input ChannelUpdateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """List of shipping zones to assign to the channel."""
+  addShippingZones: [ID!]
+
+  """
+  List of warehouses to assign to the channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addWarehouses: [ID!]
+
   """Name of the channel."""
   name: String
 
@@ -19456,11 +19492,17 @@ input ChannelUpdateInput {
   """
   defaultCountry: CountryCode
 
-  """List of shipping zones to assign to the channel."""
-  addShippingZones: [ID!]
-
   """List of shipping zones to unassign from the channel."""
   removeShippingZones: [ID!]
+
+  """
+  List of warehouses to unassign from the channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeWarehouses: [ID!]
 }
 
 """

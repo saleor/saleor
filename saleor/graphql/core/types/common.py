@@ -142,6 +142,11 @@ class ChannelError(Error):
         description="List of shipping zone IDs which causes the error.",
         required=False,
     )
+    warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouses IDs which causes the error.",
+        required=False,
+    )
 
 
 class CheckoutError(Error):

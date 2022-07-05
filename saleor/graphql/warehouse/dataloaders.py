@@ -232,7 +232,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             )
         if channel_slug:
             stocks = stocks.filter(
-                warehouse__shipping_zones__channels__slug=channel_slug
+                warehouse__shipping_zones__channels__slug=channel_slug,
+                warehouse__channels__slug=channel_slug,
             )
         stocks = stocks.annotate_available_quantity()
 
@@ -347,3 +348,34 @@ class StockByIdLoader(DataLoader):
 
     def batch_load(self, keys):
         return Stock.objects.using(self.database_connection_name).in_bulk(keys).values()
+
+
+class WarehousesByChannelIdLoader(DataLoader):
+    context_key = "warehouse_by_channel"
+
+    def batch_load(self, keys):
+        WarehouseChannel = Warehouse.channels.through
+        warehouse_and_channel_in_pairs = (
+            WarehouseChannel.objects.using(self.database_connection_name)
+            .filter(channel_id__in=keys)
+            .values_list("warehouse_id", "channel_id")
+        )
+        channel_warehouse_map = defaultdict(list)
+        for warehouse_id, channel_id in warehouse_and_channel_in_pairs:
+            channel_warehouse_map[channel_id].append(warehouse_id)
+
+        def map_warehouses(warehouses):
+            warehouse_map = {warehouse.pk: warehouse for warehouse in warehouses}
+            return [
+                [
+                    warehouse_map[warehouse_id]
+                    for warehouse_id in channel_warehouse_map[channel_id]
+                ]
+                for channel_id in keys
+            ]
+
+        return (
+            WarehouseByIdLoader(self.context)
+            .load_many({pk for pk, _ in warehouse_and_channel_in_pairs})
+            .then(map_warehouses)
+        )

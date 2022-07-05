@@ -1339,6 +1339,7 @@ def create_shipping_zones():
 
 
 def create_additional_cc_warehouse():
+    channel = Channel.objects.first()
     shipping_zone = ShippingZone.objects.first()
     warehouse_name = f"{shipping_zone.name} for click and collect"
     warehouse, _ = Warehouse.objects.update_or_create(
@@ -1351,9 +1352,11 @@ def create_additional_cc_warehouse():
         },
     )
     warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel)
 
 
 def create_warehouses():
+    channels = Channel.objects.all()
     for shipping_zone in ShippingZone.objects.all():
         shipping_zone_name = shipping_zone.name
         is_private = random.choice([True, False])
@@ -1376,6 +1379,7 @@ def create_warehouses():
             },
         )
         warehouse.shipping_zones.add(shipping_zone)
+        warehouse.channels.add(*channels)
 
     create_additional_cc_warehouse()
 

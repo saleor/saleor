@@ -1428,14 +1428,10 @@ class Order(ModelObjectType):
     @classmethod
     @traced_resolver
     def resolve_available_collection_points(cls, root: models.Order, info):
-        def get_available_collection_points(data):
-            lines, address = data
+        def get_available_collection_points(lines):
+            return get_valid_collection_points_for_order(lines, root.channel_id)
 
-            return get_valid_collection_points_for_order(lines, address)
-
-        lines = cls.resolve_lines(root, info)
-        address = cls.resolve_shipping_address(root, info)
-        return Promise.all([lines, address]).then(get_available_collection_points)
+        return cls.resolve_lines(root, info).then(get_available_collection_points)
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):

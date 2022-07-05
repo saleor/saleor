@@ -558,6 +558,62 @@ def test_query_warehouses_with_filters_and_no_id(
     assert total_count == 0
 
 
+def test_query_warehouses_with_filters_by_channels(
+    staff_api_client,
+    permission_manage_products,
+    warehouses,
+    warehouse_JPY,
+    channel_PLN,
+    channel_JPY,
+):
+    # given
+    warehouses[1].channels.add(channel_PLN)
+
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.id)
+        for channel in [channel_PLN, channel_JPY]
+    ]
+
+    variables_exists = {"filters": {"channels": channel_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    warehouses_data = content["data"]["warehouses"]["edges"]
+    assert len(warehouses_data) == 2
+    assert {warehouse_data["node"]["name"] for warehouse_data in warehouses_data} == {
+        warehouses[1].name,
+        warehouse_JPY.name,
+    }
+
+
+def test_query_warehouses_with_filters_by_channels_no_warehouse_returned(
+    staff_api_client, permission_manage_products, warehouses, channel_PLN
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+
+    variables_exists = {"filters": {"channels": [channel_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    warehouses_data = content["data"]["warehouses"]["edges"]
+    assert not warehouses_data
+
+
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):
