@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
@@ -8,7 +8,11 @@ from ....checkout import AddressType
 from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ....checkout.utils import is_shipping_required
 from ....core import analytics
 from ....core.permissions import AccountPermissions
@@ -96,7 +100,12 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_checkout_addresses(cls, shipping_address: "Address"):
+    def validate_checkout_addresses(
+        cls,
+        lines: Iterable[CheckoutLineInfo],
+        shipping_address: "Address",
+        billing_address: "Address",
+    ):
         """Validate checkout addresses.
 
         Mutations for updating addresses have option to turn off a validation. To keep
@@ -104,9 +113,35 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         address and we can finalize a checkout. Raises ValidationError when any address
         is not correct.
         """
+        if is_shipping_required(lines):
+            if not shipping_address:
+                raise ValidationError(
+                    {
+                        "shipping_address": ValidationError(
+                            "Shipping address is not set",
+                            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
+                        )
+                    }
+                )
+            cls.validate_address(
+                shipping_address.as_data(),
+                address_type=AddressType.SHIPPING,
+                format_check=True,
+                required_check=True,
+            )
+
+        if not billing_address:
+            raise ValidationError(
+                {
+                    "billing_address": ValidationError(
+                        "Billing address is not set",
+                        code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
+                    )
+                }
+            )
         cls.validate_address(
-            shipping_address.as_data(),
-            address_type=AddressType.SHIPPING,
+            billing_address.as_data(),
+            address_type=AddressType.BILLING,
             format_check=True,
             required_check=True,
         )
@@ -188,8 +223,10 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
-            if is_shipping_required(lines) and checkout_info.shipping_address:
-                cls.validate_checkout_addresses(checkout_info.shipping_address)
+
+            cls.validate_checkout_addresses(
+                lines, checkout_info.shipping_address, checkout_info.billing_address
+            )
 
             requestor = get_user_or_app_from_context(info.context)
             if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
