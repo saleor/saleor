@@ -42,14 +42,18 @@ class CheckoutAddressValidationRules(graphene.InputObjectType):
     check_required_fields = graphene.Boolean(
         description=(
             "Determines if an error should be raised when the provided address doesn't "
-            "have all required fields. Providing `country` code is always required."
+            "have all the required fields. The list of required fields is dynamic and "
+            "depends on the country code (use the `addressValidationRules` query to "
+            "fetch them). Note: country code is mandatory for all addresses regardless "
+            "of the rules provided in this input."
         ),
         default_value=True,
     )
     check_fields_format = graphene.Boolean(
         description=(
-            "Determines if an error should be raised when the provided address doesn't"
-            "match to expected format."
+            "Determines if an error should be raised when the provided address doesn't "
+            "match the expected format. Example: using letters for postal code when "
+            "the numbers are expected."
         ),
         default_value=True,
     )
