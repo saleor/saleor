@@ -19151,12 +19151,12 @@ input CheckoutValidationRules {
 
 input CheckoutAddressValidationRules {
   """
-  Determines if an error should be raised when the provided address doesn't have all required fields. Providing `country` code is always required.
+  Determines if an error should be raised when the provided address doesn't have all the required fields. The list of required fields is dynamic and depends on the country code (use the `addressValidationRules` query to fetch them). Note: country code is mandatory for all addresses regardless of the rules provided in this input.
   """
   checkRequiredFields: Boolean = true
 
   """
-  Determines if an error should be raised when the provided address doesn'tmatch to expected format.
+  Determines if an error should be raised when the provided address doesn't match the expected format. Example: using letters for postal code when the numbers are expected.
   """
   checkFieldsFormat: Boolean = true
 }
