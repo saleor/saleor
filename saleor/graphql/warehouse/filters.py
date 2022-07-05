@@ -5,8 +5,10 @@ from ...account.models import Address
 from ...product.models import Product, ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
+from ..channel.types import Channel
 from ..core.filters import EnumFilter, GlobalIDMultipleChoiceFilter
 from ..core.types import FilterInputObjectType
+from ..utils import resolve_global_ids_to_primary_keys
 from ..warehouse.enums import WarehouseClickAndCollectOptionEnum
 
 
@@ -46,6 +48,17 @@ def filter_click_and_collect_option(qs, _, value):
     return qs
 
 
+def filter_channels(qs, _, values):
+    if values:
+        _, channels_ids = resolve_global_ids_to_primary_keys(values, Channel)
+        WarehouseChannel = Warehouse.channels.through
+        warehouse_channels = WarehouseChannel.objects.filter(
+            channel_id__in=channels_ids
+        )
+        qs = qs.filter(Exists(warehouse_channels.filter(warehouse_id=OuterRef("id"))))
+    return qs
+
+
 def filter_search_stock(qs, _, value):
     if value:
         products = Product.objects.filter(name__ilike=value).values("pk")
@@ -72,6 +85,7 @@ class WarehouseFilter(django_filters.FilterSet):
         input_class=WarehouseClickAndCollectOptionEnum,
         method=filter_click_and_collect_option,
     )
+    channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
 
     class Meta:
         model = Warehouse

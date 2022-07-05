@@ -491,8 +491,8 @@ def generate_checkout_payload(
     # todo use the most appropriate warehouse
     warehouse = None
     if checkout.shipping_address:
-        warehouse = Warehouse.objects.for_country(
-            checkout.shipping_address.country.code
+        warehouse = Warehouse.objects.for_country_and_channel(
+            checkout.shipping_address.country.code, checkout.channel_id
         ).first()
 
     checkout_data = serializer.serialize(
@@ -879,7 +879,9 @@ def generate_fulfillment_payload(
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        warehouse = Warehouse.objects.for_country(order_country).first()
+        warehouse = Warehouse.objects.for_country_and_channel(
+            order_country, order.channel_id
+        ).first()
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,

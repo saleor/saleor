@@ -714,18 +714,16 @@ def is_shipping_required(lines: Iterable["OrderLine"]):
     return any(line.is_shipping_required for line in lines)
 
 
-def get_valid_collection_points_for_order(lines: Iterable["OrderLine"], address):
+def get_valid_collection_points_for_order(
+    lines: Iterable["OrderLine"], channel_id: int
+):
     if not is_shipping_required(lines):
-        return []
-    if not address:
         return []
 
     line_ids = [line.id for line in lines]
     lines = OrderLine.objects.filter(id__in=line_ids)
 
-    return Warehouse.objects.applicable_for_click_and_collect(
-        lines, address.country.code
-    )
+    return Warehouse.objects.applicable_for_click_and_collect(lines, channel_id)
 
 
 def get_discounted_lines(lines, voucher):

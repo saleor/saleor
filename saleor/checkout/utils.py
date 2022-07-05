@@ -51,6 +51,7 @@ if TYPE_CHECKING:
     from prices import TaxedMoney
 
     from ..account.models import Address
+    from ..channel.models import Channel
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -724,7 +725,7 @@ def get_valid_internal_shipping_methods_for_checkout(
 
 def get_valid_collection_points_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
-    country_code: Optional[str] = None,
+    channel_id: int,
     quantity_check: bool = True,
 ):
     """Return a collection of `Warehouse`s that can be used as a collection point.
@@ -733,19 +734,17 @@ def get_valid_collection_points_for_checkout(
     be validated in further steps (checkout completion) in order to raise
     'InsufficientProductStock' error instead of 'InvalidShippingError'.
     """
-
     if not is_shipping_required(lines):
         return []
-    if not country_code:
-        return []
+
     line_ids = [line_info.line.id for line_info in lines]
     lines = CheckoutLine.objects.filter(id__in=line_ids)
 
     return (
-        Warehouse.objects.applicable_for_click_and_collect(lines, country_code)
+        Warehouse.objects.applicable_for_click_and_collect(lines, channel_id)
         if quantity_check
         else Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
-            lines, country_code
+            lines, channel_id
         )
     )
 
