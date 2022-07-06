@@ -22,6 +22,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
+from .core.schedules import sale_webhook_schedule
 
 
 def get_list(text):
@@ -536,7 +537,7 @@ CELERY_TASK_ROUTES = {
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
-        "schedule": timedelta(days=1),
+        "schedule": timedelta(minutes=1),
     },
     "deactivate-preorder-for-variants": {
         "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
@@ -565,6 +566,10 @@ CELERY_BEAT_SCHEDULE = {
     "delete-old-export-files": {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
+    },
+    "sale-started-and-sale-ended-notifications": {
+        "task": "saleor.discount.tasks.send_sale_started_and_sale_ended_notifications",
+        "schedule": sale_webhook_schedule(),
     },
 }
 

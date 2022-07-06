@@ -5,7 +5,6 @@ import pytz
 from celery.utils.log import get_task_logger
 
 from ..celeryconf import app
-from ..core.schedules import sale_webhook_schedule
 from ..plugins.manager import get_plugins_manager
 from .models import Sale
 from .utils import CATALOGUE_FIELDS, CatalogueInfo
@@ -50,9 +49,3 @@ def send_sale_started_and_sale_ended_notifications():
 
     sales_started.update(started_notification_sent=True)
     sales_ended.update(ended_notification_sent=True)
-
-
-app.conf.beat_schedule["sale-started-and-sale-ended-notifications"] = {
-    "task": "saleor.discount.tasks.send_sale_started_and_sale_ended_notifications",
-    "schedule": sale_webhook_schedule(),
-}

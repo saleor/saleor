@@ -1,11 +1,12 @@
+from collections import namedtuple
 from datetime import datetime
 
 import pytz
-from celery.schedules import BaseSchedule, schedstate
+from celery.schedules import BaseSchedule
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import Q
 
-from ..discount.models import Sale
+schedstate = namedtuple("schedstate", ("is_due", "next"))
 
 
 class sale_webhook_schedule(BaseSchedule):
@@ -27,6 +28,10 @@ class sale_webhook_schedule(BaseSchedule):
         super().__init__(nowfun=nowfun, app=app)
 
     def remaining_estimate(self, last_run_at):
+        """Estimate of next run time.
+
+        Returns when the periodic task should run next as a timedelta.
+        """
         return remaining(
             self.maybe_make_aware(last_run_at),
             self.next_run,
@@ -40,22 +45,26 @@ class sale_webhook_schedule(BaseSchedule):
             Next time to run is in seconds.
 
         """
+        from ..discount.models import Sale
+
         now = datetime.now(pytz.UTC)
 
-        sales = Sale.objects.filter(
+        # is_due is True when there is any sale for which the started or
+        # ended notification should be send
+        is_due = Sale.objects.filter(
             (Q(started_notification_sent=False) & Q(start_date__lte=now))
             | (Q(ended_notification_sent=False) & Q(end_date__lte=now))
-        )
-        is_due = bool(sales)
-        is_due = True
+        ).exists()
+
         upcoming_sales = Sale.objects.filter(
             (Q(started_notification_sent=False) & Q(start_date__gt=now))
             | (Q(ended_notification_sent=False) & Q(end_date__gt=now))
         )
         if not upcoming_sales:
-            self.next_run = self.initial_timedelta
+            self.next_run = self.initial_timedelta.total_seconds()
             return schedstate(is_due, self.next_run)
 
+        # calculate the earliest incoming date of starting or ending sale
         next_start_date = upcoming_sales.order_by("start_date").first().start_date
         next_end_date = upcoming_sales.order_by("end_date").first().end_date
 
@@ -64,8 +73,6 @@ class sale_webhook_schedule(BaseSchedule):
             min(next_start_date, next_end_date) if next_end_date else next_start_date
         )
 
-        next_time_to_run = min(
-            (next_upcoming_date - now).total_seconds(), self.initial_timedelta
-        )
+        self.next_run = min((next_upcoming_date - now), self.initial_timedelta)
 
-        return schedstate(is_due, next_time_to_run)
+        return schedstate(is_due, self.next_run.total_seconds())
