@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
 import requests
@@ -232,7 +232,9 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
             "sqs",
             region_name=region,
             aws_access_key_id=parts.username,
-            aws_secret_access_key=parts.password,
+            aws_secret_access_key=(
+                unquote(parts.password) if parts.password else parts.password
+            ),
         )
         queue_url = urlunparse(
             (
@@ -556,70 +558,3 @@ def observability_reporter_task():
             if events:
                 with observability.opentracing_trace("send_events", "webhooks"):
                     send_observability_events(webhooks, events)
-
-
-# DEPRECATED
-# to be removed in task: #1q2x7xw
-@app.task(compression="zlib")
-def trigger_webhooks_for_event(event_type, data):
-    """Send a webhook request for an event as an async task."""
-    webhooks = get_webhooks_for_event(event_type)
-    for webhook in webhooks:
-        send_webhook_request.delay(
-            webhook.app.name,
-            webhook.pk,
-            webhook.target_url,
-            webhook.secret_key,
-            event_type,
-            data,
-        )
-
-
-# to be removed in task: #1q2x7xw
-@app.task(
-    bind=True,
-    retry_backoff=10,
-    retry_kwargs={"max_retries": 5},
-    compression="zlib",
-)
-def send_webhook_request(
-    self, app_name, webhook_id, target_url, secret, event_type, data
-):
-    parts = urlparse(target_url)
-    domain = Site.objects.get_current().domain
-    message = data.encode("utf-8")
-    signature = signature_for_payload(message, secret)
-
-    scheme_matrix = {
-        WebhookSchemes.HTTP: (send_webhook_using_http, RequestException),
-        WebhookSchemes.HTTPS: (send_webhook_using_http, RequestException),
-        WebhookSchemes.AWS_SQS: (send_webhook_using_aws_sqs, ClientError),
-        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: (
-            send_webhook_using_google_cloud_pubsub,
-            pubsub_v1.publisher.exceptions.MessageTooLargeError,
-        ),
-    }
-
-    if methods := scheme_matrix.get(parts.scheme.lower()):
-        send_method, send_exception = methods
-        try:
-            with webhooks_opentracing_trace(event_type, domain, app_name=app_name):
-                send_method(target_url, message, domain, signature, event_type)
-        except send_exception as e:
-            task_logger.info("[Webhook] Failed request to %r: %r.", target_url, e)
-            try:
-                countdown = self.retry_backoff * (2**self.request.retries)
-                self.retry(countdown=countdown, **self.retry_kwargs)
-            except MaxRetriesExceededError:
-                task_logger.warning(
-                    "[Webhook] Failed request to %r: exceeded retry limit.",
-                    target_url,
-                )
-        task_logger.info(
-            "[Webhook ID:%r] Payload sent to %r for event %r",
-            webhook_id,
-            target_url,
-            event_type,
-        )
-    else:
-        raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))

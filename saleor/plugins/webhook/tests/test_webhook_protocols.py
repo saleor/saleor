@@ -47,6 +47,7 @@ def test_trigger_webhooks_with_aws_sqs(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
     trigger_webhooks_async(
         expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
     )
@@ -62,6 +63,7 @@ def test_trigger_webhooks_with_aws_sqs(
         "MessageAttributes": {
             "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
             "EventType": {"DataType": "String", "StringValue": "order_created"},
+            "Signature": {"DataType": "String", "StringValue": expected_signature},
         },
         "MessageBody": expected_data,
     }
@@ -69,6 +71,13 @@ def test_trigger_webhooks_with_aws_sqs(
     mocked_client.send_message.assert_called_once_with(**expected_call_args)
 
 
+@pytest.mark.parametrize(
+    "secret_key, unquoted_secret",
+    [
+        ("secret_access", "secret_access"),
+        ("secret%2B%2Faccess", "secret+/access"),
+    ],
+)
 def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     webhook,
     order_with_lines,
@@ -76,6 +85,8 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     permission_manage_users,
     permission_manage_products,
     monkeypatch,
+    secret_key,
+    unquoted_secret,
 ):
     mocked_client = MagicMock(spec=AsyncSQSConnection)
     mocked_client.send_message.return_value = {"example": "response"}
@@ -88,14 +99,13 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
 
     webhook.app.permissions.add(permission_manage_orders)
     access_key = "access_key_id"
-    secret_key = "secret_access"
     region = "us-east-1"
 
     webhook.target_url = (
         f"awssqs://{access_key}:{secret_key}@sqs.{region}.amazonaws.com/account_id/"
         f"queue_name"
     )
-    webhook.secret_key = "secret_key"
+    webhook.secret_key = "secret+/access"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
@@ -111,7 +121,7 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         "sqs",
         region_name=region,
         aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
+        aws_secret_access_key=unquoted_secret,
     )
     mocked_client.send_message.assert_called_once_with(
         QueueUrl="https://sqs.us-east-1.amazonaws.com/account_id/queue_name",
@@ -142,6 +152,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
 
     trigger_webhooks_async(
         expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
@@ -151,7 +162,7 @@ def test_trigger_webhooks_with_google_pub_sub(
         expected_data.encode("utf-8"),
         saleorDomain="mirumee.com",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
-        signature="",
+        signature=expected_signature,
     )
 
 
@@ -212,6 +223,9 @@ def test_trigger_webhooks_with_http(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(
+        expected_data.encode("utf-8"), webhook.secret_key
+    )
 
     trigger_webhooks_async(
         expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
@@ -222,10 +236,10 @@ def test_trigger_webhooks_with_http(
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-Signature": "",
+        "X-Saleor-Signature": expected_signature,
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
-        "Saleor-Signature": "",
+        "Saleor-Signature": expected_signature,
     }
 
     mock_request.assert_called_once_with(

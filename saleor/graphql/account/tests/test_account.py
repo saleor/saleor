@@ -36,7 +36,11 @@ from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.payloads import generate_meta, generate_requestor
+from ....webhook.payloads import (
+    generate_customer_payload,
+    generate_meta,
+    generate_requestor,
+)
 from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
@@ -2229,6 +2233,44 @@ def test_customer_delete(
         staff_user=staff_user, app=None, deleted_count=1
     )
     delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_delete_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerDelete"]
+
+    # then
+    assert data["errors"] == []
+    assert data["user"]["id"] == customer_id
+    mocked_webhook_trigger.assert_called_once_with(
+        generate_customer_payload(customer_user, staff_api_client.user),
+        WebhookEventAsyncType.CUSTOMER_DELETED,
+        [any_webhook],
+        customer_user,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 @patch("saleor.account.signals.delete_versatile_image")

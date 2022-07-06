@@ -159,6 +159,54 @@ ATTRIBUTE_DELETED = (
 )
 
 
+ATTRIBUTE_VALUE_CREATED = (
+    fragments.ATTRIBUTE_VALUE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeValueCreated{
+          attributeValue{
+            ...AttributeValueDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_VALUE_UPDATED = (
+    fragments.ATTRIBUTE_VALUE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeValueUpdated{
+          attributeValue{
+            ...AttributeValueDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_VALUE_DELETED = (
+    fragments.ATTRIBUTE_VALUE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeValueDeleted{
+          attributeValue{
+            ...AttributeValueDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 GIFT_CARD_CREATED = (
     fragments.GIFT_CARD_DETAILS
     + """
@@ -906,6 +954,23 @@ CUSTOMER_UPDATED = (
 """
 )
 
+
+CUSTOMER_DELETED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on CustomerDeleted{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 COLLECTION_CREATED = (
     fragments.COLLECTION
     + """
@@ -920,6 +985,7 @@ COLLECTION_CREATED = (
     }
     """
 )
+
 
 COLLECTION_UPDATED = (
     fragments.COLLECTION

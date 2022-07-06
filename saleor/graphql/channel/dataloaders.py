@@ -1,14 +1,10 @@
-from collections import defaultdict
-
 from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
 from ...order.models import Order
-from ...shipping.models import ShippingZone
 from ..checkout.dataloaders import CheckoutByTokenLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader
-from ..shipping.dataloaders import ShippingZoneByIdLoader
 
 
 class ChannelByIdLoader(DataLoader):
@@ -86,30 +82,3 @@ class ChannelWithHasOrdersByIdLoader(DataLoader):
             .in_bulk(keys)
         )
         return [channels.get(channel_id) for channel_id in keys]
-
-
-class ShippingZonesByChannelIdLoader(DataLoader):
-    context_key = "shippingzone_by_channel"
-
-    def batch_load(self, keys):
-        zone_and_channel_is_pairs = (
-            ShippingZone.objects.using(self.database_connection_name)
-            .filter(channels__id__in=keys)
-            .values_list("pk", "channels__id")
-        )
-        channel_shipping_zone_map = defaultdict(list)
-        for zone_id, channel_id in zone_and_channel_is_pairs:
-            channel_shipping_zone_map[channel_id].append(zone_id)
-
-        def map_shipping_zones(shipping_zones):
-            zone_map = {zone.pk: zone for zone in shipping_zones}
-            return [
-                [zone_map[zone_id] for zone_id in channel_shipping_zone_map[channel_id]]
-                for channel_id in keys
-            ]
-
-        return (
-            ShippingZoneByIdLoader(self.context)
-            .load_many({pk for pk, _ in zone_and_channel_is_pairs})
-            .then(map_shipping_zones)
-        )

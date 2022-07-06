@@ -148,18 +148,33 @@ def test_allocate_stock_many_stocks_partially_allocated(
     order_line_with_one_allocation,
     channel_USD,
 ):
+    # given
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
-    stocks = variant.stocks.all()
+    stock_ids = list(
+        variant.stocks.annotate_available_quantity()
+        .order_by("-available_quantity")
+        .values_list("id", flat=True)
+    )
 
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=3)
+
+    # when
     allocate_stocks(
         [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
     )
 
-    allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
-    assert allocations[0].quantity_allocated == 1
-    assert allocations[1].quantity_allocated == 2
+    # then
+    # ensure that we firstly allocate stocks with the highest quantity available
+    allocations = Allocation.objects.filter(
+        order_line=order_line, stock_id__in=stock_ids
+    ).values("stock_id", "quantity_allocated")
+    stock_to_quantity_allocated = {
+        allocation["stock_id"]: allocation["quantity_allocated"]
+        for allocation in allocations
+    }
+    assert stock_to_quantity_allocated[stock_ids[0]] == 2
+    assert stock_to_quantity_allocated[stock_ids[1]] == 1
 
 
 def test_allocate_stock_partially_allocated_insufficient_stocks(

@@ -282,3 +282,70 @@ def test_channel_delete_mutation_trigger_webhook(
         channel_USD,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+
+def test_channel_delete_mutation_deletes_invalid_warehouse_to_zone_relations(
+    order_list,
+    checkout,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    channel_PLN,
+    channel_JPY,
+    warehouses,
+    warehouse_JPY,
+    shipping_zones,
+    other_channel_USD,
+):
+    """Ensure deleting channel deletes no longer valid warehouse to zone relations."""
+    # given
+    order = order_list[0]
+    order.channel = channel_USD
+    order.save()
+
+    # prepare warehouse to shipping zone relations:
+    # warehouse[0] - with channel USD, PLN assigned to both shipping zones
+    # warehouse[1] - with channel USD, JPY assigned to both shipping zones
+    # shipping_zones[0] - assigned to channel USD and PLN
+    # shipping_zones[0] - assigned to channel USD, PLN, JPY
+    channel_USD.warehouses.add(*warehouses)
+    channel_PLN.warehouses.add(warehouses[0])
+    channel_JPY.warehouses.add(warehouses[1])
+    for shipping_zone in shipping_zones:
+        shipping_zone.warehouses.add(*warehouses)
+
+    # add additional common channel for warehouse[1]
+    shipping_zones[0].channels.add(channel_JPY)
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
+    variables = {"id": channel_id, "input": {"channelId": channel_target_id}}
+    assert Checkout.objects.first() is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+
+    # then
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert order.channel == other_channel_USD
+    assert Checkout.objects.first() is None
+    assert not Channel.objects.filter(slug=channel_USD.slug).exists()
+
+    # ensure warehouse from index 1 has not been deleted from any shipping zone
+    # common PLN channel
+    for zone in shipping_zones:
+        zone.refresh_from_db()
+        assert warehouses[0] in zone.warehouses.all()
+
+    # ensure warehouse from index 1 has not been deleted from shipping zone
+    # with JPY channel
+    assert warehouses[1] in shipping_zones[0].warehouses.all()
+    # ensure warehouse from index 1 has been deleted from shipping zone
+    # without JPY channel
+    assert warehouses[1] not in shipping_zones[1].warehouses.all()

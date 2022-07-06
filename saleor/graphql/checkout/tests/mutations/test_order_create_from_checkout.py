@@ -9,20 +9,20 @@ from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
 
-from ....checkout import calculations
-from ....checkout.error_codes import OrderCreateFromCheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout
-from ....core.taxes import TaxError, zero_money, zero_taxed_money
-from ....giftcard import GiftCardEvents
-from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderOrigin, OrderStatus
-from ....order.models import Fulfillment, Order
-from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....tests.utils import flush_post_commit_hooks
-from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
-from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....checkout import calculations
+from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
+from .....core.taxes import TaxError, zero_money, zero_taxed_money
+from .....giftcard import GiftCardEvents
+from .....giftcard.models import GiftCard, GiftCardEvent
+from .....order import OrderOrigin, OrderStatus
+from .....order.models import Fulfillment, Order
+from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
+from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
+from .....warehouse.tests.utils import get_available_quantity_for_stock
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_CREATE_FROM_CHECKOUT = """
 mutation orderCreateFromCheckout($id: ID!){
@@ -105,8 +105,18 @@ def test_order_from_checkout(
     checkout.save()
 
     checkout_line = checkout.lines.first()
+
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    checkout_line.store_value_in_private_metadata({metadata_key: metadata_value})
+    checkout_line.store_value_in_metadata({metadata_key: metadata_value})
+    checkout_line.save()
+
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
+    checkout_line_metadata = checkout_line.metadata
+    checkout_line_private_metadata = checkout_line.private_metadata
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -143,6 +153,8 @@ def test_order_from_checkout(
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
+    assert checkout_line_metadata == order_line.metadata
+    assert checkout_line_private_metadata == order_line.private_metadata
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.search_vector

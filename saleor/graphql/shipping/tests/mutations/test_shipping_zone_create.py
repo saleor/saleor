@@ -34,6 +34,7 @@ CREATE_SHIPPING_ZONE_MUTATION = """
                 code
                 message
                 channels
+                warehouses
             }
             shippingZone {
                 id
@@ -58,6 +59,8 @@ CREATE_SHIPPING_ZONE_MUTATION = """
 def test_create_shipping_zone(
     staff_api_client, warehouse, permission_manage_shipping, channel_PLN
 ):
+    # given
+    warehouse.channels.add(channel_PLN)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
     variables = {
@@ -67,11 +70,15 @@ def test_create_shipping_zone(
         "addWarehouses": [warehouse_id],
         "addChannels": [channel_id],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
     zone = data["shippingZone"]
@@ -197,14 +204,17 @@ TEST_COUNTRIES_LIST = ["DZ", "AX", "BY"]
     return_value=TEST_COUNTRIES_LIST,
 )
 def test_create_default_shipping_zone(
-    _, staff_api_client, warehouse, permission_manage_shipping
+    _, staff_api_client, warehouse, permission_manage_shipping, channel_PLN
 ):
     unassigned_countries = TEST_COUNTRIES_LIST
+    warehouse.channels.add(channel_PLN)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
     variables = {
         "default": True,
         "name": "test shipping",
         "countries": ["PL"],
+        "addChannels": [channel_id],
         "addWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
@@ -246,3 +256,73 @@ def test_create_duplicated_default_shipping_zone(
     assert data["errors"]
     assert data["errors"][0]["field"] == "default"
     assert data["errors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
+
+
+def test_create_shipping_zone_invalid_warehouses_no_channels_assigned(
+    staff_api_client, warehouse, permission_manage_shipping, channel_PLN
+):
+    """Ensure an error is raised when warehouses without any channels are added."""
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {
+        "name": "test shipping",
+        "description": "test description",
+        "countries": ["PL"],
+        "addWarehouses": [warehouse_id],
+        "addChannels": [channel_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "addWarehouses"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["warehouses"] == [warehouse_id]
+
+
+def test_create_shipping_zone_invalid_warehouses(
+    staff_api_client, warehouses, permission_manage_shipping, channel_PLN, channel_USD
+):
+    """Ensure an error is raised when warehouses without common channel
+    with the shipping zone are added."""
+    # given
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses
+    ]
+    # add to warehouse on index 0 common channel with created shipping zone
+    warehouses[0].channels.add(channel_PLN)
+    # add to warehouse on index 1 another channel not common with shipping zone
+    warehouses[1].channels.add(channel_USD)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {
+        "name": "test shipping",
+        "description": "test description",
+        "countries": ["PL"],
+        "addWarehouses": warehouse_ids,
+        "addChannels": [channel_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "addWarehouses"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["warehouses"] == warehouse_ids[1:]

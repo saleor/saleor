@@ -6790,6 +6790,7 @@ MUTATION_UPDATE_PRODUCT = """
                             slug
                             boolean
                             reference
+                            plainText
                             file {
                                 url
                                 contentType
@@ -7007,6 +7008,7 @@ def test_update_product_with_boolean_attribute_value(
                 "slug": f"{boolean_attribute.id}_false",
                 "reference": None,
                 "file": None,
+                "plainText": None,
             }
         ],
     }
@@ -7065,6 +7067,7 @@ def test_update_product_with_file_attribute_value(
                     "contentType": None,
                 },
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7127,6 +7130,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                     "contentType": existing_value.content_type,
                 },
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7185,6 +7189,7 @@ def test_update_product_with_numeric_attribute_value(
                 "reference": None,
                 "file": None,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7247,6 +7252,7 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
                 "reference": None,
                 "file": None,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7394,6 +7400,161 @@ def test_update_product_clean_file_attribute_value(
     assert product_attr.values.count() == 0
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_plain_text_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    plain_text_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.pk)
+    product_type.product_attributes.add(plain_text_attribute)
+
+    plain_text_attribute_value = plain_text_attribute.values.first()
+    text = plain_text_attribute_value.plain_text
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "plainText": text}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": plain_text_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "slug": f"{product.id}_{plain_text_attribute.id}",
+                "name": text,
+                "reference": None,
+                "file": None,
+                "boolean": None,
+                "plainText": text,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_plain_text_attribute_value_required(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    plain_text_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.pk)
+    product_type.product_attributes.add(plain_text_attribute)
+
+    plain_text_attribute.value_required = True
+    plain_text_attribute.save(update_fields=["value_required"])
+
+    plain_text_attribute_value = plain_text_attribute.values.first()
+    text = plain_text_attribute_value.plain_text
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "plainText": text}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": plain_text_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "slug": f"{product.id}_{plain_text_attribute.id}",
+                "name": text,
+                "reference": None,
+                "file": None,
+                "boolean": None,
+                "plainText": text,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@pytest.mark.parametrize("value", ["", "  ", None])
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_plain_text_attribute_value_required_no_value_given(
+    updated_webhook_mock,
+    value,
+    staff_api_client,
+    product,
+    product_type,
+    plain_text_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.pk)
+    product_type.product_attributes.add(plain_text_attribute)
+
+    plain_text_attribute.value_required = True
+    plain_text_attribute.save(update_fields=["value_required"])
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "plainText": value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
     staff_api_client,
@@ -7474,6 +7635,7 @@ def test_update_product_with_page_reference_attribute_value(
                 "file": None,
                 "reference": reference,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7535,6 +7697,7 @@ def test_update_product_without_supplying_required_product_attribute(
                 "file": None,
                 "reference": None,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     } in attributes_data
@@ -7640,6 +7803,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
                 "file": None,
                 "reference": reference,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7752,6 +7916,7 @@ def test_update_product_with_product_reference_attribute_value(
                 "file": None,
                 "reference": reference,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
@@ -7828,6 +7993,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
                 "file": None,
                 "reference": reference,
                 "boolean": None,
+                "plainText": None,
             }
         ],
     }
