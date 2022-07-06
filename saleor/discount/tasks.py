@@ -28,7 +28,6 @@ def fetch_catalogue_infos(sales):
 
 @app.task
 def send_sale_started_and_sale_ended_notifications():
-    task_logger.info("here")
     now = datetime.now(pytz.UTC)
     manager = get_plugins_manager()
 
@@ -39,13 +38,25 @@ def send_sale_started_and_sale_ended_notifications():
 
     catalogue_infos = fetch_catalogue_infos(sales_started | sales_ended)
 
+    # send sale_started notifications
     for sale in sales_started:
         catalogues = catalogue_infos.get(sale.id)
         manager.sale_started(sale, catalogues)
 
+    sales_started_ids = ", ".join([str(sale.id) for sale in sales_started])
+    task_logger.info(
+        "The sale_started webhook sent for sales with ids: %s", sales_started_ids
+    )
+
+    # send sale_ended notifications
     for sale in sales_ended:
         catalogues = catalogue_infos.get(sale.id)
         manager.sale_ended(sale, catalogues)
+
+    sales_ended_ids = ", ".join([str(sale.id) for sale in sales_ended])
+    task_logger.info(
+        "The sale_ended webhook sent for sales with ids: %s", sales_ended_ids
+    )
 
     sales_started.update(started_notification_sent=True)
     sales_ended.update(ended_notification_sent=True)
