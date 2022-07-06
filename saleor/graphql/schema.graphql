@@ -13889,7 +13889,7 @@ type Mutation {
   ): CustomerBulkDelete
 
   """
-  Creates a new staff user. 
+  Creates a new staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13899,7 +13899,7 @@ type Mutation {
   ): StaffCreate
 
   """
-  Updates an existing staff user. 
+  Updates an existing staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13912,7 +13912,7 @@ type Mutation {
   ): StaffUpdate
 
   """
-  Deletes a staff user. 
+  Deletes a staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13922,7 +13922,7 @@ type Mutation {
   ): StaffDelete
 
   """
-  Deletes staff users. 
+  Deletes staff users. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13962,7 +13962,7 @@ type Mutation {
   ): UserBulkSetActive
 
   """
-  Create new permission group. 
+  Create new permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13972,7 +13972,7 @@ type Mutation {
   ): PermissionGroupCreate
 
   """
-  Update permission group. 
+  Update permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13985,7 +13985,7 @@ type Mutation {
   ): PermissionGroupUpdate
 
   """
-  Delete permission group. 
+  Delete permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -20577,7 +20577,7 @@ type CustomerBulkDelete {
 }
 
 """
-Creates a new staff user. 
+Creates a new staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20638,7 +20638,7 @@ input StaffCreateInput {
 }
 
 """
-Updates an existing staff user. 
+Updates an existing staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20672,7 +20672,7 @@ input StaffUpdateInput {
 }
 
 """
-Deletes a staff user. 
+Deletes a staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20683,7 +20683,7 @@ type StaffDelete {
 }
 
 """
-Deletes staff users. 
+Deletes staff users. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20731,7 +20731,7 @@ type UserBulkSetActive {
 }
 
 """
-Create new permission group. 
+Create new permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20784,7 +20784,7 @@ input PermissionGroupCreateInput {
 }
 
 """
-Update permission group. 
+Update permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20812,7 +20812,7 @@ input PermissionGroupUpdateInput {
 }
 
 """
-Delete permission group. 
+Delete permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """

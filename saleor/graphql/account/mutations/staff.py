@@ -187,13 +187,24 @@ class StaffCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new staff user."
+        description = (
+            "Creates a new staff user. "
+            "Apps are not allowed to perform this mutation."
+        )
         exclude = ["password"]
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        if bool(getattr(context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -296,7 +307,10 @@ class StaffUpdate(StaffCreate):
         )
 
     class Meta:
-        description = "Updates an existing staff user."
+        description = (
+            "Updates an existing staff user. "
+            "Apps are not allowed to perform this mutation."
+        )
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -437,7 +451,9 @@ class StaffUpdate(StaffCreate):
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
-        description = "Deletes a staff user."
+        description = (
+            "Deletes a staff user. " "Apps are not allowed to perform this mutation."
+        )
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)

@@ -48,7 +48,9 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
 
 class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:
-        description = "Deletes staff users."
+        description = (
+            "Deletes staff users. " "Apps are not allowed to perform this mutation."
+        )
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)

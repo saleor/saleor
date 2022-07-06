@@ -177,6 +177,15 @@ class BaseMetadataMutation(BaseMutation):
         return graphene_type._meta.model
 
     @classmethod
+    def check_permissions(cls, context, permissions=None):
+        is_app = bool(getattr(context, "app", None))
+        if is_app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
+
+    @classmethod
     def mutate(cls, root, info, **data):
         try:
             type_name, object_pk = cls.get_object_type_name_and_pk(data)
@@ -188,12 +197,6 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(error)
         except ValidationError as e:
             return cls.handle_errors(e)
-
-        is_app = bool(getattr(info.context, "app", None))
-        if is_app and AccountPermissions.MANAGE_STAFF in permissions:
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
 
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied(permissions=permissions)

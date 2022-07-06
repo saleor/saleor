@@ -51,7 +51,10 @@ class PermissionGroupCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Create new permission group."
+        description = (
+            "Create new permission group. "
+            "Apps are not allowed to perform this mutation."
+        )
         model = auth_models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -71,12 +74,6 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-
-        if bool(getattr(info.context, "app", None)):
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
-
         cleaned_input = super().clean_input(info, instance, data)
 
         requestor = info.context.user
@@ -105,6 +102,14 @@ class PermissionGroupCreate(ModelMutation):
                 cls.ensure_can_manage_permissions(
                     requestor, errors, field, permission_items
                 )
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        if bool(getattr(context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def ensure_can_manage_permissions(
@@ -192,7 +197,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         )
 
     class Meta:
-        description = "Update permission group."
+        description = (
+            "Update permission group. " "Apps are not allowed to perform this mutation."
+        )
         model = auth_models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -217,12 +224,6 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         instance,
         data,
     ):
-
-        if bool(getattr(info.context, "app", None)):
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
-
         requestor = info.context.user
         cls.ensure_requestor_can_manage_group(requestor, instance)
 
@@ -420,7 +421,9 @@ class PermissionGroupDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of the group to delete.", required=True)
 
     class Meta:
-        description = "Delete permission group."
+        description = (
+            "Delete permission group. " "Apps are not allowed to perform this mutation."
+        )
         model = auth_models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -429,11 +432,6 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        if bool(getattr(info.context, "app", None)):
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
-
         requestor = info.context.user
         if requestor.is_superuser:
             return
@@ -443,6 +441,14 @@ class PermissionGroupDelete(ModelDeleteMutation):
             raise ValidationError(error_msg, code)
 
         cls.check_if_group_can_be_removed(requestor, instance)
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        if bool(getattr(context, "app", None)):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def check_if_group_can_be_removed(cls, requestor, group):

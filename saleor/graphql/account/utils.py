@@ -83,13 +83,16 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
-        errors = defaultdict(list)
-
-        if bool(getattr(info.context, "app", None)):
+    def check_permissions(cls, context, permissions=None):
+        if bool(getattr(context, "app", None)):
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
+        return super().check_permissions(context, permissions)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        errors = defaultdict(list)
 
         requestor = info.context.user
 
