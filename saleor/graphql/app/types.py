@@ -300,7 +300,7 @@ class App(ModelObjectType):
     )
     extensions = NonNullList(
         AppExtension,
-        description=f"App's dashboard extensions.{ADDED_IN_31}{PREVIEW_FEATURE}",
+        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=True,
     )
 
