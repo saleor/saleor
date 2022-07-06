@@ -124,7 +124,7 @@ documentation = "https://docs.saleor.io/"
   before_after = "^1.0.1"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"
-  types-six = "^1.16.12"
+  types-six = "^1.16.17"
   fakeredis = "^1.8"
   types-redis = "^4.2.6"
 
