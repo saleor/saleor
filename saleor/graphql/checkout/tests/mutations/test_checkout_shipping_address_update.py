@@ -719,6 +719,43 @@ def test_checkout_address_update_with_skip_value_and_skip_required_saves_address
     assert address.street_address_1 == ""
 
 
+def test_checkout_shipping_address_update_with_disabled_fields_normalization(
+    checkout_with_items, user_api_client
+):
+    # given
+    address_data = {
+        "country": "US",
+        "city": "Washington",
+        "countryArea": "District of Columbia",
+        "streetAddress1": "1600 Pennsylvania Avenue NW",
+        "postalCode": "20500",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": address_data,
+        "validationRules": {"enableFieldsNormalization": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items
+    shipping_address = checkout_with_items.shipping_address
+    assert shipping_address
+    assert shipping_address.city == address_data["city"]
+    assert shipping_address.country_area == address_data["countryArea"]
+    assert shipping_address.postal_code == address_data["postalCode"]
+    assert shipping_address.street_address_1 == address_data["streetAddress1"]
+
+
 def test_checkout_update_shipping_address_with_digital(
     api_client, checkout_with_digital_item, graphql_address_data
 ):

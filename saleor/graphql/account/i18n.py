@@ -29,6 +29,7 @@ class I18nMixin:
         instance=None,
         format_check=True,
         required_check=True,
+        enable_normalization=True,
     ):
         phone = address_data.get("phone", None)
         params = {"address_type": address_type} if address_type else {}
@@ -48,7 +49,10 @@ class I18nMixin:
                     ) from exc
 
         address_form, _ = get_address_form(
-            address_data, address_data.get("country"), instance=instance
+            address_data,
+            address_data.get("country"),
+            instance=instance,
+            enable_normalization=enable_normalization,
         )
         if not address_form.is_valid():
             errors = cls.attach_params_to_address_form_errors(
@@ -92,7 +96,8 @@ class I18nMixin:
         instance: Optional[Address] = None,
         info=None,
         format_check=True,
-        required_check=True
+        required_check=True,
+        enable_normalization=True
     ):
         if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}
@@ -108,6 +113,7 @@ class I18nMixin:
             address_type,
             format_check=format_check,
             required_check=required_check,
+            enable_normalization=enable_normalization,
         )
         if not instance:
             instance = Address()

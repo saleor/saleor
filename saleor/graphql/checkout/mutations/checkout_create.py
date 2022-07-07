@@ -57,6 +57,13 @@ class CheckoutAddressValidationRules(graphene.InputObjectType):
         ),
         default_value=True,
     )
+    enable_fields_normalization = graphene.Boolean(
+        description=(
+            "Determines if Saleor should apply normalization on address fields. "
+            "Example: converting city field to uppercase letters."
+        ),
+        default_value=True,
+    )
 
 
 class CheckoutValidationRules(graphene.InputObjectType):
@@ -193,6 +200,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 format_check=address_validation_rules.get("check_fields_format", True),
                 required_check=address_validation_rules.get(
                     "check_required_fields", True
+                ),
+                enable_normalization=address_validation_rules.get(
+                    "enable_fields_normalization", True
                 ),
             )
         return None

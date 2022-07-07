@@ -110,8 +110,9 @@ class CheckoutComplete(BaseMutation, I18nMixin):
 
         Mutations for updating addresses have option to turn off a validation. To keep
         consistency, we need to validate it. This will confirm that we have a correct
-        address and we can finalize a checkout. Raises ValidationError when any address
-        is not correct.
+        address and we can finalize a checkout. In case when address fields
+        normalization was turned off, we apply it here.
+        Raises ValidationError when any address is not correct.
         """
         if is_shipping_required(lines):
             if not shipping_address:
@@ -123,12 +124,17 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                         )
                     }
                 )
+            shipping_address_data = shipping_address.as_data()
             cls.validate_address(
-                shipping_address.as_data(),
+                shipping_address_data,
                 address_type=AddressType.SHIPPING,
                 format_check=True,
                 required_check=True,
+                enable_normalization=True,
+                instance=shipping_address,
             )
+            if shipping_address_data != shipping_address.as_data():
+                shipping_address.save()
 
         if not billing_address:
             raise ValidationError(
@@ -139,12 +145,17 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     )
                 }
             )
+        billing_address_data = billing_address.as_data()
         cls.validate_address(
-            billing_address.as_data(),
+            billing_address_data,
             address_type=AddressType.BILLING,
             format_check=True,
             required_check=True,
+            enable_normalization=True,
+            instance=billing_address,
         )
+        if billing_address_data != billing_address.as_data():
+            billing_address.save()
 
     @classmethod
     def perform_mutation(
