@@ -260,7 +260,9 @@ class StaffCreate(ModelMutation):
                 user, attach_addresses_data=False
             )
         user.save()
-        if cleaned_input.get("redirect_url"):
+        if cleaned_input.get("redirect_url") and getattr(
+            info.context, "send_notification", True
+        ):
             send_set_password_notification(
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
@@ -285,18 +287,17 @@ class StaffCreate(ModelMutation):
     def get_instance(cls, info, **data):
         object_id = data.get("id")
         email = data.get("input", {}).get("email")
-        qs = data.get("qs")
 
-        if object_id:
-            model_type = cls.get_type_for_model()
-            instance = cls.get_node_or_error(
-                info, object_id, only_type=model_type, qs=qs
+        if (
+            not object_id
+            and email
+            and (
+                user := models.User.objects.filter(email=email, is_staff=False).first()
             )
-        elif email and models.User.objects.filter(email=email, is_staff=False).exists():
-            return models.User.objects.get(email=email)
-        else:
-            instance = cls._meta.model()
-        return instance
+        ):
+            info.context.send_notification = False  # type: ignore
+            return user
+        return super().get_instance(info, **data)
 
 
 class StaffUpdate(StaffCreate):

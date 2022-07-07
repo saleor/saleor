@@ -2479,24 +2479,7 @@ def test_promote_customer_to_staff_user(
     assert len(groups) == 1
     assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
 
-    token = default_token_generator.make_token(staff_user)
-    params = urlencode({"email": email, "token": token})
-    password_set_url = prepare_url(params, redirect_url)
-    expected_payload = {
-        "user": get_default_user_payload(staff_user),
-        "password_set_url": password_set_url,
-        "token": token,
-        "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
-        "channel_slug": None,
-    }
-
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
-        payload=expected_payload,
-        channel_slug=None,
-    )
+    mocked_notify.assert_not_called()
 
 
 @freeze_time("2018-05-31 12:00:01")
