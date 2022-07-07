@@ -2059,7 +2059,7 @@ def test_checkout_create_with_skip_value_and_skip_required_saves_address(
     assert getattr(created_checkout, address_db_field_name).street_address_1 == ""
 
 
-def test_checkout_create_with_disabled_fields_normalization(
+def test_checkout_create_with_shipping_address_disabled_fields_normalization(
     api_client, stock, channel_USD
 ):
     # given
@@ -2099,6 +2099,46 @@ def test_checkout_create_with_disabled_fields_normalization(
     assert shipping_address.country_area == address_data["countryArea"]
     assert shipping_address.postal_code == address_data["postalCode"]
     assert shipping_address.street_address_1 == address_data["streetAddress1"]
+
+
+def test_checkout_create_with_billing_address_disabled_fields_normalization(
+    api_client, stock, channel_USD
+):
+    # given
+    address_data = {
+        "country": "US",
+        "city": "Washington",
+        "countryArea": "District of Columbia",
+        "streetAddress1": "1600 Pennsylvania Avenue NW",
+        "postalCode": "20500",
+    }
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": address_data,
+            "validationRules": {"billingAddress": {"enableFieldsNormalization": False}},
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+    created_checkout = Checkout.objects.first()
+    assert created_checkout
+    billing_address = created_checkout.billing_address
+    assert billing_address
+    assert billing_address.city == address_data["city"]
+    assert billing_address.country_area == address_data["countryArea"]
+    assert billing_address.postal_code == address_data["postalCode"]
+    assert billing_address.street_address_1 == address_data["streetAddress1"]
 
 
 @pytest.mark.parametrize("with_shipping_address", (True, False))

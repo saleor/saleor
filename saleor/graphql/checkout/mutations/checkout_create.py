@@ -220,6 +220,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 required_check=address_validation_rules.get(
                     "check_required_fields", True
                 ),
+                enable_normalization=address_validation_rules.get(
+                    "enable_fields_normalization", True
+                ),
             )
         return None
 

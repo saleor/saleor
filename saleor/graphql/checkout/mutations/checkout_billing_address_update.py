@@ -82,6 +82,9 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             info=info,
             format_check=address_validation_rules.get("check_fields_format", True),
             required_check=address_validation_rules.get("check_required_fields", True),
+            enable_normalization=address_validation_rules.get(
+                "enable_fields_normalization", True
+            ),
         )
         with traced_atomic_transaction():
             billing_address.save()
