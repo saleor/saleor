@@ -7377,7 +7377,7 @@ type Shop {
   fulfillmentAllowUnpaid: Boolean!
 
   """Display prices with tax in store."""
-  displayGrossPrices: Boolean!
+  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean!
@@ -15162,7 +15162,11 @@ input ShopSettingsInput {
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean
 
-  """Display prices with tax in store."""
+  """
+  Display prices with tax in store. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
   displayGrossPrices: Boolean
 
   """Charge taxes on shipping."""

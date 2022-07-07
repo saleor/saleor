@@ -44,7 +44,11 @@ from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_vector_value
-from ..order.utils import update_order_authorize_data, update_order_charge_data
+from ..order.utils import (
+    update_order_authorize_data,
+    update_order_charge_data,
+    update_order_display_gross_prices,
+)
 from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
@@ -536,6 +540,9 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+
+    # store current tax configuration
+    update_order_display_gross_prices(order)
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
@@ -1070,6 +1077,9 @@ def _create_order_from_checkout(
     checkout_info.checkout.payment_transactions.update(order=order, checkout_id=None)
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
+
+    # tax settings
+    update_order_display_gross_prices(order)
 
     # order search
     order.search_vector = prepare_order_search_vector_value(order)

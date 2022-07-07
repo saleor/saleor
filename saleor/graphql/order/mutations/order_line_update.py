@@ -81,8 +81,8 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order)
 
+        recalculate_order(instance.order)
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))
 
