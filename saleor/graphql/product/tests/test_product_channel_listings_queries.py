@@ -3,6 +3,7 @@ from unittest import mock
 import graphene
 
 from ....product.utils.availability import get_product_availability
+from ....tax.utils import get_display_gross_prices
 from ....warehouse.models import Warehouse
 from ...tests.utils import get_graphql_content
 
@@ -16,6 +17,7 @@ fragment Pricing on ProductPricingInfo {
       }
     }
   }
+  displayGrossPrices
 }
 query FetchProduct($id: ID, $channel: String, $address: AddressInput) {
   product(id: $id, channel: $channel) {
@@ -51,12 +53,16 @@ def test_product_channel_listing_pricing_field(
     warehouse.address = address_usa
     warehouse.save()
 
+    country = "PL"
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
-        "address": {"country": "PL"},
+        "address": {"country": country},
     }
     product.channel_listings.exclude(channel__slug=channel_USD.slug).delete()
+
+    tax_config = channel_USD.tax_configuration
+    tax_config_country = tax_config.country_exceptions.get(country=country)
 
     # when
     response = staff_api_client.post_graphql(
@@ -71,6 +77,9 @@ def test_product_channel_listing_pricing_field(
     product_data = content["data"]["product"]
     product_channel_listing_data = product_data["channelListings"][0]
     assert product_data["pricing"] == product_channel_listing_data["pricing"]
+    assert product_data["pricing"]["displayGrossPrices"] == get_display_gross_prices(
+        tax_config, tax_config_country
+    )
 
 
 QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING_NO_ADDRESS = """

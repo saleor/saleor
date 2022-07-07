@@ -35,7 +35,11 @@ from ....order.search import (
     prepare_order_search_vector_value,
     update_order_search_vector,
 )
-from ....order.utils import update_order_authorize_data, update_order_charge_data
+from ....order.utils import (
+    get_order_country,
+    update_order_authorize_data,
+    update_order_charge_data,
+)
 from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
 from ....payment.interface import TransactionActionData
 from ....payment.models import Payment, TransactionEvent, TransactionItem
@@ -3627,6 +3631,51 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     assert errors[0]["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
     assert errors[0]["field"] == "lines"
     assert errors[0]["orderLines"] == [graphene.Node.to_global_id("OrderLine", line.pk)]
+
+
+QUERY_ORDER_PRICES = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            displayGrossPrices
+        }
+    }
+"""
+
+
+def test_order_display_gross_prices_use_default(user_api_client, order_with_lines):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.id)}
+    tax_config = order_with_lines.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["order"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_config.display_gross_prices
+
+
+def test_order_display_gross_prices_use_country_exception(
+    user_api_client, order_with_lines
+):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.id)}
+    tax_config = order_with_lines.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+    country_code = get_order_country(order_with_lines)
+    tax_country_config = tax_config.country_exceptions.create(
+        country=country_code, display_gross_prices=False
+    )
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["order"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_country_config.display_gross_prices
 
 
 def test_validate_draft_order(draft_order):

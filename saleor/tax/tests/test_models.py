@@ -1,7 +1,7 @@
 import pytest
 from django.db import IntegrityError
 
-from saleor.tax.models import TaxClass
+from ..models import TaxClass
 
 
 def test_deleting_default_tax_class_raises_error():

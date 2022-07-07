@@ -1,6 +1,11 @@
 from collections import defaultdict
 
-from ...tax.models import TaxClass, TaxClassCountryRate, TaxConfigurationPerCountry
+from ...tax.models import (
+    TaxClass,
+    TaxClassCountryRate,
+    TaxConfiguration,
+    TaxConfigurationPerCountry,
+)
 from ..core.dataloaders import DataLoader
 
 
@@ -17,6 +22,16 @@ class TaxConfigurationPerCountryByTaxConfigurationIDLoader(DataLoader):
             one_to_many[obj.tax_configuration_id].append(obj)
 
         return [one_to_many[key] for key in keys]
+
+
+class TaxConfigurationByChannelId(DataLoader):
+    context_key = "tax_configuration_by_channel_id"
+
+    def batch_load(self, keys):
+        tax_configs = TaxConfiguration.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys, field_name="channel_id")
+        return [tax_configs[key] for key in keys]
 
 
 class TaxClassCountryRateByTaxClassIDLoader(DataLoader):

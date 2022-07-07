@@ -171,6 +171,7 @@ FRAGMENT_CHECKOUT = (
           discountName
           translatedDiscountName
           voucherCode
+          displayGrossPrices
         }
     """
 )
