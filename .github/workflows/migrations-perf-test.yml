@@ -41,12 +41,14 @@ jobs:
             {
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:451406f43d738711a427f26f50a9a02df0079860", # TODO: fixme
+              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:451406f43d738711a427f26f50a9a02df0079860",
               "pr_id": "${{ env.PULL_ID }}"
             }
           LogType: Tail
 
-      - run: |
+      - name: asdf
+        if: always()
+        run: |
           echo "${{ steps.foobar.outputs.response }}"
 
   cleanup:
@@ -78,5 +80,7 @@ jobs:
             }
           LogType: Tail
 
-      - run: |
+      - name: asdf
+        if: always()
+        run: |
           echo "${{ steps.foobar.outputs.response }}"
