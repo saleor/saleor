@@ -281,6 +281,23 @@ class StaffCreate(ModelMutation):
     def post_save_action(cls, info, instance, cleaned_input):
         info.context.plugins.staff_created(instance)
 
+    @classmethod
+    def get_instance(cls, info, **data):
+        object_id = data.get("id")
+        email = data.get("input", {}).get("email")
+        qs = data.get("qs")
+
+        if object_id:
+            model_type = cls.get_type_for_model()
+            instance = cls.get_node_or_error(
+                info, object_id, only_type=model_type, qs=qs
+            )
+        elif email and models.User.objects.filter(email=email, is_staff=False).exists():
+            return models.User.objects.get(email=email)
+        else:
+            instance = cls._meta.model()
+        return instance
+
 
 class StaffUpdate(StaffCreate):
     class Arguments:
