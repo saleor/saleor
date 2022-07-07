@@ -25,6 +25,10 @@ jobs:
           region: us-east-1
           tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
 
+      - name: Get pull number
+        run: |
+          echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@v3.3.0
         with:
@@ -37,7 +41,7 @@ jobs:
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
               "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
-              "pr_id": "$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+              "pr_id": "${{ env.PULL_ID }}"
             }
           LogType: Tail
 
@@ -49,6 +53,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: rlespinasse/github-slug-action@3.1.0
 
+      - name: Get pull number
+        run: |
+          echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@v3.3.0
         with:
@@ -61,6 +69,6 @@ jobs:
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
               "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
-              "pr_id": "$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+              "pr_id": "${{ env.PULL_ID }}"
             }
           LogType: Tail
