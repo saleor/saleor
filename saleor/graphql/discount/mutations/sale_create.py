@@ -109,33 +109,27 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             )
         )
 
-        manager = info.context.plugins
-        update_fields = []
-        cls.send_sale_started_or_ended_notification(
-            manager, instance, current_catalogue, "start", update_fields
-        )
-        cls.send_sale_started_or_ended_notification(
-            manager, instance, current_catalogue, "end", update_fields
-        )
-        if update_fields:
-            instance.save(update_fields=update_fields)
+        cls.send_sale_started_or_ended_notification(info, instance, current_catalogue)
 
     @staticmethod
-    def send_sale_started_or_ended_notification(
-        manager, instance, catalogue, field, update_fields
-    ):
+    def send_sale_started_or_ended_notification(info, instance, catalogue):
         """Send a notification about starting or ending sale if it hasn't been sent yet.
 
         Send the notification if the notification field is set to False and the starting
         or ending date already passed.
         """
+        manager = info.context.plugins
         now = datetime.now(pytz.utc)
-        notification_field = f"{field}ed_notification_sent"
-        date = getattr(instance, f"{field}_date")
-        if date and date <= now:
-            if field == "start":
-                manager.sale_started(instance, catalogue)
-            else:
-                manager.sale_ended(instance, catalogue)
-            setattr(instance, notification_field, True)
-            update_fields.append(notification_field)
+        update_fields = []
+        for field in ["start", "end"]:
+            notification_field = f"{field}ed_notification_sent"
+            date = getattr(instance, f"{field}_date")
+            if date and date <= now:
+                if field == "start":
+                    manager.sale_started(instance, catalogue)
+                else:
+                    manager.sale_ended(instance, catalogue)
+                setattr(instance, notification_field, True)
+                update_fields.append(notification_field)
+        if update_fields:
+            instance.save(update_fields=update_fields)

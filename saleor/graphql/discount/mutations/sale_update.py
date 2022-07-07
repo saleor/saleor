@@ -47,22 +47,22 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         clean_input = super().clean_input(info, instance, data)
-        cls.update_notification_flag_if_needed(instance, clean_input, "start")
-        cls.update_notification_flag_if_needed(instance, clean_input, "end")
+        cls.update_notification_flag_if_needed(instance, clean_input)
         return clean_input
 
     @staticmethod
-    def update_notification_flag_if_needed(instance, clean_input, field):
+    def update_notification_flag_if_needed(instance, clean_input):
         """Update a notification flag when the date is in the feature.
 
         Set the notification flag to False when the starting or ending date change
         to the feature date.
         """
         now = datetime.now(pytz.utc)
-        notification_field = f"{field}ed_notification_sent"
-        date = clean_input.get(f"{field}_date")
-        if date and getattr(instance, notification_field) and date > now:
-            clean_input[notification_field] = False
+        for field in ["start", "end"]:
+            notification_field = f"{field}ed_notification_sent"
+            date = clean_input.get(f"{field}_date")
+            if date and getattr(instance, notification_field) and date > now:
+                clean_input[notification_field] = False
 
     @classmethod
     def send_sale_notifications(cls, info, instance, cleaned_input, previous_catalogue):
@@ -76,33 +76,30 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
                 current_catalogue,
             )
         )
-        manager = info.context.plugins
-        update_fields = []
+
         cls.send_sale_started_or_ended_notification(
-            manager, instance, cleaned_input, current_catalogue, "start", update_fields
+            info, instance, cleaned_input, current_catalogue
         )
-        cls.send_sale_started_or_ended_notification(
-            manager, instance, cleaned_input, current_catalogue, "end", update_fields
-        )
-        if update_fields:
-            instance.save(update_fields=update_fields)
 
     @staticmethod
-    def send_sale_started_or_ended_notification(
-        manager, instance, clean_input, catalogue, field, update_fields
-    ):
+    def send_sale_started_or_ended_notification(info, instance, clean_input, catalogue):
         """Send the notification about starting or ending sale if it wasn't sent yet.
 
         Send notification if the notification field is set to False and the starting
         or ending date already passed.
         """
+        manager = info.context.plugins
         now = datetime.now(pytz.utc)
-        notification_field = f"{field}ed_notification_sent"
-        date = clean_input.get(f"{field}_date")
-        if date and not getattr(instance, notification_field) and date <= now:
-            if field == "start":
-                manager.sale_started(instance, catalogue)
-            else:
-                manager.sale_ended(instance, catalogue)
-            setattr(instance, notification_field, True)
-            update_fields.append(notification_field)
+        update_fields = []
+        for field in ["start", "end"]:
+            notification_field = f"{field}ed_notification_sent"
+            date = clean_input.get(f"{field}_date")
+            if date and not getattr(instance, notification_field) and date <= now:
+                if field == "start":
+                    manager.sale_started(instance, catalogue)
+                else:
+                    manager.sale_ended(instance, catalogue)
+                setattr(instance, notification_field, True)
+                update_fields.append(notification_field)
+        if update_fields:
+            instance.save(update_fields=update_fields)

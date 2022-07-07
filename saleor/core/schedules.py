@@ -12,6 +12,10 @@ schedstate = namedtuple("schedstate", ("is_due", "next"))
 class sale_webhook_schedule(BaseSchedule):
     """Schedule for sale webhook periodic task.
 
+    The lowercase with an underscore is used for the name as all celery schedules
+    are written this way. According to PEP it's allowed behavior:
+    https://peps.python.org/pep-0008/#class-names.
+
     Arguments:
         initial_timedelta (float, ~datetime.timedelta):
             Initial time interval in seconds.
