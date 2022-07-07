@@ -1914,6 +1914,48 @@ def test_checkout_create_with_skip_value_and_skip_required_saves_address(
     assert created_checkout.shipping_address.street_address_1 == ""
 
 
+def test_checkout_create_with_disabled_fields_normalization(
+    api_client, stock, channel_USD
+):
+    # given
+    address_data = {
+        "country": "US",
+        "city": "Washington",
+        "countryArea": "District of Columbia",
+        "streetAddress1": "1600 Pennsylvania Avenue NW",
+        "postalCode": "20500",
+    }
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": address_data,
+            "validationRules": {
+                "shippingAddress": {"enableFieldsNormalization": False}
+            },
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+    created_checkout = Checkout.objects.first()
+    assert created_checkout
+    shipping_address = created_checkout.shipping_address
+    assert shipping_address
+    assert shipping_address.city == address_data["city"]
+    assert shipping_address.country_area == address_data["countryArea"]
+    assert shipping_address.postal_code == address_data["postalCode"]
+    assert shipping_address.street_address_1 == address_data["streetAddress1"]
+
+
 @pytest.mark.parametrize("with_shipping_address", (True, False))
 def test_create_checkout_with_digital(
     api_client,

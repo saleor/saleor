@@ -19159,6 +19159,11 @@ input CheckoutAddressValidationRules {
   Determines if an error should be raised when the provided address doesn't match the expected format. Example: using letters for postal code when the numbers are expected.
   """
   checkFieldsFormat: Boolean = true
+
+  """
+  Determines if Saleor should apply normalization on address fields. Example: converting city field to uppercase letters.
+  """
+  enableFieldsNormalization: Boolean = true
 }
 
 """
