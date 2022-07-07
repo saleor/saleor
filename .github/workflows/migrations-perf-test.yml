@@ -1,0 +1,66 @@
+name: Migrations performance test
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, closed]
+    paths:
+      - "**/migrations/**"
+
+jobs:
+  run:
+    name: Run migrations performance test
+    if: ${{ (github.event.action == 'labeled') && (github.event.label.name == 'migrations perf test') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: rlespinasse/github-slug-action@3.1.0
+
+      - name: Build and push
+        uses: kciter/aws-ecr-action@v1
+        with:
+          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          repo: saleor-testenvs
+          region: us-east-1
+          tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
+
+      - name: Invoke deployment lambda
+        uses: gagoar/invoke-aws-lambda@v3.3.0
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REGION: us-east-1
+          FunctionName: migrations-perf-test-manager
+          Payload: >-
+            {
+              "action": "${{ github.event.action }}",
+              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
+              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+              "pr_id": "$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+            }
+          LogType: Tail
+
+  cleanup:
+    name: Cleanup after migrations performance test
+    if: ${{ ((github.event.action == 'unlabeled') && (github.event.label.name == 'migrations perf test')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'migrations perf test'))  }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: rlespinasse/github-slug-action@3.1.0
+
+      - name: Invoke deployment lambda
+        uses: gagoar/invoke-aws-lambda@v3.3.0
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REGION: us-east-1
+          FunctionName: migrations-perf-test-manager
+          Payload: >-
+            {
+              "action": "${{ github.event.action }}",
+              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
+              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+              "pr_id": "$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+            }
+          LogType: Tail
