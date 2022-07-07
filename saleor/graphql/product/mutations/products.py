@@ -1413,7 +1413,10 @@ class ProductMediaReorder(BaseMutation):
             only_type=Product,
             qs=models.Product.objects.prefetched_for_webhook(),
         )
-        if len(media_ids) != product.media.count():
+
+        # we do not care about media with the to_remove flag set to True
+        # as they will be deleted soon
+        if len(media_ids) != product.media.exclude(to_remove=True).count():
             raise ValidationError(
                 {
                     "order": ValidationError(
