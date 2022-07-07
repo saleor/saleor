@@ -76,19 +76,20 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
                 current_catalogue,
             )
         )
+        manager = info.context.plugins
         update_fields = []
         cls.send_sale_started_or_ended_notification(
-            info, instance, cleaned_input, current_catalogue, "start", update_fields
+            manager, instance, cleaned_input, current_catalogue, "start", update_fields
         )
         cls.send_sale_started_or_ended_notification(
-            info, instance, cleaned_input, current_catalogue, "end", update_fields
+            manager, instance, cleaned_input, current_catalogue, "end", update_fields
         )
         if update_fields:
             instance.save(update_fields=update_fields)
 
     @staticmethod
     def send_sale_started_or_ended_notification(
-        info, instance, clean_input, catalogue, field, update_fields
+        manager, instance, clean_input, catalogue, field, update_fields
     ):
         """Send the notification about starting or ending sale if it wasn't send yet.
 
@@ -99,7 +100,6 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         notification_field = f"{field}ed_notification_sent"
         date = clean_input.get(f"{field}_date")
         if date and not getattr(instance, notification_field) and date <= now:
-            manager = info.context.plugins
             if field == "start":
                 manager.sale_started(instance, catalogue)
             else:

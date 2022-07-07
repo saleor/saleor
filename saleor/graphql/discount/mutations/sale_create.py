@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -90,12 +93,49 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
         instance = getattr(response, cls._meta.return_field_name).node
-        current_catalogue = fetch_catalogue_info(instance)
+        cls.send_sale_notifications(info, instance)
+        return response
+
+    @classmethod
+    def send_sale_notifications(cls, info, instance):
+        current_catalogue = convert_catalogue_info_to_global_ids(
+            fetch_catalogue_info(instance)
+        )
 
         transaction.on_commit(
             lambda: info.context.plugins.sale_created(
                 instance,
-                convert_catalogue_info_to_global_ids(current_catalogue),
+                current_catalogue,
             )
         )
-        return response
+
+        manager = info.context.plugins
+        update_fields = []
+        cls.send_sale_started_or_ended_notification(
+            manager, instance, current_catalogue, "start", update_fields
+        )
+        cls.send_sale_started_or_ended_notification(
+            manager, instance, current_catalogue, "end", update_fields
+        )
+        if update_fields:
+            instance.save(update_fields=update_fields)
+
+    @staticmethod
+    def send_sale_started_or_ended_notification(
+        manager, instance, catalogue, field, update_fields
+    ):
+        """Send the notification about starting or ending sale if it wasn't send yet.
+
+        Send notification if the notification field is set to False and the starting
+        or ending date already passed.
+        """
+        now = datetime.now(pytz.utc)
+        notification_field = f"{field}ed_notification_sent"
+        date = getattr(instance, f"{field}_date")
+        if date and date <= now:
+            if field == "start":
+                manager.sale_started(instance, catalogue)
+            else:
+                manager.sale_ended(instance, catalogue)
+            setattr(instance, notification_field, True)
+            update_fields.append(notification_field)
