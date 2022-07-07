@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
@@ -16,6 +17,7 @@ from ...core.exceptions import PermissionDenied
 from ...discount.utils import fetch_discounts
 from ...plugins.manager import PluginsManager
 from ...settings import get_host
+from ...webhook.error_codes import WebhookErrorCode
 from ..utils import format_error
 
 logger = get_task_logger(__name__)
@@ -32,6 +34,21 @@ def validate_subscription_query(query: str) -> bool:
     if not check_document_is_single_subscription(document):
         return False
     return True
+
+
+def validate_query(query):
+    if not query:
+        return
+    is_valid = validate_subscription_query(query)
+    if not is_valid:
+        raise ValidationError(
+            {
+                "query": ValidationError(
+                    "Subscription query is not valid",
+                    code=WebhookErrorCode.INVALID.value,
+                )
+            }
+        )
 
 
 def check_document_is_single_subscription(document: GraphQLDocument) -> bool:

@@ -20039,6 +20039,15 @@ type Manifest {
   homepageUrl: String
   supportUrl: String
   extensions: [AppManifestExtension!]!
+
+  """
+  List of the app's webhooks.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  webhooks: [AppManifestWebhook!]!
 }
 
 type AppManifestExtension {
@@ -20056,6 +20065,23 @@ type AppManifestExtension {
 
   """Type of way how app extension will be opened."""
   target: AppExtensionTargetEnum!
+}
+
+type AppManifestWebhook {
+  """The name of the webhook."""
+  name: String!
+
+  """The asynchronous events that webhook wants to subscribe."""
+  asyncEvents: [WebhookEventTypeAsyncEnum!]
+
+  """The synchronous events that webhook wants to subscribe."""
+  syncEvents: [WebhookEventTypeSyncEnum!]
+
+  """Subscription query of a webhook"""
+  query: String!
+
+  """The url to receive the payload."""
+  targetUrl: String!
 }
 
 """

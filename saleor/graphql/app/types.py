@@ -24,6 +24,7 @@ from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
@@ -155,6 +156,36 @@ class AppExtensionCountableConnection(CountableConnection):
         node = AppExtension
 
 
+class AppManifestWebhook(graphene.ObjectType):
+    name = graphene.String(description="The name of the webhook.", required=True)
+    async_events = NonNullList(
+        WebhookEventTypeAsyncEnum,
+        description="The asynchronous events that webhook wants to subscribe.",
+    )
+    sync_events = NonNullList(
+        WebhookEventTypeSyncEnum,
+        description="The synchronous events that webhook wants to subscribe.",
+    )
+    query = graphene.String(
+        description="Subscription query of a webhook", required=True
+    )
+    target_url = graphene.String(
+        description="The url to receive the payload.", required=True
+    )
+
+    @staticmethod
+    def resolve_async_events(root, info):
+        return [WebhookEventTypeAsyncEnum[name] for name in root.get("asyncEvents", [])]
+
+    @staticmethod
+    def resolve_sync_events(root, info):
+        return [WebhookEventTypeSyncEnum[name] for name in root.get("syncEvents", [])]
+
+    @staticmethod
+    def resolve_target_url(root, info):
+        return root["targetUrl"]
+
+
 class Manifest(graphene.ObjectType):
     identifier = graphene.String(required=True)
     version = graphene.String(required=True)
@@ -175,6 +206,11 @@ class Manifest(graphene.ObjectType):
     homepage_url = graphene.String()
     support_url = graphene.String()
     extensions = NonNullList(AppManifestExtension, required=True)
+    webhooks = NonNullList(
+        AppManifestWebhook,
+        description="List of the app's webhooks." + ADDED_IN_35 + PREVIEW_FEATURE,
+        required=True,
+    )
 
     class Meta:
         description = "The manifest definition."
