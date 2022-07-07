@@ -124,9 +124,9 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def send_sale_started_or_ended_notification(
         manager, instance, catalogue, field, update_fields
     ):
-        """Send the notification about starting or ending sale if it wasn't send yet.
+        """Send a notification about starting or ending sale if it hasn't been sent yet.
 
-        Send notification if the notification field is set to False and the starting
+        Send the notification if the notification field is set to False and the starting
         or ending date already passed.
         """
         now = datetime.now(pytz.utc)

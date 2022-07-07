@@ -131,7 +131,7 @@ def test_update_sale_start_date_before_current_date_notification_flag_not_change
     permission_manage_discounts,
 ):
     """Ensure the notification flag is not changed when the start date is set before
-    current date and notification was already sent,
+    current date and notification was already sent.
     """
     # given
     query = SALE_UPDATE_MUTATION
@@ -279,7 +279,7 @@ def test_update_sale_end_date_before_current_date_notification_flag_not_changed(
     permission_manage_discounts,
 ):
     """Ensure the notification flag is not changed when the end date is set before
-    current date and notification was already sent,
+    current date and notification was already sent.
     """
     # given
     query = SALE_UPDATE_MUTATION

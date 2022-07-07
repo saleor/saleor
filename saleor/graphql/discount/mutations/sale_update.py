@@ -53,7 +53,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
 
     @staticmethod
     def update_notification_flag_if_needed(instance, clean_input, field):
-        """Update notification flag when the date is set to feature.
+        """Update a notification flag when the date is in the feature.
 
         Set the notification flag to False when the starting or ending date change
         to the feature date.
@@ -91,7 +91,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def send_sale_started_or_ended_notification(
         manager, instance, clean_input, catalogue, field, update_fields
     ):
-        """Send the notification about starting or ending sale if it wasn't send yet.
+        """Send the notification about starting or ending sale if it wasn't sent yet.
 
         Send notification if the notification field is set to False and the starting
         or ending date already passed.

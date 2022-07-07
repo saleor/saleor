@@ -13,9 +13,8 @@ class sale_webhook_schedule(BaseSchedule):
     """Schedule for sale webhook periodic task.
 
     Arguments:
-        run_every (float, ~datetime.timedelta): Initial time interval in seconds.
-            Timedelta will be overridden after first task run - timedelta to the closest
-            sale started or ended event will be set.
+        initial_timedelta (float, ~datetime.timedelta):
+            Initial time interval in seconds.
         nowfun (Callable): Function returning the current date and time
             (:class:`~datetime.datetime`).
         app (Celery): Celery app instance.
