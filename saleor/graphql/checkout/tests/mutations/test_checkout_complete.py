@@ -2711,3 +2711,65 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     assert data["errors"][0]["code"] == "INVALID"
     assert data["errors"][0]["field"] == "postalCode"
     assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_with_not_normalized_shipping_address(
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    shipping_address = Address.objects.create(
+        **{
+            "country": "US",
+            "city": "Washington",
+            "country_area": "District of Columbia",
+            "street_address_1": "1600 Pennsylvania Avenue NW",
+            "postal_code": "20500",
+        }
+    )
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    shipping_address = order.shipping_address
+    assert shipping_address
+    assert shipping_address.city == "WASHINGTON"
+    assert shipping_address.country_area == "DC"
