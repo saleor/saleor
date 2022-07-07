@@ -51,6 +51,7 @@ from ..payloads import (
     generate_requestor,
     generate_sale_payload,
     generate_sale_started_or_finished_payload,
+    generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
 )
@@ -1144,6 +1145,26 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["products_added"]) == {10, 20}
     assert set(payload["variants_added"]) == {"ddd"}
     assert set(payload["variants_removed"]) == {"ccc"}
+
+
+def test_generate_sale_toggle_payload(sale):
+    # given
+    current_info = {
+        "categories": {4, 2, 3},
+        "collections": set(),
+        "products": {4, 5, 6, 10, 20},
+        "variants": {"aaa", "bbb", "ddd"},
+    }
+
+    # when
+    payload = json.loads(generate_sale_toggle_payload(sale, current_info))[0]
+
+    # then
+    assert payload["is_active"] is True
+    assert set(payload["categories"]) == current_info["categories"]
+    assert not payload["collections"]
+    assert set(payload["products"]) == current_info["products"]
+    assert set(payload["variants"]) == current_info["variants"]
 
 
 def test_generate_sale_started_or_finished_payload(sale):

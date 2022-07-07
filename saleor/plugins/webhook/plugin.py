@@ -31,6 +31,7 @@ from ...webhook.payloads import (
     generate_requestor,
     generate_sale_payload,
     generate_sale_started_or_finished_payload,
+    generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
 )
@@ -474,6 +475,23 @@ class WebhookPlugin(BasePlugin):
         if webhooks := get_webhooks_for_event(event_type):
             sale_data = generate_sale_payload(
                 sale, previous_catalogue=previous_catalogue, requestor=self.requestor
+            )
+            trigger_webhooks_async(
+                sale_data, event_type, webhooks, sale, self.requestor
+            )
+
+    def sale_toggle(
+        self,
+        sale: "Sale",
+        catalogue: DefaultDict[str, Set[str]],
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.SALE_TOGGLE
+        if webhooks := get_webhooks_for_event(event_type):
+            sale_data = generate_sale_toggle_payload(
+                sale, catalogue=catalogue, requestor=self.requestor
             )
             trigger_webhooks_async(
                 sale_data, event_type, webhooks, sale, self.requestor
