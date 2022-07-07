@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="digitalcontenturl",
             name="order_line_token",
-            field=models.UUIDField(null=True),
+            field=models.UUIDField(null=True)
         ),
     ]
