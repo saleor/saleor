@@ -1241,58 +1241,6 @@ def test_create_sale_with_enddate_before_startdate(
     assert errors
 
 
-@patch("saleor.plugins.manager.PluginsManager.sale_updated")
-def test_update_sale(
-    updated_webhook_mock,
-    staff_api_client,
-    sale,
-    permission_manage_discounts,
-    product_list,
-):
-    query = """
-    mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!, $products: [ID!]) {
-            saleUpdate(id: $id, input: {type: $type, products: $products}) {
-                errors {
-                    field
-                    code
-                    message
-                }
-                sale {
-                    type
-                }
-            }
-        }
-    """
-
-    # Set discount value type to 'fixed' and change it in mutation
-    sale.type = DiscountValueType.FIXED
-    sale.save()
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-    product_ids = [
-        graphene.Node.to_global_id("Product", product.id) for product in product_list
-    ]
-    variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
-        "type": DiscountValueTypeEnum.PERCENTAGE.name,
-        "products": product_ids,
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts]
-    )
-    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
-
-    content = get_graphql_content(response)
-    data = content["data"]["saleUpdate"]["sale"]
-    assert data["type"] == DiscountValueType.PERCENTAGE.upper()
-
-    updated_webhook_mock.assert_called_once_with(
-        sale, previous_catalogue, current_catalogue
-    )
-
-
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation(
     deleted_webhook_mock, staff_api_client, sale, permission_manage_discounts

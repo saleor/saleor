@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import graphene
+import pytz
 from django.db import transaction
 
 from ....core.permissions import DiscountPermissions
@@ -30,16 +33,76 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=Sale)
+        instance = cls.get_instance(info, **data)
         previous_catalogue = fetch_catalogue_info(instance)
-        response = super().perform_mutation(_root, info, **data)
-        current_catalogue = fetch_catalogue_info(instance)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+        cls.send_sale_notifications(info, instance, cleaned_input, previous_catalogue)
+        return cls.success_response(instance)
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        clean_input = super().clean_input(info, instance, data)
+        cls.update_notification_flag_if_needed(instance, clean_input, "start")
+        cls.update_notification_flag_if_needed(instance, clean_input, "end")
+        return clean_input
+
+    @staticmethod
+    def update_notification_flag_if_needed(instance, clean_input, field):
+        """Update notification flag when the date is set to feature.
+
+        Set the notification flag to False when the starting or ending date change
+        to the feature date.
+        """
+        now = datetime.now(pytz.utc)
+        notification_field = f"{field}ed_notification_sent"
+        date = clean_input.get(f"{field}_date")
+        if date and getattr(instance, notification_field) and date > now:
+            clean_input[notification_field] = False
+
+    @classmethod
+    def send_sale_notifications(cls, info, instance, cleaned_input, previous_catalogue):
+        current_catalogue = convert_catalogue_info_to_global_ids(
+            fetch_catalogue_info(instance)
+        )
         transaction.on_commit(
             lambda: info.context.plugins.sale_updated(
                 instance,
                 convert_catalogue_info_to_global_ids(previous_catalogue),
-                convert_catalogue_info_to_global_ids(current_catalogue),
+                current_catalogue,
             )
         )
-        return response
+        update_fields = []
+        cls.send_sale_started_or_ended_notification(
+            info, instance, cleaned_input, current_catalogue, "start", update_fields
+        )
+        cls.send_sale_started_or_ended_notification(
+            info, instance, cleaned_input, current_catalogue, "end", update_fields
+        )
+        if update_fields:
+            instance.save(update_fields=update_fields)
+
+    @staticmethod
+    def send_sale_started_or_ended_notification(
+        info, instance, clean_input, catalogue, field, update_fields
+    ):
+        """Send the notification about starting or ending sale if it wasn't send yet.
+
+        Send notification if the notification field is set to False and the starting
+        or ending date already passed.
+        """
+        now = datetime.now(pytz.utc)
+        notification_field = f"{field}ed_notification_sent"
+        date = clean_input.get(f"{field}_date")
+        if date and not getattr(instance, notification_field) and date <= now:
+            manager = info.context.plugins
+            if field == "start":
+                manager.sale_started(instance, catalogue)
+            else:
+                manager.sale_ended(instance, catalogue)
+            setattr(instance, notification_field, True)
+            update_fields.append(notification_field)
