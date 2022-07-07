@@ -5,7 +5,6 @@ from django.utils import timezone
 
 from ....core.permissions import ProductPermissions
 from ....warehouse.models import Reservation, Stock, Warehouse
-from ....warehouse.tests.utils import get_quantity_allocated_for_stock
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -88,7 +87,7 @@ def test_query_stock(staff_api_client, stock, permission_manage_products):
     )
     assert content_stock["warehouse"]["name"] == stock.warehouse.name
     assert content_stock["quantity"] == stock.quantity
-    assert content_stock["quantityAllocated"] == get_quantity_allocated_for_stock(stock)
+    assert content_stock["quantityAllocated"] == stock.quantity_allocated
     assert content_stock["quantityReserved"] == 0
 
 
@@ -110,7 +109,7 @@ def test_query_stock_with_reservations(
     )
     assert content_stock["warehouse"]["name"] == stock.warehouse.name
     assert content_stock["quantity"] == stock.quantity
-    assert content_stock["quantityAllocated"] == get_quantity_allocated_for_stock(stock)
+    assert content_stock["quantityAllocated"] == stock.quantity_allocated
     assert content_stock["quantityReserved"] == 2
 
 
@@ -133,7 +132,7 @@ def test_query_stock_with_expired_reservations(
     )
     assert content_stock["warehouse"]["name"] == stock.warehouse.name
     assert content_stock["quantity"] == stock.quantity
-    assert content_stock["quantityAllocated"] == get_quantity_allocated_for_stock(stock)
+    assert content_stock["quantityAllocated"] == stock.quantity_allocated
     assert content_stock["quantityReserved"] == 0
 
 

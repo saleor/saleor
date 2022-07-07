@@ -93,19 +93,10 @@ def allocate_stocks(
                 "quantity_reserved"
             ]
 
-    quantity_allocation_list = list(
-        Allocation.objects.filter(
-            stock_id__in=stocks_id,
-            quantity_allocated__gt=0,
-        )
-        .values("stock")
-        .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
-    )
-    quantity_allocation_for_stocks: Dict = defaultdict(int)
-    for allocation in quantity_allocation_list:
-        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-            "quantity_allocated_sum"
-        ]
+    quantity_allocation_for_stocks = {
+        stock.pk: stock.quantity_allocated
+        for stock in Stock.objects.filter(pk__in=stocks_id, quantity_allocated__gt=0)
+    }
 
     def sort_stocks(stock_data):
         return stock_data["quantity"] - quantity_allocation_for_stocks.get(
@@ -413,21 +404,10 @@ def decrease_stock(
             str(stock.warehouse_id)
         ] = stock
 
-    quantity_allocation_list = list(
-        Allocation.objects.filter(
-            stock__in=stocks,
-            quantity_allocated__gt=0,
-        )
-        .values("stock")
-        .annotate(Sum("quantity_allocated"))
-    )
-
     if update_stocks:
-        quantity_allocation_for_stocks: Dict[int, int] = defaultdict(int)
-        for allocation in quantity_allocation_list:
-            quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-                "quantity_allocated__sum"
-            ]
+        quantity_allocation_for_stocks = {
+            stock.pk: stock.quantity_allocated for stock in stocks
+        }
         _decrease_stocks_quantity(
             order_lines_info,
             variant_and_warehouse_to_stock,

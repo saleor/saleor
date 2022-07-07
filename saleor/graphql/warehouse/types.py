@@ -178,9 +178,7 @@ class Stock(ModelObjectType):
 
     @staticmethod
     def resolve_quantity_allocated(root, _info):
-        return root.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
+        return root.quantity_allocated
 
     @staticmethod
     def resolve_quantity_reserved(root, info):
