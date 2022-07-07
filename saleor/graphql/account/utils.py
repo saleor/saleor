@@ -84,7 +84,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if bool(getattr(context, "app", None)):
+        if context.app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

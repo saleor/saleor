@@ -105,7 +105,7 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if bool(getattr(context, "app", None)):
+        if context.app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
@@ -198,7 +198,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     class Meta:
         description = (
-            "Update permission group. " "Apps are not allowed to perform this mutation."
+            "Update permission group. Apps are not allowed to perform this mutation."
         )
         model = auth_models.Group
         object_type = Group
@@ -422,7 +422,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     class Meta:
         description = (
-            "Delete permission group. " "Apps are not allowed to perform this mutation."
+            "Delete permission group. Apps are not allowed to perform this mutation."
         )
         model = auth_models.Group
         object_type = Group
@@ -444,7 +444,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if bool(getattr(context, "app", None)):
+        if context.app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

@@ -200,7 +200,7 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if bool(getattr(context, "app", None)):
+        if context.app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
@@ -209,11 +209,6 @@ class StaffCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-
-        if bool(getattr(info.context, "app", None)):
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
 
         errors = defaultdict(list)
         if cleaned_input.get("redirect_url"):
@@ -320,11 +315,6 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        if bool(getattr(info.context, "app", None)):
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
-
         requestor = info.context.user
         # check if requestor can manage this user
         if not requestor.is_superuser and get_out_of_scope_users(requestor, [instance]):
@@ -452,7 +442,7 @@ class StaffUpdate(StaffCreate):
 class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = (
-            "Deletes a staff user. " "Apps are not allowed to perform this mutation."
+            "Deletes a staff user. Apps are not allowed to perform this mutation."
         )
         model = models.User
         object_type = User
