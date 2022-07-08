@@ -246,22 +246,6 @@ class PluginSample(BasePlugin):
     ):
         return sale, catalogue
 
-    def sale_started(
-        self,
-        sale: "Sale",
-        catalogue: DefaultDict[str, Set[str]],
-        previous_value: Any,
-    ):
-        return sale, catalogue
-
-    def sale_ended(
-        self,
-        sale: "Sale",
-        catalogue: DefaultDict[str, Set[str]],
-        previous_value: Any,
-    ):
-        return sale, catalogue
-
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",

@@ -1132,36 +1132,6 @@ def test_sale_toggle(sale, subscription_sale_toggle_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_sale_started(sale, subscription_sale_started_webhook):
-    # given
-    webhooks = [subscription_sale_started_webhook]
-    event_type = WebhookEventAsyncType.SALE_STARTED
-    expected_payload = generate_sale_payload(sale)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
-
-    # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_sale_ended(sale, subscription_sale_ended_webhook):
-    # given
-    webhooks = [subscription_sale_ended_webhook]
-    event_type = WebhookEventAsyncType.SALE_ENDED
-    expected_payload = generate_sale_payload(sale)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
-
-    # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
 def test_invoice_requested(fulfilled_order, subscription_invoice_requested_webhook):
     # given
     webhooks = [subscription_invoice_requested_webhook]

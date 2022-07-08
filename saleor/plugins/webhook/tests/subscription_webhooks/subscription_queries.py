@@ -859,36 +859,6 @@ SALE_TOGGLE = (
 """
 )
 
-SALE_STARTED = (
-    fragments.SALE_DETAILS
-    + """
-    subscription{
-      event{
-        ...on SaleStarted{
-          sale{
-            ...SaleDetails
-          }
-        }
-      }
-    }
-"""
-)
-
-SALE_ENDED = (
-    fragments.SALE_DETAILS
-    + """
-    subscription{
-      event{
-        ...on SaleEnded{
-          sale{
-            ...SaleDetails
-          }
-        }
-      }
-    }
-"""
-)
-
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
     + """

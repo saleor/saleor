@@ -45,7 +45,6 @@ from ....webhook.payloads import (
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_sale_payload,
-    generate_sale_started_or_finished_payload,
     generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
 )
@@ -1044,58 +1043,6 @@ def test_sale_toggle(
     expected_data = generate_sale_toggle_payload(sale, catalogue=sale_catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
         expected_data, WebhookEventAsyncType.SALE_TOGGLE, [any_webhook], sale, None
-    )
-
-
-@freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_sale_started(
-    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
-):
-    # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager()
-    sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-
-    # when
-    manager.sale_started(sale, catalogue=sale_catalogue_info)
-
-    # then
-    expected_data = generate_sale_started_or_finished_payload(
-        sale, catalogue=sale_catalogue_info
-    )
-    mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_STARTED, [any_webhook], sale, None
-    )
-
-
-@freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_sale_ended(
-    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
-):
-    # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager()
-    sale_catalogue_info = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
-
-    # when
-    manager.sale_ended(sale, catalogue=sale_catalogue_info)
-
-    # then
-    expected_data = generate_sale_started_or_finished_payload(
-        sale, catalogue=sale_catalogue_info
-    )
-    mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_ENDED, [any_webhook], sale, None
     )
 
 

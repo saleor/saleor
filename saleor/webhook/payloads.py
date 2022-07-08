@@ -445,27 +445,6 @@ def generate_sale_toggle_payload(
 
 
 @traced_payload_generator
-def generate_sale_started_or_finished_payload(
-    sale: "Sale",
-    catalogue: DefaultDict[str, Set[str]],
-    requestor: Optional["RequestorOrLazyObject"] = None,
-):
-    serializer = PayloadSerializer()
-    sale_fields = ("id",)
-
-    extra_dict_data = {key: list(ids) for key, ids in catalogue.items()}
-    extra_dict_data["meta"] = generate_meta(
-        requestor_data=generate_requestor(requestor)
-    )
-
-    return serializer.serialize(
-        [sale],
-        fields=sale_fields,
-        extra_dict_data=extra_dict_data,
-    )
-
-
-@traced_payload_generator
 def generate_invoice_payload(
     invoice: "Invoice", requestor: Optional["RequestorOrLazyObject"] = None
 ):
