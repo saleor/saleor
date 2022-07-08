@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("discount", "0043_auto_20220704_0932"),
+        ("discount", "0042_migrate_orderdiscount_id_to_uuid"),
     ]
 
     operations = [
