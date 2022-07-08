@@ -15,12 +15,12 @@ class Migration(migrations.Migration):
             model_name="digitalcontenturl",
             name="line",
             field=models.OneToOneField(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="digital_content_url",
-                to="order.orderline",
-                to_field="old_id",
+            blank=True,
+            null=True,
+            on_delete=django.db.models.deletion.CASCADE,
+            related_name="digital_content_url",
+            to="order.orderline",
+            to_field="old_id",
             ),
         ),
     ]

@@ -14,5 +14,5 @@ class Migration(migrations.Migration):
             model_name="digitalcontenturl",
             name="order_line_token",
             field=models.UUIDField(null=True),
-        ),
+        )
     ]
