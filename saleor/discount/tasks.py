@@ -15,6 +15,7 @@ task_logger = get_task_logger(__name__)
 
 @app.task
 def send_sale_toggle_notifications():
+    """Send the notification about starting or ending sales."""
     manager = get_plugins_manager()
 
     sales = get_sales_to_notify_about()

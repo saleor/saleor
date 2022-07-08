@@ -53,6 +53,7 @@ class sale_webhook_schedule(BaseSchedule):
 
         now = datetime.now(pytz.UTC)
 
+        # is_due is True when there is at least one sale to notify about
         is_due = get_sales_to_notify_about().exists()
 
         upcoming_start_dates = Sale.objects.filter(
