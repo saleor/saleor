@@ -1100,7 +1100,11 @@ class WebhookPlugin(BasePlugin):
             )
 
         webhook_payload = generate_payment_payload(payment_information)
-        payment = Payment.objects.get(id=payment_information.payment_id)
+        payment = Payment.objects.filter(id=payment_information.payment_id).first()
+        if not payment:
+            raise PaymentError(
+                f"Payment with id: {payment_information.payment_id} not found."
+            )
         response_data = trigger_webhook_sync(
             event_type, webhook_payload, app, subscribable_object=payment
         )

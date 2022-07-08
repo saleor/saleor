@@ -15,7 +15,7 @@ from ...checkout.fetch import (
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
-from ...order.utils import get_valid_shipping_methods_for_order
+from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import TransactionActionData
 from ...product.models import (
@@ -1159,7 +1159,7 @@ class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_34
+        + ADDED_IN_35
         + PREVIEW_FEATURE,
     )
 
@@ -1196,7 +1196,7 @@ class OrderFilterShippingMethods(ObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_34
+        + ADDED_IN_35
         + PREVIEW_FEATURE,
     )
 
@@ -1206,9 +1206,7 @@ class OrderFilterShippingMethods(ObjectType, OrderBase):
 
         def with_channel(channel):
             def with_listings(channel_listings):
-                return get_valid_shipping_methods_for_order(
-                    order, channel_listings, info.context.plugins, exclude_methods=True
-                )
+                return get_all_shipping_methods_for_order(order, channel_listings)
 
             return (
                 ShippingMethodChannelListingByChannelSlugLoader(info.context)

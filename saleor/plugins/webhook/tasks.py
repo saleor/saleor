@@ -28,7 +28,11 @@ from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook import observability
-from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
+from ...webhook.event_types import (
+    SUBSCRIBABLE_EVENTS,
+    WebhookEventAsyncType,
+    WebhookEventSyncType,
+)
 from ...webhook.observability import WebhookData
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
@@ -66,7 +70,7 @@ class WebhookResponse:
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, requestor=None, sync_event=False
+    event_type, subscribable_object, webhooks, requestor=None
 ) -> List[EventDelivery]:
     """Create webhook payload based on subscription query.
 
@@ -92,7 +96,9 @@ def create_deliveries_for_subscriptions(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            request=initialize_request(requestor, sync_event),
+            request=initialize_request(
+                requestor, event_type in WebhookEventSyncType.ALL
+            ),
             app=webhook.app,
         )
         if not data:
@@ -177,7 +183,6 @@ def trigger_webhook_sync(
             event_type=event_type,
             subscribable_object=subscribable_object,
             webhooks=[webhook],
-            sync_event=True,
         )[0]
 
     else:

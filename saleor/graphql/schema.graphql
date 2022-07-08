@@ -23255,7 +23255,7 @@ type OrderFilterShippingMethods implements Event {
   """
   Shipping methods that can be used with this checkout.
   
-  Added in Saleor 3.4.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -23287,7 +23287,7 @@ type CheckoutFilterShippingMethods implements Event {
   """
   Shipping methods that can be used with this checkout.
   
-  Added in Saleor 3.4.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """

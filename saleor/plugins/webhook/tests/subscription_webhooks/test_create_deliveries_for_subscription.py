@@ -30,7 +30,6 @@ from .payloads import (
     generate_menu_payload,
     generate_page_payload,
     generate_page_type_payload,
-    generate_payment_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
     generate_staff_payload,
@@ -1547,114 +1546,6 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_payment_authorize(payment, subscription_payment_authorize_webhook):
-    # given
-    webhooks = [subscription_payment_authorize_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_AUTHORIZE
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
-
-    # then
-    expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_payment_capture(payment, subscription_payment_capture_webhook):
-    # given
-    webhooks = [subscription_payment_capture_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_CAPTURE
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
-
-    # then
-    expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_payment_refund(payment, subscription_payment_refund_webhook):
-    # given
-    webhooks = [subscription_payment_refund_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_REFUND
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
-
-    # then
-    expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_payment_void(payment, subscription_payment_void_webhook):
-    # given
-    webhooks = [subscription_payment_void_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_VOID
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
-
-    # then
-    expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_payment_confirm(payment, subscription_payment_confirm_webhook):
-    # given
-    webhooks = [subscription_payment_confirm_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_CONFIRM
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
-
-    # then
-    expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_payment_process(payment, subscription_payment_process_webhook):
-    # given
-    webhooks = [subscription_payment_process_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_PROCESS
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
-
-    # then
-    expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_payment_list_gateways(checkout, subscription_payment_list_gateways_webhook):
-    # given
-
-    webhooks = [subscription_payment_list_gateways_webhook]
-    event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-
-    # when
-
-    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
-
-    # then
-    expected_payload = {"checkout": {"id": checkout_id}}
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
 def test_checkout_filter_shipping_methods(
     checkout_with_shipping_required,
     subscription_checkout_filter_shipping_methods_webhook,
@@ -1707,6 +1598,87 @@ def test_checkout_filter_shipping_methods_no_methods_in_channel(
     assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
+
+
+def test_checkout_filter_shipping_methods_with_circular_call_for_shipping_methods(
+    checkout_ready_to_complete,
+    subscription_checkout_filter_shipping_method_webhook_with_shipping_methods,
+):
+
+    # given
+    webhooks = [
+        subscription_checkout_filter_shipping_method_webhook_with_shipping_methods
+    ]
+    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, checkout_ready_to_complete, webhooks
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert len(payload["errors"]) == 1
+    assert (
+        payload["errors"][0]["message"]
+        == "Resolving this field is not allowed in synchronous events."
+    )
+    assert payload["checkout"] is None
+
+
+def test_checkout_filter_shipping_methods_with_available_shipping_methods_field(
+    checkout_ready_to_complete,
+    subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods,
+):
+
+    # given
+    webhooks = [
+        subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods
+    ]
+    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, checkout_ready_to_complete, webhooks
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert len(payload["errors"]) == 1
+    assert (
+        payload["errors"][0]["message"]
+        == "Resolving this field is not allowed in synchronous events."
+    )
+    assert payload["checkout"] is None
+
+
+def test_checkout_filter_shipping_methods_with_circular_call_for_available_gateways(
+    checkout_ready_to_complete,
+    subscription_checkout_filter_shipping_method_webhook_with_payment_gateways,
+):
+
+    # given
+    webhooks = [
+        subscription_checkout_filter_shipping_method_webhook_with_payment_gateways
+    ]
+    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, checkout_ready_to_complete, webhooks
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert len(payload["errors"]) == 1
+    assert (
+        payload["errors"][0]["message"]
+        == "Resolving this field is not allowed in synchronous events."
+    )
+    assert payload["checkout"] is None
 
 
 def test_order_filter_shipping_methods(
@@ -1766,6 +1738,57 @@ def test_order_filter_shipping_methods_no_methods_in_channel(
     assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
+
+
+def test_order_filter_shipping_methods_with_circular_call_for_available_methods(
+    order_line_with_one_allocation,
+    subscription_order_filter_shipping_methods_webhook_with_available_ship_methods,
+):
+
+    # given
+    webhooks = [
+        subscription_order_filter_shipping_methods_webhook_with_available_ship_methods
+    ]
+    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    order = order_line_with_one_allocation.order
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert len(payload["errors"]) == 1
+    assert (
+        payload["errors"][0]["message"]
+        == "Resolving this field is not allowed in synchronous events."
+    )
+
+
+def test_order_filter_shipping_methods_with_circular_call_for_shipping_methods(
+    order_line_with_one_allocation,
+    subscription_order_filter_shipping_methods_webhook_with_shipping_methods,
+):
+
+    # given
+    webhooks = [
+        subscription_order_filter_shipping_methods_webhook_with_shipping_methods
+    ]
+    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    order = order_line_with_one_allocation.order
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert len(payload["errors"]) == 1
+    assert (
+        payload["errors"][0]["message"]
+        == "Resolving this field is not allowed in synchronous events."
+    )
+    assert payload["order"] is None
 
 
 @patch.object(logger, "info")
@@ -1866,30 +1889,3 @@ def test_generate_payload_from_subscription_return_permission_errors_in_payload(
     assert payload["errors"][0]["extensions"]["exception"]["code"] == error_code
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
-
-
-def test_generate_sync_event_payload_with_circular_call(
-    checkout_ready_to_complete,
-    subscription_checkout_filter_shipping_methods_webhook_with_circular_fields,
-):
-
-    # given
-    webhooks = [
-        subscription_checkout_filter_shipping_methods_webhook_with_circular_fields
-    ]
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, checkout_ready_to_complete, webhooks, sync_event=True
-    )
-
-    # then
-    payload = json.loads(deliveries[0].payload.payload)
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-    assert payload["checkout"] is None

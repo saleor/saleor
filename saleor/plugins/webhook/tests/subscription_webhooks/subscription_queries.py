@@ -1633,11 +1633,71 @@ subscription{
 """
 
 
-CHECKOUT_FILTER_SHIPPING_METHODS_CIRCULAR = """
+CHECKOUT_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS = """
 subscription{
   event{
     ...on CheckoutFilterShippingMethods{
       checkout{
+        id
+        shippingMethods{
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS = """
+subscription{
+  event{
+    ...on CheckoutFilterShippingMethods{
+      checkout{
+        id
+        availableShippingMethods{
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_PAYMENT_GATEWAYS = """
+subscription{
+  event{
+    ...on CheckoutFilterShippingMethods{
+      checkout{
+        id
+        availablePaymentGateways{
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS = """
+subscription{
+  event{
+    ...on OrderFilterShippingMethods{
+      order{
+        id
+        availableShippingMethods{
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+ORDER_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS = """
+subscription{
+  event{
+    ...on OrderFilterShippingMethods{
+      order{
         id
         shippingMethods{
           id

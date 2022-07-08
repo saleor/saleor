@@ -3,7 +3,6 @@ from promise import Promise
 
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_collection_points_for_checkout
-from ...core.exceptions import CircularQuery
 from ...core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -51,6 +50,7 @@ from .dataloaders import (
     CheckoutLinesInfoByCheckoutTokenLoader,
     TransactionItemsByCheckoutIDLoader,
 )
+from .utils import prevent_sync_event_circular_query
 
 
 class GatewayConfigLine(graphene.ObjectType):
@@ -549,11 +549,8 @@ class Checkout(ModelObjectType):
 
     @classmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_methods(cls, root: models.Checkout, info):
-        if hasattr(info.context, "sync_event") and info.context.sync_event:
-            raise CircularQuery(
-                "Resolving this field is not allowed in synchronous events."
-            )
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
@@ -673,11 +670,8 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        if hasattr(info.context, "sync_event") and info.context.sync_event:
-            raise CircularQuery(
-                "Resolving this field is not allowed in synchronous events."
-            )
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
@@ -712,11 +706,8 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
+    @prevent_sync_event_circular_query
     def resolve_available_payment_gateways(root: models.Checkout, info):
-        if hasattr(info.context, "sync_event") and info.context.sync_event:
-            raise CircularQuery(
-                "Resolving this field is not allowed in synchronous events."
-            )
         return info.context.plugins.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
