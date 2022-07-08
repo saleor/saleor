@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 from celery.schedules import BaseSchedule
 from celery.utils.time import maybe_timedelta, remaining
-from django.db.models import Q
+from django.db.models import F, Q
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 
@@ -49,32 +49,48 @@ class sale_webhook_schedule(BaseSchedule):
 
         """
         from ..discount.models import Sale
+        from ..discount.tasks import get_sales_to_notify_about
 
         now = datetime.now(pytz.UTC)
 
-        # is_due is True when there is any sale for which the started or
-        # ended notification should be send
-        is_due = Sale.objects.filter(
-            (Q(started_notification_sent=False) & Q(start_date__lte=now))
-            | (Q(ended_notification_sent=False) & Q(end_date__lte=now))
-        ).exists()
+        is_due = get_sales_to_notify_about().exists()
 
-        upcoming_sales = Sale.objects.filter(
-            (Q(started_notification_sent=False) & Q(start_date__gt=now))
-            | (Q(ended_notification_sent=False) & Q(end_date__gt=now))
-        )
-        if not upcoming_sales:
+        upcoming_start_dates = Sale.objects.filter(
+            (
+                (
+                    Q(notification_sent_datetime__isnull=True)
+                    | Q(notification_sent_datetime__lt=F("start_date"))
+                )
+                & Q(start_date__gt=now)
+            )
+        ).order_by("start_date")
+        upcoming_end_dates = Sale.objects.filter(
+            (
+                (
+                    Q(notification_sent_datetime__isnull=True)
+                    | Q(notification_sent_datetime__lt=F("end_date"))
+                )
+                & Q(end_date__gt=now)
+            )
+        ).order_by("end_date")
+
+        if not upcoming_start_dates and not upcoming_end_dates:
             self.next_run = self.initial_timedelta.total_seconds()
             return schedstate(is_due, self.next_run)
 
         # calculate the earliest incoming date of starting or ending sale
-        next_start_date = upcoming_sales.order_by("start_date").first().start_date
-        next_end_date = upcoming_sales.order_by("end_date").first().end_date
+        next_start_date = (
+            upcoming_start_dates.first().start_date if upcoming_start_dates else None
+        )
+        next_end_date = (
+            upcoming_end_dates.first().end_date if upcoming_end_dates else None
+        )
 
         # get the earlier date
-        next_upcoming_date = (
-            min(next_start_date, next_end_date) if next_end_date else next_start_date
-        )
+        if next_start_date and next_end_date:
+            next_upcoming_date = min(next_start_date, next_end_date)
+        else:
+            next_upcoming_date = next_start_date if next_start_date else next_end_date
 
         self.next_run = min((next_upcoming_date - now), self.initial_timedelta)
 

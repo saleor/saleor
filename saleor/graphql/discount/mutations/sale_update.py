@@ -35,37 +35,22 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         previous_catalogue = fetch_catalogue_info(instance)
+        previous_end_date = instance.end_date
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
-        cls.send_sale_notifications(info, instance, cleaned_input, previous_catalogue)
+        cls.send_sale_notifications(
+            info, instance, cleaned_input, previous_catalogue, previous_end_date
+        )
         return cls.success_response(instance)
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        clean_input = super().clean_input(info, instance, data)
-        cls.update_notification_flag_if_needed(instance, clean_input)
-        return clean_input
-
-    @staticmethod
-    def update_notification_flag_if_needed(instance, clean_input):
-        """Update a notification flag when the date is in the feature.
-
-        Set the notification flag to False when the starting or ending date change
-        to the feature date.
-        """
-        now = datetime.now(pytz.utc)
-        for field in ["start", "end"]:
-            notification_field = f"{field}ed_notification_sent"
-            date = clean_input.get(f"{field}_date")
-            if date and getattr(instance, notification_field) and date > now:
-                clean_input[notification_field] = False
-
-    @classmethod
-    def send_sale_notifications(cls, info, instance, cleaned_input, previous_catalogue):
+    def send_sale_notifications(
+        cls, info, instance, cleaned_input, previous_catalogue, previous_end_date
+    ):
         current_catalogue = convert_catalogue_info_to_global_ids(
             fetch_catalogue_info(instance)
         )
@@ -77,29 +62,45 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             )
         )
 
-        cls.send_sale_started_or_ended_notification(
-            info, instance, cleaned_input, current_catalogue
+        cls.send_sale_toggle_notification(
+            info, instance, cleaned_input, current_catalogue, previous_end_date
         )
 
     @staticmethod
-    def send_sale_started_or_ended_notification(info, instance, clean_input, catalogue):
+    def send_sale_toggle_notification(
+        info, instance, clean_input, catalogue, previous_end_date
+    ):
         """Send the notification about starting or ending sale if it wasn't sent yet.
 
-        Send notification if the notification field is set to False and the starting
-        or ending date already passed.
+        Send notification if the notification when the start or end date already passed
+        ans the notification_date is not set or the last notification was sent
+        before start or end date.
         """
         manager = info.context.plugins
         now = datetime.now(pytz.utc)
-        update_fields = []
-        for field in ["start", "end"]:
-            notification_field = f"{field}ed_notification_sent"
-            date = clean_input.get(f"{field}_date")
-            if date and not getattr(instance, notification_field) and date <= now:
-                if field == "start":
-                    manager.sale_started(instance, catalogue)
-                else:
-                    manager.sale_ended(instance, catalogue)
-                setattr(instance, notification_field, True)
-                update_fields.append(notification_field)
-        if update_fields:
-            instance.save(update_fields=update_fields)
+
+        notification_date = instance.notification_sent_datetime
+        start_date = clean_input.get("start_date")
+        end_date = clean_input.get("end_date")
+
+        if not start_date and not end_date:
+            return
+
+        send_notification = False
+        for date in [start_date, end_date]:
+            if (
+                date
+                and date <= now
+                and (notification_date is None or notification_date < date)
+            ):
+                send_notification = True
+
+        # we always need to notify if the end_date is in the past and previously
+        # the end date was not set
+        if end_date and end_date <= now and previous_end_date is None:
+            send_notification = True
+
+        if send_notification:
+            manager.sale_toggle(instance, catalogue)
+            instance.notification_sent_datetime = now
+            instance.save(update_fields=["notification_sent_datetime"])

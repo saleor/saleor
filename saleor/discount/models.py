@@ -270,6 +270,7 @@ class Sale(ModelWithMetadata):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
+    notification_sent_datetime = models.DateTimeField(null=True, blank=True)
     started_notification_sent = models.BooleanField(default=False)
     ended_notification_sent = models.BooleanField(default=False)
 

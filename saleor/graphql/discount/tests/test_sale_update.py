@@ -74,21 +74,23 @@ def test_update_sale(
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
-def test_update_sale_start_date_after_current_date_notification_flag_set_to_false(
+def test_update_sale_start_date_after_current_date_notification_not_sent(
     updated_webhook_mock,
+    sale_toggle_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
-    """Ensure the notification flag is changed to False when the start date is set
-    after the current date and the flag was True before.
+    """Ensure the notification is not sent when the start date is set after the current
+    date.
     """
     # given
     query = SALE_UPDATE_MUTATION
 
-    sale.started_notification_sent = True
-    sale.save(update_fields=["type", "started_notification_sent"])
+    sale.notification_sent_datetime = None
+    sale.save(update_fields=["notification_sent_datetime"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
@@ -114,32 +116,36 @@ def test_update_sale_start_date_after_current_date_notification_flag_set_to_fals
     assert data["startDate"] == start_date.isoformat()
 
     sale.refresh_from_db()
-    assert sale.started_notification_sent is False
-    assert sale.ended_notification_sent is False
+    assert sale.notification_sent_datetime is None
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue, current_catalogue
     )
+    sale_toggle_mock.assert_not_called()
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
-def test_update_sale_start_date_before_current_date_notification_flag_not_changed(
+def test_update_sale_start_date_before_current_date_notification_already_sent(
     updated_webhook_mock,
+    sale_toggle_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
-    """Ensure the notification flag is not changed when the start date is set before
+    """Ensure the notification is not sent when the start date is set before
     current date and notification was already sent.
     """
     # given
     query = SALE_UPDATE_MUTATION
+    now = timezone.now()
 
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
-    sale.started_notification_sent = True
-    sale.save(update_fields=["type", "started_notification_sent"])
+    notification_sent_datetime = now - timedelta(minutes=5)
+    sale.notification_sent_datetime = notification_sent_datetime
+    sale.save(update_fields=["type", "notification_sent_datetime"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
@@ -162,25 +168,25 @@ def test_update_sale_start_date_before_current_date_notification_flag_not_change
     assert data["startDate"] == start_date.isoformat()
 
     sale.refresh_from_db()
-    assert sale.started_notification_sent is True
-    assert sale.ended_notification_sent is False
+    assert sale.notification_sent_datetime == notification_sent_datetime
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue, current_catalogue
     )
+    sale_toggle_mock.assert_not_called()
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.plugins.manager.PluginsManager.sale_started")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_start_date_before_current_date_notification_sent(
     updated_webhook_mock,
-    sale_started_mock,
+    sale_toggle_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
-    """Ensure the sale_started notification is sent and the notification flag is updated
+    """Ensure the sale_toggle notification is sent and the notification date is set
     when the start date is set before current date and the notification hasn't been sent
     before.
     """
@@ -189,7 +195,7 @@ def test_update_sale_start_date_before_current_date_notification_sent(
 
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
-    sale.started_notification_sent = False
+    sale.notification_sent_datetime = None
     sale.save(update_fields=["type", "started_notification_sent"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
@@ -212,31 +218,29 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     assert data["startDate"] == start_date.isoformat()
 
     sale.refresh_from_db()
-    assert sale.started_notification_sent is True
-    assert sale.ended_notification_sent is False
+    assert sale.notification_sent_datetime == timezone.now()
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue, current_catalogue
     )
-    sale_started_mock.assert_called_once_with(sale, current_catalogue)
+    sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
-def test_update_sale_end_date_after_current_date_notification_flag_set_to_false(
+def test_update_sale_end_date_after_current_date_notification_not_sent(
     updated_webhook_mock,
+    sale_toggle_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
-    """Ensure the notification flag is changed to False when the end date is set
-    after the current date and the flag was True before.
+    """Ensure the notification is not sent when the end date is set after
+    the current date.
     """
     # given
     query = SALE_UPDATE_MUTATION
-
-    sale.ended_notification_sent = True
-    sale.save(update_fields=["type", "ended_notification_sent"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
@@ -262,37 +266,43 @@ def test_update_sale_end_date_after_current_date_notification_flag_set_to_false(
     assert data["endDate"] == end_date.isoformat()
 
     sale.refresh_from_db()
-    assert sale.ended_notification_sent is False
-    assert sale.ended_notification_sent is False
+    assert sale.notification_sent_datetime is None
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue, current_catalogue
     )
+    sale_toggle_mock.assert_not_called()
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
-def test_update_sale_end_date_before_current_date_notification_flag_not_changed(
+def test_update_sale_end_date_before_current_date_notification_already_sent(
     updated_webhook_mock,
+    sale_toggle_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
-    """Ensure the notification flag is not changed when the end date is set before
-    current date and notification was already sent.
+    """Ensure the notification is sent when the end date is set before
+    current date, the notification was already sent but the end date was not set before.
+    It means we need to notify about ending the sale.
     """
     # given
     query = SALE_UPDATE_MUTATION
 
+    now = timezone.now()
+
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
-    sale.ended_notification_sent = True
-    sale.save(update_fields=["type", "ended_notification_sent"])
+    notification_sent_datetime = now - timedelta(minutes=5)
+    sale.notification_sent_datetime = notification_sent_datetime
+    sale.save(update_fields=["type", "notification_sent_datetime"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
     )
-    end_date = timezone.now() - timedelta(days=1)
+    end_date = now - timedelta(days=1)
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {"endDate": end_date},
@@ -310,25 +320,25 @@ def test_update_sale_end_date_before_current_date_notification_flag_not_changed(
     assert data["endDate"] == end_date.isoformat()
 
     sale.refresh_from_db()
-    assert sale.ended_notification_sent is True
-    assert sale.started_notification_sent is False
+    assert sale.notification_sent_datetime == now
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue, current_catalogue
     )
+    sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.plugins.manager.PluginsManager.sale_ended")
+@patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_end_date_before_current_date_notification_sent(
     updated_webhook_mock,
-    sale_ended_mock,
+    sale_toggle_mock,
     staff_api_client,
     sale,
     permission_manage_discounts,
 ):
-    """Ensure the sale_ended notification is sent and the notification flag is updated
+    """Ensure the sale_toggle notification is sent and the notification date is set
     when the end date is set before current date and the notification hasn't been sent
     before.
     """
@@ -337,8 +347,8 @@ def test_update_sale_end_date_before_current_date_notification_sent(
 
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
-    sale.ended_notification_sent = False
-    sale.save(update_fields=["type", "ended_notification_sent"])
+    sale.notification_sent_datetime = None
+    sale.save(update_fields=["type", "notification_sent_datetime"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
@@ -360,10 +370,9 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     assert data["endDate"] == end_date.isoformat()
 
     sale.refresh_from_db()
-    assert sale.ended_notification_sent is True
-    assert sale.started_notification_sent is False
+    assert sale.notification_sent_datetime == timezone.now()
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue, current_catalogue
     )
-    sale_ended_mock.assert_called_once_with(sale, current_catalogue)
+    sale_toggle_mock.assert_called_once_with(sale, current_catalogue)

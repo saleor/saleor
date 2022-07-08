@@ -567,8 +567,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
-    "sale-started-and-sale-ended-notifications": {
-        "task": "saleor.discount.tasks.send_sale_started_and_sale_ended_notifications",
+    "send-sale-toggle-notifications": {
+        "task": "saleor.discount.tasks.send_sale_toggle_notifications",
         "schedule": sale_webhook_schedule(),
     },
 }

@@ -109,27 +109,22 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             )
         )
 
-        cls.send_sale_started_or_ended_notification(info, instance, current_catalogue)
+        cls.send_sale_toggle_notification(info, instance, current_catalogue)
 
     @staticmethod
-    def send_sale_started_or_ended_notification(info, instance, catalogue):
+    def send_sale_toggle_notification(info, instance, catalogue):
         """Send a notification about starting or ending sale if it hasn't been sent yet.
 
-        Send the notification if the notification field is set to False and the starting
-        or ending date already passed.
+        Send the notification when the start date is before the current date and the
+        sale is not already finished.
         """
         manager = info.context.plugins
         now = datetime.now(pytz.utc)
-        update_fields = []
-        for field in ["start", "end"]:
-            notification_field = f"{field}ed_notification_sent"
-            date = getattr(instance, f"{field}_date")
-            if date and date <= now:
-                if field == "start":
-                    manager.sale_started(instance, catalogue)
-                else:
-                    manager.sale_ended(instance, catalogue)
-                setattr(instance, notification_field, True)
-                update_fields.append(notification_field)
-        if update_fields:
-            instance.save(update_fields=update_fields)
+
+        start_date = instance.start_date
+        end_date = instance.end_date
+
+        if (start_date and start_date <= now) and (not end_date or not end_date <= now):
+            manager.sale_toggle(instance, catalogue)
+            instance.notification_sent_datetime = now
+            instance.save(update_fields=["notification_sent_datetime"])
