@@ -66,7 +66,7 @@ def test_is_due_sale_started_to_notify_and_not_upcoming_sale(sale, new_sale):
 
     Sale.objects.bulk_update(
         [sale, new_sale],
-        ["start_date", "notification_sent_datetime", "ended_notification_sent"],
+        ["start_date", "notification_sent_datetime"],
     )
 
     # when
@@ -94,8 +94,7 @@ def test_is_due_sale_ended_to_notify_and_not_upcoming_sale(sale, new_sale):
         [
             "start_date",
             "end_date",
-            "started_notification_sent",
-            "ended_notification_sent",
+            "notification_sent_datetime",
         ],
     )
 
@@ -183,7 +182,7 @@ def test_is_due_no_sale_to_notify_about_and_upcoming_sale_exists_initial_time_re
 
     Sale.objects.bulk_update(
         [sale, new_sale],
-        ["end_date", "started_notification_sent", "ended_notification_sent"],
+        ["end_date", "notification_sent_datetime"],
     )
 
     # when

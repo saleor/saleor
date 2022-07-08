@@ -196,7 +196,7 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
     sale.notification_sent_datetime = None
-    sale.save(update_fields=["type", "started_notification_sent"])
+    sale.save(update_fields=["type", "notification_sent_datetime"])
 
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
