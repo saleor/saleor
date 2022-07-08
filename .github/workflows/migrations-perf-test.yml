@@ -2,14 +2,12 @@ name: Migrations performance test
 
 on:
   pull_request:
-    types: [labeled, unlabeled, closed]
-    paths:
-      - "**/migrations/**"
+    types: [labeled, unlabeled, opened, closed]
 
 jobs:
   run:
     name: Run migrations performance test
-    if: ${{ (github.event.action == 'labeled') && (github.event.label.name == 'migrations perf test') }}
+    if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'migrations perf test')) || ((github.event.action == 'opened') && contains(github.event.pull_request.labels.*.name, 'migrations perf test')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -47,7 +45,7 @@ jobs:
 
   cleanup:
     name: Cleanup after migrations performance test
-    if: ${{ ((github.event.action == 'unlabeled') && (github.event.label.name == 'migrations perf test')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'migrations perf test'))  }}
+    if: ${{ ((github.event.action == 'unlabeled') && (github.event.label.name == 'migrations perf test')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'migrations perf test')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
