@@ -477,7 +477,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
-    ) -> Optional[str]:
+    ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_checkout_line_tax_rate",

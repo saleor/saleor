@@ -134,7 +134,9 @@ class Checkout(ModelWithMetadata):
         net_amount_field="shipping_price_net_amount",
         gross_amount_field="shipping_price_gross_amount",
     )
-    shipping_tax_rate = models.CharField(max_length=255, blank=True, null=True)
+    shipping_tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0")
+    )
 
     price_expiration = models.DateTimeField(default=timezone.now)
 
@@ -263,7 +265,9 @@ class CheckoutLine(ModelWithMetadata):
         net_amount_field="total_price_net_amount",
         gross_amount_field="total_price_gross_amount",
     )
-    tax_rate = models.CharField(max_length=255, blank=True, null=True)
+    tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0")
+    )
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")

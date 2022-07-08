@@ -47,7 +47,7 @@ def checkout_shipping_tax_rate(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> Optional[str]:
+) -> Decimal:
     """Return checkout shipping tax rate.
 
     It takes in account all plugins.
@@ -205,7 +205,7 @@ def checkout_line_tax_rate(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
-) -> Optional[str]:
+) -> Decimal:
     """Return the tax rate of provided line.
 
     It takes in account all plugins.
@@ -309,24 +309,30 @@ def _apply_tax_data_from_app(
     checkout: "Checkout", lines: Iterable["CheckoutLineInfo"], tax_data: TaxData
 ) -> None:
     currency = checkout.currency
-
-    def create_quantized_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
-        return quantize_price(
-            TaxedMoney(net=Money(net, currency), gross=Money(gross, currency)), currency
-        )
-
     for (line_info, tax_line_data) in zip(lines, tax_data.lines):
         line = line_info.line
 
-        line.total_price = create_quantized_taxed_money(
-            net=tax_line_data.total_net_amount, gross=tax_line_data.total_gross_amount
+        line.total_price = quantize_price(
+            TaxedMoney(
+                net=Money(tax_line_data.total_net_amount, currency),
+                gross=Money(tax_line_data.total_gross_amount, currency),
+            ),
+            currency,
         )
-        line.tax_rate = tax_line_data.tax_rate
+        # We use % value in tax app input but on database we store
+        # it as a fractional value.
+        # e.g Tax app sends `10%` as `10` but in database it's stored as `0.1`
+        line.tax_rate = tax_line_data.tax_rate / 100
 
-    checkout.shipping_tax_rate = tax_data.shipping_tax_rate
-    checkout.shipping_price = create_quantized_taxed_money(
-        net=tax_data.shipping_price_net_amount,
-        gross=tax_data.shipping_price_gross_amount,
+    # We use % value in tax app input but on database we store it as a fractional value.
+    # e.g Tax app sends `10%` as `10` but in database it's stored as `0.1`
+    checkout.shipping_tax_rate = tax_data.shipping_tax_rate / 100
+    checkout.shipping_price = quantize_price(
+        TaxedMoney(
+            net=Money(tax_data.shipping_price_net_amount, currency),
+            gross=Money(tax_data.shipping_price_gross_amount, currency),
+        ),
+        currency,
     )
     checkout.subtotal = _calculate_checkout_subtotal(lines, currency)
     checkout.total = _calculate_checkout_total(checkout, currency)

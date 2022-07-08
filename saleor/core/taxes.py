@@ -62,7 +62,7 @@ class TaxType:
 
 @dataclass(frozen=True)
 class TaxLineData:
-    tax_rate: str
+    tax_rate: Decimal
     total_gross_amount: Decimal
     total_net_amount: Decimal
 
@@ -71,5 +71,5 @@ class TaxLineData:
 class TaxData:
     shipping_price_gross_amount: Decimal
     shipping_price_net_amount: Decimal
-    shipping_tax_rate: str
+    shipping_tax_rate: Decimal
     lines: List[TaxLineData]

@@ -14,7 +14,7 @@ def tax_line_data_response():
         "unit_gross_amount": 12.34,
         "total_gross_amount": 12.34,
         "total_net_amount": 12.34,
-        "tax_rate": 0.23,
+        "tax_rate": 23,
     }
 
 
@@ -28,7 +28,7 @@ def tax_data_response(tax_line_data_response):
         "subtotal_gross_amount": 12.34,
         "shipping_price_gross_amount": 12.34,
         "shipping_price_net_amount": 12.34,
-        "shipping_tax_rate": 0.23,
+        "shipping_tax_rate": 23,
         "lines": [tax_line_data_response] * 5,
     }
 

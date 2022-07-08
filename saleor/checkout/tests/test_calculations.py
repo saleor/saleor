@@ -22,7 +22,7 @@ def checkout_lines(checkout_with_items):
 @pytest.fixture
 def tax_data(checkout_with_items, checkout_lines):
     checkout = checkout_with_items
-    tax_rate = "0.23"
+    tax_rate = Decimal("23")
     net = Decimal("10.000")
     gross = Decimal("12.300")
     lines = checkout_lines
@@ -141,7 +141,7 @@ def test_fetch_checkout_prices_if_expired_plugins(
         *[
             (
                 get_checkout_taxed_prices_data(line, "total", currency),
-                line.tax_rate,
+                line.tax_rate / 100,
             )
             for line in tax_data.lines
         ]
@@ -152,7 +152,7 @@ def test_fetch_checkout_prices_if_expired_plugins(
     shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
     manager.calculate_checkout_shipping = Mock(return_value=shipping_price)
 
-    shipping_tax_rate = tax_data.shipping_tax_rate
+    shipping_tax_rate = tax_data.shipping_tax_rate / 100
     manager.get_checkout_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
 
     subtotal = zero_taxed_money(currency)
@@ -169,7 +169,7 @@ def test_fetch_checkout_prices_if_expired_plugins(
     for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
         total_price = get_taxed_money(tax_line, "total", currency)
         assert checkout_line.total_price == total_price
-        assert checkout_line.tax_rate == tax_line.tax_rate
+        assert checkout_line.tax_rate == tax_line.tax_rate / 100
 
     assert checkout_with_items.subtotal == subtotal
     assert checkout_with_items.shipping_price == shipping_price
@@ -198,7 +198,7 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
     assert checkout_with_items.shipping_price == get_taxed_money(
         tax_data, "shipping_price", currency
     )
-    assert checkout_with_items.shipping_tax_rate == tax_data.shipping_tax_rate
+    assert checkout_with_items.shipping_tax_rate == tax_data.shipping_tax_rate / 100
     for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
         assert checkout_line.total_price == get_taxed_money(tax_line, "total", currency)
-        assert checkout_line.tax_rate == tax_line.tax_rate
+        assert checkout_line.tax_rate == tax_line.tax_rate / 100
