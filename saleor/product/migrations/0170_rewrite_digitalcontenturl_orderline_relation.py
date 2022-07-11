@@ -16,10 +16,10 @@ class Migration(migrations.Migration):
             model_name="digitalcontenturl",
             name="order_line_token",
             field=models.OneToOneField(
-            blank=True,
-            null=True,
-            on_delete=django.db.models.deletion.CASCADE,
-            to="order.orderline",
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="order.orderline",
             ),
         ),
         migrations.RemoveField(

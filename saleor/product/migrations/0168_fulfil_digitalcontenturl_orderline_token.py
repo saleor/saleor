@@ -15,9 +15,9 @@ class Migration(migrations.Migration):
             """
             UPDATE product_digitalcontenturl
             SET order_line_token = (
-            SELECT token
-            FROM order_orderline
-            WHERE product_digitalcontenturl.line_id = order_orderline.id
+                SELECT token
+                FROM order_orderline
+                WHERE product_digitalcontenturl.line_id = order_orderline.id
             )
             WHERE line_id IS NOT NULL;
             """,
