@@ -101,6 +101,58 @@ def test_account_event_customer_account_was_created(
     assert expected_data == received_data
 
 
+def test_account_event_customer_account_was_activated(
+    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
+):
+    event = account_events.customer_account_activated_event(
+        user=customer_user, app=None, account_id=7
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
+        "count": None,
+        "message": None,
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.ACCOUNT_ACTIVATED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_customer_account_was_deactivated(
+    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
+):
+    event = account_events.customer_account_deactivated_event(
+        user=customer_user, app=None, account_id=7
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
+        "count": None,
+        "message": None,
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.ACCOUNT_DEACTIVATED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
+    )
+
+    assert expected_data == received_data
+
+
 def test_account_event_sent_password_reset_email_to_customer_event(
     staff_api_client, customer_user, permission_manage_users, permission_manage_apps
 ):
