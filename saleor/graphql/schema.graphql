@@ -22203,6 +22203,13 @@ type SaleDeleted implements Event {
   ): Sale
 }
 
+"""
+The event informs about the start or end of the sale.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type SaleToggle implements Event {
   """Time of the event."""
   issuedAt: DateTime

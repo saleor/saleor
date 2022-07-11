@@ -674,6 +674,11 @@ class SaleToggle(ObjectType, SaleBase):
     )
 
     class Meta:
+        description = (
+            "The event informs about the start or end of the sale."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
         interfaces = (Event,)
 
 
