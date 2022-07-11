@@ -39,7 +39,8 @@ jobs:
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
               "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
-              "pr_id": "${{ env.PULL_ID }}"
+              "pr_id": "${{ env.PULL_ID }}",
+              "commit_hash": "${{ github.sha }}"
             }
           LogType: Tail
 
@@ -67,6 +68,7 @@ jobs:
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
               "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
-              "pr_id": "${{ env.PULL_ID }}"
+              "pr_id": "${{ env.PULL_ID }}",
+              "commit_hash": "${{ github.sha }}"
             }
           LogType: Tail
