@@ -29,9 +29,9 @@ def send_sale_toggle_notifications():
         catalogues = catalogue_infos.get(sale.id)
         manager.sale_toggle(sale, catalogues)
 
+    sale_ids = ", ".join([str(sale.id) for sale in sales])
     sales.update(notification_sent_datetime=datetime.now(pytz.UTC))
 
-    sale_ids = ", ".join([str(sale.id) for sale in sales])
     task_logger.info("The sale_toggle webhook sent for sales with ids: %s", sale_ids)
 
 
@@ -72,5 +72,5 @@ def get_sales_to_notify_about():
             )
             & Q(end_date__lte=now)
         )
-    )
+    ).distinct()
     return sales

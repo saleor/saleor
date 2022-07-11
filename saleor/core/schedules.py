@@ -53,8 +53,14 @@ class sale_webhook_schedule(BaseSchedule):
 
         now = datetime.now(pytz.UTC)
 
+        # remaining time must be calculated as the next call is overridden with 0
+        # when is_due was True (/celery/beat.py Scheduler.populate_heap)
+        rem_delta = self.remaining_estimate(last_run_at)
+        remaining = max(rem_delta.total_seconds(), 0)
+
         # is_due is True when there is at least one sale to notify about
-        is_due = get_sales_to_notify_about().exists()
+        # and the remaining time from previous call is 0
+        is_due = remaining == 0 and get_sales_to_notify_about().exists()
 
         upcoming_start_dates = Sale.objects.filter(
             (
@@ -76,8 +82,8 @@ class sale_webhook_schedule(BaseSchedule):
         ).order_by("end_date")
 
         if not upcoming_start_dates and not upcoming_end_dates:
-            self.next_run = self.initial_timedelta.total_seconds()
-            return schedstate(is_due, self.next_run)
+            self.next_run = self.initial_timedelta
+            return schedstate(is_due, self.next_run.total_seconds())
 
         # calculate the earliest incoming date of starting or ending sale
         next_start_date = (
@@ -94,5 +100,4 @@ class sale_webhook_schedule(BaseSchedule):
             next_upcoming_date = next_start_date if next_start_date else next_end_date
 
         self.next_run = min((next_upcoming_date - now), self.initial_timedelta)
-
         return schedstate(is_due, self.next_run.total_seconds())
