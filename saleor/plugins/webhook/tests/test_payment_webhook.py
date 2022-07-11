@@ -16,16 +16,13 @@ from ....payment.utils import create_payment_information
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
 from .. import signature_for_payload
-from ..tasks import (
-    generate_request_headers,
-    send_webhook_request_sync,
-    trigger_webhook_sync,
-)
+from ..tasks import send_webhook_request_sync, trigger_webhook_sync
 from ..utils import (
     parse_list_payment_gateways_response,
     parse_payment_action_response,
     to_payment_app_id,
 )
+from .utils import generate_request_headers
 
 
 @pytest.fixture

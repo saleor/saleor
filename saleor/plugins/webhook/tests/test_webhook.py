@@ -51,12 +51,9 @@ from ....webhook.payloads import (
 )
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
-from ...webhook.tasks import (
-    generate_request_headers,
-    send_webhook_request_async,
-    trigger_webhooks_async,
-)
+from ...webhook.tasks import send_webhook_request_async, trigger_webhooks_async
 from .. import signature_for_payload
+from .utils import generate_request_headers
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"

@@ -194,7 +194,16 @@ def send_webhook_using_http(
 
     :return: WebhookResponse object.
     """
-    headers = generate_request_headers(event_type, domain, signature)
+    headers = {
+        "Content-Type": "application/json",
+        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+        "X-Saleor-Event": event_type,
+        "X-Saleor-Domain": domain,
+        "X-Saleor-Signature": signature,
+        "Saleor-Event": event_type,
+        "Saleor-Domain": domain,
+        "Saleor-Signature": signature,
+    }
     try:
         response = requests.post(
             target_url, data=message, headers=headers, timeout=timeout
@@ -222,64 +231,66 @@ def send_webhook_using_http(
 
 
 def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type):
-    try:
-        parts = urlparse(target_url)
-        region = "us-east-1"
-        hostname_parts = parts.hostname.split(".")
-        if len(hostname_parts) == 4 and hostname_parts[0] == "sqs":
-            region = hostname_parts[1]
-        client = boto3.client(
-            "sqs",
-            region_name=region,
-            aws_access_key_id=parts.username,
-            aws_secret_access_key=(
-                unquote(parts.password) if parts.password else parts.password
-            ),
+    parts = urlparse(target_url)
+    region = "us-east-1"
+    hostname_parts = parts.hostname.split(".")
+    if len(hostname_parts) == 4 and hostname_parts[0] == "sqs":
+        region = hostname_parts[1]
+    client = boto3.client(
+        "sqs",
+        region_name=region,
+        aws_access_key_id=parts.username,
+        aws_secret_access_key=(
+            unquote(parts.password) if parts.password else parts.password
+        ),
+    )
+    queue_url = urlunparse(
+        (
+            "https",
+            parts.hostname,
+            parts.path,
+            parts.params,
+            parts.query,
+            parts.fragment,
         )
-        queue_url = urlunparse(
-            (
-                "https",
-                parts.hostname,
-                parts.path,
-                parts.params,
-                parts.query,
-                parts.fragment,
-            )
-        )
-        is_fifo = parts.path.endswith(".fifo")
+    )
+    is_fifo = parts.path.endswith(".fifo")
 
-        msg_attributes = {
-            "SaleorDomain": {"DataType": "String", "StringValue": domain},
-            "EventType": {"DataType": "String", "StringValue": event_type},
+    msg_attributes = {
+        "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "EventType": {"DataType": "String", "StringValue": event_type},
+    }
+    if signature:
+        msg_attributes["Signature"] = {
+            "DataType": "String",
+            "StringValue": signature,
         }
-        if signature:
-            msg_attributes["Signature"] = {
-                "DataType": "String",
-                "StringValue": signature,
-            }
 
-        message_kwargs = {
-            "QueueUrl": queue_url,
-            "MessageAttributes": msg_attributes,
-            "MessageBody": message.decode("utf-8"),
-        }
-        if is_fifo:
-            message_kwargs["MessageGroupId"] = domain
-        with catch_duration_time() as duration:
+    message_kwargs = {
+        "QueueUrl": queue_url,
+        "MessageAttributes": msg_attributes,
+        "MessageBody": message.decode("utf-8"),
+    }
+    if is_fifo:
+        message_kwargs["MessageGroupId"] = domain
+    with catch_duration_time() as duration:
+        try:
             response = client.send_message(**message_kwargs)
-            return WebhookResponse(content=response, duration=duration())
-    except (ClientError,) as e:
-        return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
+        except (ClientError,) as e:
+            return WebhookResponse(
+                content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
+            )
+        return WebhookResponse(content=response, duration=duration())
 
 
 def send_webhook_using_google_cloud_pubsub(
     target_url, message, domain, signature, event_type
 ):
-    try:
-        parts = urlparse(target_url)
-        client = pubsub_v1.PublisherClient()
-        topic_name = parts.path[1:]  # drop the leading slash
-        with catch_duration_time() as duration:
+    parts = urlparse(target_url)
+    client = pubsub_v1.PublisherClient()
+    topic_name = parts.path[1:]  # drop the leading slash
+    with catch_duration_time() as duration:
+        try:
             future = client.publish(
                 topic_name,
                 message,
@@ -287,24 +298,11 @@ def send_webhook_using_google_cloud_pubsub(
                 eventType=event_type,
                 signature=signature,
             )
-            response_duration = duration()
-            response = future.result()
-            return WebhookResponse(content=response, duration=response_duration)
-    except (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError) as e:
-        return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
-
-
-def generate_request_headers(event_type, domain, signature):
-    return {
-        "Content-Type": "application/json",
-        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-        "X-Saleor-Event": event_type,
-        "X-Saleor-Domain": domain,
-        "X-Saleor-Signature": signature,
-        "Saleor-Event": event_type,
-        "Saleor-Domain": domain,
-        "Saleor-Signature": signature,
-    }
+        except (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError) as e:
+            return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
+        response_duration = duration()
+        response = future.result()
+        return WebhookResponse(content=response, duration=response_duration)
 
 
 def send_webhook_using_scheme_method(
