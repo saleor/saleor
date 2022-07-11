@@ -77,5 +77,5 @@ class GiftCardNotApplicable(Exception):
         self.code = CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
 
 
-class CircularQuery(GraphQLError):
+class CircularSubscriptionSyncEvent(GraphQLError):
     pass
