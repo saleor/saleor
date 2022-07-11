@@ -187,8 +187,9 @@ class CountryAwareAddressForm(AddressForm):
                     data["street_address_1"],
                     data["street_address_2"],
                 )
+            normalized_data = i18naddress.normalize_address(data)
             if getattr(self, "enable_normalization", True):
-                data = i18naddress.normalize_address(data)
+                data = normalized_data
                 del data["sorting_code"]
         except i18naddress.InvalidAddress as exc:
             self.add_field_errors(exc.errors)

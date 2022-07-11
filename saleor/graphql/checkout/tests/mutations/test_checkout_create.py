@@ -1956,6 +1956,43 @@ def test_checkout_create_with_disabled_fields_normalization(
     assert shipping_address.street_address_1 == address_data["streetAddress1"]
 
 
+def test_checkout_create_with_disabled_fields_normalization_raises_required_error(
+    api_client, stock, channel_USD
+):
+    # given
+    address_data = {
+        "city": "Wroclaw",
+        "country": "PL",
+        "firstName": "John",
+        "lastName": "Doe",
+        "phone": "+12125094995",
+        "streetAddress1": "Teczowa 7",
+    }
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": address_data,
+            "validationRules": {
+                "shippingAddress": {"enableFieldsNormalization": False}
+            },
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "postalCode"
+    assert data["errors"][0]["code"] == "REQUIRED"
+
+
 @pytest.mark.parametrize("with_shipping_address", (True, False))
 def test_create_checkout_with_digital(
     api_client,
