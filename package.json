@@ -21,6 +21,7 @@
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
+    "build-sensitive-fields-map": "python manage.py get_sensitive_fields_map > saleor/graphql/sensitive_fields_map.json",
     "release": "release-it"
   }
 }
