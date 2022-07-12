@@ -1,13 +1,20 @@
+import pytest
+
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
-            $checkoutId: ID, $id: ID, $billingAddress: AddressInput!) {
+            $checkoutId: ID,
+            $id: ID,
+            $billingAddress: AddressInput!
+            $validationRules: CheckoutAddressValidationRules
+        ) {
         checkoutBillingAddressUpdate(
                 id: $id,
                 checkoutId: $checkoutId,
                 billingAddress: $billingAddress
+                validationRules: $validationRules
         ){
             checkout {
                 token,
@@ -179,3 +186,328 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.country == billing_address["country"]
     assert checkout.billing_address.city == billing_address["city"].upper()
     assert checkout.last_change != previous_last_change
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {"country": "PL"},  # missing postalCode, streetAddress
+        {"country": "PL", "postalCode": "53-601"},  # missing streetAddress
+        {"country": "US"},
+        {
+            "country": "US",
+            "city": "New York",
+        },  # missing postalCode, streetAddress, countryArea
+    ],
+)
+def test_checkout_billing_address_update_with_skip_required_doesnt_raise_error(
+    address_data, checkout_with_items, user_api_client
+):
+    # given
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+
+
+def test_checkout_billing_address_update_with_skip_required_raises_validation_error(
+    checkout_with_items, user_api_client
+):
+    # given
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": {"country": "US", "postalCode": "XX-123"},
+        "validationRules": {"checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert not checkout_with_items.billing_address
+
+
+def test_checkout_billing_address_update_with_skip_required_saves_address(
+    checkout_with_items, user_api_client
+):
+    # given
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": {"country": "PL", "postalCode": "53-601"},
+        "validationRules": {"checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+
+    assert checkout_with_items.billing_address
+    assert checkout_with_items.billing_address.country.code == "PL"
+    assert checkout_with_items.billing_address.postal_code == "53-601"
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {
+            "country": "PL",
+            "city": "Wroclaw",
+            "postalCode": "XYZ",
+            "streetAddress1": "Teczowa 7",
+        },  # incorrect postalCode
+        {
+            "country": "US",
+            "city": "New York",
+            "countryArea": "ABC",
+            "streetAddress1": "New street",
+            "postalCode": "53-601",
+        },  # incorrect postalCode
+    ],
+)
+def test_checkout_billing_address_update_with_skip_value_check_doesnt_raise_error(
+    address_data, checkout_with_items, user_api_client
+):
+    # given
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"checkFieldsFormat": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {
+            "country": "PL",
+            "city": "Wroclaw",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode
+        {
+            "country": "US",
+            "city": "New York",
+            "countryArea": "XYZ",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode
+    ],
+)
+def test_checkout_billing_address_update_with_skip_value_raises_required_fields_error(
+    address_data, checkout_with_items, user_api_client
+):
+    # given
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"checkFieldsFormat": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "REQUIRED"
+    assert data["errors"][0]["field"] == "streetAddress1"
+    assert not checkout_with_items.billing_address
+
+
+def test_checkout_billing_address_update_with_skip_value_check_saves_address(
+    checkout_with_items, user_api_client
+):
+    # given
+    city = "Wroclaw"
+    street_address = "Teczowa 7"
+    postal_code = "XX-601"  # incorrect format for PL
+    country_code = "PL"
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": {
+            "country": country_code,
+            "city": city,
+            "streetAddress1": street_address,
+            "postalCode": postal_code,
+        },
+        "validationRules": {"checkFieldsFormat": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+
+    address = checkout_with_items.billing_address
+    assert address
+
+    assert address.street_address_1 == street_address
+    assert address.city == city
+    assert address.country.code == country_code
+    assert address.postal_code == postal_code
+
+
+@pytest.mark.parametrize(
+    "address_data",
+    [
+        {
+            "country": "PL",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode, missing city, streetAddress
+        {
+            "country": "US",
+            "countryArea": "DC",
+            "postalCode": "XYZ",
+        },  # incorrect postalCode, missing city
+    ],
+)
+def test_checkout_billing_address_update_with_skip_value_and_skip_required_fields(
+    address_data, checkout_with_items, user_api_client
+):
+    # given
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"checkFieldsFormat": False, "checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+
+
+def test_checkout_address_update_with_skip_value_and_skip_required_saves_address(
+    checkout_with_items, user_api_client
+):
+    # given
+    city = "Wroclaw"
+    postal_code = "XX-601"  # incorrect format for PL
+    country_code = "PL"
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": {
+            "country": country_code,
+            "city": city,
+            "postalCode": postal_code,
+        },
+        "validationRules": {"checkFieldsFormat": False, "checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    address = checkout_with_items.billing_address
+    assert not data["errors"]
+
+    assert address
+    assert address.country.code == country_code
+    assert address.postal_code == postal_code
+    assert address.city == city
+    assert address.street_address_1 == ""
+
+
+def test_checkout_billing_address_update_with_disabled_fields_normalization(
+    checkout_with_items, user_api_client
+):
+    # given
+    address_data = {
+        "country": "US",
+        "city": "Washington",
+        "countryArea": "District of Columbia",
+        "streetAddress1": "1600 Pennsylvania Avenue NW",
+        "postalCode": "20500",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"enableFieldsNormalization": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items
+    billing_address = checkout_with_items.billing_address
+    assert billing_address
+    assert billing_address.city == address_data["city"]
+    assert billing_address.country_area == address_data["countryArea"]
+    assert billing_address.postal_code == address_data["postalCode"]
+    assert billing_address.street_address_1 == address_data["streetAddress1"]

@@ -73,6 +73,12 @@ class CheckoutValidationRules(graphene.InputObjectType):
             " data."
         )
     )
+    billing_address = CheckoutAddressValidationRules(
+        description=(
+            "The validation rules that can be applied to provided billing address"
+            " data."
+        )
+    )
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -203,9 +209,20 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_billing_address(cls, user, data: dict) -> Optional["Address"]:
+        address_validation_rules = data.get("validation_rules", {}).get(
+            "billing_address", {}
+        )
         if data.get("billing_address") is not None:
             return cls.validate_address(
-                data["billing_address"], address_type=AddressType.BILLING
+                data["billing_address"],
+                address_type=AddressType.BILLING,
+                format_check=address_validation_rules.get("check_fields_format", True),
+                required_check=address_validation_rules.get(
+                    "check_required_fields", True
+                ),
+                enable_normalization=address_validation_rules.get(
+                    "enable_fields_normalization", True
+                ),
             )
         return None
 
