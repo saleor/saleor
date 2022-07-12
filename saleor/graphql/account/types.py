@@ -17,19 +17,26 @@ from ...core.permissions import (
 )
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
-from ...thumbnail.utils import get_thumbnail_size, prepare_image_proxy_url
+from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_35, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
-from ..core.enums import LanguageCodeEnum, ThumbnailFormatEnum
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
-from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
+from ..core.types import (
+    CountryDisplay,
+    Image,
+    ModelObjectType,
+    NonNullList,
+    Permission,
+    ThumbnailField,
+)
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
@@ -290,24 +297,7 @@ class User(ModelObjectType):
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
-    avatar = graphene.Field(
-        Image,
-        size=graphene.Int(
-            description=(
-                "Size of the avatar. If not provided the original image "
-                "will be returned."
-            )
-        ),
-        format=ThumbnailFormatEnum(
-            description=(
-                "The format of the avatar. When not provided format of the original "
-                "image will be used. Must be provided together with the size value, "
-                "otherwise original image will be returned."
-                + ADDED_IN_35
-                + PREVIEW_FEATURE
-            )
-        ),
-    )
+    avatar = ThumbnailField()
     events = PermissionsField(
         NonNullList(CustomerEvent),
         description="List of events associated with the user.",
@@ -462,11 +452,7 @@ class User(ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_avatar(thumbnail):
-            url = (
-                prepare_image_proxy_url(root.id, "User", size, format)
-                if thumbnail is None
-                else thumbnail.image.url
-            )
+            url = get_image_or_proxy_url(thumbnail, root.id, "User", size, format)
             return Image(url=url, alt=None)
 
         return (

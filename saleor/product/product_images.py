@@ -5,7 +5,7 @@ from django.conf import settings
 from django.templatetags.static import static
 
 from ..thumbnail.models import Thumbnail
-from ..thumbnail.utils import get_thumbnail_size, prepare_image_proxy_url
+from ..thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 
 if TYPE_CHECKING:
     from .models import ProductMedia
@@ -20,10 +20,8 @@ def get_product_image_thumbnail_url(product_media: Optional["ProductMedia"], siz
     if not product_media or not product_media.image:
         return get_product_image_placeholder(size)
     thumbnail = Thumbnail.objects.filter(size=size, product_media=product_media).first()
-    return (
-        thumbnail.image.url
-        if thumbnail
-        else prepare_image_proxy_url(product_media.id, "ProductMedia", size, None)
+    return get_image_or_proxy_url(
+        thumbnail, product_media.id, "ProductMedia", size, None
     )
 
 

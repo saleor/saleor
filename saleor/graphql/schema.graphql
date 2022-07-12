@@ -3785,16 +3785,14 @@ type Product implements Node & ObjectWithMetadata {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """The main thumbnail for a product."""
   thumbnail(
     """
-    Size of the avatar. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
     """
-    The format of the avatar. When not provided format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
     
     Added in Saleor 3.5.
     
@@ -4591,7 +4589,7 @@ type Category implements Node & ObjectWithMetadata {
   ): CategoryCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
@@ -5223,11 +5221,9 @@ type ProductImage {
   The new relative sorting position of the item (from -inf to +inf). 1 moves the item one position forward, -1 moves the item one position backward, 0 leaves the item unchanged.
   """
   sortOrder: Int
-
-  """The URL of the image."""
   url(
     """
-    Size of the image. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
@@ -5249,11 +5245,9 @@ type ProductMedia implements Node {
   alt: String!
   type: ProductMediaType!
   oembedData: JSONString!
-
-  """The URL of the media."""
   url(
     """
-    Size of the image. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
@@ -5592,7 +5586,7 @@ type Collection implements Node & ObjectWithMetadata {
   ): ProductCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
@@ -7463,12 +7457,12 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group!]
   avatar(
     """
-    Size of the avatar. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
     """
-    The format of the avatar. When not provided format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
     
     Added in Saleor 3.5.
     
@@ -8540,16 +8534,14 @@ type OrderLine implements Node & ObjectWithMetadata {
   unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
-
-  """The main thumbnail for the ordered product."""
   thumbnail(
     """
-    Size of the avatar. If not provided the original image will be returned.
+    Size of the image. If not provided, the original image will be returned.
     """
     size: Int
 
     """
-    The format of the avatar. When not provided format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
     
     Added in Saleor 3.5.
     

@@ -23,7 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added `OrderFilter.numbers` filter  - #9967 by @SzymJ
 - Added `metadata` fields to `OrderLine` and `CheckoutLine` models - #10040 by @SzymJ
 - Improve checkout total base calculations - #10048 by @IKarbowiak
-- New solution for thumbnails - #9988 by @IKarbowiak
+- Drop django-versatileimagefield package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
 
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
 - Add webhooks `ADDRESS_CREATED`, `ADDRESS_UPDATED` and `ADDRESS_DELETED` - #9860 by @SzymJ

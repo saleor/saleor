@@ -25,7 +25,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
-from ....thumbnail.utils import get_thumbnail_size, prepare_image_proxy_url
+from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
@@ -48,13 +48,12 @@ from ...core.connection import (
 )
 from ...core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_35,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
     RICH_CONTENT,
 )
-from ...core.enums import ReportingPeriod, ThumbnailFormatEnum
+from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import (
     ConnectionField,
@@ -69,6 +68,7 @@ from ...core.types import (
     TaxedMoney,
     TaxedMoneyRange,
     TaxType,
+    ThumbnailField,
     Weight,
 )
 from ...core.utils import from_global_id_or_error
@@ -770,26 +770,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    thumbnail = graphene.Field(
-        Image,
-        description="The main thumbnail for a product.",
-        size=graphene.Argument(
-            graphene.Int,
-            description=(
-                "Size of the avatar. If not provided the original image "
-                "will be returned."
-            ),
-        ),
-        format=ThumbnailFormatEnum(
-            description=(
-                "The format of the avatar. When not provided format of the original "
-                "image will be used. Must be provided together with the size value, "
-                "otherwise original image will be returned."
-                + ADDED_IN_35
-                + PREVIEW_FEATURE
-            )
-        ),
-    )
+    thumbnail = ThumbnailField()
     pricing = graphene.Field(
         ProductPricingInfo,
         address=destination_address_argument,
@@ -939,10 +920,8 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                 return Image(alt=oembed_data["title"], url=oembed_data["thumbnail_url"])
 
             def _resolve_url(thumbnail):
-                url = (
-                    prepare_image_proxy_url(image.id, "ProductMedia", size, format)
-                    if thumbnail is None
-                    else thumbnail.image.url
+                url = get_image_or_proxy_url(
+                    thumbnail, image.id, "ProductMedia", size, format
                 )
                 return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
 
@@ -1490,24 +1469,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
-    background_image = graphene.Field(
-        Image,
-        size=graphene.Int(
-            description=(
-                "Size of the image. If not provided the original image "
-                "will be returned."
-            )
-        ),
-        format=ThumbnailFormatEnum(
-            description=(
-                "The format of the image. When not provided, format of the original "
-                "image will be used. Must be provided together with the size value, "
-                "otherwise original image will be returned."
-                + ADDED_IN_35
-                + PREVIEW_FEATURE
-            )
-        ),
-    )
+    background_image = ThumbnailField()
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",
@@ -1547,11 +1509,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
-            url = (
-                prepare_image_proxy_url(node.id, "Collection", size, format)
-                if thumbnail is None
-                else thumbnail.image.url
-            )
+            url = get_image_or_proxy_url(thumbnail, node.id, "Collection", size, format)
             return Image(url=url, alt=alt)
 
         return (
@@ -1646,24 +1604,7 @@ class Category(ModelObjectType):
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )
-    background_image = graphene.Field(
-        Image,
-        size=graphene.Int(
-            description=(
-                "Size of the image. If not provided the original image "
-                "will be returned."
-            )
-        ),
-        format=ThumbnailFormatEnum(
-            description=(
-                "The format of the image. When not provided, format of the original "
-                "image will be used. Must be provided together with the size value, "
-                "otherwise original image will be returned."
-                + ADDED_IN_35
-                + PREVIEW_FEATURE
-            )
-        ),
-    )
+    background_image = ThumbnailField()
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
@@ -1699,11 +1640,7 @@ class Category(ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
-            url = (
-                prepare_image_proxy_url(root.id, "Category", size, format)
-                if thumbnail is None
-                else thumbnail.image.url
-            )
+            url = get_image_or_proxy_url(thumbnail, root.id, "Category", size, format)
             return Image(url=url, alt=alt)
 
         return (
@@ -1771,25 +1708,7 @@ class ProductMedia(ModelObjectType):
     alt = graphene.String(required=True)
     type = ProductMediaType(required=True)
     oembed_data = JSONString(required=True)
-    url = graphene.String(
-        required=True,
-        description="The URL of the media.",
-        size=graphene.Int(
-            description=(
-                "Size of the image. If not provided the original image "
-                "will be returned."
-            )
-        ),
-        format=ThumbnailFormatEnum(
-            description=(
-                "The format of the image. When not provided, format of the original "
-                "image will be used. Must be provided together with the size value, "
-                "otherwise original image will be returned."
-                + ADDED_IN_35
-                + PREVIEW_FEATURE
-            )
-        ),
-    )
+    url = ThumbnailField(graphene.String, required=True)
 
     class Meta:
         description = "Represents a product media."
@@ -1811,10 +1730,8 @@ class ProductMedia(ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_url(thumbnail):
-            url = (
-                prepare_image_proxy_url(root.id, "ProductMedia", size, format)
-                if thumbnail is None
-                else thumbnail.image.url
+            url = get_image_or_proxy_url(
+                thumbnail, root.id, "ProductMedia", size, format
             )
             return info.context.build_absolute_uri(url)
 
@@ -1842,25 +1759,7 @@ class ProductImage(graphene.ObjectType):
             "backward, 0 leaves the item unchanged."
         ),
     )
-    url = graphene.String(
-        required=True,
-        description="The URL of the image.",
-        size=graphene.Int(
-            description=(
-                "Size of the image. If not provided the original image "
-                "will be returned."
-            )
-        ),
-        format=ThumbnailFormatEnum(
-            description=(
-                "The format of the image. When not provided, format of the original "
-                "image will be used. Must be provided together with the size value, "
-                "otherwise original image will be returned."
-                + ADDED_IN_35
-                + PREVIEW_FEATURE
-            )
-        ),
-    )
+    url = ThumbnailField(graphene.String, required=True)
 
     class Meta:
         description = "Represents a product image."
@@ -1881,10 +1780,8 @@ class ProductImage(graphene.ObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_url(thumbnail):
-            url = (
-                prepare_image_proxy_url(root.id, "ProductMedia", size, format)
-                if thumbnail is None
-                else thumbnail.image.url
+            url = get_image_or_proxy_url(
+                thumbnail, root.id, "ProductMedia", size, format
             )
             return info.context.build_absolute_uri(url)
 

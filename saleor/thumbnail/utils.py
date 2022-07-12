@@ -14,7 +14,11 @@ if TYPE_CHECKING:
 
 
 def get_image_or_proxy_url(
-    thumbnail: "Thumbnail", instance_id: int, object_type: str, size: int, format: str
+    thumbnail: Optional["Thumbnail"],
+    instance_id: int,
+    object_type: str,
+    size: int,
+    format: Optional[str],
 ):
     """Return the thumbnail ULR if thumbnails is provided, otherwise the proxy url."""
     return (
