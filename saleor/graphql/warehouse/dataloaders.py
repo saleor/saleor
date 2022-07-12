@@ -347,7 +347,8 @@ class StockByIdLoader(DataLoader):
     context_key = "stock_by_id"
 
     def batch_load(self, keys):
-        return Stock.objects.using(self.database_connection_name).in_bulk(keys).values()
+        stocks = Stock.objects.using(self.database_connection_name).in_bulk(keys)
+        return [stocks.get(key) for key in keys]
 
 
 class WarehousesByChannelIdLoader(DataLoader):
