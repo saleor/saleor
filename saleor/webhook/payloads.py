@@ -2,6 +2,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
 
 import graphene
@@ -25,6 +26,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..discount import VoucherType
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -1193,6 +1195,20 @@ def generate_checkout_payload_for_tax_calculation(
         user_id = graphene.Node.to_global_id("User", user.id)
         user_public_metadata = user.metadata
 
+    # Prepare discount data
+    is_shipping_voucher = (
+        checkout_info.voucher.type == VoucherType.SHIPPING
+        if checkout_info.voucher
+        else False
+    )
+    discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
+    discount_name = checkout.discount_name
+    discounts = (
+        [{"name": discount_name, "amount": discount_amount}]
+        if discount_amount and not is_shipping_voucher
+        else []
+    )
+
     # Prepare shipping data
     shipping_method = checkout.shipping_method
     shipping_method_name = None
@@ -1202,13 +1218,10 @@ def generate_checkout_payload_for_tax_calculation(
         base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,
     )
-
-    # Prepare discount data
-    discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
-    discount_name = checkout.discount_name
-    discounts = (
-        [{"name": discount_name, "amount": discount_amount}] if discount_amount else []
-    )
+    if is_shipping_voucher:
+        shipping_method_amount = max(
+            shipping_method_amount - discount_amount, Decimal("0.0")
+        )
 
     # Prepare line data
     lines_dict_data = serialize_checkout_lines_for_tax_calculation(

@@ -72,7 +72,10 @@ def _apply_tax_data(
     )
 
     order.shipping_price = shipping_price
-    order.shipping_tax_rate = tax_data.shipping_tax_rate
+    # We use % value in tax app input but on database we store
+    # it as a fractional value.
+    # e.g Tax app sends `10%` as `10` but in database it's stored as `0.1`
+    order.shipping_tax_rate = tax_data.shipping_tax_rate / 100
 
     subtotal = zero_taxed_money(order.currency)
     for (order_line, tax_line) in zip(lines, tax_data.lines):
@@ -82,7 +85,10 @@ def _apply_tax_data(
         )
         order_line.total_price = line_total_price
         order_line.unit_price = line_total_price / order_line.quantity
-        order_line.tax_rate = tax_line.tax_rate
+        # We use % value in tax app input but on database we store
+        # it as a fractional value.
+        # e.g Tax app sends `10%` as `10` but in database it's stored as `0.1`
+        order_line.tax_rate = tax_line.tax_rate / 100
         subtotal += line_total_price
 
     order.total = shipping_price + subtotal

@@ -475,14 +475,14 @@ def test_fetch_order_prices_if_expired_webhooks_success(
     # then
     shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
     assert order_with_lines.shipping_price == shipping_price
-    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate
+    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate / 100
     subtotal = zero_taxed_money(currency)
     for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
         line_total = get_taxed_money(tax_line, "total", currency)
         subtotal += line_total
         assert order_line.total_price == line_total
         assert order_line.unit_price == line_total / order_line.quantity
-        assert order_line.tax_rate == tax_line.tax_rate
+        assert order_line.tax_rate == tax_line.tax_rate / 100
     assert order_with_lines.total == subtotal + shipping_price
 
 
@@ -514,14 +514,14 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
     order_with_lines.refresh_from_db()
     shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
     assert order_with_lines.shipping_price == shipping_price
-    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate
+    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate / 100
     subtotal = zero_taxed_money(currency)
     for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
         line_total = get_taxed_money(tax_line, "total", currency)
         subtotal += line_total
         assert order_line.total_price == line_total
         assert order_line.unit_price == line_total / order_line.quantity
-        assert order_line.tax_rate == tax_line.tax_rate
+        assert order_line.tax_rate == tax_line.tax_rate / 100
 
     assert order_with_lines.undiscounted_total == subtotal + shipping_price
     assert order_with_lines.total == subtotal + shipping_price - create_taxed_money(
