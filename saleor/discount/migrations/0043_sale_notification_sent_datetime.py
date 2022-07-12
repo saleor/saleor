@@ -14,10 +14,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sale",
             name="notification_sent_datetime",
-            # the notification date is set to the current date, as the Celery would
+            # The notification date is set to the current date, as the Celery would
             # trigger the tasks right after the deployment and we would send
-            # events that no one listens to, so we will received the same result with
-            # setting the current date and not sending the events at first place
+            # events that no one listens to. So we will receive the same result with
+            # setting the current date and not sending the events at first place.
             field=models.DateTimeField(
                 null=True, blank=True, default=django.utils.timezone.now
             ),
