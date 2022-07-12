@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from .models import Voucher
 
 CatalogueInfo = DefaultDict[str, Set[int]]
+CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
 def increase_voucher_usage(voucher: "Voucher") -> None:
@@ -351,12 +352,10 @@ def fetch_active_discounts() -> List[DiscountInfo]:
 
 
 def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
-    catalogue_fields = ["categories", "collections", "products", "variants"]
     catalogue_info: CatalogueInfo = defaultdict(set)
-
-    for field in catalogue_fields:
-        catalogue_info[field].update(
-            id_ for id_ in getattr(instance, field).all().values_list("id", flat=True)
-        )
+    for sale_data in Sale.objects.filter(id=instance.id).values(*CATALOGUE_FIELDS):
+        for field in CATALOGUE_FIELDS:
+            if id := sale_data.get(field):
+                catalogue_info[field].add(id)
 
     return catalogue_info
