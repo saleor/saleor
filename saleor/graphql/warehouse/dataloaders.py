@@ -347,4 +347,4 @@ class StockByIdLoader(DataLoader):
 
     def batch_load(self, keys):
         stocks = Stock.objects.using(self.database_connection_name).in_bulk(keys)
-        return [stocks.get(key) for key in keys]
+        return [stocks.get(key, []) for key in keys]
