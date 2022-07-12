@@ -10,7 +10,16 @@ from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 
 
-class PermissionsField(graphene.Field):
+class CustomField(graphene.Field):
+    def __init__(self, *args, **kwargs):
+        self.sensitive = kwargs.pop("sensitive", False)
+        assert isinstance(
+            self.sensitive, bool
+        ), f"CustomField `sensitive` argument must be a bool: {self.sensitive}"
+        super(CustomField, self).__init__(*args, **kwargs)
+
+
+class PermissionsField(CustomField):
     def __init__(self, *args, **kwargs):
         self.permissions = kwargs.pop("permissions", [])
         auto_permission_message = kwargs.pop("auto_permission_message", True)
