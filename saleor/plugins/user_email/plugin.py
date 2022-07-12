@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict
 from typing import TYPE_CHECKING, List, Union
-from django.conf import settings
+
 from promise.promise import Promise
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
@@ -344,16 +344,14 @@ class UserEmailPlugin(BasePlugin):
         super().__init__(*args, **kwargs)
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = EmailConfig(
-            host=configuration["host"] or settings.EMAIL_HOST,
-            port=configuration["port"] or settings.EMAIL_PORT,
-            username=configuration["username"] or settings.EMAIL_HOST_USER,
-            password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
+            host=configuration["host"],
+            port=configuration["port"],
+            username=configuration["username"],
+            password=configuration["password"],
             sender_name=configuration["sender_name"],
-            sender_address=(
-                configuration["sender_address"] or settings.DEFAULT_FROM_EMAIL
-            ),
-            use_tls=configuration["use_tls"] or settings.EMAIL_USE_TLS,
-            use_ssl=configuration["use_ssl"] or settings.EMAIL_USE_SSL,
+            sender_address=configuration["sender_address"],
+            use_tls=configuration["use_tls"],
+            use_ssl=configuration["use_ssl"],
         )
 
     def resolve_plugin_configuration(
@@ -414,20 +412,6 @@ class UserEmailPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
 
-        configuration["host"] = configuration["host"] or settings.EMAIL_HOST
-        configuration["port"] = configuration["port"] or settings.EMAIL_PORT
-        configuration["username"] = (
-            configuration["username"] or settings.EMAIL_HOST_USER
-        )
-        configuration["password"] = (
-            configuration["password"] or settings.EMAIL_HOST_PASSWORD
-        )
-        configuration["sender_address"] = (
-            configuration["sender_address"] or settings.DEFAULT_FROM_EMAIL
-        )
-        configuration["use_tls"] = configuration["use_tls"] or settings.EMAIL_USE_TLS
-        configuration["use_ssl"] = configuration["use_ssl"] or settings.EMAIL_USE_SSL
-        
         validate_default_email_configuration(plugin_configuration, configuration)
         email_templates_data = kwargs.get("email_templates_data", [])
         validate_format_of_provided_templates(
