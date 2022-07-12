@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
 import magic
@@ -8,6 +8,20 @@ from django.urls import reverse
 from PIL import Image
 
 from . import MIME_TYPE_TO_PIL_IDENTIFIER, THUMBNAIL_SIZES
+
+if TYPE_CHECKING:
+    from .models import Thumbnail
+
+
+def get_image_or_proxy_url(
+    thumbnail: "Thumbnail", instance_id: int, object_type: str, size: int, format: str
+):
+    """Return the thumbnail ULR if thumbnails is provided, otherwise the proxy url."""
+    return (
+        prepare_image_proxy_url(instance_id, object_type, size, format)
+        if thumbnail is None
+        else thumbnail.image.url
+    )
 
 
 def prepare_image_proxy_url(

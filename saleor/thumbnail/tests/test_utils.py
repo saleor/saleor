@@ -1,7 +1,12 @@
+from unittest.mock import MagicMock
+
 import graphene
 import pytest
+from django.core.files import File
 
+from ..models import Thumbnail
 from ..utils import (
+    get_image_or_proxy_url,
     get_thumbnail_size,
     prepare_image_proxy_url,
     prepare_thumbnail_file_name,
@@ -49,3 +54,34 @@ def test_prepare_image_proxy_url(size, format, collection):
     if format:
         expected_url += f"{format.lower()}/"
     assert url == expected_url
+
+
+def test_get_image_or_proxy_url_proxy_url_returned(collection):
+    # given
+    size = 128
+    format = None
+
+    # when
+    url = get_image_or_proxy_url(None, collection.id, "Collection", size, format)
+
+    # then
+    instance_id = graphene.Node.to_global_id("Collection", collection.id)
+    assert url == f"/thumbnail/{instance_id}/{size}/"
+
+
+def test_get_image_or_proxy_url_thumbnail_url_returned(collection, media_root):
+    # given
+    size = 128
+    format = None
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    thumbnail = Thumbnail.objects.create(
+        collection=collection, size=128, image=thumbnail_mock
+    )
+
+    # when
+    url = get_image_or_proxy_url(thumbnail, collection.id, "Collection", size, format)
+
+    # then
+    assert url == thumbnail.image.url
