@@ -656,7 +656,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         if "name" in cleaned_input:
             cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+                instance,
+                cleaned_input["name"],
+                additional_search_lookup={"attribute_id": instance.attribute_id},
             )
         input_type = instance.attribute.input_type
 
