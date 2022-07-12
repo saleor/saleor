@@ -20,11 +20,17 @@ from ....product import models as product_models
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import (
+    ADDED_IN_34,
+    ADDED_IN_35,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ..types import Checkout
+from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
     ERROR_DOES_NOT_SHIP,
     check_lines_quantity,
@@ -54,6 +60,14 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = AddressInput(
             required=True,
             description="The mailing address to where the checkout will be shipped.",
+        )
+        validation_rules = CheckoutAddressValidationRules(
+            required=False,
+            description=(
+                "The rules for changing validation for received shipping address data."
+                + ADDED_IN_35
+                + PREVIEW_FEATURE
+            ),
         )
 
     class Meta:
@@ -91,7 +105,14 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, shipping_address, checkout_id=None, token=None, id=None
+        cls,
+        _root,
+        info,
+        shipping_address,
+        validation_rules=None,
+        checkout_id=None,
+        token=None,
+        id=None,
     ):
         checkout = get_checkout(
             cls,
@@ -115,12 +136,17 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                     )
                 }
             )
-
-        shipping_address = cls.validate_address(
+        address_validation_rules = validation_rules or {}
+        shipping_address_instance = cls.validate_address(
             shipping_address,
             address_type=AddressType.SHIPPING,
             instance=checkout.shipping_address,
             info=info,
+            format_check=address_validation_rules.get("check_fields_format", True),
+            required_check=address_validation_rules.get("check_required_fields", True),
+            enable_normalization=address_validation_rules.get(
+                "enable_fields_normalization", True
+            ),
         )
 
         discounts = info.context.discounts
@@ -130,7 +156,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout, lines, discounts, manager, shipping_channel_listings
         )
 
-        country = shipping_address.country.code
+        country = shipping_address_instance.country.code
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
@@ -140,10 +166,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
         with traced_atomic_transaction():
-            shipping_address.save()
+            shipping_address_instance.save()
             change_shipping_address_in_checkout(
                 checkout_info,
-                shipping_address,
+                shipping_address_instance,
                 lines,
                 discounts,
                 manager,
