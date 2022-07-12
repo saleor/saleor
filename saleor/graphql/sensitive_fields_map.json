@@ -1,0 +1,46 @@
+{
+    "Address": [
+        "firstName",
+        "lastName",
+        "companyName",
+        "streetAddress1",
+        "streetAddress2",
+        "phone"
+    ],
+    "App": [
+        "accessToken"
+    ],
+    "AppToken": [
+        "authToken"
+    ],
+    "AppTokenCreate": [
+        "authToken"
+    ],
+    "Checkout": [
+        "email"
+    ],
+    "CreateToken": [
+        "token",
+        "refreshToken",
+        "csrfToken"
+    ],
+    "Order": [
+        "userEmail"
+    ],
+    "Payment": [
+        "creditCard"
+    ],
+    "RefreshToken": [
+        "token"
+    ],
+    "SetPassword": [
+        "token",
+        "refreshToken",
+        "csrfToken"
+    ],
+    "User": [
+        "email",
+        "firstName",
+        "lastName"
+    ]
+}
