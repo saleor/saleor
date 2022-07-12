@@ -66,7 +66,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import PermissionsField
+from ..core.fields import CustomField, PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
 from ..core.types import (
@@ -891,7 +891,8 @@ class Order(ModelObjectType):
         description="The difference between the paid and the order total amount.",
         required=True,
     )
-    user_email = graphene.String(
+    user_email = CustomField(
+        graphene.String,
         description=(
             "Email address of the customer. The full data can be access for orders "
             "created in Saleor 3.2 and later, for other orders requires one of "
@@ -899,6 +900,7 @@ class Order(ModelObjectType):
             f"{AuthorizationFilters.OWNER.name}."
         ),
         required=False,
+        sensitive=True,
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True

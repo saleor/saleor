@@ -20,6 +20,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.federation import federated_entity, resolve_federation_references
+from ..core.fields import CustomField
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
@@ -225,7 +226,9 @@ class Manifest(graphene.ObjectType):
 class AppToken(graphene.ObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(description="Name of the authenticated token.")
-    auth_token = graphene.String(description="Last 4 characters of the token.")
+    auth_token = CustomField(
+        graphene.String, description="Last 4 characters of the token.", sensitive=True
+    )
 
     class Meta:
         description = "Represents token data."
@@ -295,8 +298,10 @@ class App(ModelObjectType):
         description="URL to manifest used during app's installation." + ADDED_IN_35
     )
     version = graphene.String(description="Version number of the app.")
-    access_token = graphene.String(
-        description="JWT token used to authenticate by thridparty app."
+    access_token = CustomField(
+        graphene.String,
+        description="JWT token used to authenticate by thridparty app.",
+        sensitive=True,
     )
     extensions = NonNullList(
         AppExtension,

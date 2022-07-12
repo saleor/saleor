@@ -26,7 +26,7 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import ConnectionField, PermissionsField
+from ..core.fields import ConnectionField, CustomField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
@@ -56,11 +56,11 @@ class AddressInput(graphene.InputObjectType):
 @federated_entity("id")
 class Address(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    first_name = graphene.String(required=True)
-    last_name = graphene.String(required=True)
-    company_name = graphene.String(required=True)
-    street_address_1 = graphene.String(required=True)
-    street_address_2 = graphene.String(required=True)
+    first_name = CustomField(graphene.String, required=True, sensitive=True)
+    last_name = CustomField(graphene.String, required=True, sensitive=True)
+    company_name = CustomField(graphene.String, required=True, sensitive=True)
+    street_address_1 = CustomField(graphene.String, required=True, sensitive=True)
+    street_address_2 = CustomField(graphene.String, required=True, sensitive=True)
     city = graphene.String(required=True)
     city_area = graphene.String(required=True)
     postal_code = graphene.String(required=True)
@@ -68,7 +68,7 @@ class Address(ModelObjectType):
         CountryDisplay, required=True, description="Shop's default country."
     )
     country_area = graphene.String(required=True)
-    phone = graphene.String()
+    phone = CustomField(graphene.String, sensitive=True)
     is_default_shipping_address = graphene.Boolean(
         required=False, description="Address is user's default shipping address."
     )
@@ -229,9 +229,9 @@ class UserPermission(Permission):
 @federated_entity("email")
 class User(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    email = graphene.String(required=True)
-    first_name = graphene.String(required=True)
-    last_name = graphene.String(required=True)
+    email = CustomField(graphene.String, required=True, sensitive=True)
+    first_name = CustomField(graphene.String, required=True, sensitive=True)
+    last_name = CustomField(graphene.String, required=True, sensitive=True)
     is_staff = graphene.Boolean(required=True)
     is_active = graphene.Boolean(required=True)
     addresses = NonNullList(Address, description="List of all user's addresses.")

@@ -21,7 +21,7 @@ from ....core.jwt import (
     jwt_decode,
 )
 from ....core.permissions import AuthorizationFilters, get_permissions_from_names
-from ...core.fields import JSONString
+from ...core.fields import CustomField, JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
 from ..types import User
@@ -72,12 +72,20 @@ class CreateToken(BaseMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
 
-    token = graphene.String(description="JWT token, required to authenticate.")
-    refresh_token = graphene.String(
-        description="JWT refresh token, required to re-generate access token."
+    token = CustomField(
+        graphene.String,
+        description="JWT token, required to authenticate.",
+        sensitive=True,
     )
-    csrf_token = graphene.String(
-        description="CSRF token required to re-generate access token."
+    refresh_token = CustomField(
+        graphene.String,
+        description="JWT refresh token, required to re-generate access token.",
+        sensitive=True,
+    )
+    csrf_token = CustomField(
+        graphene.String,
+        description="CSRF token required to re-generate access token.",
+        sensitive=True,
     )
     user = graphene.Field(User, description="A user instance.")
 
@@ -143,7 +151,11 @@ class CreateToken(BaseMutation):
 class RefreshToken(BaseMutation):
     """Mutation that refresh user token and returns token and user data."""
 
-    token = graphene.String(description="JWT token, required to authenticate.")
+    token = CustomField(
+        graphene.String,
+        description="JWT token, required to authenticate.",
+        sensitive=True,
+    )
     user = graphene.Field(User, description="A user instance.")
 
     class Arguments:

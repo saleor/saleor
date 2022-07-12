@@ -16,6 +16,7 @@ from ...core.permissions import AppPermission, get_permissions
 from ..account.utils import can_manage_app
 from ..core import types as grapqhl_types
 from ..core.enums import PermissionEnum
+from ..core.fields import CustomField
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AppError, NonNullList
 from ..decorators import staff_member_required
@@ -40,8 +41,10 @@ class AppTokenInput(graphene.InputObjectType):
 
 
 class AppTokenCreate(ModelMutation):
-    auth_token = graphene.types.String(
-        description="The newly created authentication token."
+    auth_token = CustomField(
+        graphene.types.String,
+        description="The newly created authentication token.",
+        sensitive=True,
     )
 
     class Arguments:

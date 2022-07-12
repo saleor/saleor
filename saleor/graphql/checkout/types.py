@@ -26,6 +26,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import CustomField
 from ..core.scalars import UUID
 from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
@@ -419,7 +420,12 @@ class Checkout(ModelObjectType):
         description="List of available payment gateways.",
         required=True,
     )
-    email = graphene.String(description="Email of a customer.", required=False)
+    email = CustomField(
+        graphene.String,
+        description="Email of a customer.",
+        required=False,
+        sensitive=True,
+    )
     gift_cards = NonNullList(
         GiftCard,
         description="List of gift cards associated with this checkout.",
