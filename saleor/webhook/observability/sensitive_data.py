@@ -6,9 +6,9 @@ SENSITIVE_GQL_FIELDS is a dict of sets representing fields of GraphGL types to a
 - Type
 - Fields
 """
-from typing import Dict, Set
-
 from ...core.auth import DEFAULT_AUTH_HEADER, SALEOR_AUTH_HEADER
+from ...graphql.api import schema
+from ...graphql.schema_maps import build_sensitive_fields_map
 
 SENSITIVE_HEADERS = (
     SALEOR_AUTH_HEADER,
@@ -19,23 +19,5 @@ SENSITIVE_HEADERS = tuple(
     x[5:] if x.startswith("HTTP_") else x for x in SENSITIVE_HEADERS
 )
 
-SensitiveFieldsMap = Dict[str, Set[str]]
-SENSITIVE_GQL_FIELDS: SensitiveFieldsMap = {
-    "RefreshToken": {"token"},
-    "CreateToken": {"token", "refreshToken", "csrfToken"},
-    "User": {"email", "firstName", "lastName"},
-    "Address": {
-        "firstName",
-        "lastName",
-        "companyName",
-        "streetAddress1",
-        "streetAddress2",
-        "phone",
-    },
-    "AppTokenCreate": {"authToken"},
-    "AppToken": {"authToken"},
-    "App": {"accessToken"},
-    "Order": {"userEmail"},
-    "Payment": {"creditCard"},
-    "Checkout": {"email"},
-}
+
+SENSITIVE_GQL_FIELDS = build_sensitive_fields_map(schema.get_type_map())

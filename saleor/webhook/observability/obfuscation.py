@@ -21,7 +21,8 @@ from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
 from ...graphql.api import schema
-from .sensitive_data import SENSITIVE_HEADERS, SensitiveFieldsMap
+from ...graphql.schema_maps import SensitiveFieldsMap
+from .sensitive_data import SENSITIVE_HEADERS
 
 if TYPE_CHECKING:
     from graphql import GraphQLDocument
