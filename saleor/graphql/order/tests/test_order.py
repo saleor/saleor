@@ -576,7 +576,7 @@ def test_order_query(
         channel_id=order.channel_id,
     )
     expected_collection_points = Warehouse.objects.applicable_for_click_and_collect(
-        lines_qs=order.lines, country=order.shipping_address.country.code
+        lines_qs=order.lines, channel_id=order.channel.id
     )
 
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())

@@ -1,8 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 from functools import partial
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
+import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
@@ -268,6 +270,8 @@ class Sale(ModelWithMetadata):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
+    notification_sent_datetime = models.DateTimeField(null=True, blank=True)
+
     objects = models.Manager.from_queryset(SaleQueryset)()
     translated = TranslationProxy()
 
@@ -304,6 +308,11 @@ class Sale(ModelWithMetadata):
                 percentage=sale_channel_listing.discount_value,
             )
         raise NotImplementedError("Unknown discount type")
+
+    def is_active(self, date=None):
+        if date is None:
+            date = datetime.now(pytz.utc)
+        return (not self.end_date or self.end_date >= date) and self.start_date <= date
 
 
 class SaleChannelListing(models.Model):

@@ -8,23 +8,8 @@ from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEA
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
 from . import enums
-from .subscription_payload import validate_subscription_query
+from .subscription_payload import validate_query
 from .types import EventDelivery, Webhook
-
-
-def validate_query(query):
-    if not query:
-        return
-    is_valid = validate_subscription_query(query)
-    if not is_valid:
-        raise ValidationError(
-            {
-                "query": ValidationError(
-                    "Subscription query is not valid",
-                    code=WebhookErrorCode.INVALID.value,
-                )
-            }
-        )
 
 
 class WebhookCreateInput(graphene.InputObjectType):

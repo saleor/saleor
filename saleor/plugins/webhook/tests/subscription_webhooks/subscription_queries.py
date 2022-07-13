@@ -843,6 +843,22 @@ SALE_DELETED = (
 """
 )
 
+
+SALE_TOGGLE = (
+    fragments.SALE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on SaleToggle{
+          sale{
+            ...SaleDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
     + """

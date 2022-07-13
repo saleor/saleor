@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -90,12 +93,38 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
         instance = getattr(response, cls._meta.return_field_name).node
-        current_catalogue = fetch_catalogue_info(instance)
+        cls.send_sale_notifications(info, instance)
+        return response
+
+    @classmethod
+    def send_sale_notifications(cls, info, instance):
+        current_catalogue = convert_catalogue_info_to_global_ids(
+            fetch_catalogue_info(instance)
+        )
 
         transaction.on_commit(
             lambda: info.context.plugins.sale_created(
                 instance,
-                convert_catalogue_info_to_global_ids(current_catalogue),
+                current_catalogue,
             )
         )
-        return response
+
+        cls.send_sale_toggle_notification(info, instance, current_catalogue)
+
+    @staticmethod
+    def send_sale_toggle_notification(info, instance, catalogue):
+        """Send a notification about starting or ending sale if it hasn't been sent yet.
+
+        Send the notification when the start date is before the current date and the
+        sale is not already finished.
+        """
+        manager = info.context.plugins
+        now = datetime.now(pytz.utc)
+
+        start_date = instance.start_date
+        end_date = instance.end_date
+
+        if (start_date and start_date <= now) and (not end_date or not end_date <= now):
+            manager.sale_toggle(instance, catalogue)
+            instance.notification_sent_datetime = now
+            instance.save(update_fields=["notification_sent_datetime"])

@@ -130,7 +130,7 @@ def fulfill_gift_card_lines(
                         {"order_line": line, "quantity": quantity}
                     )
         else:
-            stock = line.variant.stocks.for_channel(channel_slug).first()
+            stock = line.variant.stocks.for_channel_and_country(channel_slug).first()
             if not stock:
                 raise GiftCardNotApplicable(
                     message="Lack of gift card stock for checkout channel.",

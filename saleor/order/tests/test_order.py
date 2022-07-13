@@ -1285,7 +1285,7 @@ def test_available_collection_points_for_preorders_variants_in_order(
     api_client, staff_api_client, order_with_preorder_lines
 ):
     expected_collection_points = list(
-        Warehouse.objects.for_country("US")
+        Warehouse.objects.for_channel(order_with_preorder_lines.channel_id)
         .exclude(
             click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
         )
@@ -1310,7 +1310,7 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
     order_with_preorder_lines,
 ):
     expected_collection_points = list(
-        Warehouse.objects.for_country("US")
+        Warehouse.objects.for_channel(order_with_preorder_lines.channel_id)
         .exclude(
             click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
         )

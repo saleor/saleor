@@ -12,6 +12,9 @@ from ..core.permissions import (
     get_permissions_enum_list,
     split_permission_codename,
 )
+from ..graphql.core.utils import str_to_enum
+from ..graphql.webhook.subscription_payload import validate_subscription_query
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
@@ -120,6 +123,7 @@ def clean_manifest_data(manifest_data):
 
     if not errors:
         clean_extensions(manifest_data, app_permissions, errors)
+        clean_webhooks(manifest_data, errors)
 
     if errors:
         raise ValidationError(errors)
@@ -178,30 +182,92 @@ def clean_extensions(manifest_data, app_permissions, errors):
         _clean_extension_permissions(extension, app_permissions, errors)
 
 
+def clean_webhooks(manifest_data, errors):
+    webhooks = manifest_data.get("webhooks", [])
+
+    async_types = {
+        str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventAsyncType.CHOICES
+    }
+    sync_types = {
+        str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventSyncType.CHOICES
+    }
+
+    target_url_validator = AppURLValidator(
+        schemes=["http", "https", "awssqs", "gcpubsub"]
+    )
+
+    for webhook in webhooks:
+        if not validate_subscription_query(webhook["query"]):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Subscription query is not valid.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
+
+        webhook["events"] = []
+        for e_type in webhook.get("asyncEvents", []):
+            try:
+                webhook["events"].append(async_types[e_type])
+            except KeyError:
+                errors["webhooks"].append(
+                    ValidationError(
+                        "Invalid asynchronous event.",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                )
+        for e_type in webhook.get("syncEvents", []):
+            try:
+                webhook["events"].append(sync_types[e_type])
+            except KeyError:
+                errors["webhooks"].append(
+                    ValidationError(
+                        "Invalid synchronous event.",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                )
+
+        try:
+            target_url_validator(webhook["targetUrl"])
+        except ValidationError:
+            errors["webhooks"].append(
+                ValidationError(
+                    "Invalid target url.",
+                    code=AppErrorCode.INVALID_URL_FORMAT.value,
+                )
+            )
+
+
 def validate_required_fields(manifest_data, errors):
     manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
-    extension_required_fields = {
-        "label",
-        "url",
-        "mount",
-    }
-    manifest_missing_fields = manifest_required_fields.difference(manifest_data)
-    if manifest_missing_fields:
-        [
+    extension_required_fields = {"label", "url", "mount"}
+    webhook_required_fields = {"name", "targetUrl", "query"}
+
+    if manifest_missing_fields := manifest_required_fields.difference(manifest_data):
+        for missing_field in manifest_missing_fields:
             errors[missing_field].append(
                 ValidationError("Field required.", code=AppErrorCode.REQUIRED.value)
             )
-            for missing_field in manifest_missing_fields
-        ]
 
     app_extensions_data = manifest_data.get("extensions", [])
     for extension in app_extensions_data:
         extension_fields = set(extension.keys())
-        missing_fields = extension_required_fields.difference(extension_fields)
-        if missing_fields:
+        if missing_fields := extension_required_fields.difference(extension_fields):
             errors["extensions"].append(
                 ValidationError(
                     "Missing required fields for app extension: %s."
+                    % ", ".join(missing_fields),
+                    code=AppErrorCode.REQUIRED.value,
+                )
+            )
+
+    webhooks = manifest_data.get("webhooks", [])
+    for webhook in webhooks:
+        webhook_fields = set(webhook.keys())
+        if missing_fields := webhook_required_fields.difference(webhook_fields):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Missing required fields for webhook: %s."
                     % ", ".join(missing_fields),
                     code=AppErrorCode.REQUIRED.value,
                 )

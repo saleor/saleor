@@ -134,6 +134,7 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.SALE_CREATED: SaleCreated,
             WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
             WebhookEventAsyncType.SALE_DELETED: SaleDeleted,
+            WebhookEventAsyncType.SALE_TOGGLE: SaleToggle,
             WebhookEventAsyncType.INVOICE_REQUESTED: InvoiceRequested,
             WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
             WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
@@ -686,6 +687,24 @@ class SaleUpdated(ObjectType, SaleBase):
 
 class SaleDeleted(ObjectType, SaleBase):
     class Meta:
+        interfaces = (Event,)
+
+
+class SaleToggle(ObjectType, SaleBase):
+    sale = graphene.Field(
+        "saleor.graphql.discount.types.Sale",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="The sale the event relates to." + ADDED_IN_35 + PREVIEW_FEATURE,
+    )
+
+    class Meta:
+        description = (
+            "The event informs about the start or end of the sale."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
         interfaces = (Event,)
 
 
@@ -1300,6 +1319,7 @@ SUBSCRIPTION_EVENTS_TYPES = [
     SaleCreated,
     SaleUpdated,
     SaleDeleted,
+    SaleToggle,
     InvoiceRequested,
     InvoiceDeleted,
     InvoiceSent,

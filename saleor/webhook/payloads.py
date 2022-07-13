@@ -423,6 +423,28 @@ def generate_sale_payload(
 
 
 @traced_payload_generator
+def generate_sale_toggle_payload(
+    sale: "Sale",
+    catalogue: DefaultDict[str, Set[str]],
+    requestor: Optional["RequestorOrLazyObject"] = None,
+):
+    serializer = PayloadSerializer()
+    sale_fields = ("id",)
+
+    extra_dict_data = {key: list(ids) for key, ids in catalogue.items()}
+    extra_dict_data["meta"] = generate_meta(
+        requestor_data=generate_requestor(requestor)
+    )
+    extra_dict_data["is_active"] = sale.is_active()
+
+    return serializer.serialize(
+        [sale],
+        fields=sale_fields,
+        extra_dict_data=extra_dict_data,
+    )
+
+
+@traced_payload_generator
 def generate_invoice_payload(
     invoice: "Invoice", requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -491,8 +513,8 @@ def generate_checkout_payload(
     # todo use the most appropriate warehouse
     warehouse = None
     if checkout.shipping_address:
-        warehouse = Warehouse.objects.for_country(
-            checkout.shipping_address.country.code
+        warehouse = Warehouse.objects.for_country_and_channel(
+            checkout.shipping_address.country.code, checkout.channel_id
         ).first()
 
     checkout_data = serializer.serialize(
@@ -879,7 +901,9 @@ def generate_fulfillment_payload(
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        warehouse = Warehouse.objects.for_country(order_country).first()
+        warehouse = Warehouse.objects.for_country_and_channel(
+            order_country, order.channel_id
+        ).first()
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saleor"
-version = "3.5.0-a"
+version = "3.6.0-a"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -87,7 +87,7 @@ documentation = "https://docs.saleor.io/"
     platform = "win32"
 
   [tool.poetry.dev-dependencies]
-  black = "22.3.0"
+  black = "22.6.0"
   codecov = "^2.1.11"
   coverage = "^6.3"
   django-debug-toolbar = "^3.2"
@@ -124,7 +124,7 @@ documentation = "https://docs.saleor.io/"
   before_after = "^1.0.1"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"
-  types-six = "^1.16.12"
+  types-six = "^1.16.17"
   fakeredis = "^1.8"
   types-redis = "^4.2.6"
 

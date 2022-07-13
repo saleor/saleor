@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from .....account.models import Address
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
@@ -264,6 +265,70 @@ def test_checkout_shipping_method_update_excluded_postal_code(
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
     )
+
+
+def test_checkout_shipping_method_update_with_not_all_required_shipping_address_data(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = Address.objects.create(country="US")
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    shipping_method.postal_code_rules.create(start="00123", end="12345")
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        {"id": to_global_id_or_none(checkout_with_item), "shippingMethodId": method_id},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    assert not data["errors"]
+    assert checkout.shipping_method == shipping_method
+
+
+def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = Address.objects.create(
+        country="US",
+        city="New York",
+        city_area="ABC",
+        street_address_1="New street",
+        postal_code="53-601",
+    )  # incorrect postalCode
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    shipping_method.postal_code_rules.create(start="00123", end="12345")
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        {"id": to_global_id_or_none(checkout_with_item), "shippingMethodId": method_id},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    assert not data["errors"]
+    assert checkout.shipping_method == shipping_method
 
 
 def test_checkout_delivery_method_update_unavailable_variant(

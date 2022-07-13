@@ -22,6 +22,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
+from .core.schedules import sale_webhook_schedule
 
 
 def get_list(text):
@@ -565,6 +566,10 @@ CELERY_BEAT_SCHEDULE = {
     "delete-old-export-files": {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
+    },
+    "send-sale-toggle-notifications": {
+        "task": "saleor.discount.tasks.send_sale_toggle_notifications",
+        "schedule": sale_webhook_schedule(),
     },
 }
 
