@@ -254,13 +254,13 @@ class StaffCreate(ModelMutation):
         pass
 
     @classmethod
-    def save(cls, info, user, cleaned_input):
+    def save(cls, info, user, cleaned_input, send_notification=True):
         if any([field in cleaned_input for field in USER_SEARCH_FIELDS]):
             user.search_document = prepare_user_search_document_value(
                 user, attach_addresses_data=False
             )
         user.save()
-        if cleaned_input.get("redirect_url"):
+        if cleaned_input.get("redirect_url") and send_notification:
             send_set_password_notification(
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
@@ -280,6 +280,35 @@ class StaffCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         info.context.plugins.staff_created(instance)
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        object_id = data.get("id")
+        email = data.get("input", {}).get("email")
+        send_notification = True
+
+        if (
+            not object_id
+            and email
+            and (
+                user := models.User.objects.filter(email=email, is_staff=False).first()
+            )
+        ):
+            send_notification = False
+            return user, send_notification
+        return super().get_instance(info, **data), send_notification
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance, send_notification = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input, send_notification)
+        cls._save_m2m(info, instance, cleaned_input)
+        cls.post_save_action(info, instance, cleaned_input)
+        return cls.success_response(instance)
 
 
 class StaffUpdate(StaffCreate):
@@ -410,7 +439,7 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
+        instance, _ = cls.get_instance(info, **data)
         old_email = instance.email
         response = super().perform_mutation(_root, info, **data)
         user = response.user

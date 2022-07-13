@@ -2430,6 +2430,59 @@ def test_staff_create(
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_promote_customer_to_staff_user(
+    mocked_notify,
+    staff_api_client,
+    staff_user,
+    customer_user,
+    media_root,
+    permission_group_manage_users,
+    permission_manage_products,
+    permission_manage_staff,
+    permission_manage_users,
+    channel_PLN,
+):
+    group = permission_group_manage_users
+    group.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
+    redirect_url = "https://www.example.com"
+    email = customer_user.email
+    variables = {
+        "email": email,
+        "redirect_url": redirect_url,
+        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+    }
+
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert data["errors"] == []
+    assert data["user"]["email"] == email
+    assert data["user"]["isStaff"]
+    assert data["user"]["isActive"]
+
+    expected_perms = {
+        permission_manage_products.codename,
+        permission_manage_users.codename,
+    }
+    permissions = data["user"]["userPermissions"]
+    assert {perm["code"].lower() for perm in permissions} == expected_perms
+
+    staff_user = User.objects.get(email=email)
+
+    assert staff_user.is_staff
+
+    groups = data["user"]["permissionGroups"]
+    assert len(groups) == 1
+    assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
+
+    mocked_notify.assert_not_called()
+
+
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_staff_create_trigger_webhook(
