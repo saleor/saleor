@@ -5,7 +5,7 @@ from django.conf import settings
 
 from ....core.tracing import traced_resolver
 from ...account.enums import AddressTypeEnum
-from ..descriptions import ADDED_IN_35, PREVIEW_FEATURE
+from ..descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -508,7 +508,7 @@ class ThumbnailField(graphene.Field):
         description=(
             "The format of the image. When not provided, format of the original "
             "image will be used. Must be provided together with the size value, "
-            "otherwise original image will be returned." + ADDED_IN_35 + PREVIEW_FEATURE
+            "otherwise original image will be returned." + ADDED_IN_36 + PREVIEW_FEATURE
         )
     )
 
