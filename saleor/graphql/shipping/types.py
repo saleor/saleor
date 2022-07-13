@@ -7,6 +7,7 @@ from ...core.weight import convert_weight_to_default_weight_unit
 from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
+from ..account.enums import CountryCodeEnum
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
@@ -365,3 +366,8 @@ class ShippingMethod(graphene.ObjectType):
 class ShippingZoneCountableConnection(CountableConnection):
     class Meta:
         node = ShippingZone
+
+
+class ShippingMethodsPerCountry(graphene.ObjectType):
+    country_code = graphene.Field(CountryCodeEnum, required=True)
+    shipping_methods = NonNullList(ShippingMethod)

@@ -32,6 +32,31 @@ class ShippingZoneByIdLoader(DataLoader):
         return [shipping_zones.get(shipping_zone_id) for shipping_zone_id in keys]
 
 
+class ShippingZonesByChannelIdLoader(DataLoader):
+    context_key = "shippingzone_by_channel_id"
+
+    def batch_load(self, keys):
+        shipping_zones_channel = (
+            ShippingZone.channels.through.objects.using(self.database_connection_name)
+            .filter(channel_id__in=keys)
+            .values_list("shippingzone_id", "channel_id")
+        )
+        shipping_zones_map = (
+            ShippingZone.objects.using(self.database_connection_name)
+            .filter(id__in=[zone_id for zone_id, _ in shipping_zones_channel])
+            .in_bulk()
+        )
+
+        shipping_zones_by_channel_map = defaultdict(list)
+        for shipping_zone_id, channel_id in shipping_zones_channel:
+            shipping_zones_by_channel_map[channel_id].append(
+                shipping_zones_map[shipping_zone_id]
+            )
+        return [
+            shipping_zones_by_channel_map.get(channel_id, []) for channel_id in keys
+        ]
+
+
 class ShippingMethodsByShippingZoneIdLoader(DataLoader):
     context_key = "shippingmethod_by_shippingzone"
 
