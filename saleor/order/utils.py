@@ -706,10 +706,7 @@ def get_valid_shipping_methods_for_order(
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
 ) -> List[ShippingMethodData]:
-    """Return a list of shipping methods according to Saleor's own business logic.
-
-    The resulting methods are not yet filtered by plugins.
-    """
+    """Return a list of shipping methods according to Saleor's own business logic."""
     valid_methods = get_all_shipping_methods_for_order(order, shipping_channel_listings)
     if not valid_methods:
         return []

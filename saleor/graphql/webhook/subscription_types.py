@@ -30,7 +30,13 @@ from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
-from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, ADDED_IN_35, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_32,
+    ADDED_IN_34,
+    ADDED_IN_35,
+    ADDED_IN_36,
+    PREVIEW_FEATURE,
+)
 from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
 from ..payment.enums import TransactionActionEnum
@@ -1125,7 +1131,7 @@ class WarehouseBase(AbstractType):
 class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
-        description="Look up a payment." + ADDED_IN_35 + PREVIEW_FEATURE,
+        description="Look up a payment." + ADDED_IN_36 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -1137,48 +1143,58 @@ class PaymentBase(AbstractType):
 class PaymentAuthorize(ObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
+        description = "Authorize payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class PaymentCaptureEvent(ObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
+        description = "Capture payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class PaymentRefundEvent(ObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
+        description = "Refund payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class PaymentVoidEvent(ObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
+        description = "Void payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class PaymentConfirmEvent(ObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
+        description = "Confirm payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class PaymentProcessEvent(ObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
+        description = "Process payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class PaymentListGateways(ObjectType, CheckoutBase):
     class Meta:
         interfaces = (Event,)
+        description = "List payment gateways." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
 class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "List shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
 
 
 class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_35
+        + ADDED_IN_36
         + PREVIEW_FEATURE,
     )
 
@@ -1209,13 +1225,16 @@ class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
 
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Filter shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
 
 
 class OrderFilterShippingMethods(ObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_35
+        + ADDED_IN_36
         + PREVIEW_FEATURE,
     )
 
@@ -1237,6 +1256,9 @@ class OrderFilterShippingMethods(ObjectType, OrderBase):
 
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Filter shipping methods for order." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
 
 
 class WarehouseCreated(ObjectType, WarehouseBase):

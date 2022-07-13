@@ -23229,6 +23229,13 @@ type WarehouseDeleted implements Event {
   warehouse: Warehouse
 }
 
+"""
+Authorize payment.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentAuthorize implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23245,13 +23252,20 @@ type PaymentAuthorize implements Event {
   """
   Look up a payment.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   payment: Payment
 }
 
+"""
+Capture payment.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentCaptureEvent implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23268,13 +23282,20 @@ type PaymentCaptureEvent implements Event {
   """
   Look up a payment.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   payment: Payment
 }
 
+"""
+Refund payment.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentRefundEvent implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23291,13 +23312,20 @@ type PaymentRefundEvent implements Event {
   """
   Look up a payment.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   payment: Payment
 }
 
+"""
+Void payment.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentVoidEvent implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23314,13 +23342,20 @@ type PaymentVoidEvent implements Event {
   """
   Look up a payment.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   payment: Payment
 }
 
+"""
+Confirm payment.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentConfirmEvent implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23337,13 +23372,20 @@ type PaymentConfirmEvent implements Event {
   """
   Look up a payment.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   payment: Payment
 }
 
+"""
+Process payment.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentProcessEvent implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23360,13 +23402,20 @@ type PaymentProcessEvent implements Event {
   """
   Look up a payment.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   payment: Payment
 }
 
+"""
+List payment gateways.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PaymentListGateways implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23390,6 +23439,13 @@ type PaymentListGateways implements Event {
   checkout: Checkout
 }
 
+"""
+Filter shipping methods for order.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderFilterShippingMethods implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23415,13 +23471,20 @@ type OrderFilterShippingMethods implements Event {
   """
   Shipping methods that can be used with this checkout.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingMethods: [ShippingMethod!]
 }
 
+"""
+Filter shipping methods for checkout.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CheckoutFilterShippingMethods implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23447,13 +23510,20 @@ type CheckoutFilterShippingMethods implements Event {
   """
   Shipping methods that can be used with this checkout.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingMethods: [ShippingMethod!]
 }
 
+"""
+List shipping methods for checkout.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingListMethodsForCheckout implements Event {
   """Time of the event."""
   issuedAt: DateTime
