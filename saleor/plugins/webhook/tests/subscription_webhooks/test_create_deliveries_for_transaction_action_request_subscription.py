@@ -235,6 +235,7 @@ def test_transaction_void_action_request(
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {"actionType": "VOID", "amount": None},
     }

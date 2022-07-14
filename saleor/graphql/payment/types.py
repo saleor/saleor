@@ -7,7 +7,7 @@ from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
@@ -291,7 +291,7 @@ class TransactionItem(ModelObjectType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         required=True,
-        description="The related order.",
+        description="The related order." + ADDED_IN_36,
     )
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
