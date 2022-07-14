@@ -181,8 +181,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             update_fields=[
                 "private_metadata",
                 "shipping_method",
-                "price_expiration",
-                "last_change",
             ]
             + invalidate_prices_updated_fields
         )
@@ -213,8 +211,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             update_fields=[
                 "private_metadata",
                 "shipping_method",
-                "price_expiration",
-                "last_change",
             ]
             + invalidate_prices_updated_fields
         )

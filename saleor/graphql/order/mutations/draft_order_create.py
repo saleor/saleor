@@ -259,11 +259,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input, new_instance):
+    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance):
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
-        if new_instance:
+        if is_new_instance:
             events.draft_order_created_event(
                 order=instance, user=info.context.user, app=info.context.app
             )
@@ -273,22 +273,24 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         )
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
         # Force price recalculation for all new instances
-        return new_instance
+        return is_new_instance
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        return cls._save_draft_order(info, instance, cleaned_input, new_instance=True)
+        return cls._save_draft_order(
+            info, instance, cleaned_input, is_new_instance=True
+        )
 
     @classmethod
     @traced_atomic_transaction()
-    def _save_draft_order(cls, info, instance, cleaned_input, *, new_instance):
+    def _save_draft_order(cls, info, instance, cleaned_input, *, is_new_instance):
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
-        cls._commit_changes(info, instance, cleaned_input, new_instance)
+        cls._commit_changes(info, instance, cleaned_input, is_new_instance)
 
         try:
             # Process any lines to add
@@ -304,7 +306,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 code=OrderErrorCode.TAX_ERROR.value,
             )
 
-        if new_instance:
+        if is_new_instance:
             transaction.on_commit(
                 lambda: info.context.plugins.draft_order_created(instance)
             )
@@ -316,7 +318,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Post-process the results
         updated_fields = ["weight", "search_vector", "updated_at"]
-        if cls.should_invalidate_prices(instance, cleaned_input, new_instance):
+        if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
             invalidate_order_prices(instance)
             updated_fields.append("should_refresh_prices")
         recalculate_order_weight(instance)

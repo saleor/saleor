@@ -36,7 +36,7 @@ def checkout_with_prices(
     )
 
     for line, line_info in zip(lines, lines_info):
-        line.total_price_net_amount = base_calculations.base_checkout_line_total(
+        line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
             line_info, channel, discounts_info
         ).amount
         line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")

@@ -46,10 +46,16 @@ def checkout_with_variants_for_cc(checkout_for_cc, stocks_for_cc, product_varian
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
-                checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+                checkout=checkout_for_cc,
+                variant=product_variant_list[0],
+                quantity=1,
+                currency="USD",
             ),
             CheckoutLine(
-                checkout=checkout_for_cc, variant=product_variant_list[1], quantity=1
+                checkout=checkout_for_cc,
+                variant=product_variant_list[1],
+                quantity=1,
+                currency="USD",
             ),
         ]
     )

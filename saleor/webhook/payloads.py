@@ -76,7 +76,7 @@ ADDRESS_FIELDS = (
     "phone",
 )
 
-CHANNEL_FIELDS_IN_CHECKOUT_ORDER_PAYLOADS = ("slug", "currency_code")
+CHANNEL_FIELDS = ("slug", "currency_code")
 
 ORDER_FIELDS = (
     "status",
@@ -320,7 +320,7 @@ def generate_order_payload(
         [order],
         fields=ORDER_FIELDS,
         additional_fields={
-            "channel": (lambda o: o.channel, CHANNEL_FIELDS_IN_CHECKOUT_ORDER_PAYLOADS),
+            "channel": (lambda o: o.channel, CHANNEL_FIELDS),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "discounts": (lambda _: discounts, discount_fields),
@@ -527,8 +527,9 @@ def generate_checkout_payload(
         [checkout],
         fields=checkout_fields,
         obj_id_name="token",
+        pk_field_name="token",
         additional_fields={
-            "channel": (lambda o: o.channel, CHANNEL_FIELDS_IN_CHECKOUT_ORDER_PAYLOADS),
+            "channel": (lambda o: o.channel, CHANNEL_FIELDS),
             "user": (lambda c: c.user, user_fields),
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
@@ -1178,7 +1179,6 @@ def generate_checkout_payload_for_tax_calculation(
 
     # Prepare checkout data
     address = checkout_info.shipping_address or checkout_info.billing_address
-    checkout.id = checkout.token  # type:ignore
 
     total_amount = quantize_price(
         base_calculations.base_checkout_total(
@@ -1231,9 +1231,9 @@ def generate_checkout_payload_for_tax_calculation(
     checkout_data = serializer.serialize(
         [checkout],
         fields=checkout_fields,
-        obj_id_name="id",
+        pk_field_name="token",
         additional_fields={
-            "channel": (lambda c: c.channel, CHANNEL_FIELDS_IN_CHECKOUT_ORDER_PAYLOADS),
+            "channel": (lambda c: c.channel, CHANNEL_FIELDS),
             "address": (lambda _: address, ADDRESS_FIELDS),
         },
         extra_dict_data={
@@ -1256,7 +1256,6 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
     return serializer.serialize(
         lines,
         fields=("product_name", "variant_name", "quantity"),
-        obj_id_name="id",
         extra_dict_data={
             "variant_id": (lambda l: l.product_variant_id),
             "full_name": (lambda l: l.variant.display_product() if l.variant else None),
@@ -1318,7 +1317,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
         [order],
         fields=["currency", "metadata"],
         additional_fields={
-            "channel": (lambda o: o.channel, CHANNEL_FIELDS_IN_CHECKOUT_ORDER_PAYLOADS),
+            "channel": (lambda o: o.channel, CHANNEL_FIELDS),
             "address": (lambda o: address, ADDRESS_FIELDS),
         },
         extra_dict_data={

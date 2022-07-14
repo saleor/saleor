@@ -3,7 +3,7 @@ import pytest
 from ....app.models import App
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook, WebhookEvent
-from ..tasks import _get_webhooks_for_event
+from ....webhook.utils import get_webhooks_for_event
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def test_get_webhooks_for_event_webhook_ordering(webhooks_factory):
     webhooks_factory([apps[1], apps[1], apps[2], apps[0]], event_type)
 
     # when
-    webhooks = list(_get_webhooks_for_event(event_type))
+    webhooks = list(get_webhooks_for_event(event_type))
 
     # then
     for prev_webhook, next_webhook in zip(webhooks, webhooks[1:]):

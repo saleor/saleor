@@ -205,9 +205,9 @@ def order_line_unit(
 ) -> OrderTaxedPricesData:
     """Return the unit price of provided line, taxes included.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     currency = order.currency
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
@@ -227,9 +227,9 @@ def order_line_total(
 ) -> OrderTaxedPricesData:
     """Return the total price of provided line, taxes included.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     currency = order.currency
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
@@ -251,9 +251,9 @@ def order_line_tax_rate(
 ) -> Decimal:
     """Return the tax rate of provided line.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
@@ -268,9 +268,9 @@ def order_shipping(
 ) -> TaxedMoney:
     """Return the shipping price of the order.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
@@ -285,9 +285,9 @@ def order_shipping_tax_rate(
 ) -> Decimal:
     """Return the shipping tax rate of the order.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return order.shipping_tax_rate
@@ -301,9 +301,9 @@ def order_total(
 ) -> TaxedMoney:
     """Return the total price of the order.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
@@ -318,9 +318,9 @@ def order_undiscounted_total(
 ) -> TaxedMoney:
     """Return the undiscounted total price of the order.
 
-    It takes in account all plugins.
-    If the prices are expired, calls all order price calculation methods
-    and saves them in the model directly.
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
     """
     currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)

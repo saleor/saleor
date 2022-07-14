@@ -539,13 +539,28 @@ def checkout_with_shipping_address(checkout_with_variants, address):
 def checkout_with_variants_for_cc(
     checkout, stocks_for_cc, product_variant_list, product_with_two_variants
 ):
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-
-    add_variant_to_checkout(checkout_info, product_variant_list[0], 3)
-    add_variant_to_checkout(checkout_info, product_variant_list[1], 10)
-    add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
-
-    checkout.save()
+    CheckoutLine.objects.bulk_create(
+        [
+            CheckoutLine(
+                checkout=checkout,
+                variant=product_variant_list[0],
+                quantity=3,
+                currency="USD",
+            ),
+            CheckoutLine(
+                checkout=checkout,
+                variant=product_variant_list[1],
+                quantity=10,
+                currency="USD",
+            ),
+            CheckoutLine(
+                checkout=checkout,
+                variant=product_with_two_variants.variants.last(),
+                quantity=5,
+                currency="USD",
+            ),
+        ]
+    )
     return checkout
 
 

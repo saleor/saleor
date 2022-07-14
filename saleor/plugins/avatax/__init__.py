@@ -289,7 +289,7 @@ def get_checkout_lines_data(
         item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        price_data = base_calculations.calculate_base_line_total_price(
+        checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
             discounts,
@@ -305,7 +305,7 @@ def get_checkout_lines_data(
         # combination with caps, thresholds, or base rules."
         tax_code = (
             tax_code
-            if price_data.amount and not tax_override_data
+            if checkout_line_total.amount and not tax_override_data
             else DEFAULT_TAX_CODE
         )
         append_line_to_data_kwargs = {
@@ -321,7 +321,7 @@ def get_checkout_lines_data(
 
         append_line_to_data(
             **append_line_to_data_kwargs,
-            amount=price_data.amount,
+            amount=checkout_line_total.amount,
             ref1=line_info.variant.sku,
         )
 

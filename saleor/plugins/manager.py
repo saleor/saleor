@@ -364,7 +364,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_line_total(
+        default_value = base_calculations.calculate_base_line_total_price(
             checkout_line_info,
             checkout_info.channel,
             discounts,
@@ -417,7 +417,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_line_unit_price(
+        default_value = base_calculations.calculate_base_line_unit_price(
             checkout_line_info, checkout_info.channel, discounts
         )
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
@@ -518,10 +518,14 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
     def get_taxes_for_checkout(self, checkout_info, lines) -> Optional[TaxData]:
-        return self.__run_tax_method("get_taxes_for_checkout", checkout_info, lines)
+        return self.__run_plugin_method_until_first_success(
+            "get_taxes_for_checkout", checkout_info, lines
+        )
 
     def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
-        return self.__run_tax_method("get_taxes_for_order", order)
+        return self.__run_plugin_method_until_first_success(
+            "get_taxes_for_order", order
+        )
 
     def apply_taxes_to_product(
         self, product: "Product", price: Money, country: Country, channel_slug: str
@@ -1283,17 +1287,17 @@ class PluginsManager(PaymentInterface):
             " payment method is inaccessible!"
         )
 
-    def __run_tax_method(
+    def __run_plugin_method_until_first_success(
         self,
         method_name: str,
         *args,
-    ) -> Optional[TaxData]:
+    ):
         plugins = self.get_plugins()
         for plugin in plugins:
             result = self.__run_method_on_single_plugin(
                 plugin, method_name, None, *args
             )
-            if isinstance(result, TaxData):
+            if result is not None:
                 return result
         return None
 

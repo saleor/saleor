@@ -182,31 +182,31 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
-    base_prices_data = calculate_base_line_unit_price(
+    base_unit_price = calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=checkout_info.channel, discounts=discounts
     )
-    undiscounted_base_unit_price_data = calculate_undiscounted_base_line_unit_price(
+    undiscounted_base_unit_price = calculate_undiscounted_base_line_unit_price(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
-    undiscounted_base_total_price_data = calculate_undiscounted_base_line_total_price(
+    undiscounted_base_total_price = calculate_undiscounted_base_line_total_price(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
     undiscounted_unit_price = TaxedMoney(
-        net=undiscounted_base_unit_price_data, gross=undiscounted_base_unit_price_data
+        net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
     )
     undiscounted_total_price = TaxedMoney(
-        net=undiscounted_base_total_price_data, gross=undiscounted_base_total_price_data
+        net=undiscounted_base_total_price, gross=undiscounted_base_total_price
     )
-    total_line_price_data = calculations.checkout_line_total(
+    total_line_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
         discounts=discounts,
     )
-    unit_price_data = calculations.checkout_line_unit_price(
+    unit_price = calculations.checkout_line_unit_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -241,11 +241,11 @@ def _create_line_for_order(
     if checkout_line_info.voucher:
         voucher_code = checkout_line_info.voucher.code
 
-    discount_price_data = undiscounted_unit_price - unit_price_data
+    discount_price = undiscounted_unit_price - unit_price
     if taxes_included_in_prices:
-        discount_amount = discount_price_data.gross
+        discount_amount = discount_price.gross
     else:
-        discount_amount = discount_price_data.net
+        discount_amount = discount_price.net
 
     unit_discount_reason = None
     if sale_id:
@@ -267,18 +267,18 @@ def _create_line_for_order(
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price_data,  # type: ignore
+        unit_price=unit_price,  # type: ignore
         undiscounted_unit_price=undiscounted_unit_price,  # type: ignore
         undiscounted_total_price=undiscounted_total_price,  # type: ignore
-        total_price=total_line_price_data,  # type: ignore
+        total_price=total_line_price,  # type: ignore
         tax_rate=tax_rate,
         sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
         voucher_code=voucher_code,
         unit_discount=discount_amount,  # type: ignore
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
-        base_unit_price=base_prices_data,
-        undiscounted_base_unit_price=undiscounted_base_unit_price_data,
+        base_unit_price=base_unit_price,
+        undiscounted_base_unit_price=undiscounted_base_unit_price,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
     )

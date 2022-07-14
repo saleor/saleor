@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 from django.utils import timezone
 
+from ...checkout.models import CheckoutLine
 from ...plugins.manager import get_plugins_manager
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 
@@ -17,15 +18,23 @@ def priced_checkout_factory():
 
         tax = Decimal("1.23")
 
+        lines_to_update = []
         for line_info in lines:
             line = line_info.line
+            lines_to_update.append(line)
 
             line.total_price = manager.calculate_checkout_line_total(
                 checkout_info, lines, line_info, None, []
             )
             line.total_price_gross_amount *= tax
 
-            line.save()
+        CheckoutLine.objects.bulk_update(
+            lines_to_update,
+            [
+                "total_price_net_amount",
+                "total_price_gross_amount",
+            ],
+        )
 
         checkout.shipping_price = manager.calculate_checkout_shipping(
             checkout_info, lines, None, []

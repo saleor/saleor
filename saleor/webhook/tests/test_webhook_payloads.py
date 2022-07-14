@@ -1476,7 +1476,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     # then
     assert payload == {
         "type": "Checkout",
-        "id": graphene.Node.to_global_id("Checkout", checkout.id),
+        "id": graphene.Node.to_global_id("Checkout", checkout.token),
         "address": {
             "type": "Address",
             "id": graphene.Node.to_global_id("Address", address.pk),

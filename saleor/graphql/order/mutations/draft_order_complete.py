@@ -8,6 +8,7 @@ from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.actions import order_created
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
@@ -67,6 +68,7 @@ class DraftOrderComplete(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
+        order, _ = fetch_order_prices_if_expired(order, manager)
         cls.validate_order(order)
 
         country = get_order_country(order)

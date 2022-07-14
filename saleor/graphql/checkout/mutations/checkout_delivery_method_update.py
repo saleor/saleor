@@ -218,8 +218,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 "private_metadata",
                 "shipping_method",
                 "collection_point",
-                "price_expiration",
-                "last_change",
             ]
             + invalidate_prices_updated_fields
         )

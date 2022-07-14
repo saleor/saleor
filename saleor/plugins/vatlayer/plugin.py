@@ -360,7 +360,7 @@ class VatlayerPlugin(BasePlugin):
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
+        unit_taxed_price = self.__calculate_checkout_line_unit_price(
             checkout_info,
             lines,
             checkout_line_info,
@@ -369,11 +369,11 @@ class VatlayerPlugin(BasePlugin):
             address,
             previous_value,
         )
-        if unit_taxed_prices_data is None:
+        if unit_taxed_price is None:
             return previous_value
 
         quantity = checkout_line_info.line.quantity
-        return unit_taxed_prices_data * quantity
+        return unit_taxed_price * quantity
 
     def calculate_checkout_line_unit_price(
         self,
@@ -384,7 +384,7 @@ class VatlayerPlugin(BasePlugin):
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
+        unit_taxed_price = self.__calculate_checkout_line_unit_price(
             checkout_info,
             lines,
             checkout_line_info,
@@ -393,11 +393,7 @@ class VatlayerPlugin(BasePlugin):
             address,
             previous_value,
         )
-        return (
-            unit_taxed_prices_data
-            if unit_taxed_prices_data is not None
-            else previous_value
-        )
+        return unit_taxed_price if unit_taxed_price is not None else previous_value
 
     def __calculate_checkout_line_unit_price(
         self,
@@ -412,23 +408,23 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return
 
-        prices_data = base_calculations.calculate_base_line_unit_price(
+        unit_price = base_calculations.calculate_base_line_unit_price(
             checkout_line_info,
             channel,
             discounts,
         )
 
-        prices_data = apply_checkout_discount_on_checkout_line(
+        unit_price = apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
             checkout_line_info,
             discounts,
-            prices_data,
+            unit_price,
         )
 
         country = address.country if address else None
         return self.__apply_taxes_to_product(
-            checkout_line_info.product, prices_data, country
+            checkout_line_info.product, unit_price, country
         )
 
     def get_checkout_line_tax_rate(

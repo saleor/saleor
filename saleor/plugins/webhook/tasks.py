@@ -3,15 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    TypeVar,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, TypeVar
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
@@ -35,12 +27,7 @@ from ...graphql.webhook.subscription_payload import (
 from ...payment import PaymentError
 from ...site.models import Site
 from ...webhook import observability
-from ...webhook.event_types import (
-    SUBSCRIBABLE_EVENTS,
-    WebhookEventAsyncType,
-    WebhookEventSyncType,
-)
-from ...webhook.models import Webhook
+from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
 from ...webhook.observability import WebhookData
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
@@ -75,32 +62,6 @@ class WebhookResponse:
     response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
-
-
-def _get_webhooks_for_event(event_type, webhooks=None):
-    """Get active webhooks from the database for an event."""
-    permissions = {}
-    required_permission = WebhookEventAsyncType.PERMISSIONS.get(
-        event_type, WebhookEventSyncType.PERMISSIONS.get(event_type)
-    )
-    if required_permission:
-        app_label, codename = required_permission.value.split(".")
-        permissions["app__permissions__content_type__app_label"] = app_label
-        permissions["app__permissions__codename"] = codename
-
-    if webhooks is None:
-        webhooks = Webhook.objects.all()
-
-    webhooks = webhooks.order_by("app_id", "pk").filter(
-        is_active=True,
-        app__is_active=True,
-        events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
-        **permissions,
-    )
-    webhooks = webhooks.select_related("app").prefetch_related(
-        "app__permissions__content_type"
-    )
-    return webhooks
 
 
 def create_deliveries_for_subscriptions(
@@ -234,7 +195,7 @@ def trigger_all_webhooks_sync(
     If no webhook responds with expected response,
     this function returns None.
     """
-    webhooks = _get_webhooks_for_event(event_type)
+    webhooks = get_webhooks_for_event(event_type)
     event_payload = None
     if webhooks:
         event_payload = EventPayload.objects.create(payload=generate_payload())

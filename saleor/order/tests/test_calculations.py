@@ -7,7 +7,6 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
-from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus, calculations
 from ..interface import OrderTaxedPricesData
 
@@ -330,23 +329,21 @@ def test_apply_tax_data(order_with_lines, order_lines, tax_data):
 
 
 @pytest.fixture
-def manager(db):
-    manager = get_plugins_manager()
-    return manager
-
-
-@pytest.fixture
-def manager_with_mocked_plugins_calculations(manager, tax_data, order_with_lines):
+def manager_with_mocked_plugins_calculations(
+    plugins_manager, tax_data, order_with_lines
+):
     currency = order_with_lines.currency
-    manager.get_order_shipping_tax_rate = Mock(return_value=tax_data.shipping_tax_rate)
-    manager.calculate_order_shipping = Mock(
+    plugins_manager.get_order_shipping_tax_rate = Mock(
+        return_value=tax_data.shipping_tax_rate
+    )
+    plugins_manager.calculate_order_shipping = Mock(
         return_value=get_taxed_money(tax_data, "shipping_price", currency)
     )
 
     total_prices = [
         get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
     ]
-    manager.calculate_order_line_total = Mock(side_effect=total_prices)
+    plugins_manager.calculate_order_line_total = Mock(side_effect=total_prices)
 
     unit_prices = []
     for line, total_price in zip(order_with_lines.lines.all(), total_prices):
@@ -360,28 +357,28 @@ def manager_with_mocked_plugins_calculations(manager, tax_data, order_with_lines
             )
         )
 
-    manager.calculate_order_line_unit = Mock(side_effect=unit_prices)
-    manager.get_order_line_tax_rate = Mock(
+    plugins_manager.calculate_order_line_unit = Mock(side_effect=unit_prices)
+    plugins_manager.get_order_line_tax_rate = Mock(
         side_effect=[line.tax_rate for line in tax_data.lines]
     )
-    return manager
+    return plugins_manager
 
 
 @pytest.fixture
-def fetch_kwargs(order_with_lines, manager):
+def fetch_kwargs(order_with_lines, plugins_manager):
     return {
         "order": order_with_lines,
-        "manager": manager,
+        "manager": plugins_manager,
         "force_update": True,
     }
 
 
 @pytest.fixture
-def fetch_kwargs_with_lines(order_with_lines, order_lines, manager):
+def fetch_kwargs_with_lines(order_with_lines, order_lines, plugins_manager):
     return {
         "order": order_with_lines,
         "lines": order_lines,
-        "manager": manager,
+        "manager": plugins_manager,
     }
 
 
@@ -408,7 +405,7 @@ def get_order_priced_taxes_data(
 
 
 def test_fetch_order_prices_if_expired_plugins(
-    manager,
+    plugins_manager,
     fetch_kwargs,
     order_with_lines,
     tax_data,
@@ -434,12 +431,12 @@ def test_fetch_order_prices_if_expired_plugins(
 
     total = subtotal + shipping
 
-    manager.calculate_order_line_unit = Mock(side_effect=unit_prices)
-    manager.calculate_order_line_total = Mock(side_effect=total_prices)
-    manager.get_order_line_tax_rate = Mock(side_effect=tax_rates)
-    manager.calculate_order_shipping = Mock(return_value=shipping)
-    manager.get_order_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
-    manager.get_taxes_for_order = Mock(return_value=None)
+    plugins_manager.calculate_order_line_unit = Mock(side_effect=unit_prices)
+    plugins_manager.calculate_order_line_total = Mock(side_effect=total_prices)
+    plugins_manager.get_order_line_tax_rate = Mock(side_effect=tax_rates)
+    plugins_manager.calculate_order_shipping = Mock(return_value=shipping)
+    plugins_manager.get_order_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
+    plugins_manager.get_taxes_for_order = Mock(return_value=None)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -460,14 +457,14 @@ def test_fetch_order_prices_if_expired_plugins(
 
 
 def test_fetch_order_prices_if_expired_webhooks_success(
-    manager,
+    plugins_manager,
     fetch_kwargs,
     order_with_lines,
     tax_data,
 ):
     # given
     currency = order_with_lines.currency
-    manager.get_taxes_for_order = Mock(return_value=tax_data)
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -487,7 +484,7 @@ def test_fetch_order_prices_if_expired_webhooks_success(
 
 
 def test_fetch_order_prices_if_expired_recalculate_all_prices(
-    manager,
+    plugins_manager,
     fetch_kwargs,
     order_with_lines,
     tax_data,
@@ -505,7 +502,7 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
     order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
     order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
     order_with_lines.save()
-    manager.get_taxes_for_order = Mock(return_value=tax_data)
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)

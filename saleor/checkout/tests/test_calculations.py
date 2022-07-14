@@ -9,7 +9,6 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
-from ...plugins.manager import get_plugins_manager
 from ..calculations import _apply_tax_data_from_app, fetch_checkout_prices_if_expired
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
@@ -46,9 +45,6 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
     checkout = checkout_with_items
     lines = checkout_lines
 
-    def qp(amount):
-        return quantize_price(amount, checkout.currency)
-
     # when
     _apply_tax_data_from_app(
         checkout,
@@ -61,33 +57,30 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
 
     # then
     assert str(checkout.shipping_price.net.amount) == str(
-        qp(tax_data.shipping_price_net_amount)
+        quantize_price(tax_data.shipping_price_net_amount, checkout.currency)
     )
     assert str(checkout.shipping_price.gross.amount) == str(
-        qp(tax_data.shipping_price_gross_amount)
+        quantize_price(tax_data.shipping_price_gross_amount, checkout.currency)
     )
 
     for line, tax_line in zip(lines, tax_data.lines):
-        assert str(line.total_price.net.amount) == str(qp(tax_line.total_net_amount))
+        assert str(line.total_price.net.amount) == str(
+            quantize_price(tax_line.total_net_amount, checkout.currency)
+        )
         assert str(line.total_price.gross.amount) == str(
-            qp(tax_line.total_gross_amount)
+            quantize_price(tax_line.total_gross_amount, checkout.currency)
         )
 
 
 @pytest.fixture
-def manager():
-    return get_plugins_manager()
-
-
-@pytest.fixture
-def fetch_kwargs(checkout_with_items, manager):
+def fetch_kwargs(checkout_with_items, plugins_manager):
     lines, _ = fetch_checkout_lines(checkout_with_items)
     discounts = []
     return {
         "checkout_info": fetch_checkout_info(
-            checkout_with_items, lines, discounts, manager
+            checkout_with_items, lines, discounts, plugins_manager
         ),
-        "manager": manager,
+        "manager": plugins_manager,
         "lines": lines,
         "address": checkout_with_items.shipping_address
         or checkout_with_items.billing_address,
@@ -126,7 +119,7 @@ def get_taxed_money(
 @patch("saleor.checkout.calculations._apply_tax_data_from_app")
 def test_fetch_checkout_prices_if_expired_plugins(
     _mocked_from_app,
-    manager,
+    plugins_manager,
     fetch_kwargs,
     checkout_with_items,
     tax_data,
@@ -135,7 +128,7 @@ def test_fetch_checkout_prices_if_expired_plugins(
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
     currency = checkout_with_items.currency
-    manager.get_taxes_for_checkout = Mock(return_value=None)
+    plugins_manager.get_taxes_for_checkout = Mock(return_value=None)
 
     totals, tax_rates = zip(
         *[
@@ -146,20 +139,24 @@ def test_fetch_checkout_prices_if_expired_plugins(
             for line in tax_data.lines
         ]
     )
-    manager.calculate_checkout_line_total = Mock(side_effect=totals * 3)
-    manager.get_checkout_line_tax_rate = Mock(side_effect=tax_rates)
+    plugins_manager.calculate_checkout_line_total = Mock(side_effect=totals * 3)
+    plugins_manager.get_checkout_line_tax_rate = Mock(side_effect=tax_rates)
 
     shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
-    manager.calculate_checkout_shipping = Mock(return_value=shipping_price)
+    plugins_manager.calculate_checkout_shipping = Mock(return_value=shipping_price)
 
     shipping_tax_rate = tax_data.shipping_tax_rate / 100
-    manager.get_checkout_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
+    plugins_manager.get_checkout_shipping_tax_rate = Mock(
+        return_value=shipping_tax_rate
+    )
 
     subtotal = zero_taxed_money(currency)
     for tax_line in tax_data.lines:
         total_price = get_taxed_money(tax_line, "total", currency)
         subtotal = subtotal + total_price
-    manager.calculate_checkout_total = Mock(return_value=shipping_price + subtotal)
+    plugins_manager.calculate_checkout_total = Mock(
+        return_value=shipping_price + subtotal
+    )
 
     # when
     fetch_checkout_prices_if_expired(**fetch_kwargs)
@@ -179,7 +176,7 @@ def test_fetch_checkout_prices_if_expired_plugins(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_fetch_checkout_prices_if_expired_webhooks_success(
-    manager,
+    plugins_manager,
     fetch_kwargs,
     checkout_with_items,
     tax_data,
@@ -188,7 +185,7 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
     currency = checkout_with_items.currency
-    manager.get_taxes_for_checkout = Mock(return_value=tax_data)
+    plugins_manager.get_taxes_for_checkout = Mock(return_value=tax_data)
 
     # when
     fetch_checkout_prices_if_expired(**fetch_kwargs)

@@ -352,16 +352,16 @@ def _apply_tax_data_from_plugins(
     for line_info in lines:
         line = line_info.line
 
-        total_price_data = manager.calculate_checkout_line_total(
+        total_price = manager.calculate_checkout_line_total(
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
         )
-        line.total_price = total_price_data
+        line.total_price = total_price
 
-        unit_price_data = manager.calculate_checkout_line_unit_price(
+        unit_price = manager.calculate_checkout_line_unit_price(
             checkout_info,
             lines,
             line_info,
@@ -375,7 +375,7 @@ def _apply_tax_data_from_plugins(
             line_info,
             address,
             discounts,
-            unit_price_data,
+            unit_price,
         )
 
     checkout.shipping_price = manager.calculate_checkout_shipping(
