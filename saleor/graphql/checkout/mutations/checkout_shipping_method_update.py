@@ -195,8 +195,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         cls, info, shipping_method_id, checkout_info, lines, checkout, manager
     ):
         delivery_method = manager.get_shipping_method(
-            checkout_info=checkout_info,
-            lines=lines,
+            checkout=checkout,
             channel_slug=checkout.channel.slug,
             shipping_method_id=shipping_method_id,
         )

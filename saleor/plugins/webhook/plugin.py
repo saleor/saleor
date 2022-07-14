@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, DefaultDict, Iterable, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
 
@@ -64,7 +64,6 @@ if TYPE_CHECKING:
     from ...account.models import Address, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
-    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
@@ -1262,17 +1261,14 @@ class WebhookPlugin(BasePlugin):
         )
 
     def get_shipping_methods_for_checkout(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
-        previous_value: Any,
+        self, checkout: "Checkout", previous_value: Any
     ) -> List["ShippingMethodData"]:
         methods = []
         apps = App.objects.for_event_type(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
-            payload = generate_checkout_payload(checkout_info.checkout, self.requestor)
+            payload = generate_checkout_payload(checkout, self.requestor)
             for app in apps:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
@@ -1335,17 +1331,16 @@ class WebhookPlugin(BasePlugin):
 
     def excluded_shipping_methods_for_checkout(
         self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        checkout: "Checkout",
         available_shipping_methods: List["ShippingMethodData"],
         previous_value: List[ExcludedShippingMethod],
     ) -> List[ExcludedShippingMethod]:
-        def payload_function():
-            return generate_excluded_shipping_methods_for_checkout_payload(
-                checkout_info, available_shipping_methods
-            )
-
-        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_info.checkout.token)
+        generate_function = generate_excluded_shipping_methods_for_checkout_payload
+        payload_function = lambda: generate_function(  # noqa: E731
+            checkout,
+            available_shipping_methods,
+        )
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout.token)
         return get_excluded_shipping_data(
             event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,

@@ -449,11 +449,8 @@ def test_excluded_shipping_methods_for_checkout(
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
     # when
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], plugin)
     excluded_methods = plugin.excluded_shipping_methods_for_checkout(
-        checkout_info,
-        lines,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
@@ -529,14 +526,10 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
     previous_value = []
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
 
     # when
     excluded_methods = plugin.excluded_shipping_methods_for_checkout(
-        checkout_info,
-        lines,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )

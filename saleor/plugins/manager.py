@@ -1212,12 +1212,11 @@ class PluginsManager(PaymentInterface):
 
     def list_shipping_methods_for_checkout(
         self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        checkout: "Checkout",
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["ShippingMethodData"]:
-        channel_slug = channel_slug or checkout_info.channel.slug
+        channel_slug = channel_slug if channel_slug else checkout.channel.slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         shipping_plugins = [
             plugin
@@ -1229,26 +1228,25 @@ class PluginsManager(PaymentInterface):
         for plugin in shipping_plugins:
             shipping_methods.extend(
                 # https://github.com/python/mypy/issues/9975
-                getattr(plugin, "get_shipping_methods_for_checkout")(
-                    checkout_info, lines, None
-                )
+                getattr(plugin, "get_shipping_methods_for_checkout")(checkout, None)
             )
         return shipping_methods
 
     def get_shipping_method(
         self,
         shipping_method_id: str,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        checkout: Optional["Checkout"] = None,
         channel_slug: Optional[str] = None,
     ):
-        methods = {
-            method.id: method
-            for method in self.list_shipping_methods_for_checkout(
-                checkout_info, lines, channel_slug
-            )
-        }
-        return methods.get(shipping_method_id)
+        if checkout:
+            methods = {
+                method.id: method
+                for method in self.list_shipping_methods_for_checkout(
+                    checkout=checkout, channel_slug=channel_slug
+                )
+            }
+            return methods.get(shipping_method_id)
+        return None
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"
@@ -1516,15 +1514,13 @@ class PluginsManager(PaymentInterface):
 
     def excluded_shipping_methods_for_checkout(
         self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        checkout: "Checkout",
         available_shipping_methods: List["ShippingMethodData"],
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],
-            checkout_info,
-            lines,
+            checkout,
             available_shipping_methods,
         )
 

@@ -527,7 +527,9 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
 
-    return manager.list_shipping_methods_for_checkout(checkout_info, lines)
+    return manager.list_shipping_methods_for_checkout(
+        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+    )
 
 
 def update_delivery_method_lists_for_checkout_info(
@@ -567,7 +569,7 @@ def update_delivery_method_lists_for_checkout_info(
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(
-            checkout_info, lines, all_methods
+            checkout_info.checkout, all_methods
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods

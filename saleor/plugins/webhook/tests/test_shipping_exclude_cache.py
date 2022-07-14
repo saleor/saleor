@@ -3,10 +3,7 @@ from unittest import mock
 
 import graphene
 
-from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-
 from ...base_plugin import ExcludedShippingMethod
-from ...manager import get_plugins_manager
 from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
 
 
@@ -230,14 +227,10 @@ def test_excluded_shipping_methods_for_checkout_use_cache(
         ExcludedShippingMethod(id="1", reason=other_reason),
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
 
     # when
     plugin.excluded_shipping_methods_for_checkout(
-        checkout_info,
-        lines,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
@@ -290,14 +283,10 @@ def test_excluded_shipping_methods_for_checkout_stores_in_cache_when_empty(
         ExcludedShippingMethod(id="1", reason=other_reason),
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
 
     # when
     plugin.excluded_shipping_methods_for_checkout(
-        checkout_info,
-        lines,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
@@ -362,12 +351,8 @@ def test_excluded_shipping_methods_for_checkout_stores_in_cache_when_payload_dif
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
     # when
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
     plugin.excluded_shipping_methods_for_checkout(
-        checkout_info,
-        lines,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )

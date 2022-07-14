@@ -523,8 +523,7 @@ class BasePlugin:
     get_payment_config: Callable[[Any], Any]
 
     get_shipping_methods_for_checkout: Callable[
-        ["CheckoutInfo", Iterable["CheckoutLineInfo"], Any],
-        List["ShippingMethodData"],
+        ["Checkout", Any], List["ShippingMethodData"]
     ]
 
     get_supported_currencies: Callable[[Any], Any]
