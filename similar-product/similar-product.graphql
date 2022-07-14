@@ -1,0 +1,22 @@
+# Here "isAvailableForPurchase" is used as the initial filter.
+# According to requirement the filter can be changed
+# id:["Put required filter"]
+
+{
+  products(first: 50, channel: "default-channel") {
+    edges {
+      node {
+     
+        id: isAvailableForPurchase
+        name
+        description
+        chargeTaxes
+        availableForPurchaseAt
+        created
+        rating
+        updatedAt
+        __typename
+      }
+    }
+  }
+}
