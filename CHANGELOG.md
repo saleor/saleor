@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+- Add query for transaction item and extend transaction item type with order - #10154 by @IKarbowiak
 
 # 3.5.0
 
