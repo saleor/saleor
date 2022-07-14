@@ -13,6 +13,7 @@ from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
+from ...attribute.models import AttributeValue
 from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard, GiftCardEvent
@@ -315,6 +316,42 @@ def test_generate_unique_slug_for_slug_with_max_characters_number(category):
 def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
     with pytest.raises(Exception):
         generate_unique_slug(category)
+
+
+def test_generate_unique_slug_with_additional_lookup_slug_not_changed(
+    color_attribute, attribute_without_values
+):
+    # given
+    value_1 = color_attribute.values.first()
+
+    # when
+    value_2 = AttributeValue(name=value_1.name, attribute=attribute_without_values)
+
+    # then
+    result = generate_unique_slug(
+        value_2,
+        value_2.name,
+        additional_search_lookup={"attribute": value_2.attribute_id},
+    )
+
+    assert result == value_1.slug
+
+
+def test_generate_unique_slug_with_additional_lookup_slug_changed(color_attribute):
+    # given
+    value_1 = color_attribute.values.first()
+
+    # when
+    value_2 = AttributeValue(name=value_1.name, attribute=color_attribute)
+
+    # then
+    result = generate_unique_slug(
+        value_2,
+        value_2.name,
+        additional_search_lookup={"attribute": value_2.attribute_id},
+    )
+
+    assert result == f"{value_1.slug}-2"
 
 
 @override_settings(DEBUG=False)

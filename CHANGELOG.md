@@ -4,6 +4,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.6.0 [Unreleased]
 
+### Other changes
+- Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+
 # 3.5.0
 
 ### GraphQL API
