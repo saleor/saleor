@@ -17,10 +17,19 @@
   "homepage": "http://saleor.io/",
   "devDependencies": {
     "@release-it/bumper": "^3.0.1",
+    "nodemon": "^2.0.19",
     "release-it": "^14.12.5"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
+    "devStart": "nodemon server.js",
     "release": "release-it"
+  },
+  "description": "![Saleor Commerce - A GraphQL-first platform for perfectionists](https://user-images.githubusercontent.com/249912/71523206-4e45f800-28c8-11ea-84ba-345a9bfc998a.png)",
+  "main": "server.js", 
+  "dependencies": {
+    "express": "^4.18.1",
+    "express-graphql": "^0.12.0",
+    "graphql": "^15.8.0"
   }
 }

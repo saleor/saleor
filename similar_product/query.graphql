@@ -1,0 +1,12 @@
+# GraphQL query request to list similar products for any product. 
+# Let id be arbitrary  xxxxxxx
+
+
+    products(search: {  product: { id: "xxxxxxx" } }) {
+      items {
+        itemId
+        related_products {
+          productId
+        }
+    }
+  }
