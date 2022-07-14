@@ -30,6 +30,28 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
 - Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
 
+### Breaking changes
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Change return type from `CheckoutTaxedPricesData` to `TaxedMoney` in plugin manager methods:
+    - `calculate_checkout_line_total`
+    - `calculate_checkout_line_unit_price`
+  -
+
+### GraphQL API
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum`
+
+### Plugins
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Add new method to plugin manager:
+    - `get_taxes_for_checkout`
+    - `get_taxes_for_order`
+
+### Other changes
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Add option to calculate taxes via webhooks more info in docs
+  <!-- We should put docs link here before release -->
+
 # 3.5.0
 
 ### GraphQL API
@@ -387,33 +409,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Don't run plugins when calculating checkout's total price for available shipping methods resolution - #9121 by @rafalp
   - Use either net or gross price depending on store configuration.
-- Update webhook payload for `list_shipping_methods_for_checkout` - #9263 by @mateuszgrzyb
-  - added fields:
-    - `subtotal_base_amount`
-    - `total_base_amount`
-    - `included_taxes_in_prices`
-    - `lines.base_price_with_discounts`
-    - `lines.product_metadata`
-    - `lines.product_type_metadata`
-- Update checkout payload serializer - #9263 by @mateuszgrzyb
-  - added fields:
-    - `subtotal_net_amount`
-    - `subtotal_gross_amount`
-    - `total_net_amount`
-    - `total_gross_amount`
-    - `included_taxes_in_prices`
-    - `lines.price_net_amount`
-    - `lines.price_gross_amount`
-    - `lines.price_with_discounts_net_amount`
-    - `lines.price_with_discounts_gross_amount`
-    - `lines.product_metadata`
-    - `lines.product_type_metadata`
-- Update order payload serializer - #9263 by @mateuszgrzyb
-  - added fields:
-    - `included_taxes_in_prices`
-    - `lines.charge_taxes`
-    - `lines.product_metadata`
-    - `lines.product_type_metadata`
 
 ### Other changes
 

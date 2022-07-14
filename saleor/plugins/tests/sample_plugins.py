@@ -44,7 +44,7 @@ def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
         TaxLineData(
             total_net_amount=unit * 3,
             total_gross_amount=unit_gross * 3,
-            tax_rate=Decimal("0.23"),
+            tax_rate=Decimal("23"),
         )
         for _ in obj_with_lines.lines.all()
     ]
@@ -55,7 +55,7 @@ def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
     return TaxData(
         shipping_price_net_amount=shipping,
         shipping_price_gross_amount=shipping_gross,
-        shipping_tax_rate=Decimal("0.23"),
+        shipping_tax_rate=Decimal("23"),
         lines=lines,
     )
 
