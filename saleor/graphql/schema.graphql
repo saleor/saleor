@@ -8004,6 +8004,9 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """Reference of transaction."""
   reference: String!
 
+  """The related order."""
+  order: Order!
+
   """List of all transaction's events."""
   events: [TransactionEvent!]!
 }
@@ -8020,63 +8023,6 @@ enum TransactionActionEnum {
   CHARGE
   REFUND
   VOID
-}
-
-"""Represents transaction's event."""
-type TransactionEvent implements Node {
-  """The ID of the object."""
-  id: ID!
-  createdAt: DateTime!
-
-  """Status of transaction's event."""
-  status: TransactionStatus!
-
-  """Reference of transaction's event."""
-  reference: String!
-
-  """Name of the transaction's event."""
-  name: String
-}
-
-"""An enumeration."""
-enum TransactionStatus {
-  PENDING
-  SUCCESS
-  FAILURE
-}
-
-type GiftCardCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [GiftCardCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type GiftCardCountableEdge {
-  """The item at the end of the edge."""
-  node: GiftCard!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-type OrderCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [OrderCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type OrderCountableEdge {
-  """The item at the end of the edge."""
-  node: Order!
-
-  """A cursor for use in pagination."""
-  cursor: String!
 }
 
 """Represents an order in the shop."""
@@ -9038,6 +8984,13 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
+"""An enumeration."""
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
+}
+
 """Contains all details related to the applied discount to the order."""
 type OrderDiscount implements Node {
   id: ID!
@@ -9133,6 +9086,56 @@ enum OrderErrorCode {
 enum AddressTypeEnum {
   BILLING
   SHIPPING
+}
+
+"""Represents transaction's event."""
+type TransactionEvent implements Node {
+  """The ID of the object."""
+  id: ID!
+  createdAt: DateTime!
+
+  """Status of transaction's event."""
+  status: TransactionStatus!
+
+  """Reference of transaction's event."""
+  reference: String!
+
+  """Name of the transaction's event."""
+  name: String
+}
+
+type GiftCardCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [GiftCardCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type GiftCardCountableEdge {
+  """The item at the end of the edge."""
+  node: GiftCard!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+type OrderCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [OrderCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type OrderCountableEdge {
+  """The item at the end of the edge."""
+  node: Order!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 type UserPermission {
