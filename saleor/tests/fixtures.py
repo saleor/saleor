@@ -3375,6 +3375,9 @@ def order_line_with_one_allocation(
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
+    stock = stocks[0]
+    stock.quantity_allocated = 3
+    stock.save(update_fields=["quantity_allocated"])
 
     order = Order.objects.create(
         billing_address=address,
@@ -3412,14 +3415,6 @@ def order_line_with_one_allocation(
     Allocation.objects.create(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
-    stocks_to_update = []
-    for mismatched_stock in Stock.objects.annotate(
-        allocations_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
-    ).exclude(quantity_allocated=F("allocations_allocated")):
-        mismatched_stock.quantity_allocated = mismatched_stock.allocations_allocated
-        stocks_to_update.append(mismatched_stock)
-    if stocks_to_update:
-        Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     return order_line
 

@@ -416,10 +416,8 @@ def decrease_stock(
         )
 
         stock_ids = (s.id for s in stocks)
-        for stock in Stock.objects.filter(
-            id__in=stock_ids
-        ).annotate_available_quantity():
-            if stock.available_quantity <= 0:
+        for stock in Stock.objects.filter(id__in=stock_ids):
+            if (stock.quantity - stock.quantity_allocated) <= 0:
                 transaction.on_commit(
                     lambda: manager.product_variant_out_of_stock(stock)
                 )

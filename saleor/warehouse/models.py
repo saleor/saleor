@@ -103,8 +103,11 @@ class WarehouseQueryset(models.QuerySet):
         )
 
         stocks_qs = (
-            Stock.objects.annotate_available_quantity()
-            .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
+            Stock.objects.annotate(
+                line_quantity=F("quantity")
+                - F("quantity_allocated")
+                - Subquery(lines_quantity)
+            )
             .order_by("line_quantity")
             .filter(
                 product_variant__id__in=lines_qs.values("variant_id"),
@@ -181,9 +184,6 @@ class Warehouse(ModelWithMetadata):
 
 
 class StockQuerySet(models.QuerySet):
-    def annotate_available_quantity(self):
-        return self.annotate(available_quantity=F("quantity") - F("quantity_allocated"))
-
     def annotate_reserved_quantity(self):
         return self.annotate(
             reserved_quantity=Coalesce(

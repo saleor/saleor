@@ -93,7 +93,7 @@ from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
     PreorderQuantityReservedByVariantChannelListingIdLoader,
-    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
+    StocksByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -369,9 +369,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     ):
         if address is not None:
             country_code = address.country
-        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).load((root.node.id, country_code, root.channel_slug))
+        return StocksByProductVariantIdCountryCodeAndChannelLoader(info.context).load(
+            (root.node.id, country_code, root.channel_slug)
+        )
 
     @staticmethod
     def resolve_quantity_available(

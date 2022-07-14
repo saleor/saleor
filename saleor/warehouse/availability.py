@@ -224,11 +224,9 @@ def check_stock_quantity_bulk(
     if additional_filter_lookup is not None:
         filter_lookup.update(additional_filter_lookup)
 
-    all_variants_stocks = (
-        Stock.objects.for_channel_and_country(channel_slug, country_code)
-        .filter(**filter_lookup)
-        .annotate_available_quantity()
-    )
+    all_variants_stocks = Stock.objects.for_channel_and_country(
+        channel_slug, country_code
+    ).filter(**filter_lookup)
 
     variant_stocks: Dict[int, List[Stock]] = defaultdict(list)
     for stock in all_variants_stocks:
@@ -253,7 +251,7 @@ def check_stock_quantity_bulk(
 
         stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum(
-            [stock.available_quantity for stock in stocks]  # type: ignore
+            [(stock.quantity - stock.quantity_allocated) for stock in stocks]
         )
         available_quantity = max(
             available_quantity - variant_reservations[variant.pk], 0
@@ -488,10 +486,12 @@ def is_product_in_stock(
     product: "Product", country_code: str, channel_slug: str
 ) -> bool:
     """Check if there is any variant of given product available in given country."""
-    stocks = Stock.objects.get_product_stocks_for_country_and_channel(
+    for stock in Stock.objects.get_product_stocks_for_country_and_channel(
         country_code, channel_slug, product
-    ).annotate_available_quantity()
-    return any(stocks.values_list("available_quantity", flat=True))
+    ):
+        if (stock.quantity - stock.quantity_allocated) > 0:
+            return True
+    return False
 
 
 def get_reserved_stock_quantity(

@@ -158,6 +158,9 @@ def test_get_available_quantity_with_allocations_and_reservations(
     checkout_line_with_one_reservation,
     channel_USD,
 ):
+    stock = variant_with_many_stocks.stocks.first()
+    stock.quantity_allocated = 1
+    stock.save(update_fields=["quantity_allocated"])
     available_quantity = get_available_quantity(
         variant_with_many_stocks,
         COUNTRY_CODE,

@@ -40,9 +40,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
-from ...warehouse.dataloaders import (
-    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
-)
+from ...warehouse.dataloaders import StocksByProductVariantIdCountryCodeAndChannelLoader
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
@@ -737,9 +735,9 @@ class ProductVariantStocksCreate(BaseMutation):
                     lambda: manager.product_variant_back_in_stock(stock)
                 )
 
-        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).clear((variant.id, None, None))
+        StocksByProductVariantIdCountryCodeAndChannelLoader(info.context).clear(
+            (variant.id, None, None)
+        )
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
@@ -813,9 +811,9 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             manager = info.context.plugins
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
-        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).clear((variant.id, None, None))
+        StocksByProductVariantIdCountryCodeAndChannelLoader(info.context).clear(
+            (variant.id, None, None)
+        )
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
@@ -883,9 +881,9 @@ class ProductVariantStocksDelete(BaseMutation):
 
         stocks_to_delete.delete()
 
-        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).clear((variant.id, None, None))
+        StocksByProductVariantIdCountryCodeAndChannelLoader(info.context).clear(
+            (variant.id, None, None)
+        )
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)

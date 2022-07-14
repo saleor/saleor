@@ -117,7 +117,6 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             )
         if additional_warehouse_filter:
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
-        stocks = stocks.annotate_available_quantity()
 
         stocks_reservations = defaultdict(int)
         if is_reservation_enabled(self.context.site.settings):  # type: ignore
@@ -141,7 +140,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
             reserved_quantity = stocks_reservations[stock.id]
-            quantity = max(0, stock.available_quantity - reserved_quantity)
+            quantity = max(
+                0, stock.quantity - stock.quantity_allocated - reserved_quantity
+            )
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
             shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]
@@ -178,7 +179,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         ]
 
 
-class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+class StocksByProductVariantIdCountryCodeAndChannelLoader(
     DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]
 ):
     """Return stocks with available quantity based on variant ID, country code, channel.
@@ -187,7 +188,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     return stocks with maximum available quantity.
     """
 
-    context_key = "stocks_with_available_quantity_by_productvariant_country_and_channel"
+    context_key = "stocks_by_productvariant_country_and_channel"
 
     def batch_load(self, keys):
         # Split the list of keys by country first. A typical query will only touch
@@ -235,7 +236,6 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 warehouse__shipping_zones__channels__slug=channel_slug,
                 warehouse__channels__slug=channel_slug,
             )
-        stocks = stocks.annotate_available_quantity()
 
         stocks_by_variant_id_map: DefaultDict[int, List[Stock]] = defaultdict(list)
         for stock in stocks:

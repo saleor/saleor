@@ -1,7 +1,7 @@
 from unittest import mock
 
 import pytest
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ...core.exceptions import InsufficientStock
@@ -152,7 +152,9 @@ def test_allocate_stock_many_stocks_partially_allocated(
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
     stock_ids = list(
-        variant.stocks.annotate_available_quantity()
+        variant.stocks.annotate(
+            available_quantity=F("quantity") - F("quantity_allocated")
+        )
         .order_by("-available_quantity")
         .values_list("id", flat=True)
     )
