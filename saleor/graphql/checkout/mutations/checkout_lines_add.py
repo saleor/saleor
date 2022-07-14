@@ -20,7 +20,7 @@ from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_checkout,
-    group_quantity_and_custom_prices_by_variants,
+    group_lines,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -170,9 +170,8 @@ class CheckoutLinesAdd(BaseMutation):
         discounts = info.context.discounts
         manager = info.context.plugins
 
-        variant_ids = [line.get("variant_id") for line in lines]
-        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        checkout_lines_data = group_quantity_and_custom_prices_by_variants(lines)
+        variants = cls._get_variants(lines)
+        checkout_lines_data = group_lines(lines)
 
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
@@ -196,3 +195,8 @@ class CheckoutLinesAdd(BaseMutation):
         manager.checkout_updated(checkout)
 
         return CheckoutLinesAdd(checkout=checkout)
+
+    @classmethod
+    def _get_variants(cls, lines):
+        variant_ids = [line.get("variant_id") for line in lines]
+        return cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)

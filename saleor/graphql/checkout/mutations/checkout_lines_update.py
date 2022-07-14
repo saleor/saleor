@@ -3,22 +3,35 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
+from ...checkout.types import CheckoutLine
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
+from ...core.validators import validate_one_of_args_is_in_mutation
+from ...product.types import ProductVariant
 from ..types import Checkout
-from .checkout_create import CheckoutLineInput
+from .checkout_create import CheckoutLineBaseInput
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import check_lines_quantity
 
 
-class CheckoutLineUpdateInput(CheckoutLineInput):
+class CheckoutLineUpdateInput(CheckoutLineBaseInput):
+    variant_id = graphene.ID(
+        required=False,
+        description=(
+            f"ID of the product variant. {DEPRECATED_IN_3X_INPUT} Use `lineId` instead."
+        ),
+    )
     quantity = graphene.Int(
         required=False,
         description=(
             "The number of items purchased. "
             "Optional for apps, required for any other users."
         ),
+    )
+    line_id = graphene.ID(
+        description="ID of the line.",
+        required=False,
     )
 
 
@@ -66,6 +79,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     ):
         variants_to_validate = []
         quantities = []
+
         for variant, line_data in zip(variants, checkout_lines_data):
             if line_data.quantity_to_update:
                 variants_to_validate.append(variant)
@@ -113,6 +127,26 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
                     }
                 )
 
+        # # if same variant occur in multiple lines `lineId` parameter have to be used
+        variants_ids_in_existing_lines = [line.variant.pk for line in lines]
+        for line in checkout_lines_data:
+            if (
+                line.variant_id
+                and variants_ids_in_existing_lines.count(line.variant_id) > 1
+            ):
+                message = (
+                    f"Variant #{line.variant_id} occur in multiple lines. "
+                    "Use `lineId` instead of `variantId`."
+                )
+                raise ValidationError(
+                    {
+                        "variantId": ValidationError(
+                            message,
+                            code=CheckoutErrorCode.WRONG_PARAMETER.value,
+                        )
+                    }
+                )
+
         return super().clean_input(
             info,
             checkout,
@@ -126,7 +160,39 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, lines, checkout_id=None, token=None, id=None):
+    def perform_mutation(
+        cls, root, info, lines, checkout_id=None, token=None, id=None, replace=True
+    ):
+        for line in lines:
+            validate_one_of_args_is_in_mutation(
+                CheckoutErrorCode,
+                "line_id",
+                line.get("line_id"),
+                "variant_id",
+                line.get("variant_id"),
+            )
+
         return super().perform_mutation(
             root, info, lines, checkout_id, token, id, replace=True
         )
+
+    @classmethod
+    def _get_variants(cls, lines):
+        variant_ids = set()
+
+        variant_ids.update(
+            {line.get("variant_id") for line in lines if line.get("variant_id")}
+        )
+
+        line_ids = [line.get("line_id") for line in lines if line.get("line_id")]
+
+        if line_ids:
+            lines = cls.get_nodes_or_error(line_ids, "line_id", CheckoutLine)
+            variant_ids.update(
+                {
+                    graphene.Node.to_global_id("ProductVariant", line.variant_id)
+                    for line in lines
+                }
+            )
+
+        return cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)

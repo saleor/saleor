@@ -644,13 +644,14 @@ def test_update_checkout_lines_with_reservations(
         variants,
         [
             CheckoutLineData(
+                variant_id=variant.pk,
                 quantity=2,
                 quantity_to_update=True,
                 custom_price=None,
                 custom_price_to_update=False,
             )
-        ]
-        * 10,
+            for variant in variants
+        ],
         channel_USD.slug,
         replace_reservations=True,
         reservation_length=5,

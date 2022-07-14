@@ -616,6 +616,50 @@ def test_checkout_create_with_custom_price_duplicated_items(
     assert checkout_line.price_override == price_2
 
 
+def test_checkout_create_with_force_new_line(
+    app_api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    permission_handle_checkouts,
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [
+                {"quantity": 1, "variantId": variant_id},
+                {"quantity": 1, "variantId": variant_id, "forceNewLine": True},
+            ],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+    new_checkout_lines = new_checkout.lines.all()
+    assert new_checkout is not None
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert len(new_checkout_lines) == 2
+
+    for line in new_checkout_lines:
+        assert line.variant == variant
+        assert line.quantity == 1
+
+
 def test_checkout_create_with_custom_price_by_app_no_perm(
     app_api_client, stock, graphql_address_data, channel_USD
 ):

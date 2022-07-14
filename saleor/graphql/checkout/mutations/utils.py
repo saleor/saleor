@@ -38,6 +38,8 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 @dataclass
 class CheckoutLineData:
+    variant_id: Optional[str] = None
+    line_id: Optional[str] = None
     quantity: int = 0
     quantity_to_update: bool = False
     custom_price: Optional[Decimal] = None
@@ -273,24 +275,49 @@ def get_checkout(
     return checkout
 
 
-def group_quantity_and_custom_prices_by_variants(
-    lines: List[Dict[str, Any]]
-) -> List[CheckoutLineData]:
+def group_lines(lines: List[Dict[str, Any]]) -> List[CheckoutLineData]:
     variant_checkout_line_data_map: Dict[str, CheckoutLineData] = defaultdict(
         CheckoutLineData
     )
+    force_new_line_checkout_lines_data_map: List[CheckoutLineData] = []
 
     for line in lines:
+        variant_db_id = None
+        line_db_id = None
         variant_id = cast(str, line.get("variant_id"))
-        line_data = variant_checkout_line_data_map[variant_id]
+        line_id = cast(str, line.get("line_id"))
+        force_new_line = line.get("force_new_line")
+
+        if line_id:
+            _, line_db_id = graphene.Node.from_global_id(line_id)
+
+        if variant_id:
+            _, variant_db_id = graphene.Node.from_global_id(variant_id)
+            variant_db_id = int(variant_db_id)
+
+        if force_new_line:
+            line_data = CheckoutLineData(variant_id=variant_db_id)
+            force_new_line_checkout_lines_data_map.append(line_data)
+        else:
+            if line_id:
+                line_data = variant_checkout_line_data_map[line_id]
+                line_data.line_id = line_db_id
+            else:
+                line_data = variant_checkout_line_data_map[variant_id]
+                line_data.variant_id = variant_db_id
+
         if (quantity := line.get("quantity")) is not None:
             line_data.quantity += quantity
             line_data.quantity_to_update = True
+
         if "price" in line:
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
 
-    return list(variant_checkout_line_data_map.values())
+    return (
+        list(variant_checkout_line_data_map.values())
+        + force_new_line_checkout_lines_data_map
+    )
 
 
 def check_permissions_for_custom_prices(app, lines):
