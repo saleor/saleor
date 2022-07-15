@@ -90,18 +90,12 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
     # TODO: move this function from graphql to core
     from saleor.graphql.utils import get_user_or_app_from_context
 
-    is_app = bool(getattr(context, "app", None))
     requestor = get_user_or_app_from_context(context)
 
     if permissions:
         perm_checks_results = []
         for permission in permissions:
-            if is_app and permission == AccountPermissions.MANAGE_STAFF:
-                # `MANAGE_STAFF` permission for apps is not supported, as apps using it
-                # could create a staff user with full access.
-                perm_checks_results.append(False)
-            else:
-                perm_checks_results.append(requestor.has_perm(permission))
+            perm_checks_results.append(requestor.has_perm(permission))
         granted_by_permissions = any(perm_checks_results)
 
     if authorization_filters:

@@ -17,7 +17,6 @@ from ...graphql.product.filters import (
 )
 from .. import ProductTypeKind, models
 from ..models import DigitalContentUrl
-from ..thumbnails import create_product_thumbnails
 from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
 
@@ -379,14 +378,13 @@ def test_costs_get_margin_for_variant_channel_listing(
     assert not get_margin_for_variant_channel_listing(variant_channel_listing)
 
 
-@patch("saleor.product.thumbnails.create_thumbnails")
-def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
-    product_image = product_with_image.media.first()
-    create_product_thumbnails(product_image.pk)
-    assert mock_create_thumbnails.call_count == 1
-    args, kwargs = mock_create_thumbnails.call_args
-    assert kwargs == {
-        "model": models.ProductMedia,
-        "pk": product_image.pk,
-        "size_set": "products",
-    }
+@patch("saleor.product.signals.delete_from_storage_task.delay")
+def test_product_media_delete(delete_from_storage_task_mock, product_with_image):
+    # given
+    media = product_with_image.media.first()
+
+    # when
+    media.delete()
+
+    # then
+    delete_from_storage_task_mock.assert_called_once_with(media.image.path)

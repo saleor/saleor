@@ -228,8 +228,8 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.app",
+    "saleor.thumbnail",
     # External apps
-    "versatileimagefield",
     "django_measurement",
     "django_prices",
     "django_prices_openexchangerates",
@@ -306,7 +306,8 @@ LOGGING = {
         },
         "verbose": {
             "format": (
-                "%(levelname)s %(name)s %(message)s [PID:%(process)d:%(threadName)s]"
+                "%(asctime)s %(levelname)s %(name)s %(message)s "
+                "[PID:%(process)d:%(threadName)s]"
             )
         },
     },
@@ -457,41 +458,21 @@ elif GS_BUCKET_NAME:
 
 if AWS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif AZURE_CONTAINER:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
-
-VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    "products": [
-        ("product_gallery", "thumbnail__540x540"),
-        ("product_gallery_2x", "thumbnail__1080x1080"),
-        ("product_small", "thumbnail__60x60"),
-        ("product_small_2x", "thumbnail__120x120"),
-        ("product_list", "thumbnail__255x255"),
-        ("product_list_2x", "thumbnail__510x510"),
-    ],
-    "background_images": [("header_image", "thumbnail__1080x440")],
-    "user_avatars": [("default", "thumbnail__445x445")],
-}
-
-VERSATILEIMAGEFIELD_SETTINGS = {
-    # Images should be pre-generated on Production environment
-    "create_images_on_demand": get_bool_from_env("CREATE_IMAGES_ON_DEMAND", DEBUG)
-}
 
 PLACEHOLDER_IMAGES = {
-    60: "images/placeholder60x60.png",
-    120: "images/placeholder120x120.png",
-    255: "images/placeholder255x255.png",
-    540: "images/placeholder540x540.png",
-    1080: "images/placeholder1080x1080.png",
+    32: "images/placeholder32.png",
+    64: "images/placeholder64.png",
+    128: "images/placeholder128.png",
+    256: "images/placeholder256.png",
+    512: "images/placeholder512.png",
+    1024: "images/placeholder1024.png",
+    2048: "images/placeholder2048.png",
+    4096: "images/placeholder4096.png",
 }
-
-DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
 
 AUTHENTICATION_BACKENDS = [

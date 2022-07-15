@@ -38,7 +38,6 @@ from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import Money
-from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
@@ -87,7 +86,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
-    background_image = VersatileImageField(
+    background_image = models.ImageField(
         upload_to="category-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
@@ -797,10 +796,7 @@ class ProductMedia(SortableModel):
     product = models.ForeignKey(
         Product, related_name="media", on_delete=models.SET_NULL, null=True, blank=True
     )
-    image = VersatileImageField(
-        upload_to="products", ppoi_field="ppoi", blank=True, null=True
-    )
-    ppoi = PPOIField()
+    image = models.ImageField(upload_to="products", blank=True, null=True)
     alt = models.CharField(max_length=128, blank=True)
     type = models.CharField(
         max_length=32,
@@ -889,7 +885,7 @@ class Collection(SeoModel, ModelWithMetadata):
         through=CollectionProduct,
         through_fields=("collection", "product"),
     )
-    background_image = VersatileImageField(
+    background_image = models.ImageField(
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
