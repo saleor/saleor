@@ -174,23 +174,6 @@ def test_query_public_meta_for_staff_as_other_staff(
     assert metadata["value"] == PUBLIC_VALUE
 
 
-def test_query_public_meta_for_staff_as_app(
-    app_api_client, permission_manage_staff, admin_user
-):
-    # given
-    admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    admin_user.save(update_fields=["metadata"])
-    variables = {"id": graphene.Node.to_global_id("User", admin_user.pk)}
-
-    # when
-    response = app_api_client.post_graphql(
-        QUERY_USER_PUBLIC_META, variables, [permission_manage_staff]
-    )
-
-    # then
-    assert_no_permission(response)
-
-
 QUERY_CHECKOUT_PUBLIC_META = """
     query checkoutMeta($token: UUID!){
         checkout(token: $token){
@@ -1965,23 +1948,6 @@ def test_query_private_meta_for_staff_as_other_staff(
     metadata = content["data"]["user"]["privateMetadata"][0]
     assert metadata["key"] == PRIVATE_KEY
     assert metadata["value"] == PRIVATE_VALUE
-
-
-def test_query_private_meta_for_staff_as_app(
-    app_api_client, permission_manage_staff, admin_user
-):
-    # given
-    admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    admin_user.save(update_fields=["private_metadata"])
-    variables = {"id": graphene.Node.to_global_id("User", admin_user.pk)}
-
-    # when
-    response = app_api_client.post_graphql(
-        QUERY_USER_PRIVATE_META, variables, [permission_manage_staff]
-    )
-
-    # then
-    assert_no_permission(response)
 
 
 QUERY_CHECKOUT_PRIVATE_META = """

@@ -2200,24 +2200,6 @@ def test_permission_groups_query_with_filter_by_ids(
     assert len(data) == 1
 
 
-def test_permission_groups_app_no_permission(
-    permission_group_manage_users,
-    permission_manage_staff,
-    app_api_client,
-    app,
-):
-    app.permissions.add(permission_manage_staff)
-    query = QUERY_PERMISSION_GROUP_WITH_FILTER
-    Group.objects.bulk_create(
-        [Group(name="Manage product."), Group(name="Remove product.")]
-    )
-    variables = {"filter": {"search": "Manage user groups"}}
-
-    response = app_api_client.post_graphql(query, variables)
-
-    assert_no_permission(response)
-
-
 def test_permission_groups_no_permission_to_perform(
     permission_group_manage_users,
     permission_manage_staff,
@@ -2330,24 +2312,6 @@ def test_permission_group_query(
         == permissions_codes
     )
     assert data["userCanManage"] is True
-
-
-def test_permission_group_query_app_no_permission(
-    permission_group_manage_users,
-    staff_user,
-    permission_manage_staff,
-    permission_manage_users,
-    app_api_client,
-    app,
-):
-    app.permissions.add(permission_manage_staff, permission_manage_users)
-    group = permission_group_manage_users
-    query = QUERY_PERMISSION_GROUP
-    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
-
-    response = app_api_client.post_graphql(query, variables)
-
-    assert_no_permission(response)
 
 
 def test_permission_group_query_user_cannot_manage(
