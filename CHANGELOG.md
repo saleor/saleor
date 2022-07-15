@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.6.0 [Unreleased]
 
+### Breaking changes
+- Drop django-versatileimagefield package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
+  - Drop `create_thumbnails` command
+
 ### Other changes
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
 

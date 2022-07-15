@@ -17,6 +17,7 @@ from ....product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
+from ....thumbnail.models import Thumbnail
 from ...core.dataloaders import DataLoader
 
 ProductIdAndChannelSlug = Tuple[int, str]
@@ -643,3 +644,37 @@ class CategoryChildrenByCategoryIdLoader(DataLoader):
             parent_to_children_mapping[category.parent_id].append(category)
 
         return [parent_to_children_mapping.get(key, []) for key in keys]
+
+
+class BaseThumbnailBySizeAndFormatLoader(DataLoader):
+    model_name = None
+
+    def batch_load(self, keys):
+        model_name = self.model_name.lower()
+        instance_ids = [id for id, _, _ in keys]
+        lookup = {f"{model_name}_id__in": instance_ids}
+        thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
+            **lookup
+        )
+        thumbnails_by_instance_id_size_and_format_map = defaultdict()
+        for thumbnail in thumbnails:
+            format = thumbnail.format.lower() if thumbnail.format else None
+            thumbnails_by_instance_id_size_and_format_map[
+                (getattr(thumbnail, f"{model_name}_id"), thumbnail.size, format)
+            ] = thumbnail
+        return [thumbnails_by_instance_id_size_and_format_map.get(key) for key in keys]
+
+
+class ThumbnailByCategoryIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_category_size_and_format"
+    model_name = "category"
+
+
+class ThumbnailByCollectionIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_collection_size_and_format"
+    model_name = "collection"
+
+
+class ThumbnailByProductMediaIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_productmedia_size_and_format"
+    model_name = "product_media"

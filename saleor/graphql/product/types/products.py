@@ -19,13 +19,13 @@ from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
-from ....product.product_images import get_product_image_thumbnail, get_thumbnail
 from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
+from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
@@ -68,6 +68,7 @@ from ...core.types import (
     TaxedMoney,
     TaxedMoneyRange,
     TaxType,
+    ThumbnailField,
     Weight,
 )
 from ...core.utils import from_global_id_or_error
@@ -115,6 +116,9 @@ from ..dataloaders import (
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    ThumbnailByCategoryIdSizeAndFormatLoader,
+    ThumbnailByCollectionIdSizeAndFormatLoader,
+    ThumbnailByProductMediaIdSizeAndFormatLoader,
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
@@ -766,11 +770,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    thumbnail = graphene.Field(
-        Image,
-        description="The main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
-    )
+    thumbnail = ThumbnailField()
     pricing = graphene.Field(
         ProductPricingInfo,
         address=destination_address_argument,
@@ -903,21 +903,33 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: ChannelContext[models.Product], info, *, size=255):
+    def resolve_thumbnail(
+        root: ChannelContext[models.Product], info, *, size=256, format=None
+    ):
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
         def return_first_thumbnail(product_media):
-            if product_media:
-                image = product_media[0]
-                oembed_data = image.oembed_data
+            if not product_media:
+                return None
 
-                if oembed_data.get("thumbnail_url"):
-                    return Image(
-                        alt=oembed_data["title"], url=oembed_data["thumbnail_url"]
-                    )
+            image = product_media[0]
+            oembed_data = image.oembed_data
 
-                url = get_product_image_thumbnail(image, size, method="thumbnail")
-                alt = image.alt
-                return Image(alt=alt, url=info.context.build_absolute_uri(url))
-            return None
+            if oembed_data.get("thumbnail_url"):
+                return Image(alt=oembed_data["title"], url=oembed_data["thumbnail_url"])
+
+            def _resolve_url(thumbnail):
+                url = get_image_or_proxy_url(
+                    thumbnail, image.id, "ProductMedia", size, format
+                )
+                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+
+            return (
+                ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+                .load((image.id, size, format))
+                .then(_resolve_url)
+            )
 
         return (
             MediaByProductIdLoader(info.context)
@@ -1457,9 +1469,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
-    background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image.")
-    )
+    background_image = ThumbnailField()
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",
@@ -1485,17 +1495,28 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_background_image(
-        root: ChannelContext[models.Collection], info, *, size=None
+        root: ChannelContext[models.Collection], info, size=None, format=None
     ):
-        if root.node.background_image:
-            node = root.node
-            return Image.get_adjusted(
-                image=node.background_image,
-                alt=node.background_image_alt,
-                size=size,
-                rendition_key_set="background_images",
-                info=info,
-            )
+        node = root.node
+        if not node.background_image:
+            return
+
+        alt = node.background_image_alt
+        if not size:
+            return Image(url=node.background_image.url, alt=alt)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_background_image(thumbnail):
+            url = get_image_or_proxy_url(thumbnail, node.id, "Collection", size, format)
+            return Image(url=url, alt=alt)
+
+        return (
+            ThumbnailByCollectionIdSizeAndFormatLoader(info.context)
+            .load((node.id, size, format))
+            .then(_resolve_background_image)
+        )
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
@@ -1583,9 +1604,7 @@ class Category(ModelObjectType):
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )
-    background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image.")
-    )
+    background_image = ThumbnailField()
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
@@ -1609,15 +1628,26 @@ class Category(ModelObjectType):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_background_image(root: models.Category, info, size=None):
-        if root.background_image:
-            return Image.get_adjusted(
-                image=root.background_image,
-                alt=root.background_image_alt,
-                size=size,
-                rendition_key_set="background_images",
-                info=info,
-            )
+    def resolve_background_image(root: models.Category, info, size=None, format=None):
+        if not root.background_image:
+            return
+
+        alt = root.background_image_alt
+        if not size:
+            return Image(url=root.background_image.url, alt=alt)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_background_image(thumbnail):
+            url = get_image_or_proxy_url(thumbnail, root.id, "Category", size, format)
+            return Image(url=url, alt=alt)
+
+        return (
+            ThumbnailByCategoryIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_background_image)
+        )
 
     @staticmethod
     def resolve_children(root: models.Category, info, **kwargs):
@@ -1678,11 +1708,7 @@ class ProductMedia(ModelObjectType):
     alt = graphene.String(required=True)
     type = ProductMediaType(required=True)
     oembed_data = JSONString(required=True)
-    url = graphene.String(
-        required=True,
-        description="The URL of the media.",
-        size=graphene.Int(description="Size of the image."),
-    )
+    url = ThumbnailField(graphene.String, required=True)
 
     class Meta:
         description = "Represents a product media."
@@ -1690,15 +1716,30 @@ class ProductMedia(ModelObjectType):
         model = models.ProductMedia
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None):
+    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
         if root.external_url:
             return root.external_url
 
-        if size:
-            url = get_thumbnail(root.image, size, method="thumbnail")
-        else:
-            url = root.image.url
-        return info.context.build_absolute_uri(url)
+        if not root.image:
+            return
+
+        if not size:
+            return info.context.build_absolute_uri(root.image.url)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_url(thumbnail):
+            url = get_image_or_proxy_url(
+                thumbnail, root.id, "ProductMedia", size, format
+            )
+            return info.context.build_absolute_uri(url)
+
+        return (
+            ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_url)
+        )
 
     @staticmethod
     def __resolve_references(roots: List["ProductMedia"], _info):
@@ -1718,11 +1759,7 @@ class ProductImage(graphene.ObjectType):
             "backward, 0 leaves the item unchanged."
         ),
     )
-    url = graphene.String(
-        required=True,
-        description="The URL of the image.",
-        size=graphene.Int(description="Size of the image."),
-    )
+    url = ThumbnailField(graphene.String, required=True)
 
     class Meta:
         description = "Represents a product image."
@@ -1732,9 +1769,24 @@ class ProductImage(graphene.ObjectType):
         return graphene.Node.to_global_id("ProductImage", root.id)
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None):
-        if size:
-            url = get_thumbnail(root.image, size, method="thumbnail")
-        else:
-            url = root.image.url
-        return info.context.build_absolute_uri(url)
+    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
+        if not root.image:
+            return
+
+        if not size:
+            return info.context.build_absolute_uri(root.image.url)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_url(thumbnail):
+            url = get_image_or_proxy_url(
+                thumbnail, root.id, "ProductMedia", size, format
+            )
+            return info.context.build_absolute_uri(url)
+
+        return (
+            ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_url)
+        )
