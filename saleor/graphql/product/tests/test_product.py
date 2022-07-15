@@ -3,13 +3,14 @@ import os
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import ANY, MagicMock, Mock, patch
 
 import before_after
 import graphene
 import pytest
 import pytz
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
@@ -9602,6 +9603,22 @@ def test_product_media_delete(
     delete_product_media_task_mock.assert_called_once_with(media_obj.id)
 
 
+PRODUCT_MEDIA_REORDER = """
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
+        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
+            product {
+                id
+            }
+            errors{
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_reorder_media(
     product_updated_mock,
@@ -9609,15 +9626,7 @@ def test_reorder_media(
     product_with_images,
     permission_manage_products,
 ):
-    query = """
-    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
-        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
-            product {
-                id
-            }
-        }
-    }
-    """
+    query = PRODUCT_MEDIA_REORDER
     product = product_with_images
     media = product.media.all()
     media_0 = media[0]
@@ -9643,26 +9652,46 @@ def test_reorder_media(
     product_updated_mock.assert_called_once_with(product)
 
 
+def test_reorder_media_not_enough_ids(
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
+):
+    query = PRODUCT_MEDIA_REORDER
+    product = product_with_images
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    media_1_id = graphene.Node.to_global_id("ProductMedia", media_1.id)
+
+    variables = {"product_id": product_id, "media_ids": [media_1_id]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # Check if order has not been changed
+    product.refresh_from_db()
+    reordered_media = product.media.all()
+    reordered_media_0 = reordered_media[0]
+    reordered_media_1 = reordered_media[1]
+
+    assert media_0.id == reordered_media_0.id
+    assert media_1.id == reordered_media_1.id
+    assert (
+        content["data"]["productMediaReorder"]["errors"][0]["code"]
+        == ProductErrorCode.INVALID.name
+    )
+
+
 @pytest.mark.django_db(transaction=True)
 def test_reorder_not_existing_media(
     staff_api_client,
     product_with_images,
     permission_manage_products,
 ):
-    query = """
-    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
-        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
-            product {
-                id
-            }
-            errors{
-            field
-            code
-            message
-        }
-        }
-    }
-    """
+    query = PRODUCT_MEDIA_REORDER
     product = product_with_images
     media = product.media.all()
     media_0 = media[0]
@@ -9687,6 +9716,51 @@ def test_reorder_not_existing_media(
         response["data"]["productMediaReorder"]["errors"][0]["code"]
         == ProductErrorCode.NOT_FOUND.name
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_reorder_media_some_media_marked_as_to_remove(
+    product_updated_mock,
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
+):
+    """Ensure that no error is raised when number of provided ids is equal to number
+    of media with `to_remove` flag set to False.
+    """
+    query = PRODUCT_MEDIA_REORDER
+    product = product_with_images
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+
+    media_1.to_remove = True
+    media_1.save(update_fields=["to_remove"])
+
+    file_mock_2 = MagicMock(spec=File, name="FileMock2")
+    file_mock_2.name = "image2.jpg"
+    media_2 = product.media.create(image=file_mock_2)
+
+    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
+    media_2_id = graphene.Node.to_global_id("ProductMedia", media_2.id)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    variables = {"product_id": product_id, "media_ids": [media_2_id, media_0_id]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    get_graphql_content(response)
+
+    # Check if order has been changed
+    product.refresh_from_db()
+    reordered_media = product.media.all()
+    reordered_media_0 = reordered_media[0]
+    reordered_media_1 = reordered_media[1]
+
+    assert media_0.id == reordered_media_1.id
+    assert media_2.id == reordered_media_0.id
+    product_updated_mock.assert_called_once_with(product)
 
 
 ASSIGN_VARIANT_QUERY = """

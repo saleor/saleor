@@ -119,6 +119,8 @@ def generate_unique_slug(
     instance: Type[Model],
     slugable_value: str,
     slug_field_name: str = "slug",
+    *,
+    additional_search_lookup=None,
 ) -> str:
     """Create unique slug for model instance.
 
@@ -130,6 +132,8 @@ def generate_unique_slug(
         instance: model instance for which slug is created
         slugable_value: value used to create slug
         slug_field_name: name of slug field in instance model
+        additional_search_lookup: when provided, it will be used to find the instances
+            with the same slug that passed also additional conditions
 
     """
     slug = slugify(slugable_value, allow_unicode=True)
@@ -140,8 +144,12 @@ def generate_unique_slug(
 
     search_field = f"{slug_field_name}__iregex"
     pattern = rf"{slug}-\d+$|{slug}$"
+    lookup = {search_field: pattern}
+    if additional_search_lookup:
+        lookup.update(additional_search_lookup)
+
     slug_values = (
-        ModelClass._default_manager.filter(**{search_field: pattern})  # type: ignore
+        ModelClass._default_manager.filter(**lookup)  # type: ignore
         .exclude(pk=instance.pk)
         .values_list(slug_field_name, flat=True)
     )

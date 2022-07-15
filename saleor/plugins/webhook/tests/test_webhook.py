@@ -11,10 +11,12 @@ import pytest
 from celery.exceptions import MaxRetriesExceededError
 from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.models import Site
 from django.core.serializers import serialize
 from django.utils import timezone
 from freezegun import freeze_time
 from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
+from requests import RequestException
 
 from .... import __version__
 from ....account.notifications import (
@@ -45,11 +47,14 @@ from ....webhook.payloads import (
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_sale_payload,
+    generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
 )
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
 from ...webhook.tasks import send_webhook_request_async, trigger_webhooks_async
+from .. import signature_for_payload
+from .utils import generate_request_headers
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"
@@ -1021,6 +1026,30 @@ def test_sale_deleted(
     )
 
 
+@freeze_time("2020-10-10 10:10")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_sale_toggle(
+    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    sale_catalogue_info = convert_catalogue_info_to_global_ids(
+        fetch_catalogue_info(sale)
+    )
+
+    # when
+    manager.sale_toggle(sale, catalogue=sale_catalogue_info)
+
+    # then
+    expected_data = generate_sale_toggle_payload(sale, catalogue=sale_catalogue_info)
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data, WebhookEventAsyncType.SALE_TOGGLE, [any_webhook], sale, None
+    )
+
+
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_async.delay")
 def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     # given
@@ -1152,6 +1181,35 @@ def test_send_webhook_request_async_when_delivery_attempt_failed(
     delivery = EventDelivery.objects.get(id=event_delivery.pk)
     assert attempt.status == EventDeliveryStatus.FAILED
     assert attempt.response_status_code == webhook_response_failed.response_status_code
+    assert delivery.status == EventDeliveryStatus.PENDING
+    mocked_observability.assert_called_once_with(attempt, None)
+
+
+@mock.patch("saleor.plugins.webhook.tasks.requests.post", side_effect=RequestException)
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
+def test_send_webhook_request_async_with_request_exception(
+    mocked_observability, mocked_post, event_delivery, webhook_response_failed
+):
+    # given
+    event_payload = event_delivery.payload
+    data = event_payload.payload
+    webhook = event_delivery.webhook
+    domain = Site.objects.get_current().domain
+    message = data.encode("utf-8")
+    signature = signature_for_payload(message, webhook.secret_key)
+    expected_request_headers = generate_request_headers(
+        event_delivery.event_type, domain, signature
+    )
+    # when
+    with pytest.raises(CeleryTaskRetryError):
+        send_webhook_request_async(event_delivery.pk)
+
+    # then
+
+    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
+    delivery = EventDelivery.objects.get(id=event_delivery.pk)
+    assert attempt.status == EventDeliveryStatus.FAILED
+    assert json.loads(attempt.request_headers) == expected_request_headers
     assert delivery.status == EventDeliveryStatus.PENDING
     mocked_observability.assert_called_once_with(attempt, None)
 

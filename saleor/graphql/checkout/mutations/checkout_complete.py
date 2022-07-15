@@ -1,15 +1,24 @@
+from typing import TYPE_CHECKING, Iterable
+
 import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
+from ....checkout import AddressType
 from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
+from ....checkout.utils import is_shipping_required
 from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
+from ...account.i18n import I18nMixin
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -21,8 +30,11 @@ from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
+if TYPE_CHECKING:
+    from ....account.models import Address
 
-class CheckoutComplete(BaseMutation):
+
+class CheckoutComplete(BaseMutation, I18nMixin):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
         required=True,
@@ -86,6 +98,64 @@ class CheckoutComplete(BaseMutation):
         )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def validate_checkout_addresses(
+        cls,
+        lines: Iterable[CheckoutLineInfo],
+        shipping_address: "Address",
+        billing_address: "Address",
+    ):
+        """Validate checkout addresses.
+
+        Mutations for updating addresses have option to turn off a validation. To keep
+        consistency, we need to validate it. This will confirm that we have a correct
+        address and we can finalize a checkout. In case when address fields
+        normalization was turned off, we apply it here.
+        Raises ValidationError when any address is not correct.
+        """
+        if is_shipping_required(lines):
+            if not shipping_address:
+                raise ValidationError(
+                    {
+                        "shipping_address": ValidationError(
+                            "Shipping address is not set",
+                            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
+                        )
+                    }
+                )
+            shipping_address_data = shipping_address.as_data()
+            cls.validate_address(
+                shipping_address_data,
+                address_type=AddressType.SHIPPING,
+                format_check=True,
+                required_check=True,
+                enable_normalization=True,
+                instance=shipping_address,
+            )
+            if shipping_address_data != shipping_address.as_data():
+                shipping_address.save()
+
+        if not billing_address:
+            raise ValidationError(
+                {
+                    "billing_address": ValidationError(
+                        "Billing address is not set",
+                        code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
+                    )
+                }
+            )
+        billing_address_data = billing_address.as_data()
+        cls.validate_address(
+            billing_address_data,
+            address_type=AddressType.BILLING,
+            format_check=True,
+            required_check=True,
+            enable_normalization=True,
+            instance=billing_address,
+        )
+        if billing_address_data != billing_address.as_data():
+            billing_address.save()
 
     @classmethod
     def perform_mutation(
@@ -163,6 +233,10 @@ class CheckoutComplete(BaseMutation):
                 )
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
+            )
+
+            cls.validate_checkout_addresses(
+                lines, checkout_info.shipping_address, checkout_info.billing_address
             )
 
             requestor = get_user_or_app_from_context(info.context)
