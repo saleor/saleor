@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.6.0 [Unreleased]
 
+### Saleor Apps
+
+- Add support for the CUSTOMER_* app mount points (#10163) by @krzysztofwolski
+
 # 3.5.0
 
 ### GraphQL API
