@@ -411,36 +411,6 @@ def test_query_customer_user_app(
     assert data["email"] == user.email
 
 
-def test_query_customer_user_app_no_permission(
-    app_api_client,
-    customer_user,
-    address,
-    permission_manage_users,
-    permission_manage_staff,
-    media_root,
-    app,
-):
-    user = customer_user
-    user.default_shipping_address.country = "US"
-    user.default_shipping_address.save()
-    user.addresses.add(address.get_copy())
-
-    avatar_mock = MagicMock(spec=File)
-    avatar_mock.name = "image.jpg"
-    user.avatar = avatar_mock
-    user.save()
-
-    Group.objects.create(name="empty group")
-
-    query = FULL_USER_QUERY
-    ID = graphene.Node.to_global_id("User", customer_user.id)
-    variables = {"id": ID}
-    app.permissions.add(permission_manage_staff)
-    response = app_api_client.post_graphql(query, variables)
-
-    assert_no_permission(response)
-
-
 def test_query_customer_user_with_orders_by_app_no_manage_orders_perm(
     app_api_client,
     customer_user,
@@ -2623,6 +2593,59 @@ def test_staff_create(
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_promote_customer_to_staff_user(
+    mocked_notify,
+    staff_api_client,
+    staff_user,
+    customer_user,
+    media_root,
+    permission_group_manage_users,
+    permission_manage_products,
+    permission_manage_staff,
+    permission_manage_users,
+    channel_PLN,
+):
+    group = permission_group_manage_users
+    group.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
+    redirect_url = "https://www.example.com"
+    email = customer_user.email
+    variables = {
+        "email": email,
+        "redirect_url": redirect_url,
+        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+    }
+
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert data["errors"] == []
+    assert data["user"]["email"] == email
+    assert data["user"]["isStaff"]
+    assert data["user"]["isActive"]
+
+    expected_perms = {
+        permission_manage_products.codename,
+        permission_manage_users.codename,
+    }
+    permissions = data["user"]["userPermissions"]
+    assert {perm["code"].lower() for perm in permissions} == expected_perms
+
+    staff_user = User.objects.get(email=email)
+
+    assert staff_user.is_staff
+
+    groups = data["user"]["permissionGroups"]
+    assert len(groups) == 1
+    assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
+
+    mocked_notify.assert_not_called()
+
+
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_staff_create_trigger_webhook(
@@ -3726,14 +3749,14 @@ def test_user_delete_errors(staff_user, admin_user):
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
-    info = Mock(context=Mock(user=staff_user))
+    info = Mock(context=Mock(user=staff_user, app=None))
     with pytest.raises(ValidationError) as e:
         StaffDelete.clean_instance(info, customer_user)
     msg = "Cannot delete a non-staff users."
     assert e.value.error_dict["id"][0].message == msg
 
     # should not raise any errors
-    info = Mock(context=Mock(user=admin_user))
+    info = Mock(context=Mock(user=admin_user, app=None))
     StaffDelete.clean_instance(info, staff_user)
 
 
@@ -5700,27 +5723,6 @@ def test_query_staff_members_with_filter_by_ids(
     # then
     users = content["data"]["staffUsers"]["edges"]
     assert len(users) == 1
-
-
-def test_query_staff_members_app_no_permission(
-    query_staff_users_with_filter,
-    app_api_client,
-    permission_manage_staff,
-):
-
-    User.objects.bulk_create(
-        [
-            User(email="second@example.com", is_staff=True, is_active=False),
-            User(email="third@example.com", is_staff=True, is_active=True),
-        ]
-    )
-
-    variables = {"filter": {"status": "DEACTIVATED"}}
-    response = app_api_client.post_graphql(
-        query_staff_users_with_filter, variables, permissions=[permission_manage_staff]
-    )
-
-    assert_no_permission(response)
 
 
 @pytest.mark.parametrize(

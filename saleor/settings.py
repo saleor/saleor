@@ -306,7 +306,8 @@ LOGGING = {
         },
         "verbose": {
             "format": (
-                "%(levelname)s %(name)s %(message)s [PID:%(process)d:%(threadName)s]"
+                "%(asctime)s %(levelname)s %(name)s %(message)s "
+                "[PID:%(process)d:%(threadName)s]"
             )
         },
     },
