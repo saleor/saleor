@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+- Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
 
 # 3.5.0
 
