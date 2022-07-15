@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 
 from ..checkout import AddressType
-from ..core.utils import create_thumbnails
 from .models import User
 
 if TYPE_CHECKING:
@@ -96,9 +95,6 @@ def create_superuser(credentials):
     if created:
         user.set_password(credentials["password"])
         user.save()
-        create_thumbnails(
-            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
-        )
         msg = "Superuser - %(email)s/%(password)s" % credentials
     else:
         msg = "Superuser already exists - %(email)s" % credentials

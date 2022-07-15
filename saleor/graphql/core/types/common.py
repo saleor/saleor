@@ -4,8 +4,8 @@ import graphene
 from django.conf import settings
 
 from ....core.tracing import traced_resolver
-from ....product.product_images import get_thumbnail
 from ...account.enums import AddressTypeEnum
+from ..descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -34,6 +34,7 @@ from ..enums import (
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    ThumbnailFormatEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
     TransactionRequestActionErrorCode,
@@ -417,19 +418,8 @@ class Image(graphene.ObjectType):
         description = "Represents an image."
 
     @staticmethod
-    def get_adjusted(image, alt, size, rendition_key_set, info):
-        """Return Image adjusted with given size."""
-        if size:
-            url = get_thumbnail(
-                image_file=image,
-                size=size,
-                method="thumbnail",
-                rendition_key_set=rendition_key_set,
-            )
-        else:
-            url = image.url
-        url = info.context.build_absolute_uri(url)
-        return Image(url, alt)
+    def resolve_url(root, info):
+        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 
 
 class File(graphene.ObjectType):
@@ -505,3 +495,24 @@ class Job(graphene.Interface):
 class TimePeriod(graphene.ObjectType):
     amount = graphene.Int(description="The length of the period.", required=True)
     type = TimePeriodTypeEnum(description="The type of the period.", required=True)
+
+
+class ThumbnailField(graphene.Field):
+    size = graphene.Int(
+        description=(
+            "Size of the image. If not provided, the original image "
+            "will be returned."
+        )
+    )
+    format = ThumbnailFormatEnum(
+        description=(
+            "The format of the image. When not provided, format of the original "
+            "image will be used. Must be provided together with the size value, "
+            "otherwise original image will be returned." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+    )
+
+    def __init__(self, of_type=Image, *args, **kwargs):
+        kwargs["size"] = self.size
+        kwargs["format"] = self.format
+        super().__init__(of_type, *args, **kwargs)

@@ -35,12 +35,14 @@ from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
+from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
     generate_customer_payload,
     generate_meta,
     generate_requestor,
 )
+from ...core.enums import ThumbnailFormatEnum
 from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
@@ -754,6 +756,178 @@ def test_user_query_object_with_invalid_object_type(
 
     content = get_graphql_content(response)
     assert content["data"]["user"] is None
+
+
+USER_AVATAR_QUERY = """
+    query User($id: ID, $size: Int, $format: ThumbnailFormatEnum) {
+        user(id: $id) {
+            id
+            avatar(size: $size, format: $format) {
+                url
+                alt
+            }
+        }
+    }
+"""
+
+
+def test_query_user_avatar_with_size_and_format_proxy_url_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "size": 120, "format": format}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/thumbnail/{id}/128/{format.lower()}/"
+    )
+
+
+def test_query_user_avatar_with_size_proxy_url_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "size": 120}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["avatar"]["url"] == f"http://testserver/thumbnail/{id}/128/"
+
+
+def test_query_user_avatar_with_size_thumbnail_url_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "size": 120}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_query_user_avatar_only_format_provided_original_image_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "format": format}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/media/user-avatars/{avatar_mock.name}"
+    )
+
+
+def test_query_user_avatar_no_size_value(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/media/user-avatars/{avatar_mock.name}"
+    )
+
+
+def test_query_user_avatar_no_image(staff_api_client, permission_manage_staff):
+    # given
+    user = staff_api_client.user
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["id"]
+    assert not data["avatar"]
 
 
 def test_query_customers(staff_api_client, user_api_client, permission_manage_users):
@@ -2058,19 +2232,38 @@ ACCOUNT_DELETE_MUTATION = """
 """
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 @freeze_time("2018-05-31 12:00:01")
-def test_account_delete(user_api_client):
+def test_account_delete(delete_from_storage_task_mock, user_api_client, media_root):
+    # given
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "image.jpg"
+
     user = user_api_client.user
     user.last_login = timezone.now()
     user.save(update_fields=["last_login"])
+
+    user_id = user.id
+
+    # create thumbnail
+    thumbnail = Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
+    assert user.thumbnails.all()
+    img_path = thumbnail.image.path
+
     token = account_delete_token_generator.make_token(user)
     variables = {"token": token}
 
+    # when
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
     assert not data["errors"]
     assert not User.objects.filter(pk=user.id).exists()
+    # ensure all related thumbnails have been deleted
+    assert not Thumbnail.objects.filter(user_id=user_id).exists()
+    delete_from_storage_task_mock.assert_called_once_with(img_path)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2169,11 +2362,11 @@ CUSTOMER_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.account.signals.delete_versatile_image")
+@patch("saleor.account.signals.delete_from_storage_task.delay")
 @patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete(
     mocked_deletion_event,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     staff_user,
     customer_user,
@@ -2202,7 +2395,7 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, app=None, deleted_count=1
     )
-    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.path)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2243,11 +2436,11 @@ def test_customer_delete_trigger_webhook(
     )
 
 
-@patch("saleor.account.signals.delete_versatile_image")
+@patch("saleor.account.signals.delete_from_storage_task.delay")
 @patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete_by_app(
     mocked_deletion_event,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     app_api_client,
     app,
     customer_user,
@@ -2278,7 +2471,7 @@ def test_customer_delete_by_app(
     assert kwargs["deleted_count"] == 1
     assert kwargs["staff_user"].is_anonymous
     assert kwargs["app"] == app
-    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.path)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
@@ -3362,9 +3555,9 @@ def test_staff_delete_trigger_webhook(
     )
 
 
-@patch("saleor.account.signals.delete_versatile_image")
+@patch("saleor.account.signals.delete_from_storage_task.delay")
 def test_staff_delete_with_avatar(
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     image,
     permission_manage_staff,
@@ -3384,7 +3577,7 @@ def test_staff_delete_with_avatar(
     data = content["data"]["staffDelete"]
     assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
-    delete_versatile_image_mock.assert_called_once_with(staff_user.avatar)
+    delete_from_storage_task_mock.assert_called_once_with(staff_user.avatar.path)
 
 
 def test_staff_delete_app_no_permission(app_api_client, permission_manage_staff):
@@ -5055,23 +5248,19 @@ def test_user_avatar_update_mutation_permission(api_client):
 
 
 def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
+    # given
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
 
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.graphql.account.mutations.staff."
-            "create_user_avatar_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     image_file, image_name = create_image("avatar")
     variables = {"image": image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
+    # when
     response = staff_api_client.post_multipart(body)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["userAvatarUpdate"]
@@ -5087,11 +5276,9 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
     assert file_name.startswith(f"user-avatars/{img_name}")
     assert file_name.endswith(format)
 
-    # The image creation should have triggered a warm-up
-    mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
-
 
 def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
+    # given
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -5100,10 +5287,18 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
     user.avatar = avatar_mock
     user.save()
 
+    # create thumbnail for old avatar
+    Thumbnail.objects.create(user=staff_api_client.user, size=128)
+    assert user.thumbnails.exists()
+
     image_file, image_name = create_image("new_image")
     variables = {"image": image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
+    # when
     response = staff_api_client.post_multipart(body)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["userAvatarUpdate"]
@@ -5113,6 +5308,7 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
     assert data["user"]["avatar"]["url"].startswith(
         "http://testserver/media/user-avatars/new_image"
     )
+    assert not user.thumbnails.exists()
 
 
 USER_AVATAR_DELETE_MUTATION = """
@@ -5139,17 +5335,23 @@ def test_user_avatar_delete_mutation_permission(api_client):
 
 
 def test_user_avatar_delete_mutation(staff_api_client):
+    # given
     query = USER_AVATAR_DELETE_MUTATION
 
     user = staff_api_client.user
+    Thumbnail.objects.create(user=staff_api_client.user, size=128)
+    assert user.thumbnails.all()
 
+    # when
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
 
+    # then
     user.refresh_from_db()
 
     assert not user.avatar
     assert not content["data"]["userAvatarDelete"]["user"]["avatar"]
+    assert not user.thumbnails.exists()
 
 
 @pytest.mark.parametrize(
