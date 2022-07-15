@@ -102,7 +102,7 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-
+            ${{ runner.os }}-buildx-${{ hashFiles('requirements_dev.txt') }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1

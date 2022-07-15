@@ -21,7 +21,11 @@ from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
 from ..payment.utils import metadata_contains_empty_key
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
-from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
+from .permissions import (
+    PRIVATE_META_PERMISSION_MAP,
+    PUBLIC_META_PERMISSION_MAP,
+    AccountPermissions,
+)
 from .types import ObjectWithMetadata
 
 logger = logging.getLogger(__name__)
@@ -171,6 +175,15 @@ class BaseMetadataMutation(BaseMutation):
             return graphene_type.get_model()
 
         return graphene_type._meta.model
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        is_app = bool(getattr(context, "app", None))
+        if is_app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def mutate(cls, root, info, **data):

@@ -1231,13 +1231,18 @@ class Order(ModelObjectType):
                     if fulfillment.total_refund_amount
                 ]
             )
-            if total_fulfillment_refund == root.total.gross.amount:
+            if (
+                total_fulfillment_refund != 0
+                and total_fulfillment_refund == root.total.gross.amount
+            ):
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
                 return get_payment_status_for_order(root)
             last_payment = get_last_payment(payments)
             if not last_payment:
+                if root.total.gross.amount == 0:
+                    return ChargeStatus.FULLY_CHARGED
                 return ChargeStatus.NOT_CHARGED
             return last_payment.charge_status
 
@@ -1281,6 +1286,8 @@ class Order(ModelObjectType):
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
+                if root.total.gross.amount == 0:
+                    return dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_CHARGED)
                 return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
             return last_payment.get_charge_status_display()
 
