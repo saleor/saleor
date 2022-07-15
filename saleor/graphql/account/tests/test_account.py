@@ -1728,11 +1728,19 @@ def test_customer_update(
     assert data["user"]["languageCode"] == "PL"
     assert not data["user"]["isActive"]
 
-    # The name was changed, an event should have been triggered
-    name_changed_event = account_events.CustomerEvent.objects.get()
+    (
+        name_changed_event,
+        deactivated_event,
+    ) = account_events.CustomerEvent.objects.order_by("pk")
+
     assert name_changed_event.type == account_events.CustomerEvents.NAME_ASSIGNED
     assert name_changed_event.user.pk == staff_user.pk
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
+
+    assert deactivated_event.type == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
+    assert deactivated_event.user.pk == staff_user.pk
+    assert deactivated_event.parameters == {"account_id": customer_user.id}
+
     customer_user.refresh_from_db()
     assert (
         generate_address_search_document_value(billing_address)
@@ -1787,6 +1795,107 @@ def test_customer_update_generates_event_when_changing_email(
     assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
     assert email_changed_event.user.pk == staff_user.pk
     assert email_changed_event.parameters == {"message": "mirumee@example.com"}
+
+
+UPDATE_CUSTOMER_IS_ACTIVE_MUTATION = """
+    mutation UpdateCustomer(
+        $id: ID!, $isActive: Boolean) {
+            customerUpdate(id: $id, input: {
+            isActive: $isActive,
+        }) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_customer_update_generates_event_when_deactivating(
+    staff_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": False}
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    account_deactivated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_deactivated_event.type
+        == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
+    )
+    assert account_deactivated_event.user.pk == staff_user.pk
+    assert account_deactivated_event.parameters == {"account_id": customer_user.id}
+
+
+def test_customer_update_generates_event_when_activating(
+    staff_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    customer_user.is_active = False
+    customer_user.save(update_fields=["is_active"])
+
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": True}
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    account_activated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_activated_event.type == account_events.CustomerEvents.ACCOUNT_ACTIVATED
+    )
+    assert account_activated_event.user.pk == staff_user.pk
+    assert account_activated_event.parameters == {"account_id": customer_user.id}
+
+
+def test_customer_update_generates_event_when_deactivating_as_app(
+    app_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": False}
+    app_api_client.post_graphql(query, variables, permissions=[permission_manage_users])
+
+    account_deactivated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_deactivated_event.type
+        == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
+    )
+    assert account_deactivated_event.user is None
+    assert account_deactivated_event.app.pk == app_api_client.app.pk
+    assert account_deactivated_event.parameters == {"account_id": customer_user.id}
+
+
+def test_customer_update_generates_event_when_activating_as_app(
+    app_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    customer_user.is_active = False
+    customer_user.save(update_fields=["is_active"])
+
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": True}
+    app_api_client.post_graphql(query, variables, permissions=[permission_manage_users])
+
+    account_activated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_activated_event.type == account_events.CustomerEvents.ACCOUNT_ACTIVATED
+    )
+    assert account_activated_event.user is None
+    assert account_activated_event.app.pk == app_api_client.app.pk
+    assert account_activated_event.parameters == {"account_id": customer_user.id}
 
 
 def test_customer_update_without_any_changes_generates_no_event(

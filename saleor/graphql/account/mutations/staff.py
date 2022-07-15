@@ -112,6 +112,8 @@ class CustomerUpdate(CustomerCreate):
         # Compare the data
         has_new_name = old_instance.get_full_name() != new_fullname
         has_new_email = old_instance.email != new_email
+        was_activated = not old_instance.is_active and new_instance.is_active
+        was_deactivated = old_instance.is_active and not new_instance.is_active
 
         # Generate the events accordingly
         if has_new_email:
@@ -123,6 +125,18 @@ class CustomerUpdate(CustomerCreate):
         if has_new_name:
             account_events.assigned_name_to_a_customer_event(
                 staff_user=staff_user, app=app, new_name=new_fullname
+            )
+        if was_activated:
+            account_events.customer_account_activated_event(
+                staff_user=info.context.user,
+                app=info.context.app,
+                account_id=old_instance.id,
+            )
+        if was_deactivated:
+            account_events.customer_account_deactivated_event(
+                staff_user=info.context.user,
+                app=info.context.app,
+                account_id=old_instance.id,
             )
 
     @classmethod
