@@ -166,6 +166,42 @@ def test_create_attribute_value_trigger_webhooks(
     assert attribute_value_created_call in mocked_webhook_trigger.call_args_list
 
 
+def test_create_attribute_value_with_the_same_name_as_different_attribute_value(
+    staff_api_client,
+    attribute_without_values,
+    color_attribute,
+    permission_manage_products,
+):
+    """Ensure the attribute value with the same slug as value of different attribute
+    can be created."""
+    # given
+    attribute = attribute_without_values
+    query = CREATE_ATTRIBUTE_VALUE_MUTATION
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    existing_value = color_attribute.values.first()
+
+    name = existing_value.name
+    variables = {"name": name, "attributeId": attribute_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueCreate"]
+    assert not data["errors"]
+
+    attr_data = data["attributeValue"]
+    assert attr_data["name"] == name
+    assert attr_data["slug"] == existing_value.slug
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+
+
 def test_create_swatch_attribute_value_with_value(
     staff_api_client, swatch_attribute, permission_manage_products
 ):

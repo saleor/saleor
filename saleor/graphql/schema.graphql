@@ -1448,6 +1448,7 @@ enum WebhookEventTypeEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+  SALE_TOGGLE
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -1743,6 +1744,7 @@ enum WebhookEventTypeAsyncEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+  SALE_TOGGLE
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -2386,6 +2388,7 @@ enum WebhookSampleEventTypeEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+  SALE_TOGGLE
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -12819,6 +12822,15 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
+
+    """
+    The rules for changing validation for received billing address data.
+    
+    Added in Saleor 3.5.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    validationRules: CheckoutAddressValidationRules
   ): CheckoutBillingAddressUpdate
 
   """
@@ -13145,6 +13157,15 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
+
+    """
+    The rules for changing validation for received shipping address data.
+    
+    Added in Saleor 3.5.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    validationRules: CheckoutAddressValidationRules
   ): CheckoutShippingAddressUpdate
 
   """Updates the shipping method of the checkout."""
@@ -19064,6 +19085,23 @@ type CheckoutBillingAddressUpdate {
   errors: [CheckoutError!]!
 }
 
+input CheckoutAddressValidationRules {
+  """
+  Determines if an error should be raised when the provided address doesn't have all the required fields. The list of required fields is dynamic and depends on the country code (use the `addressValidationRules` query to fetch them). Note: country code is mandatory for all addresses regardless of the rules provided in this input.
+  """
+  checkRequiredFields: Boolean = true
+
+  """
+  Determines if an error should be raised when the provided address doesn't match the expected format. Example: using letters for postal code when the numbers are expected.
+  """
+  checkFieldsFormat: Boolean = true
+
+  """
+  Determines if Saleor should apply normalization on address fields. Example: converting city field to uppercase letters.
+  """
+  enableFieldsNormalization: Boolean = true
+}
+
 """
 Completes the checkout. As a result a new order is created and a payment charge is made. This action requires a successful payment before it can be performed. In case additional confirmation step as 3D secure is required confirmationNeeded flag will be set to True and no order created until payment is confirmed with second call of this mutation.
 """
@@ -19115,6 +19153,15 @@ input CheckoutCreateInput {
 
   """Checkout language code."""
   languageCode: LanguageCodeEnum
+
+  """
+  The checkout validation rules that can be changed.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  validationRules: CheckoutValidationRules
 }
 
 input CheckoutLineInput {
@@ -19132,6 +19179,18 @@ input CheckoutLineInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
+}
+
+input CheckoutValidationRules {
+  """
+  The validation rules that can be applied to provided shipping address data.
+  """
+  shippingAddress: CheckoutAddressValidationRules
+
+  """
+  The validation rules that can be applied to provided billing address data.
+  """
+  billingAddress: CheckoutAddressValidationRules
 }
 
 """
@@ -22191,6 +22250,39 @@ type SaleDeleted implements Event {
   The sale the event relates to.
   
   Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  sale(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Sale
+}
+
+"""
+The event informs about the start or end of the sale.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type SaleToggle implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The sale the event relates to.
+  
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
