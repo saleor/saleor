@@ -9276,6 +9276,8 @@ type CustomerEvent implements Node {
 """An enumeration."""
 enum CustomerEventsEnum {
   ACCOUNT_CREATED
+  ACCOUNT_ACTIVATED
+  ACCOUNT_DEACTIVATED
   PASSWORD_RESET_LINK_SENT
   PASSWORD_RESET
   EMAIL_CHANGED_REQUEST
