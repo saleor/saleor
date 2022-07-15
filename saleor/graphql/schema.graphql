@@ -8023,7 +8023,7 @@ type TransactionItem implements Node & ObjectWithMetadata {
   
   Added in Saleor 3.6.
   """
-  order: Order!
+  order: Order
 
   """List of all transaction's events."""
   events: [TransactionEvent!]!

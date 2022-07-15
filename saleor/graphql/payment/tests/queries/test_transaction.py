@@ -57,15 +57,41 @@ def _assert_transaction_fields(content, transaction_item, event):
     )
     assert data["status"] == transaction_item.status
     assert data["type"] == transaction_item.type
-    assert data["order"]["id"] == graphene.Node.to_global_id(
-        "Order", transaction_item.order.id
-    )
+    if transaction_item.order_id:
+        assert data["order"]["id"] == graphene.Node.to_global_id(
+            "Order", transaction_item.order.id
+        )
+    else:
+        assert data["order"] is None
 
 
 def test_transaction_query_by_app(
     app_api_client, transaction_item, permission_manage_payments
 ):
     # given
+    event = TransactionEvent.objects.create(transaction=transaction_item)
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id)
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    _assert_transaction_fields(content, transaction_item, event)
+
+
+def test_transaction_query_no_order(
+    app_api_client, transaction_item, permission_manage_payments
+):
+    # given
+    transaction_item.order = None
+    transaction_item.save(update_fields=["order"])
+
     event = TransactionEvent.objects.create(transaction=transaction_item)
 
     variables = {

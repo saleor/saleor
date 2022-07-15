@@ -290,7 +290,6 @@ class TransactionItem(ModelObjectType):
     reference = graphene.String(description="Reference of transaction.", required=True)
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        required=True,
         description="The related order." + ADDED_IN_36,
     )
     events = NonNullList(
