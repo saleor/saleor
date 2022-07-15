@@ -597,6 +597,51 @@ def test_order_query(
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
+def test_order_query_total_price_is_0(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+    shipping_zone,
+):
+    """Ensure the payment status is FULLY_CHARGED when the order total is 0
+    and there is no payment."""
+    # given
+    order = fulfilled_order
+    price = zero_taxed_money(order.currency)
+    order.shipping_price = price
+    order.total = price
+    shipping_tax_rate = Decimal("0")
+    order.shipping_tax_rate = shipping_tax_rate
+    private_value = "abc123"
+    public_value = "123abc"
+    order.shipping_method.store_value_in_metadata({"test": public_value})
+    order.shipping_method.store_value_in_private_metadata({"test": private_value})
+    order.shipping_method.save()
+    order.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["number"] == str(order.number)
+    assert order_data["channel"]["slug"] == order.channel.slug
+    assert order_data["canFinalize"] is True
+    assert order_data["status"] == order.status.upper()
+    assert order_data["statusDisplay"] == order.get_status_display()
+    payment_charge_status = PaymentChargeStatusEnum.FULLY_CHARGED
+    assert order_data["paymentStatus"] == payment_charge_status.name
+    assert (
+        order_data["paymentStatusDisplay"]
+        == dict(ChargeStatus.CHOICES)[payment_charge_status.value]
+    )
+
+
 @pytest.mark.parametrize(
     "total_authorized, total_charged, expected_status",
     [
@@ -3810,6 +3855,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
             order {
                 status
                 origin
+                paymentStatus
             }
         }
     }
@@ -3842,6 +3888,70 @@ def test_draft_order_complete(
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
     assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.search_vector
+
+    for line in order.lines.all():
+        allocation = line.allocations.get()
+        assert allocation.quantity_allocated == line.quantity_unfulfilled
+
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last()
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_draft_order_complete_0_total(
+    product_variant_out_of_stock_webhook_mock,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    """Ensure the payment status is FULLY_CHARGED when the total order price is 0."""
+    order = draft_order
+    price = zero_taxed_money(order.currency)
+    order.shipping_price = price
+    order.total = price
+    order.save(
+        update_fields=[
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+            "total_net_amount",
+            "total_gross_amount",
+        ]
+    )
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    payment_charge_status = PaymentChargeStatusEnum.FULLY_CHARGED
+    assert data["paymentStatus"] == payment_charge_status.name
     assert order.search_vector
 
     for line in order.lines.all():
