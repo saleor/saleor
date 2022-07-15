@@ -47,7 +47,9 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
 
 class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:
-        description = "Deletes staff users."
+        description = (
+            "Deletes staff users. Apps are not allowed to perform this mutation."
+        )
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -70,6 +72,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     @classmethod
     def clean_instances(cls, info, users):
         errors = defaultdict(list)
+
         requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
         cls.check_if_requestor_can_manage_users(requestor, users, "ids", errors)

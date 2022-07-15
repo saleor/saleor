@@ -16,6 +16,7 @@ from ....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
 from ....checkout import AddressType
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -186,13 +187,24 @@ class StaffCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new staff user."
+        description = (
+            "Creates a new staff user. "
+            "Apps are not allowed to perform this mutation."
+        )
         exclude = ["password"]
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        if context.app:
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -319,7 +331,10 @@ class StaffUpdate(StaffCreate):
         )
 
     class Meta:
-        description = "Updates an existing staff user."
+        description = (
+            "Updates an existing staff user. "
+            "Apps are not allowed to perform this mutation."
+        )
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -455,7 +470,9 @@ class StaffUpdate(StaffCreate):
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
-        description = "Deletes a staff user."
+        description = (
+            "Deletes a staff user. Apps are not allowed to perform this mutation."
+        )
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
