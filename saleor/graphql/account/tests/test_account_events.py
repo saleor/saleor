@@ -102,14 +102,14 @@ def test_account_event_customer_account_was_created(
 
 
 def test_account_event_customer_account_was_activated(
-    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
+    staff_api_client, staff_user, permission_manage_staff, permission_manage_apps
 ):
     event = account_events.customer_account_activated_event(
-        user=customer_user, app=None, account_id=7
+        staff_user=staff_user, app=None, account_id=7
     )
     expected_data = {
         "id": _model_to_node_id(event),
-        "user": {"id": _model_to_node_id(customer_user)},
+        "user": {"id": _model_to_node_id(staff_user)},
         "app": None,
         "count": None,
         "message": None,
@@ -119,35 +119,31 @@ def test_account_event_customer_account_was_activated(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client,
-        customer_user,
-        (permission_manage_users, permission_manage_apps),
+        staff_api_client, staff_user, (permission_manage_staff, permission_manage_apps)
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_customer_account_was_deactivated(
-    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
+    staff_api_client, staff_user, permission_manage_staff, permission_manage_apps
 ):
-    event = account_events.customer_account_deactivated_event(
-        user=customer_user, app=None, account_id=7
+    event = account_events.customer_account_activated_event(
+        staff_user=staff_user, app=None, account_id=7
     )
     expected_data = {
         "id": _model_to_node_id(event),
-        "user": {"id": _model_to_node_id(customer_user)},
+        "user": {"id": _model_to_node_id(staff_user)},
         "app": None,
         "count": None,
         "message": None,
         "order": None,
         "orderLine": None,
-        "type": account_events.CustomerEvents.ACCOUNT_DEACTIVATED.upper(),
+        "type": account_events.CustomerEvents.ACCOUNT_ACTIVATED.upper(),
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client,
-        customer_user,
-        (permission_manage_users, permission_manage_apps),
+        staff_api_client, staff_user, (permission_manage_staff, permission_manage_apps)
     )
 
     assert expected_data == received_data
