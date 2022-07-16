@@ -20,6 +20,7 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
+
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import sale_webhook_schedule
@@ -205,6 +206,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.postgres",
     "django_celery_beat",
+    "graphene-django",
     # Local apps
     "saleor.plugins",
     "saleor.account",

@@ -60,6 +60,7 @@ from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 from . import ProductMediaTypes, ProductTypeKind
+from django.db import models
 
 if TYPE_CHECKING:
     # flake8: noqa

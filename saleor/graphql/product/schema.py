@@ -1,7 +1,11 @@
+from msilib import schema
+from pyexpat import model
 from typing import List, Optional
 
 import graphene
 from graphql import GraphQLError
+from graphene_django import DjangoObjectType
+from numpy import product
 
 from ...core.permissions import ProductPermissions, has_one_of_permissions
 from ...core.tracing import traced_resolver
@@ -127,6 +131,8 @@ from .types import (
     ProductVariant,
     ProductVariantCountableConnection,
 )
+from .models import Product
+
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
@@ -136,6 +142,14 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
 def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
     return kwargs.get("sort_by", {}).get("field") or None
 
+class ProductType(DjangoObjectType):
+    class Meta:
+        model=Product
+        fields=("id","title","excerpt")  
+        #graphquery
+class Query(graphene.ObjectType):
+    all_Product=graphene.List(ProductType)
+schema=graphene.Schema(query=Query)    
 
 class ProductQueries(graphene.ObjectType):
     digital_content = PermissionsField(
