@@ -92,7 +92,7 @@ class CustomPeriodicTask(base_models.PeriodicTask):
 
         if len(selected_schedule_types) == 0:
             raise ValidationError(
-                "One of clocked, interval, crontab, or solar must be set."
+                "One of clocked, interval, crontab, solar, or custom must be set."
             )
 
         err_msg = "Only one of clocked, interval, crontab, solar, or custom must be set"
