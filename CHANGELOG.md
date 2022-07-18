@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+- Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
 
 # 3.5.0
 
