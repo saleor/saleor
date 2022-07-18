@@ -1306,3 +1306,38 @@ def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
     # then
     assert not order
     mocked_create_order.assert_not_called()
+
+
+def test_create_order_update_display_gross_prices(checkout_with_item, customer_user):
+    # given
+    checkout = checkout_with_item
+    channel = checkout.channel
+    tax_configuration = channel.tax_configuration
+
+    tax_configuration.display_gross_prices = False
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    lines, _ = fetch_checkout_lines(checkout)
+    order_data = _prepare_order_data(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=[],
+        taxes_included_in_prices=True,
+    )
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=order_data,
+        user=customer_user,
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    assert not order.display_gross_prices
