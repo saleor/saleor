@@ -1,14 +1,17 @@
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
+from django.core.files import File
 from graphql_relay import to_global_id
 
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
+from ....thumbnail.models import Thumbnail
+from ...core.enums import ThumbnailFormatEnum
 from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
@@ -472,15 +475,6 @@ def test_create_collection(
 ):
     query = CREATE_COLLECTION_MUTATION
 
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.product.thumbnails."
-            "create_collection_background_image_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
@@ -512,7 +506,6 @@ def test_create_collection(
     assert file_name != image_file._name
     assert file_name.startswith(f"collection-backgrounds/{img_name}")
     assert file_name.endswith(format)
-    mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["backgroundImage"]["alt"] == image_alt
 
     created_webhook_mock.assert_called_once()
@@ -557,22 +550,16 @@ def test_create_collection_without_background_image(
     monkeypatch, staff_api_client, product_list, permission_manage_products
 ):
     query = CREATE_COLLECTION_MUTATION
+    slug = "test-slug"
 
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.product.thumbnails."
-            "create_collection_background_image_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
-    variables = {"name": "test-name", "slug": "test-slug"}
+    variables = {"name": "test-name", "slug": slug}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    get_graphql_content(response)
-    assert mock_create_thumbnails.call_count == 0
+    content = get_graphql_content(response)
+    data = content["data"]["collectionCreate"]
+    assert not data["errors"]
+    assert data["collection"]["slug"] == slug
 
 
 @pytest.mark.parametrize(
@@ -641,14 +628,6 @@ def test_update_collection(
         }
     """
     description = dummy_editorjs("test description", True)
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.product.thumbnails."
-            "create_collection_background_image_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
 
     name = "new-name"
     slug = "new-slug"
@@ -666,7 +645,6 @@ def test_update_collection(
     data = content["data"]["collectionUpdate"]["collection"]
     assert data["name"] == name
     assert data["slug"] == slug
-    assert mock_create_thumbnails.call_count == 0
 
     created_webhook_mock.assert_not_called()
     updated_webhook_mock.assert_called_once()
@@ -687,6 +665,7 @@ MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
                 slug
                 backgroundImage{
                     alt
+                    url
                 }
             }
             errors {
@@ -697,20 +676,28 @@ MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
     }"""
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_update_collection_with_background_image(
-    monkeypatch, staff_api_client, collection, permission_manage_products, media_root
+    delete_from_storage_task_mock,
+    staff_api_client,
+    collection_with_image,
+    permission_manage_products,
+    media_root,
 ):
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.product.thumbnails."
-            "create_collection_background_image_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
+    # given
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
+
+    collection = collection_with_image
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    thumbnail = Thumbnail.objects.create(
+        collection=collection, size=size, image=thumbnail_mock
+    )
+    img_path = thumbnail.image.path
+
     variables = {
         "name": "new-name",
         "slug": "new-slug",
@@ -724,24 +711,45 @@ def test_update_collection_with_background_image(
         image_file,
         image_name,
     )
+
+    # when
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]
     assert not data["errors"]
     slug = data["collection"]["slug"]
     collection = Collection.objects.get(slug=slug)
-    assert collection.background_image
-    mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["collection"]["backgroundImage"]["alt"] == image_alt
+    assert data["collection"]["backgroundImage"]["url"].startswith(
+        f"http://testserver/media/collection-backgrounds/{image_name}"
+    )
+
+    # ensure that thumbnails for old background image has been deleted
+    assert not Thumbnail.objects.filter(collection_id=collection.id)
+    delete_from_storage_task_mock.assert_called_once_with(img_path)
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_update_collection_invalid_background_image(
-    staff_api_client, collection, permission_manage_products
+    delete_from_storage_task_mock,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    media_root,
 ):
+    # given
     image_file, image_name = create_pdf_file_with_image_ext()
     image_alt = "Alt text for an image."
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(collection=collection, size=size, image=thumbnail_mock)
+
     variables = {
         "name": "new-name",
         "slug": "new-slug",
@@ -755,13 +763,20 @@ def test_update_collection_invalid_background_image(
         image_file,
         image_name,
     )
+
+    # when
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
     assert data["errors"][0]["message"] == "Invalid file type."
+    # ensure that thumbnails for old background image hasn't been deleted
+    assert Thumbnail.objects.filter(collection_id=collection.id)
+    delete_from_storage_task_mock.assert_not_called()
 
 
 UPDATE_COLLECTION_SLUG_MUTATION = """
@@ -930,50 +945,65 @@ DELETE_COLLECTION_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
-@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_collection(
-    delete_versatile_image_mock,
     deleted_webhook_mock,
     staff_api_client,
     collection,
     permission_manage_products,
 ):
+    # given
     query = DELETE_COLLECTION_MUTATION
     collection_id = to_global_id("Collection", collection.id)
     variables = {"id": collection_id}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collectionDelete"]["collection"]
     assert data["name"] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
-    delete_versatile_image_mock.assert_not_called()
 
     deleted_webhook_mock.assert_called_once()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_delete_collection_with_background_image(
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     collection_with_image,
     permission_manage_products,
 ):
+    # given
     query = DELETE_COLLECTION_MUTATION
     collection = collection_with_image
-    collection_id = to_global_id("Collection", collection.id)
-    variables = {"id": collection_id}
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(collection=collection, size=128, image=thumbnail_mock)
+    Thumbnail.objects.create(collection=collection, size=200, image=thumbnail_mock)
+
+    collection_id = collection.id
+    variables = {"id": to_global_id("Collection", collection.id)}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collectionDelete"]["collection"]
     assert data["name"] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
-    delete_versatile_image_mock.assert_called_once_with(collection.background_image)
+    # ensure all related thumbnails has been deleted
+    assert not Thumbnail.objects.filter(collection_id=collection_id)
+    assert delete_from_storage_task_mock.call_count == 3
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -1197,10 +1227,12 @@ def test_collections_query_ids_not_exists(
 
 
 FETCH_COLLECTION_QUERY = """
-    query fetchCollection($id: ID!, $channel: String){
+    query fetchCollection(
+        $id: ID!, $channel: String,  $size: Int, $format: ThumbnailFormatEnum
+    ){
         collection(id: $id, channel: $channel) {
             name
-            backgroundImage(size: 120) {
+            backgroundImage(size: $size, format: $format) {
                url
                alt
             }
@@ -1209,39 +1241,197 @@ FETCH_COLLECTION_QUERY = """
 """
 
 
-def test_collection_image_query(
+def test_collection_image_query_with_size_and_format_proxy_url_returned(
     user_api_client, published_collection, media_root, channel_USD
 ):
+    # given
     alt_text = "Alt text for an image."
+    collection = published_collection
     image_file, image_name = create_image()
-    published_collection.background_image = image_file
-    published_collection.background_image_alt = alt_text
-    published_collection.save()
-    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+        "format": format,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/thumbnail/{collection_id}/128/{format.lower()}/"
+    )
+
+
+def test_collection_image_query_with_size_proxy_url_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    size = 128
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "size": size,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/thumbnail/{collection_id}/{size}/"
+    )
+
+
+def test_collection_image_query_with_size_thumbnail_url_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(collection=collection, size=size, image=thumbnail_mock)
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_collection_image_query_only_format_provided_original_image_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "format": format,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/collection-backgrounds/{background_mock.name}"
+    )
+
+
+def test_collection_image_query_no_size_value_original_image_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     variables = {
         "id": collection_id,
         "channel": channel_USD.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
+
     data = content["data"]["collection"]
-    thumbnail_url = published_collection.background_image.thumbnail["120x120"].url
-    assert thumbnail_url in data["backgroundImage"]["url"]
     assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/collection-backgrounds/{background_mock.name}"
+    )
 
 
 def test_collection_image_query_without_associated_file(
     user_api_client, published_collection, channel_USD
 ):
-    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
-    variables = {
-        "id": collection_id,
-        "channel": channel_USD.slug,
-    }
+    # given
+    collection = published_collection
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {"id": collection_id, "channel": channel_USD.slug}
+
+    # when
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collection"]
-    assert data["name"] == published_collection.name
+    assert data["name"] == collection.name
     assert data["backgroundImage"] is None
 
 

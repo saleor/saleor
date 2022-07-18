@@ -43,10 +43,10 @@ from ...payment.model_helpers import (
 )
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ...product.product_images import get_product_image_thumbnail
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
+from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import (
@@ -76,6 +76,7 @@ from ..core.types import (
     NonNullList,
     OrderError,
     TaxedMoney,
+    ThumbnailField,
     Weight,
 )
 from ..core.utils import str_to_enum
@@ -96,6 +97,7 @@ from ..product.dataloaders import (
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
+    ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
 from ..product.types import DigitalContentUrl, ProductVariant
 from ..shipping.dataloaders import (
@@ -520,11 +522,7 @@ class OrderLine(ModelObjectType):
     unit_discount_reason = graphene.String()
     tax_rate = graphene.Float(required=True)
     digital_content_url = graphene.Field(DigitalContentUrl)
-    thumbnail = graphene.Field(
-        Image,
-        description="The main thumbnail for the ordered product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
-    )
+    thumbnail = ThumbnailField()
     unit_price = graphene.Field(
         TaxedMoney,
         description="Price of the single item in the order line.",
@@ -591,14 +589,25 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
+    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
         if not root.variant_id:
             return None
 
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
         def _get_image_from_media(image):
-            url = get_product_image_thumbnail(image, size, method="thumbnail")
-            alt = image.alt
-            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+            def _resolve_url(thumbnail):
+                url = get_image_or_proxy_url(
+                    thumbnail, image.id, "ProductMedia", size, format
+                )
+                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+
+            return (
+                ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+                .load((image.id, size, format))
+                .then(_resolve_url)
+            )
 
         def _get_first_variant_image(all_medias):
             if image := next(
@@ -1231,13 +1240,18 @@ class Order(ModelObjectType):
                     if fulfillment.total_refund_amount
                 ]
             )
-            if total_fulfillment_refund == root.total.gross.amount:
+            if (
+                total_fulfillment_refund != 0
+                and total_fulfillment_refund == root.total.gross.amount
+            ):
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
                 return get_payment_status_for_order(root)
             last_payment = get_last_payment(payments)
             if not last_payment:
+                if root.total.gross.amount == 0:
+                    return ChargeStatus.FULLY_CHARGED
                 return ChargeStatus.NOT_CHARGED
             return last_payment.charge_status
 
@@ -1281,6 +1295,8 @@ class Order(ModelObjectType):
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
+                if root.total.gross.amount == 0:
+                    return dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_CHARGED)
                 return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
             return last_payment.get_charge_status_display()
 

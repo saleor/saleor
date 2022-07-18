@@ -264,3 +264,84 @@ def test_install_app_extension_incorrect_values(
     # when & then
     with pytest.raises(ValidationError):
         install_app(app_installation, activate=True)
+
+
+def test_install_app_with_webhook(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.id == App.objects.get().id
+
+    webhook = app.webhooks.get()
+    assert webhook.name == app_manifest_webhook["name"]
+    assert sorted(webhook.events.values_list("event_type", flat=True)) == sorted(
+        app_manifest_webhook["events"]
+    )
+    assert webhook.subscription_query == app_manifest_webhook["query"]
+    assert webhook.target_url == app_manifest_webhook["targetUrl"]
+    assert webhook.is_active is True
+
+
+def test_install_app_webhook_incorrect_url(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest_webhook["targetUrl"] = "ftp://user:pass@app.example/deep/cover"
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when & then
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "webhooks" in error_dict
+    assert error_dict["webhooks"][0].message == "Invalid target url."
+
+
+def test_install_app_webhook_incorrect_query(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest_webhook[
+        "query"
+    ] = """
+        no {
+            that's {
+                not {
+                    ... on a {
+                        valid graphql {
+                            query
+                        }
+                    }
+                }
+            }
+        }
+    """
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when & then
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "webhooks" in error_dict
+    assert error_dict["webhooks"][0].message == "Subscription query is not valid."

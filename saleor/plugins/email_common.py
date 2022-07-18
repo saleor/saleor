@@ -18,7 +18,14 @@ from django.core.mail.backends.smtp import EmailBackend
 from django.core.validators import EmailValidator
 from django_prices.utils.locale import get_locale_data
 
-from ..product.product_images import get_thumbnail_size
+from ..product.models import ProductMedia
+from ..product.product_images import get_product_image_placeholder
+from ..thumbnail.models import Thumbnail
+from ..thumbnail.utils import (
+    get_thumbnail_size,
+    prepare_image_proxy_url,
+    prepare_thumbnail_file_name,
+)
 from .base_plugin import ConfigurationTypeField
 from .error_codes import PluginErrorCode
 
@@ -144,8 +151,15 @@ def format_datetime(this, date, date_format=None):
 
 def get_product_image_thumbnail(this, size, image):
     """Use provided size to get a correct image."""
-    expected_size = get_thumbnail_size(size, "thumbnail", "products", on_demand=False)
-    return image["original"][expected_size]
+    size = get_thumbnail_size(size)
+    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size, None)
+    thumbnail = Thumbnail.objects.filter(image__name=thumbnail_file_name).first()
+    if thumbnail:
+        return thumbnail.image.url
+    media = ProductMedia.objects.filter(image__name=image.name).first()
+    if not media:
+        return get_product_image_placeholder(size)
+    return prepare_image_proxy_url(media.id, "ProductMedia", size, None)
 
 
 def compare(this, val1, compare_operator, val2):

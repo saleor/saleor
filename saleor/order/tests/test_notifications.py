@@ -2,6 +2,8 @@ from decimal import Decimal
 from functools import partial
 from unittest import mock
 
+import graphene
+from django.core.files import File
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
@@ -13,11 +15,14 @@ from ...order import notifications
 from ...order.fetch import fetch_order_info
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
+from ...thumbnail import THUMBNAIL_SIZES
+from ...thumbnail.models import Thumbnail
 from ..notifications import (
     get_address_payload,
     get_custom_order_payload,
     get_default_fulfillment_line_payload,
     get_default_fulfillment_payload,
+    get_default_images_payload,
     get_default_order_payload,
     get_order_line_payload,
 )
@@ -653,3 +658,28 @@ def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, a
         expected_payload,
         channel_slug=order.channel.slug,
     )
+
+
+def test_get_default_images_payload(product_with_image):
+    # given
+    size = 128
+
+    thumbnail_mock = mock.MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+
+    media = product_with_image.media.first()
+    thumbnail = Thumbnail.objects.create(
+        product_media=media, image=thumbnail_mock, size=size
+    )
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+
+    # when
+    payload = get_default_images_payload([media])
+
+    # then
+    images_payload = payload["first_image"]["original"]
+    assert images_payload[size] == thumbnail.image.url
+    for th_size in THUMBNAIL_SIZES:
+        if th_size != size:
+            assert images_payload[th_size] == f"/thumbnail/{media_id}/{th_size}/"

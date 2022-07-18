@@ -47,6 +47,7 @@ from .common import (
     StaffError,
     StockError,
     TaxType,
+    ThumbnailField,
     TimePeriod,
     TimePeriodInputType,
     TranslationError,

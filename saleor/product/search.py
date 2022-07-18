@@ -2,12 +2,13 @@ from functools import reduce
 from operator import add
 from typing import TYPE_CHECKING, Optional, Union
 
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..attribute import AttributeInputType
 from ..core.utils.editorjs import clean_editor_js
 from .models import Product
+from .postgres import NoValidationSearchVector
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -57,12 +58,14 @@ def update_product_search_vector(product: "Product"):
 
 def prepare_product_search_vector_value(
     product: "Product", *, already_prefetched=False
-) -> SearchVector:
+) -> NoValidationSearchVector:
     if not already_prefetched:
         prefetch_related_objects([product], *PRODUCT_FIELDS_TO_PREFETCH)
-    search_vector = SearchVector(
+    search_vector = NoValidationSearchVector(
         Value(product.name), config="simple", weight="A"
-    ) + SearchVector(Value(product.description_plaintext), config="simple", weight="C")
+    ) + NoValidationSearchVector(
+        Value(product.description_plaintext), config="simple", weight="C"
+    )
     attributes_vector = generate_attributes_search_vector_value(
         product.attributes.all()
     )
@@ -75,15 +78,17 @@ def prepare_product_search_vector_value(
     return search_vector
 
 
-def generate_variants_search_vector_value(product: "Product") -> Optional[SearchVector]:
+def generate_variants_search_vector_value(
+    product: "Product",
+) -> Optional[NoValidationSearchVector]:
     variants = list(product.variants.all())
 
     variant_vectors = [
-        SearchVector(
+        NoValidationSearchVector(
             Value(variant.sku), Value(variant.name), config="simple", weight="A"
         )
         if variant.sku
-        else SearchVector(Value(variant.name), config="simple", weight="A")
+        else NoValidationSearchVector(Value(variant.name), config="simple", weight="A")
         for variant in variants
         if variant.sku or variant.name
     ]
@@ -105,7 +110,7 @@ def generate_variants_search_vector_value(product: "Product") -> Optional[Search
 
 def generate_attributes_search_vector_value(
     assigned_attributes: "QuerySet",
-) -> Optional[SearchVector]:
+) -> Optional[NoValidationSearchVector]:
     """Prepare `search_vector` value for assigned attributes.
 
     Method should received assigned attributes with prefetched `values`
@@ -140,7 +145,7 @@ def generate_attributes_search_vector_value(
             new_vector = reduce(
                 add,
                 (
-                    SearchVector(Value(v), config="simple", weight="B")
+                    NoValidationSearchVector(Value(v), config="simple", weight="B")
                     for v in values_list
                 ),
             )
