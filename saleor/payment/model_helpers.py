@@ -18,7 +18,7 @@ def get_last_payment(payments: List[Payment]):
 
 def get_total_authorized(payments: List[Payment], fallback_currency: str):
     # FIXME adjust to multiple payments in the future
-    if last_payment := get_last_payment(payments):
+    if last_payment == get_last_payment(payments):
         if last_payment.is_active:
             return last_payment.get_authorized_amount()
     return zero_money(fallback_currency)
