@@ -576,11 +576,7 @@ def update_delivery_method_lists_for_checkout_info(
         _resolve_all_shipping_methods
     )  # type: ignore
     checkout_info.valid_pick_up_points = SimpleLazyObject(
-        lambda: (
-            get_valid_collection_points_for_checkout_info(
-                shipping_address, lines, checkout_info
-            )
-        )
+        lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
     )  # type: ignore
     update_checkout_info_delivery_method_info(
         checkout_info,
@@ -591,19 +587,13 @@ def update_delivery_method_lists_for_checkout_info(
 
 
 def get_valid_collection_points_for_checkout_info(
-    shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     checkout_info: CheckoutInfo,
 ):
     from .utils import get_valid_collection_points_for_checkout
 
-    if shipping_address:
-        country_code = shipping_address.country.code
-    else:
-        country_code = checkout_info.channel.default_country.code
-
     valid_collection_points = get_valid_collection_points_for_checkout(
-        lines, country_code=country_code, quantity_check=False
+        lines, checkout_info.channel.id, quantity_check=False
     )
     return SimpleLazyObject(lambda: list(valid_collection_points))
 

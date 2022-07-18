@@ -23,7 +23,13 @@ class I18nMixin:
 
     @classmethod
     def validate_address_form(
-        cls, address_data: dict, address_type: Optional[str] = None, instance=None
+        cls,
+        address_data: dict,
+        address_type: Optional[str] = None,
+        instance=None,
+        format_check=True,
+        required_check=True,
+        enable_normalization=True,
     ):
         phone = address_data.get("phone", None)
         params = {"address_type": address_type} if address_type else {}
@@ -31,33 +37,54 @@ class I18nMixin:
             try:
                 validate_possible_number(phone, address_data.get("country"))
             except ValidationError as exc:
-                raise ValidationError(
-                    {
-                        "phone": ValidationError(
-                            f"'{phone}' is not a valid phone number.",
-                            code=exc.code,
-                            params=params,
-                        )
-                    }
-                ) from exc
+                if format_check:
+                    raise ValidationError(
+                        {
+                            "phone": ValidationError(
+                                f"'{phone}' is not a valid phone number.",
+                                code=exc.code,
+                                params=params,
+                            )
+                        }
+                    ) from exc
 
         address_form, _ = get_address_form(
-            address_data, address_data.get("country"), instance=instance
+            address_data,
+            address_data.get("country"),
+            instance=instance,
+            enable_normalization=enable_normalization,
         )
         if not address_form.is_valid():
-            errors = cls.attach_params_to_address_form_errors(address_form, params)
-            raise ValidationError(errors)
+            errors = cls.attach_params_to_address_form_errors(
+                address_form, params, format_check, required_check
+            )
+            if errors:
+                raise ValidationError(errors)
         return address_form
 
     @classmethod
-    def attach_params_to_address_form_errors(cls, address_form, params: Dict[str, str]):
-        errors_dict = address_form.errors.as_data()
-        for errors in errors_dict.values():
+    def attach_params_to_address_form_errors(
+        cls,
+        address_form,
+        params: Dict[str, str],
+        values_check=True,
+        required_check=True,
+    ):
+        address_errors_dict = address_form.errors.as_data()
+        errors_dict = {}
+        for field, errors in address_errors_dict.items():
             for error in errors:
                 if not error.params:
                     error.params = params
                 else:
                     error.params.update(params)
+                if error.code != "required":
+                    if values_check:
+                        errors_dict[field] = errors
+                    else:
+                        address_form.cleaned_data[field] = address_form.data[field]
+                if required_check and error.code == "required":
+                    errors_dict[field] = errors
         return errors_dict
 
     @classmethod
@@ -67,7 +94,10 @@ class I18nMixin:
         *,
         address_type: Optional[str] = None,
         instance: Optional[Address] = None,
-        info=None
+        info=None,
+        format_check=True,
+        required_check=True,
+        enable_normalization=True
     ):
         if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}
@@ -78,7 +108,13 @@ class I18nMixin:
                     )
                 }
             )
-        address_form = cls.validate_address_form(address_data, address_type)
+        address_form = cls.validate_address_form(
+            address_data,
+            address_type,
+            format_check=format_check,
+            required_check=required_check,
+            enable_normalization=enable_normalization,
+        )
         if not instance:
             instance = Address()
 

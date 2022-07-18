@@ -4,6 +4,7 @@ from django.contrib.sites.models import Site
 
 from ..core.permissions import get_permission_names
 from ..plugins.manager import PluginsManager
+from ..webhook.models import Webhook, WebhookEvent
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
@@ -61,6 +62,26 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             target=extension_data.get("target", AppExtensionTarget.POPUP),
         )
         extension.permissions.set(extension_data.get("permissions", []))
+
+    webhooks = Webhook.objects.bulk_create(
+        Webhook(
+            app=app,
+            name=webhook["name"],
+            target_url=webhook["targetUrl"],
+            subscription_query=webhook["query"],
+        )
+        for webhook in manifest_data.get("webhooks", [])
+    )
+
+    webhook_events = []
+    for db_webhook, manifest_webhook in zip(
+        webhooks, manifest_data.get("webhooks", [])
+    ):
+        for event_type in manifest_webhook["events"]:
+            webhook_events.append(
+                WebhookEvent(webhook=db_webhook, event_type=event_type)
+            )
+    WebhookEvent.objects.bulk_create(webhook_events)
 
     _, token = app.tokens.create(name="Default token")
 

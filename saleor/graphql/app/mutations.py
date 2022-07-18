@@ -472,6 +472,7 @@ class AppFetchManifest(BaseMutation):
             token_target_url=cleaned_data.get("tokenTargetUrl"),
             permissions=cleaned_data.get("permissions"),
             extensions=cleaned_data.get("extensions", []),
+            webhooks=cleaned_data.get("webhooks", []),
         )
 
     @classmethod

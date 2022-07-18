@@ -10,25 +10,26 @@ from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
 
-from ....checkout import calculations
-from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout
-from ....core.exceptions import InsufficientStock, InsufficientStockData
-from ....core.taxes import TaxError, zero_money, zero_taxed_money
-from ....giftcard import GiftCardEvents
-from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderOrigin, OrderStatus
-from ....order.models import Fulfillment, Order
-from ....payment import ChargeStatus, PaymentError, TransactionKind
-from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
-from ....payment.interface import GatewayResponse
-from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....tests.utils import flush_post_commit_hooks
-from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
-from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...core.utils import to_global_id_or_none
-from ...tests.utils import get_graphql_content
+from .....account.models import Address
+from .....checkout import calculations
+from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
+from .....core.exceptions import InsufficientStock, InsufficientStockData
+from .....core.taxes import TaxError, zero_money, zero_taxed_money
+from .....giftcard import GiftCardEvents
+from .....giftcard.models import GiftCard, GiftCardEvent
+from .....order import OrderOrigin, OrderStatus
+from .....order.models import Fulfillment, Order
+from .....payment import ChargeStatus, PaymentError, TransactionKind
+from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
+from .....payment.interface import GatewayResponse
+from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
+from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
+from .....warehouse.tests.utils import get_available_quantity_for_stock
+from ....core.utils import to_global_id_or_none
+from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
     mutation checkoutComplete($id: ID, $redirectUrl: String) {
@@ -58,29 +59,6 @@ MUTATION_CHECKOUT_COMPLETE = """
         }
     }
     """
-
-
-ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
-    is_success=True,
-    action_required=True,
-    action_required_data={
-        "paymentData": "test",
-        "paymentMethodType": "scheme",
-        "url": "https://test.adyen.com/hpp/3d/validate.shtml",
-        "data": {
-            "MD": "md-test-data",
-            "PaReq": "PaReq-test-data",
-            "TermUrl": "http://127.0.0.1:3000/",
-        },
-        "method": "POST",
-        "type": "redirect",
-    },
-    kind=TransactionKind.CAPTURE,
-    amount=Decimal(3.0),
-    currency="usd",
-    transaction_id="1234",
-    error=None,
-)
 
 
 def test_checkout_complete_unconfirmed_order_already_exists(
@@ -1079,8 +1057,9 @@ def test_checkout_complete_confirmation_needed(
     address,
     payment_dummy,
     shipping_method,
+    action_required_gateway_response,
 ):
-    mocked_process_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    mocked_process_payment.return_value = action_required_gateway_response
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -1133,8 +1112,9 @@ def test_checkout_confirm(
     payment_txn_to_confirm,
     address,
     shipping_method,
+    action_required_gateway_response,
 ):
-    response = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response = action_required_gateway_response
     response.action_required = False
     mocked_confirm_payment.return_value = response
 
@@ -2610,3 +2590,368 @@ def test_checkout_complete_0_total_value_from_giftcard(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_fields(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy_credit_card,
+    address,
+    shipping_method,
+):
+    # given
+    shipping_address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        country="PL",
+        phone="+48713988102",
+    )  # missing postalCode
+
+    checkout = checkout_with_item
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy_credit_card
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = "123"
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+
+    assert data["errors"][0]["code"] == "REQUIRED"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fields(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy_credit_card,
+    address,
+    shipping_method,
+):
+    # given
+    shipping_address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        country="PL",
+        phone="+48713988102",
+        postal_code="XX-ABC",
+    )  # incorrect postalCode
+
+    checkout = checkout_with_item
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy_credit_card
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = "123"
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_fields(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy_credit_card,
+    address,
+    shipping_method,
+):
+    # given
+    billing_address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        country="PL",
+        phone="+48713988102",
+    )  # missing postalCode
+
+    checkout = checkout_with_item
+    checkout.billing_address = billing_address
+    checkout.shipping_method = shipping_method
+    checkout.shipping_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy_credit_card
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = "123"
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "REQUIRED"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fields(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy_credit_card,
+    address,
+    shipping_method,
+):
+    # given
+    billing_address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        country="PL",
+        phone="+48713988102",
+        postal_code="XX-ABC",
+    )  # incorrect postalCode
+
+    checkout = checkout_with_item
+    checkout.billing_address = billing_address
+    checkout.shipping_method = shipping_method
+    checkout.shipping_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy_credit_card
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = "123"
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "postalCode"
+    assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_with_not_normalized_shipping_address(
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    shipping_address = Address.objects.create(
+        **{
+            "country": "US",
+            "city": "Washington",
+            "country_area": "District of Columbia",
+            "street_address_1": "1600 Pennsylvania Avenue NW",
+            "postal_code": "20500",
+        }
+    )
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    shipping_address = order.shipping_address
+    assert shipping_address
+    assert shipping_address.city == "WASHINGTON"
+    assert shipping_address.country_area == "DC"
+
+
+def test_checkout_complete_with_not_normalized_billing_address(
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    billing_address = Address.objects.create(
+        **{
+            "country": "US",
+            "city": "Washington",
+            "country_area": "District of Columbia",
+            "street_address_1": "1600 Pennsylvania Avenue NW",
+            "postal_code": "20500",
+        }
+    )
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = billing_address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    billing_address = order.billing_address
+    assert billing_address
+    assert billing_address.city == "WASHINGTON"
+    assert billing_address.country_area == "DC"

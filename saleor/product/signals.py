@@ -1,14 +1,18 @@
 from ..core.tasks import delete_from_storage_task, delete_product_media_task
-from ..core.utils import delete_versatile_image
 
 
 def delete_background_image(sender, instance, **kwargs):
     if img := instance.background_image:
-        delete_versatile_image(img)
+        delete_from_storage_task.delay(img.path)
 
 
 def delete_digital_content_file(sender, instance, **kwargs):
     if file := instance.content_file:
+        delete_from_storage_task.delay(file.path)
+
+
+def delete_product_media_image(sender, instance, **kwargs):
+    if file := instance.image:
         delete_from_storage_task.delay(file.path)
 
 
