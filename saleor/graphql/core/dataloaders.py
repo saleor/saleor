@@ -49,3 +49,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
 
     def batch_load(self, keys: Iterable[K]) -> Union[Promise[List[R]], List[R]]:
         raise NotImplementedError()
+
+
+class SingleObjectLoader(DataLoader):
+    batch = False
