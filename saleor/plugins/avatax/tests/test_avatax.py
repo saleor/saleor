@@ -33,6 +33,7 @@ from .. import (
     AvataxConfiguration,
     TransactionType,
     _validate_adddress_details,
+    _validate_order,
     api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
@@ -4060,6 +4061,35 @@ def test_validate_adddress_details(
         shipping_address, is_shipping_required, address, shipping_method
     )
     assert is_valid is expected_is_valid
+
+
+def test_validate_order_no_lines(order):
+    # given
+    assert not order.lines.all()
+
+    # when
+    response = _validate_order(order)
+
+    # then
+    assert response is False
+
+
+def test_validate_order_not_shipping_required_no_shipping_method(order_line, address):
+    # given
+    order = order_line.order
+    order_line.is_shipping_required = False
+    order_line.save(update_fields=["is_shipping_required"])
+
+    order.shipping_method = None
+    order.shipping_address = address
+    order.billing_address = address
+    order.save(update_fields=["shipping_address", "billing_address", "shipping_method"])
+
+    # when
+    response = _validate_order(order)
+
+    # then
+    assert response is True
 
 
 def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
