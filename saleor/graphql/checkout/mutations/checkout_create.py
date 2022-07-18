@@ -12,7 +12,12 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.utils import clean_channel
-from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -31,6 +36,49 @@ from .utils import (
 if TYPE_CHECKING:
     from ....account.models import Address
     from .utils import CheckoutLineData
+
+
+class CheckoutAddressValidationRules(graphene.InputObjectType):
+    check_required_fields = graphene.Boolean(
+        description=(
+            "Determines if an error should be raised when the provided address doesn't "
+            "have all the required fields. The list of required fields is dynamic and "
+            "depends on the country code (use the `addressValidationRules` query to "
+            "fetch them). Note: country code is mandatory for all addresses regardless "
+            "of the rules provided in this input."
+        ),
+        default_value=True,
+    )
+    check_fields_format = graphene.Boolean(
+        description=(
+            "Determines if an error should be raised when the provided address doesn't "
+            "match the expected format. Example: using letters for postal code when "
+            "the numbers are expected."
+        ),
+        default_value=True,
+    )
+    enable_fields_normalization = graphene.Boolean(
+        description=(
+            "Determines if Saleor should apply normalization on address fields. "
+            "Example: converting city field to uppercase letters."
+        ),
+        default_value=True,
+    )
+
+
+class CheckoutValidationRules(graphene.InputObjectType):
+    shipping_address = CheckoutAddressValidationRules(
+        description=(
+            "The validation rules that can be applied to provided shipping address"
+            " data."
+        )
+    )
+    billing_address = CheckoutAddressValidationRules(
+        description=(
+            "The validation rules that can be applied to provided billing address"
+            " data."
+        )
+    )
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -71,6 +119,14 @@ class CheckoutCreateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="Checkout language code."
+    )
+    validation_rules = CheckoutValidationRules(
+        required=False,
+        description=(
+            "The checkout validation rules that can be changed."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        ),
     )
 
 
@@ -134,17 +190,39 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional["Address"]:
+        address_validation_rules = data.get("validation_rules", {}).get(
+            "shipping_address", {}
+        )
         if data.get("shipping_address") is not None:
             return cls.validate_address(
-                data["shipping_address"], address_type=AddressType.SHIPPING
+                data["shipping_address"],
+                address_type=AddressType.SHIPPING,
+                format_check=address_validation_rules.get("check_fields_format", True),
+                required_check=address_validation_rules.get(
+                    "check_required_fields", True
+                ),
+                enable_normalization=address_validation_rules.get(
+                    "enable_fields_normalization", True
+                ),
             )
         return None
 
     @classmethod
     def retrieve_billing_address(cls, user, data: dict) -> Optional["Address"]:
+        address_validation_rules = data.get("validation_rules", {}).get(
+            "billing_address", {}
+        )
         if data.get("billing_address") is not None:
             return cls.validate_address(
-                data["billing_address"], address_type=AddressType.BILLING
+                data["billing_address"],
+                address_type=AddressType.BILLING,
+                format_check=address_validation_rules.get("check_fields_format", True),
+                required_check=address_validation_rules.get(
+                    "check_required_fields", True
+                ),
+                enable_normalization=address_validation_rules.get(
+                    "enable_fields_normalization", True
+                ),
             )
         return None
 

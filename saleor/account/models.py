@@ -19,7 +19,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
-from versatileimagefield.fields import VersatileImageField
 
 from ..app.models import App
 from ..core.models import ModelWithMetadata
@@ -179,7 +178,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     default_billing_address = models.ForeignKey(
         Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
     )
-    avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
+    avatar = models.ImageField(upload_to="user-avatars", blank=True, null=True)
     jwt_token_key = models.CharField(max_length=12, default=get_random_string)
     language_code = models.CharField(
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE

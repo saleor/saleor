@@ -107,6 +107,6 @@ class JSONString(graphene.JSONString):
     @staticmethod
     def parse_literal(node):
         try:
-            graphene.JSONString.parse_literal(node)
+            return graphene.JSONString.parse_literal(node)
         except JSONDecodeError:
             raise GraphQLError(f"{str(node.value)[:20]}... is not a valid JSONString")
