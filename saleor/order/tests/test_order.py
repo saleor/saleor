@@ -22,6 +22,7 @@ from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
+from ...tax.utils import get_tax_country
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
@@ -775,6 +776,13 @@ def test_get_voucher_discount_for_order_voucher_validation(
     quantity = order_with_lines.get_total_quantity()
     customer_email = order_with_lines.get_customer_email()
 
+    tax_country = get_tax_country(
+        order_with_lines.channel,
+        order_with_lines.is_shipping_required(),
+        order_with_lines.shipping_address,
+        order_with_lines.billing_address,
+    )
+
     validate_voucher_in_order(order_with_lines)
 
     mock_validate_voucher.assert_called_once_with(
@@ -783,6 +791,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
         quantity,
         customer_email,
         order_with_lines.channel,
+        tax_country,
         order_with_lines.user,
     )
 
@@ -814,6 +823,7 @@ def test_value_voucher_order_discount(
     min_spent_amount,
     expected_value,
     channel_USD,
+    address_usa,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -829,7 +839,11 @@ def test_value_voucher_order_discount(
     subtotal = Money(subtotal, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
     order = Mock(
-        get_subtotal=Mock(return_value=subtotal), voucher=voucher, channel=channel_USD
+        get_subtotal=Mock(return_value=subtotal),
+        voucher=voucher,
+        shipping_address=address_usa,
+        billing_address=address_usa,
+        channel=channel_USD,
     )
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
@@ -840,7 +854,12 @@ def test_value_voucher_order_discount(
     [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
 )
 def test_shipping_voucher_order_discount(
-    shipping_cost, discount_value, discount_type, expected_value, channel_USD
+    shipping_cost,
+    discount_value,
+    discount_type,
+    expected_value,
+    channel_USD,
+    address_usa,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -860,6 +879,8 @@ def test_shipping_voucher_order_discount(
     order = Mock(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,
+        shipping_address=address_usa,
+        billing_address=address_usa,
         voucher=voucher,
         channel=channel_USD,
     )
@@ -889,6 +910,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     min_checkout_items_quantity,
     voucher_type,
     channel_USD,
+    address_usa,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -907,6 +929,8 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     order = Mock(
         get_subtotal=Mock(return_value=price),
         get_total_quantity=Mock(return_value=total_quantity),
+        shipping_address=address_usa,
+        billing_address=address_usa,
         shipping_price=price,
         voucher=voucher,
         channel=channel_USD,

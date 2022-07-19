@@ -553,3 +553,34 @@ def test_create_order_from_checkout_updates_total_charged_amount(
 
     # then
     assert order.total_charged_amount == charged_value
+
+
+def test_create_order_from_checkout_update_display_gross_prices(
+    checkout_with_item, app
+):
+    # given
+    checkout = checkout_with_item
+    channel = checkout.channel
+    tax_configuration = channel.tax_configuration
+
+    tax_configuration.display_gross_prices = False
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines,
+        discounts=[],
+        manager=manager,
+        user=AnonymousUser(),
+        app=app,
+        tracking_code="tracking_code",
+    )
+
+    # then
+    assert not order.display_gross_prices

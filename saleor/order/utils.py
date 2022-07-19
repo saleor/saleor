@@ -32,6 +32,7 @@ from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
 )
+from ..tax.utils import get_display_gross_prices, get_tax_country
 from ..warehouse.management import (
     decrease_allocations,
     get_order_lines_with_track_inventory,
@@ -185,11 +186,12 @@ def recalculate_order(order: Order, **kwargs):
 
     order.save(
         update_fields=[
+            "currency",
+            "display_gross_prices",
             "total_net_amount",
             "total_gross_amount",
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
-            "currency",
             "updated_at",
         ]
     )
@@ -1126,3 +1128,27 @@ def update_order_authorize_data(order: Order, with_save=True):
         order.save(
             update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
         )
+
+
+def update_order_display_gross_prices(order: "Order"):
+    """Update Order's `display_gross_prices` DB field.
+
+    It gets the appropriate country code based on the current order lines and addresses.
+    Having the country code get the proper tax configuration for this channel and
+    country and determine whether gross prices should be displayed for this order.
+    Doesn't save the value in the database.
+    """
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    country_code = get_tax_country(
+        channel,
+        order.is_shipping_required(),
+        order.shipping_address,
+        order.billing_address,
+    )
+    country_tax_configuration = tax_configuration.country_exceptions.filter(
+        country=country_code
+    ).first()
+    order.display_gross_prices = get_display_gross_prices(
+        tax_configuration, country_tax_configuration
+    )

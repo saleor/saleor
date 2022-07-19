@@ -17,6 +17,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
+from ...tax.utils import get_tax_country
 from .. import calculations
 from ..fetch import (
     CheckoutInfo,
@@ -247,12 +248,19 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     get_voucher_discount_for_checkout(manager, voucher, checkout_info, lines, address)
     subtotal = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     customer_email = checkout_with_voucher.get_customer_email()
+    tax_country = get_tax_country(
+        checkout_with_voucher.channel,
+        checkout_with_voucher.is_shipping_required(),
+        address,
+        address,
+    )
     mock_validate_voucher.assert_called_once_with(
         voucher,
         subtotal,
         quantity,
         customer_email,
         checkout_with_voucher.channel,
+        tax_country,
         checkout_info.user,
     )
 

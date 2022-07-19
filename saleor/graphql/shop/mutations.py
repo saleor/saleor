@@ -10,7 +10,7 @@ from ...site.error_codes import GiftCardSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import (
@@ -28,7 +28,11 @@ class ShopSettingsInput(graphene.InputObjectType):
     description = graphene.String(description="SEO description.")
     include_taxes_in_prices = graphene.Boolean(description="Include taxes in prices.")
     display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store."
+        description=(
+            f"Display prices with tax in store. {DEPRECATED_IN_3X_INPUT} Use "
+            "`taxConfigurationUpdate` mutation to configure this setting per channel "
+            "or country."
+        )
     )
     charge_taxes_on_shipping = graphene.Boolean(description="Charge taxes on shipping.")
     track_inventory_by_default = graphene.Boolean(

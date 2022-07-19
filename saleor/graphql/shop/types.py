@@ -14,7 +14,12 @@ from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.types import (
@@ -215,7 +220,12 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store.", required=True
+        description="Display prices with tax in store.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
+            "whether to display gross or net prices."
+        ),
+        required=True,
     )
     charge_taxes_on_shipping = graphene.Boolean(
         description="Charge taxes on shipping.", required=True
@@ -384,6 +394,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_display_gross_prices(_, info):
+        # deprecated
         return info.context.site.settings.display_gross_prices
 
     @staticmethod

@@ -22,6 +22,7 @@ from ..utils import (
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
+    update_order_display_gross_prices,
     update_taxes_for_order_line,
     update_taxes_for_order_lines,
 )
@@ -588,3 +589,42 @@ def test_get_total_order_discount_excluding_shipping_no_shipping_discounts(
     assert discount_amount == Money(
         discount_1.amount_value + discount_2.amount_value, order.currency
     )
+
+
+def test_update_order_display_gross_prices_use_default_tax_settings(order):
+    # given
+    tax_config = order.channel.tax_configuration
+    tax_config.display_gross_prices = True
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    order.display_gross_prices = False
+    order.save(update_fields=["display_gross_prices"])
+
+    # when
+    update_order_display_gross_prices(order)
+
+    # then
+    assert order.display_gross_prices
+
+
+def test_update_order_display_gross_prices_use_country_specific_tax_settings(order):
+    # given
+    country_code = "PT"
+    tax_config = order.channel.tax_configuration
+    tax_config.display_gross_prices = False
+    tax_config.save()
+    tax_config.country_exceptions.create(
+        country=country_code, display_gross_prices=True
+    )
+
+    order.display_gross_prices = False
+    order.save(update_fields=["display_gross_prices"])
+    order.shipping_address.country = country_code
+    order.shipping_address.save()
+
+    # when
+    update_order_display_gross_prices(order)
+
+    # then
+    assert order.display_gross_prices

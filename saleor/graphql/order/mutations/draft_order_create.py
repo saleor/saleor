@@ -13,7 +13,12 @@ from ....core.utils.url import validate_storefront_url
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
-from ....order.utils import add_variant_to_order, recalculate_order, update_order_prices
+from ....order.utils import (
+    add_variant_to_order,
+    recalculate_order,
+    update_order_display_gross_prices,
+    update_order_prices,
+)
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -119,8 +124,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
-        display_gross_prices = info.context.site.settings.display_gross_prices
-        cleaned_input["display_gross_prices"] = display_gross_prices
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address
@@ -316,6 +319,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 "Unable to calculate taxes - %s" % str(tax_error),
                 code=OrderErrorCode.TAX_ERROR.value,
             )
+
+        update_order_display_gross_prices(instance)
 
         if new_instance:
             transaction.on_commit(

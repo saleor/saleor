@@ -220,7 +220,7 @@
             <div class="padded-font"></div>
             <span class="header-category">Amount:</span>
             <div class="padded-font-sm"></div>
-            <span class="header-item">{% price order.total_gross %}</span>
+            <span class="header-item">{% price order.total_gross display_gross=order.display_gross_prices %}</span>
         </div>
     </div>
     <div class="section-left">
@@ -305,7 +305,7 @@
     </div>
     <div class="content-padded">
         <span class="header-title">ITEMS ORDERED</span>
-        {% include "invoices/invoice_products_table.html" with products=products_first_page %}
+        {% include "invoices/invoice_products_table.html" with products=products_first_page order=order %}
         {% if not rest_of_products|length %}
             {% if products_first_page|length == 4 %}
                 <div class="page-break"></div>
@@ -314,7 +314,7 @@
         {% else %}
             {% for product_set in rest_of_products %}
                 <div class="page-break"></div>
-                {% include "invoices/invoice_products_table.html" with products=product_set %}
+                {% include "invoices/invoice_products_table.html" with products=product_set order=order %}
                 {% if forloop.last %}
                     {% if product_set|length > 11 %}
                         <div class="page-break"></div>

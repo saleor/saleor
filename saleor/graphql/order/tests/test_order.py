@@ -1529,6 +1529,7 @@ ORDER_CONFIRM_MUTATION = """
             errors {
                 field
                 code
+                message
             }
             order {
                 status
@@ -1591,6 +1592,41 @@ def test_order_confirm(
         expected_payload,
         channel_slug=order_unconfirmed.channel.slug,
     )
+
+
+def test_order_confirm_update_display_gross_prices(
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    channel = order.channel
+    tax_config = channel.tax_configuration
+
+    # Change the current display_gross_prices to the opposite of what is set in the
+    # order.display_gross_prices.
+    new_display_gross_prices = not order.display_gross_prices
+
+    tax_config.display_gross_prices = new_display_gross_prices
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order.id)},
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderConfirm"]["errors"]
+    order.refresh_from_db()
+    assert order.display_gross_prices == new_display_gross_prices
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -2481,6 +2517,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         addressType
                     }
                     order {
+                        id
                         discount {
                             amount
                         }
@@ -3406,6 +3443,51 @@ def test_draft_order_create_invalid_shipping_address(
     assert errors[0]["field"] == "country"
     assert errors[0]["code"] == OrderErrorCode.REQUIRED.name
     assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
+
+
+def test_draft_order_create_update_display_gross_prices(
+    staff_api_client,
+    permission_manage_orders,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    # display_gross_prices is disabled and there is no country-specific configuration
+    # order.display_gross_prices should be also disabled as a result
+
+    tax_config = channel_USD.tax_configuration
+    tax_config.display_gross_prices = False
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_list = [{"variantId": variant_0_id, "quantity": 2}]
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "lines": variant_list,
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+        "channel": channel_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    order_id = content["data"]["draftOrderCreate"]["order"]["id"]
+    _, order_pk = graphene.Node.from_global_id(order_id)
+
+    order = Order.objects.get(id=order_pk)
+    assert not order.display_gross_prices
 
 
 DRAFT_UPDATE_QUERY = """
@@ -4873,6 +4955,35 @@ ORDER_LINES_CREATE_MUTATION = """
         }
     }
 """
+
+
+def test_draft_order_complete_display_gross_prices(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+):
+    # given
+    order = draft_order
+    channel = order.channel
+    tax_config = channel.tax_configuration
+
+    # Change the current display_gross_prices to the opposite of what is set in the
+    # order.display_gross_prices.
+    new_display_gross_prices = not order.display_gross_prices
+
+    tax_config.display_gross_prices = new_display_gross_prices
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderComplete"]["errors"]
+    order.refresh_from_db()
+    assert order.display_gross_prices == new_display_gross_prices
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")

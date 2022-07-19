@@ -197,8 +197,11 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
 def test_checkout_add_voucher_code_with_display_gross_prices(
     api_client, checkout_with_item, voucher, site_settings, monkeypatch
 ):
-    site_settings.display_gross_prices = True
-    site_settings.save()
+    channel = checkout_with_item.channel
+    tc = channel.tax_configuration
+    tc.display_gross_prices = True
+    tc.save(update_fields=["display_gross_prices"])
+    tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
 
@@ -230,8 +233,11 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
 def test_checkout_add_voucher_code_without_display_gross_prices(
     api_client, checkout_with_item, voucher, site_settings, monkeypatch
 ):
-    site_settings.display_gross_prices = False
-    site_settings.save()
+    channel = checkout_with_item.channel
+    tc = channel.tax_configuration
+    tc.display_gross_prices = False
+    tc.save(update_fields=["display_gross_prices"])
+    tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
 

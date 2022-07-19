@@ -278,7 +278,6 @@ class Order(ModelWithMetadata):
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
-
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
