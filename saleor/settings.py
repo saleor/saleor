@@ -6,7 +6,6 @@ from datetime import timedelta
 import dj_database_url
 import dj_email_url
 import django_cache_url
-import jaeger_client
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
@@ -22,7 +21,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
-from .core.schedules import sale_webhook_schedule
+from .core.schedules import initiated_sale_webhook_schedule
 
 
 def get_list(text):
@@ -228,6 +227,7 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.app",
+    "saleor.schedulers",
     # External apps
     "versatileimagefield",
     "django_measurement",
@@ -569,9 +569,14 @@ CELERY_BEAT_SCHEDULE = {
     },
     "send-sale-toggle-notifications": {
         "task": "saleor.discount.tasks.send_sale_toggle_notifications",
-        "schedule": sale_webhook_schedule(),
+        "schedule": initiated_sale_webhook_schedule,
     },
 }
+
+# The maximum wait time between each is_due() call on schedulers
+# It needs to be higher than the frequency of the schedulers to avoid unnecessary
+# is_due() calls
+CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
