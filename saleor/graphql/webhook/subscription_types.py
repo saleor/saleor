@@ -1131,7 +1131,7 @@ class WarehouseBase(AbstractType):
 class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
-        description="Look up a payment." + ADDED_IN_36 + PREVIEW_FEATURE,
+        description="Look up a payment.",
     )
 
     @staticmethod

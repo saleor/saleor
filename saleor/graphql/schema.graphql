@@ -23249,13 +23249,7 @@ type PaymentAuthorize implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a payment.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a payment."""
   payment: Payment
 }
 
@@ -23279,13 +23273,7 @@ type PaymentCaptureEvent implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a payment.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a payment."""
   payment: Payment
 }
 
@@ -23309,13 +23297,7 @@ type PaymentRefundEvent implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a payment.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a payment."""
   payment: Payment
 }
 
@@ -23339,13 +23321,7 @@ type PaymentVoidEvent implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a payment.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a payment."""
   payment: Payment
 }
 
@@ -23369,13 +23345,7 @@ type PaymentConfirmEvent implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a payment.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a payment."""
   payment: Payment
 }
 
@@ -23399,13 +23369,7 @@ type PaymentProcessEvent implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a payment.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a payment."""
   payment: Payment
 }
 
