@@ -25,7 +25,6 @@ from ...graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ...payment import PaymentError
-from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook import observability
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
@@ -181,7 +180,7 @@ def trigger_webhook_sync(
 
 
 def send_webhook_using_http(
-    target_url, message, domain, signature, event_type, timeout=WEBHOOK_TIMEOUT
+    target_url, message, domain, signature, event_type, timeout=settings.WEBHOOK_TIMEOUT
 ):
     """Send a webhook request using http / https protocol.
 
@@ -409,7 +408,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
 
 def send_webhook_request_sync(
-    app_name, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
+    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> Optional[Dict[Any, Any]]:
     event_payload = delivery.payload
     data = event_payload.payload

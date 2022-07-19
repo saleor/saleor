@@ -82,11 +82,6 @@ from ...product.models import (
 )
 from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
-from ...product.thumbnails import (
-    create_category_background_image_thumbnails,
-    create_collection_background_image_thumbnails,
-    create_product_thumbnails,
-)
 from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
@@ -207,7 +202,6 @@ def create_categories(categories_data, placeholder_dir):
         if parent:
             defaults["parent"] = Category.objects.get(pk=parent)
         Category.objects.update_or_create(pk=pk, defaults=defaults)
-        create_category_background_image_thumbnails.delay(pk)
 
 
 def create_collection_channel_listings(collection_channel_listings_data):
@@ -232,7 +226,6 @@ def create_collections(data, placeholder_dir):
             background_image = get_image(placeholder_dir, image_name)
             defaults["background_image"] = background_image
         Collection.objects.update_or_create(pk=pk, defaults=defaults)
-        create_collection_background_image_thumbnails.delay(pk)
 
 
 def assign_products_to_collections(associations: list):
@@ -509,7 +502,6 @@ def create_product_image(product, placeholder_dir, image_name):
         return None
     product_image = ProductMedia(product=product, image=image)
     product_image.save()
-    create_product_thumbnails.delay(product_image.pk)
     return product_image
 
 

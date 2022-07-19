@@ -2173,6 +2173,9 @@ type AppExtension implements Node {
 
 """All places where app extension can be mounted."""
 enum AppExtensionMountEnum {
+  CUSTOMER_OVERVIEW_CREATE
+  CUSTOMER_OVERVIEW_MORE_ACTIONS
+  CUSTOMER_DETAILS_MORE_ACTIONS
   PRODUCT_OVERVIEW_CREATE
   PRODUCT_OVERVIEW_MORE_ACTIONS
   PRODUCT_DETAILS_MORE_ACTIONS
@@ -3799,11 +3802,20 @@ type Product implements Node & ObjectWithMetadata {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """The main thumbnail for a product."""
   thumbnail(
-    """Size of thumbnail."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """
@@ -4593,8 +4605,19 @@ type Category implements Node & ObjectWithMetadata {
     last: Int
   ): CategoryCountableConnection
   backgroundImage(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -4628,6 +4651,11 @@ type Image {
 
   """Alt text for an image."""
   alt: String
+}
+
+"""An enumeration."""
+enum ThumbnailFormatEnum {
+  WEBP
 }
 
 type CategoryTranslation implements Node {
@@ -5210,11 +5238,20 @@ type ProductImage {
   The new relative sorting position of the item (from -inf to +inf). 1 moves the item one position forward, -1 moves the item one position backward, 0 leaves the item unchanged.
   """
   sortOrder: Int
-
-  """The URL of the image."""
   url(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): String!
 }
 
@@ -5225,11 +5262,20 @@ type ProductMedia implements Node {
   alt: String!
   type: ProductMediaType!
   oembedData: JSONString!
-
-  """The URL of the media."""
   url(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): String!
 }
 
@@ -5556,8 +5602,19 @@ type Collection implements Node & ObjectWithMetadata {
     last: Int
   ): ProductCountableConnection
   backgroundImage(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -7416,8 +7473,19 @@ type User implements Node & ObjectWithMetadata {
   """List of user's permission groups which user can manage."""
   editableGroups: [Group!]
   avatar(
-    """Size of the avatar."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """
@@ -8433,11 +8501,20 @@ type OrderLine implements Node & ObjectWithMetadata {
   unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
-
-  """The main thumbnail for the ordered product."""
   thumbnail(
-    """Size of thumbnail."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Price of the single item in the order line."""
@@ -9223,6 +9300,8 @@ type CustomerEvent implements Node {
 """An enumeration."""
 enum CustomerEventsEnum {
   ACCOUNT_CREATED
+  ACCOUNT_ACTIVATED
+  ACCOUNT_DEACTIVATED
   PASSWORD_RESET_LINK_SENT
   PASSWORD_RESET
   EMAIL_CHANGED_REQUEST
@@ -13941,7 +14020,7 @@ type Mutation {
   ): CustomerBulkDelete
 
   """
-  Creates a new staff user. 
+  Creates a new staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13951,7 +14030,7 @@ type Mutation {
   ): StaffCreate
 
   """
-  Updates an existing staff user. 
+  Updates an existing staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13964,7 +14043,7 @@ type Mutation {
   ): StaffUpdate
 
   """
-  Deletes a staff user. 
+  Deletes a staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -13974,7 +14053,7 @@ type Mutation {
   ): StaffDelete
 
   """
-  Deletes staff users. 
+  Deletes staff users. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -14014,7 +14093,7 @@ type Mutation {
   ): UserBulkSetActive
 
   """
-  Create new permission group. 
+  Create new permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -14024,7 +14103,7 @@ type Mutation {
   ): PermissionGroupCreate
 
   """
-  Update permission group. 
+  Update permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -14037,7 +14116,7 @@ type Mutation {
   ): PermissionGroupUpdate
 
   """
-  Delete permission group. 
+  Delete permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -20725,7 +20804,7 @@ type CustomerBulkDelete {
 }
 
 """
-Creates a new staff user. 
+Creates a new staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20786,7 +20865,7 @@ input StaffCreateInput {
 }
 
 """
-Updates an existing staff user. 
+Updates an existing staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20820,7 +20899,7 @@ input StaffUpdateInput {
 }
 
 """
-Deletes a staff user. 
+Deletes a staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20831,7 +20910,7 @@ type StaffDelete {
 }
 
 """
-Deletes staff users. 
+Deletes staff users. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20879,7 +20958,7 @@ type UserBulkSetActive {
 }
 
 """
-Create new permission group. 
+Create new permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20932,7 +21011,7 @@ input PermissionGroupCreateInput {
 }
 
 """
-Update permission group. 
+Update permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
@@ -20960,7 +21039,7 @@ input PermissionGroupUpdateInput {
 }
 
 """
-Delete permission group. 
+Delete permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
