@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Drop `create_thumbnails` command
 
 ### Other changes
+- Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
 - Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
   This fixes the following bugs:
@@ -24,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
   Usage:
   - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
   - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+
 
 # 3.5.0
 
