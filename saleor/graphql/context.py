@@ -5,13 +5,14 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
+from promise import Promise
 
 from ..account.models import User
 from ..app.models import App, AppToken
 from ..core.auth import get_token_from_request
 from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
-from .dataloaders import AppByTokenLoader
+from .core.dataloaders import SingleObjectLoader
 
 
 def get_context_value(request):
@@ -27,7 +28,7 @@ UserType = Union[User, AnonymousUser]
 class RequestWithUser(Protocol):
     _cached_user: UserType
     app: Optional[App]
-    user: Union[UserType, SimpleLazyObject]
+    user: Union[UserType, SimpleLazyObject, Promise]
 
 
 def get_app(raw_auth_token) -> Optional[App]:
@@ -40,6 +41,13 @@ def get_app(raw_auth_token) -> Optional[App]:
     return App.objects.filter(
         Exists(tokens.filter(id__in=token_ids, app_id=OuterRef("pk"))), is_active=True
     ).first()
+
+
+class AppByTokenLoader(SingleObjectLoader):
+    context_key = "app_by_token"
+
+    def batch_load(self, keys):
+        return [get_app(list(keys)[0])]
 
 
 def set_decoded_auth_token(request):

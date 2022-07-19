@@ -33,7 +33,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
     def __init__(self, context):
         if self.context != context:
             self.context = context
-            self.user = context.user
+            self.user = context.user if hasattr(context, "user") else None
             super().__init__()
 
     def batch_load_fn(self, keys: Iterable[K]) -> Promise[List[R]]:
@@ -51,5 +51,5 @@ class DataLoader(BaseLoader, Generic[K, R]):
         raise NotImplementedError()
 
 
-class SingleObjectLoader(DataLoader):
+class SingleObjectLoader(BaseLoader):
     batch = False
