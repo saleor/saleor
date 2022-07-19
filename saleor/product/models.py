@@ -794,7 +794,14 @@ class DigitalContentUrl(models.Model):
 
 
 class ProductMedia(SortableModel):
-    product = models.ForeignKey(Product, related_name="media", on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product,
+        related_name="media",
+        on_delete=models.CASCADE,
+        # DEPRECATED
+        null=True,
+        blank=True,
+    )
     image = models.ImageField(upload_to="products", blank=True, null=True)
     alt = models.CharField(max_length=128, blank=True)
     type = models.CharField(
