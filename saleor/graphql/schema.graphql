@@ -10093,6 +10093,7 @@ input VoucherFilterInput {
   started: DateTimeRangeInput
   search: String
   metadata: [MetadataFilter!]
+  ids: [ID!]
 }
 
 enum VoucherDiscountType {
