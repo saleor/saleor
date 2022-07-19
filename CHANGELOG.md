@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.6.0 [Unreleased]
 
+### Saleor Apps
+
+- Add support for the CUSTOMER_* app mount points (#10163) by @krzysztofwolski
+
 ### Breaking changes
 - Drop django-versatileimagefield package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
   - Drop `create_thumbnails` command
