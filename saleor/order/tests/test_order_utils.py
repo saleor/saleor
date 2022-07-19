@@ -599,7 +599,7 @@ def test_update_order_display_gross_prices_use_default_tax_settings(order):
     tax_config.country_exceptions.all().delete()
 
     order.display_gross_prices = False
-    order.save()
+    order.save(update_fields=["display_gross_prices"])
 
     # when
     update_order_display_gross_prices(order)
@@ -619,7 +619,7 @@ def test_update_order_display_gross_prices_use_country_specific_tax_settings(ord
     )
 
     order.display_gross_prices = False
-    order.save()
+    order.save(update_fields=["display_gross_prices"])
     order.shipping_address.country = country_code
     order.shipping_address.save()
 

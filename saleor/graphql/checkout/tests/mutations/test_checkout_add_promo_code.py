@@ -200,7 +200,7 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     channel = checkout_with_item.channel
     tc = channel.tax_configuration
     tc.display_gross_prices = True
-    tc.save()
+    tc.save(update_fields=["display_gross_prices"])
     tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
@@ -236,7 +236,7 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     channel = checkout_with_item.channel
     tc = channel.tax_configuration
     tc.display_gross_prices = False
-    tc.save()
+    tc.save(update_fields=["display_gross_prices"])
     tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change

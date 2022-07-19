@@ -29,7 +29,7 @@ from ..utils import (
 def test_valid_voucher_min_spent_amount_with_display_gross_prices(channel_USD):
     tc = channel_USD.tax_configuration
     tc.display_gross_prices = True
-    tc.save()
+    tc.save(update_fields=["display_gross_prices"])
     tc.country_exceptions.all().delete()
 
     voucher = Voucher.objects.create(
@@ -51,7 +51,7 @@ def test_valid_voucher_min_spent_amount_with_display_gross_prices(channel_USD):
 def test_valid_voucher_min_spent_amount_without_display_gross_prices(channel_USD):
     tc = channel_USD.tax_configuration
     tc.display_gross_prices = False
-    tc.save()
+    tc.save(update_fields=["display_gross_prices"])
     tc.country_exceptions.all().delete()
 
     voucher = Voucher.objects.create(
