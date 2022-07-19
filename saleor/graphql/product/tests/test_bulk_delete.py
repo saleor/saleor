@@ -1,7 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
+from django.core.files import File
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -26,6 +27,7 @@ from ....product.models import (
     VariantMedia,
 )
 from ....tests.utils import flush_post_commit_hooks
+from ....thumbnail.models import Thumbnail
 from ...tests.utils import get_graphql_content
 
 
@@ -115,9 +117,7 @@ def test_delete_categories_trigger_webhook(
     assert mocked_webhook_trigger.call_count == len(category_list)
 
 
-@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_categories_with_images(
-    delete_versatile_image_mock,
     staff_api_client,
     category_list,
     image_list,
@@ -129,6 +129,15 @@ def test_delete_categories_with_images(
 
     category_list[1].background_image = image_list[1]
     category_list[1].save(update_fields=["background_image"])
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.bulk_create(
+        [
+            Thumbnail(category=category_list[0], size=128, image=thumbnail_mock),
+            Thumbnail(category=category_list[1], size=128, image=thumbnail_mock),
+        ]
+    )
 
     variables = {
         "ids": [
@@ -147,10 +156,8 @@ def test_delete_categories_with_images(
     assert not Category.objects.filter(
         id__in=[category.id for category in category_list]
     ).exists()
-    assert delete_versatile_image_mock.call_count == 2
-    assert {
-        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
-    } == {category_list[0].background_image, category_list[1].background_image}
+    # ensure corresponding thumbnails has been deleted
+    assert not Thumbnail.objects.all()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -298,9 +305,7 @@ def test_delete_collections(
     ).exists()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_collections_with_images(
-    delete_versatile_image_mock,
     staff_api_client,
     collection_list,
     image_list,
@@ -314,6 +319,15 @@ def test_delete_collections_with_images(
 
     collection_list[1].background_image = image_list[1]
     collection_list[1].save(update_fields=["background_image"])
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.bulk_create(
+        [
+            Thumbnail(collection=collection_list[0], size=128, image=thumbnail_mock),
+            Thumbnail(collection=collection_list[1], size=128, image=thumbnail_mock),
+        ]
+    )
 
     variables = {
         "ids": [
@@ -330,10 +344,8 @@ def test_delete_collections_with_images(
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
-    assert delete_versatile_image_mock.call_count == 2
-    assert {
-        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
-    } == {collection_list[0].background_image, collection_list[1].background_image}
+    # ensure corresponding thumbnails has been deleted
+    assert not Thumbnail.objects.all()
 
 
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
@@ -984,13 +996,13 @@ def test_delete_product_variants_removes_checkout_lines(
     assert old_quantity == calculate_checkout_quantity(lines) + 2
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_from_storage_task")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_with_images(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     product_variant_list,
     image_list,
@@ -1034,7 +1046,7 @@ def test_delete_product_variants_with_images(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    delete_versatile_image_mock.assert_not_called()
+    delete_from_storage_task_mock.assert_not_called()
 
 
 def test_product_delete_removes_reference_to_product(
