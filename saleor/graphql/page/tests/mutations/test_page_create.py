@@ -9,6 +9,7 @@ from freezegun import freeze_time
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page, PageType
+from .....tests.consts import TEST_SERVER_DOMAIN
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_page_payload
@@ -409,7 +410,7 @@ def test_create_page_with_file_attribute(
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
                 "file": {
-                    "url": f"http://testserver/media/{attr_value.file_url}",
+                    "url": f"http://{TEST_SERVER_DOMAIN}/media/{attr_value.file_url}",
                     "contentType": None,
                 },
                 "reference": None,
@@ -488,7 +489,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
                 "reference": None,
                 "name": new_value,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": f"http://{TEST_SERVER_DOMAIN}/media/" + new_value,
                     "contentType": new_value_content_type,
                 },
                 "plainText": None,

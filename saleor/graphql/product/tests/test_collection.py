@@ -9,6 +9,7 @@ from graphql_relay import to_global_id
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ...core.enums import ThumbnailFormatEnum
@@ -725,7 +726,7 @@ def test_update_collection_with_background_image(
     collection = Collection.objects.get(slug=slug)
     assert data["collection"]["backgroundImage"]["alt"] == image_alt
     assert data["collection"]["backgroundImage"]["url"].startswith(
-        f"http://testserver/media/collection-backgrounds/{image_name}"
+        f"http://{TEST_SERVER_DOMAIN}/media/collection-backgrounds/{image_name}"
     )
 
     # ensure that thumbnails for old background image has been deleted
@@ -1272,10 +1273,10 @@ def test_collection_image_query_with_size_and_format_proxy_url_returned(
 
     data = content["data"]["collection"]
     assert data["backgroundImage"]["alt"] == alt_text
-    assert (
-        data["backgroundImage"]["url"]
-        == f"http://testserver/thumbnail/{collection_id}/128/{format.lower()}/"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}/thumbnail/{collection_id}/128/{format.lower()}/"
     )
+    assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_collection_image_query_with_size_proxy_url_returned(
@@ -1308,7 +1309,7 @@ def test_collection_image_query_with_size_proxy_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://testserver/thumbnail/{collection_id}/{size}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{collection_id}/{size}/"
     )
 
 
@@ -1346,7 +1347,7 @@ def test_collection_image_query_with_size_thumbnail_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -1379,10 +1380,11 @@ def test_collection_image_query_only_format_provided_original_image_returned(
 
     data = content["data"]["collection"]
     assert data["backgroundImage"]["alt"] == alt_text
-    assert (
-        data["backgroundImage"]["url"]
-        == f"http://testserver/media/collection-backgrounds/{background_mock.name}"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/media/collection-backgrounds/{background_mock.name}"
     )
+    assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_collection_image_query_no_size_value_original_image_returned(
@@ -1411,10 +1413,11 @@ def test_collection_image_query_no_size_value_original_image_returned(
 
     data = content["data"]["collection"]
     assert data["backgroundImage"]["alt"] == alt_text
-    assert (
-        data["backgroundImage"]["url"]
-        == f"http://testserver/media/collection-backgrounds/{background_mock.name}"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/media/collection-backgrounds/{background_mock.name}"
     )
+    assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_collection_image_query_without_associated_file(
