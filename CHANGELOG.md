@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 - Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+- Add query for transaction item and extend transaction item type with order - #10154 by @IKarbowiak
 - Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
   This fixes the following bugs:
   - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)

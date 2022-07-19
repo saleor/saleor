@@ -7,12 +7,13 @@ from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..order.dataloaders import OrderByIdLoader
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     TransactionByPaymentIdLoader,
@@ -287,6 +288,10 @@ class TransactionItem(ModelObjectType):
     status = graphene.String(description="Status of transaction.", required=True)
     type = graphene.String(description="Type of transaction.", required=True)
     reference = graphene.String(description="Reference of transaction.", required=True)
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="The related order." + ADDED_IN_36,
+    )
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
     )
@@ -317,6 +322,12 @@ class TransactionItem(ModelObjectType):
     @staticmethod
     def resolve_refunded_amount(root: models.TransactionItem, _info):
         return root.amount_refunded
+
+    @staticmethod
+    def resolve_order(root: models.TransactionItem, info):
+        if not root.order_id:
+            return
+        return OrderByIdLoader(info.context).load(root.order_id)
 
     @staticmethod
     def resolve_events(root: models.TransactionItem, info):
