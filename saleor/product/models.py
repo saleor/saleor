@@ -804,6 +804,8 @@ class ProductMedia(SortableModel):
     )
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
+    # DEPRECATED
+    to_remove = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("sort_order", "pk")
