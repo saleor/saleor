@@ -51,5 +51,5 @@ class DataLoader(BaseLoader, Generic[K, R]):
         raise NotImplementedError()
 
 
-class SingleObjectLoader(BaseLoader):
+class SingleObjectLoader(DataLoader):
     batch = False
