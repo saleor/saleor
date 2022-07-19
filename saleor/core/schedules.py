@@ -5,7 +5,7 @@ import pytz
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
 
-from saleor.schedulers.customschedule import CustomSchedule
+from ..schedulers.customschedule import CustomSchedule
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 
