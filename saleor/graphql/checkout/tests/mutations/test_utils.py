@@ -1,9 +1,14 @@
 import graphene
 
-from ...mutations.utils import CheckoutLineData, group_lines
+from .....checkout.fetch import fetch_checkout_lines
+from ...mutations.utils import (
+    CheckoutLineData,
+    group_lines_input_data_on_update,
+    group_lines_input_on_add,
+)
 
 
-def test_group_when_same_variants_in_multiple_lines():
+def test_group_on_add_when_same_variants_in_multiple_lines():
     variant_1_id = graphene.Node.to_global_id("ProductVariant", 1)
     variant_2_id = graphene.Node.to_global_id("ProductVariant", 2)
     variant_3_id = graphene.Node.to_global_id("ProductVariant", 3)
@@ -29,7 +34,7 @@ def test_group_when_same_variants_in_multiple_lines():
 
     expected = [
         CheckoutLineData(
-            variant_id=id + 1,
+            variant_id=str(id + 1),
             line_id=None,
             quantity=quantity,
             quantity_to_update=True,
@@ -39,10 +44,10 @@ def test_group_when_same_variants_in_multiple_lines():
         for id, quantity in enumerate([20, 24, 4, 922, 1000])
     ]
 
-    assert expected == group_lines(lines_data)
+    assert expected == group_lines_input_on_add(lines_data)
 
 
-def test_group_when_same_variants_in_multiple_lines_and_price_provided():
+def test_group_on_add_when_same_variants_in_multiple_lines_and_price_provided():
     variant_1_id = graphene.Node.to_global_id("ProductVariant", 1)
     variant_2_id = graphene.Node.to_global_id("ProductVariant", 2)
 
@@ -55,7 +60,7 @@ def test_group_when_same_variants_in_multiple_lines_and_price_provided():
 
     expected = [
         CheckoutLineData(
-            variant_id=1,
+            variant_id="1",
             line_id=None,
             quantity=12,
             quantity_to_update=True,
@@ -63,7 +68,7 @@ def test_group_when_same_variants_in_multiple_lines_and_price_provided():
             custom_price_to_update=True,
         ),
         CheckoutLineData(
-            variant_id=2,
+            variant_id="2",
             line_id=None,
             quantity=2,
             quantity_to_update=True,
@@ -72,10 +77,10 @@ def test_group_when_same_variants_in_multiple_lines_and_price_provided():
         ),
     ]
 
-    assert expected == group_lines(lines_data)
+    assert expected == group_lines_input_on_add(lines_data)
 
 
-def test_group_when_same_variants_in_multiple_lines_and_force_new_line():
+def test_group_on_add_when_same_variants_in_multiple_lines_and_force_new_line():
     variant_1_id = graphene.Node.to_global_id("ProductVariant", 1)
     variant_2_id = graphene.Node.to_global_id("ProductVariant", 2)
 
@@ -88,7 +93,15 @@ def test_group_when_same_variants_in_multiple_lines_and_force_new_line():
 
     expected = [
         CheckoutLineData(
-            variant_id=1,
+            variant_id="1",
+            line_id=None,
+            quantity=6,
+            quantity_to_update=True,
+            custom_price=None,
+            custom_price_to_update=False,
+        ),
+        CheckoutLineData(
+            variant_id="1",
             line_id=None,
             quantity=6,
             quantity_to_update=True,
@@ -96,27 +109,19 @@ def test_group_when_same_variants_in_multiple_lines_and_force_new_line():
             custom_price_to_update=True,
         ),
         CheckoutLineData(
-            variant_id=2,
+            variant_id="2",
             line_id=None,
             quantity=2,
             quantity_to_update=True,
             custom_price=10,
             custom_price_to_update=True,
         ),
-        CheckoutLineData(
-            variant_id=1,
-            line_id=None,
-            quantity=6,
-            quantity_to_update=True,
-            custom_price=None,
-            custom_price_to_update=False,
-        ),
     ]
 
-    assert expected == group_lines(lines_data)
+    assert expected == group_lines_input_on_add(lines_data)
 
 
-def test_group_when_line_id_as_parameter_provided():
+def test_group_on_update_when_line_id_as_parameter_provided():
     line_1_id = graphene.Node.to_global_id("CheckoutLine", "abc")
     line_2_id = graphene.Node.to_global_id("CheckoutLine", "qwe")
 
@@ -144,12 +149,17 @@ def test_group_when_line_id_as_parameter_provided():
         ),
     ]
 
-    assert expected == group_lines(lines_data)
+    assert expected == group_lines_input_data_on_update(lines_data)
 
 
-def test_group_when_mixed_parameters_provided():
-    variant_id = graphene.Node.to_global_id("ProductVariant", 1)
-    line_id = graphene.Node.to_global_id("CheckoutLine", "qwe")
+def test_group_on_update_when_one_line_and_mixed_parameters_provided(
+    checkout_with_item,
+):
+    line = checkout_with_item.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.id)
+
+    existing_checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
 
     lines_data = [
         {"quantity": 6, "variant_id": variant_id, "price": 1.22},
@@ -158,21 +168,14 @@ def test_group_when_mixed_parameters_provided():
 
     expected = [
         CheckoutLineData(
-            variant_id=1,
-            line_id=None,
-            quantity=6,
-            quantity_to_update=True,
-            custom_price=1.22,
-            custom_price_to_update=True,
-        ),
-        CheckoutLineData(
             variant_id=None,
-            line_id="qwe",
-            quantity=1,
+            line_id=str(line.id),
+            quantity=7,
             quantity_to_update=True,
             custom_price=10,
             custom_price_to_update=True,
-        ),
+        )
     ]
-
-    assert expected == group_lines(lines_data)
+    assert expected == group_lines_input_data_on_update(
+        lines_data, existing_checkout_lines
+    )

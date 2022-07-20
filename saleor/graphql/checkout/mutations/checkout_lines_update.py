@@ -1,21 +1,28 @@
+from typing import Dict, List
+
 import graphene
 from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
 from ...checkout.types import CheckoutLine
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
-from ...core.scalars import UUID
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_34,
+    ADDED_IN_36,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
+from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
 from ..types import Checkout
-from .checkout_create import CheckoutLineBaseInput
 from .checkout_lines_add import CheckoutLinesAdd
-from .utils import check_lines_quantity
+from .utils import check_lines_quantity, group_lines_input_data_on_update
 
 
-class CheckoutLineUpdateInput(CheckoutLineBaseInput):
+class CheckoutLineUpdateInput(graphene.InputObjectType):
     variant_id = graphene.ID(
         required=False,
         description=(
@@ -29,8 +36,18 @@ class CheckoutLineUpdateInput(CheckoutLineBaseInput):
             "Optional for apps, required for any other users."
         ),
     )
+    price = PositiveDecimal(
+        required=False,
+        description=(
+            "Custom price of the item. Can be set only by apps "
+            "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
+            "will be provided multiple times, the last price will be used."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
+        ),
+    )
     line_id = graphene.ID(
-        description="ID of the line.",
+        description="ID of the line." + ADDED_IN_36,
         required=False,
     )
 
@@ -127,26 +144,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
                     }
                 )
 
-        # # if same variant occur in multiple lines `lineId` parameter have to be used
-        variants_ids_in_existing_lines = [line.variant.pk for line in lines]
-        for line in checkout_lines_data:
-            if (
-                line.variant_id
-                and variants_ids_in_existing_lines.count(line.variant_id) > 1
-            ):
-                message = (
-                    f"Variant #{line.variant_id} occur in multiple lines. "
-                    "Use `lineId` instead of `variantId`."
-                )
-                raise ValidationError(
-                    {
-                        "variantId": ValidationError(
-                            message,
-                            code=CheckoutErrorCode.WRONG_PARAMETER.value,
-                        )
-                    }
-                )
-
         return super().clean_input(
             info,
             checkout,
@@ -177,7 +174,13 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
-    def _get_variants(cls, lines):
+    def _get_variants_from_lines_input(cls, lines: List[Dict]) -> List[ProductVariant]:
+        """Return list of ProductVariant objects.
+
+        Uses variants ids or lines ids provided in CheckoutLineUpdateInput to
+        fetch ProductVariant objects.
+        """
+
         variant_ids = set()
 
         variant_ids.update(
@@ -187,12 +190,16 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         line_ids = [line.get("line_id") for line in lines if line.get("line_id")]
 
         if line_ids:
-            lines = cls.get_nodes_or_error(line_ids, "line_id", CheckoutLine)
+            lines_instances = cls.get_nodes_or_error(line_ids, "line_id", CheckoutLine)
             variant_ids.update(
                 {
                     graphene.Node.to_global_id("ProductVariant", line.variant_id)
-                    for line in lines
+                    for line in lines_instances
                 }
             )
 
         return cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
+
+    @classmethod
+    def _get_grouped_lines_data(cls, lines, existing_lines_info):
+        return group_lines_input_data_on_update(lines, existing_lines_info)

@@ -153,6 +153,53 @@ def test_checkout_lines_update_using_line_id(
     assert checkout.last_change != previous_last_change
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_lines_update_using_line_id_and_variant_id(
+    mocked_update_shipping_method, user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+    previous_last_change = checkout.last_change
+
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [
+            {"lineId": line_id, "quantity": 1},
+            {"variantId": variant_id, "quantity": 1},
+        ],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 2
+    assert calculate_checkout_quantity(lines) == 2
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
+
+
 def test_checkout_lines_update_block_when_variant_id_and_same_variant_in_multiple_lines(
     user_api_client, checkout_with_same_items_in_multiple_lines
 ):
@@ -176,7 +223,8 @@ def test_checkout_lines_update_block_when_variant_id_and_same_variant_in_multipl
     data = content["data"]["checkoutLinesUpdate"]
 
     # then
-    assert data["errors"][0]["code"] == CheckoutErrorCode.WRONG_PARAMETER.name
+
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
     assert data["errors"][0]["field"] == "variantId"
 
 

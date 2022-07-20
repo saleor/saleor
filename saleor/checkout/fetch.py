@@ -278,6 +278,7 @@ def fetch_checkout_lines(
             apply_voucher_to_checkout_line(
                 voucher_info, checkout, lines_info, discounts
             )
+
     return lines_info, unavailable_variant_pks
 
 

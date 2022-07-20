@@ -19370,7 +19370,6 @@ enum CheckoutErrorCode {
   UNAVAILABLE_VARIANT_IN_CHANNEL
   EMAIL_NOT_SET
   NO_LINES
-  WRONG_PARAMETER
 }
 
 """Update billing address in the existing checkout."""
@@ -19565,16 +19564,16 @@ type CheckoutLinesUpdate {
 
 input CheckoutLineUpdateInput {
   """
-  The number of items purchased. Optional for apps, required for any other users.
-  """
-  quantity: Int
-
-  """
   ID of the product variant. 
   
   DEPRECATED: this field will be removed in Saleor 4.0. Use `lineId` instead.
   """
   variantId: ID
+
+  """
+  The number of items purchased. Optional for apps, required for any other users.
+  """
+  quantity: Int
 
   """
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
@@ -19585,7 +19584,11 @@ input CheckoutLineUpdateInput {
   """
   price: PositiveDecimal
 
-  """ID of the line."""
+  """
+  ID of the line.
+  
+  Added in Saleor 3.6.
+  """
   lineId: ID
 }
 

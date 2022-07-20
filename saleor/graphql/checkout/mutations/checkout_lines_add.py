@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
@@ -20,7 +22,7 @@ from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_checkout,
-    group_lines,
+    group_lines_input_on_add,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -170,22 +172,23 @@ class CheckoutLinesAdd(BaseMutation):
         discounts = info.context.discounts
         manager = info.context.plugins
 
-        variants = cls._get_variants(lines)
-        checkout_lines_data = group_lines(lines)
+        variants = cls._get_variants_from_lines_input(lines)
 
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
             checkout, [], discounts, manager, shipping_channel_listings
         )
 
-        lines, _ = fetch_checkout_lines(checkout)
+        existing_lines_info, _ = fetch_checkout_lines(checkout)
+        input_lines_data = cls._get_grouped_lines_data(lines, existing_lines_info)
+
         lines = cls.clean_input(
             info,
             checkout,
             variants,
-            checkout_lines_data,
+            input_lines_data,
             checkout_info,
-            lines,
+            existing_lines_info,
             manager,
             discounts,
             replace,
@@ -197,6 +200,14 @@ class CheckoutLinesAdd(BaseMutation):
         return CheckoutLinesAdd(checkout=checkout)
 
     @classmethod
-    def _get_variants(cls, lines):
+    def _get_variants_from_lines_input(cls, lines: List[Dict]) -> List[ProductVariant]:
+        """Return list of ProductVariant objects.
+
+        Uses variants ids provided in CheckoutLineInput to fetch ProductVariant objects.
+        """
         variant_ids = [line.get("variant_id") for line in lines]
         return cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
+
+    @classmethod
+    def _get_grouped_lines_data(cls, lines, existing_lines_info):
+        return group_lines_input_on_add(lines)

@@ -275,36 +275,28 @@ def get_checkout(
     return checkout
 
 
-def group_lines(lines: List[Dict[str, Any]]) -> List[CheckoutLineData]:
-    variant_checkout_line_data_map: Dict[str, CheckoutLineData] = defaultdict(
-        CheckoutLineData
-    )
-    force_new_line_checkout_lines_data_map: List[CheckoutLineData] = []
+def group_lines_input_on_add(lines: List[Dict[str, Any]]) -> List[CheckoutLineData]:
+    """Return list od CheckoutLineData objects.
+
+    This function is used in CheckoutLinesAdd and CheckoutCreate mutation.
+    Lines data provided in CheckoutLineInput will be grouped depending on
+    provided parameters.
+    """
+    grouped_checkout_lines_data: List[CheckoutLineData] = []
+    checkout_lines_data_map: Dict[str, CheckoutLineData] = defaultdict(CheckoutLineData)
 
     for line in lines:
-        variant_db_id = None
-        line_db_id = None
         variant_id = cast(str, line.get("variant_id"))
-        line_id = cast(str, line.get("line_id"))
         force_new_line = line.get("force_new_line")
-
-        if line_id:
-            _, line_db_id = graphene.Node.from_global_id(line_id)
-
-        if variant_id:
-            _, variant_db_id = graphene.Node.from_global_id(variant_id)
-            variant_db_id = int(variant_db_id)
+        _, variant_db_id = graphene.Node.from_global_id(variant_id)
 
         if force_new_line:
             line_data = CheckoutLineData(variant_id=variant_db_id)
-            force_new_line_checkout_lines_data_map.append(line_data)
+            grouped_checkout_lines_data.append(line_data)
         else:
-            if line_id:
-                line_data = variant_checkout_line_data_map[line_id]
-                line_data.line_id = line_db_id
-            else:
-                line_data = variant_checkout_line_data_map[variant_id]
-                line_data.variant_id = variant_db_id
+            _, variant_db_id = graphene.Node.from_global_id(variant_id)
+            line_data = checkout_lines_data_map[variant_db_id]
+            line_data.variant_id = variant_db_id
 
         if (quantity := line.get("quantity")) is not None:
             line_data.quantity += quantity
@@ -314,10 +306,52 @@ def group_lines(lines: List[Dict[str, Any]]) -> List[CheckoutLineData]:
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
 
-    return (
-        list(variant_checkout_line_data_map.values())
-        + force_new_line_checkout_lines_data_map
-    )
+    grouped_checkout_lines_data += list(checkout_lines_data_map.values())
+    return grouped_checkout_lines_data
+
+
+def group_lines_input_data_on_update(
+    lines: List[Dict[str, Any]], existing_lines_info=None
+) -> List[CheckoutLineData]:
+    """Return list od CheckoutLineData objects.
+
+    This function is used in CheckoutLinesUpdate mutation.
+    Lines data provided in CheckoutLineUpdateInput will be grouped depending on
+    provided parameters.
+    """
+    grouped_checkout_lines_data: List[CheckoutLineData] = []
+    checkout_lines_data_map: Dict[str, CheckoutLineData] = defaultdict(CheckoutLineData)
+
+    for line in lines:
+        variant_id = cast(str, line.get("variant_id"))
+        line_id = cast(str, line.get("line_id"))
+
+        if line_id:
+            _, line_db_id = graphene.Node.from_global_id(line_id)
+
+        if variant_id:
+            _, variant_db_id = graphene.Node.from_global_id(variant_id)
+            line_db_id = find_line_id_when_variant_parameter_used(
+                variant_db_id, existing_lines_info
+            )
+
+        if not line_db_id:
+            line_data = checkout_lines_data_map[variant_db_id]
+            line_data.variant_id = variant_db_id
+        else:
+            line_data = checkout_lines_data_map[line_db_id]
+            line_data.line_id = line_db_id
+
+        if (quantity := line.get("quantity")) is not None:
+            line_data.quantity += quantity
+            line_data.quantity_to_update = True
+
+        if "price" in line:
+            line_data.custom_price = line["price"]
+            line_data.custom_price_to_update = True
+
+    grouped_checkout_lines_data += list(checkout_lines_data_map.values())
+    return grouped_checkout_lines_data
 
 
 def check_permissions_for_custom_prices(app, lines):
@@ -330,3 +364,33 @@ def check_permissions_for_custom_prices(app, lines):
         not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
     ):
         raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])
+
+
+def find_line_id_when_variant_parameter_used(variant_id, lines_info):
+    """Return line id by using provided variantId parameter.
+
+    If variant exists in multiple lines error will be returned.
+    """
+    line_info = list(filter(lambda x: (x.variant.pk == int(variant_id)), lines_info))
+
+    if not line_info:
+        return
+
+    # if same variant occur in multiple lines `lineId` parameter have to be used
+    if len(line_info) > 1:
+        message = (
+            "Variant occurs in multiple lines. Use `lineId` instead " "of `variantId`."
+        )
+        variant_global_id = graphene.Node.to_global_id("ProductVariant", variant_id)
+
+        raise ValidationError(
+            {
+                "variantId": ValidationError(
+                    message=message,
+                    code=CheckoutErrorCode.INVALID.value,
+                    params={"variants": [variant_global_id]},
+                )
+            }
+        )
+
+    return str(line_info[0].line.id)

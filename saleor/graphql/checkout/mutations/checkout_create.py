@@ -29,7 +29,7 @@ from ..types import Checkout
 from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
-    group_lines,
+    group_lines_input_on_add,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -82,7 +82,7 @@ class CheckoutValidationRules(graphene.InputObjectType):
     )
 
 
-class CheckoutLineBaseInput(graphene.InputObjectType):
+class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
     price = PositiveDecimal(
@@ -95,9 +95,6 @@ class CheckoutLineBaseInput(graphene.InputObjectType):
             + PREVIEW_FEATURE
         ),
     )
-
-
-class CheckoutLineInput(CheckoutLineBaseInput):
     force_new_line = graphene.Boolean(
         required=False,
         default_value=False,
@@ -181,7 +178,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        checkout_lines_data = group_lines(lines)
+        checkout_lines_data = group_lines_input_on_add(lines)
 
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
