@@ -450,6 +450,20 @@ type Query {
     last: Int
   ): PaymentCountableConnection
 
+  """
+  Look up a transaction by ID.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  transaction(
+    """ID of a transaction."""
+    id: ID!
+  ): TransactionItem
+
   """Look up a page by ID or slug."""
   page(
     """ID of the page."""
@@ -2159,6 +2173,9 @@ type AppExtension implements Node {
 
 """All places where app extension can be mounted."""
 enum AppExtensionMountEnum {
+  CUSTOMER_OVERVIEW_CREATE
+  CUSTOMER_OVERVIEW_MORE_ACTIONS
+  CUSTOMER_DETAILS_MORE_ACTIONS
   PRODUCT_OVERVIEW_CREATE
   PRODUCT_OVERVIEW_MORE_ACTIONS
   PRODUCT_DETAILS_MORE_ACTIONS
@@ -3785,11 +3802,20 @@ type Product implements Node & ObjectWithMetadata {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """The main thumbnail for a product."""
   thumbnail(
-    """Size of thumbnail."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """
@@ -4579,8 +4605,19 @@ type Category implements Node & ObjectWithMetadata {
     last: Int
   ): CategoryCountableConnection
   backgroundImage(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -4614,6 +4651,11 @@ type Image {
 
   """Alt text for an image."""
   alt: String
+}
+
+"""An enumeration."""
+enum ThumbnailFormatEnum {
+  WEBP
 }
 
 type CategoryTranslation implements Node {
@@ -5196,11 +5238,20 @@ type ProductImage {
   The new relative sorting position of the item (from -inf to +inf). 1 moves the item one position forward, -1 moves the item one position backward, 0 leaves the item unchanged.
   """
   sortOrder: Int
-
-  """The URL of the image."""
   url(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): String!
 }
 
@@ -5211,11 +5262,20 @@ type ProductMedia implements Node {
   alt: String!
   type: ProductMediaType!
   oembedData: JSONString!
-
-  """The URL of the media."""
   url(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): String!
 }
 
@@ -5542,8 +5602,19 @@ type Collection implements Node & ObjectWithMetadata {
     last: Int
   ): ProductCountableConnection
   backgroundImage(
-    """Size of the image."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -7402,8 +7473,19 @@ type User implements Node & ObjectWithMetadata {
   """List of user's permission groups which user can manage."""
   editableGroups: [Group!]
   avatar(
-    """Size of the avatar."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """
@@ -8004,6 +8086,13 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """Reference of transaction."""
   reference: String!
 
+  """
+  The related order.
+  
+  Added in Saleor 3.6.
+  """
+  order: Order
+
   """List of all transaction's events."""
   events: [TransactionEvent!]!
 }
@@ -8020,63 +8109,6 @@ enum TransactionActionEnum {
   CHARGE
   REFUND
   VOID
-}
-
-"""Represents transaction's event."""
-type TransactionEvent implements Node {
-  """The ID of the object."""
-  id: ID!
-  createdAt: DateTime!
-
-  """Status of transaction's event."""
-  status: TransactionStatus!
-
-  """Reference of transaction's event."""
-  reference: String!
-
-  """Name of the transaction's event."""
-  name: String
-}
-
-"""An enumeration."""
-enum TransactionStatus {
-  PENDING
-  SUCCESS
-  FAILURE
-}
-
-type GiftCardCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [GiftCardCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type GiftCardCountableEdge {
-  """The item at the end of the edge."""
-  node: GiftCard!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-type OrderCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [OrderCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type OrderCountableEdge {
-  """The item at the end of the edge."""
-  node: Order!
-
-  """A cursor for use in pagination."""
-  cursor: String!
 }
 
 """Represents an order in the shop."""
@@ -8469,11 +8501,20 @@ type OrderLine implements Node & ObjectWithMetadata {
   unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
-
-  """The main thumbnail for the ordered product."""
   thumbnail(
-    """Size of thumbnail."""
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """Price of the single item in the order line."""
@@ -9038,6 +9079,13 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
+"""An enumeration."""
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
+}
+
 """Contains all details related to the applied discount to the order."""
 type OrderDiscount implements Node {
   id: ID!
@@ -9135,6 +9183,56 @@ enum AddressTypeEnum {
   SHIPPING
 }
 
+"""Represents transaction's event."""
+type TransactionEvent implements Node {
+  """The ID of the object."""
+  id: ID!
+  createdAt: DateTime!
+
+  """Status of transaction's event."""
+  status: TransactionStatus!
+
+  """Reference of transaction's event."""
+  reference: String!
+
+  """Name of the transaction's event."""
+  name: String
+}
+
+type GiftCardCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [GiftCardCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type GiftCardCountableEdge {
+  """The item at the end of the edge."""
+  node: GiftCard!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+type OrderCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [OrderCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type OrderCountableEdge {
+  """The item at the end of the edge."""
+  node: Order!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
 type UserPermission {
   """Internal code for permission."""
   code: PermissionEnum!
@@ -9202,6 +9300,8 @@ type CustomerEvent implements Node {
 """An enumeration."""
 enum CustomerEventsEnum {
   ACCOUNT_CREATED
+  ACCOUNT_ACTIVATED
+  ACCOUNT_DEACTIVATED
   PASSWORD_RESET_LINK_SENT
   PASSWORD_RESET
   EMAIL_CHANGED_REQUEST
@@ -10014,6 +10114,7 @@ input VoucherFilterInput {
   started: DateTimeRangeInput
   search: String
   metadata: [MetadataFilter!]
+  ids: [ID!]
 }
 
 enum VoucherDiscountType {

@@ -1,3 +1,4 @@
+import graphene
 import pytest
 
 from ....discount import DiscountValueType, VoucherType
@@ -117,6 +118,7 @@ QUERY_VOUCHERS_WITH_SORTING_AND_FILTERING = """
             edges {
                 node {
                     name
+                    id
                 }
             }
         }
@@ -273,3 +275,72 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["vouchers"]["edges"]
+
+
+@pytest.mark.parametrize(
+    "filter_by, vouchers_count",
+    [
+        ({"status": "ACTIVE"}, 4),
+        ({"status": "SCHEDULED"}, 0),
+        ({"status": "EXPIRED"}, 0),
+        ({"timesUsed": {"gte": 11}}, 1),
+        ({"timesUsed": {"lte": 1}}, 2),
+        ({"discountType": "PERCENTAGE"}, 3),
+        ({"discountType": "FIXED"}, 1),
+        ({"discountType": "SHIPPING"}, 0),
+        ({"search": "Code"}, 4),
+    ],
+)
+def test_vouchers_with_filter_and_channel_USD(
+    filter_by,
+    vouchers_count,
+    staff_api_client,
+    permission_manage_discounts,
+    vouchers_for_sorting_with_channels,
+    channel_USD,
+):
+    # given
+    variables = {"filter": filter_by, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHERS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_discounts],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    vouchers_nodes = content["data"]["vouchers"]["edges"]
+    assert len(vouchers_nodes) == vouchers_count
+
+
+def test_vouchers_with_filter_by_ids_and_channel_USD(
+    staff_api_client,
+    permission_manage_discounts,
+    vouchers_for_sorting_with_channels,
+    channel_USD,
+):
+    # given
+    vouchers = [
+        vouchers_for_sorting_with_channels[0],
+        vouchers_for_sorting_with_channels[1],
+    ]
+    ids = [graphene.Node.to_global_id("Voucher", voucher.id) for voucher in vouchers]
+    variables = {"filter": {"ids": ids}, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHERS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_discounts],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    vouchers_nodes = content["data"]["vouchers"]["edges"]
+    assert len(vouchers_nodes) == len(vouchers)
+    for voucher in vouchers_nodes:
+        assert voucher["node"]["id"] in ids

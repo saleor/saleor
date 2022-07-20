@@ -8,6 +8,10 @@ class AppType:
 class AppExtensionMount:
     """All places where app extension can be mounted."""
 
+    CUSTOMER_OVERVIEW_CREATE = "customer_overview_create"
+    CUSTOMER_OVERVIEW_MORE_ACTIONS = "customer_overview_more_actions"
+    CUSTOMER_DETAILS_MORE_ACTIONS = "customer_details_more_actions"
+
     PRODUCT_OVERVIEW_CREATE = "product_overview_create"
     PRODUCT_OVERVIEW_MORE_ACTIONS = "product_overview_more_actions"
     PRODUCT_DETAILS_MORE_ACTIONS = "product_details_more_actions"
@@ -24,6 +28,9 @@ class AppExtensionMount:
     ORDER_OVERVIEW_MORE_ACTIONS = "order_overview_more_actions"
 
     CHOICES = [
+        (CUSTOMER_OVERVIEW_CREATE, "customer_overview_create"),
+        (CUSTOMER_OVERVIEW_MORE_ACTIONS, "customer_overview_more_actions"),
+        (CUSTOMER_DETAILS_MORE_ACTIONS, "customer_details_more_actions"),
         (PRODUCT_OVERVIEW_CREATE, "product_overview_create"),
         (PRODUCT_OVERVIEW_MORE_ACTIONS, "product_overview_more_actions"),
         (PRODUCT_DETAILS_MORE_ACTIONS, "product_details_more_actions"),

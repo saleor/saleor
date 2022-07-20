@@ -7,9 +7,14 @@ from django.utils import timezone
 
 from ...discount import DiscountValueType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherQueryset
-from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types import DateTimeRangeInput, IntRangeInput
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_by_id, filter_range_field
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
 
@@ -90,6 +95,7 @@ class VoucherFilter(MetadataFilterBase):
     )
     started = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_started)
     search = django_filters.CharFilter(method=filter_voucher_search)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Voucher"))
 
     class Meta:
         model = Voucher

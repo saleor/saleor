@@ -1,12 +1,14 @@
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+from django.core.files import File
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ...product.models import ProductMedia
+from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType
 from ..models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..tasks import (
@@ -38,37 +40,55 @@ def test_delete_from_storage_task_file_that_not_exists(media_root):
     delete_from_storage_task(path)
 
 
-@patch("saleor.core.tasks.delete_versatile_image")
+@patch("saleor.thumbnail.signals.delete_from_storage_task.delay")
 def test_delete_product_media_task_product_media_not_to_remove(
-    delete_versatile_img_mock, product_with_image
+    delete_from_storage_task_mock, product_with_image
 ):
     # given
     media = product_with_image.media.first()
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    thumbnail = Thumbnail.objects.create(
+        product_media=media, size=128, image=thumbnail_mock
+    )
 
     # when
     delete_product_media_task(media.pk)
 
     # then
-    delete_versatile_img_mock.assert_not_called()
+    delete_from_storage_task_mock.assert_not_called()
     media.refresh_from_db()
     ProductMedia.objects.filter(product=product_with_image).exists()
+    thumbnail.refresh_from_db()
+    Thumbnail.objects.filter(product_media=media).exists()
 
 
-@patch("saleor.core.tasks.delete_versatile_image")
+@patch("saleor.thumbnail.signals.delete_from_storage_task.delay")
 def test_delete_product_media_task_product_media_to_remove(
-    delete_versatile_img_mock, product_with_image
+    delete_from_storage_task_mock, product_with_image
 ):
     # given
     media = product_with_image.media.first()
     media.to_remove = True
     media.save(update_fields=["to_remove"])
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    thumbnail = Thumbnail.objects.create(
+        product_media=media, size=128, image=thumbnail_mock
+    )
+
     # when
     delete_product_media_task(media.pk)
 
     # then
-    delete_versatile_img_mock.assert_called_once_with(media.image)
     with pytest.raises(media._meta.model.DoesNotExist):
         media.refresh_from_db()
+    with pytest.raises(thumbnail._meta.model.DoesNotExist):
+        thumbnail.refresh_from_db()
+
+    delete_from_storage_task_mock.assert_called_once_with(thumbnail.image.path)
 
 
 def test_delete_event_payloads_task(webhook, settings):

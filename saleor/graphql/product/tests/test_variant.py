@@ -20,6 +20,7 @@ from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Allocation, Stock, Warehouse
@@ -3135,7 +3136,7 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
     assert value_data["name"] == existing_value.name
     assert (
         value_data["file"]["url"]
-        == f"http://testserver/media/{existing_value.file_url}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
     )
     assert value_data["file"]["contentType"] == existing_value.content_type
 
@@ -3624,13 +3625,13 @@ def test_delete_variant_remove_checkout_lines(
         line.refresh_from_db()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_from_storage_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_variant_with_image(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     variant_with_image,
     permission_manage_products,
@@ -3655,7 +3656,7 @@ def test_delete_variant_with_image(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
-    delete_versatile_image_mock.assert_not_called()
+    delete_from_storage_task_mock.assert_not_called()
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
