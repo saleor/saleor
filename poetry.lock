@@ -245,14 +245,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.24.31"
+version = "1.24.33"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.27.31,<1.28.0"
+botocore = ">=1.27.33,<1.28.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -261,7 +261,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.27.31"
+version = "1.27.33"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -2939,8 +2939,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "bec465ef820957da93994e60de7e647f5f7ad8db88f8f1f898e57eca0c6adcef"
+python-versions = "~3.9"
+content-hash = "04bd0ddb110fd7ecdfda6cb80341306b043ca480fbcaebebdce0c56e064d040a"
 
 [metadata.files]
 adyen = [
@@ -3046,12 +3046,12 @@ black = [
     {file = "black-22.6.0.tar.gz", hash = "sha256:6c6d39e28aed379aec40da1c65434c77d75e65bb59a1e1c283de545fb4e7c6c9"},
 ]
 boto3 = [
-    {file = "boto3-1.24.31-py3-none-any.whl", hash = "sha256:d4685e2fe2c436e558a94c7f68f1a6d4a6c7519d2b25a88fdf855d9a928889ad"},
-    {file = "boto3-1.24.31.tar.gz", hash = "sha256:de067346942c6d1730b513783385620519b8b2935f5b0ee2e66d565ffb57ce12"},
+    {file = "boto3-1.24.33-py3-none-any.whl", hash = "sha256:2ef6d6439b671cf130fba80fae8889bc39ee0ee0bffc39cda93ddadf98c1e91a"},
+    {file = "boto3-1.24.33.tar.gz", hash = "sha256:b4ce793771bae95223d988c1a86cdcef0831fb622dbf9ae7b92ef396bb223ee8"},
 ]
 botocore = [
-    {file = "botocore-1.27.31-py3-none-any.whl", hash = "sha256:cbe87fa791aa4e8c3da64b1ccbaca7f809f6d1fba8d0b1855de2989815ef8736"},
-    {file = "botocore-1.27.31.tar.gz", hash = "sha256:b0cc79fb5a37a0e2b6befe86efd027b92101d819f1fdc56cfff39f2eb239f232"},
+    {file = "botocore-1.27.33-py3-none-any.whl", hash = "sha256:4dc9ac87a0981b60a02d1ea7c4d02bbccd0a79da4731905efcdc90c230182e57"},
+    {file = "botocore-1.27.33.tar.gz", hash = "sha256:bfbeebf2fb9832f9e79635e3320265be94f512de396d3d407ca3538f994ad2c8"},
 ]
 braintree = [
     {file = "braintree-4.15.2-py2.py3-none-any.whl", hash = "sha256:6145f6b865687d9ab985b9b0750b911d3201e26f3f3b76178a344ff7af39061e"},
