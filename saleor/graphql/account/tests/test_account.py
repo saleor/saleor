@@ -35,6 +35,7 @@ from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
@@ -796,7 +797,7 @@ def test_query_user_avatar_with_size_and_format_proxy_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://testserver/thumbnail/{id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{id}/128/{format.lower()}/"
     )
 
 
@@ -821,7 +822,7 @@ def test_query_user_avatar_with_size_proxy_url_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
-    assert data["avatar"]["url"] == f"http://testserver/thumbnail/{id}/128/"
+    assert data["avatar"]["url"] == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{id}/128/"
 
 
 def test_query_user_avatar_with_size_thumbnail_url_returned(
@@ -851,7 +852,7 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -880,7 +881,7 @@ def test_query_user_avatar_only_format_provided_original_image_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://testserver/media/user-avatars/{avatar_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/{avatar_mock.name}"
     )
 
 
@@ -907,7 +908,7 @@ def test_query_user_avatar_no_size_value(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://testserver/media/user-avatars/{avatar_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/{avatar_mock.name}"
     )
 
 
@@ -5377,7 +5378,7 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
 
     assert user.avatar
     assert data["user"]["avatar"]["url"].startswith(
-        "http://testserver/media/user-avatars/avatar"
+        f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/avatar"
     )
     img_name, format = os.path.splitext(image_file._name)
     file_name = user.avatar.name
@@ -5415,7 +5416,7 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
 
     assert user.avatar != avatar_mock
     assert data["user"]["avatar"]["url"].startswith(
-        "http://testserver/media/user-avatars/new_image"
+        f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/new_image"
     )
     assert not user.thumbnails.exists()
 
