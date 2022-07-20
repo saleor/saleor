@@ -207,7 +207,6 @@ def add_variants_to_checkout(
 
     checkout_lines = checkout.lines.select_related("variant")
 
-    lines_by_variant_id = {str(line.variant_id): line for line in checkout_lines}
     lines_by_id = {str(line.pk): line for line in checkout_lines}
     variants_map = {str(variant.pk): variant for variant in variants}
 
@@ -216,7 +215,7 @@ def add_variants_to_checkout(
     to_delete: List[CheckoutLine] = []
 
     for line_data in checkout_lines_data:
-        line = _get_line_if_exist(line_data, lines_by_variant_id, lines_by_id)
+        line = _get_line_if_exist(line_data, lines_by_id)
         _append_line_to_update(to_update, to_delete, line_data, replace, line)
         _append_line_to_delete(to_delete, line_data, line)
         _append_line_to_create(to_create, checkout, variants_map, line_data, line)
@@ -249,22 +248,10 @@ def add_variants_to_checkout(
     return checkout
 
 
-def _get_line_if_exist(line_data, lines_by_variant_id, lines_by_ids):
-    line_id = line_data.line_id
-    variant_id = line_data.variant_id
-
-    if (variant_id and variant_id not in lines_by_variant_id) or (
-        line_id and line_id not in lines_by_ids
-    ):
-        return
-
-    if line_id:
-        line = lines_by_ids[line_id]
-
-    if variant_id:
-        line = lines_by_variant_id[variant_id]
-
-    return line
+def _get_line_if_exist(line_data, lines_by_ids):
+    if line_data.line_id and line_data.line_id in lines_by_ids:
+        return lines_by_ids[line_data.line_id]
+    return
 
 
 def _append_line_to_update(to_update, to_delete, line_data, replace, line):

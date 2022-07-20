@@ -275,7 +275,9 @@ def get_checkout(
     return checkout
 
 
-def group_lines_input_on_add(lines: List[Dict[str, Any]]) -> List[CheckoutLineData]:
+def group_lines_input_on_add(
+    lines: List[Dict[str, Any]], existing_lines_info=None
+) -> List[CheckoutLineData]:
     """Return list od CheckoutLineData objects.
 
     This function is used in CheckoutLinesAdd and CheckoutCreate mutation.
@@ -295,8 +297,16 @@ def group_lines_input_on_add(lines: List[Dict[str, Any]]) -> List[CheckoutLineDa
             grouped_checkout_lines_data.append(line_data)
         else:
             _, variant_db_id = graphene.Node.from_global_id(variant_id)
-            line_data = checkout_lines_data_map[variant_db_id]
-            line_data.variant_id = variant_db_id
+            line_db_id = find_line_id_when_variant_parameter_used(
+                variant_db_id, existing_lines_info
+            )
+
+            if not line_db_id:
+                line_data = checkout_lines_data_map[variant_db_id]
+                line_data.variant_id = variant_db_id
+            else:
+                line_data = checkout_lines_data_map[line_db_id]
+                line_data.line_id = line_db_id
 
         if (quantity := line.get("quantity")) is not None:
             line_data.quantity += quantity
@@ -371,6 +381,9 @@ def find_line_id_when_variant_parameter_used(variant_id, lines_info):
 
     If variant exists in multiple lines error will be returned.
     """
+    if not lines_info:
+        return
+
     line_info = list(filter(lambda x: (x.variant.pk == int(variant_id)), lines_info))
 
     if not line_info:

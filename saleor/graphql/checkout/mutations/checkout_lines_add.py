@@ -179,7 +179,9 @@ class CheckoutLinesAdd(BaseMutation):
             checkout, [], discounts, manager, shipping_channel_listings
         )
 
-        existing_lines_info, _ = fetch_checkout_lines(checkout)
+        existing_lines_info, _ = fetch_checkout_lines(
+            checkout, skip_lines_with_unavailable_variants=False
+        )
         input_lines_data = cls._get_grouped_lines_data(lines, existing_lines_info)
 
         lines = cls.clean_input(
@@ -210,4 +212,4 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def _get_grouped_lines_data(cls, lines, existing_lines_info):
-        return group_lines_input_on_add(lines)
+        return group_lines_input_on_add(lines, existing_lines_info)
