@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+import pytz
 from freezegun import freeze_time
 from prices import Money
 
@@ -144,19 +145,12 @@ def test_clean_product_attributes_date_time_range_filter_input(
     filter_value = [
         (
             date_attribute.slug,
-            {"gte": datetime(2020, 10, 5).date()},
+            {"gte": datetime(2020, 10, 5, tzinfo=pytz.utc)},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(
-        filter_value, queries, is_date=True
-    )
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {
-        date_attribute.pk: list(
-            date_attribute.values.all().values_list("pk", flat=True)
-        )
-    }
+    assert set(date_attribute.values.all()) == set(values_qs.all())
 
     filter_value = [
         (
@@ -164,12 +158,11 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"gte": datetime(2020, 10, 5).date(), "lte": datetime(2020, 11, 4).date()},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(
-        filter_value, queries, is_date=True
-    )
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {date_attribute.pk: [date_attribute.values.first().pk]}
+    assert {date_attribute.values.first().pk} == set(
+        values_qs.values_list("pk", flat=True)
+    )
 
     # filter date time attribute
     filter_value = [
@@ -178,10 +171,11 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 11, 4, tzinfo=timezone.utc)},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {date_attribute.pk: [date_attribute.values.first().pk]}
+    assert {date_attribute.values.first().pk} == set(
+        values_qs.values_list("pk", flat=True)
+    )
 
     filter_value = [
         (
@@ -189,10 +183,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 10, 4, tzinfo=timezone.utc)},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {date_attribute.pk: []}
+    assert values_qs.exists() is False
 
 
 def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
