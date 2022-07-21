@@ -245,14 +245,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.24.31"
+version = "1.24.34"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.27.31,<1.28.0"
+botocore = ">=1.27.34,<1.28.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -261,7 +261,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.27.31"
+version = "1.27.34"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -1054,18 +1054,18 @@ reauth = ["pyu2f (>=0.1.5)"]
 
 [[package]]
 name = "google-cloud-core"
-version = "2.3.1"
+version = "2.3.2"
 description = "Google Cloud API client core library"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
-google-api-core = ">=1.31.5,<2.0.0 || >2.3.0,<3.0.0dev"
+google-api-core = ">=1.31.6,<2.0.0 || >2.3.0,<3.0.0dev"
 google-auth = ">=1.25.0,<3.0dev"
 
 [package.extras]
-grpc = ["grpcio (>=1.8.2,<2.0dev)"]
+grpc = ["grpcio (>=1.38.0,<2.0dev)"]
 
 [[package]]
 name = "google-cloud-pubsub"
@@ -1354,7 +1354,7 @@ test = ["Cython (>=0.29.24,<0.30.0)"]
 
 [[package]]
 name = "identify"
-version = "2.5.1"
+version = "2.5.2"
 description = "File identification library for Python"
 category = "dev"
 optional = false
@@ -1737,7 +1737,7 @@ xpath = ["lxml (>=4.4.0)"]
 
 [[package]]
 name = "phonenumberslite"
-version = "8.12.51"
+version = "8.12.52"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 category = "main"
 optional = false
@@ -2387,7 +2387,7 @@ rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 
 [[package]]
 name = "rsa"
-version = "4.8"
+version = "4.9"
 description = "Pure-Python RSA implementation"
 category = "main"
 optional = false
@@ -2683,7 +2683,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-python-dateutil"
-version = "2.8.18"
+version = "2.8.19"
 description = "Typing stubs for python-dateutil"
 category = "dev"
 optional = false
@@ -2691,7 +2691,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-pytz"
-version = "2022.1.1"
+version = "2022.1.2"
 description = "Typing stubs for pytz"
 category = "dev"
 optional = false
@@ -2699,7 +2699,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-redis"
-version = "4.3.4"
+version = "4.3.7"
 description = "Typing stubs for redis"
 category = "main"
 optional = false
@@ -2707,7 +2707,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-requests"
-version = "2.28.2"
+version = "2.28.3"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -2939,7 +2939,7 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "~3.9"
+  python-versions = "~3.9"
 content-hash = "d80a6c4446cca828327015267fbc57d7e992ad6ce0f0086bf1bcdf74c63e6150"
 
 [metadata.files]
@@ -3046,12 +3046,12 @@ black = [
     {file = "black-22.6.0.tar.gz", hash = "sha256:6c6d39e28aed379aec40da1c65434c77d75e65bb59a1e1c283de545fb4e7c6c9"},
 ]
 boto3 = [
-    {file = "boto3-1.24.31-py3-none-any.whl", hash = "sha256:d4685e2fe2c436e558a94c7f68f1a6d4a6c7519d2b25a88fdf855d9a928889ad"},
-    {file = "boto3-1.24.31.tar.gz", hash = "sha256:de067346942c6d1730b513783385620519b8b2935f5b0ee2e66d565ffb57ce12"},
+    {file = "boto3-1.24.34-py3-none-any.whl", hash = "sha256:5d9bcc355cf6edd7f3849fedac4252e12a0aa2b436cdbc0d4371b16a0f852a30"},
+    {file = "boto3-1.24.34.tar.gz", hash = "sha256:5c775dcb12ca5d6be3f5aa3c49d77783faa64eb30fd3f4af93ff116bb42f9ffb"},
 ]
 botocore = [
-    {file = "botocore-1.27.31-py3-none-any.whl", hash = "sha256:cbe87fa791aa4e8c3da64b1ccbaca7f809f6d1fba8d0b1855de2989815ef8736"},
-    {file = "botocore-1.27.31.tar.gz", hash = "sha256:b0cc79fb5a37a0e2b6befe86efd027b92101d819f1fdc56cfff39f2eb239f232"},
+    {file = "botocore-1.27.34-py3-none-any.whl", hash = "sha256:0d824a5315f5f5c3bea53c14107a69695ef43190edf647f1281bac8f172ca77c"},
+    {file = "botocore-1.27.34.tar.gz", hash = "sha256:9c695d47f1f1212f3e306e51f7bacdf67e58055194ddcf7d8296660b124cf135"},
 ]
 braintree = [
     {file = "braintree-4.15.2-py2.py3-none-any.whl", hash = "sha256:6145f6b865687d9ab985b9b0750b911d3201e26f3f3b76178a344ff7af39061e"},
@@ -3494,8 +3494,8 @@ google-auth = [
     {file = "google_auth-2.9.1-py2.py3-none-any.whl", hash = "sha256:5a7eed0cb0e3a83989fad0b59fe1329dfc8c479543039cd6fd1e01e9adf39475"},
 ]
 google-cloud-core = [
-    {file = "google-cloud-core-2.3.1.tar.gz", hash = "sha256:34334359cb04187bdc80ddcf613e462dfd7a3aabbc3fe4d118517ab4b9303d53"},
-    {file = "google_cloud_core-2.3.1-py2.py3-none-any.whl", hash = "sha256:113ba4f492467d5bd442c8d724c1a25ad7384045c3178369038840ecdd19346c"},
+    {file = "google-cloud-core-2.3.2.tar.gz", hash = "sha256:b9529ee7047fd8d4bf4a2182de619154240df17fbe60ead399078c1ae152af9a"},
+    {file = "google_cloud_core-2.3.2-py2.py3-none-any.whl", hash = "sha256:8417acf6466be2fa85123441696c4badda48db314c607cf1e5d543fa8bdc22fe"},
 ]
 google-cloud-pubsub = [
     {file = "google-cloud-pubsub-2.13.4.tar.gz", hash = "sha256:661701ca77ef1dcd27bde64ff73d32d8825fe38bd3cf2f310775d5e6224e2eed"},
@@ -3694,8 +3694,8 @@ httptools = [
     {file = "httptools-0.4.0.tar.gz", hash = "sha256:2c9a930c378b3d15d6b695fb95ebcff81a7395b4f9775c4f10a076beb0b2c1ff"},
 ]
 identify = [
-    {file = "identify-2.5.1-py2.py3-none-any.whl", hash = "sha256:0dca2ea3e4381c435ef9c33ba100a78a9b40c0bab11189c7cf121f75815efeaa"},
-    {file = "identify-2.5.1.tar.gz", hash = "sha256:3d11b16f3fe19f52039fb7e39c9c884b21cb1b586988114fbe42671f03de3e82"},
+    {file = "identify-2.5.2-py2.py3-none-any.whl", hash = "sha256:feaa9db2dc0ce333b453ce171c0cf1247bbfde2c55fc6bb785022d411a1b78b5"},
+    {file = "identify-2.5.2.tar.gz", hash = "sha256:a3d4c096b384d50d5e6dc5bc8b9bc44f1f61cefebd750a7b3e9f939b53fb214d"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
@@ -4035,8 +4035,8 @@ petl = [
     {file = "petl-1.7.9.tar.gz", hash = "sha256:b750bd32496d4aea79069dc48fa2876a87a0b6d81f8531144e6d8160bd51eb31"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.51-py2.py3-none-any.whl", hash = "sha256:3b54b7481047fdf223203a2822e7d781048723600880c11b93c17a2f69319555"},
-    {file = "phonenumberslite-8.12.51.tar.gz", hash = "sha256:6fca372f1742d4930de6954138aa535b448f36d08a39bc0e2b754b15e0364bd4"},
+    {file = "phonenumberslite-8.12.52-py2.py3-none-any.whl", hash = "sha256:8cfee539ebcbe2874e8f0bdfe753e60265c198b33f8bfeb57f0fc59ba55c6d74"},
+    {file = "phonenumberslite-8.12.52.tar.gz", hash = "sha256:ade5346ac9f7ed0289d69ffc9e9f3f84b56b2b7010aa23fecf7bb22140b170d5"},
 ]
 pillow = [
     {file = "Pillow-9.2.0-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:a9c9bc489f8ab30906d7a85afac4b4944a572a7432e00698a7239f44a44e6efb"},
@@ -4386,8 +4386,8 @@ requests-oauthlib = [
     {file = "requests_oauthlib-1.3.1-py2.py3-none-any.whl", hash = "sha256:2577c501a2fb8d05a304c09d090d6e47c306fef15809d102b327cf8364bddab5"},
 ]
 rsa = [
-    {file = "rsa-4.8-py3-none-any.whl", hash = "sha256:95c5d300c4e879ee69708c428ba566c59478fd653cc3a22243eeb8ed846950bb"},
-    {file = "rsa-4.8.tar.gz", hash = "sha256:5c6bd9dc7a543b7fe4304a631f8a8a3b674e2bbfc49c2ae96200cdbe55df6b17"},
+    {file = "rsa-4.9-py3-none-any.whl", hash = "sha256:90260d9058e514786967344d0ef75fa8727eed8a7d2e43ce9f4bcf1b536174f7"},
+    {file = "rsa-4.9.tar.gz", hash = "sha256:e38464a49c6c85d7f1351b0126661487a7e0a14a50f1675ec50eb34d4f20ef21"},
 ]
 rx = [
     {file = "Rx-1.6.1-py2.py3-none-any.whl", hash = "sha256:7357592bc7e881a95e0c2013b73326f704953301ab551fbc8133a6fadab84105"},
@@ -4501,20 +4501,20 @@ types-pkg-resources = [
     {file = "types_pkg_resources-0.1.3-py2.py3-none-any.whl", hash = "sha256:0cb9972cee992249f93fff1a491bf2dc3ce674e5a1926e27d4f0866f7d9b6d9c"},
 ]
 types-python-dateutil = [
-    {file = "types-python-dateutil-2.8.18.tar.gz", hash = "sha256:8695c7d7a5b1aef4002f3ab4e1247e23b1d41cd7cc1286d4594c2d8c5593c991"},
-    {file = "types_python_dateutil-2.8.18-py3-none-any.whl", hash = "sha256:fd5ed97262b76ae684695ea38ace8dd7c1bc9491aba7eb4edf6654b7ecabc870"},
+    {file = "types-python-dateutil-2.8.19.tar.gz", hash = "sha256:bfd3eb39c7253aea4ba23b10f69b017d30b013662bb4be4ab48b20bbd763f309"},
+    {file = "types_python_dateutil-2.8.19-py3-none-any.whl", hash = "sha256:6284df1e4783d8fc6e587f0317a81333856b872a6669a282f8a325342bce7fa8"},
 ]
 types-pytz = [
-    {file = "types-pytz-2022.1.1.tar.gz", hash = "sha256:4e7add70886dc2ee6ee7535c8184a26eeb0ac9dbafae9962cb882d74b9f67330"},
-    {file = "types_pytz-2022.1.1-py3-none-any.whl", hash = "sha256:581467742f32f15fff1098698b11fd511057a2a8a7568d33b604083f2b03c24f"},
+    {file = "types-pytz-2022.1.2.tar.gz", hash = "sha256:1a8b25c225c5e6bd8468aa9eb45ddd3b337f6716d4072ad0aa4ef1e41478eebc"},
+    {file = "types_pytz-2022.1.2-py3-none-any.whl", hash = "sha256:8aa9fd2af9dee5f5bd7221c6804c9addeafa7ebc0008f544d4ace02b066818a4"},
 ]
 types-redis = [
-    {file = "types-redis-4.3.4.tar.gz", hash = "sha256:d0b9143de8ae0d6e3699f246f54b3b2204be593632fc0d49ca2940867c3e2591"},
-    {file = "types_redis-4.3.4-py3-none-any.whl", hash = "sha256:f84dfe570ac729fb51735357f807a9e59b4732ddd7050708a7a7e32782b91047"},
+    {file = "types-redis-4.3.7.tar.gz", hash = "sha256:9f9711bffff816ff420678d829ea86f4beabc914b29c801f38053bdbfbb82575"},
+    {file = "types_redis-4.3.7-py3-none-any.whl", hash = "sha256:18457d49ba4a6880be123a90eb46408091176cd8611932833ef598c6c496af55"},
 ]
 types-requests = [
-    {file = "types-requests-2.28.2.tar.gz", hash = "sha256:398f88cd9302c796cb63d1021af2a1fb7ae507741a3d508edf8e0746d8c16a04"},
-    {file = "types_requests-2.28.2-py3-none-any.whl", hash = "sha256:c164696bfdce0123901165c5f097a6cc4f6326268c65815d4b6a57eacfec5e81"},
+    {file = "types-requests-2.28.3.tar.gz", hash = "sha256:fb9ea69311766967f9e91861211ec7449f6484025b766ea709689c0dbb29d7ba"},
+    {file = "types_requests-2.28.3-py3-none-any.whl", hash = "sha256:66f0e427708588d4dac2f365a0b2c1ad8f31780429fd8ad193fec93139b22112"},
 ]
 types-six = [
     {file = "types-six-1.16.18.tar.gz", hash = "sha256:26f481fabb65321ba428bdfb82c97fc638e00be6b20efa83915b007cf3893e28"},
