@@ -5478,7 +5478,7 @@ def warehouses_for_cc(address, shipping_zones, channel_USD):
 
 
 @pytest.fixture
-def warehouse_for_cc(address, product_variant_list, shipping_zones, channel_USD):
+def warehouse_for_cc(address, product_variant_list, channel_USD):
     warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="Local Warehouse",
@@ -5487,7 +5487,6 @@ def warehouse_for_cc(address, product_variant_list, shipping_zones, channel_USD)
         is_private=False,
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
     )
-    warehouse.shipping_zones.add(shipping_zones[0], shipping_zones[1])
     warehouse.channels.add(channel_USD)
 
     Stock.objects.bulk_create(
@@ -5568,7 +5567,7 @@ def stocks_for_cc(warehouses_for_cc, product_variant_list, product_with_two_vari
 
 
 @pytest.fixture
-def checkout_for_cc(channel_USD, customer_user, product_variant_list):
+def checkout_for_cc(channel_USD, customer_user):
     return Checkout.objects.create(
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
