@@ -48,6 +48,7 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, Stock, Warehouse
@@ -690,10 +691,11 @@ def test_query_product_thumbnail_with_size_and_format_proxy_url_returned(
     product_media_id = graphene.Node.to_global_id(
         "ProductMedia", product_with_image.media.first().pk
     )
-    assert (
-        data["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{product_media_id}/128/{format.lower()}/"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/thumbnail/{product_media_id}/128/{format.lower()}/"
     )
+    assert data["thumbnail"]["url"] == expected_url
 
 
 def test_query_product_thumbnail_with_size_and_proxy_url_returned(
@@ -718,7 +720,7 @@ def test_query_product_thumbnail_with_size_and_proxy_url_returned(
     )
     assert (
         data["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{product_media_id}/128/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{product_media_id}/128/"
     )
 
 
@@ -749,7 +751,7 @@ def test_query_product_thumbnail_with_size_and_thumbnail_url_returned(
     data = content["data"]["product"]
     assert (
         data["thumbnail"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -775,10 +777,11 @@ def test_query_product_thumbnail_only_format_provided_default_size_is_used(
     product_media_id = graphene.Node.to_global_id(
         "ProductMedia", product_with_image.media.first().pk
     )
-    assert (
-        data["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{product_media_id}/256/{format.lower()}/"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/thumbnail/{product_media_id}/256/{format.lower()}/"
     )
+    assert data["thumbnail"]["url"] == expected_url
 
 
 def test_query_product_thumbnail_no_product_media(
@@ -3881,7 +3884,7 @@ def test_query_product_media_by_id_with_size_and_format_proxy_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
@@ -3906,7 +3909,7 @@ def test_query_product_media_by_id_with_size_proxy_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
     )
 
 
@@ -3936,7 +3939,7 @@ def test_query_product_media_by_id_with_size_thumbnail_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -3962,7 +3965,7 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/media/{media.image.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
     )
 
 
@@ -3986,7 +3989,7 @@ def test_query_product_media_by_id_no_size_value_original_image_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/media/{media.image.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
     )
 
 
@@ -5524,6 +5527,7 @@ def test_create_product_with_file_attribute(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert len(data["product"]["attributes"]) == 2
+    expected_url = f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -5533,7 +5537,7 @@ def test_create_product_with_file_attribute(
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
                     "file": {
-                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "url": expected_url,
                         "contentType": None,
                     },
                     "reference": None,
@@ -5888,7 +5892,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "date": None,
                     "dateTime": None,
                     "file": {
-                        "url": "http://testserver/media/" + non_existing_value,
+                        "url": f"http://{TEST_SERVER_DOMAIN}/media/"
+                        + non_existing_value,
                         "contentType": None,
                     },
                 }
@@ -7339,7 +7344,7 @@ def test_update_product_with_file_attribute_value(
                 "slug": slugify(new_value),
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": f"http://{TEST_SERVER_DOMAIN}/media/{new_value}",
                     "contentType": None,
                 },
                 "boolean": None,
@@ -7402,7 +7407,9 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": (
+                        f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
+                    ),
                     "contentType": existing_value.content_type,
                 },
                 "boolean": None,
@@ -12369,7 +12376,7 @@ def test_query_product_media_for_federation(
         {
             "__typename": "ProductMedia",
             "id": media_id,
-            "url": "http://testserver/media/products/product.jpg",
+            "url": f"http://{TEST_SERVER_DOMAIN}/media/products/product.jpg",
         }
     ]
 
