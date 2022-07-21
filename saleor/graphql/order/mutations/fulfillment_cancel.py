@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
@@ -89,18 +90,19 @@ class FulfillmentCancel(BaseMutation):
 
         cls.validate_fulfillment(fulfillment, warehouse)
 
+        app = get_app(info.context.auth_token)
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             fulfillment = cancel_waiting_fulfillment(
                 fulfillment,
                 info.context.user,
-                info.context.app,
+                app,
                 info.context.plugins,
             )
         else:
             fulfillment = cancel_fulfillment(
                 fulfillment,
                 info.context.user,
-                info.context.app,
+                app,
                 warehouse,
                 info.context.plugins,
             )

@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -61,11 +62,12 @@ class OrderDiscountAdd(OrderDiscountCommon):
         order_discount = create_order_discount_for_order(
             order, reason, value_type, value
         )
+        app = get_app(info.context.auth_token)
 
         events.order_discount_added_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             order_discount=order_discount,
         )
         return OrderDiscountAdd(order=order)

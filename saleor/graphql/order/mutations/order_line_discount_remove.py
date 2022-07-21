@@ -1,5 +1,6 @@
 import graphene
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -45,11 +46,11 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         remove_discount_from_order_line(
             order_line, order, manager=info.context.plugins, tax_included=tax_included
         )
-
+        app = get_app(info.context.auth_token)
         events.order_line_discount_removed_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             line=order_line,
         )
 

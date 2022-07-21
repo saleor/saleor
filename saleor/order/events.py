@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
+from promise import Promise
+
 from ..account import events as account_events
 from ..account.models import User
 from ..app.models import App
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
 
 
 UserType = Optional[User]
-AppType = Optional[App]
+AppType = Union[None, App, Promise]
 
 
 def _line_per_quantity_to_line_object(quantity, line):

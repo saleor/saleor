@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -59,10 +60,11 @@ class OrderAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
+        app = get_app(info.context.auth_token)
         event = events.order_note_added_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             message=cleaned_input["message"],
         )
         func = get_webhook_handler_by_order_status(order.status, info)

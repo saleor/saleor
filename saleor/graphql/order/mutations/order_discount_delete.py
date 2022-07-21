@@ -1,5 +1,6 @@
 import graphene
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -31,13 +32,15 @@ class OrderDiscountDelete(OrderDiscountCommon):
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
         order = order_discount.order
+        app = get_app(info.context.auth_token)
+
         cls.validate_order(info, order)
 
         remove_order_discount_from_order(order, order_discount)
         events.order_discount_deleted_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             order_discount=order_discount,
         )
 

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphene.types import InputObjectType
 
+from ...dataloaders import get_app
 from ....checkout import AddressType
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
@@ -234,13 +235,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def _save_lines(info, instance, quantities, variants):
         if variants and quantities:
             lines: List[Tuple[int, OrderLine]] = []
+            app = get_app(info.context.auth_token)
             for variant, quantity in zip(variants, quantities):
                 line = add_variant_to_order(
                     instance,
                     variant,
                     quantity,
                     info.context.user,
-                    info.context.app,
+                    app,
                     info.context.plugins,
                     info.context.site.settings,
                 )
@@ -250,7 +252,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             events.order_added_products_event(
                 order=instance,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 order_lines=lines,
             )
 
@@ -260,8 +262,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Create draft created event if the instance is from scratch
         if new_instance:
+            app = get_app(info.context.auth_token)
             events.draft_order_created_event(
-                order=instance, user=info.context.user, app=info.context.app
+                order=instance, user=info.context.user, app=app
             )
 
         instance.save(

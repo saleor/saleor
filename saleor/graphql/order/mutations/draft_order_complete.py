@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
@@ -122,11 +123,11 @@ class DraftOrderComplete(BaseMutation):
             payment=order.get_last_payment(),
             lines_data=order_lines_info,
         )
-
+        app = get_app(info.context.auth_token)
         order_created(
             order_info=order_info,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             manager=info.context.plugins,
             from_draft=True,
         )

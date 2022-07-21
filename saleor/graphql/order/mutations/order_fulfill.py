@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import pluralize
 
+from ...dataloaders import get_app
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -240,7 +241,7 @@ class OrderFulfill(BaseMutation):
 
         context = info.context
         user = context.user if not context.user.is_anonymous else None
-        app = context.app
+        app = get_app(context.auth_token)
         manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)

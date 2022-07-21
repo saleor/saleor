@@ -1,6 +1,7 @@
 import graphene
 from django.db import transaction
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
@@ -71,10 +72,11 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
                 ]
             )
         # Create the removal event
+        app = get_app(info.context.auth_token)
         events.order_removed_products_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             order_lines=[(line.quantity, line)],
         )
 

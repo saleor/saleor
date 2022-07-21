@@ -1,5 +1,6 @@
 import graphene
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order.actions import fulfillment_tracking_updated
 from ....order.notifications import send_fulfillment_update
@@ -36,10 +37,11 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
+        app = get_app(info.context.auth_token)
         fulfillment_tracking_updated(
             fulfillment,
             info.context.user,
-            info.context.app,
+            app,
             tracking_number,
             info.context.plugins,
         )

@@ -2,6 +2,7 @@ import copy
 
 import graphene
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -75,10 +76,11 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             or order_line_before_update.unit_discount_type != value_type
         ):
             # Create event only when we change type or value of the discount
+            app = get_app(info.context.auth_token)
             events.order_line_discount_updated_event(
                 order=order,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 line=order_line,
                 line_before_update=order_line_before_update,
             )

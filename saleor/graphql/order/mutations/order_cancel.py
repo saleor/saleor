@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
@@ -41,7 +42,7 @@ class OrderCancel(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
         user = info.context.user
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         cancel_order(
             order=order,
             user=user,

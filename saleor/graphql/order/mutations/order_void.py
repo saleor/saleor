@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order.actions import order_voided
 from ....order.error_codes import OrderErrorCode
@@ -41,6 +42,7 @@ class OrderVoid(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        app = get_app(info.context.auth_token)
 
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
@@ -51,7 +53,7 @@ class OrderVoid(BaseMutation):
                     info.context.plugins,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -64,7 +66,7 @@ class OrderVoid(BaseMutation):
             transaction = try_payment_action(
                 order,
                 info.context.user,
-                info.context.app,
+                app,
                 payment,
                 gateway.void,
                 payment,
@@ -77,7 +79,7 @@ class OrderVoid(BaseMutation):
                 order_voided(
                     order,
                     info.context.user,
-                    info.context.app,
+                    app,
                     payment,
                     info.context.plugins,
                 )

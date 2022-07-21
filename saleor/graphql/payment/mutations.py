@@ -6,6 +6,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
 
+from ..dataloaders import get_app
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
@@ -810,10 +811,11 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
+                app = get_app(info.context.auth_token)
                 transaction_event(
                     order=order_or_checkout_instance,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
@@ -921,10 +923,11 @@ class TransactionUpdate(TransactionCreate):
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
+                app = get_app(info.context.auth_token)
                 transaction_event(
                     order=instance.order,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
@@ -1001,10 +1004,11 @@ class TransactionRequestAction(BaseMutation):
             if transaction.order_id
             else transaction.checkout.channel.slug
         )
+        app = get_app(info.context.auth_token)
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": info.context.user,
-            "app": info.context.app,
+            "app": app,
             "transaction": transaction,
             "manager": info.context.plugins,
         }

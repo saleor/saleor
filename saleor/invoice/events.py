@@ -1,4 +1,6 @@
-from typing import Optional
+from typing import Optional, Union
+
+from promise import Promise
 
 from ..account.models import User
 from ..app.models import App
@@ -7,7 +9,7 @@ from ..order.models import Order
 from .models import Invoice, InvoiceEvent, InvoiceEvents
 
 UserType = Optional[User]
-AppType = Optional[App]
+AppType = Union[None, App, Promise]
 
 
 def invoice_requested_event(

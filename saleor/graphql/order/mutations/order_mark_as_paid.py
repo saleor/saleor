@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order.actions import clean_mark_order_as_paid, mark_order_as_paid
 from ....order.error_codes import OrderErrorCode
@@ -40,7 +41,7 @@ class OrderMarkAsPaid(BaseMutation):
         transaction_reference = data.get("transaction_reference")
         cls.clean_billing_address(order)
         user = info.context.user
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         try_payment_action(order, user, app, None, clean_mark_order_as_paid, order)
 
         mark_order_as_paid(

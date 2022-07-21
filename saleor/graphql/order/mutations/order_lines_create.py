@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
@@ -114,12 +115,13 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         lines_to_add = cls.validate_lines(info, data)
         variants = [line[1] for line in lines_to_add]
         cls.validate_variants(order, variants)
+        app = get_app(info.context.auth_token)
 
         added_lines = cls.add_lines_to_order(
             order,
             lines_to_add,
             info.context.user,
-            info.context.app,
+            app,
             info.context.plugins,
             info.context.site.settings,
             info.context.discounts,
@@ -129,7 +131,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         events.order_added_products_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             order_lines=added_lines,
         )
 

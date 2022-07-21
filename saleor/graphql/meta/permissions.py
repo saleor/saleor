@@ -2,6 +2,7 @@ from typing import Any, List
 
 from django.core.exceptions import ValidationError
 
+from ..dataloaders import get_app
 from ...account import models as account_models
 from ...account.error_codes import AccountErrorCode
 from ...attribute import AttributeType
@@ -96,7 +97,7 @@ def app_permissions(info, object_pk: str) -> List[BasePermissionEnum]:
 
 
 def private_app_permssions(info, object_pk: str) -> List[BasePermissionEnum]:
-    app = info.context.app
+    app = get_app(info.context.auth_token)
     if app and app.pk == int(object_pk):
         return []
     return [AppPermission.MANAGE_APPS]
@@ -132,6 +133,7 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
     context_user = info.context.user
+    # TODO: context.app -> investigate
     if info.context.app is not None or context_user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
     if payment_owned_by_user(payment_pk, context_user):
@@ -140,7 +142,8 @@ def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum
 
 
 def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
-    if info.context.app is not None or info.context.user.is_staff:
+    app = get_app(info.context.auth_token)
+    if app is not None or info.context.user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
     raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
 

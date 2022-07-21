@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
@@ -61,6 +62,8 @@ class OrderConfirm(ModelMutation):
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = info.context.plugins
+        app = get_app(info.context.auth_token)
+
         if payment_transactions := list(order.payment_transactions.all()):
             try:
                 # We use the last transaction as we don't have a possibility to
@@ -72,7 +75,7 @@ class OrderConfirm(ModelMutation):
                     charge_value=payment_transaction.authorized_value,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -86,7 +89,7 @@ class OrderConfirm(ModelMutation):
             order_captured(
                 order_info,
                 info.context.user,
-                info.context.app,
+                app,
                 payment.total,
                 payment,
                 manager,
@@ -94,7 +97,7 @@ class OrderConfirm(ModelMutation):
         order_confirmed(
             order,
             info.context.user,
-            info.context.app,
+            app,
             manager,
             send_confirmation_email=True,
         )

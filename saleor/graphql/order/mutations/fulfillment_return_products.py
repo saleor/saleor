@@ -1,5 +1,6 @@
 import graphene
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order import models as order_models
@@ -155,9 +156,10 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
         try:
+            app = get_app(info.context.auth_token)
             response = create_fulfillments_for_returned_products(
                 info.context.user,
-                info.context.app,
+                app,
                 order,
                 cleaned_input.get("payment"),
                 cleaned_input.get("transactions"),

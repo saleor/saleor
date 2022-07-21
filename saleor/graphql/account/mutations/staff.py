@@ -5,6 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...dataloaders import get_app
 from ....account import events as account_events
 from ....account import models, utils
 from ....account.error_codes import AccountErrorCode
@@ -105,7 +106,7 @@ class CustomerUpdate(CustomerCreate):
     ):
         # Retrieve the event base data
         staff_user = info.context.user
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         new_email = new_instance.email
         new_fullname = new_instance.get_full_name()
 
@@ -129,13 +130,13 @@ class CustomerUpdate(CustomerCreate):
         if was_activated:
             account_events.customer_account_activated_event(
                 staff_user=info.context.user,
-                app=info.context.app,
+                app=app,
                 account_id=old_instance.id,
             )
         if was_deactivated:
             account_events.customer_account_deactivated_event(
                 staff_user=info.context.user,
-                app=info.context.app,
+                app=app,
                 account_id=old_instance.id,
             )
 
@@ -214,7 +215,8 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if context.app:
+        app = get_app(context.auth_token)
+        if app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

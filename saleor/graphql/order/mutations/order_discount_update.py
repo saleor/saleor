@@ -6,6 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ...core.types import OrderError
+from ...dataloaders import get_app
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -65,10 +66,11 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         ):
             # call update event only when we changed the type or value of the discount
             order_discount.refresh_from_db()
+            app = get_app(info.context.auth_token)
             events.order_discount_updated_event(
                 order=order,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 order_discount=order_discount,
                 old_order_discount=order_discount_before_update,
             )

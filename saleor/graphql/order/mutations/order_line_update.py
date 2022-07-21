@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...dataloaders import get_app
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -66,10 +67,11 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             variant=instance.variant,
             warehouse_pk=warehouse_pk,
         )
+        app = get_app(info.context.auth_token)
         try:
             change_order_line_quantity(
                 info.context.user,
-                info.context.app,
+                app,
                 line_info,
                 instance.old_quantity,
                 instance.quantity,

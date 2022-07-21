@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
@@ -61,10 +62,11 @@ class FulfillmentApprove(BaseMutation):
         order = fulfillment.order
 
         try:
+            app = get_app(info.context.auth_token)
             fulfillment = approve_fulfillment(
                 fulfillment,
                 info.context.user,
-                info.context.app,
+                app,
                 info.context.plugins,
                 info.context.site.settings,
                 notify_customer=data["notify_customer"],

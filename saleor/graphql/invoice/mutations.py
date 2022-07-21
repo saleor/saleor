@@ -9,6 +9,7 @@ from ...invoice.notifications import send_invoice
 from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import InvoiceError
+from ..dataloaders import AppByTokenLoader, get_app
 from ..order.types import Order
 from .types import Invoice
 from .utils import is_event_active_for_any_plugin
@@ -83,22 +84,22 @@ class InvoiceRequest(ModelMutation):
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
-
+        app = get_app(info.context.auth_token)
         if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
                 order=order,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 invoice_number=invoice.number,
             )
         else:
             order_events.invoice_requested_event(
-                user=info.context.user, app=info.context.app, order=order
+                user=info.context.user, app=app, order=order
             )
 
         events.invoice_requested_event(
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             order=order,
             number=data.get("number"),
         )
@@ -173,9 +174,11 @@ class InvoiceCreate(ModelMutation):
         invoice.order = order
         invoice.status = JobStatus.SUCCESS
         invoice.save()
+        app = get_app(info.context.auth_token)
+        # app = AppByTokenLoader(info.context).load(info.context.auth_token)
         events.invoice_created_event(
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             invoice=invoice,
             number=cleaned_input["number"],
             url=cleaned_input["url"],
@@ -183,7 +186,7 @@ class InvoiceCreate(ModelMutation):
         order_events.invoice_generated_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             invoice_number=cleaned_input["number"],
         )
         return InvoiceCreate(invoice=invoice)
@@ -209,8 +212,9 @@ class InvoiceRequestDelete(ModelMutation):
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
         info.context.plugins.invoice_delete(invoice)
+        app = get_app(info.context.auth_token)
         events.invoice_requested_deletion_event(
-            user=info.context.user, app=info.context.app, invoice=invoice
+            user=info.context.user, app=app, invoice=invoice
         )
         return InvoiceRequestDelete(invoice=invoice)
 
@@ -231,8 +235,9 @@ class InvoiceDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
+        app = get_app(info.context.auth_token)
         events.invoice_deleted_event(
-            user=info.context.user, app=info.context.app, invoice_id=invoice.pk
+            user=info.context.user, app=app, invoice_id=invoice.pk
         )
         return response
 
@@ -288,10 +293,11 @@ class InvoiceUpdate(ModelMutation):
         )
         instance.status = JobStatus.SUCCESS
         instance.save(update_fields=["external_url", "number", "updated_at", "status"])
+        app = get_app(info.context.auth_token)
         order_events.invoice_updated_event(
             order=instance.order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             invoice_number=instance.number,
             url=instance.url,
             status=instance.status,
@@ -342,7 +348,11 @@ class InvoiceSendNotification(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
+        app = get_app(info.context.auth_token)
         send_invoice(
-            instance, info.context.user, info.context.app, info.context.plugins
+            invoice=instance,
+            staff_user=info.context.user,
+            app=app,
+            manager=info.context.plugins,
         )
         return InvoiceSendNotification(invoice=instance)

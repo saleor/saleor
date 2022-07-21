@@ -11,6 +11,7 @@ from ...core.notify_events import NotifyEventType
 from ...core.prices import quantize_price
 from ...discount import DiscountValueType
 from ...graphql.core.utils import to_global_id_or_none
+from ...graphql.dataloaders import get_app
 from ...order import notifications
 from ...order.fetch import fetch_order_info
 from ...plugins.manager import get_plugins_manager

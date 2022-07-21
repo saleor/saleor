@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
@@ -69,6 +70,7 @@ class OrderRefund(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
+        app = get_app(info.context.auth_token)
 
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
@@ -80,7 +82,7 @@ class OrderRefund(BaseMutation):
                     refund_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -94,7 +96,7 @@ class OrderRefund(BaseMutation):
             transaction = try_payment_action(
                 order,
                 info.context.user,
-                info.context.app,
+                app,
                 payment,
                 gateway.refund,
                 payment,
@@ -108,7 +110,7 @@ class OrderRefund(BaseMutation):
                 order_refunded(
                     order,
                     info.context.user,
-                    info.context.app,
+                    app,
                     amount,
                     payment,
                     info.context.plugins,

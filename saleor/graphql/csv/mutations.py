@@ -3,6 +3,7 @@ from typing import Dict, List, Mapping, Union
 import graphene
 from django.core.exceptions import ValidationError
 
+from ..dataloaders import get_app
 from ...core.permissions import GiftcardPermissions, ProductPermissions
 from ...csv import models as csv_models
 from ...csv.events import export_started_event
@@ -129,7 +130,7 @@ class ExportProducts(BaseExportMutation):
         export_info = cls.get_export_info(input["export_info"])
         file_type = input["file_type"]
 
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         kwargs = {"app": app} if app else {"user": info.context.user}
 
         export_file = csv_models.ExportFile.objects.create(**kwargs)
@@ -198,7 +199,7 @@ class ExportGiftCards(BaseExportMutation):
         scope = cls.get_scope(input, GiftCard)
         file_type = input["file_type"]
 
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         kwargs = {"app": app} if app else {"user": info.context.user}
 
         export_file = csv_models.ExportFile.objects.create(**kwargs)

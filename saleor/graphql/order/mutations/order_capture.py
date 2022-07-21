@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order.actions import order_captured
 from ....order.error_codes import OrderErrorCode
@@ -56,6 +57,7 @@ class OrderCapture(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
+        app = get_app(info.context.auth_token)
         if payment_transactions := list(order.payment_transactions.all()):
             try:
                 # We use the last transaction as we don't have a possibility to
@@ -67,7 +69,7 @@ class OrderCapture(BaseMutation):
                     charge_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -81,7 +83,7 @@ class OrderCapture(BaseMutation):
             transaction = try_payment_action(
                 order,
                 info.context.user,
-                info.context.app,
+                app,
                 payment,
                 gateway.capture,
                 payment,
@@ -96,7 +98,7 @@ class OrderCapture(BaseMutation):
                 order_captured(
                     order_info,
                     info.context.user,
-                    info.context.app,
+                    app,
                     amount,
                     payment,
                     info.context.plugins,

@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef
 from django.utils.text import slugify
 
+from ...dataloaders import get_app
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PreorderAllocationError
@@ -765,11 +766,12 @@ class ProductDelete(ModelDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
+        app = get_app(info.context.auth_token)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             lines_data = [(line.quantity, line) for line in order_lines]
             order_events.order_line_product_removed_event(
-                order, info.context.user, info.context.app, lines_data
+                order, info.context.user, app, lines_data
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -1182,10 +1184,11 @@ class ProductVariantDelete(ModelDeleteMutation):
         ).delete()
 
         # run order event for deleted lines
+        app = get_app(info.context.auth_token)
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             lines_data = [(line.quantity, line) for line in order_lines]
             order_events.order_line_variant_removed_event(
-                order, info.context.user, info.context.app, lines_data
+                order, info.context.user, app, lines_data
             )
 
         order_pks = draft_order_lines_data.order_pks
