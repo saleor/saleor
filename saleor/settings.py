@@ -580,6 +580,7 @@ if OBSERVABILITY_ACTIVE:
     CELERY_BEAT_SCHEDULE["observability-reporter"] = {
         "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
         "schedule": OBSERVABILITY_REPORT_PERIOD,
+        "options": {"expires": OBSERVABILITY_REPORT_PERIOD.total_seconds()},
     }
 
 # Change this value if your application is running behind a proxy,
