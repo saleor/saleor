@@ -1546,6 +1546,15 @@ enum WebhookEventTypeEnum {
   """A page type is deleted."""
   PAGE_TYPE_DELETED
 
+  """A new permission group is created."""
+  PERMISSION_GROUP_CREATED
+
+  """A permission group is updated."""
+  PERMISSION_GROUP_UPDATED
+
+  """A permission group is deleted."""
+  PERMISSION_GROUP_DELETED
+
   """A new shipping price is created."""
   SHIPPING_PRICE_CREATED
 
@@ -1841,6 +1850,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A page type is deleted."""
   PAGE_TYPE_DELETED
+
+  """A new permission group is created."""
+  PERMISSION_GROUP_CREATED
+
+  """A permission group is updated."""
+  PERMISSION_GROUP_UPDATED
+
+  """A permission group is deleted."""
+  PERMISSION_GROUP_DELETED
 
   """A new shipping price is created."""
   SHIPPING_PRICE_CREATED
@@ -2434,6 +2452,9 @@ enum WebhookSampleEventTypeEnum {
   PAGE_TYPE_CREATED
   PAGE_TYPE_UPDATED
   PAGE_TYPE_DELETED
+  PERMISSION_GROUP_CREATED
+  PERMISSION_GROUP_UPDATED
+  PERMISSION_GROUP_DELETED
   SHIPPING_PRICE_CREATED
   SHIPPING_PRICE_UPDATED
   SHIPPING_PRICE_DELETED
@@ -22832,6 +22853,75 @@ type PageTypeDeleted implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   pageType: PageType
+}
+
+type PermissionGroupCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The permission group the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  permissionGroup: Group
+}
+
+type PermissionGroupUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The permission group the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  permissionGroup: Group
+}
+
+type PermissionGroupDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The permission group the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  permissionGroup: Group
 }
 
 type ShippingPriceCreated implements Event {

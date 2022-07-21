@@ -30,6 +30,7 @@ from .payloads import (
     generate_menu_payload,
     generate_page_payload,
     generate_page_type_payload,
+    generate_permission_group_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
     generate_staff_payload,
@@ -1431,6 +1432,64 @@ def test_page_type_deleted(page_type, subscription_page_type_deleted_webhook):
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_permission_group_created(
+    permission_group_manage_users, subscription_permission_group_created_webhook
+):
+    # given
+    group = permission_group_manage_users
+    webhooks = [subscription_permission_group_created_webhook]
+    event_type = WebhookEventAsyncType.PERMISSION_GROUP_CREATED
+    expected_payload = json.dumps(generate_permission_group_payload(group))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, group, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_permission_group_updated(
+    permission_group_manage_users, subscription_permission_group_updated_webhook
+):
+    # given
+    group = permission_group_manage_users
+    webhooks = [subscription_permission_group_updated_webhook]
+    event_type = WebhookEventAsyncType.PERMISSION_GROUP_UPDATED
+    expected_payload = json.dumps(generate_permission_group_payload(group))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, group, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_permission_group_deleted(
+    permission_group_manage_users, subscription_permission_group_deleted_webhook
+):
+    # given
+    group = permission_group_manage_users
+    group_id = group.id
+    group.delete()
+    group.id = group_id
+
+    webhooks = [subscription_permission_group_deleted_webhook]
+    event_type = WebhookEventAsyncType.PERMISSION_GROUP_DELETED
+    expected_payload = json.dumps(generate_permission_group_payload(group))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, group, webhooks)
 
     # then
     assert deliveries[0].payload.payload == expected_payload

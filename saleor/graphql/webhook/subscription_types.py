@@ -143,6 +143,9 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.PAGE_TYPE_CREATED: PageTypeCreated,
             WebhookEventAsyncType.PAGE_TYPE_UPDATED: PageTypeUpdated,
             WebhookEventAsyncType.PAGE_TYPE_DELETED: PageTypeDeleted,
+            WebhookEventAsyncType.PERMISSION_GROUP_CREATED: PermissionGroupCreated,
+            WebhookEventAsyncType.PERMISSION_GROUP_UPDATED: PermissionGroupUpdated,
+            WebhookEventAsyncType.PERMISSION_GROUP_DELETED: PermissionGroupDeleted,
             WebhookEventAsyncType.SHIPPING_PRICE_CREATED: ShippingPriceCreated,
             WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: ShippingPriceUpdated,
             WebhookEventAsyncType.SHIPPING_PRICE_DELETED: ShippingPriceDeleted,
@@ -878,6 +881,35 @@ class PageTypeDeleted(ObjectType, PageTypeBase):
         interfaces = (Event,)
 
 
+class PermissionGroupBase(AbstractType):
+    permission_group = graphene.Field(
+        "saleor.graphql.account.types.Group",
+        description="The permission group the event relates to."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_permission_group(root, _info):
+        _, permission_group = root
+        return permission_group
+
+
+class PermissionGroupCreated(ObjectType, PermissionGroupBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class PermissionGroupUpdated(ObjectType, PermissionGroupBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class PermissionGroupDeleted(ObjectType, PermissionGroupBase):
+    class Meta:
+        interfaces = (Event,)
+
+
 class ShippingPriceBase(AbstractType):
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethodType",
@@ -1195,6 +1227,9 @@ SUBSCRIPTION_EVENTS_TYPES = [
     PageTypeCreated,
     PageTypeUpdated,
     PageTypeDeleted,
+    PermissionGroupCreated,
+    PermissionGroupUpdated,
+    PermissionGroupDeleted,
     ShippingPriceCreated,
     ShippingPriceUpdated,
     ShippingPriceDeleted,
