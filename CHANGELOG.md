@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Add support for the CUSTOMER_* app mount points (#10163) by @krzysztofwolski
+- Add permission group webhooks: `PERMISSION_GROUP_CREATED`, `PERMISSION_GROUP_UPDATED`, `PERMISSION_GROUP_DELETED` - #10214 by @SzymJ
 
 ### Breaking changes
 - Drop django-versatileimagefield package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
