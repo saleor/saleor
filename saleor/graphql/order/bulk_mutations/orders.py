@@ -1,5 +1,6 @@
 import graphene
 
+from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
@@ -29,10 +30,11 @@ class OrderBulkCancel(BaseBulkMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
+        app = get_app(info.context.auth_token)
         for order in queryset:
             cancel_order(
                 order=order,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 manager=info.context.plugins,
             )

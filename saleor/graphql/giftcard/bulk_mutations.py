@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ..dataloaders import get_app
 from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code
@@ -128,6 +129,7 @@ class GiftCardBulkCreate(BaseMutation):
     def create_instances(cleaned_input, info):
         count = cleaned_input.pop("count")
         balance = cleaned_input.pop("balance")
+        app = get_app(info.context.auth_token)
         gift_cards = models.GiftCard.objects.bulk_create(
             [
                 models.GiftCard(code=generate_promo_code(), **cleaned_input)
@@ -135,7 +137,7 @@ class GiftCardBulkCreate(BaseMutation):
             ]
         )
         events.gift_cards_issued_event(
-            gift_cards, info.context.user, info.context.app, balance
+            gift_cards, info.context.user, app, balance
         )
         return gift_cards
 
@@ -205,9 +207,10 @@ class GiftCardBulkActivate(BaseBulkMutation):
     def bulk_action(cls, info, queryset):
         queryset = queryset.filter(is_active=False)
         gift_card_ids = [gift_card.id for gift_card in queryset]
+        app = get_app(info.context.auth_token)
         queryset.update(is_active=True)
         events.gift_cards_activated_event(
-            gift_card_ids, user=info.context.user, app=info.context.app
+            gift_card_ids, user=info.context.user, app=app
         )
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
             info.context.plugins.gift_card_status_changed(card)
@@ -231,11 +234,12 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
     @classmethod
     @traced_atomic_transaction()
     def bulk_action(cls, info, queryset):
+        app = get_app(info.context.auth_token)
         queryset = queryset.filter(is_active=True)
         gift_card_ids = [gift_card.id for gift_card in queryset]
         queryset.update(is_active=False)
         events.gift_cards_deactivated_event(
-            gift_card_ids, user=info.context.user, app=info.context.app
+            gift_card_ids, user=info.context.user, app=app
         )
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
             info.context.plugins.gift_card_status_changed(card)

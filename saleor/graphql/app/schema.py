@@ -1,5 +1,6 @@
 import graphene
 
+from ..dataloaders import get_app
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -120,7 +121,7 @@ class AppQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_app(_root, info, *, id=None):
-        if app := info.context.app:
+        if app := get_app(info.context.auth_token):
             if not id:
                 return app
             _, app_id = from_global_id_or_error(id, only_type="App")

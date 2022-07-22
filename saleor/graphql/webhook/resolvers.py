@@ -10,7 +10,7 @@ from .types import Webhook, WebhookEvent
 
 
 def resolve_webhook(info, id):
-    app = info.context.app
+    app = get_app(info.context.auth_token)
     _, id = from_global_id_or_error(id, Webhook)
     if app:
         return app.webhooks.filter(id=id).first()
@@ -29,7 +29,7 @@ def resolve_webhook_events():
 
 @traced_resolver
 def resolve_sample_payload(info, event_name):
-    app = info.context.app
+    app = get_app(info.context.auth_token)
     required_permission = WebhookEventAsyncType.PERMISSIONS.get(
         event_name, WebhookEventSyncType.PERMISSIONS.get(event_name)
     )

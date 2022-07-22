@@ -2,6 +2,7 @@ from typing import List
 
 import graphene
 
+from ..dataloaders import get_app
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
@@ -56,7 +57,8 @@ def has_access_to_app_public_meta(root, info) -> bool:
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:
-        app_id = info.context.app.id if info.context.app else None
+        app = get_app(info.context.auth_token)
+        app_id = app.id if app else None
     if app_id is not None and int(app_id) == root.id:
         return True
     requester = get_user_or_app_from_context(info.context)
@@ -125,7 +127,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
     @staticmethod
     def resolve_app(root, info):
         app_id = None
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         if app and app.id == root.app_id:
             app_id = root.app_id
         else:

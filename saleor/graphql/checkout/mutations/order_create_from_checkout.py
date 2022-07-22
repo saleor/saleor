@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -96,7 +97,7 @@ class OrderCreateFromCheckout(BaseMutation):
             discounts=discounts,
             manager=manager,
         )
-
+        app = get_app(info.context.auth_token)
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
@@ -104,7 +105,7 @@ class OrderCreateFromCheckout(BaseMutation):
                 discounts=info.context.discounts,
                 manager=info.context.plugins,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 tracking_code=tracking_code,
                 delete_checkout=data["remove_checkout"],
             )

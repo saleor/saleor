@@ -87,10 +87,11 @@ def menu_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 def app_permissions(info, object_pk: str) -> List[BasePermissionEnum]:
     auth_token = info.context.decoded_auth_token or {}
+    app = get_app(info.context.auth_token)
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:
-        app_id = info.context.app.id if info.context.app else None
+        app_id = app.id if app else None
     if app_id is not None and int(app_id) == int(object_pk):
         return []
     return [AppPermission.MANAGE_APPS]

@@ -5,6 +5,7 @@ import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 
+from ...dataloaders import get_app
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, get_permissions
@@ -105,7 +106,7 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if context.app:
+        if get_app(context.auth_token):
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
@@ -444,7 +445,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if context.app:
+        if get_app(context.auth_token):
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

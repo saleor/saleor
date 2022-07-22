@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ..dataloaders import get_app
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
@@ -108,7 +109,7 @@ class WebhookCreate(ModelMutation):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         instance.app = app
         return instance
 
@@ -240,7 +241,7 @@ class WebhookDelete(ModelDeleteMutation):
         node_id = data["id"]
         object_id = cls.get_global_id_or_error(node_id)
 
-        app = info.context.app
+        app = get_app(info.context.auth_token)
         if app:
             if not app.is_active:
                 raise ValidationError(
