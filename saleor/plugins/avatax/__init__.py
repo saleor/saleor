@@ -159,11 +159,12 @@ def _validate_order(order: "Order") -> bool:
     )
     if not valid_address_details:
         return False
-    channel_listing = shipping_method.channel_listings.filter(  # type: ignore
-        channel_id=order.channel_id
-    ).first()
-    if not channel_listing:
-        return False
+    if shipping_required:
+        channel_listing = shipping_method.channel_listings.filter(  # type: ignore
+            channel_id=order.channel_id
+        ).first()
+        if not channel_listing:
+            return False
     return True
 
 

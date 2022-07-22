@@ -26,7 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
   Usage:
   - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
   - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
-
+- Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
 
 # 3.5.0
 
