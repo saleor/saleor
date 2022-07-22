@@ -79,3 +79,13 @@ class GiftCardNotApplicable(Exception):
 
 class CircularSubscriptionSyncEvent(GraphQLError):
     pass
+
+
+class SyncEventError(Exception):
+    def __init__(self, message, code=None):
+        super(SyncEventError, self).__init__(message, code)
+        self.message = message
+        self.code = code
+
+    def __str__(self):
+        return self.message

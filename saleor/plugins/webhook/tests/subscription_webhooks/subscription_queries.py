@@ -1649,6 +1649,23 @@ subscription{
 """
 
 
+SHIPPING_LIST_METHODS_FOR_CHECKOUT = """
+subscription{
+  event{
+    ...on ShippingListMethodsForCheckout{
+      checkout{
+        id
+      }
+      shippingMethods{
+        name
+        id
+      }
+    }
+  }
+}
+"""
+
+
 CHECKOUT_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS = """
 subscription{
   event{

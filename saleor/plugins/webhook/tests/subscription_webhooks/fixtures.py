@@ -727,6 +727,14 @@ def subscription_checkout_filter_shipping_methods_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_shipping_list_methods_for_checkout_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+
+@pytest.fixture
 def subscription_order_filter_shipping_methods_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_FILTER_SHIPPING_METHODS,

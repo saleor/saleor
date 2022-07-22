@@ -72,15 +72,14 @@ class WebhookResponse:
 def create_deliveries_for_subscriptions(
     event_type, subscribable_object, webhooks, requestor=None
 ) -> List[EventDelivery]:
-    """Create webhook payload based on subscription query.
+    """Create a list of event deliveries with payloads based on subscription query.
 
-    It uses a defined subscription query, defined for webhook to explicitly determine
+    It uses a subscription query, defined for webhook to explicitly determine
     what fields should be included in the payload.
 
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
     :param requestor: used in subscription webhooks to generate meta data for payload.
-    :param sync_event: flag indicating synchronous event.
     :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in SUBSCRIBABLE_EVENTS:
@@ -120,6 +119,50 @@ def create_deliveries_for_subscriptions(
 
     EventPayload.objects.bulk_create(event_payloads)
     return EventDelivery.objects.bulk_create(event_deliveries)
+
+
+def create_delivery_for_subscription_sync_event(
+    event_type, subscribable_object, webhook, requestor=None
+) -> Optional[EventDelivery]:
+    """Generate webhook payload based on subscription query and create delivery object.
+
+    It uses a defined subscription query, defined for webhook to explicitly determine
+    what fields should be included in the payload.
+
+    :param event_type: event type which should be triggered.
+    :param subscribable_object: subscribable object to process via subscription query.
+    :param webhook: webhook object for which delivery will be created.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
+    :return: List of event deliveries to send via webhook tasks.
+    """
+    if event_type not in SUBSCRIBABLE_EVENTS:
+        logger.info(
+            "Skipping subscription webhook. Event %s is not subscribable.", event_type
+        )
+        return None
+
+    data = generate_payload_from_subscription(
+        event_type=event_type,
+        subscribable_object=subscribable_object,
+        subscription_query=webhook.subscription_query,
+        request=initialize_request(requestor, event_type in WebhookEventSyncType.ALL),
+        app=webhook.app,
+    )
+    if not data:
+        # PaymentError is a temporary exception type. New type will be implemented
+        # in separate PR to ensure proper handling for all sync events.
+        # It was implemented when sync webhooks were handling payment events only.
+        raise PaymentError(
+            "No payload was generated with subscription for event: %s" % event_type
+        )
+    event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
+    event_delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=event_type,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    return event_delivery
 
 
 def trigger_webhooks_async(
@@ -179,11 +222,13 @@ def trigger_webhook_sync(
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
     if webhook.subscription_query:
-        delivery = create_deliveries_for_subscriptions(
+        delivery = create_delivery_for_subscription_sync_event(
             event_type=event_type,
             subscribable_object=subscribable_object,
-            webhooks=[webhook],
-        )[0]
+            webhook=webhook,
+        )
+        if not delivery:
+            return None
 
     else:
         event_payload = EventPayload.objects.create(payload=data)

@@ -23509,6 +23509,15 @@ type ShippingListMethodsForCheckout implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   checkout: Checkout
+
+  """
+  Shipping methods that can be used with this checkout.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingMethods: [ShippingMethod!]
 }
 
 """_Any value scalar as defined by Federation spec."""

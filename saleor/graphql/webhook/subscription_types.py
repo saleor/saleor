@@ -7,11 +7,6 @@ from rx import Observable
 from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
-from ...checkout.fetch import (
-    fetch_checkout_info,
-    fetch_checkout_lines,
-    get_all_shipping_methods_list,
-)
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
@@ -44,6 +39,7 @@ from ..payment.types import TransactionItem
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
+from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {
     ProductTranslation: translation_types.ProductTranslation,
@@ -1183,6 +1179,18 @@ class PaymentListGateways(ObjectType, CheckoutBase):
 
 
 class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
+    shipping_methods = NonNullList(
+        ShippingMethod,
+        description="Shipping methods that can be used with this checkout."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_shipping_methods(root, info):
+        _, checkout = root
+        return resolve_shipping_methods_for_checkout(info, checkout)
+
     class Meta:
         interfaces = (Event,)
         description = (
@@ -1201,27 +1209,7 @@ class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     @staticmethod
     def resolve_shipping_methods(root, info):
         _, checkout = root
-        manager = info.context.plugins
-        discounts = info.context.discounts
-        lines, _ = fetch_checkout_lines(checkout)
-        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
-        checkout_info = fetch_checkout_info(
-            checkout,
-            lines,
-            discounts,
-            manager,
-            shipping_channel_listings,
-            fetch_delivery_methods=False,
-        )
-        all_shipping_methods = get_all_shipping_methods_list(
-            checkout_info,
-            checkout.shipping_address,
-            lines,
-            info.context.discounts,
-            shipping_channel_listings,
-            manager,
-        )
-        return all_shipping_methods
+        return resolve_shipping_methods_for_checkout(info, checkout)
 
     class Meta:
         interfaces = (Event,)

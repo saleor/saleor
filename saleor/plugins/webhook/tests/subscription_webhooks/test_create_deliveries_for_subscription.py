@@ -1561,6 +1561,38 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_shipping_list_methods_for_checkout(
+    checkout_with_shipping_required,
+    subscription_shipping_list_methods_for_checkout_webhook,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_shipping_required
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    webhooks = [subscription_shipping_list_methods_for_checkout_webhook]
+    event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    all_shipping_methods = ShippingMethod.objects.all()
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+    # then
+    expected_payload = {
+        "checkout": {"id": checkout_id},
+        "shippingMethods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+                "name": sm.name,
+            }
+            for sm in all_shipping_methods
+        ],
+    }
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_checkout_filter_shipping_methods(
     checkout_with_shipping_required,
     subscription_checkout_filter_shipping_methods_webhook,
