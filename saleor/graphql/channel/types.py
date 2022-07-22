@@ -10,7 +10,7 @@ from promise import Promise
 from ...channel import models
 from ...core.permissions import AuthorizationFilters, ChannelPermissions
 from ..account.enums import CountryCodeEnum
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -186,6 +186,9 @@ class Channel(ModelObjectType):
     available_shipping_methods_per_country = graphene.Field(
         NonNullList("saleor.graphql.shipping.types.ShippingMethodsPerCountry"),
         countries=graphene.Argument(NonNullList(CountryCodeEnum)),
+        description="Shipping methods that are available for the channel."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
     )
 
     class Meta:

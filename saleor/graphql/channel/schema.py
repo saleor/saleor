@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import AuthorizationFilters
+from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
 from ..core.types import NonNullList
 from .mutations import (
@@ -21,7 +22,9 @@ class ChannelQueries(graphene.ObjectType):
             graphene.ID, description="ID of the channel.", required=False
         ),
         slug=graphene.Argument(
-            graphene.String, description="Slug of the channel.", required=False
+            graphene.String,
+            description="Slug of the channel." + ADDED_IN_36 + PREVIEW_FEATURE,
+            required=False,
         ),
         description="Look up a channel by ID.",
     )

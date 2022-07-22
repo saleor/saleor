@@ -1006,7 +1006,13 @@ type Query {
     """ID of the channel."""
     id: ID
 
-    """Slug of the channel."""
+    """
+    Slug of the channel.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
     slug: String
   ): Channel
 
@@ -3675,6 +3681,14 @@ type Channel implements Node {
   """
   warehouses: [Warehouse!]!
   countries: [CountryDisplay!]
+
+  """
+  Shipping methods that are available for the channel.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
 }
 
