@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from django.core.files.storage import default_storage
 
 from ....product.tests.utils import create_image
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -149,6 +150,8 @@ def test_file_upload_file_with_the_same_name_already_exists(
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
     file_url = data["uploadedFile"]["url"]
-    assert file_url != "http://testserver/media/" + image_file._name
-    assert file_url != "http://testserver/media/" + path
-    assert default_storage.exists(file_url.replace("http://testserver/media/", ""))
+    assert file_url != f"http://{TEST_SERVER_DOMAIN}/media/{image_file._name}"
+    assert file_url != f"http://{TEST_SERVER_DOMAIN}/media/{path}"
+    assert default_storage.exists(
+        file_url.replace(f"http://{TEST_SERVER_DOMAIN}/media/", "")
+    )

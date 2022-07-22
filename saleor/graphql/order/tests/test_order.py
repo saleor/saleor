@@ -44,6 +44,7 @@ from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
@@ -1360,7 +1361,7 @@ def test_order_query_product_image_size_and_format_given_proxy_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
@@ -1389,7 +1390,7 @@ def test_order_query_product_image_size_given_proxy_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
     )
 
 
@@ -1422,7 +1423,7 @@ def test_order_query_product_image_size_given_thumbnail_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -1453,7 +1454,7 @@ def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
@@ -1482,7 +1483,7 @@ def test_order_query_variant_image_size_given_proxy_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
     )
 
 
@@ -1515,7 +1516,7 @@ def test_order_query_variant_image_size_given_thumbnail_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 

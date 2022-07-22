@@ -13,6 +13,7 @@ from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page
+from .....tests.consts import TEST_SERVER_DOMAIN
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_page_payload
@@ -286,7 +287,7 @@ def test_update_page_with_file_attribute_value(
                 "plainText": None,
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": f"http://{TEST_SERVER_DOMAIN}/media/" + new_value,
                     "contentType": None,
                 },
             }
@@ -340,7 +341,9 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
                 "plainText": None,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": (
+                        f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
+                    ),
                     "contentType": existing_value.content_type,
                 },
             }

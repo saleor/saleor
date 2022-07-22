@@ -2,14 +2,15 @@ from collections import namedtuple
 from datetime import datetime
 
 import pytz
-from celery.schedules import BaseSchedule
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
+
+from ..schedulers.customschedule import CustomSchedule
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 
 
-class sale_webhook_schedule(BaseSchedule):
+class sale_webhook_schedule(CustomSchedule):
     """Schedule for sale webhook periodic task.
 
     The lowercase with an underscore is used for the name as all celery schedules
@@ -28,7 +29,12 @@ class sale_webhook_schedule(BaseSchedule):
     def __init__(self, initial_timedelta=60, nowfun=None, app=None):
         self.initial_timedelta = maybe_timedelta(initial_timedelta)
         self.next_run = self.initial_timedelta
-        super().__init__(nowfun=nowfun, app=app)
+        super().__init__(
+            schedule=self,
+            nowfun=nowfun,
+            app=app,
+            import_path="saleor.core.schedules.initiated_sale_webhook_schedule",
+        )
 
     def remaining_estimate(self, last_run_at):
         """Estimate of next run time.
@@ -101,3 +107,6 @@ class sale_webhook_schedule(BaseSchedule):
 
         self.next_run = min((next_upcoming_date - now), self.initial_timedelta)
         return schedstate(is_due, self.next_run.total_seconds())
+
+
+initiated_sale_webhook_schedule = sale_webhook_schedule()

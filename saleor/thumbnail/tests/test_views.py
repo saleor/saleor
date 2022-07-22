@@ -1,5 +1,4 @@
 import graphene
-from django.test.client import Client
 
 from .. import ThumbnailFormat
 from ..models import Thumbnail
@@ -9,7 +8,6 @@ def test_handle_thumbnail_view_with_format(client, category_with_image, settings
     # given
     size = 60
     format = ThumbnailFormat.WEBP
-    client = Client()
     category_id = graphene.Node.to_global_id("Category", category_with_image.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -29,7 +27,6 @@ def test_handle_thumbnail_view_with_format(client, category_with_image, settings
 def test_handle_thumbnail_view_for_category(client, category_with_image, settings):
     # given
     size = 60
-    client = Client()
     category_id = graphene.Node.to_global_id("Category", category_with_image.id)
     thumbnail_count = 0
 
@@ -49,7 +46,6 @@ def test_handle_thumbnail_view_for_category(client, category_with_image, setting
 def test_handle_thumbnail_view_for_collection(client, collection_with_image, settings):
     # given
     size = 100
-    client = Client()
     collection_id = graphene.Node.to_global_id("Collection", collection_with_image.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -74,7 +70,6 @@ def test_handle_thumbnail_view_for_user(
     staff_user.save(update_fields=["avatar"])
 
     size = 200
-    client = Client()
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -98,7 +93,6 @@ def test_handle_thumbnail_view_for_product_media(
     product_media = product_with_image.media.first()
 
     size = 500
-    client = Client()
     product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -121,7 +115,6 @@ def test_handle_thumbnail_view_for_category_thumbnail_already_exist(
     # given
     size = 64
     thumbnail = Thumbnail.objects.create(category=category, size=size, image=image)
-    client = Client()
     category_id = graphene.Node.to_global_id("Category", category.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -140,7 +133,6 @@ def test_handle_thumbnail_view_for_collection_thumbnail_already_exist(
     # given
     size = 128
     thumbnail = Thumbnail.objects.create(collection=collection, size=128, image=image)
-    client = Client()
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -159,7 +151,6 @@ def test_handle_thumbnail_view_for_user_thumbnail_already_exist(
     # given
     size = 128
     thumbnail = Thumbnail.objects.create(user=staff_user, size=128, image=image)
-    client = Client()
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -181,7 +172,6 @@ def test_handle_thumbnail_view_for_product_media_thumbnail_already_exist(
     thumbnail = Thumbnail.objects.create(
         product_media=product_media, size=256, image=image
     )
-    client = Client()
     product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
     thumbnail_count = Thumbnail.objects.count()
 
@@ -197,7 +187,6 @@ def test_handle_thumbnail_view_for_product_media_thumbnail_already_exist(
 def test_handle_thumbnail_view_no_image(client, category):
     # given
     size = 60
-    client = Client()
     category_id = graphene.Node.to_global_id("Category", category.id)
 
     # when
@@ -210,7 +199,6 @@ def test_handle_thumbnail_view_no_image(client, category):
 def test_handle_thumbnail_view_invalid_object_type(client, order):
     # given
     size = 60
-    client = Client()
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
@@ -223,7 +211,6 @@ def test_handle_thumbnail_view_invalid_object_type(client, order):
 def test_handle_thumbnail_view_invalid_format(client, order):
     # given
     size = 60
-    client = Client()
     category_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
@@ -236,7 +223,6 @@ def test_handle_thumbnail_view_invalid_format(client, order):
 def test_handle_thumbnail_view_invalid_instance_id(client, category):
     # given
     size = 60
-    client = Client()
     category_id = category.id
 
     # when
