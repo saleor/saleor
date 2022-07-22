@@ -1456,12 +1456,26 @@ enum WebhookEventTypeEnum {
 
   """An order is fulfilled."""
   ORDER_FULFILLED
+
+  """A draft order is created."""
   DRAFT_ORDER_CREATED
+
+  """A draft order is updated."""
   DRAFT_ORDER_UPDATED
+
+  """A draft order is deleted."""
   DRAFT_ORDER_DELETED
+
+  """A sale is created."""
   SALE_CREATED
+
+  """A sale is updated."""
   SALE_UPDATED
+
+  """A sale is deleted."""
   SALE_DELETED
+
+  """A sale is activated or deactivated."""
   SALE_TOGGLE
 
   """An invoice for order requested."""
@@ -1508,7 +1522,11 @@ enum WebhookEventTypeEnum {
 
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
+
+  """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
+
+  """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
   """A new checkout is created."""
@@ -1564,12 +1582,22 @@ enum WebhookEventTypeEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
-  """A staff user is deleted"""
+  """A new staff user is created."""
   STAFF_CREATED
+
+  """A staff user is updated."""
   STAFF_UPDATED
+
+  """A staff user is deleted."""
   STAFF_DELETED
+
+  """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
+
+  """A new translation is created."""
   TRANSLATION_CREATED
+
+  """A translation is updated."""
   TRANSLATION_UPDATED
 
   """A new warehouse created."""
@@ -1592,15 +1620,35 @@ enum WebhookEventTypeEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """Authorize payment."""
   PAYMENT_AUTHORIZE
+
+  """Capture payment."""
   PAYMENT_CAPTURE
+
+  """Confirm payment."""
   PAYMENT_CONFIRM
+
+  """Listing available payment gateways."""
   PAYMENT_LIST_GATEWAYS
+
+  """Process payment."""
   PAYMENT_PROCESS
+
+  """Refund payment."""
   PAYMENT_REFUND
+
+  """Void payment."""
   PAYMENT_VOID
+
+  """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
+
+  """Filter shipping methods for order."""
   ORDER_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
 }
 
@@ -1615,15 +1663,34 @@ type WebhookEventSync {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeSyncEnum {
+  """Authorize payment."""
   PAYMENT_AUTHORIZE
+
+  """Capture payment."""
   PAYMENT_CAPTURE
+
+  """Confirm payment."""
   PAYMENT_CONFIRM
+
+  """Listing available payment gateways."""
   PAYMENT_LIST_GATEWAYS
+
+  """Process payment."""
   PAYMENT_PROCESS
+
+  """Refund payment."""
   PAYMENT_REFUND
+
+  """Void payment."""
   PAYMENT_VOID
+
+  """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
+
+  """Filter shipping methods for order."""
   ORDER_FILTER_SHIPPING_METHODS
+
+  """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
 }
 
@@ -1752,12 +1819,26 @@ enum WebhookEventTypeAsyncEnum {
 
   """An order is fulfilled."""
   ORDER_FULFILLED
+
+  """A draft order is created."""
   DRAFT_ORDER_CREATED
+
+  """A draft order is updated."""
   DRAFT_ORDER_UPDATED
+
+  """A draft order is deleted."""
   DRAFT_ORDER_DELETED
+
+  """A sale is created."""
   SALE_CREATED
+
+  """A sale is updated."""
   SALE_UPDATED
+
+  """A sale is deleted."""
   SALE_DELETED
+
+  """A sale is activated or deactivated."""
   SALE_TOGGLE
 
   """An invoice for order requested."""
@@ -1804,7 +1885,11 @@ enum WebhookEventTypeAsyncEnum {
 
   """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
+
+  """A product variant is out of stock."""
   PRODUCT_VARIANT_OUT_OF_STOCK
+
+  """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
   """A new checkout is created."""
@@ -1860,12 +1945,22 @@ enum WebhookEventTypeAsyncEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
-  """A staff user is deleted"""
+  """A new staff user is created."""
   STAFF_CREATED
+
+  """A staff user is updated."""
   STAFF_UPDATED
+
+  """A staff user is deleted."""
   STAFF_DELETED
+
+  """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
+
+  """A new translation is created."""
   TRANSLATION_CREATED
+
+  """A translation is updated."""
   TRANSLATION_UPDATED
 
   """A new warehouse created."""
