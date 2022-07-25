@@ -5,15 +5,20 @@ import graphene
 
 from ....discount.utils import CatalogueInfo
 
+CATALOGUE_FIELD_TO_TYPE_NAME = {
+    "categories": "Category",
+    "collections": "Collection",
+    "products": "Product",
+    "variants": "ProductVariant",
+}
+
 
 def convert_catalogue_info_to_global_ids(
     catalogue_info: CatalogueInfo,
 ) -> DefaultDict[str, Set[str]]:
-    catalogue_fields = ["categories", "collections", "products", "variants"]
-    type_names = ["Category", "Collection", "Product", "ProductVariant"]
     converted_catalogue_info: DefaultDict[str, Set[str]] = defaultdict(set)
 
-    for type_name, catalogue_field in zip(type_names, catalogue_fields):
+    for catalogue_field, type_name in CATALOGUE_FIELD_TO_TYPE_NAME.items():
         converted_catalogue_info[catalogue_field].update(
             graphene.Node.to_global_id(type_name, id_)
             for id_ in catalogue_info[catalogue_field]
