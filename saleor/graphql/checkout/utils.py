@@ -19,9 +19,15 @@ def prepare_insufficient_stock_checkout_validation_error(exc):
 
 
 def prevent_sync_event_circular_query(func):
+    """Prevent from resolving field in a synchronous event.
+
+    Synchronous events are not allowed to request fields that are resolved using
+    synchronous events. This prevents circular events call.
+    """
+
     def wrapper(*args, **kwargs):
         info = next(arg for arg in args if isinstance(arg, ResolveInfo))
-        if hasattr(info.context, "sync_event") and info.context.sync_event:
+        if getattr(info.context, "sync_event", False):
             raise CircularSubscriptionSyncEvent(
                 "Resolving this field is not allowed in synchronous events."
             )
