@@ -2645,7 +2645,7 @@ def test_products_query_with_filter_date_time_range_date_time_attributes(
 
     # given
     product_type = product_list[0].product_type
-    date_value = datetime.utcnow()
+    date_value = datetime.now(tz=pytz.utc)
     product_type.product_attributes.add(date_time_attribute)
     product_type.variant_attributes.add(date_time_attribute)
     attr_value_1 = AttributeValue.objects.create(
