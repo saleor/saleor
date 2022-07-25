@@ -1763,22 +1763,24 @@ def test_checkout_complete_0_total_value(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_complete_checkout_for_click_and_collect(
-    api_client, checkout_with_item_for_cc, payment_dummy, address, warehouse_for_cc
+def test_complete_checkout_for_local_click_and_collect(
+    api_client,
+    checkout_with_item_for_cc,
+    payment_dummy,
+    address,
+    warehouse_for_cc,
+    warehouse,
 ):
+    # given
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
+    checkout.collection_point = warehouse_for_cc
+    checkout.save(update_fields=["collection_point"])
+
     variables = {
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
-
-    checkout.billing_address = address
-    checkout.collection_point = warehouse_for_cc
-
-    checkout.save(
-        update_fields=["shipping_address", "billing_address", "collection_point"]
-    )
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -1795,8 +1797,16 @@ def test_complete_checkout_for_click_and_collect(
     payment.save()
 
     assert not payment.transactions.exists()
+    assert len(lines) == 1
+    variant = lines[0].variant
 
+    # create another stock for the variant with the bigger quantity available
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=15)
+
+    # when
     response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
     content = get_graphql_content(response)["data"]["checkoutComplete"]
 
     assert not content["errors"]
@@ -1808,6 +1818,10 @@ def test_complete_checkout_for_click_and_collect(
     assert order.shipping_method is None
     assert order.shipping_address == warehouse_for_cc.address
     assert order.shipping_price == zero_taxed_money(payment.currency)
+    assert order.lines.count() == 1
+
+    # ensure the allocation is made on the correct warehouse
+    assert order.lines.first().allocations.first().stock.warehouse == warehouse_for_cc
 
 
 def test_complete_checkout_raises_error_for_local_stock(
