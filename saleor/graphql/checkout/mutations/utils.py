@@ -55,7 +55,6 @@ def clean_delivery_method(
     ],
 ) -> bool:
     """Check if current shipping method is valid."""
-
     if not method:
         # no shipping method was provided, it is valid
         return True
