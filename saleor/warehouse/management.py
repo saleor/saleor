@@ -40,6 +40,7 @@ def allocate_stocks(
     country_code: str,
     channel_slug: str,
     manager: PluginsManager,
+    collection_point_pk: Optional[str] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     check_reservations: bool = False,
     checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
@@ -65,9 +66,16 @@ def allocate_stocks(
     if additional_filter_lookup is not None:
         filter_lookup.update(additional_filter_lookup)
 
+    # in case of click and collect order, we need to check local or global stock
+    # regardless of the country code
+    stocks = (
+        Stock.objects.for_channel_and_click_and_collect(channel_slug)
+        if collection_point_pk
+        else Stock.objects.for_channel_and_country(channel_slug, country_code)
+    )
+
     stocks = list(
-        Stock.objects.select_for_update(of=("self",))
-        .for_channel_and_country(channel_slug, country_code)
+        stocks.select_for_update(of=("self",))
         .filter(**filter_lookup)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")

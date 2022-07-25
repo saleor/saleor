@@ -776,6 +776,7 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_check
 def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_all(
     api_client, checkout_with_items_for_cc, stocks_for_cc
 ):
+    # given
     expected_collection_points = [
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse4"},
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"},
@@ -783,7 +784,11 @@ def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_
 
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
     variables = {"id": to_global_id_or_none(checkout_with_items_for_cc)}
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     received_collection_points = content["data"]["checkout"][
         "availableCollectionPoints"

@@ -3738,6 +3738,7 @@ def order_with_lines_for_cc(
     warehouse_for_cc,
     channel_USD,
     customer_user,
+    product_variant_list,
 ):
     address = customer_user.default_billing_address.get_copy()
 
@@ -3754,6 +3755,36 @@ def order_with_lines_for_cc(
     order.collection_point = warehouse_for_cc
     order.collection_point_name = warehouse_for_cc.name
     order.save()
+
+    variant = product_variant_list[0]
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    quantity = 1
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
+        tax_rate=Decimal("0.23"),
+    )
+    Allocation.objects.create(
+        order_line=line,
+        stock=warehouse_for_cc.stock_set.filter(product_variant=variant).first(),
+        quantity_allocated=line.quantity,
+    )
 
     recalculate_order(order)
 
@@ -5471,14 +5502,14 @@ def warehouses_for_cc(address, shipping_zones, channel_USD):
             ),
         ]
     )
-    for shipping_zone in shipping_zones:
-        shipping_zone.warehouses.add(*warehouses)
+    # add to shipping zones only not click and collect warehouses
+    warehouses[0].shipping_zones.add(*shipping_zones)
     channel_USD.warehouses.add(*warehouses)
     return warehouses
 
 
 @pytest.fixture
-def warehouse_for_cc(address, product_variant_list, shipping_zones, channel_USD):
+def warehouse_for_cc(address, product_variant_list, channel_USD):
     warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="Local Warehouse",
@@ -5487,7 +5518,6 @@ def warehouse_for_cc(address, product_variant_list, shipping_zones, channel_USD)
         is_private=False,
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
     )
-    warehouse.shipping_zones.add(shipping_zones[0], shipping_zones[1])
     warehouse.channels.add(channel_USD)
 
     Stock.objects.bulk_create(
@@ -5568,7 +5598,7 @@ def stocks_for_cc(warehouses_for_cc, product_variant_list, product_with_two_vari
 
 
 @pytest.fixture
-def checkout_for_cc(channel_USD, customer_user, product_variant_list):
+def checkout_for_cc(channel_USD, customer_user):
     return Checkout.objects.create(
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
