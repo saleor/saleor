@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import ANY, patch
 
+import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -19,16 +20,20 @@ def test_fetch_catalogue_infos(sale, new_sale):
     for sale_instance in sales:
         catalogue_info = catalogue_infos[sale_instance.id]
         assert catalogue_info["categories"] == set(
-            sale_instance.categories.all().values_list("id", flat=True)
+            graphene.Node.to_global_id("Category", id)
+            for id in sale_instance.categories.all().values_list("id", flat=True)
         )
         assert catalogue_info["collections"] == set(
-            sale_instance.collections.all().values_list("id", flat=True)
+            graphene.Node.to_global_id("Collection", id)
+            for id in sale_instance.collections.all().values_list("id", flat=True)
         )
         assert catalogue_info["products"] == set(
-            sale_instance.products.all().values_list("id", flat=True)
+            graphene.Node.to_global_id("Product", id)
+            for id in sale_instance.products.all().values_list("id", flat=True)
         )
         assert catalogue_info["variants"] == set(
-            sale_instance.variants.all().values_list("id", flat=True)
+            graphene.Node.to_global_id("ProductVariant", id)
+            for id in sale_instance.variants.all().values_list("id", flat=True)
         )
 
 

@@ -1,11 +1,13 @@
 from collections import defaultdict
 from datetime import datetime
 
+import graphene
 import pytz
 from celery.utils.log import get_task_logger
 from django.db.models import F, Q
 
 from ..celeryconf import app
+from ..graphql.discount.mutations.utils import CATALOGUE_FIELD_TO_TYPE_NAME
 from ..plugins.manager import get_plugins_manager
 from .models import Sale
 from .utils import CATALOGUE_FIELDS, CatalogueInfo
@@ -44,7 +46,9 @@ def fetch_catalogue_infos(sales):
 
         for field in CATALOGUE_FIELDS:
             if id := sale_data.get(field):
-                catalogue_info[sale_data["id"]][field].add(id)
+                type_name = CATALOGUE_FIELD_TO_TYPE_NAME[field]
+                global_id = graphene.Node.to_global_id(type_name, id)
+                catalogue_info[sale_data["id"]][field].add(global_id)
 
     return catalogue_info
 
