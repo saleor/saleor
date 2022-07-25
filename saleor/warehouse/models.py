@@ -204,6 +204,24 @@ class StockQuerySet(models.QuerySet):
             )
         )
 
+    def for_channel_and_click_and_collect(self, channel_slug: str):
+        """Return the stocks for a given channel for a click and collect.
+
+        The click and collect warehouses don't have to be assigned to the shipping zones
+        so all stocks for a given channel are returned.
+        """
+        WarehouseChannel = Channel.warehouses.through  # type: ignore
+
+        channels = Channel.objects.filter(slug=channel_slug).values("pk")
+
+        warehouse_channels = WarehouseChannel.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id")))
+        ).values("warehouse_id")
+
+        return self.select_related("product_variant").filter(
+            Exists(warehouse_channels.filter(warehouse_id=OuterRef("warehouse_id")))
+        )
+
     def for_channel_and_country(
         self, channel_slug: str, country_code: Optional[str] = None
     ):

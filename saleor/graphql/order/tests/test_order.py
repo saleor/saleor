@@ -7869,6 +7869,63 @@ def test_order_query_address_without_order_user(
     assert order["billingAddress"] is not None
 
 
+QUERY_ORDER_LINE_STOCKS = """
+query OrderQuery($id: ID!) {
+    order(id: $id) {
+        number
+        lines {
+            id
+            quantity
+            quantityFulfilled
+            variant {
+                id
+                name
+                sku
+                stocks {
+                    warehouse {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_query_order_line_stocks(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines_for_cc,
+    warehouse,
+    warehouse_for_cc,
+):
+    """Ensure that stocks for normal and click and collect warehouses are returned."""
+    # given
+    order = order_with_lines_for_cc
+    variant = order.lines.first().variant
+    variables = {"id": graphene.Node.to_global_id("Order", order.id)}
+
+    # create the variant stock for not click and collect warehouse
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_LINE_STOCKS, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    assert order_data
+    assert len(order_data["lines"]) == 1
+    assert {
+        stock["warehouse"]["name"]
+        for stock in order_data["lines"][0]["variant"]["stocks"]
+    } == {warehouse.name, warehouse_for_cc.name}
+
+
 MUTATION_ORDER_BULK_CANCEL = """
 mutation CancelManyOrders($ids: [ID!]!) {
     orderBulkCancel(ids: $ids) {
