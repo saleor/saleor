@@ -1001,7 +1001,7 @@ type Query {
     last: Int
   ): CheckoutLineCountableConnection
 
-  """Look up a channel by ID."""
+  """Look up a channel by ID or slug."""
   channel(
     """ID of the channel."""
     id: ID
@@ -3643,15 +3643,29 @@ type ShippingMethodChannelListing implements Node {
 """Represents channel."""
 type Channel implements Node {
   id: ID!
+
+  """Slug of the channel."""
   slug: String!
 
-  "\\n\\nRequires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER."
+  """
+  Name of the channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
   name: String!
 
-  "\\n\\nRequires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER."
+  """
+  Whether the channel is active.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
   isActive: Boolean!
 
-  "\\n\\nRequires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER."
+  """
+  A currency that is assigned to the channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
   currencyCode: String!
 
   """
@@ -3680,6 +3694,14 @@ type Channel implements Node {
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   warehouses: [Warehouse!]!
+
+  """
+  List of shippable countries for the channel.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   countries: [CountryDisplay!]
 
   """
@@ -3692,8 +3714,18 @@ type Channel implements Node {
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
 }
 
+"""
+List of shipping methods available for the country.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingMethodsPerCountry {
+  """The country code."""
   countryCode: CountryCode!
+
+  """List of available shipping methods."""
   shippingMethods: [ShippingMethod!]
 }
 

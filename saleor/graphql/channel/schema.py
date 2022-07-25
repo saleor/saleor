@@ -26,7 +26,7 @@ class ChannelQueries(graphene.ObjectType):
             description="Slug of the channel." + ADDED_IN_36 + PREVIEW_FEATURE,
             required=False,
         ),
-        description="Look up a channel by ID.",
+        description="Look up a channel by ID or slug.",
     )
     channels = PermissionsField(
         NonNullList(Channel),

@@ -18,7 +18,12 @@ from ..channel.types import (
     ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.descriptions import (
+    ADDED_IN_36,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
 from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.types import (
     CountryDisplay,
@@ -369,5 +374,16 @@ class ShippingZoneCountableConnection(CountableConnection):
 
 
 class ShippingMethodsPerCountry(graphene.ObjectType):
-    country_code = graphene.Field(CountryCodeEnum, required=True)
-    shipping_methods = NonNullList(ShippingMethod)
+    country_code = graphene.Field(
+        CountryCodeEnum, required=True, description="The country code."
+    )
+    shipping_methods = NonNullList(
+        ShippingMethod, description="List of available shipping methods."
+    )
+
+    class Meta:
+        description = (
+            "List of shipping methods available for the country."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
+        )

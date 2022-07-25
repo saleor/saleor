@@ -123,10 +123,14 @@ class ChannelContextTypeWithMetadata(
 
 class Channel(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    slug = graphene.String(required=True)
+    slug = graphene.String(
+        required=True,
+        description="Slug of the channel.",
+    )
 
     name = PermissionsField(
         graphene.String,
+        description="Name of the channel.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -135,6 +139,7 @@ class Channel(ModelObjectType):
     )
     is_active = PermissionsField(
         graphene.Boolean,
+        description="Whether the channel is active.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -143,6 +148,7 @@ class Channel(ModelObjectType):
     )
     currency_code = PermissionsField(
         graphene.String,
+        description="A currency that is assigned to the channel.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -181,7 +187,12 @@ class Channel(ModelObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
         ],
     )
-    countries = NonNullList(CountryDisplay)
+    countries = NonNullList(
+        CountryDisplay,
+        description="List of shippable countries for the channel."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
+    )
 
     available_shipping_methods_per_country = graphene.Field(
         NonNullList("saleor.graphql.shipping.types.ShippingMethodsPerCountry"),
