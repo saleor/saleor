@@ -61,7 +61,7 @@ PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 def get_user_checkout(
     user: User, checkout_queryset=Checkout.objects.all()
-) -> Tuple[Optional[Checkout], bool]:
+) -> Optional[Checkout]:
     return checkout_queryset.filter(user=user, channel__is_active=True).first()
 
 
