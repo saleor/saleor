@@ -17421,6 +17421,11 @@ input OrderLineCreateInput {
 
   """Product variant ID."""
   variantId: ID!
+
+  """
+  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic.
+  """
+  forceNewLine: Boolean = false
 }
 
 """
