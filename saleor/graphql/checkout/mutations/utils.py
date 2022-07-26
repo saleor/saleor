@@ -297,16 +297,23 @@ def group_lines_input_on_add(
             grouped_checkout_lines_data.append(line_data)
         else:
             _, variant_db_id = graphene.Node.from_global_id(variant_id)
-            line_db_id = find_line_id_when_variant_parameter_used(
-                variant_db_id, existing_lines_info
-            )
 
-            if not line_db_id:
-                line_data = checkout_lines_data_map[variant_db_id]
-                line_data.variant_id = variant_db_id
-            else:
-                line_data = checkout_lines_data_map[line_db_id]
-                line_data.line_id = line_db_id
+            try:
+                line_db_id = find_line_id_when_variant_parameter_used(
+                    variant_db_id, existing_lines_info
+                )
+
+                if not line_db_id:
+                    line_data = checkout_lines_data_map[variant_db_id]
+                    line_data.variant_id = variant_db_id
+                else:
+                    line_data = checkout_lines_data_map[line_db_id]
+                    line_data.line_id = line_db_id
+
+            # when variant already exist in multiple lines then create a new line
+            except ValidationError:
+                line_data = CheckoutLineData(variant_id=variant_db_id)
+                grouped_checkout_lines_data.append(line_data)
 
         if (quantity := line.get("quantity")) is not None:
             line_data.quantity += quantity

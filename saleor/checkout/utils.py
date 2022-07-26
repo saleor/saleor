@@ -251,7 +251,6 @@ def add_variants_to_checkout(
 def _get_line_if_exist(line_data, lines_by_ids):
     if line_data.line_id and line_data.line_id in lines_by_ids:
         return lines_by_ids[line_data.line_id]
-    return
 
 
 def _append_line_to_update(to_update, to_delete, line_data, replace, line):
