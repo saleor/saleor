@@ -11,6 +11,7 @@ from ...core.notify_events import NotifyEventType
 from ...core.prices import quantize_price
 from ...discount import DiscountValueType
 from ...graphql.core.utils import to_global_id_or_none
+from ...graphql.order.utils import OrderLineData
 from ...order import notifications
 from ...order.fetch import fetch_order_info
 from ...plugins.manager import get_plugins_manager
@@ -389,11 +390,15 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     payment_dummy,
 ):
     order = payment_dummy.order
+    line_data = OrderLineData(
+        variant_id=str(digital_content.product_variant.id),
+        variant=digital_content.product_variant,
+        quantity=1,
+    )
 
     line = add_variant_to_order(
         order,
-        digital_content.product_variant,
-        quantity=1,
+        line_data,
         user=info.context.user,
         app=info.context.app,
         manager=info.context.plugins,
@@ -436,11 +441,15 @@ def test_send_confirmation_emails_without_addresses_for_order(
 ):
 
     assert not order.lines.count()
+    line_data = OrderLineData(
+        variant_id=str(digital_content.product_variant.id),
+        variant=digital_content.product_variant,
+        quantity=1,
+    )
 
     line = add_variant_to_order(
         order,
-        digital_content.product_variant,
-        quantity=1,
+        line_data,
         user=info.context.user,
         app=info.context.app,
         manager=info.context.plugins,

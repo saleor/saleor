@@ -3988,7 +3988,8 @@ def order_with_lines_and_events(order_with_lines, staff_user):
         order=order_with_lines,
         user=staff_user,
         app=None,
-        order_lines=[(1, order_with_lines.lines.first())],
+        order_lines=[order_with_lines.lines.first()],
+        quantity_diff=1,
     )
     return order_with_lines
 

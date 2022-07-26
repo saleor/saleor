@@ -16,6 +16,7 @@ from ...discount.models import (
 )
 from ...discount.utils import validate_voucher_in_order
 from ...graphql.core.utils import to_global_id_or_none
+from ...graphql.order.utils import OrderLineData
 from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
 from ...payment.models import Payment
@@ -95,10 +96,11 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -135,11 +137,11 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     sale.variants.add(variant)
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
 
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -168,6 +170,46 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     assert line.unit_discount_reason
 
 
+def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
+    order_with_lines, product, product_translation_fr, settings, info, site_settings
+):
+    order = order_with_lines
+    variant = product.variants.get()
+    lines_before = order.lines.count()
+    settings.LANGUAGE_CODE = "fr"
+    unit_price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
+    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
+    unit_price_data = OrderTaxedPricesData(
+        undiscounted_price=unit_price,
+        price_with_discounts=unit_price,
+    )
+    total_price_data = OrderTaxedPricesData(
+        undiscounted_price=total_price,
+        price_with_discounts=total_price,
+    )
+    manager = Mock(
+        calculate_order_line_unit=Mock(return_value=unit_price_data),
+        calculate_order_line_total=Mock(return_value=total_price_data),
+        get_order_line_tax_rate=Mock(return_value=0.25),
+    )
+
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+    add_variant_to_order(
+        order, line_data, info.context.user, info.context.app, manager, site_settings
+    )
+
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
+    assert line.quantity == 1
+    assert line.unit_price == unit_price
+    assert line.total_price == total_price
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+
+
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     order_with_lines, product, product_translation_fr, settings, info, site_settings
 ):
@@ -179,10 +221,11 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -207,10 +250,10 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
 
     stock_before = get_quantity_allocated_for_stock(stock)
 
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
     add_variant_to_order(
         order_with_lines,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -228,11 +271,13 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
+    line_data = OrderLineData(
+        line_id=str(existing_line.pk), variant=variant, quantity=1
+    )
 
     add_variant_to_order(
         order_with_lines,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -255,11 +300,13 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     stock_before = get_quantity_allocated_for_stock(stock)
     quantity_before = existing_line.quantity
     quantity_unfulfilled_before = existing_line.quantity_unfulfilled
+    line_data = OrderLineData(
+        line_id=str(existing_line.id), variant=variant, quantity=1
+    )
 
     add_variant_to_order(
         order_with_lines,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -537,10 +584,11 @@ def test_calculate_order_weight(order_with_lines):
 
 def test_order_weight_add_more_variant(order_with_lines, info, site_settings):
     variant = order_with_lines.lines.first().variant
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
+
     add_variant_to_order(
         order_with_lines,
-        variant,
-        2,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -555,11 +603,11 @@ def test_order_weight_add_more_variant(order_with_lines, info, site_settings):
 
 def test_order_weight_add_new_variant(order_with_lines, product, info, site_settings):
     variant = product.variants.first()
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
 
     add_variant_to_order(
         order_with_lines,
-        variant,
-        2,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,
@@ -602,10 +650,11 @@ def test_get_order_weight_non_existing_product(
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         info.context.user,
         info.context.app,
         info.context.plugins,

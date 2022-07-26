@@ -78,7 +78,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order=order,
             user=info.context.user,
             app=info.context.app,
-            order_lines=[(line.quantity, line)],
+            order_lines=[line],
         )
 
         invalidate_order_prices(order)
