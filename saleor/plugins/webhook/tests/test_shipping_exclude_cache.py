@@ -227,12 +227,14 @@ def test_excluded_shipping_methods_for_checkout_use_cache(
         ExcludedShippingMethod(id="1", reason=other_reason),
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
+
     # when
     plugin.excluded_shipping_methods_for_checkout(
-        checkout=checkout_with_items,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
+
     # then
     assert not mocked_webhook.called
 
@@ -281,12 +283,14 @@ def test_excluded_shipping_methods_for_checkout_stores_in_cache_when_empty(
         ExcludedShippingMethod(id="1", reason=other_reason),
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
+
     # when
     plugin.excluded_shipping_methods_for_checkout(
-        checkout=checkout_with_items,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
+
     # then
     assert mocked_webhook.called
 
@@ -348,7 +352,7 @@ def test_excluded_shipping_methods_for_checkout_stores_in_cache_when_payload_dif
     ]
     # when
     plugin.excluded_shipping_methods_for_checkout(
-        checkout=checkout_with_items,
+        checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )

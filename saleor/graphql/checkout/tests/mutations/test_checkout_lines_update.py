@@ -9,7 +9,11 @@ from django.utils import timezone
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
-from .....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
+from .....checkout.utils import (
+    add_variant_to_checkout,
+    calculate_checkout_quantity,
+    invalidate_checkout_prices,
+)
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
 from .....warehouse.models import Reservation, Stock
@@ -59,8 +63,16 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
     "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_lines_update(
-    mocked_update_shipping_method, user_api_client, checkout_with_item
+    mocked_invalidate_checkout_prices,
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_item,
 ):
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
@@ -95,6 +107,7 @@ def test_checkout_lines_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 def test_checkout_lines_update_checkout_with_voucher(

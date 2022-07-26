@@ -6,7 +6,7 @@ from ....core.taxes import zero_taxed_money
 from ....order import models
 from ....order.actions import order_shipping_updated
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import recalculate_order, update_order_prices
+from ....order.utils import invalidate_order_prices
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ...core.mutations import BaseMutation
@@ -97,6 +97,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             order.shipping_method = None
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
+            invalidate_order_prices(order)
             order.save(
                 update_fields=[
                     "currency",
@@ -104,10 +105,10 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
                     "shipping_method_name",
+                    "should_refresh_prices",
                     "updated_at",
                 ]
             )
-            recalculate_order(order)
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -141,27 +142,17 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
 
         order.shipping_method = method
-        shipping_price = info.context.plugins.calculate_order_shipping(order)
-        order.shipping_price = shipping_price
-        order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
-            order, shipping_price
-        )
+
         order.shipping_method_name = method.name
+        invalidate_order_prices(order)
         order.save(
             update_fields=[
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_tax_rate",
+                "should_refresh_prices",
                 "updated_at",
             ]
-        )
-        update_order_prices(
-            order,
-            info.context.plugins,
-            info.context.site.settings.include_taxes_in_prices,
         )
         # Post-process the results
         order_shipping_updated(order, info.context.plugins)

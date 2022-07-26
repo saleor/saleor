@@ -7,7 +7,11 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.fetch import OrderLineInfo
 from ....order.search import update_order_search_vector
-from ....order.utils import delete_order_line, recalculate_order
+from ....order.utils import (
+    delete_order_line,
+    invalidate_order_prices,
+    recalculate_order_weight,
+)
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Order, OrderLine
@@ -56,20 +60,19 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         delete_order_line(line_info, manager)
         line.id = db_id
 
+        updated_fields = []
         if not order.is_shipping_required():
             order.shipping_method = None
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
-            order.save(
-                update_fields=[
-                    "currency",
-                    "shipping_method",
-                    "shipping_price_net_amount",
-                    "shipping_price_gross_amount",
-                    "shipping_method_name",
-                    "updated_at",
-                ]
-            )
+            updated_fields = [
+                "currency",
+                "shipping_method",
+                "shipping_price_net_amount",
+                "shipping_price_gross_amount",
+                "shipping_method_name",
+                "updated_at",
+            ]
         # Create the removal event
         events.order_removed_products_event(
             order=order,
@@ -78,8 +81,13 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        recalculate_order(order)
-        update_order_search_vector(order)
+        invalidate_order_prices(order)
+        recalculate_order_weight(order)
+        update_order_search_vector(order, save=False)
+        updated_fields.extend(
+            ["should_refresh_prices", "weight", "search_vector", "updated_at"]
+        )
+        order.save(update_fields=updated_fields)
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)

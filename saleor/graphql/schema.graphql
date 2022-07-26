@@ -1642,6 +1642,24 @@ enum WebhookEventTypeEnum {
   """Void payment."""
   PAYMENT_VOID
 
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_CALCULATE_TAXES
+
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
 
@@ -1683,6 +1701,24 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+
+  """
+  Event called for checkout tax calculation.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CHECKOUT_CALCULATE_TAXES
+
+  """
+  Event called for order tax calculation.
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_CALCULATE_TAXES
 
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
@@ -2209,6 +2245,7 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
   MANAGE_CHECKOUTS
   HANDLE_CHECKOUTS
+  HANDLE_TAXES
 }
 
 """

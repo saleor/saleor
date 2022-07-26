@@ -140,7 +140,7 @@ def apply_checkout_discount_on_checkout_line(
             line_info,
             checkout_info.channel,
             discounts,
-        ).price_with_discounts.amount
+        ).amount
         * line_info.line.quantity
         for line_info in lines
         if line_info.line.id != checkout_line_info.line.id

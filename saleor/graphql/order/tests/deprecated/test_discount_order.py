@@ -149,15 +149,18 @@ def test_update_percentage_order_discount_by_old_id(
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert order.undiscounted_total == current_undiscounted_total
-
-    assert expected_total == order.total
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert expected_total.net == order.total.net
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
-    assert order_discount.amount == (current_undiscounted_total - expected_total).gross
+    discount_amount = current_undiscounted_total.net - expected_total.net
+    assert order_discount.amount == discount_amount
     assert order_discount.reason == reason
 
     event = order.events.get()

@@ -8,11 +8,13 @@ from ...app.models import App
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
+from ...core.taxes import TaxData, TaxType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
+    generate_checkout_payload_for_tax_calculation,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
@@ -22,6 +24,7 @@ from ...webhook.payloads import (
     generate_list_gateways_payload,
     generate_meta,
     generate_order_payload,
+    generate_order_payload_for_tax_calculation,
     generate_page_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
@@ -40,14 +43,21 @@ from .const import CACHE_EXCLUDED_SHIPPING_KEY
 from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_response
 from .tasks import (
     send_webhook_request_async,
+    trigger_all_webhooks_sync,
     trigger_webhook_sync,
     trigger_webhooks_async,
 )
 from .utils import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
     delivery_update,
     from_payment_app_id,
+    get_current_tax_app,
+    get_meta_code_key,
+    get_meta_description_key,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
+    parse_tax_data,
 )
 
 if TYPE_CHECKING:
@@ -67,7 +77,13 @@ if TYPE_CHECKING:
         PaymentGateway,
         TransactionActionData,
     )
-    from ...product.models import Category, Collection, Product, ProductVariant
+    from ...product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
     from ...translation.models import Translation
@@ -1223,6 +1239,27 @@ class WebhookPlugin(BasePlugin):
             **kwargs,
         )
 
+    def get_taxes_for_checkout(
+        self, checkout_info, lines, previous_value
+    ) -> Optional["TaxData"]:
+        return trigger_all_webhooks_sync(
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            lambda: generate_checkout_payload_for_tax_calculation(
+                checkout_info,
+                lines,
+            ),
+            parse_tax_data,
+        )
+
+    def get_taxes_for_order(
+        self, order: "Order", previous_value
+    ) -> Optional["TaxData"]:
+        return trigger_all_webhooks_sync(
+            WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+            lambda: generate_order_payload_for_tax_calculation(order),
+            parse_tax_data,
+        )
+
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any
     ) -> List["ShippingMethodData"]:
@@ -1244,6 +1281,34 @@ class WebhookPlugin(BasePlugin):
                     )
                     methods.extend(shipping_methods)
         return methods
+
+    def get_tax_code_from_object_meta(
+        self, obj: Union["Product", "ProductType"], previous_value: Any
+    ):
+        """Get tax code and description for a product or product type.
+
+        If there is no active tax app, returns tax code from previous plugin.
+        If there is no tax code defined for the product/product type,
+        then return dummy values.
+        """
+        if not (tax_app := get_current_tax_app()):
+            return previous_value
+
+        meta_code_key = get_meta_code_key(tax_app)
+        meta_description_key = get_meta_description_key(tax_app)
+
+        default_tax_code = DEFAULT_TAX_CODE
+        default_tax_description = DEFAULT_TAX_DESCRIPTION
+
+        code = obj.get_value_from_metadata(meta_code_key, default_tax_code)
+        description = obj.get_value_from_metadata(
+            meta_description_key, default_tax_description
+        )
+
+        return TaxType(
+            code=code,
+            description=description,
+        )
 
     def excluded_shipping_methods_for_order(
         self,
