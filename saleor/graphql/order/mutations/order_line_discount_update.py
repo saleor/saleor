@@ -5,7 +5,7 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
-from ....order.utils import recalculate_order, update_discount_for_order_line
+from ....order.utils import invalidate_order_prices, update_discount_for_order_line
 from ...core.types import OrderError
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
@@ -82,5 +82,5 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
                 line=order_line,
                 line_before_update=order_line_before_update,
             )
-            recalculate_order(order)
+            invalidate_order_prices(order, save=True)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)

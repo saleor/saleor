@@ -1,4 +1,3 @@
-import copy
 from decimal import Decimal
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
@@ -22,8 +21,6 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..order.fetch import OrderLineInfo
-from ..order.models import Order, OrderLine
 from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
@@ -40,12 +37,15 @@ from ..warehouse.management import (
 )
 from ..warehouse.models import Warehouse
 from . import (
+    ORDER_EDITABLE_STATUS,
     FulfillmentStatus,
     OrderAuthorizeStatus,
     OrderChargeStatus,
     OrderStatus,
     events,
 )
+from .fetch import OrderLineInfo
+from .models import Order, OrderLine
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -105,175 +105,38 @@ def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
-def recalculate_order_discounts(
-    order: Order,
-) -> List[Tuple[OrderDiscount, OrderDiscount]]:
-    """Recalculate all order discounts assigned to order.
+def invalidate_order_prices(order: Order, *, save: bool = False) -> None:
+    """Mark order as ready for prices recalculation.
 
-    It returns the list of tuples which contains order discounts where the amount has
-    been changed.
+    Does nothing if order is not editable
+    (it's status is neither draft, nor unconfirmed).
+
+    By default, no save to database is executed.
+    Either manually call `order.save()` after, or pass `save=True`.
     """
+    if order.status not in ORDER_EDITABLE_STATUS:
+        return
 
-    changed_order_discounts = []
-    order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
-    for order_discount in order_discounts:
-        previous_order_discount = copy.deepcopy(order_discount)
-        current_total = order.total.gross.amount
+    order.should_refresh_prices = True
 
-        update_order_discount_for_order(
-            order,
-            order_discount,
-        )
-        discount_value = order_discount.value
-        discount_type = order_discount.value_type
-        amount = order_discount.amount
-
-        if (
-            (
-                discount_type == DiscountValueType.PERCENTAGE
-                or current_total < discount_value
-            )
-            # No need to add new event when new and old amount of discount is the same
-            and amount != previous_order_discount.amount
-        ):
-            changed_order_discounts.append(
-                # order discount before changes, order discount after update
-                (previous_order_discount, order_discount)
-            )
-    return changed_order_discounts
+    if save:
+        order.save(update_fields=["should_refresh_prices"])
 
 
-@update_voucher_discount
-def recalculate_order_prices(order: Order, **kwargs):
-    # avoid using prefetched order lines
-    lines = OrderLine.objects.filter(order_id=order.pk)
-    prices = [line.total_price for line in lines]
-    total = sum(prices, order.shipping_price)
-    undiscounted_total = TaxedMoney(total.net, total.gross)
+def recalculate_order_weight(order: Order, *, save: bool = False):
+    """Recalculate order weights.
 
-    voucher_discount = kwargs.get("discount", zero_money(order.currency))
-
-    # discount amount can't be greater than order total
-    voucher_discount = min(voucher_discount, total.gross)
-    total -= voucher_discount
-
-    order.total = total
-    order.undiscounted_total = undiscounted_total
-
-    if voucher_discount:
-        assigned_order_discount = get_voucher_discount_assigned_to_order(order)
-        if assigned_order_discount:
-            assigned_order_discount.amount_value = voucher_discount.amount
-            assigned_order_discount.value = voucher_discount.amount
-            assigned_order_discount.save(update_fields=["value", "amount_value"])
-
-
-def recalculate_order(order: Order, **kwargs):
-    """Recalculate and assign total price of order.
-
-    Total price is a sum of items in order and order shipping price minus
-    discount amount.
-
-    Voucher discount amount is recalculated by default. To avoid this, pass
-    update_voucher_discount argument set to False.
+    By default, no save to database is executed.
+    Either manually call `order.save()` after, or pass `save=True`.
     """
-
-    recalculate_order_prices(order, **kwargs)
-
-    changed_order_discounts = recalculate_order_discounts(order)
-    events.order_discounts_automatically_updated_event(order, changed_order_discounts)
-
-    order.save(
-        update_fields=[
-            "total_net_amount",
-            "total_gross_amount",
-            "undiscounted_total_net_amount",
-            "undiscounted_total_gross_amount",
-            "currency",
-            "updated_at",
-        ]
-    )
-    recalculate_order_weight(order)
-
-
-def recalculate_order_weight(order):
-    """Recalculate order weights."""
     weight = zero_weight()
     for line in order.lines.all():
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
     weight.unit = order.weight.unit
     order.weight = weight
-    order.save(update_fields=["weight", "updated_at"])
-
-
-def update_taxes_for_order_line(
-    line: "OrderLine", order: "Order", manager, tax_included
-):
-    variant = line.variant
-    if not variant:
-        return
-    product = variant.product  # type: ignore
-
-    line_price = line.unit_price.gross if tax_included else line.unit_price.net
-    line.unit_price = TaxedMoney(line_price, line_price)
-
-    unit_price_data = manager.calculate_order_line_unit(order, line, variant, product)
-    total_price_data = manager.calculate_order_line_total(order, line, variant, product)
-    line.unit_price = unit_price_data.price_with_discounts
-    line.total_price = total_price_data.price_with_discounts
-    line.undiscounted_unit_price = unit_price_data.undiscounted_price
-    line.undiscounted_total_price = total_price_data.undiscounted_price
-    if line.unit_price.tax and line.unit_price.net:
-        line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, line.unit_price
-        )
-
-
-def update_taxes_for_order_lines(
-    lines: Iterable[OrderLine], order: "Order", manager, tax_included
-):
-    for line in lines:
-        update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
-    manager.update_taxes_for_order_lines(order, lines)
-    OrderLine.objects.bulk_update(
-        lines,
-        [
-            "tax_rate",
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "undiscounted_unit_price_gross_amount",
-            "undiscounted_unit_price_net_amount",
-            "undiscounted_total_price_gross_amount",
-            "undiscounted_total_price_net_amount",
-        ],
-    )
-
-
-def update_order_prices(order: Order, manager: "PluginsManager", tax_included: bool):
-    """Update prices in order with given discounts and proper taxes."""
-
-    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
-
-    if order.shipping_method:
-        shipping_price = manager.calculate_order_shipping(order)
-        order.shipping_price = shipping_price
-        order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
-            order, shipping_price
-        )
-        order.save(
-            update_fields=[
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_tax_rate",
-                "currency",
-                "updated_at",
-            ]
-        )
-
-    recalculate_order(order)
+    if save:
+        order.save(update_fields=["weight", "updated_at"])
 
 
 def _calculate_quantity_including_returns(order):
@@ -413,19 +276,6 @@ def add_variant_to_order(
             undiscounted_total_price=undiscounted_total_price,
             variant=variant,
         )
-        unit_price_data = manager.calculate_order_line_unit(
-            order, line, variant, product
-        )
-        total_line_price_data = manager.calculate_order_line_total(
-            order, line, variant, product
-        )
-        line.unit_price = unit_price_data.price_with_discounts
-        line.total_price = total_line_price_data.price_with_discounts
-        line.undiscounted_unit_price = unit_price_data.undiscounted_price
-        line.undiscounted_total_price = total_line_price_data.undiscounted_price
-        line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, unit_price
-        )
 
         manager.update_taxes_for_order_lines(order, list(order.lines.all()))
 
@@ -455,16 +305,6 @@ def add_variant_to_order(
 
         line.save(
             update_fields=[
-                "currency",
-                "unit_price_net_amount",
-                "unit_price_gross_amount",
-                "total_price_net_amount",
-                "total_price_gross_amount",
-                "undiscounted_unit_price_gross_amount",
-                "undiscounted_unit_price_net_amount",
-                "undiscounted_total_price_gross_amount",
-                "undiscounted_total_price_net_amount",
-                "tax_rate",
                 "unit_discount_amount",
                 "unit_discount_value",
                 "unit_discount_reason",
@@ -991,8 +831,6 @@ def update_discount_for_order_line(
     # from db
     order_line.save(update_fields=fields_to_update)
 
-    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
-
 
 def remove_discount_from_order_line(
     order_line: OrderLine, order: "Order", manager, tax_included
@@ -1019,16 +857,6 @@ def remove_discount_from_order_line(
             "unit_price_gross_amount",
             "unit_price_net_amount",
             "base_unit_price_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-        ]
-    )
-
-    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
-    order_line.save(
-        update_fields=[
-            "unit_price_gross_amount",
-            "unit_price_net_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
             "tax_rate",

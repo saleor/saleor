@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
@@ -1360,6 +1361,8 @@ def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_re
     checkout = payment_stripe_for_checkout.checkout
 
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     _finalize_checkout(
         checkout,
@@ -1417,6 +1420,8 @@ def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_vo
     checkout = payment_stripe_for_checkout.checkout
 
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     _finalize_checkout(
         checkout,

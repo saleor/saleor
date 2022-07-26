@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, TypeVar
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
@@ -177,6 +177,40 @@ def trigger_webhook_sync(
     if timeout:
         kwargs = {"timeout": timeout}
     return send_webhook_request_sync(app.name, delivery, **kwargs)
+
+
+R = TypeVar("R")
+
+
+def trigger_all_webhooks_sync(
+    event_type: str,
+    generate_payload: Callable,
+    parse_response: Callable[[Any], Optional[R]],
+) -> Optional[R]:
+    """Send all synchronous webhook request for given event type.
+
+    Requests are send sequentially.
+    If the current webhook does not return expected response,
+    the next one is send.
+    If no webhook responds with expected response,
+    this function returns None.
+    """
+    webhooks = get_webhooks_for_event(event_type)
+    event_payload = None
+    if webhooks:
+        event_payload = EventPayload.objects.create(payload=generate_payload())
+    for webhook in webhooks:
+        delivery = EventDelivery.objects.create(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=event_payload,
+            webhook=webhook,
+        )
+        response_data = send_webhook_request_sync(webhook.app.name, delivery)
+        parsed_response = parse_response(response_data)
+        if parsed_response:
+            return parsed_response
+    return None
 
 
 def send_webhook_using_http(

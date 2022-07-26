@@ -4,13 +4,13 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.utils import timezone
 from prices import Money
 
-from .....checkout import calculations
+from .....checkout import base_calculations, calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
-from .....core.taxes import TaxedMoney
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
 from .....warehouse.models import Stock
@@ -51,6 +51,11 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 shippingMethod {
                     id
                     price {
+                        amount
+                    }
+                }
+                subtotalPrice {
+                    gross {
                         amount
                     }
                 }
@@ -208,10 +213,8 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     voucher_channel_listing.save()
 
     monkeypatch.setattr(
-        "saleor.checkout.utils.base_calculations.base_checkout_lines_total",
-        lambda checkout_lines, channel, currency, discounts: TaxedMoney(
-            Money(95, "USD"), Money(100, "USD")
-        ),
+        "saleor.checkout.utils.base_calculations.base_checkout_subtotal",
+        lambda *args: Money(100, "USD"),
     )
 
     variables = {
@@ -241,10 +244,8 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     voucher_channel_listing.save()
 
     monkeypatch.setattr(
-        "saleor.checkout.utils.base_calculations.base_checkout_lines_total",
-        lambda checkout_lines, channel, currency, discounts: TaxedMoney(
-            Money(95, "USD"), Money(100, "USD")
-        ),
+        "saleor.checkout.utils.base_calculations.base_checkout_subtotal",
+        lambda *args: Money(95, "USD"),
     )
 
     variables = {
@@ -288,6 +289,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     subtotal = calculations.checkout_subtotal(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
+    checkout_info.checkout.price_expiration = timezone.now()
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -328,6 +330,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -387,6 +390,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         address=checkout.shipping_address,
     )
 
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -442,6 +446,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -498,6 +503,7 @@ def test_checkout_add_category_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -711,14 +717,12 @@ def test_checkout_get_total_with_many_gift_card(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_gift_card)
     checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, [], manager)
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_gift_card.shipping_address,
     )
-    taxed_total.gross -= checkout_with_gift_card.get_total_gift_cards_balance()
-    taxed_total.net -= checkout_with_gift_card.get_total_gift_cards_balance()
     total_with_gift_card = (
         taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount
     )
@@ -849,6 +853,7 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     variant = variant_with_many_stocks_different_shipping_zones
     add_variant_to_checkout(checkout_info, variant, 5)
+    checkout.save()
 
     # Apply voucher
     variables = {"id": to_global_id_or_none(checkout), "promoCode": voucher.code}
@@ -972,3 +977,31 @@ def test_checkout_add_shipping_voucher_do_not_invalidate_shipping_method(
     assert data["checkout"]["shippingMethod"]["id"] == graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.id
     )
+
+
+def test_checkout_add_voucher_code_invalidates_price(
+    api_client, checkout_with_item, voucher
+):
+    # given
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+    )
+    expected_total = subtotal.amount - voucher.channel_listings.get().discount.amount
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total

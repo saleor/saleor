@@ -6,8 +6,9 @@ from graphql.error import GraphQLError
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
+    invalidate_checkout_prices,
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
@@ -86,12 +87,27 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout_info = fetch_checkout_info(
             checkout, [], info.context.discounts, manager
         )
-        if promo_code:
-            remove_promo_code_from_checkout(checkout_info, promo_code)
-        else:
-            cls.remove_promo_code_by_id(info, checkout, object_type, promo_code_pk)
 
-        manager.checkout_updated(checkout)
+        removed = False
+        if promo_code:
+            removed = remove_promo_code_from_checkout(checkout_info, promo_code)
+        else:
+            removed = cls.remove_promo_code_by_id(
+                info, checkout, object_type, promo_code_pk
+            )
+
+        if removed:
+            lines, _ = fetch_checkout_lines(checkout)
+            invalidate_checkout_prices(
+                checkout_info,
+                lines,
+                manager,
+                info.context.discounts,
+                recalculate_discount=False,
+                save=True,
+            )
+            manager.checkout_updated(checkout)
+
         return CheckoutRemovePromoCode(checkout=checkout)
 
     @staticmethod
@@ -126,7 +142,13 @@ class CheckoutRemovePromoCode(BaseMutation):
     @classmethod
     def remove_promo_code_by_id(
         cls, info, checkout: models.Checkout, object_type: str, promo_code_pk: int
-    ):
+    ) -> bool:
+        """Detach promo code from the checkout based on the id.
+
+        Return a boolean value that indicates whether this function changed
+        the checkout object which then controls whether hooks such as
+        `checkout_updated` are triggered.
+        """
         if object_type == str(Voucher) and checkout.voucher_code is not None:
             node = cls._get_node_by_pk(info, graphene_type=Voucher, pk=promo_code_pk)
             if node is None:
@@ -140,5 +162,9 @@ class CheckoutRemovePromoCode(BaseMutation):
                 )
             if checkout.voucher_code == node.code:
                 remove_voucher_from_checkout(checkout)
+                return True
         else:
             checkout.gift_cards.remove(promo_code_pk)
+            return True
+
+        return False
