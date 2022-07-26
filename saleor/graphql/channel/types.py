@@ -233,7 +233,12 @@ class Channel(ModelObjectType):
             countries = []
             for s_zone in shipping_zones:
                 countries.extend(s_zone.countries)
-            return set(countries)
+            sorted_countries = list(set(countries))
+            sorted_countries.sort(key=lambda country: country.name)
+            return [
+                CountryDisplay(code=country.code, country=country.name)
+                for country in sorted_countries
+            ]
 
         return (
             ShippingZonesByChannelIdLoader(info.context)

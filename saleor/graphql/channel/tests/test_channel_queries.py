@@ -254,6 +254,7 @@ PUBLIC_QUERY_CHANNEL = """
             slug
             countries{
                 code
+                country
             }
             availableShippingMethodsPerCountry(countries: $countries){
                 countryCode
@@ -327,6 +328,9 @@ def test_query_channel_returns_countries_attached_to_shipping_zone(
     channel_data = content["data"]["channel"]
     assert set([country["code"] for country in channel_data["countries"]]) == set(
         ["PL", "DE", "FR"]
+    )
+    assert set([country["country"] for country in channel_data["countries"]]) == set(
+        ["Poland", "Germany", "France"]
     )
 
 
