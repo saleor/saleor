@@ -585,7 +585,7 @@ class ProductFilter(MetadataFilterBase):
         input_class=PriceRangeInput,
         method="filter_minimal_price",
         field_name="minimal_price_amount",
-        help_text="Product's minimal price (after discounts) is in given range.",
+        help_text="Filter by the lowest variant price after discounts.",
     )
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",
@@ -594,7 +594,7 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
-        help_text="Check if at least one variant has given stock status.",
+        help_text="Filter by variants having specific stock status.",
     )
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range

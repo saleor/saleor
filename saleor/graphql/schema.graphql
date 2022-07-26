@@ -5733,14 +5733,14 @@ input ProductFilterInput {
   hasCategory: Boolean
   attributes: [AttributeInput!]
 
-  """Check if at least one variant has given stock status."""
+  """Filter by variants having specific stock status."""
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
   metadata: [MetadataFilter!]
   price: PriceRangeInput
 
-  """Product's minimal price (after discounts) is in given range."""
+  """Filter by the lowest variant price after discounts."""
   minimalPrice: PriceRangeInput
   updatedAt: DateTimeRangeInput
   productTypes: [ID!]
