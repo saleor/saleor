@@ -22871,7 +22871,7 @@ type PermissionGroupCreated implements Event {
   """
   The permission group the event relates to.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -22894,7 +22894,7 @@ type PermissionGroupUpdated implements Event {
   """
   The permission group the event relates to.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -22917,7 +22917,7 @@ type PermissionGroupDeleted implements Event {
   """
   The permission group the event relates to.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.6.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
