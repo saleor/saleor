@@ -585,6 +585,7 @@ class ProductFilter(MetadataFilterBase):
         input_class=PriceRangeInput,
         method="filter_minimal_price",
         field_name="minimal_price_amount",
+        help_text="Product's minimal price (after discounts) is in given range.",
     )
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",

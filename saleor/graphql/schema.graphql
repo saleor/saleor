@@ -5737,6 +5737,8 @@ input ProductFilterInput {
   search: String
   metadata: [MetadataFilter!]
   price: PriceRangeInput
+
+  """Product's minimal price (after discounts) is in given range."""
   minimalPrice: PriceRangeInput
   updatedAt: DateTimeRangeInput
   productTypes: [ID!]
@@ -7062,7 +7064,6 @@ type StockCountableEdge {
 }
 
 input StockFilterInput {
-  """"""
   quantity: Float
   search: String
 }
