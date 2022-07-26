@@ -5732,6 +5732,8 @@ input ProductFilterInput {
   categories: [ID!]
   hasCategory: Boolean
   attributes: [AttributeInput!]
+
+  """Check if at least one variant has given stock status."""
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String

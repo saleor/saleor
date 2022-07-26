@@ -592,7 +592,9 @@ class ProductFilter(MetadataFilterBase):
         method="filter_attributes",
     )
     stock_availability = EnumFilter(
-        input_class=StockAvailability, method="filter_stock_availability"
+        input_class=StockAvailability,
+        method="filter_stock_availability",
+        help_text="Check if at least one variant has given stock status.",
     )
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range
