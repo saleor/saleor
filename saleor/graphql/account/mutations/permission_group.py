@@ -73,6 +73,10 @@ class PermissionGroupCreate(ModelMutation):
             instance.user_set.add(*users)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.permission_group_created(instance)
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
@@ -216,6 +220,10 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         remove_permissions = cleaned_data.get("remove_permissions")
         if remove_permissions:
             instance.permissions.remove(*remove_permissions)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.permission_group_updated(instance)
 
     @classmethod
     def clean_input(
@@ -429,6 +437,10 @@ class PermissionGroupDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.permission_group_deleted(instance)
 
     @classmethod
     def clean_instance(cls, info, instance):

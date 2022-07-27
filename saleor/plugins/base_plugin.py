@@ -37,7 +37,7 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..account.models import Address, User
+    from ..account.models import Address, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
     from ..channel.models import Channel
@@ -704,6 +704,24 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic when a page type is
     #  updated.
     page_type_updated: Callable[["PageType", Any], Any]
+
+    #  Trigger when permission group is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a permission
+    #  group is created.
+    permission_group_created: Callable[["Group", Any], Any]
+
+    #  Trigger when permission group type is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a permission
+    #  group is deleted.
+    permission_group_deleted: Callable[["Group", Any], Any]
+
+    #  Trigger when permission group is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a permission
+    #  group is updated.
+    permission_group_updated: Callable[["Group", Any], Any]
 
     #  Trigger directly before order creation.
     #

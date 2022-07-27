@@ -87,6 +87,11 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PAGE_TYPE_CREATED: "A new page type is created.",
     WebhookEventAsyncType.PAGE_TYPE_UPDATED: "A page type is updated.",
     WebhookEventAsyncType.PAGE_TYPE_DELETED: "A page type is deleted.",
+    WebhookEventAsyncType.PERMISSION_GROUP_CREATED: (
+        "A new permission group is created."
+    ),
+    WebhookEventAsyncType.PERMISSION_GROUP_UPDATED: "A permission group is updated.",
+    WebhookEventAsyncType.PERMISSION_GROUP_DELETED: "A permission group is deleted.",
     WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
