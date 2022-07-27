@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 import graphene
 
 from ..attribute import AttributeEntityType, AttributeInputType
+from ..checkout import base_calculations
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
 from ..discount import DiscountInfo
@@ -11,6 +12,7 @@ from ..product.models import Product
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..product.models import ProductVariant
 
@@ -50,6 +52,51 @@ def serialize_checkout_lines(
             }
         )
     return data
+
+
+def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, Any]:
+    line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
+    variant = line_info.variant
+    product = variant.product
+    return {
+        "id": line_id,
+        "sku": variant.sku,
+        "variant_id": variant.get_global_id(),
+        "quantity": line_info.line.quantity,
+        "charge_taxes": product.charge_taxes,
+        "full_name": variant.display_product(),
+        "product_name": product.name,
+        "variant_name": variant.name,
+        "product_metadata": line_info.product.metadata,
+        "product_type_metadata": line_info.product_type.metadata,
+    }
+
+
+def serialize_checkout_lines_for_tax_calculation(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> List[dict]:
+    channel = checkout_info.channel
+
+    return [
+        {
+            **_get_checkout_line_payload_data(line_info),
+            "unit_amount": quantize_price(
+                base_calculations.calculate_base_line_unit_price(
+                    line_info, channel, discounts
+                ).amount,
+                checkout_info.checkout.currency,
+            ),
+            "total_amount": quantize_price(
+                base_calculations.calculate_base_line_total_price(
+                    line_info, channel, discounts
+                ).amount,
+                checkout_info.checkout.currency,
+            ),
+        }
+        for line_info in lines
+    ]
 
 
 def serialize_product_or_variant_attributes(

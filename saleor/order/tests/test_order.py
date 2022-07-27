@@ -17,15 +17,16 @@ from ...discount.models import (
 from ...discount.utils import validate_voucher_in_order
 from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.tests.utils import get_graphql_content
-from ...order.interface import OrderTaxedPricesData
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
+from ...tests.fixtures import recalculate_order
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
@@ -45,11 +46,9 @@ from ..utils import (
     change_order_line_quantity,
     delete_order_line,
     get_voucher_discount_for_order,
-    recalculate_order,
     restock_fulfillment_lines,
     update_order_authorize_data,
     update_order_charge_data,
-    update_order_prices,
     update_order_status,
 )
 
@@ -74,7 +73,9 @@ def test_order_get_subtotal(order_with_lines):
         name="Test discount",
     )
 
-    recalculate_order(order_with_lines)
+    fetch_order_prices_if_expired(
+        order_with_lines, get_plugins_manager(), force_update=True
+    )
 
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
     assert order_with_lines.get_subtotal() == target_subtotal
@@ -165,45 +166,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     assert line.unit_discount_amount == sale_channel_listing.discount_value
     assert line.unit_discount_value == sale_channel_listing.discount_value
     assert line.unit_discount_reason
-
-
-def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
-    order_with_lines, product, product_translation_fr, settings, info, site_settings
-):
-    order = order_with_lines
-    variant = product.variants.get()
-    lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
-    unit_price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
-    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
-    unit_price_data = OrderTaxedPricesData(
-        undiscounted_price=unit_price,
-        price_with_discounts=unit_price,
-    )
-    total_price_data = OrderTaxedPricesData(
-        undiscounted_price=total_price,
-        price_with_discounts=total_price,
-    )
-    manager = Mock(
-        calculate_order_line_unit=Mock(return_value=unit_price_data),
-        calculate_order_line_total=Mock(return_value=total_price_data),
-        get_order_line_tax_rate=Mock(return_value=0.25),
-    )
-
-    add_variant_to_order(
-        order, variant, 1, info.context.user, info.context.app, manager, site_settings
-    )
-
-    line = order.lines.last()
-    assert order.lines.count() == lines_before + 1
-    assert line.product_sku == variant.sku
-    assert line.product_variant_id == variant.get_global_id()
-    assert line.quantity == 1
-    assert line.unit_price == unit_price
-    assert line.total_price == total_price
-    assert line.translated_product_name == str(variant.product.translated)
-    assert line.variant_name == str(variant)
-    assert line.product_name == str(variant.product)
 
 
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
@@ -560,112 +522,6 @@ def test_queryset_ready_to_capture(channel_USD):
     assert OrderStatus.CANCELED not in statuses
 
 
-@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
-def test_update_order_prices(
-    mocked_calculate_order_line_unit, order_with_lines, site_settings
-):
-    manager = get_plugins_manager()
-    channel = order_with_lines.channel
-    address = order_with_lines.shipping_address
-    address.country = "DE"
-    address.save()
-
-    line_1 = order_with_lines.lines.first()
-    variant_1 = line_1.variant
-    product_1 = variant_1.product
-    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
-    price_1 = variant_1.get_price(
-        product_1, [], channel, variant_channel_listing_1, None
-    )
-    price_1 = TaxedMoney(net=price_1, gross=price_1)
-
-    line_2 = order_with_lines.lines.last()
-    variant_2 = line_2.variant
-    product_2 = variant_2.product
-    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
-    price_2 = variant_2.get_price(
-        product_2, [], channel, variant_channel_listing_2, None
-    )
-    price_2 = TaxedMoney(net=price_2, gross=price_2)
-
-    mocked_calculate_order_line_unit.side_effect = [
-        OrderTaxedPricesData(
-            undiscounted_price=price_1,
-            price_with_discounts=price_1,
-        ),
-        OrderTaxedPricesData(
-            undiscounted_price=price_2,
-            price_with_discounts=price_2,
-        ),
-    ]
-
-    shipping_price = order_with_lines.shipping_method.channel_listings.get(
-        channel_id=order_with_lines.channel_id
-    ).price
-    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
-
-    update_order_prices(
-        order_with_lines, manager, site_settings.include_taxes_in_prices
-    )
-
-    line_1.refresh_from_db()
-    line_2.refresh_from_db()
-    assert line_1.unit_price == price_1
-    assert line_2.unit_price == price_2
-    assert order_with_lines.shipping_price == shipping_price
-    assert order_with_lines.shipping_tax_rate == Decimal("0.0")
-    total = line_1.total_price + line_2.total_price + shipping_price
-    assert order_with_lines.total == total
-
-
-def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_settings):
-    manager = get_plugins_manager()
-
-    channel = order_with_lines.channel
-    address = order_with_lines.shipping_address
-    address.country = "DE"
-    address.save()
-
-    line_1 = order_with_lines.lines.first()
-    variant_1 = line_1.variant
-    product_1 = variant_1.product
-    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
-    price_1 = variant_1.get_price(
-        product_1, [], channel, variant_channel_listing_1, None
-    )
-    line_1.unit_price_gross = price_1
-    line_1.base_unit_price = price_1
-    line_1.save()
-
-    line_2 = order_with_lines.lines.last()
-    variant_2 = line_2.variant
-    product_2 = variant_2.product
-    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
-    price_2 = variant_2.get_price(
-        product_2, [], channel, variant_channel_listing_2, None
-    )
-    line_2.unit_price_gross = price_2
-    line_2.base_unit_price = price_2
-    line_2.save()
-
-    shipping_price = order_with_lines.shipping_method.channel_listings.get(
-        channel_id=order_with_lines.channel_id
-    ).price
-
-    update_order_prices(
-        order_with_lines, manager, site_settings.include_taxes_in_prices
-    )
-
-    line_1.refresh_from_db()
-    line_2.refresh_from_db()
-    assert line_1.unit_price.gross == price_1
-    assert line_2.unit_price.gross == price_2
-    assert order_with_lines.shipping_price.gross == shipping_price
-    assert order_with_lines.shipping_tax_rate == Decimal("0.19")
-    total = line_1.total_price + line_2.total_price + order_with_lines.shipping_price
-    assert order_with_lines.total == total
-
-
 def _calculate_order_weight_from_lines(order):
     weight = zero_weight()
     for line in order.lines.all():
@@ -779,7 +635,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
 
     mock_validate_voucher.assert_called_once_with(
         voucher,
-        subtotal,
+        subtotal.gross,
         quantity,
         customer_email,
         order_with_lines.channel,

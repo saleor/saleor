@@ -8,19 +8,22 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.db.models import QuerySet
 
+from ...app.models import App
 from ...core.models import (
     EventDelivery,
     EventDeliveryAttempt,
     EventDeliveryStatus,
     EventPayload,
 )
+from ...core.taxes import TaxData, TaxLineData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
+from ...webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
-    from ...app.models import App
     from ...payment.interface import PaymentData
     from .tasks import WebhookResponse
 
+APP_GATEWAY_ID_PREFIX = "app"
 
 APP_ID_PREFIX = "app"
 
@@ -39,7 +42,7 @@ class ShippingAppData:
     shipping_method_id: str
 
 
-def to_payment_app_id(app: "App", gateway_id: str) -> "str":
+def to_payment_app_id(app: App, gateway_id: str) -> "str":
     return f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
 
 
@@ -56,7 +59,7 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
 
 
 def parse_list_payment_gateways_response(
-    response_data: Any, app: "App"
+    response_data: Any, app: App
 ) -> List["PaymentGateway"]:
     gateways: List[PaymentGateway] = []
     if not isinstance(response_data, list):
@@ -124,6 +127,57 @@ def parse_payment_action_response(
             "transaction_already_processed", False
         ),
     )
+
+
+def _unsafe_parse_tax_line_data(
+    tax_line_data_response: Any,
+) -> TaxLineData:
+    """Unsafe TaxLineData parser.
+
+    Raises KeyError or DecimalException on invalid data.
+    """
+    total_gross_amount = decimal.Decimal(tax_line_data_response["total_gross_amount"])
+    total_net_amount = decimal.Decimal(tax_line_data_response["total_net_amount"])
+    tax_rate = decimal.Decimal(tax_line_data_response["tax_rate"])
+
+    return TaxLineData(
+        total_gross_amount=total_gross_amount,
+        total_net_amount=total_net_amount,
+        tax_rate=tax_rate,
+    )
+
+
+def _unsafe_parse_tax_data(
+    tax_data_response: Any,
+) -> TaxData:
+    """Unsafe TaxData parser.
+
+    Raises KeyError or DecimalException on invalid data.
+    """
+    shipping_price_gross_amount = decimal.Decimal(
+        tax_data_response["shipping_price_gross_amount"]
+    )
+    shipping_price_net_amount = decimal.Decimal(
+        tax_data_response["shipping_price_net_amount"]
+    )
+    shipping_tax_rate = decimal.Decimal(tax_data_response["shipping_tax_rate"])
+    lines = [_unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]]
+
+    return TaxData(
+        shipping_price_gross_amount=shipping_price_gross_amount,
+        shipping_price_net_amount=shipping_price_net_amount,
+        shipping_tax_rate=shipping_tax_rate,
+        lines=lines,
+    )
+
+
+def parse_tax_data(
+    response_data: Any,
+) -> Optional[TaxData]:
+    try:
+        return _unsafe_parse_tax_data(response_data)
+    except (TypeError, KeyError, decimal.DecimalException):
+        return None
 
 
 @contextmanager
@@ -201,3 +255,25 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         delivery.delete()
         if payload_id:
             EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()
+
+
+DEFAULT_TAX_CODE = "UNMAPPED"
+DEFAULT_TAX_DESCRIPTION = "Unmapped Product/Product Type"
+
+
+def get_current_tax_app() -> Optional[App]:
+    """Return currently used tax app or None, if there aren't any."""
+    return (
+        App.objects.order_by("pk")
+        .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+        .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+        .last()
+    )
+
+
+def get_meta_code_key(app: App) -> str:
+    return f"{app.identifier}.code"
+
+
+def get_meta_description_key(app: App) -> str:
+    return f"{app.identifier}.description"

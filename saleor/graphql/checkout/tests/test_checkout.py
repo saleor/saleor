@@ -1389,7 +1389,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         lines=lines,
         checkout_line_info=line_info,
         discounts=[],
-    ).price_with_discounts
+    )
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
         == line_total_price.gross.amount / line_info.line.quantity
@@ -1446,7 +1446,7 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
     assert (
         data["totalPrice"]["gross"]["amount"]
-        == checkout_line.quantity * price_override + shipping_price.gross.amount
+        == checkout_line.quantity * price_override + shipping_price.amount
     )
     assert (
         data["subtotalPrice"]["gross"]["amount"]
@@ -1508,7 +1508,7 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         lines=lines,
         checkout_line_info=line_info,
         discounts=[discount_info],
-    ).price_with_discounts
+    )
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
         == line_total_price.gross.amount / line_info.line.quantity
@@ -1572,17 +1572,12 @@ def test_checkout_prices_with_specific_voucher(
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
     assert line_info.line.quantity > 0
-    line_total_prices = calculations.checkout_line_total(
+    line_total_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        line_total_prices.price_with_discounts != line_total_prices.undiscounted_price
-    )
-    assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
-    line_total_price = line_total_prices.price_with_discounts
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
         == line_total_price.gross.amount / line_info.line.quantity
@@ -1644,17 +1639,12 @@ def test_checkout_prices_with_voucher_once_per_order(
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
     assert line_info.line.quantity > 0
-    line_total_prices = calculations.checkout_line_total(
+    line_total_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        line_total_prices.price_with_discounts != line_total_prices.undiscounted_price
-    )
-    assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
-    line_total_price = line_total_prices.price_with_discounts
     assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
         quantize_price(
             line_total_price.gross.amount / line_info.line.quantity, checkout.currency

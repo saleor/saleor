@@ -5,7 +5,7 @@ from ..models import OrderLine
 from ..search import prepare_order_search_vector_value, update_order_search_vector
 
 
-def test_update_order_search_vector(order):
+def test_update_order_search_vector_auto_save(order):
     # given
     order.search_vector = ""
     order.save(update_fields=["search_vector"])
@@ -15,7 +15,23 @@ def test_update_order_search_vector(order):
     update_order_search_vector(order)
 
     # then
+    order.refresh_from_db()
     assert order.search_vector
+
+
+def test_update_order_search_vector_without_save(order):
+    # given
+    order.search_vector = ""
+    order.save(update_fields=["search_vector"])
+    assert not order.search_vector
+
+    # when
+    update_order_search_vector(order, save=False)
+
+    # then
+    assert order.search_vector
+    order.refresh_from_db()
+    assert not order.search_vector
 
 
 def test_prepare_order_search_vector_value(

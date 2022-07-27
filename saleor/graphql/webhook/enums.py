@@ -1,6 +1,7 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -86,6 +87,11 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PAGE_TYPE_CREATED: "A new page type is created.",
     WebhookEventAsyncType.PAGE_TYPE_UPDATED: "A page type is updated.",
     WebhookEventAsyncType.PAGE_TYPE_DELETED: "A page type is deleted.",
+    WebhookEventAsyncType.PERMISSION_GROUP_CREATED: (
+        "A new permission group is created."
+    ),
+    WebhookEventAsyncType.PERMISSION_GROUP_UPDATED: "A permission group is updated.",
+    WebhookEventAsyncType.PERMISSION_GROUP_DELETED: "A permission group is deleted.",
     WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
@@ -136,6 +142,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventSyncType.PAYMENT_VOID: "Void payment.",
     WebhookEventSyncType.PAYMENT_CONFIRM: "Confirm payment.",
     WebhookEventSyncType.PAYMENT_PROCESS: "Process payment.",
+    WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: (
+        "Event called for checkout tax calculation." + ADDED_IN_36 + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.ORDER_CALCULATE_TAXES: (
+        "Event called for order tax calculation." + ADDED_IN_36 + PREVIEW_FEATURE
+    ),
 }
 
 

@@ -1,9 +1,11 @@
+import datetime
 import math
 from collections import defaultdict
 from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
+import pytz
 from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
@@ -131,41 +133,26 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         queries[attr_pk] += attr_val_pks
 
 
-def _clean_product_attributes_date_time_range_filter_input(
-    filter_value, queries, *, is_date=False
-):
+def _clean_product_attributes_date_time_range_filter_input(filter_value):
     attribute_slugs = [slug for slug, _ in filter_value]
-    attributes = Attribute.objects.filter(slug__in=attribute_slugs).prefetch_related(
-        "values"
+    matching_attributes = AttributeValue.objects.filter(
+        attribute__slug__in=attribute_slugs
     )
-    values_map = {
-        attr.slug: {
-            "pk": attr.pk,
-            "values": {val.pk: val.date_time for val in attr.values.all()},
-        }
-        for attr in attributes
-    }
-    for attr_slug, val_range in filter_value:
-        attr_pk = values_map[attr_slug]["pk"]
-        attr_values = values_map[attr_slug]["values"]
-        gte = val_range.get("gte")
-        lte = val_range.get("lte")
-        matching_values_pk = []
-
-        for pk, value in attr_values.items():
-            if is_date:
-                value = value.date()
-
-            if gte and lte:
-                if gte <= value <= lte:
-                    matching_values_pk.append(pk)
-            elif gte:
-                if gte <= value:
-                    matching_values_pk.append(pk)
-            elif lte >= value:
-                matching_values_pk.append(pk)
-
-        queries[attr_pk] += matching_values_pk
+    filters = {}
+    for _, val_range in filter_value:
+        if lte := val_range.get("lte"):
+            if not isinstance(lte, datetime.datetime):
+                lte = datetime.datetime.combine(
+                    lte, datetime.datetime.max.time(), tzinfo=pytz.UTC
+                )
+            filters["date_time__lte"] = lte
+        if gte := val_range.get("gte"):
+            if not isinstance(gte, datetime.datetime):
+                gte = datetime.datetime.combine(
+                    gte, datetime.datetime.min.time(), tzinfo=pytz.UTC
+                )
+            filters["date_time__gte"] = gte
+    return matching_attributes.filter(**filters)
 
 
 def _clean_product_attributes_boolean_filter_input(filter_value, queries):
@@ -223,6 +210,33 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
     return qs.filter(*filters)
 
 
+def filter_products_by_attributes_values_qs(qs, values_qs):
+    assigned_product_attribute_values = AssignedProductAttributeValue.objects.filter(
+        value__in=values_qs
+    )
+    assigned_product_attributes = AssignedProductAttribute.objects.filter(
+        Exists(assigned_product_attribute_values.filter(assignment_id=OuterRef("pk")))
+    )
+    product_attribute_filter = Q(
+        Exists(assigned_product_attributes.filter(product_id=OuterRef("pk")))
+    )
+
+    assigned_variant_attribute_values = AssignedVariantAttributeValue.objects.filter(
+        value__in=values_qs
+    )
+    assigned_variant_attributes = AssignedVariantAttribute.objects.filter(
+        Exists(assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk")))
+    )
+    product_variants = ProductVariant.objects.filter(
+        Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
+    )
+    variant_attribute_filter = Q(
+        Exists(product_variants.filter(product_id=OuterRef("pk")))
+    )
+
+    return qs.filter(product_attribute_filter | variant_attribute_filter)
+
+
 def filter_products_by_attributes(
     qs,
     filter_values,
@@ -238,13 +252,15 @@ def filter_products_by_attributes(
         if filter_range_values:
             _clean_product_attributes_range_filter_input(filter_range_values, queries)
         if date_range_list:
-            _clean_product_attributes_date_time_range_filter_input(
-                date_range_list, queries, is_date=True
+            values_qs = _clean_product_attributes_date_time_range_filter_input(
+                date_range_list
             )
+            return filter_products_by_attributes_values_qs(qs, values_qs)
         if date_time_range_list:
-            _clean_product_attributes_date_time_range_filter_input(
-                date_time_range_list, queries
+            values_qs = _clean_product_attributes_date_time_range_filter_input(
+                date_time_range_list
             )
+            return filter_products_by_attributes_values_qs(qs, values_qs)
         if filter_boolean_values:
             _clean_product_attributes_boolean_filter_input(
                 filter_boolean_values, queries

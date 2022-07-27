@@ -1,12 +1,16 @@
-from typing import Type, Union, cast
+import collections
+import itertools
+from typing import Dict, List, Type, Union, cast
 
 import graphene
 from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
+from promise import Promise
 
 from ...channel import models
-from ...core.permissions import ChannelPermissions
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ...core.permissions import AuthorizationFilters, ChannelPermissions
+from ..account.enums import CountryCodeEnum
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -119,11 +123,38 @@ class ChannelContextTypeWithMetadata(
 
 class Channel(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    is_active = graphene.Boolean(required=True)
-    slug = graphene.String(required=True)
-    currency_code = graphene.String(required=True)
-    slug = graphene.String(required=True)
+    slug = graphene.String(
+        required=True,
+        description="Slug of the channel.",
+    )
+
+    name = PermissionsField(
+        graphene.String,
+        description="Name of the channel.",
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
+    is_active = PermissionsField(
+        graphene.Boolean,
+        description="Whether the channel is active.",
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
+    currency_code = PermissionsField(
+        graphene.String,
+        description="A currency that is assigned to the channel.",
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
     has_orders = PermissionsField(
         graphene.Boolean,
         description="Whether a channel has associated orders.",
@@ -132,7 +163,7 @@ class Channel(ModelObjectType):
         ],
         required=True,
     )
-    default_country = graphene.Field(
+    default_country = PermissionsField(
         CountryDisplay,
         description=(
             "Default country for the channel. Default country can be "
@@ -140,13 +171,35 @@ class Channel(ModelObjectType):
             "when the country was not explicitly provided." + ADDED_IN_31
         ),
         required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
     )
-    warehouses = NonNullList(
-        Warehouse,
+    warehouses = PermissionsField(
+        NonNullList(Warehouse),
         description="List of warehouses assigned to this channel."
         + ADDED_IN_35
         + PREVIEW_FEATURE,
         required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
+    countries = NonNullList(
+        CountryDisplay,
+        description="List of shippable countries for the channel."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
+    )
+
+    available_shipping_methods_per_country = graphene.Field(
+        NonNullList("saleor.graphql.shipping.types.ShippingMethodsPerCountry"),
+        countries=graphene.Argument(NonNullList(CountryCodeEnum)),
+        description="Shipping methods that are available for the channel."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -171,3 +224,106 @@ class Channel(ModelObjectType):
     @staticmethod
     def resolve_warehouses(root: models.Channel, info):
         return WarehousesByChannelIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_countries(root: models.Channel, info):
+        from ..shipping.dataloaders import ShippingZonesByChannelIdLoader
+
+        def get_countries(shipping_zones):
+            countries = []
+            for s_zone in shipping_zones:
+                countries.extend(s_zone.countries)
+            sorted_countries = list(set(countries))
+            sorted_countries.sort(key=lambda country: country.name)
+            return [
+                CountryDisplay(code=country.code, country=country.name)
+                for country in sorted_countries
+            ]
+
+        return (
+            ShippingZonesByChannelIdLoader(info.context)
+            .load(root.id)
+            .then(get_countries)
+        )
+
+    @staticmethod
+    def resolve_available_shipping_methods_per_country(
+        root: models.Channel, info, **data
+    ):
+        from ...shipping.utils import convert_to_shipping_method_data
+        from ..shipping.dataloaders import (
+            ShippingMethodChannelListingByChannelSlugLoader,
+            ShippingMethodsByShippingZoneIdLoader,
+            ShippingZonesByChannelIdLoader,
+        )
+
+        shipping_zones_loader = ShippingZonesByChannelIdLoader(info.context).load(
+            root.id
+        )
+        shipping_zone_countries: Dict[int, List[str]] = collections.defaultdict(list)
+        requested_countries = data.get("countries", [])
+
+        def _group_shipping_methods_by_country(data):
+            shipping_methods, shipping_channel_listings = data
+            shipping_listing_map = {
+                listing.shipping_method_id: listing
+                for listing in shipping_channel_listings
+            }
+
+            shipping_methods_per_country = collections.defaultdict(list)
+            for shipping_method in shipping_methods:
+                countries = shipping_zone_countries.get(
+                    shipping_method.shipping_zone_id, []
+                )
+                for country in countries:
+                    shipping_method_dataclass = convert_to_shipping_method_data(
+                        shipping_method, shipping_listing_map.get(shipping_method.id)
+                    )
+                    if not shipping_method_dataclass:
+                        continue
+                    shipping_methods_per_country[country.code].append(
+                        shipping_method_dataclass
+                    )
+
+            if requested_countries:
+                results = [
+                    {
+                        "country_code": code,
+                        "shipping_methods": shipping_methods_per_country.get(code, []),
+                    }
+                    for code in requested_countries
+                    if code in shipping_methods_per_country
+                ]
+            else:
+                results = [
+                    {
+                        "country_code": code,
+                        "shipping_methods": shipping_methods_per_country[code],
+                    }
+                    for code in shipping_methods_per_country.keys()
+                ]
+            results.sort(key=lambda item: item["country_code"])
+
+            return results
+
+        def filter_shipping_methods(shipping_methods):
+            shipping_methods = list(itertools.chain.from_iterable(shipping_methods))
+            shipping_listings = ShippingMethodChannelListingByChannelSlugLoader(
+                info.context
+            ).load(root.slug)
+            return Promise.all([shipping_methods, shipping_listings]).then(
+                _group_shipping_methods_by_country
+            )
+
+        def get_shipping_methods(shipping_zones):
+            shipping_zones_keys = [shipping_zone.id for shipping_zone in shipping_zones]
+            for shipping_zone in shipping_zones:
+                shipping_zone_countries[shipping_zone.id] = shipping_zone.countries
+
+            return (
+                ShippingMethodsByShippingZoneIdLoader(info.context)
+                .load_many(shipping_zones_keys)
+                .then(filter_shipping_methods)
+            )
+
+        return shipping_zones_loader.then(get_shipping_methods)

@@ -37,6 +37,9 @@ class OrderStatus:
     ]
 
 
+ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
+
+
 class OrderOrigin:
     CHECKOUT = "checkout"  # order created from checkout
     DRAFT = "draft"  # order created from draft order
