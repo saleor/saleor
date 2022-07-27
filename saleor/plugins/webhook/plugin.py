@@ -61,7 +61,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from ...account.models import Address, User
+    from ...account.models import Address, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
     from ...checkout.models import Checkout
@@ -893,6 +893,35 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_page_type_event(
             WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type
+        )
+
+    def _trigger_permission_group_event(self, event_type, group):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Group", group.id),
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(payload, event_type, webhooks, group, self.requestor)
+
+    def permission_group_created(self, group: "Group", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_permission_group_event(
+            WebhookEventAsyncType.PERMISSION_GROUP_CREATED, group
+        )
+
+    def permission_group_updated(self, group: "Group", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_permission_group_event(
+            WebhookEventAsyncType.PERMISSION_GROUP_UPDATED, group
+        )
+
+    def permission_group_deleted(self, group: "Group", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_permission_group_event(
+            WebhookEventAsyncType.PERMISSION_GROUP_DELETED, group
         )
 
     def _trigger_shipping_price_event(self, event_type, shipping_method):

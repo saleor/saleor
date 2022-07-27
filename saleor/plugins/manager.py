@@ -37,7 +37,7 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..account.models import Address, User
+    from ..account.models import Address, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -828,6 +828,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "page_type_deleted", default_value, page_type
+        )
+
+    def permission_group_created(self, group: "Group"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "permission_group_created", default_value, group
+        )
+
+    def permission_group_updated(self, group: "Group"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "permission_group_updated", default_value, group
+        )
+
+    def permission_group_deleted(self, group: "Group"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "permission_group_deleted", default_value, group
         )
 
     def transaction_action_request(

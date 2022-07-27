@@ -112,6 +112,10 @@ class WebhookEventAsyncType:
     PAGE_TYPE_UPDATED = "page_type_updated"
     PAGE_TYPE_DELETED = "page_type_deleted"
 
+    PERMISSION_GROUP_CREATED = "permission_group_created"
+    PERMISSION_GROUP_UPDATED = "permission_group_updated"
+    PERMISSION_GROUP_DELETED = "permission_group_deleted"
+
     SHIPPING_PRICE_CREATED = "shipping_price_created"
     SHIPPING_PRICE_UPDATED = "shipping_price_updated"
     SHIPPING_PRICE_DELETED = "shipping_price_deleted"
@@ -212,6 +216,9 @@ class WebhookEventAsyncType:
         PAGE_TYPE_CREATED: "Page type created",
         PAGE_TYPE_UPDATED: "Page type updated",
         PAGE_TYPE_DELETED: "Page type deleted",
+        PERMISSION_GROUP_CREATED: "Permission group created",
+        PERMISSION_GROUP_UPDATED: "Permission group updated",
+        PERMISSION_GROUP_DELETED: "Permission group deleted",
         SHIPPING_PRICE_CREATED: "Shipping price created",
         SHIPPING_PRICE_UPDATED: "Shipping price updated",
         SHIPPING_PRICE_DELETED: "Shipping price deleted",
@@ -306,6 +313,9 @@ class WebhookEventAsyncType:
         (PAGE_TYPE_CREATED, DISPLAY_LABELS[PAGE_TYPE_CREATED]),
         (PAGE_TYPE_UPDATED, DISPLAY_LABELS[PAGE_TYPE_UPDATED]),
         (PAGE_TYPE_DELETED, DISPLAY_LABELS[PAGE_TYPE_DELETED]),
+        (PERMISSION_GROUP_CREATED, DISPLAY_LABELS[PERMISSION_GROUP_CREATED]),
+        (PERMISSION_GROUP_UPDATED, DISPLAY_LABELS[PERMISSION_GROUP_UPDATED]),
+        (PERMISSION_GROUP_DELETED, DISPLAY_LABELS[PERMISSION_GROUP_DELETED]),
         (SHIPPING_PRICE_CREATED, DISPLAY_LABELS[SHIPPING_PRICE_CREATED]),
         (SHIPPING_PRICE_UPDATED, DISPLAY_LABELS[SHIPPING_PRICE_UPDATED]),
         (SHIPPING_PRICE_DELETED, DISPLAY_LABELS[SHIPPING_PRICE_DELETED]),
@@ -401,6 +411,9 @@ class WebhookEventAsyncType:
         PAGE_TYPE_CREATED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         PAGE_TYPE_UPDATED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         PAGE_TYPE_DELETED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        PERMISSION_GROUP_CREATED: AccountPermissions.MANAGE_STAFF,
+        PERMISSION_GROUP_UPDATED: AccountPermissions.MANAGE_STAFF,
+        PERMISSION_GROUP_DELETED: AccountPermissions.MANAGE_STAFF,
         SHIPPING_PRICE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_PRICE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_PRICE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
@@ -574,6 +587,9 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.PAGE_TYPE_CREATED,
     WebhookEventAsyncType.PAGE_TYPE_UPDATED,
     WebhookEventAsyncType.PAGE_TYPE_DELETED,
+    WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
+    WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
+    WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED,
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED,
