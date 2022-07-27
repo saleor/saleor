@@ -601,21 +601,29 @@ class ProductFilter(MetadataFilterBase):
         input_class=PriceRangeInput,
         method="filter_minimal_price",
         field_name="minimal_price_amount",
+        help_text="Filter by the lowest variant price after discounts.",
     )
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",
         method="filter_attributes",
     )
     stock_availability = EnumFilter(
-        input_class=StockAvailability, method="filter_stock_availability"
+        input_class=StockAvailability,
+        method="filter_stock_availability",
+        help_text="Filter by variants having specific stock status.",
     )
     updated_at = ObjectTypeFilter(
-        input_class=DateTimeRangeInput, method=filter_updated_at_range
+        input_class=DateTimeRangeInput,
+        method=filter_updated_at_range,
+        help_text="Filter by when was the most recent update.",
     )
     product_types = GlobalIDMultipleChoiceFilter(method=filter_product_types)
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
-    gift_card = django_filters.BooleanFilter(method=filter_gift_card)
+    gift_card = django_filters.BooleanFilter(
+        method=filter_gift_card,
+        help_text="Filter on whether product is a gift card or not.",
+    )
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants

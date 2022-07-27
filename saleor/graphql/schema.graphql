@@ -5952,14 +5952,22 @@ input ProductFilterInput {
   categories: [ID!]
   hasCategory: Boolean
   attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
   metadata: [MetadataFilter!]
   price: PriceRangeInput
+
+  """Filter by the lowest variant price after discounts."""
   minimalPrice: PriceRangeInput
+
+  """Filter by when was the most recent update."""
   updatedAt: DateTimeRangeInput
   productTypes: [ID!]
+
+  """Filter on whether product is a gift card or not."""
   giftCard: Boolean
   ids: [ID!]
   hasPreorderedVariants: Boolean
@@ -7282,7 +7290,6 @@ type StockCountableEdge {
 }
 
 input StockFilterInput {
-  """"""
   quantity: Float
   search: String
 }
