@@ -5742,8 +5742,12 @@ input ProductFilterInput {
 
   """Filter by the lowest variant price after discounts."""
   minimalPrice: PriceRangeInput
+
+  """Filter by when was the most recent update."""
   updatedAt: DateTimeRangeInput
   productTypes: [ID!]
+
+  """Filter on whether product is a gift card or not."""
   giftCard: Boolean
   ids: [ID!]
   hasPreorderedVariants: Boolean
