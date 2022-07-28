@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
@@ -60,6 +61,7 @@ class DraftOrderComplete(BaseMutation):
             )
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
         order = cls.get_node_or_error(
@@ -124,13 +126,14 @@ class DraftOrderComplete(BaseMutation):
             payment=order.get_last_payment(),
             lines_data=order_lines_info,
         )
-
-        order_created(
-            order_info=order_info,
-            user=info.context.user,
-            app=info.context.app,
-            manager=info.context.plugins,
-            from_draft=True,
+        transaction.on_commit(
+            lambda: order_created(
+                order_info=order_info,
+                user=info.context.user,
+                app=info.context.app,
+                manager=info.context.plugins,
+                from_draft=True,
+            )
         )
 
         return DraftOrderComplete(order=order)
