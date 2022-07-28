@@ -17423,7 +17423,11 @@ input OrderLineCreateInput {
   variantId: ID!
 
   """
-  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic.
+  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   forceNewLine: Boolean = false
 }
