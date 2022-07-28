@@ -3,10 +3,11 @@ from operator import add
 from typing import TYPE_CHECKING, Optional
 
 import graphene
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..account.search import generate_address_search_vector_value
+from ..core.postgres import NoValidationSearchVector
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -31,21 +32,23 @@ def prepare_order_search_vector_value(order: "Order", *, already_prefetched=Fals
             "discounts",
             "lines",
         )
-    search_vector = SearchVector(Value(str(order.number)), config="simple", weight="A")
+    search_vector = NoValidationSearchVector(
+        Value(str(order.number)), config="simple", weight="A"
+    )
     if order.user_email:
-        search_vector += SearchVector(
+        search_vector += NoValidationSearchVector(
             Value(order.user_email), config="simple", weight="A"
         )
     if order.user:
-        search_vector += SearchVector(
+        search_vector += NoValidationSearchVector(
             Value(order.user.email), config="simple", weight="A"
         )
         if order.user.first_name:
-            search_vector += SearchVector(
+            search_vector += NoValidationSearchVector(
                 Value(order.user.first_name), config="simple", weight="A"
             )
         if order.user.last_name:
-            search_vector += SearchVector(
+            search_vector += NoValidationSearchVector(
                 Value(order.user.last_name), config="simple", weight="A"
             )
 
@@ -73,11 +76,11 @@ def prepare_order_search_vector_value(order: "Order", *, already_prefetched=Fals
 
 def generate_order_payments_search_vector_value(
     order: "Order",
-) -> Optional[SearchVector]:
+) -> Optional[NoValidationSearchVector]:
     payment_vectors = []
     for payment in order.payments.all():
         payment_vectors.append(
-            SearchVector(
+            NoValidationSearchVector(
                 Value(graphene.Node.to_global_id("Payment", payment.id)),
                 config="simple",
                 weight="D",
@@ -85,7 +88,7 @@ def generate_order_payments_search_vector_value(
         )
         if payment.psp_reference:
             payment_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(payment.psp_reference),
                     config="simple",
                     weight="D",
@@ -102,12 +105,12 @@ def generate_order_payments_search_vector_value(
 
 def generate_order_discounts_search_vector_value(
     order: "Order",
-) -> Optional[SearchVector]:
+) -> Optional[NoValidationSearchVector]:
     discount_vectors = []
     for discount in order.discounts.all():
         if discount.name:
             discount_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(discount.name),
                     config="simple",
                     weight="D",
@@ -115,7 +118,7 @@ def generate_order_discounts_search_vector_value(
             )
         if discount.translated_name:
             discount_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(discount.translated_name),
                     config="simple",
                     weight="D",
@@ -130,12 +133,14 @@ def generate_order_discounts_search_vector_value(
     return search_vector
 
 
-def generate_order_lines_search_vector_value(order: "Order") -> Optional[SearchVector]:
+def generate_order_lines_search_vector_value(
+    order: "Order",
+) -> Optional[NoValidationSearchVector]:
     line_vectors = []
     for line in order.lines.all():
         if line.product_sku:
             line_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(line.product_sku),
                     config="simple",
                     weight="C",
@@ -143,7 +148,7 @@ def generate_order_lines_search_vector_value(order: "Order") -> Optional[SearchV
             )
         if line.product_name:
             line_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(line.product_name),
                     config="simple",
                     weight="C",
@@ -151,7 +156,7 @@ def generate_order_lines_search_vector_value(order: "Order") -> Optional[SearchV
             )
         if line.variant_name:
             line_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(line.variant_name),
                     config="simple",
                     weight="C",
@@ -159,7 +164,7 @@ def generate_order_lines_search_vector_value(order: "Order") -> Optional[SearchV
             )
         if line.translated_product_name:
             line_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(line.translated_product_name),
                     config="simple",
                     weight="C",
@@ -167,7 +172,7 @@ def generate_order_lines_search_vector_value(order: "Order") -> Optional[SearchV
             )
         if line.translated_variant_name:
             line_vectors.append(
-                SearchVector(
+                NoValidationSearchVector(
                     Value(line.translated_variant_name),
                     config="simple",
                     weight="C",
