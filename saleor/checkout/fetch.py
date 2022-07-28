@@ -211,7 +211,9 @@ def get_delivery_method_info(
 
 
 def fetch_checkout_lines(
-    checkout: "Checkout", prefetch_variant_attributes=False
+    checkout: "Checkout",
+    prefetch_variant_attributes=False,
+    skip_lines_with_unavailable_variants=True,
 ) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -250,6 +252,17 @@ def fetch_checkout_lines(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
+            if not skip_lines_with_unavailable_variants:
+                lines_info.append(
+                    CheckoutLineInfo(
+                        line=line,
+                        variant=variant,
+                        channel_listing=variant_channel_listing,
+                        product=product,
+                        product_type=product_type,
+                        collections=collections,
+                    )
+                )
             continue
 
         lines_info.append(

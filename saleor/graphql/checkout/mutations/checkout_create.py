@@ -15,6 +15,7 @@ from ...channel.utils import clean_channel
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
+    ADDED_IN_36,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -28,7 +29,7 @@ from ..types import Checkout
 from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
-    group_quantity_and_custom_prices_by_variants,
+    group_lines_input_on_add,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -92,6 +93,14 @@ class CheckoutLineInput(graphene.InputObjectType):
             "will be provided multiple times, the last price will be used."
             + ADDED_IN_31
             + PREVIEW_FEATURE
+        ),
+    )
+    force_new_line = graphene.Boolean(
+        required=False,
+        default_value=False,
+        description=(
+            "Flag that allow force splitting the same variant into multiple lines "
+            "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
         ),
     )
 
@@ -169,7 +178,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        checkout_lines_data = group_quantity_and_custom_prices_by_variants(lines)
+        checkout_lines_data = group_lines_input_on_add(lines)
 
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
