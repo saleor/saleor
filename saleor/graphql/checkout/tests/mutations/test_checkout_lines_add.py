@@ -243,6 +243,83 @@ def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item
     assert checkout.last_change != previous_last_change
 
 
+def test_checkout_lines_add_with_force_new_line(
+    app_api_client, checkout, stock, permission_handle_checkouts
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": 1},
+            {"variantId": variant_id, "quantity": 1, "forceNewLine": True},
+        ],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    checkout.refresh_from_db()
+    lines = checkout.lines.all()
+
+    # then
+    assert not data["errors"]
+    assert len(lines) == 2
+    for line in lines:
+        assert line.variant == variant
+        assert line.quantity == 1
+
+
+def test_checkout_lines_add_create_new_line_when_variant_already_in_multiple_lines(
+    app_api_client,
+    checkout_with_same_items_in_multiple_lines,
+    permission_handle_checkouts,
+):
+    # given
+    checkout = checkout_with_same_items_in_multiple_lines
+    assert checkout.lines.count() == 2
+
+    variant_id = checkout.lines.first().variant_id
+    variant_global_id = graphene.Node.to_global_id("ProductVariant", variant_id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_global_id, "quantity": 1},
+        ],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    checkout.refresh_from_db()
+    lines = checkout.lines.all()
+
+    # then
+    assert not data["errors"]
+    assert len(lines) == 3
+
+    for line in lines:
+        assert line.variant_id == variant_id
+        assert line.quantity == 1
+
+
 def test_checkout_lines_add_custom_price(
     app_api_client, checkout, stock, permission_handle_checkouts
 ):

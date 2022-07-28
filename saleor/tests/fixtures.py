@@ -322,6 +322,16 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_same_items_in_multiple_lines(checkout, product):
+    variant = product.variants.first()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
+    add_variant_to_checkout(checkout_info, variant, 1, force_new_line=True)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_item_and_voucher_specific_products(
     checkout_with_item, voucher_specific_product_type
 ):
