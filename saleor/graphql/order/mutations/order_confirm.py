@@ -84,13 +84,15 @@ class OrderConfirm(ModelMutation):
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
-            order_captured(
-                order_info,
-                info.context.user,
-                info.context.app,
-                payment.total,
-                payment,
-                manager,
+            transaction.on_commit(
+                lambda: order_captured(
+                    order_info,
+                    info.context.user,
+                    info.context.app,
+                    payment.total,
+                    payment,
+                    manager,
+                )
             )
         transaction.on_commit(
             lambda: order_confirmed(
