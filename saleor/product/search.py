@@ -6,9 +6,9 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..attribute import AttributeInputType
+from ..core.postgres import NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
 from .models import Product
-from .postgres import NoValidationSearchVector
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
