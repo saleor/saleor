@@ -1,13 +1,14 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
 from ...core.types import OrderError
+from ...dataloaders import get_app
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -51,6 +52,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
+        manager = info.context.plugins
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)
@@ -63,6 +65,11 @@ class OrderDiscountAdd(OrderDiscountCommon):
             order, reason, value_type, value
         )
         app = get_app(info.context.auth_token)
+
+        # Calling refreshing prices because it's set proper discount amount on
+        # on OrderDiscount.
+        order, _ = fetch_order_prices_if_expired(order, manager, force_update=True)
+        order_discount.refresh_from_db()
 
         events.order_discount_added_event(
             order=order,

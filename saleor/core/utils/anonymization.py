@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from faker import Faker
 
@@ -42,6 +42,11 @@ def generate_fake_user() -> "User":
     return fake_user
 
 
+def generate_fake_metadata() -> Dict[str, str]:
+    """Generate a fake metadata/private metadata dictionary."""
+    return fake.pydict(value_types=str)
+
+
 def anonymize_order(order: "Order") -> "Order":
     """Generate an anonymized version of the provided order.
 
@@ -56,8 +61,8 @@ def anonymize_order(order: "Order") -> "Order":
     anonymized_order.shipping_address = generate_fake_address()
     anonymized_order.billing_address = generate_fake_address()
     anonymized_order.customer_note = fake.paragraph()
-    anonymized_order.metadata = fake.pystruct(count=1)
-    anonymized_order.private_metadata = fake.pystruct(count=1)
+    anonymized_order.metadata = generate_fake_metadata()
+    anonymized_order.private_metadata = generate_fake_metadata()
     return anonymized_order
 
 
@@ -75,6 +80,6 @@ def anonymize_checkout(checkout: "Checkout") -> "Checkout":
     anonymized_checkout.shipping_address = generate_fake_address()
     anonymized_checkout.billing_address = generate_fake_address()
     anonymized_checkout.note = fake.paragraph()
-    anonymized_checkout.metadata = fake.pystruct(count=1)
-    anonymized_checkout.private_metadata = fake.pystruct(count=1)
+    anonymized_checkout.metadata = generate_fake_metadata()
+    anonymized_checkout.private_metadata = generate_fake_metadata()
     return anonymized_checkout

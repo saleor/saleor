@@ -4,16 +4,20 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
-from ....order.utils import add_variant_to_order, recalculate_order
+from ....order.utils import (
+    add_variant_to_order,
+    invalidate_order_prices,
+    recalculate_order_weight,
+)
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
+from ...dataloaders import get_app
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
@@ -137,9 +141,17 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
         lines = [line for _, line in added_lines]
 
-        recalculate_order(order)
-        update_order_search_vector(order)
-
+        invalidate_order_prices(order)
+        recalculate_order_weight(order)
+        update_order_search_vector(order, save=False)
+        order.save(
+            update_fields=[
+                "should_refresh_prices",
+                "weight",
+                "search_vector",
+                "updated_at",
+            ]
+        )
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
 

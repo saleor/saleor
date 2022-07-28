@@ -7,10 +7,16 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Add support for the CUSTOMER_* app mount points (#10163) by @krzysztofwolski
+- Add permission group webhooks: `PERMISSION_GROUP_CREATED`, `PERMISSION_GROUP_UPDATED`, `PERMISSION_GROUP_DELETED` - #10214 by @SzymJ
 
 ### Breaking changes
 - Drop django-versatileimagefield package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
   - Drop `create_thumbnails` command
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Change return type from `CheckoutTaxedPricesData` to `TaxedMoney` in plugin manager methods:
+    - `calculate_checkout_line_total`
+    - `calculate_checkout_line_unit_price`
+
 
 ### Other changes
 - Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
@@ -26,7 +32,23 @@ All notable, unreleased changes to this project will be documented in this file.
   Usage:
   - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
   - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+- Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Add option to calculate taxes via webhooks more info in docs
+  <!-- We should put docs link here before release -->
 
+### GraphQL API
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum`
+- Add descriptions for some filters - #10240 by @dekoza
+
+### Plugins
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+  - Add new method to plugin manager:
+    - `get_taxes_for_checkout`
+    - `get_taxes_for_order`
 
 # 3.5.0
 

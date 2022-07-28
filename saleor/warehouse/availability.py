@@ -121,6 +121,7 @@ def check_stock_and_preorder_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: Optional[int],
+    collection_point_pk: Optional[str] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     replace: bool = False,
@@ -144,6 +145,7 @@ def check_stock_and_preorder_quantity_bulk(
             stock_quantities,
             channel_slug,
             global_quantity_limit,
+            collection_point_pk,
             additional_filter_lookup,
             existing_lines,
             replace,
@@ -211,6 +213,7 @@ def check_stock_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: Optional[int],
+    collection_point_pk: Optional[str] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Iterable["CheckoutLineInfo"] = None,
     replace=False,
@@ -224,11 +227,15 @@ def check_stock_quantity_bulk(
     if additional_filter_lookup is not None:
         filter_lookup.update(additional_filter_lookup)
 
-    all_variants_stocks = (
-        Stock.objects.for_channel_and_country(channel_slug, country_code)
-        .filter(**filter_lookup)
-        .annotate_available_quantity()
+    # in case of click and collect order, we need to check local or global stock
+    # regardless of the country code
+    stocks = (
+        Stock.objects.for_channel_and_click_and_collect(channel_slug)
+        if collection_point_pk
+        else Stock.objects.for_channel_and_country(channel_slug, country_code)
     )
+
+    all_variants_stocks = stocks.filter(**filter_lookup).annotate_available_quantity()
 
     variant_stocks: Dict[int, List[Stock]] = defaultdict(list)
     for stock in all_variants_stocks:

@@ -1,7 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...dataloaders import get_app
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
@@ -9,6 +8,7 @@ from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.actions import order_created
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
@@ -17,6 +17,7 @@ from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...dataloaders import get_app
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
@@ -68,6 +69,7 @@ class DraftOrderComplete(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
+        order, _ = fetch_order_prices_if_expired(order, manager)
         cls.validate_order(order)
 
         country = get_order_country(order)

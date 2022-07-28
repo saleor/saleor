@@ -585,6 +585,7 @@ if OBSERVABILITY_ACTIVE:
     CELERY_BEAT_SCHEDULE["observability-reporter"] = {
         "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
         "schedule": OBSERVABILITY_REPORT_PERIOD,
+        "options": {"expires": OBSERVABILITY_REPORT_PERIOD.total_seconds()},
     }
 
 # Change this value if your application is running behind a proxy,
@@ -719,6 +720,10 @@ JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 
 
 JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
+)
+
+CHECKOUT_PRICES_TTL = timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
 
 

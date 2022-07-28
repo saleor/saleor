@@ -6,7 +6,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
     update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_variants_to_checkout, recalculate_checkout_discount
+from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
@@ -192,8 +192,7 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
-        )
+        invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
         manager.checkout_updated(checkout)
+
         return CheckoutLinesAdd(checkout=checkout)

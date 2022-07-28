@@ -1,3 +1,4 @@
+
 interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",

@@ -220,6 +220,18 @@ def generate_page_type_payload(page_type):
     }
 
 
+def generate_permission_group_payload(group):
+    return {
+        "permissionGroup": {
+            "name": group.name,
+            "permissions": [
+                {"name": permission.name} for permission in group.permissions.all()
+            ],
+            "users": [{"email": user.email} for user in group.user_set.all()],
+        }
+    }
+
+
 def generate_invoice_payload(invoice):
     return {
         "invoice": {

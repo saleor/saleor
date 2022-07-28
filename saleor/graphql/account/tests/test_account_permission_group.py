@@ -1,10 +1,16 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 from django.contrib.auth.models import Group
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....account.error_codes import PermissionGroupErrorCode
 from ....account.models import User
 from ....core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -91,6 +97,67 @@ def test_permission_group_create_mutation(
         == set(group.user_set.all().values_list("email", flat=True))
     )
     assert data["errors"] == []
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_permission_group_create_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_users,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_apps,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = staff_users[0]
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    query = PERMISSION_GROUP_CREATE_MUTATION
+
+    variables = {
+        "input": {
+            "name": "New permission group",
+            "addPermissions": [
+                AccountPermissions.MANAGE_USERS.name,
+                AppPermission.MANAGE_APPS.name,
+            ],
+            "addUsers": [
+                graphene.Node.to_global_id("User", user.id) for user in staff_users
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    group = Group.objects.last()
+
+    # then
+    assert not data["errors"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("Group", group.id),
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
+        [any_webhook],
+        group,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_permission_group_create_app_no_permission(
@@ -535,6 +602,73 @@ def test_permission_group_update_mutation(
     )
     assert set(group1.user_set.all().values_list("email", flat=True)) == users
     assert data["errors"] == []
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_permission_group_update_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_users,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = staff_users[0]
+    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+
+    group1, group2 = Group.objects.bulk_create(
+        [Group(name="manage users"), Group(name="manage staff and users")]
+    )
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_users, permission_manage_staff)
+
+    group1_user = staff_users[1]
+    group1.user_set.add(group1_user)
+    group2.user_set.add(staff_user)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group1.id),
+        "input": {
+            "name": "New permission group",
+            "addPermissions": [AppPermission.MANAGE_APPS.name],
+            "removePermissions": [AccountPermissions.MANAGE_USERS.name],
+            "addUsers": [graphene.Node.to_global_id("User", staff_user.pk)],
+            "removeUsers": [graphene.Node.to_global_id("User", group1_user.pk)],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    group1.refresh_from_db()
+
+    # then
+    assert not data["errors"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("Group", group1.id),
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
+        [any_webhook],
+        group1,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_permission_group_update_mutation_removing_perm_left_not_manageable_perms(
@@ -1876,6 +2010,67 @@ def test_group_delete_mutation(
     assert permission_group_data["id"] == variables["id"]
     assert permission_group_data["name"] == group1_name
     assert permission_group_data["permissions"] == []
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_group_delete_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_users,
+    permission_manage_staff,
+    permission_manage_orders,
+    permission_manage_products,
+    staff_api_client,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    staff_user.user_permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+    groups = Group.objects.bulk_create(
+        [Group(name="manage orders"), Group(name="manage orders and products")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_orders, permission_manage_staff)
+    group2.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+
+    staff_user2.groups.add(group1, group2)
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_DELETE_MUTATION,
+        variables,
+        permissions=(permission_manage_staff,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+
+    # then
+    assert not data["errors"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("Group", group1.id),
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
+        [any_webhook],
+        group1,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_group_delete_mutation_app_no_permission(

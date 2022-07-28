@@ -96,7 +96,7 @@ def test_add_fixed_order_discount_to_order(
     order.status = status
     order.save(update_fields=["status"])
     total_before_order_discount = order.total
-    value = Decimal("10")
+    value = Decimal("10.000")
     variables = {
         "orderId": graphene.Node.to_global_id("Order", order.pk),
         "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": value},
@@ -107,16 +107,16 @@ def test_add_fixed_order_discount_to_order(
     data = content["data"]["orderDiscountAdd"]
 
     order.refresh_from_db()
-    expected_gross = total_before_order_discount.gross.amount - value
     expected_net = total_before_order_discount.net.amount - value
 
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert expected_gross == order.total.gross.amount
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == total_before_order_discount.net
     assert expected_net == order.total.net.amount
-
-    assert order.undiscounted_total == total_before_order_discount
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
@@ -168,15 +168,18 @@ def test_add_percentage_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert expected_total == order.total
-
-    assert order.undiscounted_total == total_before_order_discount
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert expected_net_total == order.total.net
+    assert order.undiscounted_total.net == total_before_order_discount.net
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
-    assert order_discount.amount == (total_before_order_discount - expected_total).gross
+    discount_amount = total_before_order_discount.net - expected_total.net
+    assert order_discount.amount == discount_amount
     assert order_discount.reason == reason
 
     event = order.events.get()
@@ -253,15 +256,18 @@ def test_update_percentage_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert order.undiscounted_total == current_undiscounted_total
-
-    assert expected_total == order.total
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert expected_net_total == order.total.net
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
-    assert order_discount.amount == (current_undiscounted_total - expected_total).gross
+    discount_amount = current_undiscounted_total.net - expected_total.net
+    assert order_discount.amount == discount_amount
     assert order_discount.reason == reason
 
     event = order.events.get()
@@ -271,17 +277,20 @@ def test_update_percentage_order_discount_to_order(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
-    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+    assert discount_data["amount_value"] == str(discount_amount.amount)
 
 
+@patch("saleor.order.calculations.PluginsManager.calculate_order_shipping")
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_fixed_order_discount_to_order(
+    mocked_function,
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_manage_orders,
 ):
     order = draft_order_with_fixed_discount_order
+    mocked_function.return_value = order.shipping_price
     order.status = status
     order.save(update_fields=["status"])
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
@@ -308,15 +317,18 @@ def test_update_fixed_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert order.undiscounted_total == current_undiscounted_total
-
-    assert expected_total == order.total
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert expected_total.net == order.total.net
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.FIXED
-    assert order_discount.amount == (current_undiscounted_total - expected_total).gross
+    discount_amount = current_undiscounted_total.net - expected_total.net
+    assert order_discount.amount == discount_amount
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_UPDATED
@@ -325,7 +337,7 @@ def test_update_fixed_order_discount_to_order(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
-    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+    assert discount_data["amount_value"] == str(discount_amount.amount)
 
 
 def test_update_order_discount_order_is_not_draft(

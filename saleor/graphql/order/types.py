@@ -27,7 +27,7 @@ from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
-from ...order import OrderStatus, models
+from ...order import OrderStatus, calculations, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
     get_order_country,
@@ -643,16 +643,34 @@ class OrderLine(ModelObjectType):
         return Promise.all([variants_product, variant_medias]).then(_resolve_thumbnail)
 
     @staticmethod
-    def resolve_unit_price(root: models.OrderLine, _info):
-        return root.unit_price
+    @traced_resolver
+    def resolve_unit_price(root: models.OrderLine, info):
+        def _resolve_unit_price(data):
+            order, lines = data
+            return calculations.order_line_unit(
+                order, root, info.context.plugins, lines
+            ).price_with_discounts
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_unit_price)
 
     @staticmethod
     def resolve_quantity_to_fulfill(root: models.OrderLine, info):
         return root.quantity_unfulfilled
 
     @staticmethod
-    def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
-        return root.undiscounted_unit_price
+    @traced_resolver
+    def resolve_undiscounted_unit_price(root: models.OrderLine, info):
+        def _resolve_undiscounted_unit_price(data):
+            order, lines = data
+            return calculations.order_line_unit(
+                order, root, info.context.plugins, lines
+            ).undiscounted_price
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_undiscounted_unit_price)
 
     @staticmethod
     def resolve_unit_discount_type(root: models.OrderLine, _info):
@@ -667,8 +685,43 @@ class OrderLine(ModelObjectType):
         return root.unit_discount
 
     @staticmethod
-    def resolve_total_price(root: models.OrderLine, _info):
-        return root.total_price
+    @traced_resolver
+    def resolve_tax_rate(root: models.OrderLine, info):
+        def _resolve_tax_rate(data):
+            order, lines = data
+            return calculations.order_line_tax_rate(
+                order, root, info.context.plugins, lines
+            )
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_tax_rate)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_total_price(root: models.OrderLine, info):
+        def _resolve_total_price(data):
+            order, lines = data
+            return calculations.order_line_total(
+                order, root, info.context.plugins, lines
+            ).price_with_discounts
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_total_price)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_undiscounted_total_price(root: models.OrderLine, info):
+        def _resolve_undiscounted_total_price(data):
+            order, lines = data
+            return calculations.order_line_total(
+                order, root, info.context.plugins, lines
+            ).undiscounted_price
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_undiscounted_total_price)
 
     @staticmethod
     def resolve_translated_product_name(root: models.OrderLine, _info):
@@ -1091,8 +1144,30 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_shipping_price(root: models.Order, _info):
-        return root.shipping_price
+    @traced_resolver
+    def resolve_shipping_price(root: models.Order, info):
+        def _resolve_shipping_price(lines):
+            return calculations.order_shipping(root, info.context.plugins, lines)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_shipping_price)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_shipping_tax_rate(root: models.Order, info):
+        def _resolve_shipping_tax_rate(lines):
+            return calculations.order_shipping_tax_rate(
+                root, info.context.plugins, lines
+            )
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_shipping_tax_rate)
+        )
 
     @staticmethod
     def resolve_actions(root: models.Order, info):
@@ -1126,12 +1201,28 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_total(root: models.Order, _info):
-        return root.total
+    @traced_resolver
+    def resolve_total(root: models.Order, info):
+        def _resolve_total(lines):
+            return calculations.order_total(root, info.context.plugins, lines)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context).load(root.id).then(_resolve_total)
+        )
 
     @staticmethod
-    def resolve_undiscounted_total(root: models.Order, _info):
-        return root.undiscounted_total
+    @traced_resolver
+    def resolve_undiscounted_total(root: models.Order, info):
+        def _resolve_undiscounted_total(lines):
+            return calculations.order_undiscounted_total(
+                root, info.context.plugins, lines
+            )
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_undiscounted_total)
+        )
 
     @staticmethod
     def resolve_total_authorized(root: models.Order, info):
