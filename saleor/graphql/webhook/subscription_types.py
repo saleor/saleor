@@ -200,7 +200,7 @@ class Event(graphene.Interface):
 class AddressBase(AbstractType):
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
-        description="The address the event relates to." + ADDED_IN_35 + PREVIEW_FEATURE,
+        description="The address the event relates to.",
     )
 
     @staticmethod
@@ -212,24 +212,31 @@ class AddressBase(AbstractType):
 class AddressCreated(ObjectType, AddressBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new address is created." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class AddressUpdated(ObjectType, AddressBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when address is updated." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class AddressDeleted(ObjectType, AddressBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when address is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class AppBase(AbstractType):
     app = graphene.Field(
         "saleor.graphql.app.types.App",
-        description="The application the event relates to."
-        + ADDED_IN_34
-        + PREVIEW_FEATURE,
+        description="The application the event relates to.",
     )
 
     @staticmethod
@@ -241,29 +248,35 @@ class AppBase(AbstractType):
 class AppInstalled(ObjectType, AppBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new app is installed." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class AppUpdated(ObjectType, AppBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when app is updated." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
 class AppDeleted(ObjectType, AppBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when app is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
 class AppStatusChanged(ObjectType, AppBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when app status has changed." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class AttributeBase(AbstractType):
     attribute = graphene.Field(
         "saleor.graphql.attribute.types.Attribute",
-        description="The attribute the event relates to."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="The attribute the event relates to.",
     )
 
     @staticmethod
@@ -275,24 +288,31 @@ class AttributeBase(AbstractType):
 class AttributeCreated(ObjectType, AttributeBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new attribute is created." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class AttributeUpdated(ObjectType, AttributeBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when attribute is updated." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class AttributeDeleted(ObjectType, AttributeBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when attribute is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class AttributeValueBase(AbstractType):
     attribute_value = graphene.Field(
         "saleor.graphql.attribute.types.AttributeValue",
-        description="The attribute value the event relates to."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="The attribute value the event relates to.",
     )
 
     @staticmethod
@@ -304,24 +324,37 @@ class AttributeValueBase(AbstractType):
 class AttributeValueCreated(ObjectType, AttributeValueBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new attribute value is created."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
 
 
 class AttributeValueUpdated(ObjectType, AttributeValueBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when attribute value is updated."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
 
 
 class AttributeValueDeleted(ObjectType, AttributeValueBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when attribute value is deleted."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
 
 
 class CategoryBase(AbstractType):
     category = graphene.Field(
         "saleor.graphql.product.types.Category",
-        description="The category the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The category the event relates to.",
     )
 
     @staticmethod
@@ -333,22 +366,31 @@ class CategoryBase(AbstractType):
 class CategoryCreated(ObjectType, CategoryBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new category is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CategoryUpdated(ObjectType, CategoryBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when category is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CategoryDeleted(ObjectType, CategoryBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when category is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ChannelBase(AbstractType):
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
-        description="The channel the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The channel the event relates to.",
     )
 
     @staticmethod
@@ -360,27 +402,41 @@ class ChannelBase(AbstractType):
 class ChannelCreated(ObjectType, ChannelBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new channel is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ChannelUpdated(ObjectType, ChannelBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when channel is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ChannelDeleted(ObjectType, ChannelBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when channel is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ChannelStatusChanged(ObjectType, ChannelBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when channel status has changed."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        description="The order the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The order the event relates to.",
     )
 
     @staticmethod
@@ -392,54 +448,81 @@ class OrderBase(AbstractType):
 class OrderCreated(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new order is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class OrderUpdated(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when order is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class OrderConfirmed(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when order is confirmed." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class OrderFullyPaid(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when order is fully paid." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class OrderFulfilled(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when order is fulfilled." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class OrderCancelled(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when order is canceled." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class DraftOrderCreated(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new draft order is created."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class DraftOrderUpdated(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when draft order is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class DraftOrderDeleted(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when draft order is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class GiftCardBase(AbstractType):
     gift_card = graphene.Field(
         "saleor.graphql.giftcard.types.GiftCard",
-        description="The gift card the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The gift card the event relates to.",
     )
 
     @staticmethod
@@ -451,21 +534,35 @@ class GiftCardBase(AbstractType):
 class GiftCardCreated(ObjectType, GiftCardBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new gift card is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class GiftCardUpdated(ObjectType, GiftCardBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when gift card is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class GiftCardDeleted(ObjectType, GiftCardBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when gift card is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class GiftCardStatusChanged(ObjectType, GiftCardBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when gift card status has changed."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class MenuBase(AbstractType):
@@ -474,7 +571,7 @@ class MenuBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The menu the event relates to." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="The menu the event relates to.",
     )
 
     @staticmethod
@@ -486,16 +583,21 @@ class MenuBase(AbstractType):
 class MenuCreated(ObjectType, MenuBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new menu is created." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class MenuUpdated(ObjectType, MenuBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when menu is updated." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
 class MenuDeleted(ObjectType, MenuBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when menu is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
 class MenuItemBase(AbstractType):
@@ -504,9 +606,7 @@ class MenuItemBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The menu item the event relates to."
-        + ADDED_IN_34
-        + PREVIEW_FEATURE,
+        description="The menu item the event relates to.",
     )
 
     @staticmethod
@@ -518,16 +618,25 @@ class MenuItemBase(AbstractType):
 class MenuItemCreated(ObjectType, MenuItemBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new menu item is created." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class MenuItemUpdated(ObjectType, MenuItemBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when menu item is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class MenuItemDeleted(ObjectType, MenuItemBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when menu item is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class ProductBase(AbstractType):
@@ -536,11 +645,11 @@ class ProductBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The product the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The product the event relates to.",
     )
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
-        description="The category of the product." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The category of the product.",
     )
 
     @staticmethod
@@ -557,16 +666,25 @@ class ProductBase(AbstractType):
 class ProductCreated(ObjectType, ProductBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new product is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ProductUpdated(ObjectType, ProductBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when product is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ProductDeleted(ObjectType, ProductBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when product is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ProductVariantBase(AbstractType):
@@ -575,9 +693,7 @@ class ProductVariantBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The product variant the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The product variant the event relates to.",
     )
 
     @staticmethod
@@ -589,26 +705,45 @@ class ProductVariantBase(AbstractType):
 class ProductVariantCreated(ObjectType, ProductVariantBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new product variant is created."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class ProductVariantUpdated(ObjectType, ProductVariantBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when product variant is updated."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class ProductVariantDeleted(ObjectType, ProductVariantBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when product variant is deleted."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
     warehouse = graphene.Field(
-        "saleor.graphql.warehouse.types.Warehouse",
-        description="Look up a warehouse." + ADDED_IN_32 + PREVIEW_FEATURE,
+        "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
 
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when product variant is out of stock."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
     @staticmethod
     def resolve_product_variant(root, info, channel=None):
@@ -624,12 +759,16 @@ class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
 
 class ProductVariantBackInStock(ObjectType, ProductVariantBase):
     warehouse = graphene.Field(
-        "saleor.graphql.warehouse.types.Warehouse",
-        description="Look up a warehouse." + ADDED_IN_32 + PREVIEW_FEATURE,
+        "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
 
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when product variant is back in stock."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
     @staticmethod
     def resolve_product_variant(root, _info, channel=None):
@@ -649,7 +788,7 @@ class SaleBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The sale the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The sale the event relates to.",
     )
 
     @staticmethod
@@ -661,16 +800,21 @@ class SaleBase(AbstractType):
 class SaleCreated(ObjectType, SaleBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new sale is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class SaleUpdated(ObjectType, SaleBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when sale is updated." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
 class SaleDeleted(ObjectType, SaleBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when sale is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
 class SaleToggle(ObjectType, SaleBase):
@@ -694,7 +838,7 @@ class SaleToggle(ObjectType, SaleBase):
 class InvoiceBase(AbstractType):
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
-        description="The invoice the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The invoice the event relates to.",
     )
 
     @staticmethod
@@ -706,30 +850,33 @@ class InvoiceBase(AbstractType):
 class InvoiceRequested(ObjectType, InvoiceBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when invoice is requested." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class InvoiceDeleted(ObjectType, InvoiceBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when invoice is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class InvoiceSent(ObjectType, InvoiceBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when invoice is sent." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
 class FulfillmentBase(AbstractType):
     fulfillment = graphene.Field(
         "saleor.graphql.order.types.Fulfillment",
-        description="The fulfillment the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The fulfillment the event relates to.",
     )
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        description="The order the fulfillment belongs to."
-        + ADDED_IN_34
-        + PREVIEW_FEATURE,
+        description="The order the fulfillment belongs to.",
     )
 
     @staticmethod
@@ -746,17 +893,25 @@ class FulfillmentBase(AbstractType):
 class FulfillmentCreated(ObjectType, FulfillmentBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new fulfillment is created."
+            + ADDED_IN_34
+            + PREVIEW_FEATURE
+        )
 
 
 class FulfillmentCanceled(ObjectType, FulfillmentBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when fulfillment is canceled." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class UserBase(AbstractType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
-        description="The user the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="The user the event relates to.",
     )
 
     @staticmethod
@@ -768,11 +923,19 @@ class UserBase(AbstractType):
 class CustomerCreated(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new customer user is created."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class CustomerUpdated(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when customer user is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CollectionBase(AbstractType):
@@ -781,9 +944,7 @@ class CollectionBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The collection the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The collection the event relates to.",
     )
 
     @staticmethod
@@ -795,24 +956,31 @@ class CollectionBase(AbstractType):
 class CollectionCreated(ObjectType, CollectionBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new collection is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CollectionUpdated(ObjectType, CollectionBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when collection is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CollectionDeleted(ObjectType, CollectionBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when collection is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CheckoutBase(AbstractType):
     checkout = graphene.Field(
         "saleor.graphql.checkout.types.Checkout",
-        description="The checkout the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The checkout the event relates to.",
     )
 
     @staticmethod
@@ -824,17 +992,22 @@ class CheckoutBase(AbstractType):
 class CheckoutCreated(ObjectType, CheckoutBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new checkout is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class CheckoutUpdated(ObjectType, CheckoutBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when checkout is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class PageBase(AbstractType):
     page = graphene.Field(
-        "saleor.graphql.page.types.Page",
-        description="The page the event relates to." + ADDED_IN_32 + PREVIEW_FEATURE,
+        "saleor.graphql.page.types.Page", description="The page the event relates to."
     )
 
     @staticmethod
@@ -846,24 +1019,27 @@ class PageBase(AbstractType):
 class PageCreated(ObjectType, PageBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new page is created." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class PageUpdated(ObjectType, PageBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when page is updated." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
 class PageDeleted(ObjectType, PageBase):
     class Meta:
         interfaces = (Event,)
+        description = "Event sent when page is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
 class PageTypeBase(AbstractType):
     page_type = graphene.Field(
         "saleor.graphql.page.types.PageType",
-        description="The page type the event relates to."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="The page type the event relates to.",
     )
 
     @staticmethod
@@ -875,24 +1051,31 @@ class PageTypeBase(AbstractType):
 class PageTypeCreated(ObjectType, PageTypeBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new page type is created." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class PageTypeUpdated(ObjectType, PageTypeBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when page type is updated." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class PageTypeDeleted(ObjectType, PageTypeBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when page type is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class PermissionGroupBase(AbstractType):
     permission_group = graphene.Field(
         "saleor.graphql.account.types.Group",
-        description="The permission group the event relates to."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        description="The permission group the event relates to.",
     )
 
     @staticmethod
@@ -904,16 +1087,31 @@ class PermissionGroupBase(AbstractType):
 class PermissionGroupCreated(ObjectType, PermissionGroupBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new permission group is created."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
+        )
 
 
 class PermissionGroupUpdated(ObjectType, PermissionGroupBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when permission group is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
+        )
 
 
 class PermissionGroupDeleted(ObjectType, PermissionGroupBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when permission group is deleted."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
+        )
 
 
 class ShippingPriceBase(AbstractType):
@@ -922,18 +1120,14 @@ class ShippingPriceBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The shipping method the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The shipping method the event relates to.",
     )
     shipping_zone = graphene.Field(
         "saleor.graphql.shipping.types.ShippingZone",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The shipping zone the shipping method belongs to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The shipping zone the shipping method belongs to.",
     )
 
     @staticmethod
@@ -950,16 +1144,27 @@ class ShippingPriceBase(AbstractType):
 class ShippingPriceCreated(ObjectType, ShippingPriceBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new shipping price is created."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class ShippingPriceUpdated(ObjectType, ShippingPriceBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when shipping price is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ShippingPriceDeleted(ObjectType, ShippingPriceBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when shipping price is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ShippingZoneBase(AbstractType):
@@ -968,9 +1173,7 @@ class ShippingZoneBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The shipping zone the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        description="The shipping zone the event relates to.",
     )
 
     @staticmethod
@@ -982,31 +1185,51 @@ class ShippingZoneBase(AbstractType):
 class ShippingZoneCreated(ObjectType, ShippingZoneBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new shipping zone is created."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class ShippingZoneUpdated(ObjectType, ShippingZoneBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when shipping zone is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when shipping zone is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class StaffCreated(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new staff user is created." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class StaffUpdated(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when staff user is updated." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class StaffDeleted(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when staff user is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
 
 
 class TransactionAction(ObjectType, AbstractType):
@@ -1039,6 +1262,11 @@ class TransactionActionRequest(ObjectType):
 
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when transaction action is requested."
+            + ADDED_IN_34
+            + PREVIEW_FEATURE
+        )
 
     @staticmethod
     def resolve_transaction(root, _info):
@@ -1068,10 +1296,7 @@ class TranslationTypes(Union):
 
 class TranslationBase(AbstractType):
     translation = graphene.Field(
-        TranslationTypes,
-        description="The translation the event relates to."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        TranslationTypes, description="The translation the event relates to."
     )
 
     @staticmethod
@@ -1083,11 +1308,19 @@ class TranslationBase(AbstractType):
 class TranslationCreated(ObjectType, TranslationBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new translation is created."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
+        )
 
 
 class TranslationUpdated(ObjectType, TranslationBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when translation is updated." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
 
 
 class VoucherBase(AbstractType):
@@ -1096,7 +1329,7 @@ class VoucherBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="The voucher the event relates to." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="The voucher the event relates to.",
     )
 
     @staticmethod
@@ -1108,24 +1341,31 @@ class VoucherBase(AbstractType):
 class VoucherCreated(ObjectType, VoucherBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new voucher is created." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class VoucherUpdated(ObjectType, VoucherBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when voucher is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class VoucherDeleted(ObjectType, VoucherBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when voucher is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class WarehouseBase(AbstractType):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
-        description="The warehouse the event relates to."
-        + ADDED_IN_34
-        + PREVIEW_FEATURE,
+        description="The warehouse the event relates to.",
     )
 
     @staticmethod
@@ -1137,16 +1377,25 @@ class WarehouseBase(AbstractType):
 class WarehouseCreated(ObjectType, WarehouseBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when new warehouse is created." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class WarehouseUpdated(ObjectType, WarehouseBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when warehouse is updated." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class WarehouseDeleted(ObjectType, WarehouseBase):
     class Meta:
         interfaces = (Event,)
+        description = (
+            "Event sent when warehouse is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
 
 
 class Subscription(ObjectType):
