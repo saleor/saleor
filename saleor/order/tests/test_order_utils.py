@@ -8,7 +8,6 @@ from ...discount import DiscountValueType, OrderDiscountType
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
-from ...order.interface import OrderTaxedPricesData
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus
 from ..events import OrderEvents
