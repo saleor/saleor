@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 from django.db.models.signals import post_migrate
+from django.apps import apps as registry
 
 
 def assing_permissions(apps, schema_editor):
@@ -19,7 +20,8 @@ def assing_permissions(apps, schema_editor):
         for group in Group.objects.iterator():
             group.permissions.add(manage_channels)
 
-    post_migrate.connect(on_migrations_complete, weak=False)
+    sender = registry.get_app_config("channel")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 def get_default_currency(Checkout, Order, Product, ShippingMethod, Voucher):
