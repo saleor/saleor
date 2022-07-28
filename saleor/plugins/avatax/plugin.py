@@ -837,12 +837,6 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         return False
 
-    def fetch_taxes_data(self, previous_value):
-        if not self.active:
-            return previous_value
-        get_cached_tax_codes_or_fetch(self.config)
-        return True
-
     @classmethod
     def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
         conf = {

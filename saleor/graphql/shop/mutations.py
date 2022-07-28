@@ -235,12 +235,7 @@ class ShopFetchTaxRates(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info):
-        if not info.context.plugins.fetch_taxes_data():
-            raise ValidationError(
-                "Could not fetch tax rates. Make sure you have supplied a "
-                "valid credential for your tax plugin.",
-                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES.value,
-            )
+        # This mutation is deprecated and will be removed in Saleor 4.0.
         return ShopFetchTaxRates(shop=Shop())
 
 

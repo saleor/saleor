@@ -619,7 +619,8 @@ def test_update_order_prices(
     assert order_with_lines.total == total
 
 
-def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_settings):
+@pytest.mark.skip(reason="Rewrite to use tax calculation based on tax classes.")
+def test_update_order_prices_tax_included(order_with_lines, site_settings):
     manager = get_plugins_manager()
 
     channel = order_with_lines.channel

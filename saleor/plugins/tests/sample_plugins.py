@@ -175,11 +175,6 @@ class PluginSample(BasePlugin):
         price = Money("1.0", price.currency)
         return TaxedMoney(price, price)
 
-    def get_tax_rate_percentage_value(
-        self, obj: Union["Product", "ProductType"], country: Country, previous_value
-    ) -> Decimal:
-        return Decimal("15.0").quantize(Decimal("1."))
-
     def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:

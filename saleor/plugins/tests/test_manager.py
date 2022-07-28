@@ -616,18 +616,6 @@ def test_manager_sale_toggle(sale):
     assert current_catalogue == current_catalogue_returned
 
 
-@pytest.mark.parametrize(
-    "plugins, amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "15.0"), ([], "0")],
-)
-def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
-    country = Country("PL")
-    tax_rate_value = PluginsManager(plugins=plugins).get_tax_rate_percentage_value(
-        product, country
-    )
-    assert tax_rate_value == Decimal(amount)
-
-
 def test_manager_get_plugin_configuration(plugin_configuration):
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",

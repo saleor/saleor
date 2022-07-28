@@ -1310,14 +1310,6 @@ class PluginsManager(PaymentInterface):
             "get_tax_code_from_object_meta", default_value, obj
         )
 
-    def get_tax_rate_percentage_value(
-        self, obj: Union["Product", "ProductType"], country: Country
-    ) -> Decimal:
-        default_value = Decimal("0").quantize(Decimal("1."))
-        return self.__run_method_on_plugins(
-            "get_tax_rate_percentage_value", default_value, obj, country
-        ).quantize(Decimal("1."))
-
     def save_plugin_configuration(
         self, plugin_id, channel_slug: Optional[str], cleaned_data: dict
     ):
@@ -1354,10 +1346,6 @@ class PluginsManager(PaymentInterface):
             if plugin.check_plugin_id(plugin_id):
                 return plugin
         return None
-
-    def fetch_taxes_data(self) -> bool:
-        default_value = False
-        return self.__run_method_on_plugins("fetch_taxes_data", default_value)
 
     def webhook_endpoint_without_channel(
         self, request: WSGIRequest, plugin_id: str
