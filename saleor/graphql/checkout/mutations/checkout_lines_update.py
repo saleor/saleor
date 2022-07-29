@@ -19,7 +19,11 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
-from .utils import check_lines_quantity, group_lines_input_data_on_update
+from .utils import (
+    check_lines_quantity,
+    get_variants_and_total_quantities,
+    group_lines_input_data_on_update,
+)
 
 
 class CheckoutLineUpdateInput(graphene.InputObjectType):
@@ -94,16 +98,12 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         channel_slug,
         lines=None,
     ):
-        variants_to_validate = []
-        quantities = []
-
-        for variant, line_data in zip(variants, checkout_lines_data):
-            if line_data.quantity_to_update:
-                variants_to_validate.append(variant)
-                quantities.append(line_data.quantity)
+        variants, quantities = get_variants_and_total_quantities(
+            variants, checkout_lines_data, quantity_to_update_check=True
+        )
 
         check_lines_quantity(
-            variants_to_validate,
+            variants,
             quantities,
             country,
             channel_slug,

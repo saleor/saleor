@@ -168,7 +168,7 @@ def test_group_on_update_when_one_line_and_mixed_parameters_provided(
 
     expected = [
         CheckoutLineData(
-            variant_id=None,
+            variant_id=str(line.variant_id),
             line_id=str(line.id),
             quantity=7,
             quantity_to_update=True,
