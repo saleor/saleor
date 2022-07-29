@@ -717,6 +717,34 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     ]
 
 
+def test_checkout_lines_add_too_many_when_variant_in_multiple_lines(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [
+            {"variantId": variant_id, "quantity": 30},
+            {"variantId": variant_id, "quantity": 21, "forceNewLine": True},
+        ],
+        "channelSlug": checkout_with_item.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)["data"]["checkoutLinesAdd"]
+
+    assert content["errors"]
+    assert content["errors"] == [
+        {
+            "field": "quantity",
+            "message": "Cannot add more than 50 times this item: SKU_A.",
+            "code": "QUANTITY_GREATER_THAN_LIMIT",
+            "variants": None,
+        }
+    ]
+
+
 @pytest.mark.parametrize("is_preorder", [True, False])
 def test_checkout_lines_add_too_many_after_two_trials(
     user_api_client, checkout_with_item, stock, is_preorder
