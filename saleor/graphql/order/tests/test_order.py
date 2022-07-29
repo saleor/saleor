@@ -6560,6 +6560,42 @@ def test_order_mark_as_paid_no_billing_address(
     assert data[0]["code"] == OrderErrorCode.BILLING_ADDRESS_NOT_SET.name
 
 
+def test_draft_order_mark_as_paid_check_price_recalculation(
+    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+):
+    # given
+    order = order_with_lines
+    # we need to change order total and set it as invalidated prices.
+    # we couldn't use `order.total.gross` because this test don't use any tax app
+    # or plugin.
+    expected_total_net = order.total.net
+    expected_total = TaxedMoney(net=expected_total_net, gross=expected_total_net)
+    order.total = TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+    order.should_refresh_prices = True
+    order.status = OrderStatus.DRAFT
+    order.save()
+    query = MUTATION_MARK_ORDER_AS_PAID
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    assert order.total == expected_total
+    payment = order.payments.get()
+    assert payment.total == expected_total_net.amount
+    assert data["isPaid"] is True is order.is_fully_paid()
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
+    assert event_order_paid.user == staff_user
+
+
 ORDER_VOID = """
     mutation voidOrder($id: ID!) {
         orderVoid(id: $id) {

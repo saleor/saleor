@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
 from ....order.actions import clean_mark_order_as_paid, mark_order_as_paid
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ...core.mutations import BaseMutation
@@ -37,6 +38,8 @@ class OrderMarkAsPaid(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        manager = info.context.plugins
+        order, _ = fetch_order_prices_if_expired(order, manager)
         transaction_reference = data.get("transaction_reference")
         cls.clean_billing_address(order)
         user = info.context.user
