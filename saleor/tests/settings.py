@@ -20,6 +20,8 @@ def lazy_re_compile(regex, flags=0):
     return SimpleLazyObject(_compile)
 
 
+BLOCK_POPULATE_DEFAULTS = True
+
 CELERY_TASK_ALWAYS_EAGER = True
 
 SECRET_KEY = "NOTREALLY"

@@ -1,14 +1,17 @@
 from django.db import migrations
+from django.conf import settings
 
 
 def create_default_warehouse(apps, schema_editor):
-    address = apps.get_model("account", "Address").objects.create(country="US")
-    Warehouse = apps.get_model("warehouse", "Warehouse")
-    Warehouse.objects.create(
-        address=address,
-        name="Default Warehouse",
-        slug="default-warehouse",
-    )
+    if not settings.BLOCK_POPULATE_DEFAULTS:
+        address = apps.get_model("account", "Address").objects.create(country="US")
+        Warehouse = apps.get_model("warehouse", "Warehouse")
+        if not Warehouse.objects.all().exists():
+            Warehouse.objects.create(
+                address=address,
+                name="Default Warehouse",
+                slug="default-warehouse",
+            )
 
 
 class Migration(migrations.Migration):
@@ -19,5 +22,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_default_warehouse),
+        migrations.RunPython(create_default_warehouse, migrations.RunPython.noop),
     ]
