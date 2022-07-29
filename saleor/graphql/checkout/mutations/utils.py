@@ -101,16 +101,19 @@ def update_checkout_shipping_method_if_invalid(
 def get_variants_and_total_quantities(
     variants, lines_data, quantity_to_update_check=False
 ):
-    variants_total_quantity_map = defaultdict(lambda: 0)
+    variants_total_quantity_map = defaultdict(int)
+    mapped_data = defaultdict(int)
+
+    if quantity_to_update_check:
+        lines_data = filter(lambda d: d.quantity_to_update, lines_data)
+
+    for data in lines_data:
+        mapped_data[data.variant_id] += data.quantity
 
     for variant in variants:
-        for data in lines_data:
-            if quantity_to_update_check:
-                if data.quantity_to_update and str(variant.id) == data.variant_id:
-                    variants_total_quantity_map[variant] += data.quantity
-            else:
-                if str(variant.id) == data.variant_id:
-                    variants_total_quantity_map[variant] += data.quantity
+        quantity = mapped_data.get(str(variant.id), None)
+        if quantity is not None:
+            variants_total_quantity_map[variant] += quantity
 
     return variants_total_quantity_map.keys(), variants_total_quantity_map.values()
 
