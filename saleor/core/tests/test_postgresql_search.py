@@ -7,7 +7,7 @@ from ...account.models import Address
 from ...product.models import Product, ProductChannelListing
 from ...product.search import search_products
 from ...tests.utils import dummy_editorjs
-from ..postgres import FlatSearchVector
+from ..postgres import FlatConcat
 
 PRODUCTS = [
     ("Arabica Coffee", "The best grains in galactic"),
@@ -82,12 +82,12 @@ def gen_address_for_user(first_name, last_name):
 
 
 def test_combined_flat_search_vector():
-    """Ensure two FlatSearchVector can be combined into one object"""
-    flat_vector_1 = FlatSearchVector(
+    """Ensure two FlatConcat can be combined into one object"""
+    flat_vector_1 = FlatConcat(
         SearchVector(Value("value1"), weight="A"),
         SearchVector(Value("value2"), weight="C"),
     )
-    flat_vector_2 = FlatSearchVector(
+    flat_vector_2 = FlatConcat(
         SearchVector(Value("value3"), weight="A"),
         SearchVector(Value("value4"), weight="C"),
     )

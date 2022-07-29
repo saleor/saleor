@@ -6,7 +6,7 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from ....core.postgres import FlatSearchVector
+from ....core.postgres import FlatConcat
 from ....discount.models import OrderDiscount
 from ....order.models import Order, OrderStatus
 from ....order.search import (
@@ -37,9 +37,7 @@ def orders_for_pagination(db, channel_USD):
     )
 
     for order in orders:
-        order.search_vector = FlatSearchVector(
-            *prepare_order_search_vector_value(order)
-        )
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     Order.objects.bulk_update(orders, ["search_vector"])
 
     return orders
@@ -451,9 +449,7 @@ def test_orders_query_pagination_with_filter_search(
     )
 
     for order in orders:
-        order.search_vector = FlatSearchVector(
-            *prepare_order_search_vector_value(order)
-        )
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     Order.objects.bulk_update(orders, ["search_vector"])
 
     after = None
@@ -535,9 +531,7 @@ def test_draft_orders_query_pagination_with_filter_search(
     )
 
     for order in orders:
-        order.search_vector = FlatSearchVector(
-            *prepare_order_search_vector_value(order)
-        )
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     Order.objects.bulk_update(orders, ["search_vector"])
 
     page_size = 2

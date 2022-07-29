@@ -5,7 +5,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..account.search import generate_address_search_vector_value
-from ..core.postgres import FlatSearchVector, NoValidationSearchVector
+from ..core.postgres import FlatConcat, NoValidationSearchVector
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 def update_order_search_vector(order: "Order"):
-    order.search_vector = FlatSearchVector(*prepare_order_search_vector_value(order))
+    order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     order.save(update_fields=["search_vector", "updated_at"])
 
 

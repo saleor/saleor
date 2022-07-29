@@ -4,7 +4,7 @@ from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
-from ....core.postgres import FlatSearchVector
+from ....core.postgres import FlatConcat
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
@@ -71,7 +71,7 @@ class OrderUpdate(DraftOrderCreate):
         if instance.user_email:
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
-        instance.search_vector = FlatSearchVector(
+        instance.search_vector = FlatConcat(
             *prepare_order_search_vector_value(instance)
         )
         instance.save()

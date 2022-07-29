@@ -4,7 +4,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..attribute import AttributeInputType
-from ..core.postgres import FlatSearchVector, NoValidationSearchVector
+from ..core.postgres import FlatConcat, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
 from .models import Product
 
@@ -38,7 +38,7 @@ def update_products_search_vector(products: "QuerySet"):
 
         prefetch_related_objects(products_batch, *PRODUCT_FIELDS_TO_PREFETCH)
         for product in products_batch:
-            product.search_vector = FlatSearchVector(
+            product.search_vector = FlatConcat(
                 *prepare_product_search_vector_value(product, already_prefetched=True)
             )
 
@@ -46,9 +46,7 @@ def update_products_search_vector(products: "QuerySet"):
 
 
 def update_product_search_vector(product: "Product"):
-    product.search_vector = FlatSearchVector(
-        *prepare_product_search_vector_value(product)
-    )
+    product.search_vector = FlatConcat(*prepare_product_search_vector_value(product))
     product.save(update_fields=["search_vector", "updated_at"])
 
 

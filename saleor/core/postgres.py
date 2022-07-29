@@ -40,11 +40,14 @@ class NoValidationSearchVector(SearchVector, NoValidationSearchVectorCombinable)
     """
 
 
-class FlatSearchVector(Expression):
-    """Generate a SQL statements for combined ``SearchVector`` expressions.
+class FlatConcat(Expression):
+    """Generate a SQL statements for expressions to be concatenated.
 
     This replaces the logic of Django ORM from recursive ``as_sql()`` and
-    ``resolve_expression()``. Allowing to set hundreds of ``SearchVector``.
+    ``resolve_expression()`` from some functions such as ``SearchVector``.
+
+    The function ``django.db.models.functions.text.Concat`` is recursive thus
+    will crash when setting hundreds of expressions to be concatenated.
     """
 
     function = None
@@ -65,12 +68,12 @@ class FlatSearchVector(Expression):
         return f"{self.__class__.__name__}({args})"
 
     def __add__(self, other):
-        if not isinstance(other, FlatSearchVector):
+        if not isinstance(other, FlatConcat):
             raise TypeError(
                 f"Cannot combine FlatSearchVectorCombinable with other "
                 f"instances types, got {other!r}."
             )
-        return FlatSearchVector(*self.source_expressions + other.source_expressions)
+        return FlatConcat(*self.source_expressions + other.source_expressions)
 
     def get_source_expressions(self):
         return self.source_expressions

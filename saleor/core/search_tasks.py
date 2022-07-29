@@ -12,7 +12,7 @@ from ..product.search import (
     PRODUCT_FIELDS_TO_PREFETCH,
     prepare_product_search_vector_value,
 )
-from .postgres import FlatSearchVector
+from .postgres import FlatConcat
 
 task_logger = get_task_logger(__name__)
 
@@ -129,7 +129,7 @@ def set_search_vector_values(
 ):
     Model = instances[0]._meta.model
     for instance in instances:
-        instance.search_vector = FlatSearchVector(
+        instance.search_vector = FlatConcat(
             *prepare_search_vector_func(instance, already_prefetched=True)
         )
     Model.objects.bulk_update(instances, ["search_vector"])
