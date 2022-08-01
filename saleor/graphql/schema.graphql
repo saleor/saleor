@@ -21336,6 +21336,13 @@ enum VolumeUnitsEnum {
   ACRE_FT
 }
 
+"""
+Event sent when new address is created.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AddressCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21349,16 +21356,17 @@ type AddressCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The address the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The address the event relates to."""
   address: Address
 }
 
+"""
+Event sent when address is updated.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AddressUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21372,16 +21380,17 @@ type AddressUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The address the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The address the event relates to."""
   address: Address
 }
 
+"""
+Event sent when address is deleted.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AddressDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21395,16 +21404,17 @@ type AddressDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The address the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The address the event relates to."""
   address: Address
 }
 
+"""
+Event sent when new app is installed.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AppInstalled implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21418,16 +21428,17 @@ type AppInstalled implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The application the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The application the event relates to."""
   app: App
 }
 
+"""
+Event sent when app is updated.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AppUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21441,16 +21452,17 @@ type AppUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The application the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The application the event relates to."""
   app: App
 }
 
+"""
+Event sent when app is deleted.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AppDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21464,16 +21476,17 @@ type AppDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The application the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The application the event relates to."""
   app: App
 }
 
+"""
+Event sent when app status has changed.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AppStatusChanged implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21487,16 +21500,17 @@ type AppStatusChanged implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The application the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The application the event relates to."""
   app: App
 }
 
+"""
+Event sent when new attribute is created.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AttributeCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21510,16 +21524,17 @@ type AttributeCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The attribute the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The attribute the event relates to."""
   attribute: Attribute
 }
 
+"""
+Event sent when attribute is updated.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AttributeUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21533,16 +21548,17 @@ type AttributeUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The attribute the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The attribute the event relates to."""
   attribute: Attribute
 }
 
+"""
+Event sent when attribute is deleted.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AttributeDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21556,16 +21572,17 @@ type AttributeDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The attribute the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The attribute the event relates to."""
   attribute: Attribute
 }
 
+"""
+Event sent when new attribute value is created.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AttributeValueCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21579,16 +21596,17 @@ type AttributeValueCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The attribute value the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The attribute value the event relates to."""
   attributeValue: AttributeValue
 }
 
+"""
+Event sent when attribute value is updated.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AttributeValueUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21602,16 +21620,17 @@ type AttributeValueUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The attribute value the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The attribute value the event relates to."""
   attributeValue: AttributeValue
 }
 
+"""
+Event sent when attribute value is deleted.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type AttributeValueDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21625,16 +21644,17 @@ type AttributeValueDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The attribute value the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The attribute value the event relates to."""
   attributeValue: AttributeValue
 }
 
+"""
+Event sent when new category is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CategoryCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21648,16 +21668,17 @@ type CategoryCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The category the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The category the event relates to."""
   category: Category
 }
 
+"""
+Event sent when category is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CategoryUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21671,16 +21692,17 @@ type CategoryUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The category the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The category the event relates to."""
   category: Category
 }
 
+"""
+Event sent when category is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CategoryDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21694,16 +21716,17 @@ type CategoryDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The category the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The category the event relates to."""
   category: Category
 }
 
+"""
+Event sent when new channel is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ChannelCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21717,16 +21740,17 @@ type ChannelCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The channel the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel the event relates to."""
   channel: Channel
 }
 
+"""
+Event sent when channel is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ChannelUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21740,16 +21764,17 @@ type ChannelUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The channel the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel the event relates to."""
   channel: Channel
 }
 
+"""
+Event sent when channel is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ChannelDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21763,16 +21788,17 @@ type ChannelDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The channel the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel the event relates to."""
   channel: Channel
 }
 
+"""
+Event sent when channel status has changed.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ChannelStatusChanged implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21786,16 +21812,17 @@ type ChannelStatusChanged implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The channel the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel the event relates to."""
   channel: Channel
 }
 
+"""
+Event sent when new gift card is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type GiftCardCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21809,16 +21836,17 @@ type GiftCardCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The gift card the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The gift card the event relates to."""
   giftCard: GiftCard
 }
 
+"""
+Event sent when gift card is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type GiftCardUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21832,16 +21860,17 @@ type GiftCardUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The gift card the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The gift card the event relates to."""
   giftCard: GiftCard
 }
 
+"""
+Event sent when gift card is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type GiftCardDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21855,16 +21884,17 @@ type GiftCardDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The gift card the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The gift card the event relates to."""
   giftCard: GiftCard
 }
 
+"""
+Event sent when gift card status has changed.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type GiftCardStatusChanged implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21878,16 +21908,17 @@ type GiftCardStatusChanged implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The gift card the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The gift card the event relates to."""
   giftCard: GiftCard
 }
 
+"""
+Event sent when new menu is created.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type MenuCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21901,19 +21932,20 @@ type MenuCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The menu the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The menu the event relates to."""
   menu(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Menu
 }
 
+"""
+Event sent when menu is updated.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type MenuUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21927,19 +21959,20 @@ type MenuUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The menu the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The menu the event relates to."""
   menu(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Menu
 }
 
+"""
+Event sent when menu is deleted.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type MenuDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21953,19 +21986,20 @@ type MenuDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The menu the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The menu the event relates to."""
   menu(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Menu
 }
 
+"""
+Event sent when new menu item is created.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type MenuItemCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -21979,19 +22013,20 @@ type MenuItemCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The menu item the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The menu item the event relates to."""
   menuItem(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): MenuItem
 }
 
+"""
+Event sent when menu item is updated.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type MenuItemUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22005,19 +22040,20 @@ type MenuItemUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The menu item the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The menu item the event relates to."""
   menuItem(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): MenuItem
 }
 
+"""
+Event sent when menu item is deleted.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type MenuItemDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22031,19 +22067,20 @@ type MenuItemDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The menu item the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The menu item the event relates to."""
   menuItem(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): MenuItem
 }
 
+"""
+Event sent when new order is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22057,16 +22094,17 @@ type OrderCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when order is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22080,16 +22118,17 @@ type OrderUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when order is confirmed.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderConfirmed implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22103,16 +22142,17 @@ type OrderConfirmed implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when order is fully paid.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderFullyPaid implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22126,16 +22166,17 @@ type OrderFullyPaid implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when order is canceled.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderCancelled implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22149,16 +22190,17 @@ type OrderCancelled implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when order is fulfilled.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type OrderFulfilled implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22172,16 +22214,17 @@ type OrderFulfilled implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when new draft order is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type DraftOrderCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22195,16 +22238,17 @@ type DraftOrderCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when draft order is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type DraftOrderUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22218,16 +22262,17 @@ type DraftOrderUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when draft order is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type DraftOrderDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22241,16 +22286,17 @@ type DraftOrderDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The order the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the event relates to."""
   order: Order
 }
 
+"""
+Event sent when new product is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22264,28 +22310,23 @@ type ProductCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product the event relates to."""
   product(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
 
-  """
-  The category of the product.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The category of the product."""
   category: Category
 }
 
+"""
+Event sent when product is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22299,28 +22340,23 @@ type ProductUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product the event relates to."""
   product(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
 
-  """
-  The category of the product.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The category of the product."""
   category: Category
 }
 
+"""
+Event sent when product is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22334,28 +22370,23 @@ type ProductDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product the event relates to."""
   product(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
 
-  """
-  The category of the product.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The category of the product."""
   category: Category
 }
 
+"""
+Event sent when new product variant is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductVariantCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22369,19 +22400,20 @@ type ProductVariantCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product variant the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product variant the event relates to."""
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 }
 
+"""
+Event sent when product variant is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductVariantUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22395,19 +22427,20 @@ type ProductVariantUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product variant the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product variant the event relates to."""
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 }
 
+"""
+Event sent when product variant is out of stock.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductVariantOutOfStock implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22421,28 +22454,23 @@ type ProductVariantOutOfStock implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product variant the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product variant the event relates to."""
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 
-  """
-  Look up a warehouse.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a warehouse."""
   warehouse: Warehouse
 }
 
+"""
+Event sent when product variant is back in stock.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductVariantBackInStock implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22456,28 +22484,23 @@ type ProductVariantBackInStock implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product variant the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product variant the event relates to."""
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 
-  """
-  Look up a warehouse.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a warehouse."""
   warehouse: Warehouse
 }
 
+"""
+Event sent when product variant is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ProductVariantDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22491,19 +22514,20 @@ type ProductVariantDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The product variant the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The product variant the event relates to."""
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 }
 
+"""
+Event sent when new sale is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type SaleCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22517,19 +22541,20 @@ type SaleCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The sale the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The sale the event relates to."""
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Sale
 }
 
+"""
+Event sent when sale is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type SaleUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22543,19 +22568,20 @@ type SaleUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The sale the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The sale the event relates to."""
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Sale
 }
 
+"""
+Event sent when sale is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type SaleDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22569,13 +22595,7 @@ type SaleDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The sale the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The sale the event relates to."""
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -22615,6 +22635,13 @@ type SaleToggle implements Event {
   ): Sale
 }
 
+"""
+Event sent when invoice is requested.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type InvoiceRequested implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22628,16 +22655,17 @@ type InvoiceRequested implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The invoice the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The invoice the event relates to."""
   invoice: Invoice
 }
 
+"""
+Event sent when invoice is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type InvoiceDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22651,16 +22679,17 @@ type InvoiceDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The invoice the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The invoice the event relates to."""
   invoice: Invoice
 }
 
+"""
+Event sent when invoice is sent.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type InvoiceSent implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22674,16 +22703,17 @@ type InvoiceSent implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The invoice the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The invoice the event relates to."""
   invoice: Invoice
 }
 
+"""
+Event sent when new fulfillment is created.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type FulfillmentCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22697,25 +22727,20 @@ type FulfillmentCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The fulfillment the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The fulfillment the event relates to."""
   fulfillment: Fulfillment
 
-  """
-  The order the fulfillment belongs to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the fulfillment belongs to."""
   order: Order
 }
 
+"""
+Event sent when fulfillment is canceled.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type FulfillmentCanceled implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22729,25 +22754,20 @@ type FulfillmentCanceled implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The fulfillment the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The fulfillment the event relates to."""
   fulfillment: Fulfillment
 
-  """
-  The order the fulfillment belongs to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order the fulfillment belongs to."""
   order: Order
 }
 
+"""
+Event sent when new customer user is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CustomerCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22761,16 +22781,17 @@ type CustomerCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The user the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The user the event relates to."""
   user: User
 }
 
+"""
+Event sent when customer user is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CustomerUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22784,16 +22805,17 @@ type CustomerUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The user the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The user the event relates to."""
   user: User
 }
 
+"""
+Event sent when new collection is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CollectionCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22807,19 +22829,20 @@ type CollectionCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The collection the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The collection the event relates to."""
   collection(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Collection
 }
 
+"""
+Event sent when collection is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CollectionUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22833,19 +22856,20 @@ type CollectionUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The collection the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The collection the event relates to."""
   collection(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Collection
 }
 
+"""
+Event sent when collection is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CollectionDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22859,19 +22883,20 @@ type CollectionDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The collection the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The collection the event relates to."""
   collection(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Collection
 }
 
+"""
+Event sent when new checkout is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CheckoutCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22885,16 +22910,17 @@ type CheckoutCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The checkout the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The checkout the event relates to."""
   checkout: Checkout
 }
 
+"""
+Event sent when checkout is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CheckoutUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22908,16 +22934,17 @@ type CheckoutUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The checkout the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The checkout the event relates to."""
   checkout: Checkout
 }
 
+"""
+Event sent when new page is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PageCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22931,16 +22958,17 @@ type PageCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The page the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The page the event relates to."""
   page: Page
 }
 
+"""
+Event sent when page is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PageUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22954,16 +22982,17 @@ type PageUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The page the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The page the event relates to."""
   page: Page
 }
 
+"""
+Event sent when page is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PageDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22977,16 +23006,17 @@ type PageDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The page the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The page the event relates to."""
   page: Page
 }
 
+"""
+Event sent when new page type is created.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PageTypeCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23000,16 +23030,17 @@ type PageTypeCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The page type the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The page type the event relates to."""
   pageType: PageType
 }
 
+"""
+Event sent when page type is updated.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PageTypeUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23023,16 +23054,17 @@ type PageTypeUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The page type the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The page type the event relates to."""
   pageType: PageType
 }
 
+"""
+Event sent when page type is deleted.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PageTypeDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23046,16 +23078,17 @@ type PageTypeDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The page type the event relates to.
-  
-  Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The page type the event relates to."""
   pageType: PageType
 }
 
+"""
+Event sent when new permission group is created.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PermissionGroupCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23069,16 +23102,17 @@ type PermissionGroupCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The permission group the event relates to.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The permission group the event relates to."""
   permissionGroup: Group
 }
 
+"""
+Event sent when permission group is updated.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PermissionGroupUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23092,16 +23126,17 @@ type PermissionGroupUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The permission group the event relates to.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The permission group the event relates to."""
   permissionGroup: Group
 }
 
+"""
+Event sent when permission group is deleted.
+
+Added in Saleor 3.6.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type PermissionGroupDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23115,16 +23150,17 @@ type PermissionGroupDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The permission group the event relates to.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The permission group the event relates to."""
   permissionGroup: Group
 }
 
+"""
+Event sent when new shipping price is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingPriceCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23138,31 +23174,26 @@ type ShippingPriceCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The shipping method the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping method the event relates to."""
   shippingMethod(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingMethodType
 
-  """
-  The shipping zone the shipping method belongs to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping zone the shipping method belongs to."""
   shippingZone(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
 }
 
+"""
+Event sent when shipping price is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingPriceUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23176,31 +23207,26 @@ type ShippingPriceUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The shipping method the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping method the event relates to."""
   shippingMethod(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingMethodType
 
-  """
-  The shipping zone the shipping method belongs to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping zone the shipping method belongs to."""
   shippingZone(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
 }
 
+"""
+Event sent when shipping price is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingPriceDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23214,31 +23240,26 @@ type ShippingPriceDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The shipping method the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping method the event relates to."""
   shippingMethod(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingMethodType
 
-  """
-  The shipping zone the shipping method belongs to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping zone the shipping method belongs to."""
   shippingZone(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
 }
 
+"""
+Event sent when new shipping zone is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingZoneCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23252,19 +23273,20 @@ type ShippingZoneCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The shipping zone the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping zone the event relates to."""
   shippingZone(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
 }
 
+"""
+Event sent when shipping zone is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingZoneUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23278,19 +23300,20 @@ type ShippingZoneUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The shipping zone the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping zone the event relates to."""
   shippingZone(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
 }
 
+"""
+Event sent when shipping zone is deleted.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type ShippingZoneDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23304,19 +23327,20 @@ type ShippingZoneDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The shipping zone the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The shipping zone the event relates to."""
   shippingZone(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
 }
 
+"""
+Event sent when new staff user is created.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type StaffCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23330,16 +23354,17 @@ type StaffCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The user the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The user the event relates to."""
   user: User
 }
 
+"""
+Event sent when staff user is updated.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type StaffUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23353,16 +23378,17 @@ type StaffUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The user the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The user the event relates to."""
   user: User
 }
 
+"""
+Event sent when staff user is deleted.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type StaffDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23376,16 +23402,17 @@ type StaffDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The user the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The user the event relates to."""
   user: User
 }
 
+"""
+Event sent when transaction action is requested.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type TransactionActionRequest implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23426,6 +23453,13 @@ type TransactionAction {
   amount: PositiveDecimal
 }
 
+"""
+Event sent when new translation is created.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type TranslationCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23439,18 +23473,19 @@ type TranslationCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The translation the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The translation the event relates to."""
   translation: TranslationTypes
 }
 
 union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
 
+"""
+Event sent when translation is updated.
+
+Added in Saleor 3.2.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type TranslationUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23464,16 +23499,17 @@ type TranslationUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The translation the event relates to.
-  
-  Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The translation the event relates to."""
   translation: TranslationTypes
 }
 
+"""
+Event sent when new voucher is created.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type VoucherCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23487,19 +23523,20 @@ type VoucherCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The voucher the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The voucher the event relates to."""
   voucher(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Voucher
 }
 
+"""
+Event sent when voucher is updated.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type VoucherUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23513,19 +23550,20 @@ type VoucherUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The voucher the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The voucher the event relates to."""
   voucher(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Voucher
 }
 
+"""
+Event sent when voucher is deleted.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type VoucherDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23539,19 +23577,20 @@ type VoucherDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The voucher the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The voucher the event relates to."""
   voucher(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Voucher
 }
 
+"""
+Event sent when new warehouse is created.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type WarehouseCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23565,16 +23604,17 @@ type WarehouseCreated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The warehouse the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The warehouse the event relates to."""
   warehouse: Warehouse
 }
 
+"""
+Event sent when warehouse is updated.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type WarehouseUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23588,16 +23628,17 @@ type WarehouseUpdated implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The warehouse the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The warehouse the event relates to."""
   warehouse: Warehouse
 }
 
+"""
+Event sent when warehouse is deleted.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type WarehouseDeleted implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23611,13 +23652,7 @@ type WarehouseDeleted implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The warehouse the event relates to.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The warehouse the event relates to."""
   warehouse: Warehouse
 }
 
