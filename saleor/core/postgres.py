@@ -1,11 +1,15 @@
+import logging
 from typing import List, Optional, Union
 
+from django.conf import settings
 from django.contrib.postgres.search import (
     CombinedSearchVector,
     SearchVector,
     SearchVectorCombinable,
 )
 from django.db.models import Expression
+
+logger = logging.getLogger(__name__)
 
 
 class NoValidationSearchVectorCombinable(SearchVectorCombinable):
@@ -57,8 +61,27 @@ class FlatConcat(Expression):
     contains_aggregate = False
     contains_over_clause = False
 
+    # Maximum allowed expression to be passed to the function
+    # If ``silent_drop_expression`` is True then it will truncate
+    # and log a warning event. Otherwise, it will raise ValueError
+    max_expression_count: Optional[int] = None
+    silent_drop_expression: bool = False
+
     def __init__(self, *expressions, output_field=None):
         super().__init__(output_field=output_field)
+        if (
+            self.max_expression_count is not None
+            and len(expressions) > self.max_expression_count
+        ):
+            if self.silent_drop_expression:
+                expressions = expressions[: self.max_expression_count]
+                logger.warning(
+                    "Maximum expression count exceed (%d out of %d)",
+                    len(expressions),
+                    self.max_expression_count,
+                )
+            else:
+                raise ValueError("Maximum expression count exceeded")
         self.source_expressions: List[SearchVector] = self._parse_expressions(
             *expressions
         )
@@ -107,3 +130,8 @@ class FlatConcat(Expression):
             params.extend(arg_params)
         data = {"expressions": self.arg_joiner.join(sql_parts)}
         return self.template % data, params
+
+
+class FlatConcatSearchVector(FlatConcat):
+    max_expression_count = settings.INDEX_MAXIMUM_EXPR_COUNT
+    silent_drop_expression = True

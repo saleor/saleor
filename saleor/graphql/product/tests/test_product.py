@@ -26,7 +26,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....core.postgres import FlatConcat
+from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import TaxType
 from ....core.units import MeasurementUnits, WeightUnits
 from ....order import OrderEvents, OrderStatus
@@ -2691,7 +2691,9 @@ def test_products_query_with_filter_category_and_search(
     product.save()
 
     for pr in [product, second_product]:
-        pr.search_vector = FlatConcat(*prepare_product_search_vector_value(pr))
+        pr.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(pr)
+        )
     Product.objects.bulk_update([product, second_product], ["search_vector"])
 
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -2823,7 +2825,7 @@ def test_products_query_with_filter(
         channel=channel_USD,
         is_published=False,
     )
-    second_product.search_vector = FlatConcat(
+    second_product.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(second_product)
     )
     second_product.save(update_fields=["search_vector"])
@@ -2936,7 +2938,7 @@ def test_products_query_with_filter_search_by_dropdown_attribute_value(
 
     product_with_dropdown_attr.refresh_from_db()
 
-    product_with_dropdown_attr.search_vector = FlatConcat(
+    product_with_dropdown_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_dropdown_attr)
     )
     product_with_dropdown_attr.save(update_fields=["search_document", "search_vector"])
@@ -2999,7 +3001,7 @@ def test_products_query_with_filter_search_by_multiselect_attribute_value(
 
     product_with_multiselect_attr.refresh_from_db()
 
-    product_with_multiselect_attr.search_vector = FlatConcat(
+    product_with_multiselect_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_multiselect_attr)
     )
     product_with_multiselect_attr.save(update_fields=["search_vector"])
@@ -3047,7 +3049,7 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
 
     product_with_rich_text_attr.refresh_from_db()
 
-    product_with_rich_text_attr.search_vector = FlatConcat(
+    product_with_rich_text_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_rich_text_attr)
     )
     product_with_rich_text_attr.save(update_fields=["search_vector"])
@@ -3095,7 +3097,7 @@ def test_products_query_with_filter_search_by_plain_text_attribute(
 
     product_with_plain_text_attr.refresh_from_db()
 
-    product_with_plain_text_attr.search_vector = FlatConcat(
+    product_with_plain_text_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_plain_text_attr)
     )
     product_with_plain_text_attr.save(update_fields=["search_vector"])
@@ -3146,7 +3148,7 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
 
     product_with_numeric_attr.refresh_from_db()
 
-    product_with_numeric_attr.search_vector = FlatConcat(
+    product_with_numeric_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_numeric_attr)
     )
     product_with_numeric_attr.save(update_fields=["search_vector"])
@@ -3193,7 +3195,7 @@ def test_products_query_with_filter_search_by_numeric_attribute_value_without_un
 
     product_with_numeric_attr.refresh_from_db()
 
-    product_with_numeric_attr.search_vector = FlatConcat(
+    product_with_numeric_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_numeric_attr)
     )
     product_with_numeric_attr.save(update_fields=["search_vector"])
@@ -3241,7 +3243,7 @@ def test_products_query_with_filter_search_by_date_attribute_value(
 
     product_with_date_attr.refresh_from_db()
 
-    product_with_date_attr.search_vector = FlatConcat(
+    product_with_date_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_date_attr)
     )
     product_with_date_attr.save(update_fields=["search_vector"])
@@ -3289,7 +3291,7 @@ def test_products_query_with_filter_search_by_date_time_attribute_value(
 
     product_with_date_time_attr.refresh_from_db()
 
-    product_with_date_time_attr.search_vector = FlatConcat(
+    product_with_date_time_attr.search_vector = FlatConcatSearchVector(
         *prepare_product_search_vector_value(product_with_date_time_attr)
     )
     product_with_date_time_attr.save(update_fields=["search_vector"])
@@ -5051,7 +5053,9 @@ def test_search_product_by_description_and_name(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = FlatConcat(*prepare_product_search_vector_value(prod))
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5104,7 +5108,9 @@ def test_search_product_by_description_and_name_without_sort_by(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = FlatConcat(*prepare_product_search_vector_value(prod))
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5141,7 +5147,9 @@ def test_search_product_by_description_and_name_and_use_cursor(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = FlatConcat(*prepare_product_search_vector_value(prod))
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,

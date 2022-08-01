@@ -740,6 +740,20 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
+# The maximum SearchVector expression count allowed per index SQL statement
+# If the count is exceeded, the expression list will be truncated
+INDEX_MAXIMUM_EXPR_COUNT = 4000
+
+# Maximum related objects that can be indexed in an order
+SEARCH_ORDERS_MAX_INDEXED_PAYMENTS = 20
+SEARCH_ORDERS_MAX_INDEXED_DISCOUNTS = 20
+SEARCH_ORDERS_MAX_INDEXED_LINES = 100
+
+# Maximum related objects that can be indexed in a product
+PRODUCT_MAX_INDEXED_ATTRIBUTES = 100
+PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES = 100
+PRODUCT_MAX_INDEXED_VARIANTS = 100
+
 
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
