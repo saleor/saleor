@@ -171,7 +171,9 @@ def cancel_order(
     transaction.on_commit(lambda: manager.order_cancelled(order))
     transaction.on_commit(lambda: manager.order_updated(order))
 
-    send_order_canceled_confirmation(order, user, app, manager)
+    transaction.on_commit(
+        lambda: send_order_canceled_confirmation(order, user, app, manager)
+    )
 
 
 def order_refunded(
