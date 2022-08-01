@@ -2,7 +2,19 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.5.1 [Unreleased]
+# 3.5.4 [Unreleased]
+- Fix ORM crash when generating hundreds of search vector in SQL - #10261 by @NyanKiyoshi
+
+# 3.5.3 [Released]
+- Use custom search vector in order search - #10247 by @fowczarek
+- Optimize filtering attributes by dates - #10199 by @tomaszszymanski129
+
+# 3.5.2 [Released]
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 @IKarbowiak
+- Fix returning GraphQL IDs in the `SALE_TOGGLE` webhook - #10227 by @IKarbowiak
+
+# 3.5.1 [Released]
 - Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
   This fixes the following bugs:
   - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)

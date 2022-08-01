@@ -5,6 +5,7 @@ from django.db import transaction
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....core.postgres import FlatConcat
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
@@ -83,7 +84,7 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
                 order.shipping_address = None
 
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
         order.save()
 
         channel = order.channel
