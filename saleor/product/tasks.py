@@ -24,9 +24,6 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 
-PRODUCTS_TO_INDEX_SIZE = 300
-
-
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     """Product variant names are created from names of assigned attributes.
 
