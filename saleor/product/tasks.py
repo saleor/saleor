@@ -11,6 +11,7 @@ from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Sale
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
+from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
     update_product_discounted_price,
     update_products_discounted_prices,
@@ -21,6 +22,9 @@ from .utils.variants import generate_and_set_variant_name
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
+
+
+PRODUCTS_TO_INDEX_SIZE = 300
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
@@ -108,3 +112,9 @@ def _get_preorder_variants_to_clean():
     return ProductVariant.objects.filter(
         is_preorder=True, preorder_end_date__lt=timezone.now()
     )
+
+
+@app.task
+def update_products_search_vector_task():
+    products = Product.objects.filter(search_index_dirty=True)[:PRODUCTS_BATCH_SIZE]
+    update_products_search_vector(products, use_batches=False)

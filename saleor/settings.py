@@ -555,6 +555,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
+    "update-products-search-vectors": {
+        "task": "saleor.product.tasks.update_products_search_vector_task",
+        "schedule": timedelta(seconds=20),
+    },
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(

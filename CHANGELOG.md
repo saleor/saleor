@@ -79,6 +79,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrate checkout line id from int to UUID - #9675 by @IKarbowiak
   - Changed the checkout line `id` from `int` to `UUID`, the old ids still can be used
     for old checkout lines.
+- Add `search_index_dirty` to `Product` model - #10288 by @Szymj
 
 #### Performance
 
@@ -88,6 +89,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix order type resolvers performance (#9723) (13b5a95e7)
 - Improve warehouse filtering performance (#9622) (a1a7a223b)
 - Add dataloader for FulfillmentLines (#9707) (68fb4bf4a)
+- Add `update-products-search-vectors` scheduler - #10288 by @SzymJ
 
 #### Other
 

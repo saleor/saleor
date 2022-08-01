@@ -37,6 +37,29 @@ def test_delete_attribute_value(
         value.refresh_from_db()
 
 
+def test_delete_attribute_value_update_search_index_dirty_in_product(
+    staff_api_client,
+    product,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    value = product.attributes.all()[0].values.first()
+    query = ATTRIBUTE_VALUE_DELETE_MUTATION
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    variables = {"id": node_id}
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    product.refresh_from_db()
+
+    # then
+    with pytest.raises(value._meta.model.DoesNotExist):
+        value.refresh_from_db()
+    assert product.search_index_dirty is True
+
+
 def test_delete_file_attribute_value(
     staff_api_client,
     file_attribute,
