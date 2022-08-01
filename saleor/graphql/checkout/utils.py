@@ -19,10 +19,14 @@ def prepare_insufficient_stock_checkout_validation_error(exc):
 
 
 def prevent_sync_event_circular_query(func):
-    """Prevent from resolving field in a synchronous event.
+    """Prevent circular dependencies in synchronous events resolvers.
 
-    Synchronous events are not allowed to request fields that are resolved using
-    synchronous events. This prevents circular events call.
+    Synchronous events are not allowed to request fields that are resolved using other
+    synchronous events, which would lead to circular calls of the webhook.
+    Using this decorator prevents such circular events resolution.
+
+    :raises CircularSubscriptionSyncEvent: When a field being resolved from a
+    synchronous webhook's payload uses another synchronous webhook internally.
     """
 
     def wrapper(*args, **kwargs):
