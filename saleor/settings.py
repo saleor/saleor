@@ -723,4 +723,6 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
-# Support multiple interface notation in schema for Apollo tooling.
+UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
+    "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", "update-products-search-vector"
+)

@@ -120,11 +120,11 @@ def test_get_preorder_variants_to_clean(
 def test_update_products_search_vector_task(product):
     # given
     product.search_index_dirty = True
-    product.save()
+    product.save(update_fields=["search_index_dirty"])
 
     # when
     update_products_search_vector_task()
-    product.refresh_from_db()
+    product.refresh_from_db(fields=["search_index_dirty"])
 
     # then
     assert product.search_index_dirty is False

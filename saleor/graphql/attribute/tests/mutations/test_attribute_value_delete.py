@@ -52,7 +52,7 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
     staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
-    product.refresh_from_db()
+    product.refresh_from_db(fields=["search_index_dirty"])
 
     # then
     with pytest.raises(value._meta.model.DoesNotExist):
