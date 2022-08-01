@@ -3,7 +3,7 @@ from django.conf import settings
 
 
 def create_default_warehouse(apps, schema_editor):
-    if not settings.BLOCK_POPULATE_DEFAULTS:
+    if settings.POPULATE_DEFAULTS:
         address = apps.get_model("account", "Address").objects.create(country="US")
         Warehouse = apps.get_model("warehouse", "Warehouse")
         if not Warehouse.objects.all().exists():

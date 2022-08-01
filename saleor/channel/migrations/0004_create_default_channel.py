@@ -4,7 +4,7 @@ from django.conf import settings
 
 def create_default_channel(apps, schema_editor):
     Channel = apps.get_model("channel", "Channel")
-    if not Channel.objects.all().exists() and not settings.BLOCK_POPULATE_DEFAULTS:
+    if not Channel.objects.all().exists() and settings.POPULATE_DEFAULTS:
         Channel.objects.create(
             name="Default Channel",
             slug="default-channel",

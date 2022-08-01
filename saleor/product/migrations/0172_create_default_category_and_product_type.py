@@ -6,7 +6,7 @@ from ...product import ProductTypeKind
 
 def create_default_category(apps, schema_editor):
     Category = apps.get_model("product", "Category")
-    if not Category.objects.all().exists() and not settings.BLOCK_POPULATE_DEFAULTS:
+    if not Category.objects.all().exists() and settings.POPULATE_DEFAULTS:
         Category.objects.create(
             name="Default Category",
             slug="default-category",
@@ -19,7 +19,7 @@ def create_default_category(apps, schema_editor):
 
 def create_default_product_type(apps, schema_editor):
     ProductType = apps.get_model("product", "ProductType")
-    if not ProductType.objects.all().exists() and not settings.BLOCK_POPULATE_DEFAULTS:
+    if not ProductType.objects.all().exists() and settings.POPULATE_DEFAULTS:
         ProductType.objects.create(
             name="Default Type",
             slug="default-type",
