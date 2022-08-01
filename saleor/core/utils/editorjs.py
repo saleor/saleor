@@ -72,10 +72,11 @@ def clean_text_data(text: str):
 
         url = parse_url(original_url)
         new_url = url.url
-        if url.scheme in BLACKLISTED_URL_SCHEMES:
+        url_scheme = url.scheme  # type: ignore
+        if url_scheme in BLACKLISTED_URL_SCHEMES:
             warnings.warn(
                 f"An invalid url was sent: {original_url} "
-                f"-- Scheme: {url.scheme} is blacklisted"
+                f"-- Scheme: {url_scheme} is blacklisted"
             )
             new_url = "#invalid"
 
