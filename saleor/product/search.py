@@ -1,10 +1,11 @@
 from typing import TYPE_CHECKING, List
 
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..attribute import AttributeInputType
-from ..core.postgres import FlatConcat, NoValidationSearchVector
+from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
 from .models import Product
 
@@ -38,7 +39,7 @@ def update_products_search_vector(products: "QuerySet"):
 
         prefetch_related_objects(products_batch, *PRODUCT_FIELDS_TO_PREFETCH)
         for product in products_batch:
-            product.search_vector = FlatConcat(
+            product.search_vector = FlatConcatSearchVector(
                 *prepare_product_search_vector_value(product, already_prefetched=True)
             )
 
@@ -46,7 +47,9 @@ def update_products_search_vector(products: "QuerySet"):
 
 
 def update_product_search_vector(product: "Product"):
-    product.search_vector = FlatConcat(*prepare_product_search_vector_value(product))
+    product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product)
+    )
     product.save(update_fields=["search_vector", "updated_at"])
 
 
@@ -60,7 +63,9 @@ def prepare_product_search_vector_value(
         NoValidationSearchVector(
             Value(product.description_plaintext), config="simple", weight="C"
         ),
-        *generate_attributes_search_vector_value(product.attributes.all()),
+        *generate_attributes_search_vector_value(
+            product.attributes.all()[: settings.PRODUCT_MAX_INDEXED_ATTRIBUTES]
+        ),
         *generate_variants_search_vector_value(product),
     ]
     return search_vectors
@@ -69,7 +74,7 @@ def prepare_product_search_vector_value(
 def generate_variants_search_vector_value(
     product: "Product",
 ) -> List[NoValidationSearchVector]:
-    variants = list(product.variants.all())
+    variants = list(product.variants.all()[: settings.PRODUCT_MAX_INDEXED_VARIANTS])
 
     search_vectors = [
         NoValidationSearchVector(
@@ -83,7 +88,7 @@ def generate_variants_search_vector_value(
     if search_vectors:
         for variant in variants:
             search_vectors += generate_attributes_search_vector_value(
-                variant.attributes.all()
+                variant.attributes.all()[: settings.PRODUCT_MAX_INDEXED_ATTRIBUTES]
             )
     return search_vectors
 
@@ -93,7 +98,7 @@ def generate_attributes_search_vector_value(
 ) -> List[NoValidationSearchVector]:
     """Prepare `search_vector` value for assigned attributes.
 
-    Method should received assigned attributes with prefetched `values`
+    Method should receive assigned attributes with prefetched `values`
     and `assignment__attribute`.
     """
     search_vectors = []
@@ -101,7 +106,9 @@ def generate_attributes_search_vector_value(
         attribute = assigned_attribute.assignment.attribute
 
         input_type = attribute.input_type
-        values = assigned_attribute.values.all()
+        values = assigned_attribute.values.all()[
+            : settings.PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES
+        ]
         if input_type in [AttributeInputType.DROPDOWN, AttributeInputType.MULTISELECT]:
             search_vectors += [
                 NoValidationSearchVector(Value(value.name), config="simple", weight="B")
