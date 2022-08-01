@@ -1,8 +1,11 @@
+from typing import List, Optional, Union
+
 from django.contrib.postgres.search import (
     CombinedSearchVector,
     SearchVector,
     SearchVectorCombinable,
 )
+from django.db.models import Expression
 
 
 class NoValidationSearchVectorCombinable(SearchVectorCombinable):
@@ -35,3 +38,72 @@ class NoValidationSearchVector(SearchVector, NoValidationSearchVectorCombinable)
     This class is only safe to use with expressions that do not contain aggregation
     and/or over clause.
     """
+
+
+class FlatConcat(Expression):
+    """Generate a SQL statements for expressions to be concatenated.
+
+    This replaces the logic of Django ORM from recursive ``as_sql()`` and
+    ``resolve_expression()`` from some functions such as ``SearchVector``.
+
+    The function ``django.db.models.functions.text.Concat`` is recursive thus
+    will crash when setting hundreds of expressions to be concatenated.
+    """
+
+    function = None
+    template = "(%(expressions)s)"
+    arg_joiner = "||"
+
+    contains_aggregate = False
+    contains_over_clause = False
+
+    def __init__(self, *expressions, output_field=None):
+        super().__init__(output_field=output_field)
+        self.source_expressions: List[SearchVector] = self._parse_expressions(
+            *expressions
+        )
+
+    def __repr__(self):
+        args = self.arg_joiner.join(str(arg) for arg in self.source_expressions)
+        return f"{self.__class__.__name__}({args})"
+
+    def __add__(self, other):
+        if not isinstance(other, FlatConcat):
+            raise TypeError(
+                f"Cannot combine FlatSearchVectorCombinable with other "
+                f"instances types, got {other!r}."
+            )
+        return FlatConcat(*self.source_expressions + other.source_expressions)
+
+    def get_source_expressions(self):
+        return self.source_expressions
+
+    def set_source_expressions(self, exprs):
+        self.source_expressions = exprs
+
+    def copy(self):
+        copy = super().copy()
+        copy.source_expressions = self.source_expressions[:]
+        return copy
+
+    def resolve_expression(
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+    ):
+        c = self.copy()
+        c.is_summary = summarize
+        for pos, arg in enumerate(c.source_expressions):
+            c.source_expressions[pos] = arg.resolve_expression(
+                query, allow_joins, reuse, summarize, for_save
+            )
+        return c
+
+    def as_sql(self, compiler, connection, **_extra_context):
+        connection.ops.check_expression_support(self)
+        sql_parts: List[str] = []
+        params: List[Optional[Union[str, int]]] = []
+        for arg in self.source_expressions:
+            arg_sql, arg_params = compiler.compile(arg)
+            sql_parts.append(arg_sql)
+            params.extend(arg_params)
+        data = {"expressions": self.arg_joiner.join(sql_parts)}
+        return self.template % data, params
