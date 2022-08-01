@@ -201,7 +201,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
 @traced_resolver
 def resolve_address(info, id):
     user = info.context.user
-    app = info.context.app
+    app = info.context.app  # TODO: investigate
     _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
@@ -214,7 +214,7 @@ def resolve_address(info, id):
 
 def resolve_addresses(info, ids):
     user = info.context.user
-    app = info.context.app
+    app = info.context.app  # TODO: investigate
     ids = [
         from_global_id_or_error(address_id, Address, raise_error=True)[1]
         for address_id in ids
