@@ -44,7 +44,7 @@ from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
-from ..core.postgres import FlatConcat
+from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import zero_money
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -905,7 +905,9 @@ def order(customer_user, channel_USD):
 
 @pytest.fixture
 def order_with_search_vector_value(order):
-    order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save(update_fields=["search_vector"])
     return order
 
@@ -2303,7 +2305,9 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
-    product.search_vector = FlatConcat(*prepare_product_search_vector_value(product))
+    product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product)
+    )
     product.save(update_fields=["search_vector"])
 
     return product
@@ -2519,7 +2523,9 @@ def product_with_default_variant(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
 
-    product.search_vector = FlatConcat(*prepare_product_search_vector_value(product))
+    product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product)
+    )
     product.save(update_fields=["search_vector"])
 
     return product
@@ -2933,7 +2939,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
-        product.search_vector = FlatConcat(
+        product.search_vector = FlatConcatSearchVector(
             *prepare_product_search_vector_value(product)
         )
 
@@ -5892,7 +5898,9 @@ def allocations(order_list, stock, channel_USD):
     )
 
     for order in order_list:
-        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(order_list, ["search_vector"])
 
     return Allocation.objects.bulk_create(
