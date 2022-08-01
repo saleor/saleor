@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING, List
 
 import graphene
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..account.search import generate_address_search_vector_value
-from ..core.postgres import FlatConcat, NoValidationSearchVector
+from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -14,7 +15,9 @@ if TYPE_CHECKING:
 
 
 def update_order_search_vector(order: "Order", *, save: bool = True):
-    order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     if save:
         order.save(update_fields=["search_vector", "updated_at"])
 
@@ -79,7 +82,7 @@ def generate_order_payments_search_vector_value(
     order: "Order",
 ) -> List[NoValidationSearchVector]:
     payment_vectors = []
-    for payment in order.payments.all():
+    for payment in order.payments.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_PAYMENTS]:
         payment_vectors.append(
             NoValidationSearchVector(
                 Value(graphene.Node.to_global_id("Payment", payment.id)),
@@ -102,7 +105,9 @@ def generate_order_discounts_search_vector_value(
     order: "Order",
 ) -> List[NoValidationSearchVector]:
     discount_vectors = []
-    for discount in order.discounts.all():
+    for discount in order.discounts.all()[
+        : settings.SEARCH_ORDERS_MAX_INDEXED_DISCOUNTS
+    ]:
         if discount.name:
             discount_vectors.append(
                 NoValidationSearchVector(
@@ -126,7 +131,7 @@ def generate_order_lines_search_vector_value(
     order: "Order",
 ) -> List[NoValidationSearchVector]:
     line_vectors = []
-    for line in order.lines.all():
+    for line in order.lines.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_LINES]:
         if line.product_sku:
             line_vectors.append(
                 NoValidationSearchVector(
