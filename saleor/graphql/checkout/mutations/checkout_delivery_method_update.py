@@ -1,16 +1,22 @@
-from typing import Optional
+from typing import Iterable, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ....checkout.utils import (
     delete_external_shipping_id,
+    invalidate_checkout_prices,
     is_shipping_required,
-    recalculate_checkout_discount,
     set_external_shipping_id,
 )
+from ....discount import DiscountInfo
 from ....plugins.webhook.utils import APP_ID_PREFIX
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
@@ -84,13 +90,12 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
         cls._update_delivery_method(
             manager,
-            checkout,
+            checkout_info,
+            lines,
+            info.context.discounts,
             shipping_method=shipping_method,
             external_shipping_method=None,
             collection_point=None,
-        )
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
         )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
@@ -120,13 +125,12 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
         cls._update_delivery_method(
             manager,
-            checkout,
+            checkout_info,
+            lines,
+            info.context.discounts,
             shipping_method=None,
             external_shipping_method=delivery_method,
             collection_point=None,
-        )
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
         )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
@@ -149,7 +153,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         )
         cls._update_delivery_method(
             manager,
-            checkout,
+            checkout_info,
+            lines,
+            info.context.discounts,
             shipping_method=None,
             external_shipping_method=None,
             collection_point=collection_point,
@@ -187,12 +193,15 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     @staticmethod
     def _update_delivery_method(
         manager,
-        checkout: Checkout,
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
+        discounts: Iterable["DiscountInfo"],
         *,
         shipping_method: Optional[ShippingMethod],
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
         collection_point: Optional[Warehouse]
     ) -> None:
+        checkout = checkout_info.checkout
         if external_shipping_method:
             set_external_shipping_id(
                 checkout=checkout, app_shipping_id=external_shipping_method.id
@@ -201,13 +210,16 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
+            checkout_info, lines, manager, discounts or [], save=False
+        )
         checkout.save(
             update_fields=[
                 "private_metadata",
                 "shipping_method",
                 "collection_point",
-                "last_change",
             ]
+            + invalidate_prices_updated_fields
         )
         manager.checkout_updated(checkout)
 

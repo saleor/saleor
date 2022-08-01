@@ -27,7 +27,7 @@ from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
-from ...order import OrderStatus, models
+from ...order import OrderStatus, calculations, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
     get_order_country,
@@ -43,10 +43,10 @@ from ...payment.model_helpers import (
 )
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ...product.product_images import get_product_image_thumbnail
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
+from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import (
@@ -77,6 +77,7 @@ from ..core.types import (
     NonNullList,
     OrderError,
     TaxedMoney,
+    ThumbnailField,
     Weight,
 )
 from ..core.utils import str_to_enum
@@ -97,6 +98,7 @@ from ..product.dataloaders import (
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
+    ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
 from ..product.types import DigitalContentUrl, ProductVariant
 from ..shipping.dataloaders import (
@@ -521,11 +523,7 @@ class OrderLine(ModelObjectType):
     unit_discount_reason = graphene.String()
     tax_rate = graphene.Float(required=True)
     digital_content_url = graphene.Field(DigitalContentUrl)
-    thumbnail = graphene.Field(
-        Image,
-        description="The main thumbnail for the ordered product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
-    )
+    thumbnail = ThumbnailField()
     unit_price = graphene.Field(
         TaxedMoney,
         description="Price of the single item in the order line.",
@@ -592,14 +590,25 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
+    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
         if not root.variant_id:
             return None
 
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
         def _get_image_from_media(image):
-            url = get_product_image_thumbnail(image, size, method="thumbnail")
-            alt = image.alt
-            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+            def _resolve_url(thumbnail):
+                url = get_image_or_proxy_url(
+                    thumbnail, image.id, "ProductMedia", size, format
+                )
+                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+
+            return (
+                ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+                .load((image.id, size, format))
+                .then(_resolve_url)
+            )
 
         def _get_first_variant_image(all_medias):
             if image := next(
@@ -635,16 +644,34 @@ class OrderLine(ModelObjectType):
         return Promise.all([variants_product, variant_medias]).then(_resolve_thumbnail)
 
     @staticmethod
-    def resolve_unit_price(root: models.OrderLine, _info):
-        return root.unit_price
+    @traced_resolver
+    def resolve_unit_price(root: models.OrderLine, info):
+        def _resolve_unit_price(data):
+            order, lines = data
+            return calculations.order_line_unit(
+                order, root, info.context.plugins, lines
+            ).price_with_discounts
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_unit_price)
 
     @staticmethod
     def resolve_quantity_to_fulfill(root: models.OrderLine, info):
         return root.quantity_unfulfilled
 
     @staticmethod
-    def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
-        return root.undiscounted_unit_price
+    @traced_resolver
+    def resolve_undiscounted_unit_price(root: models.OrderLine, info):
+        def _resolve_undiscounted_unit_price(data):
+            order, lines = data
+            return calculations.order_line_unit(
+                order, root, info.context.plugins, lines
+            ).undiscounted_price
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_undiscounted_unit_price)
 
     @staticmethod
     def resolve_unit_discount_type(root: models.OrderLine, _info):
@@ -659,8 +686,43 @@ class OrderLine(ModelObjectType):
         return root.unit_discount
 
     @staticmethod
-    def resolve_total_price(root: models.OrderLine, _info):
-        return root.total_price
+    @traced_resolver
+    def resolve_tax_rate(root: models.OrderLine, info):
+        def _resolve_tax_rate(data):
+            order, lines = data
+            return calculations.order_line_tax_rate(
+                order, root, info.context.plugins, lines
+            )
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_tax_rate)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_total_price(root: models.OrderLine, info):
+        def _resolve_total_price(data):
+            order, lines = data
+            return calculations.order_line_total(
+                order, root, info.context.plugins, lines
+            ).price_with_discounts
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_total_price)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_undiscounted_total_price(root: models.OrderLine, info):
+        def _resolve_undiscounted_total_price(data):
+            order, lines = data
+            return calculations.order_line_total(
+                order, root, info.context.plugins, lines
+            ).undiscounted_price
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        return Promise.all([order, lines]).then(_resolve_undiscounted_total_price)
 
     @staticmethod
     def resolve_translated_product_name(root: models.OrderLine, _info):
@@ -1083,8 +1145,30 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_shipping_price(root: models.Order, _info):
-        return root.shipping_price
+    @traced_resolver
+    def resolve_shipping_price(root: models.Order, info):
+        def _resolve_shipping_price(lines):
+            return calculations.order_shipping(root, info.context.plugins, lines)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_shipping_price)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_shipping_tax_rate(root: models.Order, info):
+        def _resolve_shipping_tax_rate(lines):
+            return calculations.order_shipping_tax_rate(
+                root, info.context.plugins, lines
+            )
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_shipping_tax_rate)
+        )
 
     @staticmethod
     def resolve_actions(root: models.Order, info):
@@ -1118,12 +1202,28 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_total(root: models.Order, _info):
-        return root.total
+    @traced_resolver
+    def resolve_total(root: models.Order, info):
+        def _resolve_total(lines):
+            return calculations.order_total(root, info.context.plugins, lines)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context).load(root.id).then(_resolve_total)
+        )
 
     @staticmethod
-    def resolve_undiscounted_total(root: models.Order, _info):
-        return root.undiscounted_total
+    @traced_resolver
+    def resolve_undiscounted_total(root: models.Order, info):
+        def _resolve_undiscounted_total(lines):
+            return calculations.order_undiscounted_total(
+                root, info.context.plugins, lines
+            )
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_undiscounted_total)
+        )
 
     @staticmethod
     def resolve_total_authorized(root: models.Order, info):
@@ -1232,13 +1332,18 @@ class Order(ModelObjectType):
                     if fulfillment.total_refund_amount
                 ]
             )
-            if total_fulfillment_refund == root.total.gross.amount:
+            if (
+                total_fulfillment_refund != 0
+                and total_fulfillment_refund == root.total.gross.amount
+            ):
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
                 return get_payment_status_for_order(root)
             last_payment = get_last_payment(payments)
             if not last_payment:
+                if root.total.gross.amount == 0:
+                    return ChargeStatus.FULLY_CHARGED
                 return ChargeStatus.NOT_CHARGED
             return last_payment.charge_status
 
@@ -1282,6 +1387,8 @@ class Order(ModelObjectType):
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
+                if root.total.gross.amount == 0:
+                    return dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_CHARGED)
                 return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
             return last_payment.get_charge_status_display()
 

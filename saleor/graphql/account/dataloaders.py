@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from ...account.models import Address, CustomerEvent, User
+from ...thumbnail.models import Thumbnail
 from ..core.dataloaders import DataLoader
 
 
@@ -31,3 +32,20 @@ class CustomerEventsByUserLoader(DataLoader):
         for event in events:
             events_by_user_map[event.user_id].append(event)
         return [events_by_user_map.get(user_id, []) for user_id in keys]
+
+
+class ThumbnailByUserIdSizeAndFormatLoader(DataLoader):
+    context_key = "thumbnail_by_user_size_and_format"
+
+    def batch_load(self, keys):
+        user_ids = [user_id for user_id, _, _ in keys]
+        thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
+            user_id__in=user_ids
+        )
+        thumbnails_by_user_size_and_format_map = defaultdict()
+        for thumbnail in thumbnails:
+            format = thumbnail.format.lower() if thumbnail.format else None
+            thumbnails_by_user_size_and_format_map[
+                (thumbnail.user_id, thumbnail.size, format)
+            ] = thumbnail
+        return [thumbnails_by_user_size_and_format_map.get(key) for key in keys]

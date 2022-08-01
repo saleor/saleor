@@ -319,66 +319,6 @@ def test_create_checkout(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_create_checkout_for_cc(
-    api_client,
-    graphql_address_data,
-    channel_USD,
-    stocks_for_cc,
-    product_variant_list,
-    count_queries,
-):
-    query = (
-        FRAGMENT_CHECKOUT_FOR_CC
-        + """
-            mutation CreateCheckout($checkoutInput: CheckoutCreateInput!) {
-              checkoutCreate(input: $checkoutInput) {
-                errors {
-                  field
-                  message
-                }
-                checkout {
-                  ...Checkout
-                }
-              }
-            }
-        """
-    )
-    checkout_counts = Checkout.objects.count()
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "email": "test@example.com",
-            "shippingAddress": graphql_address_data,
-            "lines": [
-                {
-                    "quantity": 1,
-                    "variantId": Node.to_global_id(
-                        "ProductVariant", stocks_for_cc[0].product_variant.pk
-                    ),
-                },
-                {
-                    "quantity": 2,
-                    "variantId": Node.to_global_id(
-                        "ProductVariant",
-                        product_variant_list[0].pk,
-                    ),
-                },
-                {
-                    "quantity": 5,
-                    "variantId": Node.to_global_id(
-                        "ProductVariant",
-                        product_variant_list[1].pk,
-                    ),
-                },
-            ],
-        }
-    }
-    get_graphql_content(api_client.post_graphql(query, variables))
-    assert checkout_counts + 1 == Checkout.objects.count()
-
-
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
 def test_create_checkout_with_reservations(
     site_settings_with_reservations,
     api_client,
@@ -449,7 +389,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(53):
+    with django_assert_num_queries(55):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -467,7 +407,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(53):
+    with django_assert_num_queries(55):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -513,8 +453,8 @@ def test_add_shipping_to_checkout(
 @pytest.mark.count_queries(autouse=False)
 def test_add_delivery_to_checkout(
     api_client,
-    checkout_with_shipping_address_for_cc,
-    warehouses_for_cc,
+    checkout_with_item_for_cc,
+    warehouse_for_cc,
     count_queries,
 ):
     query = (
@@ -538,8 +478,8 @@ def test_add_delivery_to_checkout(
         """
     )
     variables = {
-        "id": to_global_id_or_none(checkout_with_shipping_address_for_cc),
-        "deliveryMethodId": Node.to_global_id("Warehouse", warehouses_for_cc[1].pk),
+        "id": to_global_id_or_none(checkout_with_item_for_cc),
+        "deliveryMethodId": Node.to_global_id("Warehouse", warehouse_for_cc.pk),
     }
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutDeliveryMethodUpdate"]["errors"]
@@ -716,7 +656,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(56):
+    with django_assert_num_queries(54):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -730,7 +670,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(56):
+    with django_assert_num_queries(54):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -922,9 +862,10 @@ def test_add_checkout_lines_with_external_shipping(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    # One api call:
+    # Two api calls:
     # - post-mutate() logic used to validate currently selected method
-    assert mock_send_request.call_count == 1
+    # - fetch_checkout_prices_if_expired - calculating all prices for checkout
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
@@ -971,7 +912,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(53):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -984,7 +925,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(53):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,

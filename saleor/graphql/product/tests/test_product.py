@@ -2,8 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest import mock
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import before_after
 import graphene
@@ -26,6 +25,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import TaxType
 from ....core.units import MeasurementUnits, WeightUnits
 from ....order import OrderEvents, OrderStatus
@@ -49,11 +49,13 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
+from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_product_deleted_payload
-from ...core.enums import AttributeErrorCode, ReportingPeriod
+from ...core.enums import AttributeErrorCode, ReportingPeriod, ThumbnailFormatEnum
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -595,10 +597,14 @@ def test_product_only_with_variants_without_sku_query_by_anonymous(
 
 
 QUERY_PRODUCT_BY_ID_WITH_MEDIA = """
-    query ($id: ID, $channel: String){
+    query ($id: ID, $channel: String, $size: Int, $format: ThumbnailFormatEnum){
         product(id: $id, channel: $channel) {
             media {
                 id
+            }
+            thumbnail(size: $size, format: $format) {
+                url
+                alt
             }
             variants {
                 id
@@ -661,6 +667,141 @@ def test_product_variant_query_with_media_to_remove(
     assert len(product_data["variants"]) == variants_count
     for variant in product_data["variants"]:
         assert variant["media"] == []
+
+
+def test_query_product_thumbnail_with_size_and_format_proxy_url_returned(
+    staff_api_client, product_with_image, channel_USD
+):
+    # given
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("Product", product_with_image.pk)
+    variables = {
+        "id": id,
+        "size": 120,
+        "format": format,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_BY_ID_WITH_MEDIA, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    product_media_id = graphene.Node.to_global_id(
+        "ProductMedia", product_with_image.media.first().pk
+    )
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/thumbnail/{product_media_id}/128/{format.lower()}/"
+    )
+    assert data["thumbnail"]["url"] == expected_url
+
+
+def test_query_product_thumbnail_with_size_and_proxy_url_returned(
+    staff_api_client, product_with_image, channel_USD
+):
+    # given
+    id = graphene.Node.to_global_id("Product", product_with_image.pk)
+    variables = {
+        "id": id,
+        "size": 120,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_BY_ID_WITH_MEDIA, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    product_media_id = graphene.Node.to_global_id(
+        "ProductMedia", product_with_image.media.first().pk
+    )
+    assert (
+        data["thumbnail"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{product_media_id}/128/"
+    )
+
+
+def test_query_product_thumbnail_with_size_and_thumbnail_url_returned(
+    staff_api_client, product_with_image, channel_USD
+):
+    # given
+    product_media = product_with_image.media.first()
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(
+        product_media=product_media, size=128, image=thumbnail_mock
+    )
+
+    id = graphene.Node.to_global_id("Product", product_with_image.pk)
+    variables = {
+        "id": id,
+        "size": 120,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_BY_ID_WITH_MEDIA, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    assert (
+        data["thumbnail"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_query_product_thumbnail_only_format_provided_default_size_is_used(
+    staff_api_client, product_with_image, channel_USD
+):
+    # given
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("Product", product_with_image.pk)
+    variables = {
+        "id": id,
+        "format": format,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_BY_ID_WITH_MEDIA, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    product_media_id = graphene.Node.to_global_id(
+        "ProductMedia", product_with_image.media.first().pk
+    )
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/thumbnail/{product_media_id}/256/{format.lower()}/"
+    )
+    assert data["thumbnail"]["url"] == expected_url
+
+
+def test_query_product_thumbnail_no_product_media(
+    staff_api_client, product, channel_USD
+):
+    # given
+    id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "id": id,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_BY_ID_WITH_MEDIA, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    assert not data["thumbnail"]
 
 
 QUERY_COLLECTION_FROM_PRODUCT = """
@@ -2238,7 +2379,7 @@ def test_products_query_with_filter_date_range_date_attributes(
     date_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering  attributes by date range,
+    """Ensure both products will be returned when filtering attributes by date range,
     products with the same date attribute value."""
 
     # given
@@ -2500,12 +2641,12 @@ def test_products_query_with_filter_date_time_range_date_time_attributes(
     date_time_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering by  attributes by date range
+    """Ensure both products will be returned when filtering by attributes by date range
     variants with the same date attribute value."""
 
     # given
     product_type = product_list[0].product_type
-    date_value = timezone.now()
+    date_value = datetime.now(tz=pytz.utc)
     product_type.product_attributes.add(date_time_attribute)
     product_type.variant_attributes.add(date_time_attribute)
     attr_value_1 = AttributeValue.objects.create(
@@ -2690,7 +2831,9 @@ def test_products_query_with_filter_category_and_search(
     product.save()
 
     for pr in [product, second_product]:
-        pr.search_vector = prepare_product_search_vector_value(pr)
+        pr.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(pr)
+        )
     Product.objects.bulk_update([product, second_product], ["search_vector"])
 
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -2822,7 +2965,9 @@ def test_products_query_with_filter(
         channel=channel_USD,
         is_published=False,
     )
-    second_product.search_vector = prepare_product_search_vector_value(second_product)
+    second_product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(second_product)
+    )
     second_product.save(update_fields=["search_vector"])
     variables = {"filter": products_filter, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2933,8 +3078,8 @@ def test_products_query_with_filter_search_by_dropdown_attribute_value(
 
     product_with_dropdown_attr.refresh_from_db()
 
-    product_with_dropdown_attr.search_vector = prepare_product_search_vector_value(
-        product_with_dropdown_attr
+    product_with_dropdown_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_dropdown_attr)
     )
     product_with_dropdown_attr.save(update_fields=["search_document", "search_vector"])
 
@@ -2996,8 +3141,8 @@ def test_products_query_with_filter_search_by_multiselect_attribute_value(
 
     product_with_multiselect_attr.refresh_from_db()
 
-    product_with_multiselect_attr.search_vector = prepare_product_search_vector_value(
-        product_with_multiselect_attr
+    product_with_multiselect_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_multiselect_attr)
     )
     product_with_multiselect_attr.save(update_fields=["search_vector"])
 
@@ -3044,8 +3189,8 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
 
     product_with_rich_text_attr.refresh_from_db()
 
-    product_with_rich_text_attr.search_vector = prepare_product_search_vector_value(
-        product_with_rich_text_attr
+    product_with_rich_text_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_rich_text_attr)
     )
     product_with_rich_text_attr.save(update_fields=["search_vector"])
 
@@ -3092,8 +3237,8 @@ def test_products_query_with_filter_search_by_plain_text_attribute(
 
     product_with_plain_text_attr.refresh_from_db()
 
-    product_with_plain_text_attr.search_vector = prepare_product_search_vector_value(
-        product_with_plain_text_attr
+    product_with_plain_text_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_plain_text_attr)
     )
     product_with_plain_text_attr.save(update_fields=["search_vector"])
 
@@ -3143,8 +3288,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
 
     product_with_numeric_attr.refresh_from_db()
 
-    product_with_numeric_attr.search_vector = prepare_product_search_vector_value(
-        product_with_numeric_attr
+    product_with_numeric_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_numeric_attr)
     )
     product_with_numeric_attr.save(update_fields=["search_vector"])
 
@@ -3190,8 +3335,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value_without_un
 
     product_with_numeric_attr.refresh_from_db()
 
-    product_with_numeric_attr.search_vector = prepare_product_search_vector_value(
-        product_with_numeric_attr
+    product_with_numeric_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_numeric_attr)
     )
     product_with_numeric_attr.save(update_fields=["search_vector"])
 
@@ -3238,8 +3383,8 @@ def test_products_query_with_filter_search_by_date_attribute_value(
 
     product_with_date_attr.refresh_from_db()
 
-    product_with_date_attr.search_vector = prepare_product_search_vector_value(
-        product_with_date_attr
+    product_with_date_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_date_attr)
     )
     product_with_date_attr.save(update_fields=["search_vector"])
 
@@ -3286,8 +3431,8 @@ def test_products_query_with_filter_search_by_date_time_attribute_value(
 
     product_with_date_time_attr.refresh_from_db()
 
-    product_with_date_time_attr.search_vector = prepare_product_search_vector_value(
-        product_with_date_time_attr
+    product_with_date_time_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_date_time_attr)
     )
     product_with_date_time_attr.save(update_fields=["search_vector"])
 
@@ -3640,11 +3785,17 @@ def test_products_query_with_filter_has_preordered_variants_after_end_date(
 
 
 QUERY_PRODUCT_MEDIA_BY_ID = """
-    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+    query productMediaById(
+        $mediaId: ID!,
+        $productId: ID!,
+        $channel: String,
+        $size: Int,
+        $format: ThumbnailFormatEnum,
+    ) {
         product(id: $productId, channel: $channel) {
             mediaById(id: $mediaId) {
                 id
-                url(size: 200)
+                url(size: $size, format: $format)
             }
         }
     }
@@ -3713,6 +3864,138 @@ def test_query_product_media_by_invalid_id(
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
     assert content["data"]["product"]["mediaById"] is None
+
+
+def test_query_product_media_by_id_with_size_and_format_proxy_url_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    format = ThumbnailFormatEnum.WEBP.name
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+        "format": format,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
+    )
+
+
+def test_query_product_media_by_id_with_size_proxy_url_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_with_size_thumbnail_url_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(product_media=media, size=size, image=thumbnail_mock)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_query_product_media_by_id_only_format_provided_original_image_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.WEBP.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
+    )
+
+
+def test_query_product_media_by_id_no_size_value_original_image_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
+    )
 
 
 QUERY_PRODUCT_IMAGE_BY_ID = """
@@ -5048,7 +5331,9 @@ def test_search_product_by_description_and_name(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = prepare_product_search_vector_value(prod)
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5101,7 +5386,9 @@ def test_search_product_by_description_and_name_without_sort_by(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = prepare_product_search_vector_value(prod)
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5138,7 +5425,9 @@ def test_search_product_by_description_and_name_and_use_cursor(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = prepare_product_search_vector_value(prod)
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5249,6 +5538,7 @@ def test_create_product_with_file_attribute(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert len(data["product"]["attributes"]) == 2
+    expected_url = f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -5258,7 +5548,7 @@ def test_create_product_with_file_attribute(
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
                     "file": {
-                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "url": expected_url,
                         "contentType": None,
                     },
                     "reference": None,
@@ -5613,7 +5903,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "date": None,
                     "dateTime": None,
                     "file": {
-                        "url": "http://testserver/media/" + non_existing_value,
+                        "url": f"http://{TEST_SERVER_DOMAIN}/media/"
+                        + non_existing_value,
                         "contentType": None,
                     },
                 }
@@ -7064,7 +7355,7 @@ def test_update_product_with_file_attribute_value(
                 "slug": slugify(new_value),
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": f"http://{TEST_SERVER_DOMAIN}/media/{new_value}",
                     "contentType": None,
                 },
                 "boolean": None,
@@ -7127,7 +7418,9 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": (
+                        f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
+                    ),
                     "contentType": existing_value.content_type,
                 },
                 "boolean": None,
@@ -9327,15 +9620,6 @@ def test_product_media_create_mutation(
     permission_manage_products,
     media_root,
 ):
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.graphql.product.mutations.products."
-            "create_product_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
@@ -9358,8 +9642,6 @@ def test_product_media_create_mutation(
     assert file_name.startswith(f"products/{img_name}")
     assert file_name.endswith(format)
 
-    # The image creation should have triggered a warm-up
-    mock_create_thumbnails.assert_called_once_with(product_image.pk)
     product_updated_mock.assert_called_once_with(product)
 
 
@@ -9540,15 +9822,6 @@ def test_product_image_update_mutation(
     }
     """
 
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.graphql.product.mutations.products."
-            "create_product_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     media_obj = product_with_image.media.first()
     alt = "damage alt"
     variables = {
@@ -9561,9 +9834,6 @@ def test_product_image_update_mutation(
     content = get_graphql_content(response)
     assert content["data"]["productMediaUpdate"]["media"]["alt"] == alt
 
-    # We did not update the image field,
-    # the image should not have triggered a warm-up
-    assert mock_create_thumbnails.call_count == 0
     product_updated_mock.assert_called_once_with(product_with_image)
 
 
@@ -10607,7 +10877,7 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
 """
 
 
-@mock.patch(
+@patch(
     "saleor.graphql.product.types.products.get_variant_availability",
     wraps=get_variant_availability,
 )
@@ -12117,7 +12387,7 @@ def test_query_product_media_for_federation(
         {
             "__typename": "ProductMedia",
             "id": media_id,
-            "url": "http://testserver/media/products/product.jpg",
+            "url": f"http://{TEST_SERVER_DOMAIN}/media/products/product.jpg",
         }
     ]
 

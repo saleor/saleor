@@ -1152,6 +1152,51 @@ PAGE_TYPE_DELETED = (
 """
 )
 
+PERMISSION_GROUP_CREATED = (
+    fragments.PERMISSION_GROUP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PermissionGroupCreated{
+          permissionGroup{
+            ...PermissionGroupDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PERMISSION_GROUP_UPDATED = (
+    fragments.PERMISSION_GROUP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PermissionGroupUpdated{
+          permissionGroup{
+            ...PermissionGroupDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PERMISSION_GROUP_DELETED = (
+    fragments.PERMISSION_GROUP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PermissionGroupDeleted{
+          permissionGroup{
+            ...PermissionGroupDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 
 MULTIPLE_EVENTS = """
 subscription{

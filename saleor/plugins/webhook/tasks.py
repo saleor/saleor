@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, TypeVar
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
@@ -25,7 +25,6 @@ from ...graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ...payment import PaymentError
-from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook import observability
 from ...webhook.event_types import (
@@ -244,8 +243,42 @@ def trigger_webhook_sync(
     return send_webhook_request_sync(app.name, delivery, **kwargs)
 
 
+R = TypeVar("R")
+
+
+def trigger_all_webhooks_sync(
+    event_type: str,
+    generate_payload: Callable,
+    parse_response: Callable[[Any], Optional[R]],
+) -> Optional[R]:
+    """Send all synchronous webhook request for given event type.
+
+    Requests are send sequentially.
+    If the current webhook does not return expected response,
+    the next one is send.
+    If no webhook responds with expected response,
+    this function returns None.
+    """
+    webhooks = get_webhooks_for_event(event_type)
+    event_payload = None
+    if webhooks:
+        event_payload = EventPayload.objects.create(payload=generate_payload())
+    for webhook in webhooks:
+        delivery = EventDelivery.objects.create(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=event_payload,
+            webhook=webhook,
+        )
+        response_data = send_webhook_request_sync(webhook.app.name, delivery)
+        parsed_response = parse_response(response_data)
+        if parsed_response:
+            return parsed_response
+    return None
+
+
 def send_webhook_using_http(
-    target_url, message, domain, signature, event_type, timeout=WEBHOOK_TIMEOUT
+    target_url, message, domain, signature, event_type, timeout=settings.WEBHOOK_TIMEOUT
 ):
     """Send a webhook request using http / https protocol.
 
@@ -268,8 +301,20 @@ def send_webhook_using_http(
         "Saleor-Domain": domain,
         "Saleor-Signature": signature,
     }
+    try:
+        response = requests.post(
+            target_url, data=message, headers=headers, timeout=timeout
+        )
+    except (RequestException,) as e:
+        response = WebhookResponse(
+            content=str(e), status=EventDeliveryStatus.FAILED, request_headers=headers
+        )
+        if e.response:
+            response.content = e.response.text
+            response.response_headers = dict(e.response.headers)
+            response.response_status_code = e.response.status_code
+        return response
 
-    response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
     return WebhookResponse(
         content=response.text,
         request_headers=headers,
@@ -297,7 +342,14 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
         ),
     )
     queue_url = urlunparse(
-        ("https", parts.hostname, parts.path, parts.params, parts.query, parts.fragment)
+        (
+            "https",
+            parts.hostname,
+            parts.path,
+            parts.params,
+            parts.query,
+            parts.fragment,
+        )
     )
     is_fifo = parts.path.endswith(".fifo")
 
@@ -306,7 +358,10 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
         "EventType": {"DataType": "String", "StringValue": event_type},
     }
     if signature:
-        msg_attributes["Signature"] = {"DataType": "String", "StringValue": signature}
+        msg_attributes["Signature"] = {
+            "DataType": "String",
+            "StringValue": signature,
+        }
 
     message_kwargs = {
         "QueueUrl": queue_url,
@@ -316,7 +371,12 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
     if is_fifo:
         message_kwargs["MessageGroupId"] = domain
     with catch_duration_time() as duration:
-        response = client.send_message(**message_kwargs)
+        try:
+            response = client.send_message(**message_kwargs)
+        except (ClientError,) as e:
+            return WebhookResponse(
+                content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
+            )
         return WebhookResponse(content=response, duration=duration())
 
 
@@ -327,13 +387,16 @@ def send_webhook_using_google_cloud_pubsub(
     client = pubsub_v1.PublisherClient()
     topic_name = parts.path[1:]  # drop the leading slash
     with catch_duration_time() as duration:
-        future = client.publish(
-            topic_name,
-            message,
-            saleorDomain=domain,
-            eventType=event_type,
-            signature=signature,
-        )
+        try:
+            future = client.publish(
+                topic_name,
+                message,
+                saleorDomain=domain,
+                eventType=event_type,
+                signature=signature,
+            )
+        except (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError) as e:
+            return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         response_duration = duration()
         response = future.result()
         return WebhookResponse(content=response, duration=response_duration)
@@ -345,29 +408,21 @@ def send_webhook_using_scheme_method(
     parts = urlparse(target_url)
     message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
-    scheme_matrix: Dict[
-        WebhookSchemes, Tuple[Callable, Tuple[Type[Exception], ...]]
-    ] = {
-        WebhookSchemes.HTTP: (send_webhook_using_http, (RequestException,)),
-        WebhookSchemes.HTTPS: (send_webhook_using_http, (RequestException,)),
-        WebhookSchemes.AWS_SQS: (send_webhook_using_aws_sqs, (ClientError,)),
-        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: (
-            send_webhook_using_google_cloud_pubsub,
-            (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError),
-        ),
+    scheme_matrix: Dict[WebhookSchemes, Callable] = {
+        WebhookSchemes.HTTP: send_webhook_using_http,
+        WebhookSchemes.HTTPS: send_webhook_using_http,
+        WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
+        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: send_webhook_using_google_cloud_pubsub,
     }
-    if method := scheme_matrix.get(parts.scheme.lower()):
-        send_method, send_exception = method
-        try:
-            return send_method(
-                target_url,
-                message,
-                domain,
-                signature,
-                event_type,
-            )
-        except send_exception as e:
-            return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
+    if send_method := scheme_matrix.get(parts.scheme.lower()):
+        # try:
+        return send_method(
+            target_url,
+            message,
+            domain,
+            signature,
+            event_type,
+        )
     raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
 
@@ -451,7 +506,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
 
 def send_webhook_request_sync(
-    app_name, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
+    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> Optional[Dict[Any, Any]]:
     event_payload = delivery.payload
     data = event_payload.payload
@@ -487,19 +542,6 @@ def send_webhook_request_sync(
                 timeout=timeout,
             )
             response_data = json.loads(response.content)
-    except RequestException as e:
-        logger.warning(
-            "[Webhook] Failed request to %r: %r. "
-            "ID of failed DeliveryAttempt: %r . ",
-            webhook.target_url,
-            e,
-            attempt.id,
-        )
-        response.status = EventDeliveryStatus.FAILED
-        if e.response:
-            response.content = e.response.text
-            response.response_headers = dict(e.response.headers)
-            response.response_status_code = e.response.status_code
 
     except JSONDecodeError as e:
         logger.warning(
@@ -511,6 +553,14 @@ def send_webhook_request_sync(
         )
         response.status = EventDeliveryStatus.FAILED
     else:
+        if response.status == EventDeliveryStatus.FAILED:
+            logger.warning(
+                "[Webhook] Failed request to %r: %r. "
+                "ID of failed DeliveryAttempt: %r . ",
+                webhook.target_url,
+                response.content,
+                attempt.id,
+            )
         if response.status == EventDeliveryStatus.SUCCESS:
             logger.debug(
                 "[Webhook] Success response from %r."

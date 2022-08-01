@@ -7,3 +7,7 @@ def resolve_payment_by_id(id):
 
 def resolve_payments(info):
     return models.Payment.objects.all()
+
+
+def resolve_transaction(id):
+    return models.TransactionItem.objects.filter(id=id).first()

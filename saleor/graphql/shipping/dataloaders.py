@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef
 
 from ...channel.models import Channel
 from ...shipping.models import (
@@ -30,6 +30,33 @@ class ShippingZoneByIdLoader(DataLoader):
             self.database_connection_name
         ).in_bulk(keys)
         return [shipping_zones.get(shipping_zone_id) for shipping_zone_id in keys]
+
+
+class ShippingZonesByChannelIdLoader(DataLoader):
+    context_key = "shippingzone_by_channel_id"
+
+    def batch_load(self, keys):
+        shipping_zones_channel = ShippingZone.channels.through.objects.using(
+            self.database_connection_name
+        ).filter(channel_id__in=keys)
+        shipping_zones_map = (
+            ShippingZone.objects.using(self.database_connection_name)
+            .filter(
+                Exists(shipping_zones_channel.filter(shippingzone_id=OuterRef("pk")))
+            )
+            .in_bulk()
+        )
+
+        shipping_zones_by_channel_map = defaultdict(list)
+        for shipping_zone_id, channel_id in shipping_zones_channel.values_list(
+            "shippingzone_id", "channel_id"
+        ):
+            shipping_zones_by_channel_map[channel_id].append(
+                shipping_zones_map[shipping_zone_id]
+            )
+        return [
+            shipping_zones_by_channel_map.get(channel_id, []) for channel_id in keys
+        ]
 
 
 class ShippingMethodsByShippingZoneIdLoader(DataLoader):

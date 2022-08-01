@@ -14,6 +14,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files import File
+from django.db import connection
 from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
@@ -82,11 +83,6 @@ from ...product.models import (
 )
 from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
-from ...product.thumbnails import (
-    create_category_background_image_thumbnails,
-    create_collection_background_image_thumbnails,
-    create_product_thumbnails,
-)
 from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
@@ -97,6 +93,7 @@ from ...shipping.models import (
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
+from ..postgres import FlatConcatSearchVector
 
 fake = Factory.create()
 fake.seed(0)
@@ -207,7 +204,6 @@ def create_categories(categories_data, placeholder_dir):
         if parent:
             defaults["parent"] = Category.objects.get(pk=parent)
         Category.objects.update_or_create(pk=pk, defaults=defaults)
-        create_category_background_image_thumbnails.delay(pk)
 
 
 def create_collection_channel_listings(collection_channel_listings_data):
@@ -232,7 +228,6 @@ def create_collections(data, placeholder_dir):
             background_image = get_image(placeholder_dir, image_name)
             defaults["background_image"] = background_image
         Collection.objects.update_or_create(pk=pk, defaults=defaults)
-        create_collection_background_image_thumbnails.delay(pk)
 
 
 def assign_products_to_collections(associations: list):
@@ -509,7 +504,6 @@ def create_product_image(product, placeholder_dir, image_name):
         return None
     product_image = ProductMedia(product=product, image=image)
     product_image.save()
-    create_product_thumbnails.delay(product_image.pk)
     return product_image
 
 
@@ -545,8 +539,11 @@ def create_fake_user(user_password, save=True):
     except User.DoesNotExist:
         pass
 
+    _, max_user_id = connection.ops.integer_field_range(
+        User.id.field.get_internal_type()
+    )
     user = User(
-        id=fake.numerify(),
+        id=fake.random_int(min=1, max=max_user_id),
         first_name=address.first_name,
         last_name=address.last_name,
         email=email,
@@ -838,7 +835,9 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
-    order.search_vector = prepare_order_search_vector_value(order)
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save()
 
     create_fake_payment(order=order)

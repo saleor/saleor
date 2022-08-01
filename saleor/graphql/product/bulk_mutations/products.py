@@ -12,6 +12,7 @@ from graphene.types import InputObjectType
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....order import events as order_events
 from ....order import models as order_models
@@ -643,7 +644,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=product_pks, default_variant__isnull=True
         )
         for product in products:
-            product.search_vector = prepare_product_search_vector_value(product)
+            product.search_vector = FlatConcatSearchVector(
+                *prepare_product_search_vector_value(product)
+            )
             product.default_variant = product.variants.first()
             product.save(
                 update_fields=[

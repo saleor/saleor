@@ -1,13 +1,16 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.actions import order_created
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
@@ -59,6 +62,7 @@ class DraftOrderComplete(BaseMutation):
             )
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
         order = cls.get_node_or_error(
@@ -67,6 +71,7 @@ class DraftOrderComplete(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
+        order, _ = fetch_order_prices_if_expired(order, manager)
         cls.validate_order(order)
 
         country = get_order_country(order)
@@ -81,7 +86,9 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
                 order.shipping_address = None
 
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
         order.save()
 
         channel = order.channel
@@ -122,13 +129,14 @@ class DraftOrderComplete(BaseMutation):
             payment=order.get_last_payment(),
             lines_data=order_lines_info,
         )
-
-        order_created(
-            order_info=order_info,
-            user=info.context.user,
-            app=info.context.app,
-            manager=info.context.plugins,
-            from_draft=True,
+        transaction.on_commit(
+            lambda: order_created(
+                order_info=order_info,
+                user=info.context.user,
+                app=info.context.app,
+                manager=info.context.plugins,
+                from_draft=True,
+            )
         )
 
         return DraftOrderComplete(order=order)

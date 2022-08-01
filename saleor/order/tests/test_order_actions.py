@@ -10,6 +10,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
+from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
@@ -236,6 +237,7 @@ def test_cancel_order(
         order_line__order=order, quantity_allocated__gt=0
     ).exists()
 
+    flush_post_commit_hooks()
     send_order_canceled_confirmation_mock.assert_called_once_with(
         order, None, None, manager
     )

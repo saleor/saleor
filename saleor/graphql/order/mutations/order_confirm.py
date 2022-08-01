@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -83,19 +84,23 @@ class OrderConfirm(ModelMutation):
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
-            order_captured(
-                order_info,
+            transaction.on_commit(
+                lambda: order_captured(
+                    order_info,
+                    info.context.user,
+                    info.context.app,
+                    payment.total,
+                    payment,
+                    manager,
+                )
+            )
+        transaction.on_commit(
+            lambda: order_confirmed(
+                order,
                 info.context.user,
                 info.context.app,
-                payment.total,
-                payment,
                 manager,
+                send_confirmation_email=True,
             )
-        order_confirmed(
-            order,
-            info.context.user,
-            info.context.app,
-            manager,
-            send_confirmation_email=True,
         )
         return OrderConfirm(order=order)

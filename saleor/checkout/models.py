@@ -1,5 +1,6 @@
 """Checkout-related ORM models."""
 from datetime import date
+from decimal import Decimal
 from operator import attrgetter
 from typing import TYPE_CHECKING, Iterable, Optional
 from uuid import uuid4
@@ -8,9 +9,10 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.deletion import SET_NULL
+from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
-from django_prices.models import MoneyField
+from django_prices.models import MoneyField, TaxedMoneyField
 from prices import Money
 
 from ..channel.models import Channel
@@ -88,6 +90,56 @@ class Checkout(ModelWithMetadata):
     )
     country = CountryField(default=get_default_country)
 
+    total_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    total_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    total = TaxedMoneyField(
+        net_amount_field="total_net_amount",
+        gross_amount_field="total_gross_amount",
+    )
+
+    subtotal_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal = TaxedMoneyField(
+        net_amount_field="subtotal_net_amount",
+        gross_amount_field="subtotal_gross_amount",
+    )
+
+    shipping_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    shipping_price_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    shipping_price = TaxedMoneyField(
+        net_amount_field="shipping_price_net_amount",
+        gross_amount_field="shipping_price_gross_amount",
+    )
+    shipping_tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0")
+    )
+
+    price_expiration = models.DateTimeField(default=timezone.now)
+
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -112,6 +164,7 @@ class Checkout(ModelWithMetadata):
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
+            (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
         )
 
     def __iter__(self):
@@ -193,6 +246,27 @@ class CheckoutLine(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         blank=True,
         null=True,
+    )
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+
+    total_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    total_price_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    total_price = TaxedMoneyField(
+        net_amount_field="total_price_net_amount",
+        gross_amount_field="total_price_gross_amount",
+    )
+    tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
     class Meta(ModelWithMetadata.Meta):

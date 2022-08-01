@@ -12,7 +12,6 @@ from django.utils.encoding import iri_to_uri
 from django.utils.text import slugify
 from django_prices_openexchangerates import exchange_currency
 from prices import MoneyRange
-from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 task_logger = get_task_logger(__name__)
 
@@ -94,31 +93,12 @@ def to_local_currency(price, currency):
     return None
 
 
-def create_thumbnails(pk, model, size_set, image_attr=None):
-    instance = model.objects.get(pk=pk)
-    if not image_attr:
-        image_attr = "image"
-    image_instance = getattr(instance, image_attr)
-    if image_instance.name == "":
-        # There is no file, skip processing
-        return
-    warmer = VersatileImageFieldWarmer(
-        instance_or_queryset=instance, rendition_key_set=size_set, image_attr=image_attr
-    )
-    task_logger.info("Creating thumbnails for %s", pk)
-    num_created, failed_to_create = warmer.warm()
-    if num_created:
-        task_logger.info("Created %d thumbnails", num_created)
-    if failed_to_create:
-        task_logger.error(
-            "Failed to generate thumbnails", extra={"paths": failed_to_create}
-        )
-
-
 def generate_unique_slug(
     instance: Type[Model],
     slugable_value: str,
     slug_field_name: str = "slug",
+    *,
+    additional_search_lookup=None,
 ) -> str:
     """Create unique slug for model instance.
 
@@ -130,6 +110,8 @@ def generate_unique_slug(
         instance: model instance for which slug is created
         slugable_value: value used to create slug
         slug_field_name: name of slug field in instance model
+        additional_search_lookup: when provided, it will be used to find the instances
+            with the same slug that passed also additional conditions
 
     """
     slug = slugify(slugable_value, allow_unicode=True)
@@ -140,8 +122,12 @@ def generate_unique_slug(
 
     search_field = f"{slug_field_name}__iregex"
     pattern = rf"{slug}-\d+$|{slug}$"
+    lookup = {search_field: pattern}
+    if additional_search_lookup:
+        lookup.update(additional_search_lookup)
+
     slug_values = (
-        ModelClass._default_manager.filter(**{search_field: pattern})  # type: ignore
+        ModelClass._default_manager.filter(**lookup)  # type: ignore
         .exclude(pk=instance.pk)
         .values_list(slug_field_name, flat=True)
     )
@@ -151,8 +137,3 @@ def generate_unique_slug(
         unique_slug = f"{slug}-{extension}"
 
     return unique_slug
-
-
-def delete_versatile_image(image):
-    image.delete_all_created_images()
-    image.delete(save=False)

@@ -574,6 +574,30 @@ def subscription_page_type_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_permission_group_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PERMISSION_GROUP_CREATED,
+        WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_permission_group_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PERMISSION_GROUP_UPDATED,
+        WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_permission_group_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PERMISSION_GROUP_DELETED,
+        WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
+    )
+
+
+@pytest.fixture
 def subscription_product_created_multiple_events_webhook(subscription_webhook):
     return subscription_webhook(
         queries.MULTIPLE_EVENTS,

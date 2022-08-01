@@ -8,7 +8,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
     update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_promo_code_to_checkout
+from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout_prices
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -105,5 +105,14 @@ class CheckoutAddPromoCode(BaseMutation):
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+        invalidate_checkout_prices(
+            checkout_info,
+            lines,
+            manager,
+            discounts,
+            recalculate_discount=False,
+            save=True,
+        )
         manager.checkout_updated(checkout)
+
         return CheckoutAddPromoCode(checkout=checkout)

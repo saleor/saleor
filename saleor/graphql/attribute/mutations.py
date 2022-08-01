@@ -8,6 +8,7 @@ from django.utils.text import slugify
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
+from ...attribute.tasks import update_associated_products_search_vector
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     PageTypePermissions,
@@ -656,7 +657,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         if "name" in cleaned_input:
             cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+                instance,
+                cleaned_input["name"],
+                additional_search_lookup={"attribute_id": instance.attribute_id},
             )
         input_type = instance.attribute.input_type
 
@@ -746,16 +749,9 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
-        )
-        products = product_models.Product.objects.filter(
-            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
-            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
-        )
-        update_products_search_vector(products)
         info.context.plugins.attribute_value_updated(instance)
         info.context.plugins.attribute_updated(instance.attribute)
+        update_associated_products_search_vector.delay(instance.pk)
 
 
 class AttributeValueDelete(ModelDeleteMutation):

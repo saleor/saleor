@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from ...channel.models import Channel
 from ...product.models import ProductVariantChannelListing
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import (
     PreorderReservation,
     Reservation,
@@ -231,9 +232,20 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 warehouse__shipping_zones__countries__contains=country_code
             )
         if channel_slug:
+            # click and collect warehouses don't have to be assigned to the shipping
+            # zones, the others must
             stocks = stocks.filter(
-                warehouse__shipping_zones__channels__slug=channel_slug,
-                warehouse__channels__slug=channel_slug,
+                Q(
+                    warehouse__shipping_zones__channels__slug=channel_slug,
+                    warehouse__channels__slug=channel_slug,
+                )
+                | Q(
+                    warehouse__channels__slug=channel_slug,
+                    warehouse__click_and_collect_option__in=[
+                        WarehouseClickAndCollectOption.LOCAL_STOCK,
+                        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                    ],
+                )
             )
         stocks = stocks.annotate_available_quantity()
 
@@ -347,7 +359,8 @@ class StockByIdLoader(DataLoader):
     context_key = "stock_by_id"
 
     def batch_load(self, keys):
-        return Stock.objects.using(self.database_connection_name).in_bulk(keys).values()
+        stocks = Stock.objects.using(self.database_connection_name).in_bulk(keys)
+        return [stocks.get(key) for key in keys]
 
 
 class WarehousesByChannelIdLoader(DataLoader):

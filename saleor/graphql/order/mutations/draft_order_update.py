@@ -42,5 +42,18 @@ class DraftOrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
+    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
+        return any(
+            cleaned_input.get(field) is not None
+            for field in [
+                "shipping_address",
+                "billing_address",
+                "shipping_method",
+            ]
+        )
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
-        return cls._save_draft_order(info, instance, cleaned_input, new_instance=False)
+        return cls._save_draft_order(
+            info, instance, cleaned_input, is_new_instance=False
+        )

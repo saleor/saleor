@@ -321,6 +321,19 @@ fragment PageTypeDetails on PageType{
 """
 
 
+PERMISSION_GROUP_DETAILS = """
+fragment PermissionGroupDetails on Group{
+  name
+  permissions {
+    name
+  }
+  users {
+    email
+  }
+}
+"""
+
+
 SALE_DETAILS = """
 fragment SaleDetails on Sale {
   id

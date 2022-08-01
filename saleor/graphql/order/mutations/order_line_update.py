@@ -8,7 +8,11 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
-from ....order.utils import change_order_line_quantity, recalculate_order
+from ....order.utils import (
+    change_order_line_quantity,
+    invalidate_order_prices,
+    recalculate_order_weight,
+)
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ..types import Order, OrderLine
@@ -81,7 +85,9 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order)
+        invalidate_order_prices(instance.order)
+        recalculate_order_weight(instance.order)
+        instance.order.save(update_fields=["should_refresh_prices", "weight"])
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))
