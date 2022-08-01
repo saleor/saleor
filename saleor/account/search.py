@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from django.db.models import Q, Value, prefetch_related_objects
 
@@ -64,42 +64,46 @@ def generate_address_search_document_value(address: "Address"):
 
 def generate_address_search_vector_value(
     address: "Address", weight: str = "A"
-) -> NoValidationSearchVector:
-    search_vector = NoValidationSearchVector(
-        Value(address.first_name),
-        Value(address.last_name),
-        Value(address.street_address_1),
-        Value(address.country.name),
-        Value(address.country.code),
-        weight=weight,
-    )
+) -> List[NoValidationSearchVector]:
+    search_vectors = [
+        NoValidationSearchVector(
+            Value(address.first_name),
+            Value(address.last_name),
+            Value(address.street_address_1),
+            Value(address.country.name),
+            Value(address.country.code),
+            weight=weight,
+        )
+    ]
     if address.company_name:
-        search_vector += NoValidationSearchVector(
-            Value(address.company_name), weight=weight
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.company_name), weight=weight)
         )
     if address.country_area:
-        search_vector += NoValidationSearchVector(
-            Value(address.country_area), weight=weight
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.country_area), weight=weight)
         )
     if address.city:
-        search_vector += NoValidationSearchVector(Value(address.city), weight=weight)
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.city), weight=weight)
+        )
     if address.city_area:
-        search_vector += NoValidationSearchVector(
-            Value(address.city_area), weight=weight
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.city_area), weight=weight)
         )
     if address.street_address_2:
-        search_vector += NoValidationSearchVector(
-            Value(address.street_address_2), weight=weight
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.street_address_2), weight=weight)
         )
     if address.postal_code:
-        search_vector += NoValidationSearchVector(
-            Value(address.postal_code), weight=weight
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.postal_code), weight=weight)
         )
     if address.phone:
-        search_vector += NoValidationSearchVector(
-            Value(address.phone.as_e164), weight=weight
+        search_vectors.append(
+            NoValidationSearchVector(Value(address.phone.as_e164), weight=weight)
         )
-    return search_vector
+    return search_vectors
 
 
 def search_users(qs, value):

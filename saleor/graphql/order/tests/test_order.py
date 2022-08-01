@@ -23,6 +23,7 @@ from ....checkout import AddressType
 from ....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
+from ....core.postgres import FlatConcat
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount, VoucherChannelListing
@@ -9082,7 +9083,7 @@ def test_orders_query_with_filter_search(
         tax_rate=Decimal("0.23"),
     )
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": orders_filter}
@@ -9124,7 +9125,7 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     payment = Payment.objects.create(order=order_with_payment)
     global_id = graphene.Node.to_global_id("Payment", payment.pk)
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": {"search": global_id}}
@@ -9480,8 +9481,7 @@ def test_draft_orders_query_with_filter_search(
         ]
     )
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
-        print(">>>", order.search_vector)
+        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
     Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": draft_orders_filter}
