@@ -99,3 +99,42 @@ def test_combined_flat_search_vector():
         SearchVector(Value("value3"), weight="A"),
         SearchVector(Value("value4"), weight="C"),
     ]
+
+
+def test_flat_concat_drop_exceeding_count_no_silently_fail():
+    """
+    Ensure when the maximum allowed value count in FlatConcat is exceeded
+    and it shouldn't fail silently, then an exception is raised once the limit
+    is reached.
+    """
+
+    class LimitedFlatConcat(FlatConcat):
+        max_expression_count = 2
+        silent_drop_expression = False
+
+    # Should not raise an exception and shouldn't truncate
+    concat = LimitedFlatConcat(Value("1"), Value("2"))
+    assert concat.source_expressions == [Value("1"), Value("2")]
+
+    with pytest.raises(ValueError) as error:
+        LimitedFlatConcat(Value("1"), Value("2"), Value("3"))
+
+    assert error.value.args == ("Maximum expression count exceeded",)
+
+
+def test_flat_concat_drop_exceeding_count_silently_truncate():
+    """
+    Ensure when the maximum allowed value count in FlatConcat is exceeded
+    and is set to truncate silently, the values are truncated as expected.
+    """
+
+    class LimitedFlatConcat(FlatConcat):
+        max_expression_count = 2
+        silent_drop_expression = True
+
+    # Should not raise an exception and shouldn't truncate
+    concat = LimitedFlatConcat(Value("1"), Value("2"))
+    assert concat.source_expressions == [Value("1"), Value("2")]
+
+    concat = LimitedFlatConcat(Value("a"), Value("b"), Value("c"))
+    assert concat.source_expressions == [Value("a"), Value("b")]

@@ -6,7 +6,7 @@ from faker import Faker
 
 from ...account import search
 from ...core.anonymize import obfuscate_address
-from ...core.postgres import FlatConcat
+from ...core.postgres import FlatConcatSearchVector
 from ...order.search import prepare_order_search_vector_value
 from ..base_plugin import BasePlugin
 from . import obfuscate_order
@@ -49,7 +49,9 @@ class AnonymizePlugin(BasePlugin):
 
     def order_created(self, order: "Order", previous_value: Any):
         order = obfuscate_order(order)
-        order.search_vector = FlatConcat(*prepare_order_search_vector_value(order))
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
         order.save()
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:

@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.5.4 [Unreleased]
 - Fix ORM crash when generating hundreds of search vector in SQL - #10261 by @NyanKiyoshi
+- Fix "stack depth limit exceeded" crash when generating thousands of search vector in SQL - #10279 by @NyanKiyoshi
 
 # 3.5.3 [Released]
 - Use custom search vector in order search - #10247 by @fowczarek
