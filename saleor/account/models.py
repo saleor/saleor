@@ -12,7 +12,7 @@ from django.contrib.auth.models import (
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import Q, QuerySet, Value
+from django.db.models import Q, Value
 from django.db.models.expressions import Exists, OuterRef
 from django.forms.models import model_to_dict
 from django.utils import timezone
