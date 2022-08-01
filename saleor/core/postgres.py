@@ -64,6 +64,10 @@ class FlatConcat(Expression):
     # Maximum allowed expression to be passed to the function
     # If ``silent_drop_expression`` is True then it will truncate
     # and log a warning event. Otherwise, it will raise ValueError
+    #
+    # If the maximum expression count is not limited and there are multiple thousand
+    # values to join, PostgreSQL may reject the SQL statement with:
+    # "django.db.utils.OperationalError: stack depth limit exceeded"
     max_expression_count: Optional[int] = None
     silent_drop_expression: bool = False
 
