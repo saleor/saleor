@@ -61,7 +61,6 @@ def prepare_product_search_vector_value(
             Value(product.description_plaintext), config="simple", weight="C"
         ),
         *generate_attributes_search_vector_value(product.attributes.all()),
-        *generate_attributes_search_vector_value(product.attributes.all()),
         *generate_variants_search_vector_value(product),
     ]
     return search_vectors
