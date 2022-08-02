@@ -300,7 +300,6 @@ def group_lines_input_on_add(
 ) -> List[CheckoutLineData]:
     """Return list od CheckoutLineData objects.
 
-    This function is used in CheckoutLinesAdd and CheckoutCreate mutation.
     Lines data provided in CheckoutLineInput will be grouped depending on
     provided parameters.
     """

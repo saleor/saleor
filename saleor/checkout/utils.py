@@ -215,10 +215,12 @@ def add_variants_to_checkout(
     to_delete: List[CheckoutLine] = []
 
     for line_data in checkout_lines_data:
-        line = _get_line_if_exist(line_data, lines_by_id)
-        _append_line_to_update(to_update, to_delete, line_data, replace, line)
-        _append_line_to_delete(to_delete, line_data, line)
-        _append_line_to_create(to_create, checkout, variants_map, line_data, line)
+        line = lines_by_id.get(line_data.line_id) if line_data.line_id else None
+        if line:
+            _append_line_to_update(to_update, to_delete, line_data, replace, line)
+            _append_line_to_delete(to_delete, line_data, line)
+        else:
+            _append_line_to_create(to_create, checkout, variants_map, line_data, line)
 
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
@@ -254,9 +256,6 @@ def _get_line_if_exist(line_data, lines_by_ids):
 
 
 def _append_line_to_update(to_update, to_delete, line_data, replace, line):
-    if line is None:
-        return
-
     if line_data.quantity_to_update:
         quantity = line_data.quantity
         if quantity > 0:
@@ -272,9 +271,6 @@ def _append_line_to_update(to_update, to_delete, line_data, replace, line):
 
 
 def _append_line_to_delete(to_delete, line_data, line):
-    if line is None:
-        return
-
     quantity = line_data.quantity
     if line_data.quantity_to_update:
         if quantity <= 0:
