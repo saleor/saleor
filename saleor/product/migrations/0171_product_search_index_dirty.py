@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
             """
             ALTER TABLE product_product ALTER COLUMN search_index_dirty SET DEFAULT
             false;
-            """
+            """,
+            migrations.RunSQL.noop,
         ),
     ]
