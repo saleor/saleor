@@ -15,4 +15,10 @@ class Migration(migrations.Migration):
             name="search_index_dirty",
             field=models.BooleanField(default=False),
         ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE product_product ALTER COLUMN search_index_dirty SET DEFAULT
+            false;
+            """
+        ),
     ]
