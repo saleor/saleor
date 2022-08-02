@@ -725,7 +725,7 @@ def test_category_update_background_image_mutation(
     thumbnail = Thumbnail.objects.create(
         category=category, size=size, image=thumbnail_mock
     )
-    img_path = thumbnail.image.path
+    img_path = thumbnail.image.name
 
     category_name = "Updated name"
 

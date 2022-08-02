@@ -2358,7 +2358,7 @@ def test_account_delete(delete_from_storage_task_mock, user_api_client, media_ro
     # create thumbnail
     thumbnail = Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
     assert user.thumbnails.all()
-    img_path = thumbnail.image.path
+    img_path = thumbnail.image.name
 
     token = account_delete_token_generator.make_token(user)
     variables = {"token": token}
