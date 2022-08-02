@@ -7,6 +7,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...discount import DiscountValueType, OrderDiscountType
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
+from ...graphql.order.utils import OrderLineData
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus
 from ..events import OrderEvents
@@ -269,10 +270,12 @@ def test_add_variant_to_order(
     undiscounted_total_price = undiscounted_unit_price * quantity
 
     # when
+    line_data = OrderLineData(
+        variant_id=str(variant.id), variant=variant, quantity=quantity
+    )
     line = add_variant_to_order(
         order,
-        variant,
-        quantity,
+        line_data,
         customer_user,
         None,
         manager,
