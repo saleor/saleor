@@ -8032,8 +8032,8 @@ type GiftCard implements Node & ObjectWithMetadata {
   """
   boughtInChannel: String
   isActive: Boolean!
-  initialBalance: Money
-  currentBalance: Money
+  initialBalance: Money!
+  currentBalance: Money!
 
   """The customer who bought a gift card."""
   user: User @deprecated(reason: "This field will be removed in Saleor 4.0. Use `createdBy` field instead.")

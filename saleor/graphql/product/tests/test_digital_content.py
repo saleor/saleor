@@ -250,7 +250,7 @@ def test_digital_content_delete_mutation(
     variant.digital_content = digital_content
     variant.digital_content.save()
 
-    path = digital_content.content_file.path
+    path = digital_content.content_file.name
 
     assert hasattr(variant, "digital_content")
     variables = {"variant": graphene.Node.to_global_id("ProductVariant", variant.id)}
