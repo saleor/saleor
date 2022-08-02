@@ -1,3 +1,4 @@
+import warnings
 from datetime import timedelta
 
 import graphene
@@ -5,6 +6,7 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
+from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....shipping.models import ShippingZone
 from ....warehouse.models import PreorderReservation, Reservation
 from ...tests.utils import get_graphql_content
@@ -31,6 +33,22 @@ def test_variant_quantity_available_without_country_code(
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["quantityAvailable"] == 7
+
+
+def test_variant_quantity_available_without_country_code_or_channel(
+    api_client, variant_with_many_stocks, channel_USD
+):
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk)
+    }
+    with warnings.catch_warnings(record=True) as warns:
+        response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["quantityAvailable"] == 7
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
 
 
 def test_variant_quantity_available_when_one_stock_is_exceeded(
