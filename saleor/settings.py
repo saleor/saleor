@@ -555,6 +555,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.csv.tasks.delete_old_export_files",
         "schedule": crontab(hour=1, minute=0),
     },
+    "update-products-search-vectors": {
+        "task": "saleor.product.tasks.update_products_search_vector_task",
+        "schedule": timedelta(seconds=20),
+    },
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
@@ -719,4 +723,6 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
-# Support multiple interface notation in schema for Apollo tooling.
+UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
+    "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
+)

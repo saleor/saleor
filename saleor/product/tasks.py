@@ -2,6 +2,7 @@ import logging
 from typing import Iterable, List, Optional
 
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
@@ -11,6 +12,7 @@ from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Sale
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
+from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
     update_product_discounted_price,
     update_products_discounted_prices,
@@ -108,3 +110,9 @@ def _get_preorder_variants_to_clean():
     return ProductVariant.objects.filter(
         is_preorder=True, preorder_end_date__lt=timezone.now()
     )
+
+
+@app.task(queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME, expires=20)
+def update_products_search_vector_task():
+    products = Product.objects.filter(search_index_dirty=True)[:PRODUCTS_BATCH_SIZE]
+    update_products_search_vector(products, use_batches=False)
