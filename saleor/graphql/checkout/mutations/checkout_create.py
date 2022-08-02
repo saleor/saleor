@@ -29,6 +29,7 @@ from ..types import Checkout
 from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
+    get_variants_and_total_quantities,
     group_lines_input_on_add,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -186,7 +187,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
         )
         validate_variants_are_published(variant_db_ids, channel.id)
-        quantities = [line_data.quantity for line_data in checkout_lines_data]
+
+        variants, quantities = get_variants_and_total_quantities(
+            variants, checkout_lines_data
+        )
+
         check_lines_quantity(
             variants,
             quantities,

@@ -98,6 +98,26 @@ def update_checkout_shipping_method_if_invalid(
         clear_delivery_method(checkout_info)
 
 
+def get_variants_and_total_quantities(
+    variants, lines_data, quantity_to_update_check=False
+):
+    variants_total_quantity_map = defaultdict(int)
+    mapped_data = defaultdict(int)
+
+    if quantity_to_update_check:
+        lines_data = filter(lambda d: d.quantity_to_update, lines_data)
+
+    for data in lines_data:
+        mapped_data[data.variant_id] += data.quantity
+
+    for variant in variants:
+        quantity = mapped_data.get(str(variant.id), None)
+        if quantity is not None:
+            variants_total_quantity_map[variant] += quantity
+
+    return variants_total_quantity_map.keys(), variants_total_quantity_map.values()
+
+
 def check_lines_quantity(
     variants,
     quantities,
@@ -309,6 +329,9 @@ def group_lines_input_on_add(
                 else:
                     line_data = checkout_lines_data_map[line_db_id]
                     line_data.line_id = line_db_id
+                    line_data.variant_id = find_variant_id_when_line_parameter_used(
+                        line_db_id, existing_lines_info
+                    )
 
             # when variant already exist in multiple lines then create a new line
             except ValidationError:
@@ -358,6 +381,9 @@ def group_lines_input_data_on_update(
         else:
             line_data = checkout_lines_data_map[line_db_id]
             line_data.line_id = line_db_id
+            line_data.variant_id = find_variant_id_when_line_parameter_used(
+                line_db_id, existing_lines_info
+            )
 
         if (quantity := line.get("quantity")) is not None:
             line_data.quantity += quantity
@@ -383,15 +409,17 @@ def check_permissions_for_custom_prices(app, lines):
         raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])
 
 
-def find_line_id_when_variant_parameter_used(variant_id, lines_info):
-    """Return line id by using provided variantId parameter.
+def find_line_id_when_variant_parameter_used(
+    variant_db_id: str, lines_info: List[CheckoutLineInfo]
+):
+    """Return line id when variantId parameter was used.
 
     If variant exists in multiple lines error will be returned.
     """
     if not lines_info:
         return
 
-    line_info = list(filter(lambda x: (x.variant.pk == int(variant_id)), lines_info))
+    line_info = list(filter(lambda x: (x.variant.pk == int(variant_db_id)), lines_info))
 
     if not line_info:
         return
@@ -401,7 +429,7 @@ def find_line_id_when_variant_parameter_used(variant_id, lines_info):
         message = (
             "Variant occurs in multiple lines. Use `lineId` instead " "of `variantId`."
         )
-        variant_global_id = graphene.Node.to_global_id("ProductVariant", variant_id)
+        variant_global_id = graphene.Node.to_global_id("ProductVariant", variant_db_id)
 
         raise ValidationError(
             {
@@ -414,3 +442,14 @@ def find_line_id_when_variant_parameter_used(variant_id, lines_info):
         )
 
     return str(line_info[0].line.id)
+
+
+def find_variant_id_when_line_parameter_used(
+    line_db_id: str, lines_info: List[CheckoutLineInfo]
+):
+    """Return variant id when lineId parameter was used."""
+    if not lines_info:
+        return
+
+    line_info = list(filter(lambda x: (str(x.line.pk) == line_db_id), lines_info))
+    return str(line_info[0].line.variant_id)

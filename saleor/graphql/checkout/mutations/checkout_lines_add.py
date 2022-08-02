@@ -22,6 +22,7 @@ from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_checkout,
+    get_variants_and_total_quantities,
     group_lines_input_on_add,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
@@ -74,7 +75,9 @@ class CheckoutLinesAdd(BaseMutation):
         channel_slug,
         lines=None,
     ):
-        quantities = [line_data.quantity for line_data in checkout_lines_data]
+        variants, quantities = get_variants_and_total_quantities(
+            variants, checkout_lines_data
+        )
         check_lines_quantity(
             variants,
             quantities,
