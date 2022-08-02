@@ -2505,7 +2505,7 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, app=None, deleted_count=1
     )
-    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.path)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2581,7 +2581,7 @@ def test_customer_delete_by_app(
     assert kwargs["deleted_count"] == 1
     assert kwargs["staff_user"].is_anonymous
     assert kwargs["app"] == app
-    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.path)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
@@ -3687,7 +3687,7 @@ def test_staff_delete_with_avatar(
     data = content["data"]["staffDelete"]
     assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
-    delete_from_storage_task_mock.assert_called_once_with(staff_user.avatar.path)
+    delete_from_storage_task_mock.assert_called_once_with(staff_user.avatar.name)
 
 
 def test_staff_delete_app_no_permission(app_api_client, permission_manage_staff):
