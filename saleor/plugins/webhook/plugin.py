@@ -11,6 +11,7 @@ from ...core.notify_events import NotifyEventType
 from ...core.taxes import TaxData, TaxType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
+from ...payment.models import Payment
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -1162,7 +1163,14 @@ class WebhookPlugin(BasePlugin):
             )
 
         webhook_payload = generate_payment_payload(payment_information)
-        response_data = trigger_webhook_sync(event_type, webhook_payload, app)
+        payment = Payment.objects.filter(id=payment_information.payment_id).first()
+        if not payment:
+            raise PaymentError(
+                f"Payment with id: {payment_information.payment_id} not found."
+            )
+        response_data = trigger_webhook_sync(
+            event_type, webhook_payload, app, subscribable_object=payment
+        )
         if response_data is None:
             raise PaymentError(
                 f"Payment method {payment_information.gateway} is not available: "
@@ -1192,6 +1200,7 @@ class WebhookPlugin(BasePlugin):
                 event_type=WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
                 data=generate_list_gateways_payload(currency, checkout),
                 app=app,
+                subscribable_object=checkout,
             )
             if response_data:
                 app_gateways = parse_list_payment_gateways_response(response_data, app)
@@ -1297,12 +1306,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
+            # consider lazy loading
             payload = generate_checkout_payload(checkout, self.requestor)
             for app in apps:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                     data=payload,
                     app=app,
+                    subscribable_object=checkout,
                 )
                 if response_data:
                     shipping_methods = parse_list_shipping_methods_response(
@@ -1356,6 +1367,7 @@ class WebhookPlugin(BasePlugin):
             previous_value=previous_value,
             payload_fun=payload_fun,
             cache_key=cache_key,
+            subscribable_object=order,
         )
 
     def excluded_shipping_methods_for_checkout(
@@ -1375,6 +1387,7 @@ class WebhookPlugin(BasePlugin):
             previous_value=previous_value,
             payload_fun=payload_function,
             cache_key=cache_key,
+            subscribable_object=checkout,
         )
 
     def is_event_active(self, event: str, channel=Optional[str]):
