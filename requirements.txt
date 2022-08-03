@@ -45,12 +45,12 @@ django-redis==5.2.0; python_version >= "3.6"
 django-storages==1.12.3; python_version >= "3.5"
 django-timezone-field==4.2.3; python_version >= "3.5"
 django-versatileimagefield==2.2
-django==3.2.13; python_version >= "3.6"
+django==3.2.15; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 faker==13.11.1; python_version >= "3.6"
-fonttools==4.33.3; python_version >= "3.7"
+fonttools==4.34.4; python_version >= "3.7"
 freezegun==1.2.1; python_version >= "3.6"
 google-api-core==2.8.0; python_version >= "3.7"
 google-auth==2.6.6; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
