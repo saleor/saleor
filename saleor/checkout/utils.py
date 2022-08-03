@@ -220,7 +220,8 @@ def add_variants_to_checkout(
             _append_line_to_update(to_update, to_delete, line_data, replace, line)
             _append_line_to_delete(to_delete, line_data, line)
         else:
-            _append_line_to_create(to_create, checkout, variants_map, line_data, line)
+            variant = variants_map[line_data.variant_id]
+            _append_line_to_create(to_create, checkout, variant, line_data, line)
 
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
@@ -277,13 +278,13 @@ def _append_line_to_delete(to_delete, line_data, line):
             to_delete.append(line)
 
 
-def _append_line_to_create(to_create, checkout, variants_map, line_data, line):
+def _append_line_to_create(to_create, checkout, variant, line_data, line):
     if line is None:
         if line_data.quantity > 0:
             to_create.append(
                 CheckoutLine(
                     checkout=checkout,
-                    variant=variants_map[line_data.variant_id],
+                    variant=variant,
                     quantity=line_data.quantity,
                     currency=checkout.currency,
                     price_override=line_data.custom_price,

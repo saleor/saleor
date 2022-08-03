@@ -1561,7 +1561,7 @@ def get_image(image_dir, image_name):
     return File(open(img_path, "rb"), name=image_name)
 
 
-def prep_checkout():
+def prepare_checkout_info():
     channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
     checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
     checkout.set_country(channel.default_country, commit=True)
@@ -1570,7 +1570,7 @@ def prep_checkout():
 
 
 def create_checkout_with_preorders():
-    checkout_info = prep_checkout()
+    checkout_info = prepare_checkout_info()
     for product_variant in ProductVariant.objects.all()[:2]:
         product_variant.is_preorder = True
         product_variant.preorder_global_threshold = 10
@@ -1591,7 +1591,7 @@ def create_checkout_with_preorders():
 
 
 def create_checkout_with_custom_prices():
-    checkout_info = prep_checkout()
+    checkout_info = prepare_checkout_info()
     for product_variant in ProductVariant.objects.all()[:2]:
         add_variant_to_checkout(
             checkout_info, product_variant, 2, price_override=Decimal("20.0")
@@ -1603,7 +1603,7 @@ def create_checkout_with_custom_prices():
 
 
 def create_checkout_with_same_variant_in_multiple_lines():
-    checkout_info = prep_checkout()
+    checkout_info = prepare_checkout_info()
     for product_variant in ProductVariant.objects.all()[:2]:
         add_variant_to_checkout(checkout_info, product_variant, 2)
         add_variant_to_checkout(checkout_info, product_variant, 2, force_new_line=True)
