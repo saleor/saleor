@@ -604,6 +604,11 @@ DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 # Slug for channel precreated in Django migrations
 DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 
+# Set this to `True` if you want to create default channel, warehouse, product type and
+# category during migrations. It makes it easier for the users to create their first
+# product.
+POPULATE_DEFAULTS = get_bool_from_env("POPULATE_DEFAULTS", True)
+
 
 #  Sentry
 sentry_sdk.utils.MAX_STRING_LENGTH = 4096
