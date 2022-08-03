@@ -73,6 +73,28 @@ def test_update_attribute_value(
     ]
 
 
+def test_update_attribute_value_update_search_index_dirty_in_product(
+    staff_api_client,
+    product,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = product.attributes.all()[0].values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    name = "Crimson name"
+    variables = {"input": {"name": name}, "id": node_id}
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    product.refresh_from_db(fields=["search_index_dirty"])
+
+    # then
+    assert product.search_index_dirty is True
+
+
 @freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
