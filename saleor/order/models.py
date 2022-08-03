@@ -289,6 +289,8 @@ class Order(ModelWithMetadata):
     redirect_url = models.URLField(blank=True, null=True)
     search_document = models.TextField(blank=True, default="")
     search_vector = SearchVectorField(blank=True, null=True)
+    # this field is used only for draft/unconfirmed orders
+    should_refresh_prices = models.BooleanField(default=True)
     objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:

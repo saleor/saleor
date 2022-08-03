@@ -4,7 +4,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.search import update_order_search_vector
-from ....order.utils import remove_order_discount_from_order
+from ....order.utils import invalidate_order_prices, remove_order_discount_from_order
 from ...core.types import OrderError
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon
@@ -43,7 +43,9 @@ class OrderDiscountDelete(OrderDiscountCommon):
 
         order.refresh_from_db()
 
-        cls.recalculate_order(order)
-        update_order_search_vector(order)
-
+        update_order_search_vector(order, save=False)
+        invalidate_order_prices(order)
+        order.save(
+            update_fields=["should_refresh_prices", "search_vector", "updated_at"]
+        )
         return OrderDiscountDelete(order=order)

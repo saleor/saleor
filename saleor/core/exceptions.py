@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, Sequence, Union
 
+from graphql import GraphQLError
+
 from ..checkout.error_codes import CheckoutErrorCode
 
 if TYPE_CHECKING:
@@ -73,3 +75,17 @@ class GiftCardNotApplicable(Exception):
         super().__init__(message)
         self.message = message
         self.code = CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
+
+
+class CircularSubscriptionSyncEvent(GraphQLError):
+    pass
+
+
+class SyncEventError(Exception):
+    def __init__(self, message, code=None):
+        super(SyncEventError, self).__init__(message, code)
+        self.message = message
+        self.code = code
+
+    def __str__(self):
+        return self.message

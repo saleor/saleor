@@ -53,6 +53,8 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
+APPEND_SLASH = False
+
 _DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1"
 
 ALLOWED_CLIENT_HOSTS = os.environ.get("ALLOWED_CLIENT_HOSTS")
@@ -552,6 +554,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.discount.tasks.send_sale_toggle_notifications",
         "schedule": initiated_sale_webhook_schedule,
     },
+    "update-products-search-vectors": {
+        "task": "saleor.product.tasks.update_products_search_vector_task",
+        "schedule": timedelta(seconds=20),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -727,8 +733,30 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
+CHECKOUT_PRICES_TTL = timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
+)
+
+# The maximum SearchVector expression count allowed per index SQL statement
+# If the count is exceeded, the expression list will be truncated
+INDEX_MAXIMUM_EXPR_COUNT = 4000
+
+# Maximum related objects that can be indexed in an order
+SEARCH_ORDERS_MAX_INDEXED_PAYMENTS = 20
+SEARCH_ORDERS_MAX_INDEXED_DISCOUNTS = 20
+SEARCH_ORDERS_MAX_INDEXED_LINES = 100
+
+# Maximum related objects that can be indexed in a product
+PRODUCT_MAX_INDEXED_ATTRIBUTES = 1000
+PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES = 100
+PRODUCT_MAX_INDEXED_VARIANTS = 1000
+
 
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
+
+UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
+    "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
+)

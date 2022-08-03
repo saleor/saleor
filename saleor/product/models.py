@@ -397,6 +397,7 @@ class Product(SeoModel, ModelWithMetadata):
     description_plaintext = TextField(blank=True)
     search_document = models.TextField(blank=True, default="")
     search_vector = SearchVectorField(blank=True, null=True)
+    search_index_dirty = models.BooleanField(default=False)
 
     category = models.ForeignKey(
         Category,

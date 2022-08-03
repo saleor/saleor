@@ -6,6 +6,7 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from ....core.postgres import FlatConcatSearchVector
 from ....discount.models import OrderDiscount
 from ....order.models import Order, OrderStatus
 from ....order.search import (
@@ -36,7 +37,9 @@ def orders_for_pagination(db, channel_USD):
     )
 
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(orders, ["search_vector"])
 
     return orders
@@ -50,16 +53,19 @@ def draft_orders_for_pagination(db, channel_USD):
                 total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                should_refresh_prices=False,
             ),
             Order(
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                should_refresh_prices=False,
             ),
             Order(
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                should_refresh_prices=False,
             ),
         ]
     )
@@ -373,7 +379,11 @@ def test_draft_order_query_pagination_with_filter_created(
     channel_USD,
 ):
     with freeze_time("2012-01-14"):
-        Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
+        Order.objects.create(
+            status=OrderStatus.DRAFT,
+            channel=channel_USD,
+            should_refresh_prices=False,
+        )
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -448,7 +458,9 @@ def test_orders_query_pagination_with_filter_search(
     )
 
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(orders, ["search_vector"])
 
     after = None
@@ -530,7 +542,9 @@ def test_draft_orders_query_pagination_with_filter_search(
     )
 
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(orders, ["search_vector"])
 
     page_size = 2

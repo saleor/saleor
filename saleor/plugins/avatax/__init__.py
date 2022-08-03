@@ -289,18 +289,11 @@ def get_checkout_lines_data(
         item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        prices_data = base_calculations.base_checkout_line_total(
+        checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
             discounts,
         )
-
-        if tax_included:
-            undiscounted_amount = prices_data.undiscounted_price.gross.amount
-            price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
-        else:
-            undiscounted_amount = prices_data.undiscounted_price.net.amount
-            price_with_discounts_amount = prices_data.price_with_discounts.net.amount
 
         # This is a workaround for Avatax and sending a lines with amount 0. Like
         # order lines which are fully discounted for some reason. If we use a
@@ -312,7 +305,7 @@ def get_checkout_lines_data(
         # combination with caps, thresholds, or base rules."
         tax_code = (
             tax_code
-            if undiscounted_amount and not tax_override_data
+            if checkout_line_total.amount and not tax_override_data
             else DEFAULT_TAX_CODE
         )
         append_line_to_data_kwargs = {
@@ -328,7 +321,7 @@ def get_checkout_lines_data(
 
         append_line_to_data(
             **append_line_to_data_kwargs,
-            amount=price_with_discounts_amount,
+            amount=checkout_line_total.amount,
             ref1=line_info.variant.sku,
         )
 

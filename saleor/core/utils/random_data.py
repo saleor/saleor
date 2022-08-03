@@ -93,6 +93,7 @@ from ...shipping.models import (
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
+from ..postgres import FlatConcatSearchVector
 
 fake = Factory.create()
 fake.seed(0)
@@ -834,7 +835,9 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
-    order.search_vector = prepare_order_search_vector_value(order)
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save()
 
     create_fake_payment(order=order)
