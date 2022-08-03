@@ -23,27 +23,34 @@ PRODUCT_FIELDS_TO_PREFETCH = [
 PRODUCTS_BATCH_SIZE = 300
 # Setting threshold to 300 results in about 350MB of memory usage
 # when testing locally. Should be adjusted after some time by running
-# update task on a large dataset and measureing the total time, memory usage
+# update task on a large dataset and measuring the total time, memory usage
 # and time of a single SQL statement.
 
 
-def update_products_search_vector(products: "QuerySet"):
-    last_id = 0
-    while True:
-        products_batch = list(
-            products.order_by("id").filter(id__gt=last_id)[:PRODUCTS_BATCH_SIZE]
+def _prep_product_search_vector_index(products):
+    prefetch_related_objects(products, *PRODUCT_FIELDS_TO_PREFETCH)
+    for product in products:
+        product.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(product, already_prefetched=True)
         )
-        if not products_batch:
-            break
-        last_id = products_batch[-1].id
+        product.search_index_dirty = False
 
-        prefetch_related_objects(products_batch, *PRODUCT_FIELDS_TO_PREFETCH)
-        for product in products_batch:
-            product.search_vector = FlatConcatSearchVector(
-                *prepare_product_search_vector_value(product, already_prefetched=True)
-            )
+    Product.objects.bulk_update(
+        products, ["search_vector", "updated_at", "search_index_dirty"]
+    )
 
-        Product.objects.bulk_update(products_batch, ["search_vector", "updated_at"])
+
+def update_products_search_vector(products: "QuerySet", use_batches=True):
+    if use_batches:
+        last_id = 0
+        while True:
+            products_batch = list(products.filter(id__gt=last_id)[:PRODUCTS_BATCH_SIZE])
+            if not products_batch:
+                break
+            last_id = products_batch[-1].id
+            _prep_product_search_vector_index(products_batch)
+    else:
+        _prep_product_search_vector_index(products)
 
 
 def update_product_search_vector(product: "Product"):

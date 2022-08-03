@@ -554,6 +554,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.discount.tasks.send_sale_toggle_notifications",
         "schedule": initiated_sale_webhook_schedule,
     },
+    "update-products-search-vectors": {
+        "task": "saleor.product.tasks.update_products_search_vector_task",
+        "schedule": timedelta(seconds=20),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -747,3 +751,7 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 # to fix bug causing not returning errors for subscription queries.
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
+
+UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
+    "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
+)

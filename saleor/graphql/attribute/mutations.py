@@ -8,7 +8,6 @@ from django.utils.text import slugify
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
-from ...attribute.tasks import update_associated_products_search_vector
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     PageTypePermissions,
@@ -18,7 +17,6 @@ from ...core.permissions import (
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import generate_unique_slug
 from ...product import models as product_models
-from ...product.search import update_products_search_vector
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
@@ -749,9 +747,17 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        variants = product_models.ProductVariant.objects.filter(
+            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+        )
+
+        product_models.Product.objects.filter(
+            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
+            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+        ).update(search_index_dirty=True)
+
         info.context.plugins.attribute_value_updated(instance)
         info.context.plugins.attribute_updated(instance.attribute)
-        update_associated_products_search_vector.delay(instance.pk)
 
 
 class AttributeValueDelete(ModelDeleteMutation):
@@ -774,8 +780,8 @@ class AttributeValueDelete(ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(_root, info, **data)
-        update_products_search_vector(
-            product_models.Product.objects.filter(id__in=product_ids)
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
         )
         info.context.plugins.attribute_value_deleted(instance)
         info.context.plugins.attribute_updated(instance.attribute)
