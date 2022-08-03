@@ -6,8 +6,8 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
+from ...app.dataloaders import get_app
 from ...core.types import OrderError
-from ...dataloaders import get_app
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 

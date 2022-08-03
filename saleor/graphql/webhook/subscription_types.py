@@ -4,7 +4,6 @@ from django.utils import timezone
 from graphene import AbstractType, ObjectType, Union
 from rx import Observable
 
-from ..dataloaders import AppByTokenLoader, get_app
 from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation

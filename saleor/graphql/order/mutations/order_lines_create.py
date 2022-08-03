@@ -15,9 +15,9 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
-from ...dataloaders import get_app
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (

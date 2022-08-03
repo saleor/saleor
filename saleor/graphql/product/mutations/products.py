@@ -11,7 +11,6 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef
 from django.utils.text import slugify
 
-from ...dataloaders import get_app
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PreorderAllocationError
@@ -35,6 +34,7 @@ from ....product.utils import delete_categories, get_products_ids_without_varian
 from ....product.utils.variants import generate_and_set_variant_name
 from ....thumbnail import models as thumbnail_models
 from ....warehouse.management import deactivate_preorder_for_variant
+from ...app.dataloaders import get_app
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext

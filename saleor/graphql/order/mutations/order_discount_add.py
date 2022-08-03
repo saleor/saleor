@@ -7,8 +7,8 @@ from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
+from ...app.dataloaders import get_app
 from ...core.types import OrderError
-from ...dataloaders import get_app
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 

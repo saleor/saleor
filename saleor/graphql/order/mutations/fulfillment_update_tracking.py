@@ -1,9 +1,9 @@
 import graphene
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order.actions import fulfillment_tracking_updated
 from ....order.notifications import send_fulfillment_update
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Fulfillment, Order

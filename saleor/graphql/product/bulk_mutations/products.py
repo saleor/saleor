@@ -9,7 +9,6 @@ from django.db.models.fields import IntegerField
 from django.db.models.functions import Coalesce
 from graphene.types import InputObjectType
 
-from ...dataloaders import get_app
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
@@ -28,6 +27,7 @@ from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
+from ...app.dataloaders import get_app
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation

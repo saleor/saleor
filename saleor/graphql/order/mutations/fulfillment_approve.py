@@ -1,12 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...dataloaders import get_app
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order.actions import approve_fulfillment
 from ....order.error_codes import OrderErrorCode
+from ...app.dataloaders import get_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError

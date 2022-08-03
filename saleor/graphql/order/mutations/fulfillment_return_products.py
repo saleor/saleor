@@ -1,11 +1,11 @@
 import graphene
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import create_fulfillments_for_returned_products
 from ....payment import PaymentError
+from ...app.dataloaders import get_app
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
 from ..types import Fulfillment, Order

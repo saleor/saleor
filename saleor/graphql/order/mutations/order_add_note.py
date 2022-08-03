@@ -2,11 +2,11 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...core.utils import validate_required_string_field

@@ -1,12 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
 from ....order.actions import cancel_order
 from ....order.error_codes import OrderErrorCode
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Order

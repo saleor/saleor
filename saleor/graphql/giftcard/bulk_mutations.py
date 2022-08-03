@@ -4,7 +4,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ..dataloaders import get_app
 from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code
@@ -12,6 +11,7 @@ from ...core.utils.validators import is_date_in_future
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import is_gift_card_expired
+from ..app.dataloaders import get_app
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.types import GiftCardError, NonNullList, PriceInput
@@ -136,9 +136,7 @@ class GiftCardBulkCreate(BaseMutation):
                 for _ in range(count)
             ]
         )
-        events.gift_cards_issued_event(
-            gift_cards, info.context.user, app, balance
-        )
+        events.gift_cards_issued_event(gift_cards, info.context.user, app, balance)
         return gift_cards
 
     @staticmethod

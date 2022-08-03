@@ -9,7 +9,6 @@ from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from graphene.utils.str_converters import to_camel_case
 
-from ..dataloaders import get_app
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
 from ...core.exceptions import PermissionDenied
@@ -18,6 +17,7 @@ from ...core.permissions import (
     AuthorizationFilters,
     has_one_of_permissions,
 )
+from ..app.dataloaders import get_app
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet

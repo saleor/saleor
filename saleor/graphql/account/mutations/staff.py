@@ -5,7 +5,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ...dataloaders import get_app
 from ....account import events as account_events
 from ....account import models, utils
 from ....account.error_codes import AccountErrorCode
@@ -25,6 +24,7 @@ from ....order.utils import match_orders_with_new_user
 from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.utils import add_hash_to_file_name, validate_image_file

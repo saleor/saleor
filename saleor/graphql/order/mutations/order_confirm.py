@@ -1,7 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
@@ -10,6 +9,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
+from ...app.dataloaders import get_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ..types import Order

@@ -1,9 +1,9 @@
 import graphene
 
-from ...dataloaders import get_app
 from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseBulkMutation
 from ...core.types import NonNullList, OrderError
 from ..mutations.order_cancel import clean_order_cancel

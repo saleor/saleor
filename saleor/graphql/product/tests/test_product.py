@@ -11957,7 +11957,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     settings,
     variant,
     warehouses,
-    info,
 ):
 
     Stock.objects.bulk_create(
@@ -11968,14 +11967,14 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     )
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    info.context.plugins = get_plugins_manager()
+    plugins = get_plugins_manager()
     stocks_data = [
         {"quantity": 10, "warehouse": "123"},
     ]
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, info.context.plugins
+        variant, stocks_data, warehouses, plugins
     )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
@@ -11995,7 +11994,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     settings,
     variant,
     warehouses,
-    info,
 ):
 
     Stock.objects.bulk_create(
@@ -12006,14 +12004,14 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     )
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    info.context.plugins = get_plugins_manager()
+    plugins = get_plugins_manager()
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
     ]
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, info.context.plugins
+        variant, stocks_data, warehouses, plugins
     )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
@@ -12033,7 +12031,6 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     settings,
     variant,
     warehouses,
-    info,
 ):
 
     Stock.objects.bulk_create(
@@ -12045,7 +12042,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    info.context.plugins = get_plugins_manager()
+    plugins = get_plugins_manager()
 
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
@@ -12055,7 +12052,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, info.context.plugins
+        variant, stocks_data, warehouses, plugins
     )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2

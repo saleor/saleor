@@ -4,8 +4,8 @@ from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..app.dataloaders import get_app
 from ..core.utils import from_global_id_or_error
-from ..dataloaders import get_app
 from .types import Webhook, WebhookEvent
 
 

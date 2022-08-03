@@ -2,7 +2,6 @@ from typing import Any, List
 
 from django.core.exceptions import ValidationError
 
-from ..dataloaders import get_app
 from ...account import models as account_models
 from ...account.error_codes import AccountErrorCode
 from ...attribute import AttributeType
@@ -26,6 +25,7 @@ from ...core.permissions import (
     ShippingPermissions,
 )
 from ...payment.utils import payment_owned_by_user
+from ..app.dataloaders import get_app
 from ..core.utils import from_global_id_or_error
 
 

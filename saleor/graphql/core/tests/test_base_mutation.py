@@ -31,7 +31,7 @@ class Mutation(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, product_id, channel):
         # Need to mock `app_middleware`
-        info.context.app = None
+        info.context.auth_token = None
 
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=product_types.Product
@@ -73,7 +73,7 @@ class OrderMutation(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id, channel):
         # Need to mock `app_middleware`
-        info.context.app = None
+        info.context.auth_token = None
 
         order = cls.get_node_or_error(info, id, only_type=order_types.Order)
         return OrderMutation(number=order.number)

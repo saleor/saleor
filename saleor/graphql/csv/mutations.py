@@ -3,11 +3,11 @@ from typing import Dict, List, Mapping, Union
 import graphene
 from django.core.exceptions import ValidationError
 
-from ..dataloaders import get_app
 from ...core.permissions import GiftcardPermissions, ProductPermissions
 from ...csv import models as csv_models
 from ...csv.events import export_started_event
 from ...csv.tasks import export_gift_cards_task, export_products_task
+from ..app.dataloaders import get_app
 from ..attribute.types import Attribute
 from ..channel.types import Channel
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE

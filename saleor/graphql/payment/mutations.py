@@ -6,7 +6,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
 
-from ..dataloaders import get_app
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
@@ -35,6 +34,7 @@ from ...payment.gateway import (
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
+from ..app.dataloaders import get_app
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout

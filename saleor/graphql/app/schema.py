@@ -1,6 +1,5 @@
 import graphene
 
-from ..dataloaders import get_app
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -8,7 +7,7 @@ from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType, NonNullList
 from ..core.utils import from_global_id_or_error
-from .dataloaders import AppByIdLoader, AppExtensionByIdLoader
+from .dataloaders import AppByIdLoader, AppExtensionByIdLoader, get_app
 from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
     AppActivate,

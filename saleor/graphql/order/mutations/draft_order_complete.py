@@ -15,9 +15,9 @@ from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
+from ...app.dataloaders import get_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...dataloaders import get_app
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,

@@ -7,9 +7,9 @@ from ...invoice import events, models
 from ...invoice.error_codes import InvoiceErrorCode
 from ...invoice.notifications import send_invoice
 from ...order import events as order_events
+from ..app.dataloaders import get_app
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import InvoiceError
-from ..dataloaders import AppByTokenLoader, get_app
 from ..order.types import Order
 from .types import Invoice
 from .utils import is_event_active_for_any_plugin

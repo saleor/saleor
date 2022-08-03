@@ -5,8 +5,8 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.search import update_order_search_vector
 from ....order.utils import invalidate_order_prices, remove_order_discount_from_order
+from ...app.dataloaders import get_app
 from ...core.types import OrderError
-from ...dataloaders import get_app
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon
 
