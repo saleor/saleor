@@ -62,7 +62,7 @@ django-stubs-ext==0.4.0; python_version >= "3.6"
 django-stubs==1.8.0; python_version >= "3.6"
 django-timezone-field==4.2.3; python_version >= "3.5"
 django-versatileimagefield==2.2
-django==3.2.13; python_version >= "3.6"
+django==3.2.15; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
@@ -185,6 +185,7 @@ rx==1.6.1
 s3transfer==0.5.2; python_version >= "3.6"
 sendgrid==6.9.7; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
 sentry-sdk==1.5.12
+setuptools==63.4.0; python_version >= "3.7" and python_full_version >= "3.6.2"
 singledispatch==3.7.0; python_version >= "3.6" and python_version < "4.0"
 six==1.16.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_version >= "3.7" and python_version < "4.0" and python_full_version >= "3.6.0"
 sniffio==1.2.0; python_version >= "3.7" and python_full_version >= "3.6.2"
