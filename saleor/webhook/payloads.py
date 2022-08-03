@@ -526,7 +526,6 @@ def generate_checkout_payload(
     checkout_data = serializer.serialize(
         [checkout],
         fields=checkout_fields,
-        obj_id_name="token",
         pk_field_name="token",
         additional_fields={
             "channel": (lambda o: o.channel, CHANNEL_FIELDS),
@@ -551,6 +550,9 @@ def generate_checkout_payload(
             else None,
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "created": checkout.created_at,
+            # We add token as a graphql ID as it worked in that way since we introduce
+            # a checkout payload
+            "token": graphene.Node.to_global_id("Checkout", checkout.token),
         },
     )
     return checkout_data

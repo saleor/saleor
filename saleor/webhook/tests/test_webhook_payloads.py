@@ -1547,6 +1547,7 @@ def test_generate_checkout_payload(
     # then
     assert payload == {
         "type": "Checkout",
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
         "token": graphene.Node.to_global_id("Checkout", checkout.pk),
         "created": parse_django_datetime(checkout.created_at),
         "last_change": parse_django_datetime(checkout.last_change),
