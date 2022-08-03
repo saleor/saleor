@@ -544,6 +544,7 @@ def generate_checkout_payload(
             else None,
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "created": checkout.created_at,
+            "id": graphene.Node.to_global_id("Checkout", checkout.token),
         },
     )
     return checkout_data
