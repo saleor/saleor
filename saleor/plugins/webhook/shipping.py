@@ -2,15 +2,17 @@ import base64
 import json
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from django.core.cache import cache
 from django.db.models import QuerySet
 from graphql import GraphQLError
 from prices import Money
 
+from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
+from ...order.models import Order
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
@@ -67,7 +69,11 @@ def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
 
 
 def get_excluded_shipping_methods_or_fetch(
-    webhooks: QuerySet, event_type: str, payload: str, cache_key: str
+    webhooks: QuerySet,
+    event_type: str,
+    payload: str,
+    cache_key: str,
+    subscribable_object: Optional[Union["Order", "Checkout"]],
 ) -> Dict[str, List[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
@@ -89,7 +95,8 @@ def get_excluded_shipping_methods_or_fetch(
             event_type,
             payload,
             webhook.app,
-            EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            subscribable_object=subscribable_object,
+            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
         )
         if response_data:
             excluded_methods.extend(
@@ -104,6 +111,7 @@ def get_excluded_shipping_data(
     previous_value: List[ExcludedShippingMethod],
     payload_fun: Callable[[], str],
     cache_key: str,
+    subscribable_object: Optional[Union["Order", "Checkout"]],
 ) -> List[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
@@ -123,7 +131,7 @@ def get_excluded_shipping_data(
         payload = payload_fun()
 
         excluded_methods_map = get_excluded_shipping_methods_or_fetch(
-            webhooks, event_type, payload, cache_key
+            webhooks, event_type, payload, cache_key, subscribable_object
         )
 
     # Gather responses for previous plugins

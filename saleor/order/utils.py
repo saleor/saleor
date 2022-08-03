@@ -510,22 +510,17 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(
+def get_all_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-    manager: "PluginsManager",
 ) -> List[ShippingMethodData]:
-    """Return a list of shipping methods according to Saleor's own business logic.
-
-    The resulting methods are not yet filtered by plugins.
-    """
     if not order.is_shipping_required():
         return []
 
     if not order.shipping_address:
         return []
 
-    valid_methods = []
+    all_methods = []
 
     shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order,
@@ -542,7 +537,19 @@ def get_valid_shipping_methods_for_order(
         listing = listing_map.get(method.id)
         shipping_method_data = convert_to_shipping_method_data(method, listing)
         if shipping_method_data:
-            valid_methods.append(shipping_method_data)
+            all_methods.append(shipping_method_data)
+    return all_methods
+
+
+def get_valid_shipping_methods_for_order(
+    order: Order,
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
+    manager: "PluginsManager",
+) -> List[ShippingMethodData]:
+    """Return a list of shipping methods according to Saleor's own business logic."""
+    valid_methods = get_all_shipping_methods_for_order(order, shipping_channel_listings)
+    if not valid_methods:
+        return []
 
     excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
     initialize_shipping_method_active_status(valid_methods, excluded_methods)

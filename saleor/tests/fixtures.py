@@ -92,6 +92,7 @@ from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..plugins.webhook.tasks import WebhookResponse
+from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
 from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
@@ -5442,6 +5443,27 @@ def payment_app(db, permission_manage_payments):
         name="payment-webhook-1",
         app=app,
         target_url="https://payment-gateway.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
+        ]
+    )
+    return app
+
+
+@pytest.fixture
+def payment_app_with_subscription_webhooks(db, permission_manage_payments):
+    app = App.objects.create(name="Payment App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment-subscription-webhook-1",
+        app=app,
+        target_url="https://payment-gateway.com/api/",
+        subscription_query=subscription_queries.PAYMENT_AUTHORIZE,
     )
     webhook.events.bulk_create(
         [

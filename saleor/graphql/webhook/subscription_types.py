@@ -10,6 +10,7 @@ from ...attribute.models import AttributeTranslation, AttributeValueTranslation
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
+from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import TransactionActionData
 from ...product.models import (
@@ -19,10 +20,11 @@ from ...product.models import (
     ProductVariantTranslation,
 )
 from ...shipping.models import ShippingMethodTranslation
-from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -31,9 +33,13 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
+from ..core.types import NonNullList
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
+from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
+from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
+from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {
     ProductTranslation: translation_types.ProductTranslation,
@@ -170,6 +176,22 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,
             WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
             WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
+            WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
+            WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
+            WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
+            WebhookEventSyncType.PAYMENT_VOID: PaymentVoidEvent,
+            WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
+            WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
+            WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+            WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (
+                OrderFilterShippingMethods
+            ),
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
+                CheckoutFilterShippingMethods
+            ),
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
+                ShippingListMethodsForCheckout
+            ),
         }
         return types.get(object_type)
 
@@ -1374,6 +1396,131 @@ class WarehouseBase(AbstractType):
         return warehouse
 
 
+class PaymentBase(AbstractType):
+    payment = graphene.Field(
+        "saleor.graphql.payment.types.Payment",
+        description="Look up a payment.",
+    )
+
+    @staticmethod
+    def resolve_payment(root, _info):
+        _, payment = root
+        return payment
+
+
+class PaymentAuthorize(ObjectType, PaymentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "Authorize payment." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class PaymentCaptureEvent(ObjectType, PaymentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "Capture payment." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class PaymentRefundEvent(ObjectType, PaymentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "Refund payment." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class PaymentVoidEvent(ObjectType, PaymentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "Void payment." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class PaymentConfirmEvent(ObjectType, PaymentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "Confirm payment." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class PaymentProcessEvent(ObjectType, PaymentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "Process payment." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class PaymentListGateways(ObjectType, CheckoutBase):
+    class Meta:
+        interfaces = (Event,)
+        description = "List payment gateways." + ADDED_IN_36 + PREVIEW_FEATURE
+
+
+class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
+    shipping_methods = NonNullList(
+        ShippingMethod,
+        description="Shipping methods that can be used with this checkout."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_shipping_methods(root, info):
+        _, checkout = root
+        return resolve_shipping_methods_for_checkout(info, checkout)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "List shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+
+class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
+    shipping_methods = NonNullList(
+        ShippingMethod,
+        description="Shipping methods that can be used with this checkout."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_shipping_methods(root, info):
+        _, checkout = root
+        return resolve_shipping_methods_for_checkout(info, checkout)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Filter shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+
+class OrderFilterShippingMethods(ObjectType, OrderBase):
+    shipping_methods = NonNullList(
+        ShippingMethod,
+        description="Shipping methods that can be used with this checkout."
+        + ADDED_IN_36
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_shipping_methods(root, info):
+        _, order = root
+
+        def with_channel(channel):
+            def with_listings(channel_listings):
+                return get_all_shipping_methods_for_order(order, channel_listings)
+
+            return (
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
+                .then(with_listings)
+            )
+
+        return ChannelByIdLoader(info.context).load(order.channel_id).then(with_channel)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Filter shipping methods for order." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+
 class WarehouseCreated(ObjectType, WarehouseBase):
     class Meta:
         interfaces = (Event,)
@@ -1503,4 +1650,14 @@ SUBSCRIPTION_EVENTS_TYPES = [
     WarehouseCreated,
     WarehouseUpdated,
     WarehouseDeleted,
+    PaymentAuthorize,
+    PaymentCaptureEvent,
+    PaymentRefundEvent,
+    PaymentVoidEvent,
+    PaymentConfirmEvent,
+    PaymentProcessEvent,
+    PaymentListGateways,
+    OrderFilterShippingMethods,
+    CheckoutFilterShippingMethods,
+    ShippingListMethodsForCheckout,
 ]
