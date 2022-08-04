@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -7,6 +8,7 @@ from freezegun import freeze_time
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
 from ....checkout.models import Checkout
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....order.models import Order
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
@@ -268,15 +270,18 @@ def test_channel_delete_mutation_trigger_webhook(
     assert not Channel.objects.filter(slug=channel_USD.slug).exists()
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Channel", channel_USD.id),
-            "is_active": channel_USD.is_active,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Channel", channel_USD.id),
+                "is_active": channel_USD.is_active,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CHANNEL_DELETED,
         [any_webhook],
         channel_USD,
