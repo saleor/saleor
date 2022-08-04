@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -7,6 +8,7 @@ from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -368,15 +370,18 @@ def test_channel_create_mutation_trigger_webhook(
     assert not data["errors"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Channel", channel.id),
-            "is_active": channel.is_active,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+                "is_active": channel.is_active,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CHANNEL_CREATED,
         [any_webhook],
         channel,
