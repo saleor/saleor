@@ -371,29 +371,24 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
     assert result.errors[0].message == "My Custom Error"
 
 
-def test_base_mutation_get_node_by_pk_with_order_qs_and_old_int_id(staff_user, order):
+def test_base_mutation_get_node_by_pk_with_order_qs_and_old_int_id(order):
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    info = mock.Mock(context=mock.Mock(user=staff_user))
-
     # when
     node = BaseMutation._get_node_by_pk(
-        info, order_types.Order, order.number, qs=Order.objects.all()
+        None, order_types.Order, order.number, qs=Order.objects.all()
     )
 
     # then
     assert node.id == order.id
 
 
-def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(staff_user, order):
-    # given
-    info = mock.Mock(context=mock.Mock(user=staff_user))
-
+def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(order):
     # when
     node = BaseMutation._get_node_by_pk(
-        info, order_types.Order, order.pk, qs=Order.objects.all()
+        None, order_types.Order, order.pk, qs=Order.objects.all()
     )
 
     # then
@@ -401,30 +396,25 @@ def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(staff_user, 
 
 
 def test_base_mutation_get_node_by_pk_with_order_qs_and_int_id_use_old_id_set_to_false(
-    staff_user, order
+    order,
 ):
     # given
     order.use_old_id = False
     order.save(update_fields=["use_old_id"])
 
-    info = mock.Mock(context=mock.Mock(user=staff_user))
-
     # when
     node = BaseMutation._get_node_by_pk(
-        info, order_types.Order, order.number, qs=Order.objects.all()
+        None, order_types.Order, order.number, qs=Order.objects.all()
     )
 
     # then
     assert node is None
 
 
-def test_base_mutation_get_node_by_pk_with_qs_for_product(staff_user, product):
-    # given
-    info = mock.Mock(context=mock.Mock(user=staff_user))
-
+def test_base_mutation_get_node_by_pk_with_qs_for_product(product):
     # when
     node = BaseMutation._get_node_by_pk(
-        info, product_types.Product, product.pk, qs=Product.objects.all()
+        None, product_types.Product, product.pk, qs=Product.objects.all()
     )
 
     # then
