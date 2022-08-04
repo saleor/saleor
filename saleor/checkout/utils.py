@@ -127,6 +127,7 @@ def add_variant_to_checkout(
     price_override: Optional["Decimal"] = None,
     replace: bool = False,
     check_quantity: bool = True,
+    force_new_line: bool = False,
 ):
     """Add a product variant to checkout.
 
@@ -153,16 +154,22 @@ def add_variant_to_checkout(
         check_quantity=check_quantity,
     )
 
+    if force_new_line:
+        checkout.lines.create(
+            variant=variant,
+            quantity=quantity,
+            price_override=price_override,
+        )
+        return checkout
+
     if line is None:
         line = checkout.lines.filter(variant=variant).first()
 
     if new_quantity == 0:
         if line is not None:
             line.delete()
-            line = None
     elif line is None:
-        line = checkout.lines.create(  # type: ignore
-            checkout=checkout,
+        checkout.lines.create(  # type: ignore
             variant=variant,
             quantity=new_quantity,
             currency=checkout.currency,
@@ -199,18 +206,23 @@ def add_variants_to_checkout(
     country_code = checkout.get_country()
 
     checkout_lines = checkout.lines.select_related("variant")
-    variant_ids_in_lines = {line.variant_id: line for line in checkout_lines}
+
+    lines_by_id = {str(line.pk): line for line in checkout_lines}
+    variants_map = {str(variant.pk): variant for variant in variants}
+
     to_create: List[CheckoutLine] = []
     to_update: List[CheckoutLine] = []
     to_delete: List[CheckoutLine] = []
-    for variant, line_data in zip(variants, checkout_lines_data):
-        _append_line_to_update(
-            to_update, to_delete, variant, line_data, replace, variant_ids_in_lines
-        )
-        _append_line_to_delete(to_delete, variant, line_data, variant_ids_in_lines)
-        _append_line_to_create(
-            to_create, checkout, variant, line_data, variant_ids_in_lines
-        )
+
+    for line_data in checkout_lines_data:
+        line = lines_by_id.get(line_data.line_id) if line_data.line_id else None
+        if line:
+            _append_line_to_update(to_update, to_delete, line_data, replace, line)
+            _append_line_to_delete(to_delete, line_data, line)
+        else:
+            variant = variants_map[line_data.variant_id]
+            _append_line_to_create(to_create, checkout, variant, line_data, line)
+
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
     if to_update:
@@ -219,6 +231,7 @@ def add_variants_to_checkout(
         CheckoutLine.objects.bulk_create(to_create)
 
     to_reserve = to_create + to_update
+
     if reservation_length and to_reserve:
         updated_lines_ids = [line.pk for line in to_reserve + to_delete]
         for line in checkout_lines:
@@ -238,12 +251,12 @@ def add_variants_to_checkout(
     return checkout
 
 
-def _append_line_to_update(
-    to_update, to_delete, variant, line_data, replace, variant_ids_in_lines
-):
-    if variant.pk not in variant_ids_in_lines:
-        return
-    line = variant_ids_in_lines[variant.pk]
+def _get_line_if_exist(line_data, lines_by_ids):
+    if line_data.line_id and line_data.line_id in lines_by_ids:
+        return lines_by_ids[line_data.line_id]
+
+
+def _append_line_to_update(to_update, to_delete, line_data, replace, line):
     if line_data.quantity_to_update:
         quantity = line_data.quantity
         if quantity > 0:
@@ -258,20 +271,15 @@ def _append_line_to_update(
             to_update.append(line)
 
 
-def _append_line_to_delete(to_delete, variant, line_data, variant_ids_in_lines):
-    if variant.pk not in variant_ids_in_lines:
-        return
-    line = variant_ids_in_lines[variant.pk]
+def _append_line_to_delete(to_delete, line_data, line):
     quantity = line_data.quantity
     if line_data.quantity_to_update:
         if quantity <= 0:
             to_delete.append(line)
 
 
-def _append_line_to_create(
-    to_create, checkout, variant, line_data, variant_ids_in_lines
-):
-    if variant.pk not in variant_ids_in_lines:
+def _append_line_to_create(to_create, checkout, variant, line_data, line):
+    if line is None:
         if line_data.quantity > 0:
             to_create.append(
                 CheckoutLine(

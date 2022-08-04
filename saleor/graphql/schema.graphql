@@ -17421,6 +17421,15 @@ input OrderLineCreateInput {
 
   """Product variant ID."""
   variantId: ID!
+
+  """
+  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  forceNewLine: Boolean = false
 }
 
 """
@@ -19502,6 +19511,15 @@ input CheckoutLineInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
+
+  """
+  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
+  
+  Added in Saleor 3.6.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  forceNewLine: Boolean = false
 }
 
 input CheckoutValidationRules {
@@ -19583,12 +19601,16 @@ type CheckoutLinesUpdate {
 
 input CheckoutLineUpdateInput {
   """
+  ID of the product variant. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `lineId` instead.
+  """
+  variantId: ID
+
+  """
   The number of items purchased. Optional for apps, required for any other users.
   """
   quantity: Int
-
-  """ID of the product variant."""
-  variantId: ID!
 
   """
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
@@ -19598,6 +19620,13 @@ input CheckoutLineUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
+
+  """
+  ID of the line.
+  
+  Added in Saleor 3.6.
+  """
+  lineId: ID
 }
 
 """Remove a gift card or a voucher from a checkout."""

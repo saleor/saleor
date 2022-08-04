@@ -596,6 +596,7 @@ def test_update_checkout_lines(
             },
         ],
     }
+
     response = get_graphql_content(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
     )
@@ -644,13 +645,14 @@ def test_update_checkout_lines_with_reservations(
         variants,
         [
             CheckoutLineData(
+                variant_id=str(variant.pk),
                 quantity=2,
                 quantity_to_update=True,
                 custom_price=None,
                 custom_price_to_update=False,
             )
-        ]
-        * 10,
+            for variant in variants
+        ],
         channel_USD.slug,
         replace_reservations=True,
         reservation_length=5,

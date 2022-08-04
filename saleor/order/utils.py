@@ -197,111 +197,89 @@ def update_order_status(order):
 
 
 @traced_atomic_transaction()
-def add_variant_to_order(
+def create_order_line(
     order,
-    variant,
-    quantity,
-    user,
-    app,
+    line_data,
     manager,
     site_settings,
     discounts=None,
     allocate_stock=False,
 ):
-    """Add total_quantity of variant to order.
-
-    Returns an order line the variant was added to.
-    """
     channel = order.channel
-    try:
-        line = order.lines.get(variant=variant)
-        old_quantity = line.quantity
-        new_quantity = old_quantity + quantity
-        line_info = OrderLineInfo(line=line, quantity=old_quantity)
-        change_order_line_quantity(
-            user,
-            app,
-            line_info,
-            old_quantity,
-            new_quantity,
-            channel.slug,
-            manager=manager,
-            send_event=False,
-        )
-    except OrderLine.DoesNotExist:
-        product = variant.product
-        collections = product.collections.all()
-        channel_listing = variant.channel_listings.get(channel=channel)
+    variant = line_data.variant
+    quantity = line_data.quantity
 
-        # vouchers are not applied for new lines in unconfirmed/draft orders
-        untaxed_unit_price = variant.get_price(
-            product, collections, channel, channel_listing, discounts
+    product = variant.product
+    collections = product.collections.all()
+    channel_listing = variant.channel_listings.get(channel=channel)
+
+    # vouchers are not applied for new lines in unconfirmed/draft orders
+    untaxed_unit_price = variant.get_price(
+        product, collections, channel, channel_listing, discounts
+    )
+    if not discounts:
+        untaxed_undiscounted_price = untaxed_unit_price
+    else:
+        untaxed_undiscounted_price = variant.get_price(
+            product, collections, channel, channel_listing, []
         )
-        if not discounts:
-            untaxed_undiscounted_price = untaxed_unit_price
+    unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
+    undiscounted_unit_price = TaxedMoney(
+        net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
+    )
+    total_price = unit_price * quantity
+    undiscounted_total_price = undiscounted_unit_price * quantity
+
+    product_name = str(product)
+    variant_name = str(variant)
+    translated_product_name = str(product.translated)
+    translated_variant_name = str(variant.translated)
+    if translated_product_name == product_name:
+        translated_product_name = ""
+    if translated_variant_name == variant_name:
+        translated_variant_name = ""
+    line = order.lines.create(
+        product_name=product_name,
+        variant_name=variant_name,
+        translated_product_name=translated_product_name,
+        translated_variant_name=translated_variant_name,
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        unit_price=unit_price,
+        undiscounted_unit_price=undiscounted_unit_price,
+        base_unit_price=untaxed_unit_price,
+        undiscounted_base_unit_price=untaxed_undiscounted_price,
+        total_price=total_price,
+        undiscounted_total_price=undiscounted_total_price,
+        variant=variant,
+    )
+
+    manager.update_taxes_for_order_lines(order, list(order.lines.all()))
+
+    unit_discount = line.undiscounted_unit_price - line.unit_price
+    if unit_discount.gross:
+        sale_id = get_sale_id_applied_as_a_discount(
+            product=product,
+            price=channel_listing.price,
+            discounts=discounts,
+            collections=collections,
+            channel=channel,
+            variant_id=variant.id,
+        )
+        taxes_included_in_prices = site_settings.include_taxes_in_prices
+        if taxes_included_in_prices:
+            discount_amount = unit_discount.gross
         else:
-            untaxed_undiscounted_price = variant.get_price(
-                product, collections, channel, channel_listing, []
-            )
-        unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
-        undiscounted_unit_price = TaxedMoney(
-            net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
+            discount_amount = unit_discount.net
+        line.unit_discount = discount_amount
+        line.unit_discount_value = discount_amount.amount
+        line.unit_discount_reason = (
+            f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
         )
-        total_price = unit_price * quantity
-        undiscounted_total_price = undiscounted_unit_price * quantity
-
-        product_name = str(product)
-        variant_name = str(variant)
-        translated_product_name = str(product.translated)
-        translated_variant_name = str(variant.translated)
-        if translated_product_name == product_name:
-            translated_product_name = ""
-        if translated_variant_name == variant_name:
-            translated_variant_name = ""
-        line = order.lines.create(
-            product_name=product_name,
-            variant_name=variant_name,
-            translated_product_name=translated_product_name,
-            translated_variant_name=translated_variant_name,
-            product_sku=variant.sku,
-            product_variant_id=variant.get_global_id(),
-            is_shipping_required=variant.is_shipping_required(),
-            is_gift_card=variant.is_gift_card(),
-            quantity=quantity,
-            unit_price=unit_price,
-            undiscounted_unit_price=undiscounted_unit_price,
-            base_unit_price=untaxed_unit_price,
-            undiscounted_base_unit_price=untaxed_undiscounted_price,
-            total_price=total_price,
-            undiscounted_total_price=undiscounted_total_price,
-            variant=variant,
-        )
-
-        manager.update_taxes_for_order_lines(order, list(order.lines.all()))
-
-        unit_discount = line.undiscounted_unit_price - line.unit_price
-        if unit_discount.gross:
-            sale_id = get_sale_id_applied_as_a_discount(
-                product=product,
-                price=channel_listing.price,
-                discounts=discounts,
-                collections=collections,
-                channel=channel,
-                variant_id=variant.id,
-            )
-            taxes_included_in_prices = site_settings.include_taxes_in_prices
-            if taxes_included_in_prices:
-                discount_amount = unit_discount.gross
-            else:
-                discount_amount = unit_discount.net
-            line.unit_discount = discount_amount
-            line.unit_discount_value = discount_amount.amount
-            line.unit_discount_reason = (
-                f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
-            )
-            line.sale_id = (
-                graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
-            )
+        line.sale_id = graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
 
         line.save(
             update_fields=[
@@ -327,6 +305,66 @@ def add_variant_to_order(
         )
 
     return line
+
+
+@traced_atomic_transaction()
+def add_variant_to_order(
+    order,
+    line_data,
+    user,
+    app,
+    manager,
+    site_settings,
+    discounts=None,
+    allocate_stock=False,
+):
+    """Add total_quantity of variant to order.
+
+    Returns an order line the variant was added to.
+    """
+    channel = order.channel
+
+    if line_data.line_id:
+        line = order.lines.get(pk=line_data.line_id)
+        old_quantity = line.quantity
+        new_quantity = old_quantity + line_data.quantity
+        line_info = OrderLineInfo(line=line, quantity=old_quantity)
+        change_order_line_quantity(
+            user,
+            app,
+            line_info,
+            old_quantity,
+            new_quantity,
+            channel.slug,
+            manager=manager,
+            send_event=False,
+        )
+
+        if allocate_stock:
+            increase_allocations(
+                [
+                    OrderLineInfo(
+                        line=line,
+                        quantity=line_data.quantity,
+                        variant=line_data.variant,
+                        warehouse_pk=None,
+                    )
+                ],
+                channel.slug,
+                manager=manager,
+            )
+
+        return line
+
+    if line_data.variant_id:
+        return create_order_line(
+            order,
+            line_data,
+            manager,
+            site_settings,
+            discounts,
+            allocate_stock,
+        )
 
 
 def add_gift_cards_to_order(
@@ -471,14 +509,19 @@ def change_order_line_quantity(
 def create_order_event(line, user, app, quantity_diff):
     if quantity_diff > 0:
         events.order_removed_products_event(
-            order=line.order, user=user, app=app, order_lines=[(quantity_diff, line)]
+            order=line.order,
+            user=user,
+            app=app,
+            order_lines=[line],
+            quantity_diff=quantity_diff,
         )
     elif quantity_diff < 0:
         events.order_added_products_event(
             order=line.order,
             user=user,
             app=app,
-            order_lines=[(quantity_diff * -1, line)],
+            order_lines=[line],
+            quantity_diff=quantity_diff * -1,
         )
 
 
