@@ -582,6 +582,11 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
     for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()
         failed = 0
+        extra = {
+            "webhook_id": webhook.id,
+            "webhook_target_url": webhook.target_url,
+            "events_count": len(events),
+        }
         try:
             if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
                 for event in events:
@@ -606,26 +611,28 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
                     failed = len(events)
         except ValueError:
             logger.error(
-                "[Observability] Webhook ID: %r unknown webhook scheme: %r",
+                "Webhook ID: %r unknown webhook scheme: %r.",
                 webhook.id,
                 scheme,
+                extra={**extra, "dropped_events_count": len(events)},
             )
             continue
         if failed:
             logger.warning(
-                "[Observability] Webhook ID: %r failed request to %r "
-                "(%s/%s events dropped): %r.",
+                "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
                 webhook.id,
                 webhook.target_url,
                 failed,
                 len(events),
                 response.content,
+                extra={**extra, "dropped_events_count": failed},
             )
             continue
         logger.debug(
-            "[Observability] Successful delivered %s events to %r.",
+            "Successful delivered %s events to %r.",
             len(events),
             webhook.target_url,
+            extra={**extra, "dropped_events_count": 0},
         )
 
 
