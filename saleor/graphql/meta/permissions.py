@@ -134,7 +134,8 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
     context_user = info.context.user
-    if info.context.app is not None or context_user.is_staff:  # TODO: investigate
+    app = get_app(info.context.auth_token)
+    if app is not None or context_user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
     if payment_owned_by_user(payment_pk, context_user):
         return []

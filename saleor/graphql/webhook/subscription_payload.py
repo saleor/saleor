@@ -93,6 +93,7 @@ def initialize_request(requestor=None) -> HttpRequest:
         request.META["SERVER_PORT"] = "443"
 
     request.requestor = requestor  # type: ignore
+    request.auth_token = getattr(requestor, "_raw_auth_token", None)  # type: ignore
     request.request_time = request_time  # type: ignore
     request.site = SimpleLazyObject(lambda: Site.objects.get_current())  # type: ignore
     request.discounts = SimpleLazyObject(  # type: ignore

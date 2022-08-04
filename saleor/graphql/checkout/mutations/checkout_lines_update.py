@@ -97,7 +97,9 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         replace,
     ):
         # if the requestor is not app, the quantity is required for all lines
-        if not info.context.app:
+        if (
+            not info.context.app
+        ):  # TODO: how to use get_app without increasing query count
             if any(
                 [
                     line_data.quantity_to_update is False

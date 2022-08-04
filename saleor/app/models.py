@@ -117,6 +117,10 @@ class AppTokenManager(models.Manager):
         app_token.save()
         return app_token, auth_token
 
+    def create_with_token(self, *args, **kwargs):
+        """See https://app.clickup.com/t/2549495/SALEOR-7847 ."""
+        return self.create(*args, **kwargs)
+
 
 class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")

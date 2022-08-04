@@ -28,7 +28,7 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppExtension, AppInstallation
+from ..app.models import App, AppExtension, AppInstallation, AppToken
 from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
@@ -2467,7 +2467,6 @@ def product_with_variant_with_file_attribute(
 
 @pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
-
     attribute = Attribute.objects.create(
         slug="modes",
         name="Available Modes",
@@ -4364,7 +4363,8 @@ def draft_order_with_fixed_discount_order(draft_order):
         value_type=DiscountValueType.FIXED,
         value=value,
         reason="Discount reason",
-        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,
+        # type: ignore
     )
     draft_order.save()
     return draft_order
@@ -5394,9 +5394,16 @@ def webhook_app(
 
 
 @pytest.fixture
-def app_with_token(db):
-    app = App.objects.create(name="Sample app objects", is_active=True)
-    app.tokens.create(name="Test")
+def webhook_app_with_token(webhook_app):
+    _, webhook_app._raw_auth_token = AppToken.objects.create(
+        app=webhook_app, name="Webhook app token"
+    )
+    return webhook_app
+
+
+@pytest.fixture
+def app_with_token(app):
+    _, app._raw_auth_token = app.tokens.create_with_token(name="Test")
     return app
 
 

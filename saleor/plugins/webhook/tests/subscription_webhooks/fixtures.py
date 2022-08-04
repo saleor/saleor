@@ -6,11 +6,11 @@ from . import subscription_queries
 
 
 @pytest.fixture
-def subscription_webhook(webhook_app):
+def subscription_webhook(webhook_app_with_token):
     def fun(query, event_type, name="Subscription"):
         webhook = Webhook.objects.create(
             name=name,
-            app=webhook_app,
+            app=webhook_app_with_token,
             target_url="http://www.example.com/any",
             subscription_query=query,
         )

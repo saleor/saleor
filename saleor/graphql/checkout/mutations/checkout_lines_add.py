@@ -156,7 +156,9 @@ class CheckoutLinesAdd(BaseMutation):
     def perform_mutation(
         cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
     ):
-        check_permissions_for_custom_prices(info.context.app, lines)
+        check_permissions_for_custom_prices(
+            info.context.app, lines
+        )  # TODO: get_app causes too many queries
 
         checkout = get_checkout(
             cls,
