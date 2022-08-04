@@ -576,7 +576,7 @@ OBSERVABILITY_REPORT_ALL_API_CALLS = get_bool_from_env(
     "OBSERVABILITY_REPORT_ALL_API_CALLS", False
 )
 OBSERVABILITY_MAX_PAYLOAD_SIZE = int(
-    os.environ.get("OBSERVABILITY_MAX_PAYLOAD_SIZE", 128 * 1024)
+    os.environ.get("OBSERVABILITY_MAX_PAYLOAD_SIZE", 25 * 1000)
 )
 OBSERVABILITY_BUFFER_SIZE_LIMIT = int(
     os.environ.get("OBSERVABILITY_BUFFER_SIZE_LIMIT", 1000)
@@ -587,12 +587,20 @@ OBSERVABILITY_BUFFER_BATCH_SIZE = int(
 OBSERVABILITY_REPORT_PERIOD = timedelta(
     seconds=parse(os.environ.get("OBSERVABILITY_REPORT_PERIOD", "20 seconds"))
 )
+OBSERVABILITY_BUFFER_TIMEOUT = timedelta(
+    seconds=parse(os.environ.get("OBSERVABILITY_BUFFER_TIMEOUT", "5 minutes"))
+)
 if OBSERVABILITY_ACTIVE:
     CELERY_BEAT_SCHEDULE["observability-reporter"] = {
         "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
         "schedule": OBSERVABILITY_REPORT_PERIOD,
         "options": {"expires": OBSERVABILITY_REPORT_PERIOD.total_seconds()},
     }
+    if OBSERVABILITY_BUFFER_TIMEOUT < OBSERVABILITY_REPORT_PERIOD * 2:
+        warnings.warn(
+            "OBSERVABILITY_REPORT_PERIOD is too big compared to "
+            "OBSERVABILITY_BUFFER_TIMEOUT. That can lead to a loss of events."
+        )
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
