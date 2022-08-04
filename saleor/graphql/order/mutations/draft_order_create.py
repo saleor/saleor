@@ -1,4 +1,5 @@
-from typing import List, Tuple
+from collections import defaultdict
+from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -14,20 +15,22 @@ from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import (
-    add_variant_to_order,
+    create_order_line,
     invalidate_order_prices,
     recalculate_order_weight,
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
+from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
-from ..types import Order, OrderLine
+from ..types import Order
 from ..utils import (
+    OrderLineData,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
@@ -42,6 +45,14 @@ class OrderLineInput(graphene.InputObjectType):
 class OrderLineCreateInput(OrderLineInput):
     variant_id = graphene.ID(
         description="Product variant ID.", name="variantId", required=True
+    )
+    force_new_line = graphene.Boolean(
+        required=False,
+        default_value=False,
+        description=(
+            "Flag that allow force splitting the same variant into multiple lines "
+            "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
+        ),
     )
 
 
@@ -171,6 +182,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_lines(cls, cleaned_input, lines, channel):
         if lines:
+            grouped_lines_data: List[OrderLineData] = []
+            lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
+
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
             validate_product_is_published_in_channel(variants, channel)
@@ -185,8 +199,27 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                         )
                     }
                 )
-            cleaned_input["variants"] = variants
-            cleaned_input["quantities"] = quantities
+
+            for line in lines:
+                variant_id = line.get("variant_id")
+                _, variant_db_id = graphene.Node.from_global_id(variant_id)
+                variant = list(
+                    filter(lambda x: (x.pk == int(variant_db_id)), variants)
+                )[0]
+
+                if line.get("force_new_line"):
+                    line_data = OrderLineData(variant_id=variant_db_id, variant=variant)
+                    grouped_lines_data.append(line_data)
+                else:
+                    line_data = lines_data_map[variant_db_id]
+                    line_data.variant_id = variant_db_id
+                    line_data.variant = variant
+
+                if (quantity := line.get("quantity")) is not None:
+                    line_data.quantity += quantity
+
+            grouped_lines_data += list(lines_data_map.values())
+            cleaned_input["lines_data"] = grouped_lines_data
 
     @classmethod
     def clean_addresses(
@@ -235,20 +268,17 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
-    def _save_lines(info, instance, quantities, variants):
-        if variants and quantities:
-            lines: List[Tuple[int, OrderLine]] = []
-            for variant, quantity in zip(variants, quantities):
-                line = add_variant_to_order(
+    def _save_lines(info, instance, lines_data):
+        if lines_data:
+            lines = []
+            for line_data in lines_data:
+                new_line = create_order_line(
                     instance,
-                    variant,
-                    quantity,
-                    info.context.user,
-                    info.context.app,
+                    line_data,
                     info.context.plugins,
                     info.context.site.settings,
                 )
-                lines.append((quantity, line))
+                lines.append(new_line)
 
             # New event
             events.order_added_products_event(
@@ -294,12 +324,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         try:
             # Process any lines to add
-            cls._save_lines(
-                info,
-                instance,
-                cleaned_input.get("quantities"),
-                cleaned_input.get("variants"),
-            )
+            cls._save_lines(info, instance, cleaned_input.get("lines_data"))
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),
