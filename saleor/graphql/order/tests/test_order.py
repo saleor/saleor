@@ -3865,6 +3865,56 @@ def test_draft_order_update_free_shipping_voucher(
     assert order.voucher
 
 
+def test_draft_order_update_when_not_existing_customer_email_provided(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    # given
+    order = draft_order
+    assert order.user
+
+    query = """
+        mutation draftUpdate(
+            $id: ID!
+            $userEmail: String!
+        ) {
+            draftOrderUpdate(
+                id: $id
+                input: {
+                    userEmail: $userEmail
+                }
+            ) {
+                errors {
+                    field
+                    message
+                    code
+                }
+                order {
+                    id
+                }
+            }
+        }
+        """
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    email = "notexisting@example.com"
+
+    variables = {"id": order_id, "userEmail": email}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    order.refresh_from_db()
+
+    # then
+    assert not data["errors"]
+    assert not order.user
+    assert order.user_email == email
+
+
 def test_draft_order_delete(staff_api_client, permission_manage_orders, draft_order):
     order = draft_order
     query = """

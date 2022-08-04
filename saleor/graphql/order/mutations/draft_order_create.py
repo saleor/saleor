@@ -117,6 +117,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             object_id=data.pop("shipping_method", None), raise_error=False
         )
 
+        if data.get("user_email", None):
+            data["user"] = None
+
         cleaned_input = super().clean_input(info, instance, data)
 
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
