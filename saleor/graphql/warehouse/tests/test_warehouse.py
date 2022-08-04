@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import graphene
@@ -5,6 +6,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 
 from ....account.models import Address
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.models import Stock, Warehouse
@@ -697,10 +699,13 @@ def test_mutation_create_warehouse_trigger_webhook(
     # then
     assert content["data"]["createWarehouse"]["warehouse"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
-            "name": warehouse.name,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
+                "name": warehouse.name,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.WAREHOUSE_CREATED,
         [any_webhook],
         warehouse,
@@ -870,10 +875,13 @@ def test_mutation_update_warehouse_trigger_webhook(
     # then
     assert content["data"]["updateWarehouse"]["warehouse"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "name": warehouse.name,
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "name": warehouse.name,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.WAREHOUSE_UPDATED,
         [any_webhook],
         warehouse,
@@ -1165,10 +1173,13 @@ def test_delete_warehouse_mutation_trigger_webhook(
     # then
     assert len(content["data"]["deleteWarehouse"]["errors"]) == 0
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": warehouse_id,
-            "name": warehouse.name,
-        },
+        json.dumps(
+            {
+                "id": warehouse_id,
+                "name": warehouse.name,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.WAREHOUSE_DELETED,
         [any_webhook],
         warehouse,
