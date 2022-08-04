@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import graphene
@@ -7,6 +8,7 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -472,15 +474,18 @@ def test_channel_update_mutation_trigger_webhook(
     assert data["channel"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": channel_id,
-            "is_active": channel_USD.is_active,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": channel_id,
+                "is_active": channel_USD.is_active,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CHANNEL_UPDATED,
         [any_webhook],
         channel_USD,

@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import graphene
@@ -9,6 +10,7 @@ from freezegun import freeze_time
 from ....account.error_codes import PermissionGroupErrorCode
 from ....account.models import User
 from ....core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import (
@@ -145,14 +147,17 @@ def test_permission_group_create_mutation_trigger_webhook(
     # then
     assert not data["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Group", group.id),
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Group", group.id),
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
         [any_webhook],
         group,
@@ -656,14 +661,17 @@ def test_permission_group_update_mutation_trigger_webhook(
     # then
     assert not data["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Group", group1.id),
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Group", group1.id),
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
         [any_webhook],
         group1,
@@ -2058,14 +2066,17 @@ def test_group_delete_mutation_trigger_webhook(
     # then
     assert not data["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Group", group1.id),
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Group", group1.id),
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
         [any_webhook],
         group1,
