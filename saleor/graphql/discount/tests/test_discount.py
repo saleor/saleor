@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from unittest.mock import ANY, patch
 
@@ -8,6 +9,7 @@ from django.utils.functional import SimpleLazyObject
 from django_countries import countries
 from freezegun import freeze_time
 
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
@@ -536,16 +538,19 @@ def test_create_voucher_trigger_webhook(
     # then
     assert content["data"]["voucherCreate"]["voucher"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Voucher", voucher.id),
-            "name": voucher.name,
-            "code": voucher.code,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Voucher", voucher.id),
+                "name": voucher.name,
+                "code": voucher.code,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.VOUCHER_CREATED,
         [any_webhook],
         voucher,
@@ -740,16 +745,19 @@ def test_update_voucher_trigger_webhook(
     # then
     assert content["data"]["voucherUpdate"]["voucher"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "name": voucher.name,
-            "code": variables["code"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "name": voucher.name,
+                "code": variables["code"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.VOUCHER_UPDATED,
         [any_webhook],
         voucher,
@@ -816,16 +824,19 @@ def test_voucher_delete_mutation_trigger_webhook(
     # then
     assert content["data"]["voucherDelete"]["voucher"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "name": voucher.name,
-            "code": voucher.code,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "name": voucher.name,
+                "code": voucher.code,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.VOUCHER_DELETED,
         [any_webhook],
         voucher,
@@ -940,16 +951,19 @@ def test_voucher_add_catalogues_trigger_webhook(
     assert content["data"]["voucherCataloguesAdd"]["voucher"]
     assert not data["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "name": voucher.name,
-            "code": voucher.code,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "name": voucher.name,
+                "code": voucher.code,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.VOUCHER_UPDATED,
         [any_webhook],
         voucher,

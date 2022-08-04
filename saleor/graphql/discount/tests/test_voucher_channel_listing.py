@@ -1,9 +1,11 @@
+import json
 from unittest.mock import patch
 
 import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
@@ -160,16 +162,19 @@ def test_voucher_channel_listing_update_trigger_webhook(
     # then
     assert content["data"]["voucherChannelListingUpdate"]["voucher"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "name": voucher.name,
-            "code": voucher.code,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "name": voucher.name,
+                "code": voucher.code,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.VOUCHER_UPDATED,
         [any_webhook],
         voucher,

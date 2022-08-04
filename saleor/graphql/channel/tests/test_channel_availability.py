@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -5,6 +6,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import get_graphql_content
@@ -83,15 +85,18 @@ def test_channel_activate_mutation_trigger_webhook(
     # then
     assert not content["data"]["channelActivate"]["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "is_active": True,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "is_active": True,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
         [any_webhook],
         channel_USD,
@@ -190,15 +195,18 @@ def test_channel_deactivate_mutation_trigger_webhook(
     # then
     assert not content["data"]["channelDeactivate"]["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "is_active": False,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "is_active": False,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
         [any_webhook],
         channel_USD,

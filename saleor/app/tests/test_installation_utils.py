@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock, patch
 
 import graphene
@@ -6,6 +7,7 @@ import requests
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
 from ..installation_utils import install_app
@@ -65,12 +67,15 @@ def test_install_app_created_app_trigger_webhook(
 
     # then
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("App", app.id),
-            "is_active": app.is_active,
-            "name": app.name,
-            "meta": generate_meta(requestor_data=generate_requestor()),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("App", app.id),
+                "is_active": app.is_active,
+                "name": app.name,
+                "meta": generate_meta(requestor_data=generate_requestor()),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.APP_INSTALLED,
         [any_webhook],
         app,
