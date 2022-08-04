@@ -41,6 +41,8 @@ class AppExtensionByAppIdLoader(DataLoader):
 
 
 def get_app(raw_auth_token) -> Union[None, App]:
+    if raw_auth_token is None:
+        return None
     tokens = AppToken.objects.filter(token_last_4=raw_auth_token[-4:]).values_list(
         "app_id", "auth_token"
     )
