@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import graphene
@@ -5,6 +6,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....shipping.error_codes import ShippingErrorCode
 from .....shipping.models import ShippingMethodChannelListing
 from .....webhook.event_types import WebhookEventAsyncType
@@ -159,14 +161,17 @@ def test_shipping_method_channel_listing_create_trigger_webhook(
     assert data["shippingMethod"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": shipping_method_id,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": shipping_method_id,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
         [any_webhook],
         shipping_method,

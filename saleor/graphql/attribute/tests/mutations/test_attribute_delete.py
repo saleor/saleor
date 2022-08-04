@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -5,6 +6,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -82,16 +84,19 @@ def test_delete_attribute_trigger_webhook(
     assert not data["errors"]
     assert data["attribute"]["id"] == variables["id"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
-            "name": color_attribute.name,
-            "slug": color_attribute.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+                "name": color_attribute.name,
+                "slug": color_attribute.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_DELETED,
         [any_webhook],
         color_attribute,
