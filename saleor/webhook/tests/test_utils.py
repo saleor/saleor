@@ -1,8 +1,16 @@
+from typing import Type
+
 import pytest
 
 from ...app.models import App
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..models import Webhook
+from ..observability.exceptions import (
+    ApiCallTruncationError,
+    EventDeliveryAttemptTruncationError,
+    TruncationError,
+)
+from ..observability.payload_schema import ObservabilityEventTypes
 from ..utils import get_webhooks_for_event
 
 
@@ -106,3 +114,34 @@ def test_get_webhook_for_event_not_returning_any_webhook_for_sync_event_types(
     webhooks = get_webhooks_for_event(sync_type)
 
     assert set(webhooks) == {sync_webhook}
+
+
+@pytest.mark.parametrize(
+    "error,event_type",
+    [
+        (
+            ApiCallTruncationError,
+            ObservabilityEventTypes.API_CALL,
+        ),
+        (
+            EventDeliveryAttemptTruncationError,
+            ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
+        ),
+    ],
+)
+def test_truncation_error_extra_fields(
+    error: Type[TruncationError], event_type: ObservabilityEventTypes
+):
+    operation, bytes_limit, payload_size = "operation_name", 100, 102
+    kwargs = dict(extra_kwarg_a="a", extra_kwarg_b="b")
+    err = error(operation, bytes_limit, payload_size, **kwargs)
+    assert str(err)
+    assert err.extra == {
+        **{
+            "observability_event_type": event_type,
+            "operation": operation,
+            "bytes_limit": bytes_limit,
+            "payload_size": payload_size,
+        },
+        **kwargs,
+    }

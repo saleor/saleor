@@ -18,6 +18,7 @@ from pytimeparse import parse
 from ..event_types import WebhookEventAsyncType
 from ..utils import get_webhooks_for_event
 from .buffers import get_buffer
+from .exceptions import TruncationError
 from .payloads import generate_api_call_payload, generate_event_delivery_attempt_payload
 from .tracing import opentracing_trace
 
@@ -94,9 +95,11 @@ def put_event(generate_payload: Callable[[], Any]):
         payload = generate_payload()
         with opentracing_trace("put_event", "buffer"):
             if get_buffer(get_buffer_name()).put_event(payload):
-                logger.warning("[Observability] Buffer full, event dropped")
+                logger.warning("Observability buffer full, event dropped.")
+    except TruncationError as err:
+        logger.warning("Observability event dropped. %s", err, extra=err.extra)
     except Exception:
-        logger.error("[Observability] Event dropped", exc_info=True)
+        logger.error("Observability event dropped.", exc_info=True)
 
 
 def pop_events_with_remaining_size() -> Tuple[List[Any], int]:
@@ -106,7 +109,7 @@ def pop_events_with_remaining_size() -> Tuple[List[Any], int]:
             events, remaining = buffer.pop_events_get_size()
             batch_count = buffer.in_batches(remaining)
         except Exception:
-            logger.error("[Observability] Could not pop events batch", exc_info=True)
+            logger.error("Could not pop observability events batch.", exc_info=True)
             events, batch_count = [], 0
     return events, batch_count
 
@@ -134,7 +137,7 @@ class ApiCall:
         if only_app_api_call and getattr(self.request, "app", None) is None:
             return
         if self.response is None:
-            logger.error("[Observability] HttpResponse not provided, event dropped")
+            logger.error("HttpResponse not provided, observability event dropped.")
             return
         self._reported = True
         with opentracing_trace("report_api_call", "reporter"):
@@ -191,7 +194,7 @@ def report_event_delivery_attempt(
         return
     if attempt.delivery is None:
         logger.error(
-            "[Observability] %r not assigned to delivery. Event dropped", attempt
+            "Observability event dropped. %r not assigned to delivery.", attempt
         )
     with opentracing_trace("report_event_delivery_attempt", "reporter"):
         if get_webhooks():
