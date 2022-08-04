@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -5,6 +6,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....attribute.models import AttributeValue
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -205,12 +207,15 @@ def test_sort_values_trigger_webhook(
     )
 
     attribute_updated_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
-            "name": color_attribute.name,
-            "slug": color_attribute.slug,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+                "name": color_attribute.name,
+                "slug": color_attribute.slug,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,
@@ -219,13 +224,16 @@ def test_sort_values_trigger_webhook(
 
     def generate_attribute_value_update_call(value):
         return mock.call(
-            {
-                "id": graphene.Node.to_global_id("AttributeValue", value.id),
-                "name": value.name,
-                "slug": value.slug,
-                "value": value.value,
-                "meta": meta,
-            },
+            json.dumps(
+                {
+                    "id": graphene.Node.to_global_id("AttributeValue", value.id),
+                    "name": value.name,
+                    "slug": value.slug,
+                    "value": value.value,
+                    "meta": meta,
+                },
+                cls=CustomJsonEncoder,
+            ),
             WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
             [any_webhook],
             value,

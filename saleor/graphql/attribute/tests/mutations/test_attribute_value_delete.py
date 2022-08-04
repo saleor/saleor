@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -6,6 +7,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 
@@ -101,12 +103,15 @@ def test_delete_attribute_value_trigger_webhooks(
     )
 
     attribute_updated_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
-            "name": color_attribute.name,
-            "slug": color_attribute.slug,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+                "name": color_attribute.name,
+                "slug": color_attribute.slug,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,
@@ -114,13 +119,16 @@ def test_delete_attribute_value_trigger_webhooks(
     )
 
     attribute_value_created_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("AttributeValue", value.id),
-            "name": value.name,
-            "slug": value.slug,
-            "value": value.value,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", value.id),
+                "name": value.name,
+                "slug": value.slug,
+                "value": value.value,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
         [any_webhook],
         value,
