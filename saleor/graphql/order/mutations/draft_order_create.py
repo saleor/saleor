@@ -120,7 +120,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         if email := data.get("user_email", None):
             try:
-                user = User.objects.get(email=email, is_staff=False)
+                user = User.objects.get(email=email, is_active=True)
                 data["user"] = graphene.Node.to_global_id("User", user.id)
             except User.DoesNotExist:
                 data["user"] = None
