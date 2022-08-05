@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -5,6 +6,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....app.models import App
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -82,16 +84,19 @@ def test_deactivate_app_trigger_webhook(
     # then
     assert not app.is_active
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "is_active": app.is_active,
-            "name": app.name,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "is_active": app.is_active,
+                "name": app.name,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.APP_STATUS_CHANGED,
         [any_webhook],
         app,

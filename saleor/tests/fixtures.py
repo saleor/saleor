@@ -44,6 +44,7 @@ from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
+from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import zero_money
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -91,6 +92,7 @@ from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..plugins.webhook.tasks import WebhookResponse
+from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
 from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
@@ -317,6 +319,16 @@ def checkout_with_item(checkout, product):
     variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_same_items_in_multiple_lines(checkout, product):
+    variant = product.variants.first()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
+    add_variant_to_checkout(checkout_info, variant, 1, force_new_line=True)
     checkout.save()
     return checkout
 
@@ -904,7 +916,9 @@ def order(customer_user, channel_USD):
 
 @pytest.fixture
 def order_with_search_vector_value(order):
-    order.search_vector = prepare_order_search_vector_value(order)
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save(update_fields=["search_vector"])
     return order
 
@@ -2302,7 +2316,9 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
-    product.search_vector = prepare_product_search_vector_value(product)
+    product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product)
+    )
     product.save(update_fields=["search_vector"])
 
     return product
@@ -2517,7 +2533,9 @@ def product_with_default_variant(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
 
-    product.search_vector = prepare_product_search_vector_value(product)
+    product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product)
+    )
     product.save(update_fields=["search_vector"])
 
     return product
@@ -2931,7 +2949,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
-        product.search_vector = prepare_product_search_vector_value(product)
+        product.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(product)
+        )
 
     Product.objects.bulk_update(products, ["search_vector"])
 
@@ -3977,7 +3997,8 @@ def order_with_lines_and_events(order_with_lines, staff_user):
         order=order_with_lines,
         user=staff_user,
         app=None,
-        order_lines=[(1, order_with_lines.lines.first())],
+        order_lines=[order_with_lines.lines.first()],
+        quantity_diff=1,
     )
     return order_with_lines
 
@@ -5451,6 +5472,27 @@ def payment_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def payment_app_with_subscription_webhooks(db, permission_manage_payments):
+    app = App.objects.create(name="Payment App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment-subscription-webhook-1",
+        app=app,
+        target_url="https://payment-gateway.com/api/",
+        subscription_query=subscription_queries.PAYMENT_AUTHORIZE,
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def shipping_app(db, permission_manage_shipping):
     app = App.objects.create(name="Shipping App", is_active=True)
     app.tokens.create(name="Default")
@@ -5896,7 +5938,9 @@ def allocations(order_list, stock, channel_USD):
     )
 
     for order in order_list:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(order_list, ["search_vector"])
 
     return Allocation.objects.bulk_create(

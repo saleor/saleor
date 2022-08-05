@@ -211,7 +211,9 @@ def get_delivery_method_info(
 
 
 def fetch_checkout_lines(
-    checkout: "Checkout", prefetch_variant_attributes=False
+    checkout: "Checkout",
+    prefetch_variant_attributes=False,
+    skip_lines_with_unavailable_variants=True,
 ) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -250,6 +252,17 @@ def fetch_checkout_lines(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
+            if not skip_lines_with_unavailable_variants:
+                lines_info.append(
+                    CheckoutLineInfo(
+                        line=line,
+                        variant=variant,
+                        channel_listing=variant_channel_listing,
+                        product=product,
+                        product_type=product_type,
+                        collections=collections,
+                    )
+                )
             continue
 
         lines_info.append(
@@ -374,6 +387,7 @@ def fetch_checkout_info(
     shipping_channel_listings: Optional[
         Iterable["ShippingMethodChannelListing"]
     ] = None,
+    fetch_delivery_methods=True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
@@ -396,16 +410,17 @@ def fetch_checkout_info(
         valid_pick_up_points=[],
         voucher=voucher,
     )
-    update_delivery_method_lists_for_checkout_info(
-        checkout_info,
-        checkout.shipping_method,
-        checkout.collection_point,
-        shipping_address,
-        lines,
-        discounts,
-        manager,
-        shipping_channel_listings,
-    )
+    if fetch_delivery_methods:
+        update_delivery_method_lists_for_checkout_info(
+            checkout_info,
+            checkout.shipping_method,
+            checkout.collection_point,
+            shipping_address,
+            lines,
+            discounts,
+            manager,
+            shipping_channel_listings,
+        )
 
     return checkout_info
 
@@ -532,6 +547,30 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     )
 
 
+def get_all_shipping_methods_list(
+    checkout_info,
+    shipping_address,
+    lines,
+    discounts,
+    shipping_channel_listings,
+    manager,
+):
+    return list(
+        itertools.chain(
+            get_valid_internal_shipping_method_list_for_checkout_info(
+                checkout_info,
+                shipping_address,
+                lines,
+                discounts,
+                shipping_channel_listings,
+            ),
+            get_valid_external_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+        )
+    )
+
+
 def update_delivery_method_lists_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_method: Optional["ShippingMethod"],
@@ -553,19 +592,13 @@ def update_delivery_method_lists_for_checkout_info(
 
     def _resolve_all_shipping_methods():
         # Fetch all shipping method from all sources, including sync webhooks
-        all_methods = list(
-            itertools.chain(
-                get_valid_internal_shipping_method_list_for_checkout_info(
-                    checkout_info,
-                    shipping_address,
-                    lines,
-                    discounts,
-                    shipping_channel_listings,
-                ),
-                get_valid_external_shipping_method_list_for_checkout_info(
-                    checkout_info, shipping_address, lines, discounts, manager
-                ),
-            )
+        all_methods = get_all_shipping_methods_list(
+            checkout_info,
+            shipping_address,
+            lines,
+            discounts,
+            shipping_channel_listings,
+            manager,
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(

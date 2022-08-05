@@ -171,7 +171,9 @@ def cancel_order(
     transaction.on_commit(lambda: manager.order_cancelled(order))
     transaction.on_commit(lambda: manager.order_updated(order))
 
-    send_order_canceled_confirmation(order, user, app, manager)
+    transaction.on_commit(
+        lambda: send_order_canceled_confirmation(order, user, app, manager)
+    )
 
 
 def order_refunded(
@@ -1122,7 +1124,7 @@ def create_replace_order(
         order_line.quantity_fulfilled = 0
         order_line_to_create[order_line_id] = order_line
 
-    lines_to_create = order_line_to_create.values()
+    lines_to_create = list(order_line_to_create.values())
     OrderLine.objects.bulk_create(lines_to_create)
 
     draft_order_created_from_replace_event(
@@ -1130,7 +1132,7 @@ def create_replace_order(
         original_order=original_order,
         user=user,
         app=app,
-        lines=[(line.quantity, line) for line in lines_to_create],
+        lines=lines_to_create,
     )
     return replace_order
 
@@ -1299,12 +1301,11 @@ def process_replace(
         order_lines_to_replace=order_lines,
         fulfillment_lines_to_replace=fulfillment_lines,
     )
-    replaced_lines = [(line.quantity, line) for line in new_order.lines.all()]
     fulfillment_replaced_event(
         order=order,
         user=user,
         app=app,
-        replaced_lines=replaced_lines,
+        replaced_lines=list(new_order.lines.all()),
     )
     order_replacement_created(
         original_order=order,

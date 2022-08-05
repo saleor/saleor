@@ -50,7 +50,7 @@ def get_thumbnail_size(size: Union[str, int]) -> int:
 def prepare_thumbnail_file_name(
     file_name: str, size: int, format: Optional[str]
 ) -> str:
-    file_path, file_ext = file_name.rsplit(".")
+    file_path, file_ext = file_name.rsplit(".", 1)
     file_ext = format or file_ext
     return file_path + f"_thumbnail_{size}." + file_ext
 

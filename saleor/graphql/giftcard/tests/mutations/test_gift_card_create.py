@@ -1,3 +1,4 @@
+import json
 from datetime import date, timedelta
 from unittest import mock
 
@@ -6,6 +7,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCard
@@ -674,15 +676,18 @@ def test_create_gift_card_trigger_webhook(
     assert data["code"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
-            "is_active": gift_card.is_active,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: app_api_client.app)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+                "is_active": gift_card.is_active,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: app_api_client.app)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.GIFT_CARD_CREATED,
         [any_webhook],
         gift_card,

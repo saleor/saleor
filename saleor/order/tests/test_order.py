@@ -16,6 +16,7 @@ from ...discount.models import (
 )
 from ...discount.utils import validate_voucher_in_order
 from ...graphql.core.utils import to_global_id_or_none
+from ...graphql.order.utils import OrderLineData
 from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
 from ...payment.models import Payment
@@ -102,10 +103,11 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -144,11 +146,11 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     sale.variants.add(variant)
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
 
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -195,10 +197,11 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -223,10 +226,10 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
 
     stock_before = get_quantity_allocated_for_stock(stock)
 
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
     add_variant_to_order(
         order_with_lines,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -244,11 +247,13 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
+    line_data = OrderLineData(
+        line_id=str(existing_line.pk), variant=variant, quantity=1
+    )
 
     add_variant_to_order(
         order_with_lines,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -271,11 +276,13 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     stock_before = get_quantity_allocated_for_stock(stock)
     quantity_before = existing_line.quantity
     quantity_unfulfilled_before = existing_line.quantity_unfulfilled
+    line_data = OrderLineData(
+        line_id=str(existing_line.id), variant=variant, quantity=1
+    )
 
     add_variant_to_order(
         order_with_lines,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -555,10 +562,11 @@ def test_order_weight_add_more_variant(
     order_with_lines, anon_user, anon_app, anon_plugins, site_settings
 ):
     variant = order_with_lines.lines.first().variant
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
+
     add_variant_to_order(
         order_with_lines,
-        variant,
-        2,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -575,11 +583,11 @@ def test_order_weight_add_new_variant(
     order_with_lines, product, anon_user, anon_app, anon_plugins, site_settings
 ):
     variant = product.variants.first()
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
 
     add_variant_to_order(
         order_with_lines,
-        variant,
-        2,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,
@@ -622,10 +630,11 @@ def test_get_order_weight_non_existing_product(
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
     add_variant_to_order(
         order,
-        variant,
-        1,
+        line_data,
         anon_user,
         anon_app,
         anon_plugins,

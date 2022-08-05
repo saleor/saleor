@@ -23,6 +23,7 @@ from ....checkout import AddressType
 from ....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
+from ....core.postgres import FlatConcatSearchVector
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount, VoucherChannelListing
@@ -2616,6 +2617,101 @@ def test_draft_order_create(
     assert event_parameters["lines"][1]["quantity"] == 1
 
 
+def test_draft_order_create_with_same_variant_and_force_new_line(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+        {"variantId": variant_id, "quantity": 1, "forceNewLine": True},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "billingAddress": shipping_address,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "channel": channel_id,
+        "redirectUrl": redirect_url,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher.code
+    assert data["customerNote"] == customer_note
+    assert data["redirectUrl"] == redirect_url
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+
+    order = Order.objects.first()
+    assert order.user == customer_user
+    assert order.shipping_method == shipping_method
+    assert order.billing_address
+    assert order.shipping_address
+    assert order.search_vector
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 2
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
+    assert event_parameters["lines"][0]["quantity"] == 1
+
+    assert event_parameters["lines"][1]["item"] == str(order_lines[1])
+    assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
+    assert event_parameters["lines"][1]["quantity"] == 2
+
+
 def test_draft_order_create_with_inactive_channel(
     staff_api_client,
     permission_manage_orders,
@@ -2835,9 +2931,9 @@ def test_draft_order_create_variant_with_0_price(
     assert created_draft_event.parameters == {}
 
 
-@patch("saleor.graphql.order.mutations.draft_order_create.add_variant_to_order")
+@patch("saleor.graphql.order.mutations.draft_order_create.create_order_line")
 def test_draft_order_create_tax_error(
-    add_variant_to_order_mock,
+    create_order_line_mock,
     staff_api_client,
     permission_manage_orders,
     staff_user,
@@ -2851,7 +2947,7 @@ def test_draft_order_create_tax_error(
 ):
     variant_0 = variant
     err_msg = "Test error"
-    add_variant_to_order_mock.side_effect = TaxError(err_msg)
+    create_order_line_mock.side_effect = TaxError(err_msg)
     query = DRAFT_ORDER_CREATE_MUTATION
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -4861,9 +4957,17 @@ def test_draft_order_complete_not_draft_order(
 
 
 ORDER_LINES_CREATE_MUTATION = """
-    mutation OrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+    mutation OrderLinesCreate(
+            $orderId: ID!, $variantId: ID!, $quantity: Int!, $forceNewLine: Boolean
+        ) {
         orderLinesCreate(id: $orderId,
-                input: [{variantId: $variantId, quantity: $quantity}]) {
+                input: [
+                    {
+                        variantId: $variantId,
+                        quantity: $quantity,
+                        forceNewLine: $forceNewLine
+                    }
+                ]) {
 
             errors {
                 field
@@ -5138,6 +5242,112 @@ def test_order_lines_create_with_existing_variant(
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_with_same_variant_and_force_new_line(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    lines = order.lines.all()
+    assert len(lines) == 2
+    line = lines[0]
+    variant = line.variant
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "forceNewLine": True,
+    }
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+    assert not OrderEvent.objects.exists()
+    order_updated_webhook_mock.assert_not_called()
+    draft_order_updated_webhook_mock.assert_not_called()
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = staff_api_client.post_graphql(query, variables)
+    assert order.lines.count() == 3
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_when_variant_already_in_multiple_lines(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+
+    line = order.lines.first()
+    variant = line.variant
+
+    # copy line and add to order
+    line.id = None
+    line.save()
+
+    assert order.lines.count() == 3
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "forceNewLine": True,
+    }
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = staff_api_client.post_graphql(ORDER_LINES_CREATE_MUTATION, variables)
+
+    assert order.lines.count() == 4
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
     assert_proper_webhook_called_once(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
     )
@@ -5689,11 +5899,10 @@ def test_retrieving_event_lines_with_deleted_line(
 ):
     order = order_with_lines
     lines = order_with_lines.lines.all()
-    quantities_per_lines = [(line.quantity, line) for line in lines]
 
     # Create the test event
     order_events.order_added_products_event(
-        order=order, user=staff_user, app=None, order_lines=quantities_per_lines
+        order=order, user=staff_user, app=None, order_lines=lines
     )
 
     # Delete a line
@@ -5708,9 +5917,10 @@ def test_retrieving_event_lines_with_deleted_line(
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
 
     # Check every line is returned and the one deleted is None
-    assert len(data["lines"]) == len(quantities_per_lines)
-    for expected_data, received_line in zip(quantities_per_lines, data["lines"]):
-        quantity, line = expected_data
+    assert len(data["lines"]) == len(lines)
+    for expected_data, received_line in zip(lines, data["lines"]):
+        quantity = expected_data.quantity
+        line = expected_data
 
         if line is deleted_line:
             assert received_line["orderLine"] is None
@@ -5728,11 +5938,10 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
 ):
     order = order_with_lines
     line = order_with_lines.lines.first()
-    quantities_per_lines = [(line.quantity, line)]
 
     # Create the test event
     event = order_events.order_added_products_event(
-        order=order, user=staff_user, app=None, order_lines=quantities_per_lines
+        order=order, user=staff_user, app=None, order_lines=[line]
     )
     del event.parameters["lines"][0]["line_pk"]
     event.save(update_fields=["parameters"])
@@ -6558,6 +6767,42 @@ def test_order_mark_as_paid_no_billing_address(
     content = get_graphql_content(response)
     data = content["data"]["orderMarkAsPaid"]["errors"]
     assert data[0]["code"] == OrderErrorCode.BILLING_ADDRESS_NOT_SET.name
+
+
+def test_draft_order_mark_as_paid_check_price_recalculation(
+    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+):
+    # given
+    order = order_with_lines
+    # we need to change order total and set it as invalidated prices.
+    # we couldn't use `order.total.gross` because this test don't use any tax app
+    # or plugin.
+    expected_total_net = order.total.net
+    expected_total = TaxedMoney(net=expected_total_net, gross=expected_total_net)
+    order.total = TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+    order.should_refresh_prices = True
+    order.status = OrderStatus.DRAFT
+    order.save()
+    query = MUTATION_MARK_ORDER_AS_PAID
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    assert order.total == expected_total
+    payment = order.payments.get()
+    assert payment.total == expected_total_net.amount
+    assert data["isPaid"] is True is order.is_fully_paid()
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
+    assert event_order_paid.user == staff_user
 
 
 ORDER_VOID = """
@@ -9046,7 +9291,9 @@ def test_orders_query_with_filter_search(
         tax_rate=Decimal("0.23"),
     )
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": orders_filter}
@@ -9088,7 +9335,9 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     payment = Payment.objects.create(order=order_with_payment)
     global_id = graphene.Node.to_global_id("Payment", payment.pk)
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": {"search": global_id}}
@@ -9444,8 +9693,9 @@ def test_draft_orders_query_with_filter_search(
         ]
     )
     for order in orders:
-        order.search_vector = prepare_order_search_vector_value(order)
-        print(">>>", order.search_vector)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
     Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": draft_orders_filter}

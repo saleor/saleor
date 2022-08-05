@@ -1,9 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
@@ -61,6 +63,7 @@ class DraftOrderComplete(BaseMutation):
             )
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
         order = cls.get_node_or_error(
@@ -84,7 +87,9 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
                 order.shipping_address = None
 
-        order.search_vector = prepare_order_search_vector_value(order)
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
         order.save()
 
         channel = order.channel
@@ -126,12 +131,13 @@ class DraftOrderComplete(BaseMutation):
             lines_data=order_lines_info,
         )
         app = get_app(info.context.auth_token)
-        order_created(
-            order_info=order_info,
-            user=info.context.user,
-            app=app,
-            manager=info.context.plugins,
-            from_draft=True,
+        transaction.on_commit(
+            lambda: order_created(
+                order_info=order_info,
+                user=info.context.user,
+                app=app,
+                manager=info.context.plugins,
+                from_draft=True,
+            )
         )
-
         return DraftOrderComplete(order=order)

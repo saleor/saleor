@@ -697,7 +697,7 @@ def test_update_collection_with_background_image(
     thumbnail = Thumbnail.objects.create(
         collection=collection, size=size, image=thumbnail_mock
     )
-    img_path = thumbnail.image.path
+    img_path = thumbnail.image.name
 
     variables = {
         "name": "new-name",

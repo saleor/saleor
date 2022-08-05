@@ -93,6 +93,7 @@ from ...shipping.models import (
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
+from ..postgres import FlatConcatSearchVector
 
 fake = Factory.create()
 fake.seed(0)
@@ -834,7 +835,9 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
-    order.search_vector = prepare_order_search_vector_value(order)
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save()
 
     create_fake_payment(order=order)
@@ -1558,11 +1561,16 @@ def get_image(image_dir, image_name):
     return File(open(img_path, "rb"), name=image_name)
 
 
-def create_checkout_with_preorders():
+def prepare_checkout_info():
     channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
     checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
     checkout.set_country(channel.default_country, commit=True)
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    return checkout_info
+
+
+def create_checkout_with_preorders():
+    checkout_info = prepare_checkout_info()
     for product_variant in ProductVariant.objects.all()[:2]:
         product_variant.is_preorder = True
         product_variant.preorder_global_threshold = 10
@@ -1576,19 +1584,31 @@ def create_checkout_with_preorders():
             ]
         )
         add_variant_to_checkout(checkout_info, product_variant, 2)
-    yield f"Created checkout with two preorders. Checkout token: {checkout.token}"
+    yield (
+        "Created checkout with two preorders. Checkout token: "
+        f"{checkout_info.checkout.token}"
+    )
 
 
 def create_checkout_with_custom_prices():
-    channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
-    checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
-    checkout.set_country(channel.default_country, commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = prepare_checkout_info()
     for product_variant in ProductVariant.objects.all()[:2]:
         add_variant_to_checkout(
             checkout_info, product_variant, 2, price_override=Decimal("20.0")
         )
     yield (
         "Created checkout with two lines and custom prices. "
-        f"Checkout token: {checkout.token}."
+        f"Checkout token: {checkout_info.checkout.token}."
+    )
+
+
+def create_checkout_with_same_variant_in_multiple_lines():
+    checkout_info = prepare_checkout_info()
+    for product_variant in ProductVariant.objects.all()[:2]:
+        add_variant_to_checkout(checkout_info, product_variant, 2)
+        add_variant_to_checkout(checkout_info, product_variant, 2, force_new_line=True)
+
+    yield (
+        "Created checkout with four lines and same variant in multiple lines "
+        f"Checkout token: {checkout_info.checkout.token}."
     )

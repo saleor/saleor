@@ -54,6 +54,7 @@ from .dataloaders import (
     CheckoutLinesInfoByCheckoutTokenLoader,
     TransactionItemsByCheckoutIDLoader,
 )
+from .utils import prevent_sync_event_circular_query
 
 
 class GatewayConfigLine(graphene.ObjectType):
@@ -493,6 +494,7 @@ class Checkout(ModelObjectType):
 
     @classmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_methods(cls, root: models.Checkout, info):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
@@ -610,6 +612,7 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_available_shipping_methods(root: models.Checkout, info):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
@@ -630,6 +633,7 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
+    @prevent_sync_event_circular_query
     def resolve_available_payment_gateways(root: models.Checkout, info):
         return info.context.plugins.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug

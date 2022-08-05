@@ -58,6 +58,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..channel.types import Channel
+from ..checkout.utils import prevent_sync_event_circular_query
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -1508,6 +1509,7 @@ class Order(ModelObjectType):
 
     @classmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_methods(cls, root: models.Order, info):
         def with_channel(channel):
@@ -1526,6 +1528,7 @@ class Order(ModelObjectType):
 
     @classmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(cls, root: models.Order, info):
         return cls.resolve_shipping_methods(root, info).then(

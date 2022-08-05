@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
   - Add option to calculate taxes via webhooks more info in docs
   <!-- We should put docs link here before release -->
+- Add `forceNewLine` flag to lines input in `CheckoutLinesAdd`, `CheckoutCreate`, `DraftOrderCreate`, `OrderCreate`, `OrderLinesCreate` mutations to support same variant in multiple lines - #10095 by @SzymJ
 
 ### GraphQL API
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
@@ -49,6 +50,34 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new method to plugin manager:
     - `get_taxes_for_checkout`
     - `get_taxes_for_order`
+
+# 3.5.4 [Unreleased]
+- Fix ORM crash when generating hundreds of search vector in SQL - #10261 by @NyanKiyoshi
+- Fix "stack depth limit exceeded" crash when generating thousands of search vector in SQL - #10279 by @NyanKiyoshi
+
+# 3.5.3 [Released]
+- Use custom search vector in order search - #10247 by @fowczarek
+- Optimize filtering attributes by dates - #10199 by @tomaszszymanski129
+
+# 3.5.2 [Released]
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 @IKarbowiak
+- Fix returning GraphQL IDs in the `SALE_TOGGLE` webhook - #10227 by @IKarbowiak
+
+# 3.5.1 [Released]
+- Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
+  This fixes the following bugs:
+  - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)
+  - `tick()` was sometimes scheduling other schedulers such as observability to be ran every 5m instead of every 20s
+  - `is_due()` from `send-sale-toggle-notifications` was being invoked every 5s on django-celery-beat instead of every 60s
+  - `send-sale-toggle-notifications` would crash on django-celery-beat with `Cannot convert schedule type <saleor.core.schedules.sale_webhook_schedule object at 0x7fabfdaacb20> to model`
+
+  Usage:
+  - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
+  - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+- Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
 
 # 3.5.0
 

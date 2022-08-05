@@ -23,6 +23,7 @@ from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
+from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
@@ -565,7 +566,9 @@ def _create_order(
     order.private_metadata = checkout.private_metadata
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
-    order.search_vector = prepare_order_search_vector_value(order)
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save()
 
     order_info = OrderInfo(
@@ -1098,7 +1101,9 @@ def _create_order_from_checkout(
     update_order_authorize_data(order, with_save=False)
 
     # order search
-    order.search_vector = prepare_order_search_vector_value(order)
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
     order.save()
 
     # post create actions

@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import re
 from collections import defaultdict
@@ -31,6 +32,7 @@ from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
 from ....core.tokens import account_delete_token_generator
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
@@ -59,15 +61,20 @@ from ..tests.utils import convert_dict_keys_to_camel_case
 
 def generate_address_webhook_call_args(address, event, requestor, webhook):
     return [
-        {
-            "id": graphene.Node.to_global_id("Address", address.id),
-            "city": address.city,
-            "country": address.country,
-            "company_name": address.company_name,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(SimpleLazyObject(lambda: requestor))
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Address", address.id),
+                "city": address.city,
+                "country": {"code": address.country.code, "name": address.country.name},
+                "company_name": address.company_name,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: requestor)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         event,
         [webhook],
         address,
@@ -2358,7 +2365,7 @@ def test_account_delete(delete_from_storage_task_mock, user_api_client, media_ro
     # create thumbnail
     thumbnail = Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
     assert user.thumbnails.all()
-    img_path = thumbnail.image.path
+    img_path = thumbnail.image.name
 
     token = account_delete_token_generator.make_token(user)
     variables = {"token": token}
@@ -2505,7 +2512,7 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, app=None, deleted_count=1
     )
-    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.path)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2581,7 +2588,7 @@ def test_customer_delete_by_app(
     assert kwargs["deleted_count"] == 1
     assert kwargs["staff_user"].is_anonymous
     assert kwargs["app"] == app
-    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.path)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
@@ -2797,15 +2804,18 @@ def test_staff_create_trigger_webhook(
     assert not data["errors"]
     assert data["user"]
     expected_call = call(
-        {
-            "id": graphene.Node.to_global_id("User", new_staff_user.id),
-            "email": email,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("User", new_staff_user.id),
+                "email": email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.STAFF_CREATED,
         [any_webhook],
         new_staff_user,
@@ -3120,15 +3130,18 @@ def test_staff_update_trigger_webhook(
     assert not data["errors"]
     assert data["user"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("User", staff_user.id),
-            "email": staff_user.email,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("User", staff_user.id),
+                "email": staff_user.email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.STAFF_UPDATED,
         [any_webhook],
         staff_user,
@@ -3649,15 +3662,18 @@ def test_staff_delete_trigger_webhook(
     assert not data["errors"]
     assert not User.objects.filter(pk=staff_user.id).exists()
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("User", staff_user.id),
-            "email": staff_user.email,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("User", staff_user.id),
+                "email": staff_user.email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.STAFF_DELETED,
         [any_webhook],
         staff_user,
@@ -3687,7 +3703,7 @@ def test_staff_delete_with_avatar(
     data = content["data"]["staffDelete"]
     assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
-    delete_from_storage_task_mock.assert_called_once_with(staff_user.avatar.path)
+    delete_from_storage_task_mock.assert_called_once_with(staff_user.avatar.name)
 
 
 def test_staff_delete_app_no_permission(app_api_client, permission_manage_staff):

@@ -380,4 +380,4 @@ def test_product_media_delete(delete_from_storage_task_mock, product_with_image)
     media.delete()
 
     # then
-    delete_from_storage_task_mock.assert_called_once_with(media.image.path)
+    delete_from_storage_task_mock.assert_called_once_with(media.image.name)

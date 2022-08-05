@@ -387,6 +387,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         if address is not None:
             country_code = address.country
 
+        channel_slug = str(root.channel_slug) if root.channel_slug else None
+
         global_quantity_limit_per_checkout = (
             info.context.site.settings.limit_quantity_per_checkout
         )
@@ -395,7 +397,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             variant = root.node
             channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
                 info.context
-            ).load((variant.id, str(root.channel_slug)))
+            ).load((variant.id, channel_slug))
 
             def calculate_available_per_channel(channel_listing):
                 if (
@@ -490,7 +492,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code, str(root.channel_slug)))
+        ).load((root.node.id, country_code, channel_slug))
 
     @staticmethod
     def resolve_digital_content(root: ChannelContext[models.ProductVariant], _info):
