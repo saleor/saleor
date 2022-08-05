@@ -10,7 +10,7 @@ from ..app.models import App
 from ..core.auth import get_token_from_request
 from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
-from .app.dataloaders import load_app, get_app
+from .app.dataloaders import get_app
 
 
 def get_context_value(request):
