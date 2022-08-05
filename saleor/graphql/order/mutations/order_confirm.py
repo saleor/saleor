@@ -91,7 +91,7 @@ class OrderConfirm(ModelMutation):
                 lambda: order_captured(
                     order_info,
                     info.context.user,
-                    info.context.app,
+                    app,
                     payment.total,
                     payment,
                     manager,
