@@ -1637,17 +1637,18 @@ def test_shipping_list_methods_for_checkout(
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
     # then
-    expected_payload = {
-        "checkout": {"id": checkout_id},
-        "shippingMethods": [
-            {
-                "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
-                "name": sm.name,
-            }
-            for sm in all_shipping_methods
-        ],
-    }
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    shipping_methods = [
+        {
+            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+            "name": sm.name,
+        }
+        for sm in all_shipping_methods
+    ]
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert payload["checkout"] == {"id": checkout_id}
+    for method in shipping_methods:
+        assert method in payload["shippingMethods"]
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1669,17 +1670,18 @@ def test_checkout_filter_shipping_methods(
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
     # then
-    expected_payload = {
-        "checkout": {"id": checkout_id},
-        "shippingMethods": [
-            {
-                "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
-                "name": sm.name,
-            }
-            for sm in all_shipping_methods
-        ],
-    }
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    shipping_methods = [
+        {
+            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+            "name": sm.name,
+        }
+        for sm in all_shipping_methods
+    ]
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert payload["checkout"] == {"id": checkout_id}
+    for method in shipping_methods:
+        assert method in payload["shippingMethods"]
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1808,17 +1810,18 @@ def test_order_filter_shipping_methods(
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
     # then
-    expected_payload = {
-        "order": {"id": order_id},
-        "shippingMethods": [
-            {
-                "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
-                "name": sm.name,
-            }
-            for sm in all_shipping_methods
-        ],
-    }
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    shipping_methods = [
+        {
+            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+            "name": sm.name,
+        }
+        for sm in all_shipping_methods
+    ]
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert payload["order"] == {"id": order_id}
+    for method in shipping_methods:
+        assert method in payload["shippingMethods"]
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
