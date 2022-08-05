@@ -17,7 +17,7 @@ from ...account.utils import (
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
-from ...app.dataloaders import get_app
+from ...app.dataloaders import load_app
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
@@ -110,7 +110,8 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if get_app(context.auth_token):
+        app = load_app(context)
+        if app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
@@ -457,7 +458,8 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if get_app(context.auth_token):
+        app = load_app(context)
+        if app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

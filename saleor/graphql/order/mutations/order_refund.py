@@ -8,7 +8,7 @@ from ....order.actions import order_refunded
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_refund_action
-from ...app.dataloaders import get_app
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
@@ -70,7 +70,7 @@ class OrderRefund(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
 
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to

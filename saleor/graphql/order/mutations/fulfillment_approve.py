@@ -6,7 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order.actions import approve_fulfillment
 from ....order.error_codes import OrderErrorCode
-from ...app.dataloaders import get_app
+from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -62,7 +62,7 @@ class FulfillmentApprove(BaseMutation):
         order = fulfillment.order
 
         try:
-            app = get_app(info.context.auth_token)
+            app = load_app(info.context)
             fulfillment = approve_fulfillment(
                 fulfillment,
                 info.context.user,

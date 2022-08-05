@@ -78,3 +78,9 @@ class AppByTokenLoader(DataLoader):
         )
 
         return [apps.filter(id=authed_apps.get(key, None)).first() for key in keys]
+
+
+def load_app(context):
+    if not getattr(context, "auth_token", None):
+        return None
+    return AppByTokenLoader(context).load(context.auth_token).get()

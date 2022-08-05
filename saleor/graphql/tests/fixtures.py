@@ -156,7 +156,7 @@ def schema_context():
         "user": AnonymousUser(),
         "app": None,
         "plugins": get_plugins_manager(),
-        "auth_token": None,
+        "auth_token": "",
     }
     return graphene.types.Context(**params)
 

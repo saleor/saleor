@@ -21,7 +21,7 @@ from ....order.utils import (
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...app.dataloaders import get_app
+from ...app.dataloaders import load_app
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
@@ -282,7 +282,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 lines.append(new_line)
 
             # New event
-            app = get_app(info.context.auth_token)
+            app = load_app(info.context)
             events.order_added_products_event(
                 order=instance,
                 user=info.context.user,
@@ -296,7 +296,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Create draft created event if the instance is from scratch
         if is_new_instance:
-            app = get_app(info.context.auth_token)
+            app = load_app(info.context)
             events.draft_order_created_event(
                 order=instance, user=info.context.user, app=app
             )

@@ -10,7 +10,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
-from ...app.dataloaders import get_app
+from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ..types import Order
@@ -63,7 +63,7 @@ class OrderConfirm(ModelMutation):
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = info.context.plugins
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
 
         if payment_transactions := list(order.payment_transactions.all()):
             try:

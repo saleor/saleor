@@ -7,7 +7,7 @@ from ...invoice import events, models
 from ...invoice.error_codes import InvoiceErrorCode
 from ...invoice.notifications import send_invoice
 from ...order import events as order_events
-from ..app.dataloaders import get_app
+from ..app.dataloaders import load_app
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import InvoiceError
 from ..order.types import Order
@@ -84,7 +84,7 @@ class InvoiceRequest(ModelMutation):
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
         if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
                 order=order,
@@ -174,7 +174,7 @@ class InvoiceCreate(ModelMutation):
         invoice.order = order
         invoice.status = JobStatus.SUCCESS
         invoice.save()
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
         # app = AppByTokenLoader(info.context).load(info.context.auth_token)
         events.invoice_created_event(
             user=info.context.user,
@@ -212,7 +212,7 @@ class InvoiceRequestDelete(ModelMutation):
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
         info.context.plugins.invoice_delete(invoice)
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
         events.invoice_requested_deletion_event(
             user=info.context.user, app=app, invoice=invoice
         )
@@ -235,7 +235,7 @@ class InvoiceDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
         events.invoice_deleted_event(
             user=info.context.user, app=app, invoice_id=invoice.pk
         )
@@ -293,7 +293,7 @@ class InvoiceUpdate(ModelMutation):
         )
         instance.status = JobStatus.SUCCESS
         instance.save(update_fields=["external_url", "number", "updated_at", "status"])
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
         order_events.invoice_updated_event(
             order=instance.order,
             user=info.context.user,
@@ -348,7 +348,7 @@ class InvoiceSendNotification(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
-        app = get_app(info.context.auth_token)
+        app = load_app(info.context)
         send_invoice(
             invoice=instance,
             staff_user=info.context.user,

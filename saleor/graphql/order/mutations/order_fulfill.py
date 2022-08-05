@@ -10,7 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
-from ...app.dataloaders import get_app
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
@@ -241,7 +241,7 @@ class OrderFulfill(BaseMutation):
 
         context = info.context
         user = context.user if not context.user.is_anonymous else None
-        app = get_app(context.auth_token)
+        app = load_app(info.context)
         manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
