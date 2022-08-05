@@ -426,10 +426,11 @@ def test_checkout_complete_gift_card_bought(
     customer_user,
     user_api_client,
     checkout_with_gift_card_items,
-    payment_dummy,
     address,
     shipping_method,
+    payment_txn_captured,
 ):
+    # given
     checkout = checkout_with_gift_card_items
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -449,24 +450,28 @@ def test_checkout_complete_gift_card_bought(
     site_settings.automatically_fulfill_non_shippable_gift_card = True
     site_settings.save()
 
-    payment = payment_dummy
+    payment = payment_txn_captured
     payment.is_active = True
     payment.order = None
+    payment.captured_amount = total.gross.amount
     payment.total = total.gross.amount
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
     redirect_url = "https://www.example.com"
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED

@@ -796,11 +796,112 @@ def test_create_order_with_many_gift_cards(
 def test_create_order_gift_card_bought(
     send_notification_mock,
     checkout_with_gift_card_items,
+    payment_txn_captured,
     customer_user,
     shipping_method,
     is_anonymous_user,
     non_shippable_gift_card_product,
 ):
+    """Ensure that the gift cards will be fulfilled, when newly created order
+    is captured."""
+    # given
+    checkout_user = None if is_anonymous_user else customer_user
+    checkout = checkout_with_gift_card_items
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    amount = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, customer_user.default_billing_address
+    ).gross.amount
+
+    payment_txn_captured.order = None
+    payment_txn_captured.checkout = checkout
+    payment_txn_captured.captured_amount = amount
+    payment_txn_captured.total = amount
+    payment_txn_captured.save(
+        update_fields=["order", "checkout", "total", "captured_amount"]
+    )
+
+    txn = payment_txn_captured.transactions.first()
+    txn.amount = amount
+    txn.save(update_fields=["amount"])
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    shipping_price = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    total_gross = subtotal.gross + shipping_price.gross - checkout.discount
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+            taxes_included_in_prices=True,
+        ),
+        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    flush_post_commit_hooks()
+    assert order.total.gross == total_gross
+    flush_post_commit_hooks()
+    gift_card = GiftCard.objects.get()
+    assert (
+        gift_card.initial_balance
+        == order.lines.get(
+            variant=non_shippable_gift_card_product.variants.first()
+        ).unit_price_gross
+    )
+    assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    flush_post_commit_hooks()
+    send_notification_mock.assert_called_once_with(
+        checkout_user,
+        None,
+        checkout_user,
+        order.user_email,
+        gift_card,
+        manager,
+        order.channel.slug,
+        resending=False,
+    )
+
+
+@mock.patch("saleor.giftcard.utils.send_gift_card_notification")
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
+    send_notification_mock,
+    checkout_with_gift_card_items,
+    customer_user,
+    shipping_method,
+    is_anonymous_user,
+):
+    """Ensure that the gift cards will be not fulfilled, when newly created order
+    is not captured."""
+    # given
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card_items
     checkout.user = checkout_user
@@ -829,6 +930,7 @@ def test_create_order_gift_card_bought(
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
+    # when
     order = _create_order(
         checkout_info=checkout_info,
         checkout_lines=lines,
@@ -844,27 +946,12 @@ def test_create_order_gift_card_bought(
         manager=manager,
     )
 
+    # then
+    flush_post_commit_hooks()
     flush_post_commit_hooks()
     assert order.total.gross == total_gross
-    flush_post_commit_hooks()
-    gift_card = GiftCard.objects.get()
-    assert (
-        gift_card.initial_balance
-        == order.lines.get(
-            variant=non_shippable_gift_card_product.variants.first()
-        ).unit_price_gross
-    )
-    assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    send_notification_mock.assert_called_once_with(
-        checkout_user,
-        None,
-        checkout_user,
-        order.user_email,
-        gift_card,
-        manager,
-        order.channel.slug,
-        resending=False,
-    )
+    assert not GiftCard.objects.exists()
+    send_notification_mock.assert_not_called()
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")
