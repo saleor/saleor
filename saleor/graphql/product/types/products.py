@@ -1034,7 +1034,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
-        channel_slug = str(root.channel_slug)
 
         def calculate_is_available(quantities):
             for qty in quantities:

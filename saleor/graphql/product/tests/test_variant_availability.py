@@ -8,7 +8,7 @@ from django_countries import countries
 
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....shipping.models import ShippingZone
-from ....warehouse.models import PreorderReservation, Reservation
+from ....warehouse.models import PreorderReservation, Reservation, Stock
 from ...tests.utils import get_graphql_content
 
 COUNTRY_CODE = "US"
@@ -49,6 +49,29 @@ def test_variant_quantity_available_without_country_code_or_channel(
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
+
+
+def test_variant_quantity_available_without_country_code_stock_only_in_cc_warehouse(
+    api_client, variant, channel_USD, warehouse_for_cc
+):
+    # given
+    quantity = 4
+    Stock.objects.create(
+        warehouse=warehouse_for_cc, product_variant=variant, quantity=quantity
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["quantityAvailable"] == quantity
 
 
 def test_variant_quantity_available_when_one_stock_is_exceeded(
