@@ -738,6 +738,7 @@ def create_fulfillments(
     notify_customer: bool = True,
     approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
+    tracking_number: Optional[str] = "",
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -767,6 +768,7 @@ def create_fulfillments(
             otherwise waiting_for_approval.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
             Default value is set to `False`.
+        tracking_number (str): Optional fulfillment tracking number.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -786,7 +788,9 @@ def create_fulfillments(
         else FulfillmentStatus.WAITING_FOR_APPROVAL
     )
     for warehouse_pk in fulfillment_lines_for_warehouses:
-        fulfillment = Fulfillment.objects.create(order=order, status=status)
+        fulfillment = Fulfillment.objects.create(
+            order=order, status=status, tracking_number=tracking_number
+        )
         fulfillments.append(fulfillment)
         fulfillment_lines.extend(
             _create_fulfillment_lines(
