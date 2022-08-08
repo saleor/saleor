@@ -1,3 +1,4 @@
+import json
 import os
 from unittest.mock import MagicMock, patch
 
@@ -9,6 +10,7 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 from graphql_relay import to_global_id
 
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
@@ -486,14 +488,17 @@ def test_category_create_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Category", category.id),
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Category", category.id),
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CATEGORY_CREATED,
         [any_webhook],
         category,
@@ -687,14 +692,17 @@ def test_category_update_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CATEGORY_UPDATED,
         [any_webhook],
         category,
@@ -1078,14 +1086,17 @@ def test_category_delete_trigger_webhook(
     assert not Category.objects.first()
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CATEGORY_DELETED,
         [any_webhook],
         category,
