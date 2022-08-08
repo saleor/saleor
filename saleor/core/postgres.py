@@ -78,12 +78,12 @@ class FlatConcat(Expression):
             and len(expressions) > self.max_expression_count
         ):
             if self.silent_drop_expression:
-                expressions = expressions[: self.max_expression_count]
                 logger.warning(
                     "Maximum expression count exceed (%d out of %d)",
                     len(expressions),
                     self.max_expression_count,
                 )
+                expressions = expressions[: self.max_expression_count]
             else:
                 raise ValueError("Maximum expression count exceeded")
         self.source_expressions: List[SearchVector] = self._parse_expressions(
