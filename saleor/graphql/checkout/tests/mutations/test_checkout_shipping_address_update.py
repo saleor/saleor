@@ -446,6 +446,7 @@ def test_checkout_shipping_address_update_exclude_shipping_method(
     "address_data",
     [
         {"country": "PL"},  # missing postalCode, streetAddress
+        {"country": "PL", "postalCode": ""},
         {"country": "PL", "postalCode": "53-601"},  # missing streetAddress
         {"country": "US"},
         {

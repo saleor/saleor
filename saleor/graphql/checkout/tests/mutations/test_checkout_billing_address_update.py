@@ -204,6 +204,7 @@ def test_checkout_billing_address_update(
     "address_data",
     [
         {"country": "PL"},  # missing postalCode, streetAddress
+        {"country": "PL", "postalCode": ""},
         {"country": "PL", "postalCode": "53-601"},  # missing streetAddress
         {"country": "US"},
         {

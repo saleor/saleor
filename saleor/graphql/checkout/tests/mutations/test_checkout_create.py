@@ -1713,6 +1713,24 @@ def test_create_checkout_with_unpublished_product(
             "billingAddress",
             "billing_address",
         ),
+        (
+            {
+                "" "postalCode": "",
+                "country": "US",
+                "city": "",
+            },  # missing streetAddress, countryArea
+            "billingAddress",
+            "billing_address",
+        ),
+        (
+            {
+                "" "postalCode": "",
+                "country": "US",
+                "city": "",
+            },  # missing streetAddress, countryArea
+            "shippingAddress",
+            "shipping_address",
+        ),
     ],
 )
 def test_checkout_create_with_skip_required_doesnt_raise_error(
