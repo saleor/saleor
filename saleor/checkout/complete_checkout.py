@@ -35,7 +35,6 @@ from ..discount.utils import (
     increase_voucher_usage,
     release_voucher_usage,
 )
-from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
@@ -581,7 +580,11 @@ def _create_order(
 
     transaction.on_commit(
         lambda: order_created(
-            order_info=order_info, user=user, app=app, manager=manager
+            order_info=order_info,
+            user=user,
+            app=app,
+            manager=manager,
+            site_settings=site_settings,
         )
     )
 
@@ -589,11 +592,6 @@ def _create_order(
     transaction.on_commit(
         lambda: send_order_confirmation(order_info, checkout.redirect_url, manager)
     )
-
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
-        fulfill_non_shippable_gift_cards(
-            order, order_lines, site_settings, user, app, manager
-        )
 
     return order
 
@@ -977,7 +975,11 @@ def _post_create_order_actions(
 
     transaction.on_commit(
         lambda: order_created(
-            order_info=order_info, user=user, app=app, manager=manager
+            order_info=order_info,
+            user=user,
+            app=app,
+            manager=manager,
+            site_settings=site_settings,
         )
     )
 
@@ -987,12 +989,6 @@ def _post_create_order_actions(
             order_info, checkout_info.checkout.redirect_url, manager
         )
     )
-
-    order_lines = [line.line for line in order_lines_info]
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
-        fulfill_non_shippable_gift_cards(
-            order, order_lines, site_settings, user, app, manager
-        )
 
 
 def _create_order_from_checkout(

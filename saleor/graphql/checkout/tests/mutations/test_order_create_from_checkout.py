@@ -206,7 +206,9 @@ def test_order_from_checkout_gift_card_bought(
     checkout_with_gift_card_items,
     address,
     shipping_method,
+    payment_txn_captured,
 ):
+    # given
     checkout = checkout_with_gift_card_items
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -216,29 +218,53 @@ def test_order_from_checkout_gift_card_bought(
     checkout.user = customer_user
     checkout.save()
 
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    amount = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    ).gross.amount
+
+    payment_txn_captured.order = None
+    payment_txn_captured.checkout = checkout
+    payment_txn_captured.captured_amount = amount
+    payment_txn_captured.total = amount
+    payment_txn_captured.save(
+        update_fields=["order", "checkout", "total", "captured_amount"]
+    )
+
+    txn = payment_txn_captured.transactions.first()
+    txn.amount = amount
+    txn.save(update_fields=["amount"])
+
     site_settings.automatically_confirm_all_new_orders = True
     site_settings.automatically_fulfill_non_shippable_gift_card = True
     site_settings.save()
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # when
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_handle_checkouts],
     )
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     assert Order.objects.count() == orders_count + 1
+    flush_post_commit_hooks()
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         None,
         app,

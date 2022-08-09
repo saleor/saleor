@@ -3,7 +3,6 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from functools import reduce
 from operator import getitem
-from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
@@ -33,6 +32,7 @@ from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
+from ....order.fetch import fetch_order_info
 from ....order.interface import OrderTaxedPricesData
 from ....order.models import Order, OrderEvent, OrderLine, get_order_number
 from ....order.notifications import get_default_order_payload
@@ -1539,24 +1539,38 @@ ORDER_CONFIRM_MUTATION = """
 """
 
 
+@patch("saleor.order.actions.handle_fully_paid_order")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch("saleor.payment.gateway.capture")
 def test_order_confirm(
     capture_mock,
     mocked_notify,
+    handle_fully_paid_order_mock,
     staff_api_client,
     order_unconfirmed,
     permission_manage_orders,
     payment_txn_preauth,
+    site_settings,
 ):
+    # given
     payment_txn_preauth.order = order_unconfirmed
-    payment_txn_preauth.save()
+    payment_txn_preauth.captured_amount = order_unconfirmed.total.gross.amount
+    payment_txn_preauth.total = order_unconfirmed.total.gross.amount
+    payment_txn_preauth.save(update_fields=["order", "captured_amount", "total"])
+
+    order_unconfirmed.total_charged = order_unconfirmed.total.gross
+    order_unconfirmed.save(update_fields=["total_charged_amount"])
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
     )
+
+    # then
     order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
 
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
@@ -1591,6 +1605,10 @@ def test_order_confirm(
         NotifyEventType.ORDER_CONFIRMED,
         expected_payload,
         channel_slug=order_unconfirmed.channel.slug,
+    )
+    order_info = fetch_order_info(order_unconfirmed)
+    handle_fully_paid_order_mock.assert_called_once_with(
+        ANY, order_info, staff_api_client.user, None, site_settings
     )
 
 
@@ -4660,7 +4678,7 @@ def test_draft_order_complete_not_available_shipping_method(
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+@patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
 def test_draft_order_complete_with_excluded_shipping_method(
     mocked_webhook,
     draft_order,
@@ -4692,7 +4710,7 @@ def test_draft_order_complete_with_excluded_shipping_method(
     assert data["errors"][0]["field"] == "shipping"
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+@patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
 def test_draft_order_complete_with_not_excluded_shipping_method(
     mocked_webhook,
     draft_order,
@@ -6506,22 +6524,30 @@ ORDER_CAPTURE_MUTATION = """
 """
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.giftcard.utils.fulfill_non_shippable_gift_cards")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
-    channel_USD,
+    fulfill_non_shippable_gift_cards_mock,
     staff_api_client,
     permission_manage_orders,
     payment_txn_preauth,
     staff_user,
+    site_settings,
 ):
+    # given
     order = payment_txn_preauth.order
+
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_preauth.total)
     variables = {"id": order_id, "amount": amount}
+
+    # when
     response = staff_api_client.post_graphql(
         ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
     order.refresh_from_db()
@@ -6564,6 +6590,9 @@ def test_order_capture(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         expected_payment_payload,
         channel_slug=order.channel.slug,
+    )
+    fulfill_non_shippable_gift_cards_mock.assert_called_once_with(
+        order, list(order.lines.all()), site_settings, staff_api_client.user, None, ANY
     )
 
 
