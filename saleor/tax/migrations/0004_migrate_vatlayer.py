@@ -4,7 +4,6 @@ from collections import defaultdict
 from typing import List, Optional
 from django_countries import countries
 from django.db import migrations
-from django_prices_vatlayer.models import VAT
 
 
 VATLAYER_CODE_META_KEY = "vatlayer.code"
@@ -128,6 +127,7 @@ def create_tax_configurations(apps, vatlayer_configs):
 def create_tax_rates(apps, use_origin_country_map):
     TaxClass = apps.get_model("tax", "TaxClass")
     TaxClassCountryRate = apps.get_model("tax", "TaxClassCountryRate")
+    VAT = apps.get_model("django_prices_vatlayer", "VAT")
 
     tax_classes = TaxClass.objects.all()
     vat_rates = VAT.objects.all()
