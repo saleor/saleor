@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphene.types import InputObjectType
 
+from ....account.models import User
 from ....checkout import AddressType
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
@@ -116,6 +117,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
+
+        if email := data.get("user_email", None):
+            try:
+                user = User.objects.get(email=email, is_active=True)
+                data["user"] = graphene.Node.to_global_id("User", user.id)
+            except User.DoesNotExist:
+                data["user"] = None
 
         cleaned_input = super().clean_input(info, instance, data)
 
