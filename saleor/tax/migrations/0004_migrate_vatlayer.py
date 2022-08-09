@@ -98,16 +98,17 @@ def create_tax_configurations(apps, vatlayer_configs):
         channel = vatlayer_config.channel
 
         # Migrate `countries_to_calculate_taxes_from_origin` setting.
-        origin_country = _clear_country_code(config_dict["origin_country"])
+        origin_country = _clear_country_code(config_dict.get("origin_country", ""))
         countries_to_calculate_taxes_from_origin = _clear_str_list_country_codes(
-            config_dict["countries_to_calculate_taxes_from_origin"]
+            config_dict.get("countries_to_calculate_taxes_from_origin", [])
         )
-        for country in countries_to_calculate_taxes_from_origin:
-            use_origin_country_map[country] = origin_country
+        if origin_country and countries_to_calculate_taxes_from_origin:
+            for country in countries_to_calculate_taxes_from_origin:
+                use_origin_country_map[country] = origin_country
 
         # Migrate `excluded_countries` to new tax configuration.
         excluded_countries = _clear_str_list_country_codes(
-            config_dict["excluded_countries"]
+            config_dict.get("excluded_countries", [])
         )
         if excluded_countries:
             tax_configuration = channel.tax_configuration
