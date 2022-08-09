@@ -17,7 +17,6 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
-from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...channel.utils import clean_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -477,7 +476,7 @@ class RequestEmailChange(BaseMutation):
             "new_email": new_email,
             "user_pk": user.pk,
         }
-        token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
+        token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
         notifications.send_request_user_change_email_notification(
             redirect_url,
             user,

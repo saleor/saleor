@@ -1,9 +1,11 @@
 {
     "recommendations": [
-        "ms-python.vscode-pylance",
+        "editorconfig.editorconfig",
+        "github.vscode-pull-request-github",
+        "ms-python.black-formatter",
         "ms-python.pylint",
         "ms-python.python",
-        "editorconfig.editorconfig",
+        "ms-python.vscode-pylance",
         "streetsidesoftware.code-spell-checker"
     ]
 }

@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -8,6 +9,7 @@ from freezegun import freeze_time
 
 from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -73,6 +75,28 @@ def test_update_attribute_value(
     ]
 
 
+def test_update_attribute_value_update_search_index_dirty_in_product(
+    staff_api_client,
+    product,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = product.attributes.all()[0].values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    name = "Crimson name"
+    variables = {"input": {"name": name}, "id": node_id}
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    product.refresh_from_db(fields=["search_index_dirty"])
+
+    # then
+    assert product.search_index_dirty is True
+
+
 @freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
@@ -111,12 +135,15 @@ def test_update_attribute_value_trigger_webhooks(
     )
 
     attribute_updated_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("Attribute", attribute.id),
-            "name": attribute.name,
-            "slug": attribute.slug,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Attribute", attribute.id),
+                "name": attribute.name,
+                "slug": attribute.slug,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         attribute,
@@ -124,13 +151,16 @@ def test_update_attribute_value_trigger_webhooks(
     )
 
     attribute_value_created_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("AttributeValue", value.id),
-            "name": value.name,
-            "slug": value.slug,
-            "value": value.value,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", value.id),
+                "name": value.name,
+                "slug": value.slug,
+                "value": value.value,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
         [any_webhook],
         value,

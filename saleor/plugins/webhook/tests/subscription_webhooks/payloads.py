@@ -220,6 +220,18 @@ def generate_page_type_payload(page_type):
     }
 
 
+def generate_permission_group_payload(group):
+    return {
+        "permissionGroup": {
+            "name": group.name,
+            "permissions": [
+                {"name": permission.name} for permission in group.permissions.all()
+            ],
+            "users": [{"email": user.email} for user in group.user_set.all()],
+        }
+    }
+
+
 def generate_invoice_payload(invoice):
     return {
         "invoice": {
@@ -428,3 +440,15 @@ def generate_warehouse_payload(warehouse, warehouse_global_id):
             }
         }
     )
+
+
+def generate_payment_payload(payment):
+    total = payment.get_total()
+    return {
+        "payment": {
+            "id": graphene.Node.to_global_id("Payment", payment.pk),
+            "total": {"amount": float(total.amount), "currency": total.currency},
+            "gateway": payment.gateway,
+            "isActive": payment.is_active,
+        }
+    }

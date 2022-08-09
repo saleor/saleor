@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -6,6 +7,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....page.models import Page
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -96,16 +98,19 @@ def test_page_type_delete_trigger_webhook(
     assert not data["errors"]
     assert data["pageType"]["id"] == page_type_id
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": page_type_id,
-            "name": page_type.name,
-            "slug": page_type.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": page_type_id,
+                "name": page_type.name,
+                "slug": page_type.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.PAGE_TYPE_DELETED,
         [any_webhook],
         page_type,

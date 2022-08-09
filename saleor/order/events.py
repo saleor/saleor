@@ -23,10 +23,9 @@ def _line_per_quantity_to_line_object(quantity, line):
     return {"quantity": quantity, "line_pk": line.pk, "item": str(line)}
 
 
-def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
+def _lines_per_quantity_to_line_object_list(order_lines):
     return [
-        _line_per_quantity_to_line_object(quantity, line)
-        for quantity, line in quantities_per_order_line
+        _line_per_quantity_to_line_object(line.quantity, line) for line in order_lines
     ]
 
 
@@ -274,16 +273,23 @@ def order_added_products_event(
     order: Order,
     user: UserType,
     app: AppType,
-    order_lines: List[Tuple[int, OrderLine]]
+    order_lines: List[OrderLine],
+    quantity_diff: int = None
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
+
+    if quantity_diff:
+        lines = [_line_per_quantity_to_line_object(quantity_diff, order_lines[0])]
+    else:
+        lines = _lines_per_quantity_to_line_object_list(order_lines)
+
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.ADDED_PRODUCTS,
         user=user,
         app=app,
-        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+        parameters={"lines": lines},
     )
 
 
@@ -292,16 +298,23 @@ def order_removed_products_event(
     order: Order,
     user: UserType,
     app: AppType,
-    order_lines: List[Tuple[int, OrderLine]]
+    order_lines: List[OrderLine],
+    quantity_diff: int = None
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
+
+    if quantity_diff:
+        lines = [_line_per_quantity_to_line_object(quantity_diff, order_lines[0])]
+    else:
+        lines = _lines_per_quantity_to_line_object_list(order_lines)
+
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.REMOVED_PRODUCTS,
         user=user,
         app=app,
-        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+        parameters={"lines": lines},
     )
 
 
@@ -311,7 +324,7 @@ def draft_order_created_from_replace_event(
     original_order: Order,
     user: UserType,
     app: AppType,
-    lines: List[Tuple[int, OrderLine]]
+    lines: List[OrderLine]
 ):
     if not user_is_valid(user):
         user = None
@@ -614,7 +627,12 @@ def order_returned_event(
         type=OrderEvents.FULFILLMENT_RETURNED,
         user=user,
         app=app,
-        parameters={"lines": _lines_per_quantity_to_line_object_list(returned_lines)},
+        parameters={
+            "lines": [
+                _line_per_quantity_to_line_object(quantity, line)
+                for quantity, line in returned_lines
+            ]
+        },
     )
 
 
@@ -623,7 +641,7 @@ def fulfillment_replaced_event(
     order: Order,
     user: UserType,
     app: AppType,
-    replaced_lines: List[Tuple[int, OrderLine]],
+    replaced_lines: List[OrderLine],
 ):
     if not user_is_valid(user):
         user = None
@@ -653,7 +671,10 @@ def fulfillment_refunded_event(
         user=user,
         app=app,
         parameters={
-            "lines": _lines_per_quantity_to_line_object_list(refunded_lines),
+            "lines": [
+                _line_per_quantity_to_line_object(quantity, line)
+                for quantity, line in refunded_lines
+            ],
             "amount": amount,
             "shipping_costs_included": shipping_costs_included,
         },

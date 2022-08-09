@@ -31,6 +31,12 @@ def test_get_thumbnail_size(size, expected_value):
         ("test.txt", 20, None, "test_thumbnail_20.txt"),
         ("test/test.txt", 20, None, "test/test_thumbnail_20.txt"),
         ("test/test.txt", 40, "webp", "test/test_thumbnail_40.webp"),
+        (
+            "test/test_23.03.2022.txt",
+            40,
+            "webp",
+            "test/test_23.03.2022_thumbnail_40.webp",
+        ),
     ],
 )
 def test_prepare_thumbnail_file_name(file_name, size, format, expected_name):

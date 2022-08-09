@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, TypeVar
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
@@ -25,10 +25,13 @@ from ...graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ...payment import PaymentError
-from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook import observability
-from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
+from ...webhook.event_types import (
+    SUBSCRIBABLE_EVENTS,
+    WebhookEventAsyncType,
+    WebhookEventSyncType,
+)
 from ...webhook.observability import WebhookData
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
@@ -68,9 +71,9 @@ class WebhookResponse:
 def create_deliveries_for_subscriptions(
     event_type, subscribable_object, webhooks, requestor=None
 ) -> List[EventDelivery]:
-    """Create webhook payload based on subscription query.
+    """Create a list of event deliveries with payloads based on subscription query.
 
-    It uses a defined subscription query, defined for webhook to explicitly determine
+    It uses a subscription query, defined for webhook to explicitly determine
     what fields should be included in the payload.
 
     :param event_type: event type which should be triggered.
@@ -91,7 +94,9 @@ def create_deliveries_for_subscriptions(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            request=initialize_request(requestor),
+            request=initialize_request(
+                requestor, event_type in WebhookEventSyncType.ALL
+            ),
             app=webhook.app,
         )
         if not data:
@@ -113,6 +118,50 @@ def create_deliveries_for_subscriptions(
 
     EventPayload.objects.bulk_create(event_payloads)
     return EventDelivery.objects.bulk_create(event_deliveries)
+
+
+def create_delivery_for_subscription_sync_event(
+    event_type, subscribable_object, webhook, requestor=None
+) -> Optional[EventDelivery]:
+    """Generate webhook payload based on subscription query and create delivery object.
+
+    It uses a defined subscription query, defined for webhook to explicitly determine
+    what fields should be included in the payload.
+
+    :param event_type: event type which should be triggered.
+    :param subscribable_object: subscribable object to process via subscription query.
+    :param webhook: webhook object for which delivery will be created.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
+    :return: List of event deliveries to send via webhook tasks.
+    """
+    if event_type not in SUBSCRIBABLE_EVENTS:
+        logger.info(
+            "Skipping subscription webhook. Event %s is not subscribable.", event_type
+        )
+        return None
+
+    data = generate_payload_from_subscription(
+        event_type=event_type,
+        subscribable_object=subscribable_object,
+        subscription_query=webhook.subscription_query,
+        request=initialize_request(requestor, event_type in WebhookEventSyncType.ALL),
+        app=webhook.app,
+    )
+    if not data:
+        # PaymentError is a temporary exception type. New type will be implemented
+        # in separate PR to ensure proper handling for all sync events.
+        # It was implemented when sync webhooks were handling payment events only.
+        raise PaymentError(
+            "No payload was generated with subscription for event: %s" % event_type
+        )
+    event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
+    event_delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=event_type,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    return event_delivery
 
 
 def trigger_webhooks_async(
@@ -160,28 +209,76 @@ def group_webhooks_by_subscription(webhooks):
 
 
 def trigger_webhook_sync(
-    event_type: str, data: str, app: "App", timeout=None
+    event_type: str,
+    data: str,
+    app: "App",
+    subscribable_object=None,
+    timeout=None,
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
     webhooks = get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
-    event_payload = EventPayload.objects.create(payload=data)
-    delivery = EventDelivery.objects.create(
-        status=EventDeliveryStatus.PENDING,
-        event_type=event_type,
-        payload=event_payload,
-        webhook=webhook,
-    )
+    if webhook.subscription_query:
+        delivery = create_delivery_for_subscription_sync_event(
+            event_type=event_type,
+            subscribable_object=subscribable_object,
+            webhook=webhook,
+        )
+        if not delivery:
+            return None
+
+    else:
+        event_payload = EventPayload.objects.create(payload=data)
+        delivery = EventDelivery.objects.create(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=event_payload,
+            webhook=webhook,
+        )
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
     return send_webhook_request_sync(app.name, delivery, **kwargs)
 
 
+R = TypeVar("R")
+
+
+def trigger_all_webhooks_sync(
+    event_type: str,
+    generate_payload: Callable,
+    parse_response: Callable[[Any], Optional[R]],
+) -> Optional[R]:
+    """Send all synchronous webhook request for given event type.
+
+    Requests are send sequentially.
+    If the current webhook does not return expected response,
+    the next one is send.
+    If no webhook responds with expected response,
+    this function returns None.
+    """
+    webhooks = get_webhooks_for_event(event_type)
+    event_payload = None
+    if webhooks:
+        event_payload = EventPayload.objects.create(payload=generate_payload())
+    for webhook in webhooks:
+        delivery = EventDelivery.objects.create(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=event_payload,
+            webhook=webhook,
+        )
+        response_data = send_webhook_request_sync(webhook.app.name, delivery)
+        parsed_response = parse_response(response_data)
+        if parsed_response:
+            return parsed_response
+    return None
+
+
 def send_webhook_using_http(
-    target_url, message, domain, signature, event_type, timeout=WEBHOOK_TIMEOUT
+    target_url, message, domain, signature, event_type, timeout=settings.WEBHOOK_TIMEOUT
 ):
     """Send a webhook request using http / https protocol.
 
@@ -409,7 +506,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
 
 def send_webhook_request_sync(
-    app_name, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
+    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> Optional[Dict[Any, Any]]:
     event_payload = delivery.payload
     data = event_payload.payload
@@ -485,6 +582,11 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
     for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()
         failed = 0
+        extra = {
+            "webhook_id": webhook.id,
+            "webhook_target_url": webhook.target_url,
+            "events_count": len(events),
+        }
         try:
             if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
                 for event in events:
@@ -509,26 +611,28 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
                     failed = len(events)
         except ValueError:
             logger.error(
-                "[Observability] Webhook ID: %r unknown webhook scheme: %r",
+                "Webhook ID: %r unknown webhook scheme: %r.",
                 webhook.id,
                 scheme,
+                extra={**extra, "dropped_events_count": len(events)},
             )
             continue
         if failed:
             logger.warning(
-                "[Observability] Webhook ID: %r failed request to %r "
-                "(%s/%s events dropped): %r.",
+                "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
                 webhook.id,
                 webhook.target_url,
                 failed,
                 len(events),
                 response.content,
+                extra={**extra, "dropped_events_count": failed},
             )
             continue
         logger.debug(
-            "[Observability] Successful delivered %s events to %r.",
+            "Successful delivered %s events to %r.",
             len(events),
             webhook.target_url,
+            extra={**extra, "dropped_events_count": 0},
         )
 
 

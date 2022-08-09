@@ -1,6 +1,7 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -71,6 +72,13 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ORDER_UPDATED: order_updated_event_enum_description,
     WebhookEventAsyncType.ORDER_CANCELLED: "An order is cancelled.",
     WebhookEventAsyncType.ORDER_FULFILLED: "An order is fulfilled.",
+    WebhookEventAsyncType.DRAFT_ORDER_CREATED: "A draft order is created.",
+    WebhookEventAsyncType.DRAFT_ORDER_UPDATED: "A draft order is updated.",
+    WebhookEventAsyncType.DRAFT_ORDER_DELETED: "A draft order is deleted.",
+    WebhookEventAsyncType.SALE_CREATED: "A sale is created.",
+    WebhookEventAsyncType.SALE_UPDATED: "A sale is updated.",
+    WebhookEventAsyncType.SALE_DELETED: "A sale is deleted.",
+    WebhookEventAsyncType.SALE_TOGGLE: "A sale is activated or deactivated.",
     WebhookEventAsyncType.FULFILLMENT_CREATED: "A new fulfillment is created.",
     WebhookEventAsyncType.FULFILLMENT_CANCELED: "A fulfillment is cancelled.",
     WebhookEventAsyncType.PAGE_CREATED: "A new page is created.",
@@ -79,21 +87,37 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PAGE_TYPE_CREATED: "A new page type is created.",
     WebhookEventAsyncType.PAGE_TYPE_UPDATED: "A page type is updated.",
     WebhookEventAsyncType.PAGE_TYPE_DELETED: "A page type is deleted.",
+    WebhookEventAsyncType.PERMISSION_GROUP_CREATED: (
+        "A new permission group is created."
+    ),
+    WebhookEventAsyncType.PERMISSION_GROUP_UPDATED: "A permission group is updated.",
+    WebhookEventAsyncType.PERMISSION_GROUP_DELETED: "A permission group is deleted.",
     WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: "A new product variant is created.",
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: "A product variant is updated.",
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: "A product variant is deleted.",
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: (
+        "A product variant is out of stock."
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: (
+        "A product variant is back in stock."
+    ),
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED: "A new shipping price is created.",
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: "A shipping price is updated.",
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED: "A shipping price is deleted.",
     WebhookEventAsyncType.SHIPPING_ZONE_CREATED: "A new shipping zone is created.",
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: "A shipping zone is updated.",
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: "A shipping zone is deleted.",
-    WebhookEventAsyncType.STAFF_CREATED: "A new staff user is created",
-    WebhookEventAsyncType.STAFF_CREATED: "A staff user is updated",
-    WebhookEventAsyncType.STAFF_CREATED: "A staff user is deleted",
+    WebhookEventAsyncType.STAFF_CREATED: "A new staff user is created.",
+    WebhookEventAsyncType.STAFF_UPDATED: "A staff user is updated.",
+    WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",
+    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: (
+        "An action requested for transaction."
+    ),
+    WebhookEventAsyncType.TRANSLATION_CREATED: "A new translation is created.",
+    WebhookEventAsyncType.TRANSLATION_UPDATED: "A translation is updated.",
     WebhookEventAsyncType.WAREHOUSE_CREATED: "A new warehouse created.",
     WebhookEventAsyncType.WAREHOUSE_UPDATED: "A warehouse is updated.",
     WebhookEventAsyncType.WAREHOUSE_DELETED: "A warehouse is deleted.",
@@ -102,6 +126,28 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
+    WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
+        "Fetch external shipping methods for checkout."
+    ),
+    WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
+        "Filter shipping methods for checkout."
+    ),
+    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (
+        "Filter shipping methods for order."
+    ),
+    WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: "Listing available payment gateways.",
+    WebhookEventSyncType.PAYMENT_AUTHORIZE: "Authorize payment.",
+    WebhookEventSyncType.PAYMENT_CAPTURE: "Capture payment.",
+    WebhookEventSyncType.PAYMENT_REFUND: "Refund payment.",
+    WebhookEventSyncType.PAYMENT_VOID: "Void payment.",
+    WebhookEventSyncType.PAYMENT_CONFIRM: "Confirm payment.",
+    WebhookEventSyncType.PAYMENT_PROCESS: "Process payment.",
+    WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: (
+        "Event called for checkout tax calculation." + ADDED_IN_36 + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.ORDER_CALCULATE_TAXES: (
+        "Event called for order tax calculation." + ADDED_IN_36 + PREVIEW_FEATURE
+    ),
 }
 
 

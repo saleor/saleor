@@ -20,7 +20,7 @@ from ..tasks import (
 
 def test_delete_from_storage_task(product_with_image, media_root):
     # given
-    path = product_with_image.media.first().image.path
+    path = product_with_image.media.first().image.name
     assert default_storage.exists(path)
 
     # when
@@ -88,7 +88,7 @@ def test_delete_product_media_task_product_media_to_remove(
     with pytest.raises(thumbnail._meta.model.DoesNotExist):
         thumbnail.refresh_from_db()
 
-    delete_from_storage_task_mock.assert_called_once_with(thumbnail.image.path)
+    delete_from_storage_task_mock.assert_called_once_with(thumbnail.image.name)
 
 
 def test_delete_event_payloads_task(webhook, settings):

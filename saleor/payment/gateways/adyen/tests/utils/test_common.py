@@ -19,7 +19,6 @@ from saleor.payment.gateways.adyen.utils.common import (
 from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 
-from ......checkout.interface import CheckoutTaxedPricesData
 from ...utils.common import prepare_address_request_data
 
 
@@ -132,29 +131,33 @@ def test_append_checkout_details_without_sku(
     }
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.calculate_checkout_line_total")
 @mock.patch("saleor.plugins.manager.PluginsManager.calculate_checkout_line_unit_price")
 def test_append_checkout_details_tax_included(
     mocked_calculate_checkout_line_unit_price,
+    mocked_calculate_checkout_line_total,
     dummy_payment_data,
     payment_dummy,
     checkout_ready_to_complete,
 ):
     # given
+    line = checkout_ready_to_complete.lines.first()
+    quantity = line.quantity
+
     net = Money(100, "USD")
     gross = Money(123, "USD")
     # tax 23 %
     unit_price = quantize_price(TaxedMoney(net=net, gross=gross), "USD")
+    total_price = quantize_price(
+        TaxedMoney(net=net * quantity, gross=gross * quantity), "USD"
+    )
 
     country_code = checkout_ready_to_complete.get_country()
 
-    mocked_calculate_checkout_line_unit_price.return_value = CheckoutTaxedPricesData(
-        price_with_sale=unit_price,
-        undiscounted_price=unit_price,
-        price_with_discounts=unit_price,
-    )
+    mocked_calculate_checkout_line_unit_price.return_value = unit_price
+    mocked_calculate_checkout_line_total.return_value = total_price
 
     checkout_ready_to_complete.payments.add(payment_dummy)
-    line = checkout_ready_to_complete.lines.first()
     payment_data = {
         "reference": "test",
     }

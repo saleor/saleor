@@ -5,6 +5,7 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
+from ....order.calculations import fetch_order_prices_if_expired
 from ...core.types import OrderError
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
@@ -39,6 +40,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
+        manager = info.context.plugins
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -56,14 +58,14 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         order_discount.value = value
         order_discount.value_type = value_type
         order_discount.save()
-
-        cls.recalculate_order(order)
-
         if (
             order_discount_before_update.value_type != value_type
             or order_discount_before_update.value != value
         ):
             # call update event only when we changed the type or value of the discount
+            # Calling refreshing prices because it's set proper discount amount on
+            # on OrderDiscount.
+            fetch_order_prices_if_expired(order, manager, force_update=True)
             order_discount.refresh_from_db()
             events.order_discount_updated_event(
                 order=order,

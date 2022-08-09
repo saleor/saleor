@@ -25,6 +25,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import TaxType
 from ....core.units import MeasurementUnits, WeightUnits
 from ....order import OrderEvents, OrderStatus
@@ -49,6 +50,7 @@ from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
 from ....tax.models import TaxClass
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, Stock, Warehouse
@@ -691,10 +693,11 @@ def test_query_product_thumbnail_with_size_and_format_proxy_url_returned(
     product_media_id = graphene.Node.to_global_id(
         "ProductMedia", product_with_image.media.first().pk
     )
-    assert (
-        data["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{product_media_id}/128/{format.lower()}/"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/thumbnail/{product_media_id}/128/{format.lower()}/"
     )
+    assert data["thumbnail"]["url"] == expected_url
 
 
 def test_query_product_thumbnail_with_size_and_proxy_url_returned(
@@ -719,7 +722,7 @@ def test_query_product_thumbnail_with_size_and_proxy_url_returned(
     )
     assert (
         data["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{product_media_id}/128/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{product_media_id}/128/"
     )
 
 
@@ -750,7 +753,7 @@ def test_query_product_thumbnail_with_size_and_thumbnail_url_returned(
     data = content["data"]["product"]
     assert (
         data["thumbnail"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -776,10 +779,11 @@ def test_query_product_thumbnail_only_format_provided_default_size_is_used(
     product_media_id = graphene.Node.to_global_id(
         "ProductMedia", product_with_image.media.first().pk
     )
-    assert (
-        data["thumbnail"]["url"]
-        == f"http://testserver/thumbnail/{product_media_id}/256/{format.lower()}/"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}"
+        f"/thumbnail/{product_media_id}/256/{format.lower()}/"
     )
+    assert data["thumbnail"]["url"] == expected_url
 
 
 def test_query_product_thumbnail_no_product_media(
@@ -2376,7 +2380,7 @@ def test_products_query_with_filter_date_range_date_attributes(
     date_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering  attributes by date range,
+    """Ensure both products will be returned when filtering attributes by date range,
     products with the same date attribute value."""
 
     # given
@@ -2638,12 +2642,12 @@ def test_products_query_with_filter_date_time_range_date_time_attributes(
     date_time_attribute,
     channel_USD,
 ):
-    """Ensure both products will be returned when filtering by  attributes by date range
+    """Ensure both products will be returned when filtering by attributes by date range
     variants with the same date attribute value."""
 
     # given
     product_type = product_list[0].product_type
-    date_value = timezone.now()
+    date_value = datetime.now(tz=pytz.utc)
     product_type.product_attributes.add(date_time_attribute)
     product_type.variant_attributes.add(date_time_attribute)
     attr_value_1 = AttributeValue.objects.create(
@@ -2828,7 +2832,9 @@ def test_products_query_with_filter_category_and_search(
     product.save()
 
     for pr in [product, second_product]:
-        pr.search_vector = prepare_product_search_vector_value(pr)
+        pr.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(pr)
+        )
     Product.objects.bulk_update([product, second_product], ["search_vector"])
 
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -2960,7 +2966,9 @@ def test_products_query_with_filter(
         channel=channel_USD,
         is_published=False,
     )
-    second_product.search_vector = prepare_product_search_vector_value(second_product)
+    second_product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(second_product)
+    )
     second_product.save(update_fields=["search_vector"])
     variables = {"filter": products_filter, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -3071,8 +3079,8 @@ def test_products_query_with_filter_search_by_dropdown_attribute_value(
 
     product_with_dropdown_attr.refresh_from_db()
 
-    product_with_dropdown_attr.search_vector = prepare_product_search_vector_value(
-        product_with_dropdown_attr
+    product_with_dropdown_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_dropdown_attr)
     )
     product_with_dropdown_attr.save(update_fields=["search_document", "search_vector"])
 
@@ -3134,8 +3142,8 @@ def test_products_query_with_filter_search_by_multiselect_attribute_value(
 
     product_with_multiselect_attr.refresh_from_db()
 
-    product_with_multiselect_attr.search_vector = prepare_product_search_vector_value(
-        product_with_multiselect_attr
+    product_with_multiselect_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_multiselect_attr)
     )
     product_with_multiselect_attr.save(update_fields=["search_vector"])
 
@@ -3182,8 +3190,8 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
 
     product_with_rich_text_attr.refresh_from_db()
 
-    product_with_rich_text_attr.search_vector = prepare_product_search_vector_value(
-        product_with_rich_text_attr
+    product_with_rich_text_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_rich_text_attr)
     )
     product_with_rich_text_attr.save(update_fields=["search_vector"])
 
@@ -3230,8 +3238,8 @@ def test_products_query_with_filter_search_by_plain_text_attribute(
 
     product_with_plain_text_attr.refresh_from_db()
 
-    product_with_plain_text_attr.search_vector = prepare_product_search_vector_value(
-        product_with_plain_text_attr
+    product_with_plain_text_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_plain_text_attr)
     )
     product_with_plain_text_attr.save(update_fields=["search_vector"])
 
@@ -3281,8 +3289,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
 
     product_with_numeric_attr.refresh_from_db()
 
-    product_with_numeric_attr.search_vector = prepare_product_search_vector_value(
-        product_with_numeric_attr
+    product_with_numeric_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_numeric_attr)
     )
     product_with_numeric_attr.save(update_fields=["search_vector"])
 
@@ -3328,8 +3336,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value_without_un
 
     product_with_numeric_attr.refresh_from_db()
 
-    product_with_numeric_attr.search_vector = prepare_product_search_vector_value(
-        product_with_numeric_attr
+    product_with_numeric_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_numeric_attr)
     )
     product_with_numeric_attr.save(update_fields=["search_vector"])
 
@@ -3376,8 +3384,8 @@ def test_products_query_with_filter_search_by_date_attribute_value(
 
     product_with_date_attr.refresh_from_db()
 
-    product_with_date_attr.search_vector = prepare_product_search_vector_value(
-        product_with_date_attr
+    product_with_date_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_date_attr)
     )
     product_with_date_attr.save(update_fields=["search_vector"])
 
@@ -3424,8 +3432,8 @@ def test_products_query_with_filter_search_by_date_time_attribute_value(
 
     product_with_date_time_attr.refresh_from_db()
 
-    product_with_date_time_attr.search_vector = prepare_product_search_vector_value(
-        product_with_date_time_attr
+    product_with_date_time_attr.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product_with_date_time_attr)
     )
     product_with_date_time_attr.save(update_fields=["search_vector"])
 
@@ -3882,7 +3890,7 @@ def test_query_product_media_by_id_with_size_and_format_proxy_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
@@ -3907,7 +3915,7 @@ def test_query_product_media_by_id_with_size_proxy_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/thumbnail/{media_id}/128/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
     )
 
 
@@ -3937,7 +3945,7 @@ def test_query_product_media_by_id_with_size_thumbnail_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -3963,7 +3971,7 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/media/{media.image.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
     )
 
 
@@ -3987,7 +3995,7 @@ def test_query_product_media_by_id_no_size_value_original_image_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://testserver/media/{media.image.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
     )
 
 
@@ -5361,7 +5369,9 @@ def test_search_product_by_description_and_name(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = prepare_product_search_vector_value(prod)
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5414,7 +5424,9 @@ def test_search_product_by_description_and_name_without_sort_by(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = prepare_product_search_vector_value(prod)
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5451,7 +5463,9 @@ def test_search_product_by_description_and_name_and_use_cursor(
 
     product_list.append(product)
     for prod in product_list:
-        prod.search_vector = prepare_product_search_vector_value(prod)
+        prod.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(prod)
+        )
 
     Product.objects.bulk_update(
         product_list,
@@ -5562,6 +5576,7 @@ def test_create_product_with_file_attribute(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert len(data["product"]["attributes"]) == 2
+    expected_url = f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -5571,7 +5586,7 @@ def test_create_product_with_file_attribute(
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
                     "file": {
-                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "url": expected_url,
                         "contentType": None,
                     },
                     "reference": None,
@@ -5926,7 +5941,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "date": None,
                     "dateTime": None,
                     "file": {
-                        "url": "http://testserver/media/" + non_existing_value,
+                        "url": f"http://{TEST_SERVER_DOMAIN}/media/"
+                        + non_existing_value,
                         "contentType": None,
                     },
                 }
@@ -7377,7 +7393,7 @@ def test_update_product_with_file_attribute_value(
                 "slug": slugify(new_value),
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": f"http://{TEST_SERVER_DOMAIN}/media/{new_value}",
                     "contentType": None,
                 },
                 "boolean": None,
@@ -7440,7 +7456,9 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": (
+                        f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
+                    ),
                     "contentType": existing_value.content_type,
                 },
                 "boolean": None,
@@ -12407,7 +12425,7 @@ def test_query_product_media_for_federation(
         {
             "__typename": "ProductMedia",
             "id": media_id,
-            "url": "http://testserver/media/products/product.jpg",
+            "url": f"http://{TEST_SERVER_DOMAIN}/media/products/product.jpg",
         }
     ]
 

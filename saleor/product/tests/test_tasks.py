@@ -8,6 +8,7 @@ from ..tasks import (
     _get_preorder_variants_to_clean,
     update_product_discounted_price_task,
     update_products_discounted_prices_of_discount_task,
+    update_products_search_vector_task,
     update_variants_names,
 )
 
@@ -114,3 +115,16 @@ def test_get_preorder_variants_to_clean(
     variants_to_clean = _get_preorder_variants_to_clean()
     assert len(variants_to_clean) == 1
     assert variants_to_clean[0] == preorder_variant_after_end_date
+
+
+def test_update_products_search_vector_task(product):
+    # given
+    product.search_index_dirty = True
+    product.save(update_fields=["search_index_dirty"])
+
+    # when
+    update_products_search_vector_task()
+    product.refresh_from_db(fields=["search_index_dirty"])
+
+    # then
+    assert product.search_index_dirty is False

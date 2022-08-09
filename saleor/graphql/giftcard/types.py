@@ -323,8 +323,8 @@ class GiftCard(ModelObjectType):
         required=False,
     )
     is_active = graphene.Boolean(required=True)
-    initial_balance = graphene.Field(Money)
-    current_balance = graphene.Field(Money)
+    initial_balance = graphene.Field(Money, required=True)
+    current_balance = graphene.Field(Money, required=True)
 
     # DEPRECATED
     user = graphene.Field(

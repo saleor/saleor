@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -6,6 +7,7 @@ from freezegun import freeze_time
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App, AppToken
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import PermissionEnum
@@ -117,16 +119,19 @@ def test_app_update_trigger_mutation(
     # then
     assert content["data"]["appUpdate"]["app"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "is_active": app_with_token.is_active,
-            "name": app_with_token.name,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "is_active": app_with_token.is_active,
+                "name": app_with_token.name,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.APP_UPDATED,
         [any_webhook],
         app_with_token,

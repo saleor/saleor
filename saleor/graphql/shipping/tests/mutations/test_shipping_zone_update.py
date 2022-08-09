@@ -1,9 +1,11 @@
+import json
 from unittest import mock
 
 import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....shipping.error_codes import ShippingErrorCode
 from .....shipping.models import ShippingMethodChannelListing
 from .....webhook.event_types import WebhookEventAsyncType
@@ -119,14 +121,17 @@ def test_update_shipping_zone_trigger_webhook(
     assert data["shippingZone"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
         [any_webhook],
         shipping_zone,

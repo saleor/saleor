@@ -321,6 +321,19 @@ fragment PageTypeDetails on PageType{
 """
 
 
+PERMISSION_GROUP_DETAILS = """
+fragment PermissionGroupDetails on Group{
+  name
+  permissions {
+    name
+  }
+  users {
+    email
+  }
+}
+"""
+
+
 SALE_DETAILS = """
 fragment SaleDetails on Sale {
   id
@@ -399,5 +412,17 @@ fragment AttributeValueDetails on AttributeValue {
   name
   slug
   value
+}
+"""
+
+PAYMENT_DETAILS = """
+fragment PaymentDetails on Payment {
+  id
+  total {
+    amount
+    currency
+  }
+  isActive
+  gateway
 }
 """

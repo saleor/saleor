@@ -10,6 +10,7 @@ from redis import ConnectionPool, Redis
 from .exceptions import ConnectionNotConfigured
 
 KEY_TYPE = str
+DEFAULT_CONNECTION_TIMEOUT = 0.5
 _local = Local()
 
 
@@ -23,13 +24,15 @@ class BaseBuffer:
         key: KEY_TYPE,
         max_size: int,
         batch_size: int,
-        connection_timeout=10.0,
+        connection_timeout=DEFAULT_CONNECTION_TIMEOUT,
+        timeout: int = 60,
     ):
         self.broker_url = broker_url
         self.key = key
         self.max_size = max_size
         self.batch_size = batch_size
         self.connection_timeout = connection_timeout
+        self.timeout = timeout
 
     def decode(self, value: bytes) -> Any:
         return pickle.loads(zlib.decompress(value))
@@ -126,6 +129,7 @@ class RedisBuffer(BaseBuffer):
             client = self.client
         client.lpush(key, *events_data)
         client.ltrim(key, 0, max(0, self.max_size - 1))
+        client.expire(key, self.timeout)
         return max(0, len(events) - self.max_size)
 
     def put_events(self, events: List[Any]) -> int:
@@ -149,7 +153,7 @@ class RedisBuffer(BaseBuffer):
                 trimmed[key] = self._put_events(key, events_dict[key], client=pipe)
             result = pipe.execute()
         for key in keys:
-            buffer_len, _ = result.pop(0), result.pop(0)
+            buffer_len, _, _ = result.pop(0), result.pop(0), result.pop(0)
             trimmed[key] += max(0, buffer_len - self.max_size)
         return trimmed
 
@@ -189,13 +193,20 @@ class RedisBuffer(BaseBuffer):
         return self.client.llen(self.key)
 
 
-def get_buffer(key: KEY_TYPE) -> BaseBuffer:
+def get_buffer(
+    key: KEY_TYPE, connection_timeout=DEFAULT_CONNECTION_TIMEOUT
+) -> BaseBuffer:
     if not settings.OBSERVABILITY_BROKER_URL:
         raise ConnectionNotConfigured("The observability broker url not set")
     broker_url = settings.OBSERVABILITY_BROKER_URL
     max_size = settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
     batch_size = settings.OBSERVABILITY_BUFFER_BATCH_SIZE
-    connection_timeout = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+    timeout = int(settings.OBSERVABILITY_BUFFER_TIMEOUT.total_seconds())
     return RedisBuffer(
-        broker_url, key, max_size, batch_size, connection_timeout=connection_timeout
+        broker_url,
+        key,
+        max_size,
+        batch_size,
+        connection_timeout=connection_timeout,
+        timeout=timeout,
     )

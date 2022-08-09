@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -7,6 +8,7 @@ from freezegun import freeze_time
 
 from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.models import Attribute
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import MeasurementUnitsEnum
@@ -114,16 +116,19 @@ def test_update_attribute_trigger_webhook(
     assert not data["errors"]
     assert data["attribute"]["name"] == new_name
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
-            "name": new_name,
-            "slug": color_attribute.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+                "name": new_name,
+                "slug": color_attribute.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,

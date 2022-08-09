@@ -112,6 +112,10 @@ class WebhookEventAsyncType:
     PAGE_TYPE_UPDATED = "page_type_updated"
     PAGE_TYPE_DELETED = "page_type_deleted"
 
+    PERMISSION_GROUP_CREATED = "permission_group_created"
+    PERMISSION_GROUP_UPDATED = "permission_group_updated"
+    PERMISSION_GROUP_DELETED = "permission_group_deleted"
+
     SHIPPING_PRICE_CREATED = "shipping_price_created"
     SHIPPING_PRICE_UPDATED = "shipping_price_updated"
     SHIPPING_PRICE_DELETED = "shipping_price_deleted"
@@ -212,6 +216,9 @@ class WebhookEventAsyncType:
         PAGE_TYPE_CREATED: "Page type created",
         PAGE_TYPE_UPDATED: "Page type updated",
         PAGE_TYPE_DELETED: "Page type deleted",
+        PERMISSION_GROUP_CREATED: "Permission group created",
+        PERMISSION_GROUP_UPDATED: "Permission group updated",
+        PERMISSION_GROUP_DELETED: "Permission group deleted",
         SHIPPING_PRICE_CREATED: "Shipping price created",
         SHIPPING_PRICE_UPDATED: "Shipping price updated",
         SHIPPING_PRICE_DELETED: "Shipping price deleted",
@@ -306,6 +313,9 @@ class WebhookEventAsyncType:
         (PAGE_TYPE_CREATED, DISPLAY_LABELS[PAGE_TYPE_CREATED]),
         (PAGE_TYPE_UPDATED, DISPLAY_LABELS[PAGE_TYPE_UPDATED]),
         (PAGE_TYPE_DELETED, DISPLAY_LABELS[PAGE_TYPE_DELETED]),
+        (PERMISSION_GROUP_CREATED, DISPLAY_LABELS[PERMISSION_GROUP_CREATED]),
+        (PERMISSION_GROUP_UPDATED, DISPLAY_LABELS[PERMISSION_GROUP_UPDATED]),
+        (PERMISSION_GROUP_DELETED, DISPLAY_LABELS[PERMISSION_GROUP_DELETED]),
         (SHIPPING_PRICE_CREATED, DISPLAY_LABELS[SHIPPING_PRICE_CREATED]),
         (SHIPPING_PRICE_UPDATED, DISPLAY_LABELS[SHIPPING_PRICE_UPDATED]),
         (SHIPPING_PRICE_DELETED, DISPLAY_LABELS[SHIPPING_PRICE_DELETED]),
@@ -401,6 +411,9 @@ class WebhookEventAsyncType:
         PAGE_TYPE_CREATED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         PAGE_TYPE_UPDATED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         PAGE_TYPE_DELETED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        PERMISSION_GROUP_CREATED: AccountPermissions.MANAGE_STAFF,
+        PERMISSION_GROUP_UPDATED: AccountPermissions.MANAGE_STAFF,
+        PERMISSION_GROUP_DELETED: AccountPermissions.MANAGE_STAFF,
         SHIPPING_PRICE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_PRICE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_PRICE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
@@ -432,6 +445,9 @@ class WebhookEventSyncType:
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
 
+    CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
+    ORDER_CALCULATE_TAXES = "order_calculate_taxes"
+
     SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
     CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
@@ -444,6 +460,8 @@ class WebhookEventSyncType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
+        ORDER_CALCULATE_TAXES: "Order calculate taxes",
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
@@ -457,6 +475,8 @@ class WebhookEventSyncType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
+        (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
         (
             SHIPPING_LIST_METHODS_FOR_CHECKOUT,
             DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
@@ -488,6 +508,8 @@ class WebhookEventSyncType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
+        ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
         ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
         CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
@@ -565,6 +587,9 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.PAGE_TYPE_CREATED,
     WebhookEventAsyncType.PAGE_TYPE_UPDATED,
     WebhookEventAsyncType.PAGE_TYPE_DELETED,
+    WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
+    WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
+    WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED,
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED,
@@ -580,6 +605,16 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.VOUCHER_CREATED,
     WebhookEventAsyncType.VOUCHER_UPDATED,
     WebhookEventAsyncType.VOUCHER_DELETED,
+    WebhookEventSyncType.PAYMENT_AUTHORIZE,
+    WebhookEventSyncType.PAYMENT_CAPTURE,
+    WebhookEventSyncType.PAYMENT_REFUND,
+    WebhookEventSyncType.PAYMENT_VOID,
+    WebhookEventSyncType.PAYMENT_CONFIRM,
+    WebhookEventSyncType.PAYMENT_PROCESS,
+    WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
+    WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     WebhookEventAsyncType.WAREHOUSE_CREATED,
     WebhookEventAsyncType.WAREHOUSE_UPDATED,
     WebhookEventAsyncType.WAREHOUSE_DELETED,
