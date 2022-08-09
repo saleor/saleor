@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from decimal import Decimal
+from typing import List
 
 from django.contrib.sites.models import Site
 from prices import Money, TaxedMoney
@@ -35,3 +37,18 @@ class TaxType:
 
     code: str
     description: str
+
+
+@dataclass(frozen=True)
+class TaxLineData:
+    tax_rate: Decimal
+    total_gross_amount: Decimal
+    total_net_amount: Decimal
+
+
+@dataclass(frozen=True)
+class TaxData:
+    shipping_price_gross_amount: Decimal
+    shipping_price_net_amount: Decimal
+    shipping_tax_rate: Decimal
+    lines: List[TaxLineData]

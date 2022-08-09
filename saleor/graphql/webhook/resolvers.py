@@ -1,3 +1,8 @@
+from ...checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    get_all_shipping_methods_list,
+)
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ...core.tracing import traced_resolver
@@ -38,3 +43,27 @@ def resolve_sample_payload(info, event_name):
         if info.context.user.has_perm(required_permission):
             return payloads.generate_sample_payload(event_name)
     raise PermissionDenied(permissions=[required_permission])
+
+
+def resolve_shipping_methods_for_checkout(info, checkout):
+    manager = info.context.plugins
+    discounts = info.context.discounts
+    lines, _ = fetch_checkout_lines(checkout)
+    shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+    checkout_info = fetch_checkout_info(
+        checkout,
+        lines,
+        discounts,
+        manager,
+        shipping_channel_listings,
+        fetch_delivery_methods=False,
+    )
+    all_shipping_methods = get_all_shipping_methods_list(
+        checkout_info,
+        checkout.shipping_address,
+        lines,
+        info.context.discounts,
+        shipping_channel_listings,
+        manager,
+    )
+    return all_shipping_methods

@@ -20,6 +20,7 @@ from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Allocation, Stock, Warehouse
@@ -3135,7 +3136,7 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
     assert value_data["name"] == existing_value.name
     assert (
         value_data["file"]["url"]
-        == f"http://testserver/media/{existing_value.file_url}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
     )
     assert value_data["file"]["contentType"] == existing_value.content_type
 

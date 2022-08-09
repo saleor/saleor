@@ -1,11 +1,11 @@
 from botocore.exceptions import ClientError
+from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ..celeryconf import app
 from ..product.models import ProductMedia
-from ..settings import EVENT_PAYLOAD_DELETE_PERIOD
 from ..thumbnail.models import Thumbnail
 from .models import EventDelivery, EventDeliveryAttempt, EventPayload
 
@@ -17,7 +17,7 @@ def delete_from_storage_task(path):
 
 @app.task
 def delete_event_payloads_task():
-    delete_period = timezone.now() - EVENT_PAYLOAD_DELETE_PERIOD
+    delete_period = timezone.now() - settings.EVENT_PAYLOAD_DELETE_PERIOD
     deliveries = EventDelivery.objects.filter(created_at__lte=delete_period)
     attempts = EventDeliveryAttempt.objects.filter(
         Q(Exists(deliveries.filter(id=OuterRef("delivery_id"))))

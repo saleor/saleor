@@ -1,0 +1,16 @@
+name: GraphQL Inspector
+
+on:
+  push:
+    paths: [ "**.graphql" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: kamilkisiela/graphql-inspector@v3.3.0
+        with:
+          schema: "main:saleor/graphql/schema.graphql"

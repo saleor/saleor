@@ -26,12 +26,7 @@ from ..utils import (
 )
 
 
-def test_valid_voucher_min_spent_amount_with_display_gross_prices(channel_USD):
-    tc = channel_USD.tax_configuration
-    tc.display_gross_prices = True
-    tc.save(update_fields=["display_gross_prices"])
-    tc.country_exceptions.all().delete()
-
+def test_valid_voucher_min_spent_amount(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -43,17 +38,12 @@ def test_valid_voucher_min_spent_amount_with_display_gross_prices(channel_USD):
         discount=Money(10, "USD"),
         min_spent=Money(7, "USD"),
     )
-    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+    value = Money(7, "USD")
 
-    voucher.validate_min_spent(value, channel_USD, "US")
+    voucher.validate_min_spent(value, channel_USD)
 
 
-def test_valid_voucher_min_spent_amount_without_display_gross_prices(channel_USD):
-    tc = channel_USD.tax_configuration
-    tc.display_gross_prices = False
-    tc.save(update_fields=["display_gross_prices"])
-    tc.country_exceptions.all().delete()
-
+def test_valid_voucher_min_spent_amount_not_reached(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -65,10 +55,10 @@ def test_valid_voucher_min_spent_amount_without_display_gross_prices(channel_USD
         discount=Money(10, "USD"),
         min_spent=Money(7, "USD"),
     )
-    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+    value = Money(5, "USD")
 
     with pytest.raises(NotApplicable):
-        voucher.validate_min_spent(value, channel_USD, "US")
+        voucher.validate_min_spent(value, channel_USD)
 
 
 def test_valid_voucher_min_spent_amount_voucher_not_assigned_to_channel(
@@ -88,7 +78,7 @@ def test_valid_voucher_min_spent_amount_voucher_not_assigned_to_channel(
     price = Money(10, channel_PLN.currency_code)
     total_price = TaxedMoney(net=price, gross=price)
     with pytest.raises(NotApplicable):
-        voucher.validate_min_spent(total_price, channel_PLN, "US")
+        voucher.validate_min_spent(total_price, channel_PLN)
 
 
 def test_valid_voucher_min_checkout_items_quantity(voucher):
@@ -512,9 +502,8 @@ def test_validate_voucher(
         min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
-    price = TaxedMoney(gross=total_price, net=total_price)
     validate_voucher(
-        voucher, price, total_quantity, "test@example.com", channel_USD, "US", None
+        voucher, total_price, total_quantity, "test@example.com", channel_USD, None
     )
 
 
@@ -535,7 +524,7 @@ def test_validate_staff_voucher_for_anonymous(
     total_price = Money(100, "USD")
     price = TaxedMoney(gross=total_price, net=total_price)
     with pytest.raises(NotApplicable):
-        validate_voucher(voucher, price, 2, "test@example.com", channel_USD, "US", None)
+        validate_voucher(voucher, price, 2, "test@example.com", channel_USD, None)
 
 
 def test_validate_staff_voucher_for_normal_customer(channel_USD, customer_user):
@@ -554,7 +543,7 @@ def test_validate_staff_voucher_for_normal_customer(channel_USD, customer_user):
     price = TaxedMoney(gross=total_price, net=total_price)
     with pytest.raises(NotApplicable):
         validate_voucher(
-            voucher, price, 2, customer_user.email, channel_USD, "US", customer_user
+            voucher, price, 2, customer_user.email, channel_USD, customer_user
         )
 
 
@@ -573,7 +562,7 @@ def test_validate_staff_voucher_for_staff_customer(channel_USD, staff_user):
     total_price = Money(100, "USD")
     price = TaxedMoney(gross=total_price, net=total_price)
 
-    validate_voucher(voucher, price, 2, staff_user.email, channel_USD, "US", staff_user)
+    validate_voucher(voucher, price, 2, staff_user.email, channel_USD, staff_user)
 
 
 @pytest.mark.parametrize(
@@ -607,11 +596,10 @@ def test_validate_voucher_not_applicable(
         min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
-    price = TaxedMoney(net=total_price, gross=total_price)
 
     with pytest.raises(NotApplicable):
         validate_voucher(
-            voucher, price, total_quantity, "test@example.com", channel_USD, "US", None
+            voucher, total_price, total_quantity, "test@example.com", channel_USD, None
         )
 
 
@@ -630,7 +618,6 @@ def test_validate_voucher_not_applicable_once_per_customer(
             0,
             customer_user.email,
             channel_USD,
-            "US",
             customer_user,
         )
 

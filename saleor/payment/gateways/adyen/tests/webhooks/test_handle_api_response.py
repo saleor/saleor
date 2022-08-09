@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from Adyen.client import AdyenResult
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ......payment import ChargeStatus
 from ......payment.gateways.adyen.webhooks import handle_api_response
@@ -153,6 +154,8 @@ def test_handle_api_response_auto_capture_cannot_create_order_variant_deleted(
 
     checkout = payment_adyen_for_checkout.checkout
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     plugin = adyen_plugin(adyen_auto_capture=True)
 

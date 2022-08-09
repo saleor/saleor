@@ -81,7 +81,7 @@ def create_checkout_payment_lines_information(
             address,
             discounts,
         )
-        unit_gross = unit_price.price_with_sale.gross.amount
+        unit_gross = unit_price.gross.amount
 
         quantity = line_info.line.quantity
         product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"

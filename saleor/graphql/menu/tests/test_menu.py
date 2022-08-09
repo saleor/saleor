@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....menu.error_codes import MenuErrorCode
 from ....menu.models import Menu, MenuItem
 from ....product.models import Category
@@ -675,15 +676,18 @@ def test_create_menu_trigger_webhook(
     # then
     assert content["data"]["menuCreate"]["menu"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Menu", menu.id),
-            "slug": menu.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Menu", menu.id),
+                "slug": menu.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.MENU_CREATED,
         [any_webhook],
         menu,
@@ -833,15 +837,18 @@ def test_update_menu_trigger_webhook(
     # then
     assert content["data"]["menuUpdate"]["menu"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "slug": variables["slug"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "slug": variables["slug"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.MENU_UPDATED,
         [any_webhook],
         menu,
@@ -923,15 +930,18 @@ def test_delete_menu_trigger_webhook(
     # then
     assert content["data"]["menuDelete"]["menu"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "slug": menu.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "slug": menu.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.MENU_DELETED,
         [any_webhook],
         menu,
@@ -1000,16 +1010,19 @@ def test_create_menu_item_trigger_webhook(
     # then
     assert content["data"]["menuItemCreate"]["menuItem"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("MenuItem", menu_item.id),
-            "name": menu_item.name,
-            "menu": {"id": menu_id},
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("MenuItem", menu_item.id),
+                "name": menu_item.name,
+                "menu": {"id": menu_id},
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.MENU_ITEM_CREATED,
         [any_webhook],
         menu_item,
@@ -1081,16 +1094,19 @@ def test_update_menu_item_trigger_webhook(
     # then
     assert content["data"]["menuItemUpdate"]["menuItem"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": menu_item_id,
-            "name": menu_item.name,
-            "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": menu_item_id,
+                "name": menu_item.name,
+                "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.MENU_ITEM_UPDATED,
         [any_webhook],
         menu_item,
@@ -1150,16 +1166,19 @@ def test_delete_menu_item_trigger_webhook(
     # then
     assert content["data"]["menuItemDelete"]["menuItem"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": menu_item_id,
-            "name": menu_item.name,
-            "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": menu_item_id,
+                "name": menu_item.name,
+                "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.MENU_ITEM_DELETED,
         [any_webhook],
         menu_item,

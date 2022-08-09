@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -9,6 +10,7 @@ from freezegun import freeze_time
 
 from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.models import AttributeValue
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -132,12 +134,15 @@ def test_create_attribute_value_trigger_webhooks(
     )
 
     attribute_updated_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
-            "name": color_attribute.name,
-            "slug": color_attribute.slug,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+                "name": color_attribute.name,
+                "slug": color_attribute.slug,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,
@@ -145,13 +150,16 @@ def test_create_attribute_value_trigger_webhooks(
     )
 
     attribute_value_created_call = mock.call(
-        {
-            "id": graphene.Node.to_global_id("AttributeValue", attribute_value.id),
-            "name": attribute_value.name,
-            "slug": attribute_value.slug,
-            "value": attribute_value.value,
-            "meta": meta,
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attribute_value.id),
+                "name": attribute_value.name,
+                "slug": attribute_value.slug,
+                "value": attribute_value.value,
+                "meta": meta,
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
         [any_webhook],
         attribute_value,

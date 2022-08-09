@@ -12,6 +12,7 @@ from graphene.types import InputObjectType
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....order import events as order_events
 from ....order import models as order_models
@@ -164,9 +165,8 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            lines_data = [(line.quantity, line) for line in order_lines]
             order_events.order_line_product_removed_event(
-                order, info.context.user, info.context.app, lines_data
+                order, info.context.user, info.context.app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -629,9 +629,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            lines_data = [(line.quantity, line) for line in order_lines]
             order_events.order_line_variant_removed_event(
-                order, info.context.user, info.context.app, lines_data
+                order, info.context.user, info.context.app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -643,7 +642,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=product_pks, default_variant__isnull=True
         )
         for product in products:
-            product.search_vector = prepare_product_search_vector_value(product)
+            product.search_vector = FlatConcatSearchVector(
+                *prepare_product_search_vector_value(product)
+            )
             product.default_variant = product.variants.first()
             product.save(
                 update_fields=[

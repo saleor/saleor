@@ -1,4 +1,8 @@
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 
 from ..buffers import RedisBuffer, get_buffer
 from ..exceptions import ConnectionNotConfigured
@@ -94,6 +98,22 @@ def test_put_multi_key_events(patch_connection_pool):
     assert dropped == {key_a: 0, key_b: 0, key_c: MAX_SIZE}
 
 
+def test_put_multi_key_events_when_buffer_full(patch_connection_pool):
+    max_events = [{"event": "data"}] * MAX_SIZE
+    key_a, events_a = "buffer_a", [{"event": "data"}] * 2
+    key_b, events_b = "buffer_b", [{"event": "data"}] * MAX_SIZE
+    key_c, events_c = "buffer_c", [{"event": "data"}] * MAX_SIZE * 2
+    buffer_a = get_buffer(key_a)
+    buffer_a.put_multi_key_events(
+        {key_a: max_events, key_b: max_events, key_c: max_events}
+    )
+
+    dropped = buffer_a.put_multi_key_events(
+        {key_a: events_a, key_b: events_b, key_c: events_c}
+    )
+    assert dropped == {key_a: 2, key_b: MAX_SIZE, key_c: MAX_SIZE * 2}
+
+
 def test_pop_event(buffer):
     event = "buffer", {"event": "data"}
     buffer.put_event(event)
@@ -129,3 +149,13 @@ def test_clear(buffer):
     assert buffer.size() == 2
     assert buffer.clear() == 2
     assert buffer.size() == 0
+
+
+def test_pop_expired_events(buffer):
+    push_time = timezone.now()
+    with freeze_time(push_time):
+        events = [{"event": f"data{i}"} for i in range(MAX_SIZE)]
+        buffer.put_events(events)
+    with freeze_time(push_time + timedelta(seconds=buffer.timeout + 1)):
+        popped_events = buffer.pop_events()
+    assert popped_events == []

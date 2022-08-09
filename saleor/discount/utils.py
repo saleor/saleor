@@ -19,8 +19,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
-from ..core.taxes import zero_money
-from ..tax.utils import get_tax_country
+from ..core.taxes import include_taxes_in_prices, zero_money
 from . import DiscountInfo
 from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
@@ -200,7 +199,7 @@ def validate_voucher_for_checkout(
     from ..checkout.utils import calculate_checkout_quantity
 
     quantity = calculate_checkout_quantity(lines)
-    subtotal = base_calculations.base_checkout_lines_total(
+    subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
@@ -208,19 +207,12 @@ def validate_voucher_for_checkout(
     )
 
     customer_email = cast(str, checkout_info.get_customer_email())
-    tax_country = get_tax_country(
-        checkout_info.channel,
-        checkout_info.checkout.is_shipping_required(),
-        checkout_info.shipping_address,
-        checkout_info.billing_address,
-    )
     validate_voucher(
         voucher,
         subtotal,
         quantity,
         customer_email,
         checkout_info.channel,
-        tax_country,
         checkout_info.user,
     )
 
@@ -232,20 +224,9 @@ def validate_voucher_in_order(order: "Order"):
     if not order.voucher:
         return
 
-    tax_country = get_tax_country(
-        order.channel,
-        order.is_shipping_required(),
-        order.shipping_address,
-        order.billing_address,
-    )
+    value = subtotal.gross if include_taxes_in_prices() else subtotal.net
     validate_voucher(
-        order.voucher,
-        subtotal,
-        quantity,
-        customer_email,
-        order.channel,
-        tax_country,
-        order.user,
+        order.voucher, value, quantity, customer_email, order.channel, order.user
     )
 
 
@@ -255,10 +236,9 @@ def validate_voucher(
     quantity: int,
     customer_email: str,
     channel: Channel,
-    tax_country: "str",
     customer: Optional["User"],
 ) -> None:
-    voucher.validate_min_spent(total_price, channel, tax_country)
+    voucher.validate_min_spent(total_price, channel)
     voucher.validate_min_checkout_items_quantity(quantity)
     if voucher.apply_once_per_customer:
         voucher.validate_once_per_customer(customer_email)

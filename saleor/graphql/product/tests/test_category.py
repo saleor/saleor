@@ -1,3 +1,4 @@
+import json
 import os
 from unittest.mock import MagicMock, patch
 
@@ -9,9 +10,11 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 from graphql_relay import to_global_id
 
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
@@ -485,14 +488,17 @@ def test_category_create_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("Category", category.id),
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Category", category.id),
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CATEGORY_CREATED,
         [any_webhook],
         category,
@@ -686,14 +692,17 @@ def test_category_update_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CATEGORY_UPDATED,
         [any_webhook],
         category,
@@ -724,7 +733,7 @@ def test_category_update_background_image_mutation(
     thumbnail = Thumbnail.objects.create(
         category=category, size=size, image=thumbnail_mock
     )
-    img_path = thumbnail.image.path
+    img_path = thumbnail.image.name
 
     category_name = "Updated name"
 
@@ -759,7 +768,7 @@ def test_category_update_background_image_mutation(
     assert category.background_image.file
     assert data["category"]["backgroundImage"]["alt"] == image_alt
     assert data["category"]["backgroundImage"]["url"].startswith(
-        f"http://testserver/media/category-backgrounds/{image_name}"
+        f"http://{TEST_SERVER_DOMAIN}/media/category-backgrounds/{image_name}"
     )
 
     # ensure that thumbnails for old background image has been deleted
@@ -1077,14 +1086,17 @@ def test_category_delete_trigger_webhook(
     assert not Category.objects.first()
 
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": variables["id"],
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": variables["id"],
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.CATEGORY_DELETED,
         [any_webhook],
         category,
@@ -1298,7 +1310,7 @@ def test_category_image_query_with_size_and_format_proxy_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://testserver/thumbnail/{category_id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{category_id}/128/{format.lower()}/"
     )
 
 
@@ -1331,7 +1343,7 @@ def test_category_image_query_with_size_proxy_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://testserver/thumbnail/{category_id}/{size}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{category_id}/{size}/"
     )
 
 
@@ -1368,7 +1380,7 @@ def test_category_image_query_with_size_thumbnail_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -1400,10 +1412,10 @@ def test_category_image_query_only_format_provided_original_image_returned(
 
     data = content["data"]["category"]
     assert data["backgroundImage"]["alt"] == alt_text
-    assert (
-        data["backgroundImage"]["url"]
-        == f"http://testserver/media/category-backgrounds/{background_mock.name}"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}/media/category-backgrounds/{background_mock.name}"
     )
+    assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_category_image_query_no_size_value_original_image_returned(
@@ -1431,10 +1443,10 @@ def test_category_image_query_no_size_value_original_image_returned(
 
     data = content["data"]["category"]
     assert data["backgroundImage"]["alt"] == alt_text
-    assert (
-        data["backgroundImage"]["url"]
-        == f"http://testserver/media/category-backgrounds/{background_mock.name}"
+    expected_url = (
+        f"http://{TEST_SERVER_DOMAIN}/media/category-backgrounds/{background_mock.name}"
     )
+    assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_category_image_query_without_associated_file(
