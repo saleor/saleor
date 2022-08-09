@@ -180,8 +180,6 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     def get_click_and_collect_warehouses(self, channel_slug, country_code):
         """Get the collection point warehouses for a given channel and country code."""
         warehouses = Warehouse.objects.none()
-        # TODO: uwzglednij tez country_code, jesli podany, to musi byc do tego
-        # w shipping zonie ktora ma dany country_code
         if not country_code and channel_slug:
             channels = (
                 Channel.objects.using(self.database_connection_name)
