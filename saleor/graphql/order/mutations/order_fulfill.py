@@ -10,6 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
+from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
@@ -55,7 +56,7 @@ class OrderFulfillInput(graphene.InputObjectType):
         default_value=False,
     )
     tracking_number = graphene.String(
-        description="Fulfillment tracking number.",
+        description="Fulfillment tracking number." + ADDED_IN_36,
         required=False,
     )
 
