@@ -17592,7 +17592,11 @@ input OrderFulfillInput {
   """If true, then allow proceed fulfillment when stock is exceeded."""
   allowStockToBeExceeded: Boolean = false
 
-  """Fulfillment tracking number."""
+  """
+  Fulfillment tracking number.
+  
+  Added in Saleor 3.6.
+  """
   trackingNumber: String
 }
 
