@@ -3447,6 +3447,41 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     assert products[0]["node"]["id"] == product_id
 
 
+def test_products_query_with_filter_stock_availability_only_stock_in_cc_warehouse(
+    query_products_with_filter,
+    user_api_client,
+    product,
+    order_line,
+    channel_USD,
+    warehouse_for_cc,
+):
+    # given
+    variant = product.variants.first()
+    variant.stocks.all().delete()
+
+    Stock.objects.create(
+        warehouse=warehouse_for_cc, product_variant=variant, quantity=10
+    )
+
+    variables = {
+        "filter": {"stockAvailability": "IN_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product.id
+    )
+
+
 @pytest.mark.parametrize(
     "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
     [
