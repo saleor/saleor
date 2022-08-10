@@ -90,7 +90,6 @@ from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, Pay
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
-from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..plugins.webhook.tasks import WebhookResponse
 from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
 from ..plugins.webhook.utils import to_payment_app_id
@@ -222,20 +221,6 @@ def assert_num_queries(capture_queries):
 @pytest.fixture
 def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
-
-
-@pytest.fixture
-def setup_vatlayer(settings, channel_USD):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    data = {
-        "active": True,
-        "channel": channel_USD,
-        "configuration": [
-            {"name": "Access key", "value": "vatlayer_access_key"},
-        ],
-    }
-    PluginConfiguration.objects.create(identifier=VatlayerPlugin.PLUGIN_ID, **data)
-    return settings
 
 
 @pytest.fixture(autouse=True)

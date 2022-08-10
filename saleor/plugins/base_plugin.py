@@ -468,9 +468,6 @@ class BasePlugin:
         Tuple[Union["User", NoneType], dict],
     ]
 
-    #  Triggered when ShopFetchTaxRates mutation is called.
-    fetch_taxes_data: Callable[[Any], Any]
-
     #  Trigger when fulfillemnt is created.
     #
     #  Overwrite this method if you need to trigger specific logic when a fulfillment is
@@ -531,13 +528,6 @@ class BasePlugin:
     #  Return tax code from object meta.
     get_tax_code_from_object_meta: Callable[
         [Union["Product", "ProductType"], "TaxType"], "TaxType"
-    ]
-
-    #  Return tax rate percentage value for a given tax rate type in a country.
-    #
-    #  It is used only by the old storefront.
-    get_tax_rate_percentage_value: Callable[
-        [Union["Product", "ProductType"], Country, Any], Decimal
     ]
 
     #  Return list of all tax categories.

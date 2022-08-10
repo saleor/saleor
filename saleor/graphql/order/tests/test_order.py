@@ -7526,13 +7526,13 @@ def test_order_update_shipping_no_shipping_method_channel_listings(
     assert errors[0]["field"] == "shippingMethod"
 
 
+@pytest.mark.skip(reason="Rewrite to use tax calculation based on tax classes.")
 def test_order_update_shipping_tax_included(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
-    vatlayer,
 ):
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
