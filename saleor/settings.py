@@ -175,6 +175,14 @@ TEMPLATES = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.BCryptPasswordHasher",
+]
+
 if not SECRET_KEY and DEBUG:
     warnings.warn("SECRET_KEY not configured, using a random temporary key.")
     SECRET_KEY = get_random_secret_key()
