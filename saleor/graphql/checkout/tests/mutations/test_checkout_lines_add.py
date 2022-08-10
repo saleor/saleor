@@ -154,6 +154,46 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
     assert checkout.last_change != previous_last_change
 
 
+def test_checkout_lines_add_only_stock_in_cc_warehouse_delivery_method_set(
+    user_api_client, checkout_with_item, warehouse_for_cc, shipping_method
+):
+    """Ensure the insufficient error is raised when the only available quantity is in
+    a stock from the collection point warehouse without shipping zone assigned
+    and the checkout has shipping method set."""
+    # given
+    checkout = checkout_with_item
+
+    line = checkout.lines.first()
+    variant = line.variant
+    variant.stocks.all().delete()
+
+    # set stock for a collection point warehouse
+    Stock.objects.create(
+        warehouse=warehouse_for_cc, product_variant=variant, quantity=10
+    )
+
+    checkout.shipping_method = shipping_method
+    checkout.save(update_fields=["shipping_method"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert data["errors"][0]["field"] == "quantity"
+
+
 def test_checkout_lines_add_with_reservations(
     site_settings_with_reservations, user_api_client, checkout_with_item, stock
 ):

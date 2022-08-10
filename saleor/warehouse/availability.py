@@ -215,7 +215,6 @@ def check_stock_quantity_bulk(
     channel_slug: str,
     global_quantity_limit: Optional[int],
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
-    # collection_point_pk: Optional[str] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Iterable["CheckoutLineInfo"] = None,
     replace=False,
