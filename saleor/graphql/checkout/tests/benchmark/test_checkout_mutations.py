@@ -864,7 +864,8 @@ def test_add_checkout_lines_with_external_shipping(
     assert not response["data"]["checkoutLinesAdd"]["errors"]
     # One api call:
     # - post-mutate() logic used to validate currently selected method
-    assert mock_send_request.call_count == 1
+    # - in check_stock_quantity_bulk to check if the shipping method is set
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
