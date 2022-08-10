@@ -820,7 +820,8 @@ def create_fulfillments(
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
             )
         )
-        transaction.on_commit(lambda: manager.tracking_number_updated(fulfillment))
+        if tracking_number:
+            transaction.on_commit(lambda: manager.tracking_number_updated(fulfillment))
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
     order.refresh_from_db()
