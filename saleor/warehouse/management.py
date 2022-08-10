@@ -79,7 +79,14 @@ def allocate_stocks(
         stocks.select_for_update(of=("self",))
         .filter(**filter_lookup)
         .order_by("pk")
-        .values("id", "product_variant", "pk", "quantity", "warehouse_id")
+        .values(
+            "id",
+            "product_variant",
+            "pk",
+            "quantity",
+            "warehouse_id",
+            "warehouse__private_metadata",
+        )
     )
     stocks_id = (stock.pop("id") for stock in stocks)
 
@@ -116,17 +123,34 @@ def allocate_stocks(
             "quantity_allocated_sum"
         ]
 
+    custom_sort = any(
+        stock["warehouse__private_metadata"].get("allocation_order", "").isnumeric()
+        for stock in stocks
+    )
+
+    def sort_stocks_by_metadata(stock_data):
+        stock_data.pop("warehouse_id")
+        order = stock_data.pop("warehouse__private_metadata").get(
+            "allocation_order", ""
+        )
+
+        return int(order) if order and order.isnumeric() else stock_data["pk"]
+
     def sort_stocks(stock_data):
         # in case of click and collect order we should allocate stocks from
         # collection point warehouse at the first place
+        stock_data.pop("warehouse__private_metadata", {})
         if stock_data.pop("warehouse_id") == collection_point_pk:
             return math.inf
+
         return stock_data["quantity"] - quantity_allocation_for_stocks.get(
             stock_data["pk"], 0
         )
 
-    # prioritize stocks with the highest quantity available
-    stocks.sort(key=sort_stocks, reverse=True)
+    if custom_sort:
+        stocks.sort(key=sort_stocks_by_metadata)
+    else:
+        stocks.sort(key=sort_stocks, reverse=True)
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
