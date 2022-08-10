@@ -415,6 +415,7 @@ class Checkout(ModelObjectType):
         description="The price of the checkout before shipping, with taxes included.",
         required=True,
     )
+    tax_exemption = graphene.Boolean()
     token = graphene.Field(UUID, description="The checkout's token.", required=True)
     total_price = graphene.Field(
         TaxedMoney,

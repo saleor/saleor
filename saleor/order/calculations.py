@@ -123,7 +123,8 @@ def fetch_order_prices_if_expired(
 
     _recalculate_order_prices(manager, order, lines)
 
-    tax_data = manager.get_taxes_for_order(order)
+    if not order.tax_exemption:
+        tax_data = manager.get_taxes_for_order(order)
 
     with transaction.atomic(savepoint=False):
         if tax_data:

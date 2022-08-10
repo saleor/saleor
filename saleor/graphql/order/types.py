@@ -877,6 +877,7 @@ class Order(ModelObjectType):
         description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
         required=True,
     )
+    tax_exemption = graphene.Boolean()
     transactions = NonNullList(
         TransactionItem,
         description=(
