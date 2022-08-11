@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add option to calculate taxes via webhooks more info in docs
   <!-- We should put docs link here before release -->
 - Add `forceNewLine` flag to lines input in `CheckoutLinesAdd`, `CheckoutCreate`, `DraftOrderCreate`, `OrderCreate`, `OrderLinesCreate` mutations to support same variant in multiple lines - #10095 by @SzymJ
+- Support for refund & return for transactions
 
 ### GraphQL API
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
