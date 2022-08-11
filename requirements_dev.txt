@@ -142,7 +142,7 @@ prices==1.1.0
 promise==2.3; python_version >= "3.6" and python_version < "4.0"
 prompt-toolkit==3.0.30; python_full_version >= "3.6.2" and python_version >= "3.7"
 proto-plus==1.20.6; python_version >= "3.7"
-protobuf==3.20.1; python_version >= "3.7"
+protobuf==4.21.5; python_version >= "3.7"
 psycopg2==2.9.3; python_version >= "3.6"
 py==1.11.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
 pyasn1-modules==0.2.8; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
