@@ -1,3 +1,4 @@
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import Exists, OuterRef, Q
@@ -27,3 +28,13 @@ def delete_event_payloads_task():
     attempts._raw_delete(attempts.db)
     deliveries._raw_delete(deliveries.db)
     payloads._raw_delete(payloads.db)
+
+
+@app.task(
+    autoretry_for=(ClientError,),
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 5},
+)
+def delete_product_media_task(media_id):
+    # TODO: to delete
+    pass
