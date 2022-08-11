@@ -1,7 +1,7 @@
 from .celeryconf import app as celery_app
 
 __all__ = ["celery_app"]
-__version__ = "3.6.0-a"
+__version__ = "3.7.0-a"
 
 
 class PatchedSubscriberExecutionContext(object):
