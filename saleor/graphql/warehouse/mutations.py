@@ -52,7 +52,16 @@ class WarehouseMixin:
                 raise ValidationError({"name": error})
 
         # assigning shipping zones in the WarehouseCreate mutation is deprecated
-        cleaned_input.pop("shipping_zones", None)
+        if cleaned_input.get("shipping_zones"):
+            raise ValidationError(
+                {
+                    "shipping_zones": ValidationError(
+                        "The shippingZone input field is deprecated. "
+                        "Use WarehouseShippingZoneAssign mutation",
+                        code=WarehouseErrorCode.INVALID.value,
+                    )
+                }
+            )
 
         click_and_collect_option = cleaned_input.get(
             "click_and_collect_option", instance.click_and_collect_option
@@ -151,7 +160,7 @@ class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
             shippingzone_id__in=shipping_zone_ids
         )
 
-        # shipping zone cannot be assigned when aby channel is assigned to the zone
+        # shipping zone cannot be assigned when any channel is assigned to the zone
         if not channel_shipping_zones:
             invalid_shipping_zone_ids = shipping_zone_ids
 

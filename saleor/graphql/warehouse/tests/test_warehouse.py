@@ -639,10 +639,6 @@ def test_mutation_create_warehouse(
                 "postalCode": "53-601",
                 "companyName": "Amazing Company Inc",
             },
-            # DEPRECATED
-            "shippingZones": [
-                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
-            ],
         }
     }
 
@@ -661,8 +657,41 @@ def test_mutation_create_warehouse(
     assert created_warehouse["name"] == warehouse.name
     assert created_warehouse["slug"] == warehouse.slug
     assert created_warehouse["companyName"] == warehouse.address.company_name
-    # no shipping zones are assigned as it's deprecated
-    assert not created_warehouse["shippingZones"]["edges"]
+
+
+def test_mutation_create_warehouse_shipping_zone_provided(
+    staff_api_client, permission_manage_products, shipping_zone
+):
+    variables = {
+        "input": {
+            "name": "Test warehouse",
+            "slug": "test-warhouse",
+            "email": "test-admin@example.com",
+            "address": {
+                "streetAddress1": "Teczowa 8",
+                "city": "Wroclaw",
+                "country": "PL",
+                "postalCode": "53-601",
+                "companyName": "Amazing Company Inc",
+            },
+            # DEPRECATED
+            "shippingZones": [
+                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["createWarehouse"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == WarehouseErrorCode.INVALID.name
+    assert errors[0]["field"] == "shippingZones"
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
@@ -692,9 +721,6 @@ def test_mutation_create_warehouse_trigger_webhook(
                 "postalCode": "53-601",
                 "companyName": "Amazing Company Inc",
             },
-            "shippingZones": [
-                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
-            ],
         }
     }
 
@@ -773,9 +799,6 @@ def test_create_warehouse_creates_address(
                 "companyName": "Amazing Company Inc",
                 "postalCode": "53-601",
             },
-            "shippingZones": [
-                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
-            ],
         }
     }
     assert not Address.objects.exists()

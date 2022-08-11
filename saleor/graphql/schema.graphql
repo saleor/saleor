@@ -14605,7 +14605,7 @@ input WarehouseCreateInput {
   """
   Shipping zones supported by the warehouse.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Providing the zone ids will not assign any zones to the warehouse.
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing the zone ids will raise a ValidationError.
   """
   shippingZones: [ID!]
 }

@@ -39,7 +39,7 @@ class WarehouseCreateInput(WarehouseInput):
         graphene.ID,
         description="Shipping zones supported by the warehouse."
         + DEPRECATED_IN_3X_INPUT
-        + " Providing the zone ids will not assign any zones to the warehouse.",
+        + " Providing the zone ids will raise a ValidationError.",
     )
 
 
