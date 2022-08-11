@@ -1715,7 +1715,7 @@ def test_create_checkout_with_unpublished_product(
         ),
         (
             {
-                "" "postalCode": "",
+                "postalCode": "",
                 "country": "US",
                 "city": "",
             },  # missing streetAddress, countryArea
@@ -1724,7 +1724,7 @@ def test_create_checkout_with_unpublished_product(
         ),
         (
             {
-                "" "postalCode": "",
+                "postalCode": "",
                 "country": "US",
                 "city": "",
             },  # missing streetAddress, countryArea
