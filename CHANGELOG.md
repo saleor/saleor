@@ -2,79 +2,105 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.6.0 [Unreleased]
+# 3.7.0 [Unreleased]
+
+# 3.6.0
+
+### Breaking changes
+
+- Drop `django-versatileimagefield` package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
+  - Drop `create_thumbnails` command
+- Change return type from `CheckoutTaxedPricesData` to `TaxedMoney` in plugin manager methods `calculate_checkout_line_total`, `calculate_checkout_line_unit_price` - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
 
 ### Saleor Apps
 
-- Add support for the CUSTOMER_* app mount points (#10163) by @krzysztofwolski
+- Add GraphQL subscription support for synchronous webhook events - #9763 by @jakubkuc
+- Add support for the CUSTOMER\_\* app mount points (#10163) by @krzysztofwolski
 - Add permission group webhooks: `PERMISSION_GROUP_CREATED`, `PERMISSION_GROUP_UPDATED`, `PERMISSION_GROUP_DELETED` - #10214 by @SzymJ
-
-### Breaking changes
-- Drop django-versatileimagefield package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
-  - Drop `create_thumbnails` command
-- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Change return type from `CheckoutTaxedPricesData` to `TaxedMoney` in plugin manager methods:
-    - `calculate_checkout_line_total`
-    - `calculate_checkout_line_unit_price`
-
-
-### Other changes
-- Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
-- Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
-- Add query for transaction item and extend transaction item type with order - #10154 by @IKarbowiak
-- Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
-  This fixes the following bugs:
-  - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)
-  - `tick()` was sometimes scheduling other schedulers such as observability to be ran every 5m instead of every 20s
-  - `is_due()` from `send-sale-toggle-notifications` was being invoked every 5s on django-celery-beat instead of every 60s
-  - `send-sale-toggle-notifications` would crash on django-celery-beat with `Cannot convert schedule type <saleor.core.schedules.sale_webhook_schedule object at 0x7fabfdaacb20> to model`
-
-  Usage:
-  - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
-  - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
-- Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
-- Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
-- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
-- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Add option to calculate taxes via webhooks more info in docs
-  <!-- We should put docs link here before release -->
-- Add `forceNewLine` flag to lines input in `CheckoutLinesAdd`, `CheckoutCreate`, `DraftOrderCreate`, `OrderCreate`, `OrderLinesCreate` mutations to support same variant in multiple lines - #10095 by @SzymJ
+- Add `ACCOUNT_ACTIVATED` and `ACCOUNT_DEACTIVATED` events - #10136 by @tomaszszymanski129
+- Allow apps to query data protected by MANAGE_STAFF permission (#10103) (4eb93d3f5)
+- Fix returning sale's GraphQL ID in the `SALE_TOGGLE` payload (#10227) (0625c43bf)
+- Add descriptions to async webhooks event types (#10250) (7a906bf7f)
 
 ### GraphQL API
-- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum`
-- Add descriptions for some filters - #10240 by @dekoza
+
+- Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum` #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+- Add `forceNewLine` flag to lines input in `CheckoutLinesAdd`, `CheckoutCreate`, `DraftOrderCreate`, `OrderCreate`, `OrderLinesCreate` mutations to support same variant in multiple lines - #10095 by @SzymJ
+- Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
+- Add API to display shippable countries for a channel - #10111 by @korycins
+- Improve filters' descriptions - #10240 by @dekoza
+- Add query for transaction item and extend transaction item type with order (#10154) (b19423a86)
 
 ### Plugins
+
+- Add a new method to plugin manager: `get_taxes_for_checkout`, `get_taxes_for_order` - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+- Allow promoting customer users to staff (#10115) (2d56af4e3)
+- Allow values of different attributes to share the same slug (#10138) (834d9500b)
+- Fix payment status for orders with total 0 (#10147) (ec2c9a820)
+- Fix failed event delivery request headers (#10108) (d1b652115)
+- Fix create_fake_user ID generation (#10186) (86e2c69a9)
+- Fix returning values in JSONString scalar (#10124) (248d2b604)
+- Fix problem with updating draft order with active Avalara (#10183) (af270b8c9)
+- Make API not strip query params from redirect URL (#10116) (75176e568)
+- Update method for setting filter descriptions (#10240) (65643ec7c)
+- Add expires option to CELERY_BEAT_SCHEDULE (#10205) (c6c5e46bd)
+- Recalculate order prices on marking as paid mutations (#10260) (4e45b83e7)
+- Fix triggering `ORDER_CANCELED` event at the end of transaction (#10242) (d9eecb2ca)
+- Fix post-migrate called for each app module (#10252) (60205eb56)
+- Only handle known URLs (disable appending slash to URLs automatically) - #10290 by @patrys
+
+### Other changes
+
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Add new method to plugin manager:
-    - `get_taxes_for_checkout`
-    - `get_taxes_for_order`
+- Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+- Add query for transaction item and extend transaction item type with order - #10154 by @IKarbowiak
+- Populate the initial database with default warehouse, channel, category, and product type - #10244 by @jakubkuc
+- Fix inconsistent beat scheduling and compatibility with DB scheduler - #10185 by @NyanKiyoshi<br/>
+  This fixes the following bugs:
+  - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)
+  - `tick()` was sometimes scheduling other schedulers such as observability to be run every 5m instead of every 20s
+  - `is_due()` from `send-sale-toggle-notifications` was being invoked every 5s on django-celery-beat instead of every 60s
+  - `send-sale-toggle-notifications` would crash on django-celery-beat with `Cannot convert schedule type <saleor.core.schedules.sale_webhook_schedule object at 0x7fabfdaacb20> to model`
+    Usage:
+  - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
+  - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+- Fix problem with updating draft order with active Avalara - #10183 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
+- Fix assigning an email address that does not belong to an existing user to draft order (#10320) (97129cf0c)
+- Fix gift cards automatic fulfillment (#10325) (6a528259e)
 
 # 3.5.4 [Unreleased]
+
 - Fix ORM crash when generating hundreds of search vector in SQL - #10261 by @NyanKiyoshi
 - Fix "stack depth limit exceeded" crash when generating thousands of search vector in SQL - #10279 by @NyanKiyoshi
 
 # 3.5.3 [Released]
+
 - Use custom search vector in order search - #10247 by @fowczarek
 - Optimize filtering attributes by dates - #10199 by @tomaszszymanski129
 
 # 3.5.2 [Released]
+
 - Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
 - Fix stock validation and allocation for order with local collection point - #10218 @IKarbowiak
 - Fix returning GraphQL IDs in the `SALE_TOGGLE` webhook - #10227 by @IKarbowiak
 
 # 3.5.1 [Released]
+
 - Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
   This fixes the following bugs:
+
   - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)
   - `tick()` was sometimes scheduling other schedulers such as observability to be ran every 5m instead of every 20s
   - `is_due()` from `send-sale-toggle-notifications` was being invoked every 5s on django-celery-beat instead of every 60s
   - `send-sale-toggle-notifications` would crash on django-celery-beat with `Cannot convert schedule type <saleor.core.schedules.sale_webhook_schedule object at 0x7fabfdaacb20> to model`
 
   Usage:
+
   - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
   - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+
 - Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
 - Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
 - Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
