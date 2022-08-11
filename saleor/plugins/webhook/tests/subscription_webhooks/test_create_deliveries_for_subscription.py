@@ -1976,6 +1976,25 @@ def test_validate_invalid_multiple_subscriptions():
     assert result is False
 
 
+def test_vaidate_invalid_multiple_events_in_subscription():
+    result = validate_subscription_query(subscription_queries.INVALID_MULTIPLE_EVENTS)
+    assert result is False
+
+
+def test_vaidate_invalid_multiple_events_and_fragments_in_subscription():
+    result = validate_subscription_query(
+        subscription_queries.INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS
+    )
+    assert result is False
+
+
+def test_validate_query_with_multiple_fragments():
+    result = validate_subscription_query(
+        subscription_queries.QUERY_WITH_MULTIPLE_FRAGMENTS
+    )
+    assert result is True
+
+
 def test_generate_payload_from_subscription_return_permission_errors_in_payload(
     gift_card, subscription_gift_card_created_webhook, permission_manage_gift_card
 ):
