@@ -1785,3 +1785,72 @@ subscription{
   }
 }
 """
+
+
+INVALID_MULTIPLE_EVENTS = """
+    subscription{
+      event{
+        ...on ProductUpdated{
+          product{
+            id
+          }
+        }
+      }
+      event{
+        ...on ProductCreated{
+          product{
+            id
+          }
+        }
+      }
+    }
+"""
+
+INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS = (
+    fragments.PRODUCT_VARIANT
+    + fragments.CATEGORY_DETAILS
+    + """
+    subscription{
+      event{
+        ...on ProductUpdated{
+          product{
+          variants{
+            ...ProductVariant
+            }
+            ...CategoryDetails
+          }
+        }
+      }
+      event{
+        ...on ProductCreated{
+          product{
+          variants{
+                ...ProductVariant
+            }
+            ...CategoryDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
+QUERY_WITH_MULTIPLE_FRAGMENTS = (
+    fragments.PRODUCT_VARIANT
+    + fragments.CATEGORY_DETAILS
+    + """
+    subscription{
+      event{
+        ...on ProductUpdated{
+          product{
+          variants{
+            ...ProductVariant
+            }
+            ...CategoryDetails
+          }
+        }
+      }
+    }
+    """
+)
