@@ -70,6 +70,7 @@ class CheckoutLinesAdd(BaseMutation):
         checkout_lines_data,
         country,
         channel_slug,
+        delivery_method_info,
         lines=None,
     ):
         quantities = [line_data.quantity for line_data in checkout_lines_data]
@@ -79,6 +80,7 @@ class CheckoutLinesAdd(BaseMutation):
             country,
             channel_slug,
             info.context.site.settings.limit_quantity_per_checkout,
+            delivery_method_info=delivery_method_info,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
@@ -104,6 +106,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_lines_data,
             checkout.get_country(),
             channel_slug,
+            checkout_info.delivery_method_info,
             lines=lines,
         )
 
