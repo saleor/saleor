@@ -164,7 +164,7 @@ def _create_line_for_order(
     discounts: Iterable[DiscountInfo],
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> OrderLineInfo:
     """Create a line for the given order.
 
@@ -247,7 +247,7 @@ def _create_line_for_order(
         voucher_code = checkout_line_info.voucher.code
 
     discount_price = undiscounted_unit_price - unit_price
-    if taxes_included_in_prices:
+    if prices_entered_with_tax:
         discount_amount = discount_price.gross
     else:
         discount_amount = discount_price.net
@@ -306,7 +306,7 @@ def _create_lines_for_order(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     check_reservations: bool,
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
@@ -364,7 +364,7 @@ def _create_lines_for_order(
             discounts,
             product_translations,
             variants_translation,
-            taxes_included_in_prices,
+            prices_entered_with_tax,
         )
         for checkout_line_info in lines
     ]
@@ -376,7 +376,7 @@ def _prepare_order_data(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable["DiscountInfo"],
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
     check_reservations: bool = False,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
@@ -432,7 +432,7 @@ def _prepare_order_data(
         lines,
         discounts,
         check_reservations,
-        taxes_included_in_prices,
+        prices_entered_with_tax,
     )
 
     # validate checkout gift cards
@@ -664,6 +664,8 @@ def _get_order_data(
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
+    tax_configuration = checkout_info.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     try:
         order_data = _prepare_order_data(
             manager=manager,
@@ -671,7 +673,7 @@ def _get_order_data(
             lines=lines,
             discounts=discounts,
             check_reservations=is_reservation_enabled(site_settings),
-            taxes_included_in_prices=site_settings.include_taxes_in_prices,
+            prices_entered_with_tax=prices_entered_with_tax,
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
@@ -890,7 +892,7 @@ def _create_order_lines_from_checkout_lines(
     manager: "PluginsManager",
     order_pk: Union[str, UUID],
     reservation_enabled: bool,
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> List[OrderLineInfo]:
     order_lines_info = _create_lines_for_order(
         manager,
@@ -898,7 +900,7 @@ def _create_order_lines_from_checkout_lines(
         lines,
         discounts,
         reservation_enabled,
-        taxes_included_in_prices,
+        prices_entered_with_tax,
     )
     order_lines = []
     for line_info in order_lines_info:
@@ -1018,7 +1020,8 @@ def _create_order_from_checkout(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     reservation_enabled = is_reservation_enabled(site_settings)
-    taxes_included_in_prices = site_settings.include_taxes_in_prices
+    tax_configuration = checkout_info.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # total
     taxed_total = _get_order_total(
@@ -1080,7 +1083,7 @@ def _create_order_from_checkout(
         manager=manager,
         order_pk=order.pk,
         reservation_enabled=reservation_enabled,
-        taxes_included_in_prices=taxes_included_in_prices,
+        prices_entered_with_tax=prices_entered_with_tax,
     )
 
     # allocations

@@ -43,7 +43,7 @@ def get_webhooks_for_event(
     )
 
 
-def get_base_price(price: TaxedMoney, include_taxes_in_prices: bool) -> Decimal:
-    if include_taxes_in_prices:
+def get_base_price(price: TaxedMoney, prices_entered_with_tax: bool) -> Decimal:
+    if prices_entered_with_tax:
         return price.gross.amount
     return price.net.amount

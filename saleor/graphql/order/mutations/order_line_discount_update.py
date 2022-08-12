@@ -59,16 +59,9 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         value = input.get("value")
 
         order_line_before_update = copy.deepcopy(order_line)
-        tax_included = info.context.site.settings.include_taxes_in_prices
 
         update_discount_for_order_line(
-            order_line,
-            order=order,
-            reason=reason,
-            value_type=value_type,
-            value=value,
-            manager=info.context.plugins,
-            tax_included=tax_included,
+            order_line, order=order, reason=reason, value_type=value_type, value=value
         )
         if (
             order_line_before_update.unit_discount_value != value

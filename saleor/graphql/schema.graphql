@@ -7765,9 +7765,6 @@ type Shop {
   """Header text."""
   headerText: String
 
-  """Include taxes in prices."""
-  includeTaxesInPrices: Boolean!
-
   """
   Automatically approve all new fulfillments.
   
@@ -7781,9 +7778,6 @@ type Shop {
   Added in Saleor 3.1.
   """
   fulfillmentAllowUnpaid: Boolean!
-
-  """Display prices with tax in store."""
-  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean!
@@ -7876,6 +7870,12 @@ type Shop {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   version: String!
+
+  """Include taxes in prices."""
+  includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.prices_entered_with_tax` to determine whether prices are entered with tax.")
+
+  """Display prices with tax in store."""
+  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
 }
 
 """
@@ -15513,7 +15513,11 @@ input ShopSettingsInput {
   """SEO description."""
   description: String
 
-  """Include taxes in prices."""
+  """
+  Include taxes in prices. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
   includeTaxesInPrices: Boolean
 
   """

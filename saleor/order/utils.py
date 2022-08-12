@@ -202,7 +202,6 @@ def create_order_line(
     order,
     line_data,
     manager,
-    site_settings,
     discounts=None,
     allocate_stock=False,
 ):
@@ -270,8 +269,11 @@ def create_order_line(
             channel=channel,
             variant_id=variant.id,
         )
-        taxes_included_in_prices = site_settings.include_taxes_in_prices
-        if taxes_included_in_prices:
+
+        tax_configuration = channel.tax_configuration
+        prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
+        if prices_entered_with_tax:
             discount_amount = unit_discount.gross
         else:
             discount_amount = unit_discount.net
@@ -826,8 +828,6 @@ def update_discount_for_order_line(
     reason: Optional[str],
     value_type: Optional[str],
     value: Optional[Decimal],
-    manager,
-    tax_included,
 ):
     """Update discount fields for order line. Apply discount to the price."""
     current_value = order_line.unit_discount_value
@@ -883,9 +883,7 @@ def update_discount_for_order_line(
     order_line.save(update_fields=fields_to_update)
 
 
-def remove_discount_from_order_line(
-    order_line: OrderLine, order: "Order", manager, tax_included
-):
+def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
     order_line.unit_price = TaxedMoney(
         net=order_line.undiscounted_base_unit_price,

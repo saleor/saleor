@@ -207,20 +207,18 @@ def append_line_to_data(
     amount: Decimal,
     tax_code: str,
     item_code: str,
+    prices_entered_with_tax: bool,
     name: str = None,
-    tax_included: Optional[bool] = None,
     discounted: Optional[bool] = False,
     tax_override_data: Optional[dict] = None,
     ref1: Optional[str] = None,
     ref2: Optional[str] = None,
 ):
-    if tax_included is None:
-        tax_included = Site.objects.get_current().settings.include_taxes_in_prices
     line_data = {
         "quantity": quantity,
         "amount": str(amount),
         "taxCode": tax_code,
-        "taxIncluded": tax_included,
+        "taxIncluded": prices_entered_with_tax,
         "itemCode": item_code,
         "discounted": discounted,
         "description": name,
@@ -239,6 +237,7 @@ def append_shipping_to_data(
     data: List[Dict],
     shipping_price_amount: Optional[Decimal],
     shipping_tax_code: str,
+    prices_entered_with_tax: bool,
     discounted: Optional[bool] = False,
 ):
     charge_taxes_on_shipping = (
@@ -251,6 +250,7 @@ def append_shipping_to_data(
             amount=shipping_price_amount,
             tax_code=shipping_tax_code,
             item_code="Shipping",
+            prices_entered_with_tax=prices_entered_with_tax,
             discounted=discounted,
         )
 
@@ -263,7 +263,10 @@ def get_checkout_lines_data(
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
-    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+
+    tax_configuration = channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
     voucher = checkout_info.voucher
     is_entire_order_discount = (
         voucher.type == VoucherType.ENTIRE_ORDER
@@ -314,7 +317,7 @@ def get_checkout_lines_data(
             "tax_code": tax_code,
             "item_code": item_code,
             "name": name,
-            "tax_included": tax_included,
+            "prices_entered_with_tax": prices_entered_with_tax,
             "discounted": is_entire_order_discount,
             "tax_override_data": tax_override_data,
         }
@@ -332,10 +335,11 @@ def get_checkout_lines_data(
             voucher.type == VoucherType.SHIPPING if voucher else False
         )
         append_shipping_to_data(
-            data,
-            price.amount if price else None,
-            config.shipping_tax_code,
-            is_shipping_discount,
+            data=data,
+            shipping_price_amount=price.amount if price else None,
+            shipping_tax_code=config.shipping_tax_code,
+            prices_entered_with_tax=prices_entered_with_tax,
+            discounted=is_shipping_discount,
         )
 
     return data
@@ -350,7 +354,10 @@ def get_order_lines_data(
         "variant__product__collections",
         "variant__product__product_type",
     ).filter(variant__product__charge_taxes=True)
-    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+
+    tax_configuration = order.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
     for line in lines:
         if not line.variant:
             continue
@@ -360,7 +367,7 @@ def get_order_lines_data(
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         prices_data = base_calculations.base_order_line_total(line)
 
-        if tax_included:
+        if prices_entered_with_tax:
             undiscounted_amount = prices_data.undiscounted_price.gross.amount
             price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
         else:
@@ -378,7 +385,7 @@ def get_order_lines_data(
             "tax_code": tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
             "item_code": line.variant.sku or line.variant.get_global_id(),
             "name": line.variant.product.name,
-            "tax_included": tax_included,
+            "prices_entered_with_tax": prices_entered_with_tax,
             "discounted": discounted,
         }
         append_line_to_data(
@@ -403,9 +410,10 @@ def get_order_lines_data(
             Decimal("0"),
         )
         append_shipping_to_data(
-            data,
-            shipping_price,
-            config.shipping_tax_code,
+            data=data,
+            shipping_price_amount=shipping_price,
+            shipping_tax_code=config.shipping_tax_code,
+            prices_entered_with_tax=prices_entered_with_tax,
         )
     return data
 
