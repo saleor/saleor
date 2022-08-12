@@ -343,7 +343,7 @@ def _create_lines_for_order(
         quantities,
         checkout_info.channel.slug,
         global_quantity_limit=None,
-        collection_point_pk=checkout_info.delivery_method_info.warehouse_pk,
+        delivery_method_info=checkout_info.delivery_method_info,
         additional_filter_lookup=additional_warehouse_lookup,
         existing_lines=lines,
         replace=True,

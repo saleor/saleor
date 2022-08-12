@@ -96,6 +96,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         checkout_lines_data,
         country,
         channel_slug,
+        delivery_method_info,
         lines=None,
     ):
         variants, quantities = get_variants_and_total_quantities(
@@ -108,6 +109,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             country,
             channel_slug,
             info.context.site.settings.limit_quantity_per_checkout,
+            delivery_method_info=delivery_method_info,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
