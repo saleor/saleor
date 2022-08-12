@@ -5,8 +5,6 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ..celeryconf import app
-from ..product.models import ProductMedia
-from ..thumbnail.models import Thumbnail
 from .models import EventDelivery, EventDeliveryAttempt, EventPayload
 
 
@@ -38,8 +36,5 @@ def delete_event_payloads_task():
     retry_kwargs={"max_retries": 5},
 )
 def delete_product_media_task(media_id):
-    product_media = ProductMedia.objects.filter(pk=media_id, to_remove=True).first()
-    if product_media:
-        Thumbnail.objects.filter(product_media=product_media.id).delete()
-        product_media.image.delete()
-        product_media.delete()
+    # TODO: to delete
+    pass

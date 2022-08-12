@@ -795,7 +795,12 @@ class DigitalContentUrl(models.Model):
 
 class ProductMedia(SortableModel):
     product = models.ForeignKey(
-        Product, related_name="media", on_delete=models.SET_NULL, null=True, blank=True
+        Product,
+        related_name="media",
+        on_delete=models.CASCADE,
+        # DEPRECATED
+        null=True,
+        blank=True,
     )
     image = models.ImageField(upload_to="products", blank=True, null=True)
     alt = models.CharField(max_length=128, blank=True)
@@ -806,6 +811,7 @@ class ProductMedia(SortableModel):
     )
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
+    # DEPRECATED
     to_remove = models.BooleanField(default=False)
 
     class Meta:
@@ -818,16 +824,6 @@ class ProductMedia(SortableModel):
     @transaction.atomic
     def delete(self, *args, **kwargs):
         super(SortableModel, self).delete(*args, **kwargs)
-
-    @transaction.atomic
-    def set_to_remove(self):
-        self.to_remove = True
-        self.save(update_fields=["to_remove"])
-        if self.sort_order is not None:
-            qs = self.get_ordering_queryset()
-            qs.filter(sort_order__gt=self.sort_order).update(
-                sort_order=F("sort_order") - 1
-            )
 
 
 class VariantMedia(models.Model):
