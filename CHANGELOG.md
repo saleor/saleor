@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.7.0 [Unreleased]
 
+### Other changes
+
+- Started process of removing lazy objects from codebase. This is the first step on the road to async.
+
 # 3.6.0
 
 ### Breaking changes
