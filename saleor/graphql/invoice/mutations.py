@@ -175,7 +175,6 @@ class InvoiceCreate(ModelMutation):
         invoice.status = JobStatus.SUCCESS
         invoice.save()
         app = load_app(info.context)
-        # app = AppByTokenLoader(info.context).load(info.context.auth_token)
         events.invoice_created_event(
             user=info.context.user,
             app=app,

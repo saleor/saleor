@@ -58,18 +58,18 @@ class AppByTokenLoader(DataLoader):
     context_key = "app_by_token"
 
     def batch_load(self, keys):
-        last_4s_map = defaultdict(list)
+        last_4s_to_raw_token_map = defaultdict(list)
         for raw_token in keys:
-            last_4s_map[raw_token[-4:]].append(raw_token)
+            last_4s_to_raw_token_map[raw_token[-4:]].append(raw_token)
 
         tokens = (
             AppToken.objects.using(self.database_connection_name)
-            .filter(token_last_4__in=last_4s_map.keys())
+            .filter(token_last_4__in=last_4s_to_raw_token_map.keys())
             .values_list("auth_token", "token_last_4", "app_id")
         )
         authed_apps = {}
         for auth_token, token_last_4, app_id in tokens:
-            for raw_token in last_4s_map[token_last_4]:
+            for raw_token in last_4s_to_raw_token_map[token_last_4]:
                 if check_password(raw_token, auth_token):
                     authed_apps[raw_token] = app_id
 
@@ -77,7 +77,7 @@ class AppByTokenLoader(DataLoader):
             id__in=authed_apps.values(), is_active=True
         )
 
-        return [apps.filter(id=authed_apps.get(key, None)).first() for key in keys]
+        return [apps.filter(id=authed_apps.get(key)).first() for key in keys]
 
 
 def load_app(context):

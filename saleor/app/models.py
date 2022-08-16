@@ -118,7 +118,6 @@ class AppTokenManager(models.Manager):
         return app_token, auth_token
 
     def create_with_token(self, *args, **kwargs):
-        """See https://app.clickup.com/t/2549495/SALEOR-7847 ."""
         return self.create(*args, **kwargs)
 
 
