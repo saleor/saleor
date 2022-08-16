@@ -6,7 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
-- Started process of removing lazy objects from codebase. This is the first step on the road to async.
+- Replaced most occurrences of `context.app` with a dataloader.
 
 # 3.6.0
 

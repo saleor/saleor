@@ -385,9 +385,9 @@ def test_send_email_order_confirmation_for_cc(
 def test_send_confirmation_emails_without_addresses_for_payment(
     mocked_notify,
     site_settings,
-    anon_user,
-    anon_app,
-    anon_plugins,
+    anonymous_user,
+    anonymous_app,
+    anonymous_plugins,
     digital_content,
     payment_dummy,
 ):
@@ -401,9 +401,9 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     line = add_variant_to_order(
         order,
         line_data,
-        user=anon_user,
-        app=anon_app,
-        manager=anon_plugins,
+        user=anonymous_user,
+        app=anonymous_app,
+        manager=anonymous_plugins,
         site_settings=site_settings,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
@@ -414,7 +414,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
     order_info = fetch_order_info(order)
 
-    notifications.send_payment_confirmation(order_info, anon_plugins)
+    notifications.send_payment_confirmation(order_info, anonymous_plugins)
 
     expected_payload = {
         "order": get_default_order_payload(order),
@@ -443,9 +443,9 @@ def test_send_confirmation_emails_without_addresses_for_order(
     order,
     site_settings,
     digital_content,
-    anon_user,
-    anon_app,
-    anon_plugins,
+    anonymous_user,
+    anonymous_app,
+    anonymous_plugins,
 ):
 
     assert not order.lines.count()
@@ -458,9 +458,9 @@ def test_send_confirmation_emails_without_addresses_for_order(
     line = add_variant_to_order(
         order,
         line_data,
-        user=anon_user,
-        app=anon_app,
-        manager=anon_plugins,
+        user=anonymous_user,
+        app=anonymous_app,
+        manager=anonymous_plugins,
         site_settings=site_settings,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
@@ -473,7 +473,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
 
     redirect_url = "https://www.example.com"
 
-    notifications.send_order_confirmation(order_info, redirect_url, anon_plugins)
+    notifications.send_order_confirmation(order_info, redirect_url, anonymous_plugins)
 
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),

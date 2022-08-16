@@ -167,17 +167,17 @@ def info(schema_context):
 
 
 @pytest.fixture
-def anon_user():
+def anonymous_user():
     return AnonymousUser()
 
 
 @pytest.fixture
-def anon_app():
+def anonymous_app():
     return None
 
 
 @pytest.fixture
-def anon_plugins():
+def anonymous_plugins():
     return get_plugins_manager()
 
 
