@@ -84,6 +84,7 @@ def order_created(
     app: Optional["App"],
     manager: "PluginsManager",
     from_draft: bool = False,
+    site_settings: Optional["SiteSettings"] = None,
 ):
     order = order_info.order
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
@@ -98,6 +99,7 @@ def order_created(
                 amount=payment.total,
                 payment=payment,
                 manager=manager,
+                site_settings=site_settings,
             )
         elif order.is_pre_authorized():
             order_authorized(
@@ -135,7 +137,10 @@ def handle_fully_paid_order(
     order_info: "OrderInfo",
     user: Optional["User"] = None,
     app: Optional["App"] = None,
+    site_settings: Optional["SiteSettings"] = None,
 ):
+    from ..giftcard.utils import fulfill_non_shippable_gift_cards
+
     order = order_info.order
     events.order_fully_paid_event(order=order, user=user, app=app)
     if order_info.customer_email:
@@ -147,6 +152,16 @@ def handle_fully_paid_order(
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception("Recording order in analytics failed")
+
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        order_lines = [line.line for line in order_info.lines_data]
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
+
     manager.order_fully_paid(order)
     manager.order_updated(order)
 
@@ -300,6 +315,7 @@ def order_captured(
     amount: "Decimal",
     payment: "Payment",
     manager: "PluginsManager",
+    site_settings: Optional["SiteSettings"] = None,
 ):
     order = order_info.order
     events.payment_captured_event(
@@ -307,7 +323,7 @@ def order_captured(
     )
     manager.order_updated(order)
     if order.is_fully_paid():
-        handle_fully_paid_order(manager, order_info, user, app)
+        handle_fully_paid_order(manager, order_info, user, app, site_settings)
 
 
 def fulfillment_tracking_updated(

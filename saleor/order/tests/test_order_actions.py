@@ -4,6 +4,8 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
+from ...giftcard import GiftCardEvents
+from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.fetch import OrderLineInfo, fetch_order_info
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
@@ -23,7 +25,7 @@ from ..actions import (
     mark_order_as_paid,
     order_refunded,
 )
-from ..models import Fulfillment
+from ..models import Fulfillment, OrderLine
 from ..notifications import (
     send_fulfillment_confirmation_to_customer,
     send_payment_confirmation,
@@ -133,6 +135,136 @@ def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order)
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_FULLY_PAID
     assert not mock_send_payment_confirmation.called
+
+
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+@patch("saleor.order.actions.send_payment_confirmation")
+def test_handle_fully_paid_order_gift_cards_created(
+    mock_send_payment_confirmation,
+    send_notification_mock,
+    site_settings,
+    order_with_lines,
+    non_shippable_gift_card_product,
+    shippable_gift_card_product,
+):
+    """Ensure the non shippable gift card are fulfilled when the flag for automatic
+    fulfillment non shippable gift card is set."""
+    # given
+    site_settings.automatically_fulfill_non_shippable_gift_card = True
+    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+
+    order = order_with_lines
+
+    non_shippable_gift_card_line = order_with_lines.lines.first()
+    non_shippable_variant = non_shippable_gift_card_product.variants.get()
+    non_shippable_gift_card_line.variant = non_shippable_variant
+    non_shippable_gift_card_line.is_gift_card = True
+    non_shippable_gift_card_line.is_shipping_required = False
+    non_shippable_gift_card_line.quantity = 1
+    allocation = non_shippable_gift_card_line.allocations.first()
+    allocation.quantity_allocated = 1
+    allocation.save(update_fields=["quantity_allocated"])
+
+    shippable_gift_card_line = order_with_lines.lines.last()
+    shippable_variant = shippable_gift_card_product.variants.get()
+    shippable_gift_card_line.variant = shippable_variant
+    shippable_gift_card_line.is_gift_card = True
+    shippable_gift_card_line.is_shipping_required = True
+    shippable_gift_card_line.quantity = 1
+
+    OrderLine.objects.bulk_update(
+        [non_shippable_gift_card_line, shippable_gift_card_line],
+        ["variant", "is_gift_card", "is_shipping_required", "quantity"],
+    )
+
+    manager = get_plugins_manager()
+
+    order.payments.add(Payment.objects.create())
+    order_info = fetch_order_info(order)
+
+    # when
+    handle_fully_paid_order(manager, order_info)
+
+    # then
+    flush_post_commit_hooks()
+    assert order.events.filter(type=OrderEvents.ORDER_FULLY_PAID)
+
+    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
+
+    flush_post_commit_hooks()
+    gift_card = GiftCard.objects.get()
+    assert gift_card.initial_balance == non_shippable_gift_card_line.unit_price_gross
+    assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+
+    send_notification_mock.assert_called_once_with(
+        None,
+        None,
+        order.user,
+        order.user_email,
+        gift_card,
+        manager,
+        order.channel.slug,
+        resending=False,
+    )
+
+
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+@patch("saleor.order.actions.send_payment_confirmation")
+def test_handle_fully_paid_order_gift_cards_not_created(
+    mock_send_payment_confirmation,
+    send_notification_mock,
+    site_settings,
+    order_with_lines,
+    non_shippable_gift_card_product,
+    shippable_gift_card_product,
+):
+    """Ensure the non shippable gift card are not fulfilled when the flag for
+    automatic fulfillment non shippable gift card is not set."""
+    # given
+    site_settings.automatically_fulfill_non_shippable_gift_card = False
+    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+
+    order = order_with_lines
+
+    non_shippable_gift_card_line = order_with_lines.lines.first()
+    non_shippable_variant = non_shippable_gift_card_product.variants.get()
+    non_shippable_gift_card_line.variant = non_shippable_variant
+    non_shippable_gift_card_line.is_gift_card = True
+    non_shippable_gift_card_line.is_shipping_required = False
+    non_shippable_gift_card_line.quantity = 1
+    allocation = non_shippable_gift_card_line.allocations.first()
+    allocation.quantity_allocated = 1
+    allocation.save(update_fields=["quantity_allocated"])
+
+    shippable_gift_card_line = order_with_lines.lines.last()
+    shippable_variant = shippable_gift_card_product.variants.get()
+    shippable_gift_card_line.variant = shippable_variant
+    shippable_gift_card_line.is_gift_card = True
+    shippable_gift_card_line.is_shipping_required = True
+    shippable_gift_card_line.quantity = 1
+
+    OrderLine.objects.bulk_update(
+        [non_shippable_gift_card_line, shippable_gift_card_line],
+        ["variant", "is_gift_card", "is_shipping_required", "quantity"],
+    )
+
+    manager = get_plugins_manager()
+
+    order.payments.add(Payment.objects.create())
+    order_info = fetch_order_info(order)
+
+    # when
+    handle_fully_paid_order(manager, order_info)
+
+    # then
+    flush_post_commit_hooks()
+    assert order.events.filter(type=OrderEvents.ORDER_FULLY_PAID)
+
+    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
+
+    flush_post_commit_hooks()
+    assert not GiftCard.objects.exists()
+    send_notification_mock.assert_not_called
 
 
 def test_mark_as_paid(admin_user, draft_order):

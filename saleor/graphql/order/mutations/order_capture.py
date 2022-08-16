@@ -102,5 +102,6 @@ class OrderCapture(BaseMutation):
                     amount,
                     payment,
                     info.context.plugins,
+                    info.context.site.settings,
                 )
         return OrderCapture(order=order)

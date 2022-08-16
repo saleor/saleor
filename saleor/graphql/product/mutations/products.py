@@ -15,7 +15,6 @@ from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions
-from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.date_time import convert_to_utc_date_time
 from ....core.utils.editorjs import clean_editor_js
@@ -1409,9 +1408,7 @@ class ProductMediaReorder(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(),
         )
 
-        # we do not care about media with the to_remove flag set to True
-        # as they will be deleted soon
-        if len(media_ids) != product.media.exclude(to_remove=True).count():
+        if len(media_ids) != product.media.count():
             raise ValidationError(
                 {
                     "order": ValidationError(
@@ -1575,6 +1572,7 @@ class ProductMediaDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a product media."
+
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1582,18 +1580,8 @@ class ProductMediaDelete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         media_obj = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
-        if media_obj.to_remove:
-            raise ValidationError(
-                {
-                    "media_id": ValidationError(
-                        "Media not found.",
-                        code=ProductErrorCode.NOT_FOUND,
-                    )
-                }
-            )
         media_id = media_obj.id
-        media_obj.set_to_remove()
-        delete_product_media_task.delay(media_id)
+        media_obj.delete()
         media_obj.id = media_id
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media_obj.product_id

@@ -618,57 +618,6 @@ QUERY_PRODUCT_BY_ID_WITH_MEDIA = """
 """
 
 
-def test_product_query_with_media_to_remove(
-    user_api_client, permission_manage_products, product_with_images
-):
-    # given
-    query = QUERY_PRODUCT_BY_ID_WITH_MEDIA
-    variables = {"id": graphene.Node.to_global_id("Product", product_with_images.pk)}
-    ProductMedia.objects.filter(product=product_with_images.pk).update(to_remove=True)
-
-    # when
-    response = user_api_client.post_graphql(
-        query,
-        variables=variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
-    content = get_graphql_content(response)
-    product_data = content["data"]["product"]
-
-    # then
-    assert product_data is not None
-    assert len(product_data["media"]) == 0
-
-
-def test_product_variant_query_with_media_to_remove(
-    user_api_client, permission_manage_products, variant_with_image
-):
-    # given
-    query = QUERY_PRODUCT_BY_ID_WITH_MEDIA
-    product = variant_with_image.product
-    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
-    variants_count = ProductVariant.objects.all().count()
-    ProductMedia.objects.filter(product=product.pk).update(to_remove=True)
-
-    # when
-    response = user_api_client.post_graphql(
-        query,
-        variables=variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
-    content = get_graphql_content(response)
-    product_data = content["data"]["product"]
-
-    # then
-    assert product_data is not None
-    assert len(product_data["media"]) == 0
-    assert len(product_data["variants"]) == variants_count
-    for variant in product_data["variants"]:
-        assert variant["media"] == []
-
-
 def test_query_product_thumbnail_with_size_and_format_proxy_url_returned(
     staff_api_client, product_with_image, channel_USD
 ):
@@ -3585,6 +3534,41 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
 
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
+
+
+def test_products_query_with_filter_stock_availability_only_stock_in_cc_warehouse(
+    query_products_with_filter,
+    user_api_client,
+    product,
+    order_line,
+    channel_USD,
+    warehouse_for_cc,
+):
+    # given
+    variant = product.variants.first()
+    variant.stocks.all().delete()
+
+    Stock.objects.create(
+        warehouse=warehouse_for_cc, product_variant=variant, quantity=10
+    )
+
+    variables = {
+        "filter": {"stockAvailability": "IN_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product.id
+    )
 
 
 @pytest.mark.parametrize(
@@ -8876,11 +8860,11 @@ def test_delete_product(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.signals.delete_product_media_task.delay")
+@patch("saleor.product.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_with_image(
     mocked_recalculate_orders_task,
-    delete_product_media_task_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     product_with_image,
     variant_with_image,
@@ -8897,7 +8881,8 @@ def test_delete_product_with_image(
 
     product_img_paths = [media.image for media in product.media.all()]
     variant_img_paths = [media.image for media in variant.media.all()]
-    product_media_ids = [media.id for media in product.media.all()]
+    product_media_paths = [media.image.path for media in product.media.all()]
+    variant_media_paths = [media.image.path for media in variant.media.all()]
     images = product_img_paths + variant_img_paths
 
     variables = {"id": node_id}
@@ -8915,10 +8900,10 @@ def test_delete_product_with_image(
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
 
-    assert delete_product_media_task_mock.call_count == len(images)
+    assert delete_from_storage_task_mock.call_count == len(images)
     assert {
-        call_args.args[0] for call_args in delete_product_media_task_mock.call_args_list
-    } == set(product_media_ids)
+        call_args.args[0] for call_args in delete_from_storage_task_mock.call_args_list
+    } == set(product_media_paths + variant_media_paths)
     mocked_recalculate_orders_task.assert_not_called()
 
 
@@ -9838,9 +9823,9 @@ def test_product_image_update_mutation(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
-@patch("saleor.product.signals.delete_product_media_task.delay")
+@patch("saleor.product.signals.delete_from_storage_task.delay")
 def test_product_media_delete(
-    delete_product_media_task_mock,
+    delete_from_storage_task_mock,
     product_updated_mock,
     staff_api_client,
     product_with_image,
@@ -9858,6 +9843,7 @@ def test_product_media_delete(
             }
         """
     media_obj = product.media.first()
+    media_img_path = media_obj.image.path
     node_id = graphene.Node.to_global_id("ProductMedia", media_obj.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
@@ -9866,11 +9852,11 @@ def test_product_media_delete(
     content = get_graphql_content(response)
     data = content["data"]["productMediaDelete"]
     assert media_obj.image.url in data["media"]["url"]
-    media_obj.refresh_from_db()
-    assert media_obj.to_remove
+    with pytest.raises(media_obj._meta.model.DoesNotExist):
+        media_obj.refresh_from_db()
     assert node_id == data["media"]["id"]
     product_updated_mock.assert_called_once_with(product)
-    delete_product_media_task_mock.assert_called_once_with(media_obj.id)
+    delete_from_storage_task_mock.assert_called_once_with(media_img_path)
 
 
 PRODUCT_MEDIA_REORDER = """
@@ -9986,51 +9972,6 @@ def test_reorder_not_existing_media(
         response["data"]["productMediaReorder"]["errors"][0]["code"]
         == ProductErrorCode.NOT_FOUND.name
     )
-
-
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
-def test_reorder_media_some_media_marked_as_to_remove(
-    product_updated_mock,
-    staff_api_client,
-    product_with_images,
-    permission_manage_products,
-):
-    """Ensure that no error is raised when number of provided ids is equal to number
-    of media with `to_remove` flag set to False.
-    """
-    query = PRODUCT_MEDIA_REORDER
-    product = product_with_images
-    media = product.media.all()
-    media_0 = media[0]
-    media_1 = media[1]
-
-    media_1.to_remove = True
-    media_1.save(update_fields=["to_remove"])
-
-    file_mock_2 = MagicMock(spec=File, name="FileMock2")
-    file_mock_2.name = "image2.jpg"
-    media_2 = product.media.create(image=file_mock_2)
-
-    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
-    media_2_id = graphene.Node.to_global_id("ProductMedia", media_2.id)
-
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"product_id": product_id, "media_ids": [media_2_id, media_0_id]}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    get_graphql_content(response)
-
-    # Check if order has been changed
-    product.refresh_from_db()
-    reordered_media = product.media.all()
-    reordered_media_0 = reordered_media[0]
-    reordered_media_1 = reordered_media[1]
-
-    assert media_0.id == reordered_media_1.id
-    assert media_2.id == reordered_media_0.id
-    product_updated_mock.assert_called_once_with(product)
 
 
 ASSIGN_VARIANT_QUERY = """

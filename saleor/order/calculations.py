@@ -6,9 +6,8 @@ from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxError, zero_taxed_money
+from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import OrderDiscountType
-from ..order.tests.test_calculations import TaxData
 from ..plugins.manager import PluginsManager
 from . import ORDER_EDITABLE_STATUS, utils
 from .interface import OrderTaxedPricesData

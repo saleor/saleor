@@ -68,7 +68,7 @@ def update_products_discounted_prices(products, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
 
-    for product in products.prefetch_related("channel_listings"):
+    for product in products.prefetch_related("channel_listings", "collections"):
         update_product_discounted_price(product, discounts)
 
 
