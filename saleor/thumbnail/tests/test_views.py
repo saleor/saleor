@@ -230,3 +230,15 @@ def test_handle_thumbnail_view_invalid_instance_id(client, category):
 
     # then
     assert response.status_code == 404
+
+
+def test_handle_thumbnail_view_object_does_not_exists(client):
+    # given
+    size = 60
+    category_id = graphene.Node.to_global_id("Category", 1)
+
+    # when
+    response = client.get(f"/thumbnail/{category_id}/{size}/")
+
+    # then
+    assert response.status_code == 404

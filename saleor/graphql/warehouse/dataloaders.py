@@ -243,7 +243,11 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         variants_with_global_cc_warehouses = []
         for stock in stocks:
             reserved_quantity = stocks_reservations[stock.id]
-            quantity = max(0, stock.available_quantity - reserved_quantity)
+            quantity = stock.available_quantity - reserved_quantity
+            # when the available_quantity was under 0 we do not want clipping to zero,
+            # as it means that the stock might be exceeded
+            if stock.available_quantity > 0:
+                quantity = max(0, quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
             if shipping_zone_ids := warehouse_shipping_zones_map[warehouse_id]:
