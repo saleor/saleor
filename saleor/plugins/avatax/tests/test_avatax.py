@@ -4310,3 +4310,105 @@ def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
     # then
     assert lines_data[0]["amount"] == "10.000"
     assert lines_data[0]["taxCode"] == "taxcode"
+
+
+def test_assign_tax_code_to_object_meta(
+    settings, channel_USD, plugin_configuration, product, monkeypatch
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    tax_code = "standard"
+    description = "desc"
+
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {tax_code: description},
+    )
+
+    manager = get_plugins_manager()
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {
+        META_CODE_KEY: tax_code,
+        META_DESCRIPTION_KEY: description,
+    }
+
+
+def test_assign_tax_code_to_object_meta_none_as_tax_code(
+    settings, channel_USD, plugin_configuration, product, monkeypatch
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    tax_code = None
+    description = "desc"
+
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"standard": description},
+    )
+    manager = get_plugins_manager()
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {}
+
+
+def test_assign_tax_code_to_object_meta_no_obj_id_and_none_as_tax_code(
+    settings, channel_USD, plugin_configuration, monkeypatch
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    tax_code = None
+    description = "desc"
+
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"standard": description},
+    )
+
+    product = Product(name="A new product.")
+    manager = get_plugins_manager()
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {}
+
+
+def test_assign_tax_code_to_object_meta_no_obj_id(
+    settings, channel_USD, plugin_configuration, monkeypatch
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    tax_code = "standard"
+    description = "desc"
+
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {tax_code: description},
+    )
+    product = Product(name="A new product.")
+    manager = get_plugins_manager()
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {
+        META_CODE_KEY: tax_code,
+        META_DESCRIPTION_KEY: description,
+    }
