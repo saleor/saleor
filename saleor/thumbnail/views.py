@@ -56,7 +56,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     try:
         instance = model_data.model.objects.get(id=pk)
     except ObjectDoesNotExist:
-        return HttpResponseNotFound("Cannot found instance with the given id.")
+        return HttpResponseNotFound("Instance with the given id cannot be found.")
 
     image = getattr(instance, model_data.image_field)
     if not bool(image):
