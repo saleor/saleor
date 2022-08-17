@@ -317,7 +317,6 @@ def add_variant_to_order(
     user,
     app,
     manager,
-    site_settings,
     discounts=None,
     allocate_stock=False,
 ):
@@ -364,7 +363,6 @@ def add_variant_to_order(
             order,
             line_data,
             manager,
-            site_settings,
             discounts,
             allocate_stock,
         )

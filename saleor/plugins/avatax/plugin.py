@@ -7,7 +7,6 @@ from urllib.parse import urljoin
 
 import opentracing
 import opentracing.tags
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from django_countries import countries

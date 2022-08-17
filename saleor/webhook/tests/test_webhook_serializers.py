@@ -117,9 +117,9 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
 def test_serialize_checkout_lines_for_tax_calculation(
-    checkout_with_prices, taxes_included, site_settings
+    checkout_with_prices, prices_entered_with_tax
 ):
     # We should be sure that we always sends base prices to tax app.
     # We shouldn't use previously calculated prices because they can be
@@ -133,8 +133,11 @@ def test_serialize_checkout_lines_for_tax_calculation(
     manager = get_plugins_manager()
     discounts_info = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts_info, manager)
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete
 
     # when
     checkout_lines_data = serialize_checkout_lines_for_tax_calculation(
