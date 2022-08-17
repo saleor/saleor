@@ -5,10 +5,18 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.7.0 [Unreleased]
 
 ### GraphQL API
+
 - Sorting warehouses within channel - #10416 by @IKarbowiak
   - Add `channelReorderWarehouses` mutation
   - Extend the `Channel` type with `stockSettings` field
   - Extend `ChannelCreateInput` and `ChannelUpdateInput` with `stockSettings`
+  - Add `name` parameter to `ProductVariantInput` - #10456 by @SzymJ
+
+### Breaking changes
+
+- Refactor warehouse mutations - #10239 by @IKarbowiak
+  - Providing the value in `shippingZone` filed in `WarehouseCreate` mutation will raise a ValidationError.
+  Use `WarehouseShippingZoneAssign` to assign shipping zones to warehouse .
 
 ### Other changes
 
@@ -17,8 +25,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add support for bcrypt password hashes - #10346 by @pkucmus
 - Add ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
 
-### GraphQL API
- - Add `name` parameter to `ProductVariantInput` - #10456 by @SzymJ
 
 # 3.6.0
 
