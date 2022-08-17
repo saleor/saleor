@@ -78,7 +78,7 @@ def create_deliveries_for_subscriptions(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
-    if event_type not in list(WEBHOOK_TYPES_MAP.keys()):
+    if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
@@ -131,7 +131,7 @@ def create_delivery_for_subscription_sync_event(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
-    if event_type not in list(WEBHOOK_TYPES_MAP.keys()):
+    if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
