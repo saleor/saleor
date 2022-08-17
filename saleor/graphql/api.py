@@ -27,7 +27,7 @@ from .tax.schema import TaxMutations, TaxQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
-from .webhook.subscription_types import SUBSCRIPTION_EVENTS_TYPES, Subscription
+from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
@@ -90,6 +90,6 @@ class Mutation(
 schema = build_federated_schema(
     Query,
     mutation=Mutation,
-    types=unit_enums + SUBSCRIPTION_EVENTS_TYPES,
+    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
 )

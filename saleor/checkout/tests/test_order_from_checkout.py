@@ -231,7 +231,9 @@ def test_create_order_gift_card_bought(
     is_anonymous_user,
     non_shippable_gift_card_product,
     app,
+    payment_txn_captured,
 ):
+    # given
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card_items
     checkout.user = checkout_user
@@ -260,6 +262,13 @@ def test_create_order_gift_card_bought(
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
+    payment = payment_txn_captured
+    payment.checkout = checkout
+    payment.captured_amount = total_gross.amount
+    payment.total = total_gross.amount
+    payment.save(update_fields=["checkout", "captured_amount", "total"])
+
+    # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
@@ -270,6 +279,7 @@ def test_create_order_gift_card_bought(
         tracking_code="tracking_code",
     )
 
+    # then
     flush_post_commit_hooks()
     assert order.total.gross == total_gross
     flush_post_commit_hooks()
@@ -281,6 +291,7 @@ def test_create_order_gift_card_bought(
         ).unit_price_gross
     )
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         None,
         app,

@@ -94,6 +94,7 @@ class OrderConfirm(ModelMutation):
                     payment.total,
                     payment,
                     manager,
+                    info.context.site.settings,
                 )
             )
         transaction.on_commit(
