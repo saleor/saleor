@@ -326,10 +326,7 @@ class Transaction(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
-    error = models.CharField(
-        max_length=256,
-        null=True,
-    )
+    error = models.TextField(null=True)
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)

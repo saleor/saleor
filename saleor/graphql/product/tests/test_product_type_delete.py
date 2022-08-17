@@ -35,9 +35,9 @@ def test_product_type_delete_mutation(
         product_type.refresh_from_db()
 
 
-@patch("saleor.product.signals.delete_product_media_task.delay")
+@patch("saleor.product.signals.delete_from_storage_task.delay")
 def test_product_type_delete_mutation_deletes_also_images(
-    delete_product_media_task_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     product_type,
     product_with_image,
@@ -46,6 +46,7 @@ def test_product_type_delete_mutation_deletes_also_images(
     query = PRODUCT_TYPE_DELETE_MUTATION
     product_type.products.add(product_with_image)
     media_obj = product_with_image.media.first()
+    media_path = media_obj.image.path
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
@@ -55,7 +56,7 @@ def test_product_type_delete_mutation_deletes_also_images(
     assert data["productType"]["name"] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
-    delete_product_media_task_mock.assert_called_once_with(media_obj.id)
+    delete_from_storage_task_mock.assert_called_once_with(media_path)
     with pytest.raises(product_with_image._meta.model.DoesNotExist):
         product_with_image.refresh_from_db()
 

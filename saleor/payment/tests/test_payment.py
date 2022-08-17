@@ -81,6 +81,19 @@ def transaction_data(payment_dummy, gateway_response):
 
 
 @pytest.fixture
+def transaction_data_long_error_message(payment_dummy):
+    error_msg = "This is very very long response from payment gateway. " * 10
+    return {
+        "payment": payment_dummy,
+        "payment_information": create_payment_information(
+            payment_dummy, "payment-token"
+        ),
+        "error_msg": error_msg,
+        "kind": TransactionKind.CAPTURE_FAILED,
+    }
+
+
+@pytest.fixture
 def transaction_token():
     return "transaction-token"
 
@@ -395,6 +408,14 @@ def test_create_transaction(transaction_data):
     assert txn.token == gateway_response.transaction_id
     assert txn.is_success == gateway_response.is_success
     assert txn.gateway_response == gateway_response.raw_response
+
+
+def test_create_transaction_long_error_message(transaction_data_long_error_message):
+    transaction_data = transaction_data_long_error_message
+    txn = create_transaction(**transaction_data)
+
+    assert txn.payment == transaction_data["payment"]
+    assert txn.error == transaction_data["error_msg"]
 
 
 def test_create_transaction_no_gateway_response(transaction_data):
