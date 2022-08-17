@@ -1,4 +1,4 @@
-from typing import Collection, Set, Union
+from typing import Collection, Set, Tuple, Union
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
@@ -117,7 +117,9 @@ class AppTokenManager(models.Manager):
         app_token.save()
         return app_token, auth_token
 
-    def create_with_token(self, *args, **kwargs):
+    def create_with_token(self, *args, **kwargs) -> Tuple["AppToken", str]:
+        # As `create` is waiting to be fixed, I'm using this proper method from future
+        # to get both AppToken and auth_token.
         return self.create(*args, **kwargs)
 
 
