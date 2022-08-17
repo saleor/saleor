@@ -83,8 +83,13 @@ class I18nMixin:
                         errors_dict[field] = errors
                     else:
                         address_form.cleaned_data[field] = address_form.data[field]
-                if required_check and error.code == "required":
-                    errors_dict[field] = errors
+                if error.code == "required":
+                    field_value = address_form.data.get(field)
+                    if required_check:
+                        errors_dict[field] = errors
+                    elif field_value is not None:
+                        address_form.cleaned_data[field] = field_value
+
         return errors_dict
 
     @classmethod

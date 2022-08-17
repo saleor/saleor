@@ -446,6 +446,7 @@ def test_checkout_shipping_address_update_exclude_shipping_method(
     "address_data",
     [
         {"country": "PL"},  # missing postalCode, streetAddress
+        {"country": "PL", "postalCode": ""},
         {"country": "PL", "postalCode": "53-601"},  # missing streetAddress
         {"country": "US"},
         {
@@ -476,6 +477,39 @@ def test_checkout_shipping_address_update_with_skip_required_doesnt_raise_error(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     assert checkout_with_items.shipping_address
+
+
+def test_checkout_shipping_address_update_with_skip_required_overwrite_address(
+    checkout_with_items, user_api_client, address
+):
+    # given
+    checkout_with_items.shipping_address = address
+    checkout_with_items.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": {
+            "postalCode": "",
+            "city": "",
+            "country": "US",
+        },
+        "validationRules": {"checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+
+    assert checkout_with_items.shipping_address.city == ""
+    assert checkout_with_items.shipping_address.postal_code == ""
 
 
 def test_checkout_shipping_address_update_with_skip_required_raises_validation_error(
