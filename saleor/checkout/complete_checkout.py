@@ -662,7 +662,7 @@ def _get_order_data(
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
-    tax_configuration = checkout_info.channel.tax_configuration
+    tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     try:
         order_data = _prepare_order_data(
@@ -1016,7 +1016,7 @@ def _create_order_from_checkout(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     reservation_enabled = is_reservation_enabled(site_settings)
-    tax_configuration = checkout_info.channel.tax_configuration
+    tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # total

@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_prices_entered_with_tax_for_checkout(checkout_info: "CheckoutInfo"):
-    tax_configuration = checkout_info.channel.tax_configuration
+    tax_configuration = checkout_info.tax_configuration
     return tax_configuration.prices_entered_with_tax
 
 

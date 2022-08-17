@@ -1168,7 +1168,7 @@ def generate_checkout_payload_for_tax_calculation(
     lines: Iterable["CheckoutLineInfo"],
 ):
     checkout = checkout_info.checkout
-    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     discount_infos = fetch_active_discounts()
 

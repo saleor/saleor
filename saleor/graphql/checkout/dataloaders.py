@@ -27,6 +27,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByChannelSlugLoader,
 )
+from ..tax.dataloaders import TaxConfigurationByChannelId
 from ..warehouse.dataloaders import WarehouseByIdLoader
 
 
@@ -244,6 +245,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     if checkout.voucher_code
                 }
                 vouchers = VoucherByCodeLoader(self.context).load_many(voucher_codes)
+                channel_ids = [channel.id for channel in channels]
+                tax_configurations = TaxConfigurationByChannelId(
+                    self.context
+                ).load_many(channel_ids)
 
                 def with_checkout_info(results):
                     (
@@ -253,6 +258,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         listings_for_channels,
                         collection_points,
                         vouchers,
+                        tax_configurations,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -265,6 +271,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         for collection_point in collection_points
                     }
                     voucher_map = {voucher.code: voucher for voucher in vouchers}
+                    tax_configuration_by_channel_map = {
+                        tax_configuration.channel_id: tax_configuration
+                        for tax_configuration in tax_configurations
+                    }
 
                     checkout_info_map = {}
                     for key, checkout, channel, checkout_lines in zip(
@@ -292,6 +302,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 checkout.shipping_address_id
                             ),
                             delivery_method_info=delivery_method_info,
+                            tax_configuration=tax_configuration_by_channel_map.get(
+                                channel.id
+                            ),
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
                             voucher=voucher,
@@ -327,6 +340,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method_channel_listings,
                         collection_points,
                         vouchers,
+                        tax_configurations,
                     ]
                 ).then(with_checkout_info)
 

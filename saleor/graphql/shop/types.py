@@ -299,7 +299,7 @@ class Shop(graphene.ObjectType):
         description="Include taxes in prices.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use "
-            "`Channel.taxConfiguration.prices_entered_with_tax` to determine whether "
+            "`Channel.taxConfiguration.pricesEnteredWithTax` to determine whether "
             "prices are entered with tax."
         ),
         required=True,

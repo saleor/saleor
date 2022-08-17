@@ -264,7 +264,7 @@ def get_checkout_lines_data(
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
 
-    tax_configuration = channel.tax_configuration
+    tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher

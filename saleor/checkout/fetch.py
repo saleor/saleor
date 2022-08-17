@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
+    from ..tax.models import TaxConfiguration
     from .models import Checkout, CheckoutLine
 
 
@@ -65,6 +66,7 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
     all_shipping_methods: List["ShippingMethodData"]
+    tax_configuration: "TaxConfiguration"
     valid_pick_up_points: List["Warehouse"]
     voucher: Optional["Voucher"] = None
 
@@ -393,6 +395,7 @@ def fetch_checkout_info(
     from .utils import get_voucher_for_checkout
 
     channel = checkout.channel
+    tax_configuration = channel.tax_configuration
     shipping_address = checkout.shipping_address
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
@@ -406,6 +409,7 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
+        tax_configuration=tax_configuration,
         all_shipping_methods=[],
         valid_pick_up_points=[],
         voucher=voucher,

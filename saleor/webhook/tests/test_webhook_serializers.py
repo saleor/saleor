@@ -134,7 +134,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
     discounts_info = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts_info, manager)
 
-    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration = checkout_info.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete
