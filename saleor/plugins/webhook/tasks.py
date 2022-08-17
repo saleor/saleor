@@ -24,14 +24,11 @@ from ...graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
 )
+from ...graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ...payment import PaymentError
 from ...site.models import Site
 from ...webhook import observability
-from ...webhook.event_types import (
-    SUBSCRIBABLE_EVENTS,
-    WebhookEventAsyncType,
-    WebhookEventSyncType,
-)
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.observability import WebhookData
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
@@ -81,7 +78,7 @@ def create_deliveries_for_subscriptions(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
-    if event_type not in SUBSCRIBABLE_EVENTS:
+    if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
@@ -134,7 +131,7 @@ def create_delivery_for_subscription_sync_event(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
-    if event_type not in SUBSCRIBABLE_EVENTS:
+    if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
