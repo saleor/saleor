@@ -172,11 +172,6 @@ def anonymous_user():
 
 
 @pytest.fixture
-def anonymous_app():
-    return None
-
-
-@pytest.fixture
 def anonymous_plugins():
     return get_plugins_manager()
 

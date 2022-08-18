@@ -386,7 +386,6 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     mocked_notify,
     site_settings,
     anonymous_user,
-    anonymous_app,
     anonymous_plugins,
     digital_content,
     payment_dummy,
@@ -399,10 +398,10 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     )
 
     line = add_variant_to_order(
-        order,
-        line_data,
+        order=order,
+        line_data=line_data,
         user=anonymous_user,
-        app=anonymous_app,
+        app=None,
         manager=anonymous_plugins,
         site_settings=site_settings,
     )
@@ -444,7 +443,6 @@ def test_send_confirmation_emails_without_addresses_for_order(
     site_settings,
     digital_content,
     anonymous_user,
-    anonymous_app,
     anonymous_plugins,
 ):
 
@@ -456,10 +454,10 @@ def test_send_confirmation_emails_without_addresses_for_order(
     )
 
     line = add_variant_to_order(
-        order,
-        line_data,
+        order=order,
+        line_data=line_data,
         user=anonymous_user,
-        app=anonymous_app,
+        app=None,
         manager=anonymous_plugins,
         site_settings=site_settings,
     )
