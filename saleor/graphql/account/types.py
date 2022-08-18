@@ -245,7 +245,9 @@ class User(ModelObjectType):
     last_name = graphene.String(required=True)
     is_staff = graphene.Boolean(required=True)
     is_active = graphene.Boolean(required=True)
-    addresses = NonNullList(Address, description="List of all user's addresses.")
+    addresses = NonNullList(
+        Address, description="List of all user's addresses.", required=True
+    )
     checkout = graphene.Field(
         Checkout,
         description="Returns the last open checkout of this user.",
