@@ -17591,6 +17591,13 @@ input OrderFulfillInput {
 
   """If true, then allow proceed fulfillment when stock is exceeded."""
   allowStockToBeExceeded: Boolean = false
+
+  """
+  Fulfillment tracking number.
+  
+  Added in Saleor 3.6.
+  """
+  trackingNumber: String
 }
 
 input OrderFulfillLineInput {
@@ -22200,13 +22207,13 @@ type OrderFullyPaid implements Event {
 }
 
 """
-Event sent when order is canceled.
+Event sent when order is fulfilled.
 
 Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderCancelled implements Event {
+type OrderFulfilled implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -22224,13 +22231,13 @@ type OrderCancelled implements Event {
 }
 
 """
-Event sent when order is fulfilled.
+Event sent when order is canceled.
 
 Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFulfilled implements Event {
+type OrderCancelled implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

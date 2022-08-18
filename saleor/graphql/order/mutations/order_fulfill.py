@@ -11,6 +11,7 @@ from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import load_app
+from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
@@ -54,6 +55,10 @@ class OrderFulfillInput(graphene.InputObjectType):
     allow_stock_to_be_exceeded = graphene.Boolean(
         description="If true, then allow proceed fulfillment when stock is exceeded.",
         default_value=False,
+    )
+    tracking_number = graphene.String(
+        description="Fulfillment tracking number." + ADDED_IN_36,
+        required=False,
     )
 
 
@@ -250,7 +255,7 @@ class OrderFulfill(BaseMutation):
         )
 
         approved = info.context.site.settings.fulfillment_auto_approve
-
+        tracking_number = cleaned_input.get("tracking_number", "")
         try:
             fulfillments = create_fulfillments(
                 user,
@@ -262,6 +267,7 @@ class OrderFulfill(BaseMutation):
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 approved=approved,
+                tracking_number=tracking_number,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
