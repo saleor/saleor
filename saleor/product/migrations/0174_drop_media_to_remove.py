@@ -2,15 +2,20 @@
 
 from django.db import migrations
 
+from ...core.tasks import delete_files_from_storage_task
+
 
 def drop_media_to_remove(apps, _schema_editor):
     ProductMedia = apps.get_model("product", "ProductMedia")
     # delete all related images
+    image_paths_to_delete = []
     for media in ProductMedia.objects.filter(to_remove=True).iterator():
-        media.image.delete()
-        thumbnails = media.thumbnails.all()
-        for thumbnail in thumbnails:
-            thumbnail.image.delete()
+        image_paths_to_delete.append(media.image.path)
+        for thumbnail in media.thumbnails.all():
+            image_paths_to_delete.append(thumbnail.image.path)
+
+    if image_paths_to_delete:
+        delete_files_from_storage_task.delay(image_paths_to_delete)
 
     ProductMedia.objects.filter(to_remove=True).delete()
 
@@ -19,6 +24,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("product", "0173_create_default_category_and_product_type"),
+        ("thumbnail", "0001_initial"),
     ]
 
     operations = [
