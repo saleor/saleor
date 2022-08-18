@@ -280,7 +280,6 @@ def test_add_variant_to_order(
         customer_user,
         None,
         manager,
-        site_settings,
         [discount_info],
     )
 

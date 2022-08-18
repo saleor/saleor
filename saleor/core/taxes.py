@@ -23,10 +23,6 @@ def zero_taxed_money(currency: str) -> TaxedMoney:
     return TaxedMoney(net=zero, gross=zero)
 
 
-def include_taxes_in_prices() -> bool:
-    return Site.objects.get_current().settings.include_taxes_in_prices
-
-
 def charge_taxes_on_shipping() -> bool:
     return Site.objects.get_current().settings.charge_taxes_on_shipping
 

@@ -104,7 +104,6 @@ def test_add_variant_to_order_adds_line_for_new_variant(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
 
     line = order.lines.last()
@@ -145,7 +144,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
         [discount_info],
     )
 
@@ -189,7 +187,6 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
 
     line = order.lines.last()
@@ -217,7 +214,6 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
 
     stock.refresh_from_db()
@@ -241,7 +237,6 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
 
     existing_line.refresh_from_db()
@@ -270,7 +265,6 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
 
     stock.refresh_from_db()
@@ -552,7 +546,6 @@ def test_order_weight_add_more_variant(order_with_lines, info, site_settings):
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -571,7 +564,6 @@ def test_order_weight_add_new_variant(order_with_lines, product, info, site_sett
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -618,7 +610,6 @@ def test_get_order_weight_non_existing_product(
         info.context.user,
         info.context.app,
         info.context.plugins,
-        site_settings,
     )
     old_weight = order.get_total_weight()
 

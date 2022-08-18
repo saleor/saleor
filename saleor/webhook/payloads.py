@@ -18,7 +18,6 @@ from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
-from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -1169,7 +1168,8 @@ def generate_checkout_payload_for_tax_calculation(
     lines: Iterable["CheckoutLineInfo"],
 ):
     checkout = checkout_info.checkout
-    included_taxes_in_prices = include_taxes_in_prices()
+    tax_configuration = checkout_info.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     discount_infos = fetch_active_discounts()
 
     serializer = PayloadSerializer()
@@ -1241,7 +1241,7 @@ def generate_checkout_payload_for_tax_calculation(
         extra_dict_data={
             "user_id": user_id,
             "user_public_metadata": user_public_metadata,
-            "included_taxes_in_prices": included_taxes_in_prices,
+            "included_taxes_in_prices": prices_entered_with_tax,
             "total_amount": total_amount,
             "shipping_amount": shipping_method_amount,
             "shipping_name": shipping_method_name,
@@ -1286,7 +1286,9 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
 @traced_payload_generator
 def generate_order_payload_for_tax_calculation(order: "Order"):
     serializer = PayloadSerializer()
-    included_taxes_in_prices = include_taxes_in_prices()
+
+    tax_configuration = order.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # Prepare Order data
     address = order.shipping_address or order.billing_address
@@ -1311,7 +1313,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
     # Prepare shipping data
     shipping_method_name = order.shipping_method_name
     shipping_method_amount = quantize_price(
-        get_base_price(order.shipping_price, included_taxes_in_prices),
+        get_base_price(order.shipping_price, prices_entered_with_tax),
         order.currency,
     )
 
@@ -1327,7 +1329,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
             "user_id": user_id,
             "user_public_metadata": user_public_metadata,
             "discounts": discounts_dict,
-            "included_taxes_in_prices": included_taxes_in_prices,
+            "included_taxes_in_prices": prices_entered_with_tax,
             "shipping_amount": shipping_method_amount,
             "shipping_name": shipping_method_name,
             "lines": json.loads(

@@ -19,7 +19,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
-from ..core.taxes import include_taxes_in_prices, zero_money
+from ..core.taxes import zero_money
 from . import DiscountInfo
 from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
@@ -224,7 +224,10 @@ def validate_voucher_in_order(order: "Order"):
     if not order.voucher:
         return
 
-    value = subtotal.gross if include_taxes_in_prices() else subtotal.net
+    tax_configuration = order.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
+    value = subtotal.gross if prices_entered_with_tax else subtotal.net
     validate_voucher(
         order.voucher, value, quantity, customer_email, order.channel, order.user
     )

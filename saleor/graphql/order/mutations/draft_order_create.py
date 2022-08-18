@@ -283,7 +283,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     instance,
                     line_data,
                     info.context.plugins,
-                    info.context.site.settings,
                 )
                 lines.append(new_line)
 

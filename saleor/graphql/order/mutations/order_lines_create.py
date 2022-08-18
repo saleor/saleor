@@ -119,7 +119,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_data, user, app, manager, settings, discounts):
+    def add_lines_to_order(order, lines_data, user, app, manager, discounts):
         added_lines: List[OrderLine] = []
         try:
             for line_data in lines_data:
@@ -129,7 +129,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
-                    settings,
                     discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
@@ -158,7 +157,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
-            info.context.site.settings,
             info.context.discounts,
         )
 

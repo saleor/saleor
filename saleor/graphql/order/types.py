@@ -1471,13 +1471,22 @@ class Order(ModelObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            keep_gross = info.context.site.settings.include_taxes_in_prices
-            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
-            return ShippingMethodData(
-                id=external_app_shipping_id,
-                name=root.shipping_method_name,
-                price=price,
-            )
+            tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+
+            def with_tax_config(tax_config):
+                prices_entered_with_tax = tax_config.prices_entered_with_tax
+                price = (
+                    root.shipping_price_gross
+                    if prices_entered_with_tax
+                    else root.shipping_price_net
+                )
+                return ShippingMethodData(
+                    id=external_app_shipping_id,
+                    name=root.shipping_method_name,
+                    price=price,
+                )
+
+            return tax_config.then(with_tax_config)
 
         if not root.shipping_method_id:
             return None

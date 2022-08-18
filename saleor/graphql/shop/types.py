@@ -208,23 +208,12 @@ class Shop(graphene.ObjectType):
         graphene.String, description="List of possible phone prefixes.", required=True
     )
     header_text = graphene.String(description="Header text.")
-    include_taxes_in_prices = graphene.Boolean(
-        description="Include taxes in prices.", required=True
-    )
     fulfillment_auto_approve = graphene.Boolean(
         description="Automatically approve all new fulfillments." + ADDED_IN_31,
         required=True,
     )
     fulfillment_allow_unpaid = graphene.Boolean(
         description="Allow to approve fulfillments which are unpaid." + ADDED_IN_31,
-        required=True,
-    )
-    display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
-            "whether to display gross or net prices."
-        ),
         required=True,
     )
     charge_taxes_on_shipping = graphene.Boolean(
@@ -305,6 +294,25 @@ class Shop(graphene.ObjectType):
         ],
     )
 
+    # deprecated
+    include_taxes_in_prices = graphene.Boolean(
+        description="Include taxes in prices.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use "
+            "`Channel.taxConfiguration.pricesEnteredWithTax` to determine whether "
+            "prices are entered with tax."
+        ),
+        required=True,
+    )
+    display_gross_prices = graphene.Boolean(
+        description="Display prices with tax in store.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
+            "whether to display gross or net prices."
+        ),
+        required=True,
+    )
+
     class Meta:
         description = (
             "Represents a shop resource containing general shop data and configuration."
@@ -381,21 +389,12 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.header_text
 
     @staticmethod
-    def resolve_include_taxes_in_prices(_, info):
-        return info.context.site.settings.include_taxes_in_prices
-
-    @staticmethod
     def resolve_fulfillment_auto_approve(_, info):
         return info.context.site.settings.fulfillment_auto_approve
 
     @staticmethod
     def resolve_fulfillment_allow_unpaid(_, info):
         return info.context.site.settings.fulfillment_allow_unpaid
-
-    @staticmethod
-    def resolve_display_gross_prices(_, info):
-        # deprecated
-        return info.context.site.settings.display_gross_prices
 
     @staticmethod
     def resolve_charge_taxes_on_shipping(_, info):
@@ -484,3 +483,13 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_version(_, _info):
         return __version__
+
+    # deprecated
+
+    @staticmethod
+    def resolve_include_taxes_in_prices(_, info):
+        return info.context.site.settings.include_taxes_in_prices
+
+    @staticmethod
+    def resolve_display_gross_prices(_, info):
+        return info.context.site.settings.display_gross_prices
