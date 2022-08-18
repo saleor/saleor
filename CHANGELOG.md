@@ -419,6 +419,7 @@ Just so you know, changes mentioned in this section are in a preview state and c
 
 - Add support for `bcrypt` password hashes - #10346 by @pkucmus
 - Add the ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
+- Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek
 
 # 3.6.0
 
