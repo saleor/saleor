@@ -16,6 +16,7 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
 from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
 from ...discount import DiscountInfo
+from ...order import base_calculations as base_order_calculations
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -576,26 +577,15 @@ class AvataxPlugin(BasePlugin):
             / quantity,
         )
 
-    def calculate_order_shipping(
-        self, order: "Order", previous_value: TaxedMoney
+    def _calculate_order_shipping(
+        self, order, taxes_data, previous_value
     ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        if not charge_taxes_on_shipping():
-            return previous_value
-
-        if not _validate_order(order):
-            return previous_value
-        taxes_data = get_order_tax_data(
-            order, self.config, self.config.tax_included, False
-        )
-
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line["itemCode"] == "Shipping":
                 tax = Decimal(line.get("tax", 0.0))
-                net = Decimal(line.get("lineAmount", 0.0))
+                discount_amount = Decimal(line.get("discountAmount", 0.0))
+                net = Decimal(line.get("lineAmount", 0.0)) - discount_amount
                 if currency == "JPY" and self.config.tax_included:
                     gross = previous_value.gross
                     net = Money(amount=gross.amount - tax, currency=currency)
@@ -614,6 +604,72 @@ class AvataxPlugin(BasePlugin):
         return TaxedMoney(
             net=price,
             gross=price,
+        )
+
+    def calculate_order_shipping(
+        self, order: "Order", previous_value: TaxedMoney
+    ) -> TaxedMoney:
+        if self._skip_plugin(previous_value):
+            return previous_value
+
+        if not charge_taxes_on_shipping():
+            return previous_value
+
+        if not _validate_order(order):
+            return previous_value
+
+        taxes_data = get_order_tax_data(
+            order, self.config, self.config.tax_included, False
+        )
+
+        return self._calculate_order_shipping(order, taxes_data, previous_value)
+
+    def calculate_order_total(
+        self,
+        order: "Order",
+        lines: Iterable["OrderLine"],
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
+        if self._skip_plugin(previous_value):
+            return previous_value
+        order_total = previous_value
+
+        if not _validate_order(order):
+            return order_total
+
+        taxes_data = get_order_tax_data(
+            order, self.config, self.config.tax_included, False
+        )
+
+        currency = order.currency
+        taxed_subtotal = zero_taxed_money(currency)
+
+        for line in lines:
+            base_line_price = OrderTaxedPricesData(
+                undiscounted_price=line.undiscounted_total_price,
+                price_with_discounts=TaxedMoney(
+                    line.base_unit_price, line.base_unit_price
+                )
+                * line.quantity,
+            )
+            taxed_line_total_data = self._calculate_order_line_total_price(
+                taxes_data,
+                line.product_sku or line.variant_name,
+                self.config.tax_included,
+                base_line_price,
+            ).price_with_discounts
+            taxed_subtotal += taxed_line_total_data
+
+        base_shipping_price = base_order_calculations.base_order_shipping(order)
+        shipping_price = self._calculate_order_shipping(
+            order, taxes_data, base_shipping_price
+        )
+
+        taxed_total = taxed_subtotal + shipping_price
+
+        return max(
+            taxed_total,
+            zero_taxed_money(currency),
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:

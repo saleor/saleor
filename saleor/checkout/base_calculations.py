@@ -14,12 +14,10 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountInfo, VoucherType
-from ..order.interface import OrderTaxedPricesData
 from .fetch import CheckoutInfo, CheckoutLineInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
-    from ..order.models import OrderLine
     from .fetch import ShippingMethodInfo
 
 
@@ -215,24 +213,6 @@ def base_checkout_subtotal(
     ]
 
     return sum(line_totals, zero_money(currency))
-
-
-def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
-    quantity = order_line.quantity
-    price_with_discounts = (
-        TaxedMoney(order_line.base_unit_price, order_line.base_unit_price) * quantity
-    )
-    undiscounted_price = (
-        TaxedMoney(
-            order_line.undiscounted_base_unit_price,
-            order_line.undiscounted_base_unit_price,
-        )
-        * quantity
-    )
-    return OrderTaxedPricesData(
-        undiscounted_price=undiscounted_price,
-        price_with_discounts=price_with_discounts,
-    )
 
 
 def base_tax_rate(price: TaxedMoney):
