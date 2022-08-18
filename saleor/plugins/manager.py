@@ -31,6 +31,7 @@ from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
+from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -292,15 +293,32 @@ class PluginsManager(PaymentInterface):
             checkout_info.checkout.currency,
         )
 
+    def calculate_order_total(
+        self,
+        order: "Order",
+        lines: Iterable["OrderLine"],
+    ) -> TaxedMoney:
+        currency = order.currency
+        default_value = base_order_calculations.base_order_total(order, lines)
+        default_value = TaxedMoney(default_value, default_value)
+        if default_value <= zero_taxed_money(currency):
+            return quantize_price(
+                default_value,
+                currency,
+            )
+
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_order_total",
+                default_value,
+                order,
+                lines,
+            ),
+            currency,
+        )
+
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
-        if not order.shipping_method:
-            return zero_taxed_money(order.currency)
-        channel_listing = order.shipping_method.channel_listings.filter(
-            channel_id=order.channel_id
-        ).first()
-        if not channel_listing:
-            return zero_taxed_money(order.currency)
-        shipping_price = channel_listing.price
+        shipping_price = base_order_calculations.base_order_shipping(order)
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
@@ -390,7 +408,7 @@ class PluginsManager(PaymentInterface):
         variant: "ProductVariant",
         product: "Product",
     ) -> OrderTaxedPricesData:
-        default_value = base_calculations.base_order_line_total(order_line)
+        default_value = base_order_calculations.base_order_line_total(order_line)
         line_total = self.__run_method_on_plugins(
             "calculate_order_line_total",
             default_value,
