@@ -22,6 +22,7 @@ from ...product.models import (
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
+from ..app.dataloaders import promise_app
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
@@ -98,7 +99,7 @@ class Event(graphene.Interface):
 
     @staticmethod
     def resolve_recipient(_root, info):
-        return info.context.app
+        return promise_app(info.context)
 
     @staticmethod
     def resolve_issuing_principal(_root, info):

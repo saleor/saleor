@@ -30,8 +30,8 @@ class RequestWithUser(Protocol):
 
 
 def set_decoded_auth_token(request):
-    request.auth_token = get_token_from_request(request)
-    decoded_auth_token = jwt_decode_with_exception_handler(request.auth_token)
+    auth_token = get_token_from_request(request)
+    decoded_auth_token = jwt_decode_with_exception_handler(auth_token)
     request.decoded_auth_token = decoded_auth_token
 
 

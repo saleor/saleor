@@ -5415,16 +5415,9 @@ def webhook_app(
 
 
 @pytest.fixture
-def webhook_app_with_token(webhook_app):
-    _, webhook_app._raw_auth_token = AppToken.objects.create(
-        app=webhook_app, name="Webhook app token"
-    )
-    return webhook_app
-
-
-@pytest.fixture
-def app_with_token(app):
-    _, app._raw_auth_token = app.tokens.create_with_token(name="Test")
+def app_with_token(db):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Test")
     return app
 
 

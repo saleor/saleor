@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.contrib.auth.hashers import check_password
 
 from ...app.models import App, AppExtension, AppToken
+from ...core.auth import get_token_from_request
 from ..core.dataloaders import DataLoader
 
 
@@ -67,7 +68,13 @@ class AppByTokenLoader(DataLoader):
         return [apps.get(authed_apps.get(key)) for key in keys]
 
 
-def load_app(context):
-    if not getattr(context, "auth_token", None):
+def promise_app(context):
+    auth_token = get_token_from_request(context)
+    if not auth_token:
         return None
-    return AppByTokenLoader(context).load(context.auth_token).get()
+    return AppByTokenLoader(context).load(auth_token)
+
+
+def load_app(context):
+    promise = promise_app(context)
+    return None if promise is None else promise.get()
