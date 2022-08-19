@@ -32,14 +32,14 @@ body:
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: logs
     attributes:
       label: "Logs"
       description: Include any logs from the console, screenshots, and any API queries or responses that could help us understand the problem.
     validations:
       required: false
   - type: textarea
-    id: steps
+    id: environment
     attributes:
       label: "Environment"
       description: Provide some information about your environment.
