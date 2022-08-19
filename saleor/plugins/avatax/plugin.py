@@ -71,6 +71,8 @@ class AvataxPlugin(BasePlugin):
         {"name": "from_country_area", "value": None},
         {"name": "from_postal_code", "value": None},
         {"name": "shipping_tax_code", "value": "FR000000"},
+        {"name": "override_global_tax", "value": False},
+        {"name": "include_taxes_in_prices", "value": True},
     ]
     CONFIG_STRUCTURE = {
         "Username or account": {
@@ -136,6 +138,16 @@ class AvataxPlugin(BasePlugin):
             ),
             "label": "Shipping tax code",
         },
+        "override_global_tax": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Used when setting per channel is needed.",
+            "label": "Override global tax settings.",
+        },
+        "include_taxes_in_prices": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": 'Applied only if "Override global tax settings" is on.',
+            "label": "All products prices are entered with tax included.",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -198,10 +210,6 @@ class AvataxPlugin(BasePlugin):
         if not response or "error" in response:
             return checkout_total
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
-
         currency = checkout_info.checkout.currency
         taxed_total = zero_taxed_money(currency)
 
@@ -209,7 +217,7 @@ class AvataxPlugin(BasePlugin):
             taxed_line_total_data = self._calculate_checkout_line_total_price(
                 taxes_data=response,
                 item_code=line.variant.sku or line.variant.get_global_id(),
-                tax_included=tax_included,
+                tax_included=self._tax_included,
                 # for some cases we will need a base_value but no need to call it for
                 # each line
                 base_value=SimpleLazyObject(  # type:ignore
@@ -250,10 +258,7 @@ class AvataxPlugin(BasePlugin):
                 shipping_tax = Decimal(line["tax"])
                 break
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
-        if currency == "JPY" and tax_included():
+        if currency == "JPY" and self._tax_included():
             shipping_gross = Money(amount=shipping_price.amount, currency=currency)
             shipping_net = Money(
                 amount=shipping_gross.amount - shipping_tax, currency=currency
@@ -385,17 +390,13 @@ class AvataxPlugin(BasePlugin):
         if not _validate_checkout(checkout_info, lines):
             return base_total
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
-
         taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         variant = checkout_line_info.variant
 
         return self._calculate_checkout_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            tax_included,
+            self._tax_included,
             previous_value,
         )
 
@@ -449,15 +450,11 @@ class AvataxPlugin(BasePlugin):
         if not _validate_order(order):
             return previous_value
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
-
         taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_order_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            tax_included,
+            self._tax_included,
             previous_value,
         )
 
@@ -524,9 +521,6 @@ class AvataxPlugin(BasePlugin):
         if not _validate_checkout(checkout_info, lines):
             return base_total
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
         variant = checkout_line_info.variant
 
         quantity = checkout_line_info.line.quantity
@@ -535,7 +529,7 @@ class AvataxPlugin(BasePlugin):
         taxed_total_price = self._calculate_checkout_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            tax_included,
+            self._tax_included,
             default_total,
         )
         return taxed_total_price / quantity
@@ -551,10 +545,6 @@ class AvataxPlugin(BasePlugin):
         if not variant or (variant and not product.charge_taxes):
             return previous_value
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
-
         quantity = order_line.quantity
         taxes_data = self._get_order_tax_data(order, previous_value)
         default_total = OrderTaxedPricesData(
@@ -564,13 +554,24 @@ class AvataxPlugin(BasePlugin):
         taxed_total_prices_data = self._calculate_order_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            tax_included,
+            self._tax_included,
             default_total,
         )
         return OrderTaxedPricesData(
             undiscounted_price=taxed_total_prices_data.undiscounted_price / quantity,
             price_with_discounts=taxed_total_prices_data.price_with_discounts
             / quantity,
+        )
+
+    @property
+    def _tax_included(self) -> Callable[[], bool]:
+        configuration = {item["name"]: item["value"] for item in self.configuration}
+        override_global_tax = configuration["override_global_tax"]
+        include_taxes_in_prices = configuration["include_taxes_in_prices"]
+        return lambda: (
+            include_taxes_in_prices
+            if override_global_tax
+            else Site.objects.get_current().settings.include_taxes_in_prices
         )
 
     def calculate_order_shipping(
@@ -586,15 +587,12 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         taxes_data = get_order_tax_data(order, self.config, False)
 
-        tax_included = (
-            lambda: Site.objects.get_current().settings.include_taxes_in_prices
-        )
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line["itemCode"] == "Shipping":
                 tax = Decimal(line.get("tax", 0.0))
                 net = Decimal(line.get("lineAmount", 0.0))
-                if currency == "JPY" and tax_included():
+                if currency == "JPY" and self._tax_included():
                     gross = previous_value.gross
                     net = Money(amount=gross.amount - tax, currency=currency)
                 else:
