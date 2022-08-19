@@ -154,9 +154,10 @@ class ChannelWarehouse(SortableModel):
 
     class Meta:
         unique_together = (("channel", "warehouse"),)
+        ordering = ("sort_order", "pk")
 
     def get_ordering_queryset(self):
-        return self.warehouse.channelwarehouse.all()
+        return self.channel.channelwarehouse.all()
 
 
 class Warehouse(ModelWithMetadata):

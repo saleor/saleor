@@ -15,10 +15,13 @@ from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
 from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import ChannelError, ChannelErrorCode, NonNullList
 from ..core.utils import get_duplicated_values, get_duplicates_items
+from ..core.utils.reordering import perform_reordering
 from ..utils.validators import check_for_duplicates
+from ..warehouse.types import Warehouse
 from .types import Channel
 from .utils import delete_invalid_warehouse_to_shipping_zone_relations
 
@@ -508,3 +511,83 @@ class ChannelDeactivate(BaseMutation):
         channel.save(update_fields=["is_active"])
         info.context.plugins.channel_status_changed(channel)
         return ChannelDeactivate(channel=channel)
+
+
+class ChannelReorderWarehouses(BaseMutation):
+    channel = graphene.Field(
+        Channel, description="Channel within the warehouses are reordered."
+    )
+
+    class Arguments:
+        channel_id = graphene.ID(
+            description="ID of a channel.",
+            required=True,
+        )
+        moves = NonNullList(
+            ReorderInput,
+            required=True,
+            description=(
+                "The list of reordering operations for given channel warehouses."
+            ),
+        )
+
+    class Meta:
+        description = "Reorder the warehouses of a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, channel_id, moves):
+        channel = cls.get_node_or_error(
+            info, channel_id, field="channel_id", only_type=Channel
+        )
+
+        warehouses_m2m = channel.channelwarehouse
+        operations = cls.get_operations(moves, warehouses_m2m)
+
+        with traced_atomic_transaction():
+            perform_reordering(warehouses_m2m, operations)
+
+        return ChannelReorderWarehouses(channel=channel)
+
+    @classmethod
+    def get_operations(cls, moves, channel_warehouses_m2m):
+        # TODO: maybe try to make a generic method for that ???
+        # maybe even create a generic Mixin for the reordering???
+        warehouse_ids = [move["id"] for move in moves]
+        warehouse_pks = cls.get_global_ids_or_error(
+            warehouse_ids, only_type=Warehouse, field="moves"
+        )
+
+        warehouses_m2m = channel_warehouses_m2m.filter(warehouse_id__in=warehouse_pks)
+
+        if warehouses_m2m.count() != len(warehouse_pks):
+            pks = {
+                str(pk) for pk in warehouses_m2m.values_list("warehouse_id", flat=True)
+            }
+            invalid_values = set(warehouse_pks) - pks
+            invalid_ids = [
+                graphene.Node.to_global_id("Warehouse", warehouse_id)
+                for warehouse_id in invalid_values
+            ]
+            raise ValidationError(
+                {
+                    "moves": ValidationError(
+                        "Couldn't resolve to a warehouse",
+                        code=ChannelErrorCode.NOT_FOUND,
+                        params={"warehouses": invalid_ids},
+                    )
+                }
+            )
+
+        warehouses_m2m = list(warehouses_m2m)
+        warehouses_m2m.sort(
+            key=lambda e: warehouse_pks.index(str(e.warehouse_id))
+        )  # preserve order in pks
+
+        operations = {
+            warehouse_m2m.pk: move_info.sort_order
+            for warehouse_m2m, move_info in zip(warehouses_m2m, moves)
+        }
+
+        return operations

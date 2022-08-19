@@ -76,4 +76,8 @@ class Migration(migrations.Migration):
             name="channelwarehouse",
             unique_together={("channel", "warehouse")},
         ),
+        migrations.AlterModelOptions(
+            name="channelwarehouse",
+            options={"ordering": ("sort_order", "pk")},
+        ),
     ]
