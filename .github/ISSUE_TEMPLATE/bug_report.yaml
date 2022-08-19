@@ -1,0 +1,50 @@
+name: Bug report
+description: Create a bug report
+title: ""
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: "What were you trying to do?"
+      description: Tell us what you were trying to achieve when you encountered the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "How can we reproduce the problem?"
+      description: Tell us how to reproduce the problem starting with an empty database.
+      placeholder: |
+        1. Create a product with two attributes…
+        2. …
+        3. Run `…`
+        4. See that it failed with…
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "What did you expect to happen?"
+      description: Tell us why you think the behavior described earlier is incorrect.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Logs"
+      description: Include any logs from the console, screenshots, and any API queries or responses that could help us understand the problem.
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Environment"
+      description: Provide some information about your environment.
+      value: |
+        Saleor version: …
+        OS and version: …
+    validations:
+      required: true
