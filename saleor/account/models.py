@@ -1,4 +1,5 @@
 from typing import Collection, Union
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.models import _user_has_perm  # type: ignore
@@ -184,6 +185,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
     search_document = models.TextField(blank=True, default="")
+    uuid = models.UUIDField(default=uuid4, unique=True)
 
     USERNAME_FIELD = "email"
 

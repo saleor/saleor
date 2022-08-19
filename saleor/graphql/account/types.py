@@ -454,7 +454,7 @@ class User(ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_avatar(thumbnail):
-            url = get_image_or_proxy_url(thumbnail, root.id, "User", size, format)
+            url = get_image_or_proxy_url(thumbnail, root.uuid, "User", size, format)
             return Image(url=url, alt=None)
 
         return (
