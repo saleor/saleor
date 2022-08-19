@@ -13,7 +13,7 @@
     crossorigin="anonymous"
   />
 
-  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@1.0.0-3/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1n0BhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@1.0.0-3/dist/umd/index.css; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png">
+  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@1.0.0-3/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@1.0.0-3/dist/umd/index.css; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png">
 </head>
 <body>
   <div id="root" data-endpoint="{{ api_url }}" {% if query %}data-query="{{ query }}"{% endif %}></div>
@@ -23,7 +23,7 @@
     crossorigin="anonymous"
   ></script>
 
-  {# sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1n0BhZrL+c= #}
+  {# sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c= #}
   <script type="module">
     const root = document.querySelector("#root");
     const endpoint = root.dataset.endpoint;
