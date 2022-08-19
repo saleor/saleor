@@ -7,10 +7,10 @@ from promise import Promise
 
 from ..account.models import User
 from ..app.models import App
+from ..app.utils import get_app
 from ..core.auth import get_token_from_request
 from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
-from .app.dataloaders import get_app
 
 
 def get_context_value(request):
