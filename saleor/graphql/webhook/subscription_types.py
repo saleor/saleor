@@ -1,3 +1,4 @@
+from typing import Tuple
 import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.utils import timezone
@@ -19,6 +20,10 @@ from ...product.models import (
     ProductTranslation,
     ProductVariantTranslation,
 )
+from ...checkout import models as checkout_models
+from ...order import models as order_models
+from ..checkout.types import Checkout
+from ..order.types import Order
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
@@ -32,6 +37,7 @@ from ..core.descriptions import (
     ADDED_IN_36,
     PREVIEW_FEATURE,
 )
+
 from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
 from ..payment.enums import TransactionActionEnum
@@ -1357,6 +1363,18 @@ class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
             "List shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
         )
 
+# from saleor.graphql.core.types.taxes import TaxableObject
+class CalculateTaxes(ObjectType):
+    # source_object = graphene.Field(TaxSourceObject, required=True)
+    tax_base = graphene.Field("saleor.graphql.core.types.taxes.TaxableObject", required=True)
+    
+    class Meta:
+        interfaces = (Event,)
+
+    def resolve_tax_base(root, info):
+        _, tax_base = root
+        return tax_base
+    
 
 class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     shipping_methods = NonNullList(
@@ -1549,4 +1567,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         ShippingListMethodsForCheckout
     ),
+    WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes
 }

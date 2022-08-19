@@ -23971,68 +23971,12 @@ type CalculateTaxes implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  sourceObject: TaxSourceObject!
   taxBase: TaxableObject!
 }
 
-union TaxSourceObject = Checkout | Order
-
+"""Taxable object."""
 type TaxableObject {
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  id: ID!
-  channel: Channel!
-
-  """The shipping address data."""
-  shippingAddress: Address
-
-  """The billing address data."""
-  billingAddress: Address
-  user: User
-  email: String
+  sourceObject: TaxSourceObject!
 
   """Determine if prices contain entered tax."""
   pricesEnteredWithTax: Boolean!
@@ -24043,8 +23987,8 @@ type TaxableObject {
   """The price of shipping method."""
   shippingPrice: Money!
 
-  """Shipping method name."""
-  shippingName: String
+  """The address data."""
+  address: Address
 
   """List of discounts."""
   discounts: [TaxableObjectDiscount!]!
@@ -24052,6 +23996,8 @@ type TaxableObject {
   """List of lines assigned to the object."""
   lines: [TaxableObjectLine!]!
 }
+
+union TaxSourceObject = Checkout | Order
 
 type TaxableObjectDiscount {
   """The name of the discount."""
@@ -24062,53 +24008,13 @@ type TaxableObjectDiscount {
 }
 
 type TaxableObjectLine {
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
+  sourceLine: TaxSourceLine!
 
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
+  """Number of items."""
+  quantity: Int!
 
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  id: ID!
-  variant: ProductVariant
+  """Determine if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
 
   """The product name."""
   productName: String!
@@ -24119,18 +24025,14 @@ type TaxableObjectLine {
   """The product sku."""
   productSku: String
 
-  """Number of items."""
-  quantity: Int!
-
-  """Determine if taxes are being charged for the product."""
-  chargeTaxes: Boolean!
-
   """Price of the single item in the order line."""
   unitPrice: Money!
 
   """Price of the order line."""
   totalPrice: Money!
 }
+
+union TaxSourceLine = CheckoutLine | OrderLine
 
 """_Any value scalar as defined by Federation spec."""
 scalar _Any

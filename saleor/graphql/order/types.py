@@ -969,7 +969,7 @@ class Order(ModelObjectType):
     delivery_method = graphene.Field(
         DeliveryMethod,
         description=(
-            "The delivery method selected for this checkout."
+            "The delivery method selected for this order."
             + ADDED_IN_31
             + PREVIEW_FEATURE
         ),
