@@ -215,7 +215,7 @@ def resolve_address(info, id):
 
 def resolve_addresses(info, ids):
     user = info.context.user
-    app = info.context.app  # TODO: investigate
+    app = load_app(info.context)  # TODO: investigate
     ids = [
         from_global_id_or_error(address_id, Address, raise_error=True)[1]
         for address_id in ids
