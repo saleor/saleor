@@ -8542,7 +8542,7 @@ type Order implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
 
   """
-  The delivery method selected for this checkout.
+  The delivery method selected for this order.
   
   Added in Saleor 3.1.
   
@@ -23957,6 +23957,179 @@ type ShippingListMethodsForCheckout implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingMethods: [ShippingMethod!]
+}
+
+type CalculateTaxes implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  sourceObject: TaxSourceObject!
+  taxBase: TaxableObject!
+}
+
+union TaxSourceObject = Checkout | Order
+
+type TaxableObject {
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  id: ID!
+  channel: Channel!
+
+  """The shipping address data."""
+  shippingAddress: Address
+
+  """The billing address data."""
+  billingAddress: Address
+  user: User
+  email: String
+
+  """Determine if prices contain entered tax."""
+  pricesEnteredWithTax: Boolean!
+
+  """The currency of the object."""
+  currency: String!
+
+  """The price of shipping method."""
+  shippingPrice: Money!
+
+  """Shipping method name."""
+  shippingName: String
+
+  """List of discounts."""
+  discounts: [TaxableObjectDiscount!]!
+
+  """List of lines assigned to the object."""
+  lines: [TaxableObjectLine!]!
+}
+
+type TaxableObjectDiscount {
+  """The name of the discount."""
+  name: String
+
+  """The amount of the discount."""
+  amount: Money!
+}
+
+type TaxableObjectLine {
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  id: ID!
+  variant: ProductVariant
+
+  """The product name."""
+  productName: String!
+
+  """The variant name"""
+  variantName: String!
+
+  """The product sku."""
+  productSku: String
+
+  """Number of items."""
+  quantity: Int!
+
+  """Determine if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
+
+  """Price of the single item in the order line."""
+  unitPrice: Money!
+
+  """Price of the order line."""
+  totalPrice: Money!
 }
 
 """_Any value scalar as defined by Federation spec."""
