@@ -19918,6 +19918,18 @@ input ChannelCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultCountry: CountryCode!
+
+  """
+  The channel allocation settings.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allocationSettings: AllocationSettingsInput!
+}
+
+input AllocationSettingsInput {
+  """Allocation strategy options."""
+  allocationStrategy: AllocationStrategyEnum!
 }
 
 """
@@ -19971,6 +19983,13 @@ input ChannelUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeWarehouses: [ID!]
+
+  """
+  The channel allocation settings.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allocationSettings: AllocationSettingsInput
 }
 
 """

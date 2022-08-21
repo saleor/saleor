@@ -23,8 +23,16 @@ from ..core.utils import get_duplicated_values, get_duplicates_items
 from ..core.utils.reordering import perform_reordering
 from ..utils.validators import check_for_duplicates
 from ..warehouse.types import Warehouse
+from .enums import AllocationStrategyEnum
 from .types import Channel
 from .utils import delete_invalid_warehouse_to_shipping_zone_relations
+
+
+class AllocationSettingsInput(graphene.InputObjectType):
+    allocation_strategy = AllocationStrategyEnum(
+        description=("Allocation strategy options."),
+        required=True,
+    )
 
 
 class ChannelInput(graphene.InputObjectType):
@@ -59,6 +67,15 @@ class ChannelCreateInput(ChannelInput):
         ),
         required=True,
     )
+    allocation_settings = graphene.Field(
+        AllocationSettingsInput,
+        description=(
+            "The channel allocation settings."
+            # TODO: Add `ADDED_IN_37` label
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
 
 
 class ChannelCreate(ModelMutation):
@@ -85,6 +102,9 @@ class ChannelCreate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
+        cleaned_input["allocation_strategy"] = cleaned_input["allocation_settings"][
+            "allocation_strategy"
+        ]
 
         return cleaned_input
 
@@ -126,6 +146,15 @@ class ChannelUpdateInput(ChannelInput):
         + PREVIEW_FEATURE,
         required=False,
     )
+    allocation_settings = graphene.Field(
+        AllocationSettingsInput,
+        description=(
+            "The channel allocation settings."
+            # TODO: Add `ADDED_IN_37` label
+            + PREVIEW_FEATURE
+        ),
+        required=False,
+    )
 
 
 class ChannelUpdate(ModelMutation):
@@ -165,6 +194,10 @@ class ChannelUpdate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
+        if allocation_settings := cleaned_input.get("allocation_settings"):
+            cleaned_input["allocation_strategy"] = allocation_settings[
+                "allocation_strategy"
+            ]
 
         return cleaned_input
 
