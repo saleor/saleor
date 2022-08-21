@@ -21,6 +21,6 @@ class Migration(migrations.Migration):
                 default="prioritize-high-stock",
                 max_length=255,
             ),
-            # preserve_default=False,
+            preserve_default=False,
         ),
     ]

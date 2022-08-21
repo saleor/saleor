@@ -15,8 +15,6 @@ class Channel(models.Model):
     allocation_strategy = models.CharField(
         max_length=255,
         choices=AllocationStrategy.CHOICES,
-        # TODO: to remove
-        default=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
 
     class Meta:
