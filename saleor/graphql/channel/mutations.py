@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
@@ -552,8 +553,6 @@ class ChannelReorderWarehouses(BaseMutation):
 
     @classmethod
     def get_operations(cls, moves, channel_warehouses_m2m):
-        # TODO: maybe try to make a generic method for that ???
-        # maybe even create a generic Mixin for the reordering???
         warehouse_ids = [move["id"] for move in moves]
         warehouse_pks = cls.get_global_ids_or_error(
             warehouse_ids, only_type=Warehouse, field="moves"
@@ -561,7 +560,7 @@ class ChannelReorderWarehouses(BaseMutation):
 
         warehouses_m2m = channel_warehouses_m2m.filter(warehouse_id__in=warehouse_pks)
 
-        if warehouses_m2m.count() != len(warehouse_pks):
+        if warehouses_m2m.count() != len(set(warehouse_pks)):
             pks = {
                 str(pk) for pk in warehouses_m2m.values_list("warehouse_id", flat=True)
             }
@@ -580,14 +579,13 @@ class ChannelReorderWarehouses(BaseMutation):
                 }
             )
 
-        warehouses_m2m = list(warehouses_m2m)
-        warehouses_m2m.sort(
-            key=lambda e: warehouse_pks.index(str(e.warehouse_id))
-        )  # preserve order in pks
-
-        operations = {
-            warehouse_m2m.pk: move_info.sort_order
-            for warehouse_m2m, move_info in zip(warehouses_m2m, moves)
+        warehouse_id_to_warehouse_m2m_id = {
+            str(warehouse_data["warehouse_id"]): warehouse_data["id"]
+            for warehouse_data in warehouses_m2m.values("id", "warehouse_id")
         }
+        operations = defaultdict(int)
+        for warehouse_pk, move in zip(warehouse_pks, moves):
+            warehouse_m2m_id = warehouse_id_to_warehouse_m2m_id[warehouse_pk]
+            operations[warehouse_m2m_id] += move.sort_order
 
-        return operations
+        return dict(operations)

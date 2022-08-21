@@ -1,6 +1,7 @@
 import uuid
 
 import graphene
+import pytest
 
 from ....channel.error_codes import ChannelErrorCode
 from ....warehouse.models import ChannelWarehouse
@@ -27,7 +28,19 @@ CHANNEL_REORDER_WAREHOUSES = """
 """
 
 
+@pytest.mark.parametrize(
+    "moves, expected_order",
+    [
+        ([(0, 1), (2, -1)], [1, 2, 0]),
+        ([(2, -2)], [2, 0, 1]),
+        ([(0, 1), (0, -1)], [0, 1, 2]),
+        ([(0, -1)], [0, 1, 2]),
+        ([(2, 1)], [0, 1, 2]),
+    ],
+)
 def test_sort_warehouses_with_channel(
+    moves,
+    expected_order,
     staff_api_client,
     permission_manage_channels,
     channel_USD,
@@ -60,12 +73,12 @@ def test_sort_warehouses_with_channel(
     warehouse_3_id = graphene.Node.to_global_id(
         "Warehouse", channel_warehouse_3.warehouse_id
     )
+    warehouses = [warehouse_1_id, warehouse_2_id, warehouse_3_id]
 
     variables = {
         "channelId": channel_id,
         "moves": [
-            {"id": warehouse_1_id, "sortOrder": +1},
-            {"id": warehouse_3_id, "sortOrder": -1},
+            {"id": warehouses[index], "sortOrder": move} for index, move in moves
         ],
     }
 
@@ -79,11 +92,11 @@ def test_sort_warehouses_with_channel(
     data = content["data"]["channelReorderWarehouses"]
     errors = data["errors"]
     assert not errors
-    warehouses = data["channel"]["warehouses"]
-    assert len(warehouses) == 3
-    assert warehouses[0]["id"] == warehouse_2_id
-    assert warehouses[1]["id"] == warehouse_3_id
-    assert warehouses[2]["id"] == warehouse_1_id
+    assert len(data["channel"]["warehouses"]) == 3
+    expected_order = [warehouses[index] for index in expected_order]
+    assert [
+        warehouse_data["id"] for warehouse_data in data["channel"]["warehouses"]
+    ] == expected_order
 
 
 def test_sort_warehouses_with_channel_invalid_channel_id(
