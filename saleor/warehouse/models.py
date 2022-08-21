@@ -168,9 +168,7 @@ class Warehouse(ModelWithMetadata):
         Channel, related_name="warehouses", through=ChannelWarehouse
     )
     shipping_zones = models.ManyToManyField(
-        ShippingZone,
-        blank=True,
-        related_name="warehouses",
+        ShippingZone, blank=True, related_name="warehouses"
     )
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
     email = models.EmailField(blank=True, default="")
