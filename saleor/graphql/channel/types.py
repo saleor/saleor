@@ -4,6 +4,7 @@ from typing import Dict, List, Type, Union, cast
 
 import graphene
 from django.db.models import Model
+from graphene.types.objecttype import ObjectType
 from graphene.types.resolver import get_default_resolver
 from promise import Promise
 
@@ -19,6 +20,7 @@ from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
+from .enums import AllocationStrategyEnum
 
 
 class ChannelContextTypeForObjectType(graphene.ObjectType):
@@ -121,6 +123,20 @@ class ChannelContextTypeWithMetadata(
         abstract = True
 
 
+class AllocationSettings(ObjectType):
+    allocation_strategy = AllocationStrategyEnum(
+        description=("Allocation strategy options."),
+        required=True,
+    )
+
+    class Meta:
+        description = (
+            "Represents the channel allocation settings."
+            # TODO: Add `ADDED_IN_37` label
+            + PREVIEW_FEATURE
+        )
+
+
 class Channel(ModelObjectType):
     id = graphene.GlobalID(required=True)
     slug = graphene.String(
@@ -200,6 +216,19 @@ class Channel(ModelObjectType):
         description="Shipping methods that are available for the channel."
         + ADDED_IN_36
         + PREVIEW_FEATURE,
+    )
+    allocation_settings = PermissionsField(
+        AllocationSettings,
+        description=(
+            "Define the allocation setting for this channel."
+            # TODO: Add `ADDED_IN_37` label
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
     )
 
     class Meta:
@@ -327,3 +356,7 @@ class Channel(ModelObjectType):
             )
 
         return shipping_zones_loader.then(get_shipping_methods)
+
+    @staticmethod
+    def resolve_allocation_settings(root: models.Channel, _info):
+        return AllocationSettings(allocation_strategy=root.allocation_strategy)

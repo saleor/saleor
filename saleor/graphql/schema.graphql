@@ -3882,6 +3882,15 @@ type Channel implements Node {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the allocation setting for this channel.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  allocationSettings: AllocationSettings!
 }
 
 """
@@ -4269,6 +4278,30 @@ enum WeightUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+Represents the channel allocation settings.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AllocationSettings {
+  """Allocation strategy options."""
+  allocationStrategy: AllocationStrategyEnum!
+}
+
+"""
+Determine the allocation strategy for the channel.
+
+    PRIORITIZE_SORTING_ORDER - the allocation is prioritized by the warehouses' sort
+    order within the channel
+
+    PRIORITIZE_HIGH_STOCK - the allocation is prioritized by the highest available
+    quantity in stocks
+"""
+enum AllocationStrategyEnum {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
 }
 
 """Represents shipping method postal code rule."""
