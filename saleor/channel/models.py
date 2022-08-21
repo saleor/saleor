@@ -13,7 +13,10 @@ class Channel(models.Model):
     currency_code = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     default_country = CountryField()
     allocation_strategy = models.CharField(
-        max_length=255, choices=AllocationStrategy.CHOICES
+        max_length=255,
+        choices=AllocationStrategy.CHOICES,
+        # TODO: to remove
+        default=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
 
     class Meta:
