@@ -533,7 +533,7 @@ class ChannelReorderWarehouses(BaseMutation):
         )
 
     class Meta:
-        description = "Reorder the warehouses of a channel."
+        description = "Reorder the warehouses of a channel." + PREVIEW_FEATURE
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
 

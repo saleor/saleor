@@ -13645,7 +13645,9 @@ type Mutation {
   ): ChannelDeactivate
 
   """
-  Reorder the warehouses of a channel. 
+  Reorder the warehouses of a channel.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   """
@@ -19977,7 +19979,9 @@ type ChannelDeactivate {
 }
 
 """
-Reorder the warehouses of a channel. 
+Reorder the warehouses of a channel.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 """
