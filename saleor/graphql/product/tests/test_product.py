@@ -8881,8 +8881,8 @@ def test_delete_product_with_image(
 
     product_img_paths = [media.image for media in product.media.all()]
     variant_img_paths = [media.image for media in variant.media.all()]
-    product_media_paths = [media.image.path for media in product.media.all()]
-    variant_media_paths = [media.image.path for media in variant.media.all()]
+    product_media_paths = [media.image.name for media in product.media.all()]
+    variant_media_paths = [media.image.name for media in variant.media.all()]
     images = product_img_paths + variant_img_paths
 
     variables = {"id": node_id}
@@ -9843,7 +9843,7 @@ def test_product_media_delete(
             }
         """
     media_obj = product.media.first()
-    media_img_path = media_obj.image.path
+    media_img_path = media_obj.image.name
     node_id = graphene.Node.to_global_id("ProductMedia", media_obj.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
