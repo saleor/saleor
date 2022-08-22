@@ -1,45 +1,38 @@
 from decimal import Decimal
-from typing import Union
+from typing import List, Union
+
 import graphene
+from promise import Promise
 
 from saleor.checkout import base_calculations
-from ...order.dataloaders import OrderLinesByOrderIdLoader
-from ....shipping.models import ShippingMethodChannelListing
-from ...shipping.dataloaders import (
-    ShippingMethodChannelListingByShippingMethodIdLoader,
-)
-from ....discount import VoucherType
+
+from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
 from ....core.taxes import include_taxes_in_prices, zero_money
-from ...account.dataloaders import AddressByIdLoader, UserByUserIdLoader
+from ....discount import VoucherType
+from ....order.models import Order, OrderLine
+from ....shipping.models import ShippingMethodChannelListing
+from ...account.dataloaders import AddressByIdLoader
+from ...checkout import types as checkout_types
 from ...checkout.dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
-from ...channel import ChannelContext
-
 from ...discount.dataloaders import (
     DiscountsByDateTimeLoader,
     OrderDiscountsByOrderIDLoader,
 )
-from promise import Promise
-
+from ...order import types as order_types
+from ...order.dataloaders import OrderLinesByOrderIdLoader
 from ...product.dataloaders.products import (
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-
-from .money import Money
-
+from ...shipping.dataloaders import ShippingMethodChannelListingByShippingMethodIdLoader
 from .common import NonNullList
-from typing import List
-
-from ...checkout import types as checkout_types
-from ...order import types as order_types
-from ....checkout.models import Checkout, CheckoutLine
-from ....order.models import Order, OrderLine
+from .money import Money
 
 
 class TaxSourceObject(graphene.Union):
@@ -89,8 +82,10 @@ class TaxableObjectLine(graphene.ObjectType):
     @staticmethod
     def resolve_variant_name(root: Union[CheckoutLine, OrderLine], info):
         if isinstance(root, CheckoutLine):
+
             def get_name(variant):
                 return variant.name
+
             if not root.variant_id:
                 return ""
             return (
@@ -99,11 +94,14 @@ class TaxableObjectLine(graphene.ObjectType):
                 .then(get_name)
             )
         return root.variant_name
+
     @staticmethod
     def resolve_product_name(root: Union[CheckoutLine, OrderLine], info):
         if isinstance(root, CheckoutLine):
+
             def get_name(product):
                 return product.name
+
             if not root.variant_id:
                 return ""
             return (
@@ -118,12 +116,15 @@ class TaxableObjectLine(graphene.ObjectType):
         if isinstance(root, CheckoutLine):
             if not root.variant_id:
                 return None
+
             def get_sku(variant):
                 return variant.sku
-            return  (ProductVariantByIdLoader(info.context)
-                 .load(root.variant_id)
-                 .then(get_sku)
-             )
+
+            return (
+                ProductVariantByIdLoader(info.context)
+                .load(root.variant_id)
+                .then(get_sku)
+            )
         return root.product_sku
 
     @staticmethod
@@ -336,9 +337,11 @@ class TaxableObject(graphene.ObjectType):
         if not root.shipping_method:
             return zero_money(root.currency)
 
-        return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
-            root.shipping_method_id
-        ).then(calculate_base_shipping_method)
+        return (
+            ShippingMethodChannelListingByShippingMethodIdLoader(info.context)
+            .load(root.shipping_method_id)
+            .then(calculate_base_shipping_method)
+        )
 
     @staticmethod
     def resolve_discounts(root: Union[Checkout, Order], info):

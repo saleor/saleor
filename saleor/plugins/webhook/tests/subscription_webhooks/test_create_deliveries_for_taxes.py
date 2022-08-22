@@ -1,13 +1,17 @@
+import json
 from decimal import Decimal
 from functools import partial
 
-from .....tests.fixtures import recalculate_order
-from .....graphql.core.utils import to_global_id_or_none
-from ...tasks import create_delivery_for_subscription_sync_event
-from .....webhook.models import Webhook
-from .....webhook.event_types import WebhookEventSyncType
 from freezegun import freeze_time
-import json
+from prices import Money, fixed_discount
+
+from .....discount import DiscountValueType
+from .....graphql.core.utils import to_global_id_or_none
+from .....order.models import Order
+from .....tests.fixtures import recalculate_order
+from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.models import Webhook
+from ...tasks import create_delivery_for_subscription_sync_event
 
 TAXES_SUBSCRIPTION_QUERY = """
 subscription {
@@ -282,10 +286,6 @@ def test_order_calculate_taxes(
     }
 
 
-from prices import Money, fixed_discount
-from .....discount import DiscountValueType
-
-
 @freeze_time("2020-03-18 12:00:00")
 def test_order_calculate_taxes_with_discounts(
     order_line,
@@ -351,5 +351,44 @@ def test_order_calculate_taxes_with_discounts(
             "pricesEnteredWithTax": True,
             "shippingPrice": {"amount": 0.0},
             "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_calculate_taxes_empty_order(
+    order, webhook_app, permission_handle_taxes, channel_USD
+):
+
+    # given
+    order = Order.objects.create(channel=channel_USD, currency="USD")
+    webhook_app.permissions.add(permission_handle_taxes)
+    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+
+    # then
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": None,
+            "currency": "USD",
+            "discounts": [],
+            "lines": [],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": 0.0},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+            },
         },
     }
