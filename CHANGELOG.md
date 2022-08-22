@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek
+- Add support for bcrypt password hashes - #10346 by @pkucmus
 
 # 3.6.0
 
