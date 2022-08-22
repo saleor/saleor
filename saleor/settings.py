@@ -11,6 +11,7 @@ import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
+from django.conf import global_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from graphql.execution import executor
@@ -175,11 +176,11 @@ TEMPLATES = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
+# Add additional password algorithms that can be used
+# The password hashes not using the preferred algorithm (first in the list)
+# will be automatically converted upon user login
 PASSWORD_HASHERS = [
-    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
-    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
-    "django.contrib.auth.hashers.Argon2PasswordHasher",
-    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    *global_settings.PASSWORD_HASHERS,
     "django.contrib.auth.hashers.BCryptPasswordHasher",
 ]
 
