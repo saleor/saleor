@@ -70,7 +70,7 @@ class AppByTokenLoader(DataLoader):
 
 def promise_app(context):
     auth_token = get_token_from_request(context)
-    if not auth_token:
+    if not auth_token or len(auth_token) != 30:
         return None
     return AppByTokenLoader(context).load(auth_token)
 

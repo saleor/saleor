@@ -479,7 +479,7 @@ def test_addresses_for_federation_query_count(
         ],
     }
 
-    with django_assert_num_queries(4):  # FIXME: bring back down to 3
+    with django_assert_num_queries(3):
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -502,7 +502,7 @@ def test_addresses_for_federation_query_count(
         ],
     }
 
-    with django_assert_num_queries(4):  # FIXME: bring back down to 3
+    with django_assert_num_queries(3):
         response = staff_api_client.post_graphql(
             query,
             variables,

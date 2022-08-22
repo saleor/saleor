@@ -7,10 +7,10 @@ from promise import Promise
 
 from ..account.models import User
 from ..app.models import App
-from ..app.utils import get_app
 from ..core.auth import get_token_from_request
 from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
+from .app.dataloaders import load_app
 
 
 def get_context_value(request):
@@ -37,10 +37,7 @@ def set_decoded_auth_token(request):
 
 def set_app_on_context(request):
     if request.path == API_PATH and not hasattr(request, "app"):
-        request.app = None
-        auth_token = get_token_from_request(request)
-        if auth_token and len(auth_token) == 30:
-            request.app = SimpleLazyObject(lambda: get_app(auth_token))
+        request.app = load_app(request)
 
 
 def get_user(request: RequestWithUser) -> Optional[UserType]:
