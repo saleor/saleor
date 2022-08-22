@@ -756,8 +756,12 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
+    fetch_checkout_prices_if_expired(
+        checkout_info, manager, lines, discounts=discounts, site_settings=site_settings
+    )
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
@@ -771,9 +775,6 @@ def complete_checkout(
         redirect_url=redirect_url,
         payment=payment,
     )
-
-    if site_settings is None:
-        site_settings = Site.objects.get_current().settings
 
     try:
         order_data = _get_order_data(

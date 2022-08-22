@@ -406,11 +406,16 @@ def get_taxed_money(
     obj: Union[TaxData, TaxLineData],
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
     currency: str,
+    exempt_taxes: bool = False,
 ) -> TaxedMoney:
-    return TaxedMoney(
-        Money(getattr(obj, f"{attr}_net_amount"), currency),
-        Money(getattr(obj, f"{attr}_gross_amount"), currency),
-    )
+    net_value = Money(getattr(obj, f"{attr}_net_amount"), currency)
+
+    if exempt_taxes:
+        gross_value = net_value
+    else:
+        gross_value = Money(getattr(obj, f"{attr}_gross_amount"), currency)
+
+    return TaxedMoney(net_value, gross_value)
 
 
 def get_order_priced_taxes_data(
@@ -548,6 +553,53 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
         == undiscounted_subtotal + shipping_price.net
     )
     assert order_with_lines.total == subtotal + shipping_price
+
+
+def test_fetch_order_prices_if_expired_when_tax_exemption_enabled(
+    plugins_manager,
+    fetch_kwargs,
+    order_with_lines,
+    tax_data,
+):
+    # given
+    currency = order_with_lines.currency
+    discount_amount = Decimal("3.00")
+    order_with_lines.discounts.create(
+        value=discount_amount,
+        amount_value=discount_amount,
+        currency=order_with_lines.currency,
+    )
+    order_with_lines.total_net_amount = Decimal("0.00")
+    order_with_lines.total_gross_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
+    order_with_lines.tax_exemption = True
+    order_with_lines.save()
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    order_with_lines.refresh_from_db()
+    shipping_price = get_taxed_money(
+        tax_data, "shipping_price", currency, exempt_taxes=True
+    )
+    assert order_with_lines.shipping_price == shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.00")
+    subtotal = zero_taxed_money(currency)
+
+    for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
+        line_total = get_taxed_money(tax_line, "total", currency, exempt_taxes=True)
+        subtotal += line_total
+        assert order_line.total_price == line_total
+        assert order_line.unit_price == line_total / order_line.quantity
+        assert order_line.tax_rate == Decimal("0.00")
+
+    assert order_with_lines.undiscounted_total == subtotal + shipping_price
+    assert order_with_lines.total == subtotal + shipping_price - create_taxed_money(
+        discount_amount, discount_amount, order_with_lines.currency
+    )
 
 
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):

@@ -8,12 +8,14 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
+from ..site.models import Site
 from .models import Checkout
 
 if TYPE_CHECKING:
 
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
@@ -229,6 +231,7 @@ def fetch_checkout_prices_if_expired(
     address: Optional["Address"] = None,
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
+    site_settings: "SiteSettings" = None,
 ) -> Tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -247,13 +250,18 @@ def fetch_checkout_prices_if_expired(
         checkout, manager, checkout_info, lines, address, discounts
     )
 
-    if not checkout.tax_exemption:
-        tax_data = manager.get_taxes_for_checkout(
-            checkout_info,
-            lines,
-        )
-        if tax_data:
-            _apply_tax_data_from_app(checkout, lines, tax_data)
+    tax_data = manager.get_taxes_for_checkout(
+        checkout_info,
+        lines,
+    )
+    if tax_data:
+        _apply_tax_data_from_app(checkout, lines, tax_data)
+
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
+    if checkout.tax_exemption and site_settings.include_taxes_in_prices:
+        _exempt_taxes_in_checkout(checkout, lines)
 
     checkout.price_expiration = (
         timezone.now() + settings.CHECKOUT_PRICES_TTL  # type: ignore
@@ -287,6 +295,18 @@ def fetch_checkout_prices_if_expired(
     )
 
     return checkout_info, lines
+
+
+def _exempt_taxes_in_checkout(checkout, lines_info):
+    checkout.total_gross_amount = checkout.total_net_amount
+    checkout.subtotal_gross_amount = checkout.subtotal_net_amount
+    checkout.shipping_price_gross_amount = checkout.shipping_price_net_amount
+    checkout.shipping_tax_rate = Decimal("0.00")
+
+    for line_info in lines_info:
+        total_price_net_amount = line_info.line.total_price_net_amount
+        line_info.line.total_price_gross_amount = total_price_net_amount
+        line_info.line.tax_rate = Decimal("0.00")
 
 
 def _calculate_checkout_total(checkout, currency):

@@ -9,7 +9,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
-from .. import base_calculations
+from ...plugins.manager import get_plugins_manager
 from ..calculations import _apply_tax_data_from_app, fetch_checkout_prices_if_expired
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
@@ -204,56 +204,61 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_fetch_checkout_prices_if_expired_when_tax_exemption_enabled(
-    plugins_manager,
-    checkout_with_items_and_shipping,
+    checkout_with_items_and_shipping, settings, site_settings
 ):
+    """Use PluginSample to test tax exemption.
+
+    PluginSample always return same values of calculated taxes:
+
+    shipping_price_net_amount = 50
+    shipping_price_gross_amount = 63.20
+
+    Each line is treated as line with 3 units where unite gross value = 12.30 and net
+    value = 10
+    """
     # given
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
+
     checkout = checkout_with_items_and_shipping
     checkout.price_expiration = timezone.now()
     checkout.tax_exemption = True
     checkout.save(update_fields=["price_expiration", "tax_exemption"])
 
+    currency = checkout.currency
+
     discounts = []
     lines_info, _ = fetch_checkout_lines(checkout)
 
     fetch_kwargs = {
-        "checkout_info": fetch_checkout_info(
-            checkout, lines_info, discounts, plugins_manager
-        ),
-        "manager": plugins_manager,
+        "checkout_info": fetch_checkout_info(checkout, lines_info, discounts, manager),
+        "manager": manager,
         "lines": lines_info,
+        "site_settings": site_settings,
         "address": checkout.shipping_address or checkout.billing_address,
         "discounts": discounts,
     }
-
-    checkout_info = fetch_kwargs["checkout_info"]
-    lines_info = fetch_kwargs["lines"]
 
     # when
     fetch_checkout_prices_if_expired(**fetch_kwargs)
     checkout.refresh_from_db()
 
     # then
-    checkout_total = base_calculations.base_checkout_total(
-        checkout_info, discounts, lines_info
-    )
-    shipping_price = base_calculations.base_checkout_delivery_price(
-        checkout_info, lines_info
-    )
-    subtotal = checkout_total - shipping_price
 
-    assert checkout.shipping_price == TaxedMoney(
-        net=shipping_price, gross=shipping_price
+    one_line_total_price = TaxedMoney(
+        net=Money("30.0", currency), gross=Money("30.0", currency)
     )
-    assert checkout.shipping_tax_rate == 0
-    assert checkout.total == TaxedMoney(net=checkout_total, gross=checkout_total)
-    assert checkout.subtotal == TaxedMoney(net=subtotal, gross=subtotal)
+    all_lines_total_price = len(lines_info) * one_line_total_price
+    shipping_price = TaxedMoney(
+        net=Money("50.0", currency), gross=Money("50.0", currency)
+    )
 
-    for line, line_info in zip(checkout.lines.all(), lines_info):
-        total_price = base_calculations.calculate_base_line_total_price(
-            line_info,
-            checkout_info.channel,
-            discounts,
-        )
-        assert line.total_price == TaxedMoney(net=total_price, gross=total_price)
+    for line in checkout.lines.all():
+        assert line.total_price == one_line_total_price
         assert line.tax_rate == 0
+
+    assert checkout.shipping_price == shipping_price
+    assert checkout.shipping_tax_rate == 0
+
+    assert checkout.total == shipping_price + all_lines_total_price
+    assert checkout.subtotal == all_lines_total_price

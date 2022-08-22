@@ -166,30 +166,6 @@ def test_manager_calculates_checkout_total(
 
 
 @pytest.mark.parametrize(
-    "plugins, total_amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "15.0"), ([], "15.0")],
-)
-def test_manager_calculates_checkout_total_when_tax_exemption_enabled(
-    checkout_with_item_and_tax_exemption, discount_info, plugins, total_amount
-):
-    # given
-    checkout = checkout_with_item_and_tax_exemption
-    currency = checkout.currency
-    expected_total = Money(total_amount, currency)
-    manager = PluginsManager(plugins=plugins)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
-
-    # when
-    taxed_total = manager.calculate_checkout_total(
-        checkout_info, lines, None, [discount_info]
-    )
-
-    # then
-    assert TaxedMoney(expected_total, expected_total) == taxed_total
-
-
-@pytest.mark.parametrize(
     "plugins, subtotal_amount",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
@@ -206,30 +182,6 @@ def test_manager_calculates_checkout_subtotal(
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
         checkout_info, lines, None, [discount_info]
     )
-    assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
-
-
-@pytest.mark.parametrize(
-    "plugins, subtotal_amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "15.0"), ([], "15.0")],
-)
-def test_manager_calculates_checkout_subtotal_with_tax_exemption_enabled(
-    checkout_with_item_and_tax_exemption, discount_info, plugins, subtotal_amount
-):
-    # given
-    checkout = checkout_with_item_and_tax_exemption
-    currency = checkout.currency
-    expected_subtotal = Money(subtotal_amount, currency)
-    manager = PluginsManager(plugins=plugins)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
-
-    # when
-    taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
-        checkout_info, lines, None, [discount_info]
-    )
-
-    # then
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 
 
@@ -274,31 +226,6 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
 
 
 @pytest.mark.parametrize(
-    "plugins, shipping_amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "10.0"), ([], "10.0")],
-)
-def test_manager_calculates_order_shipping_when_tax_exemption_enabled(
-    order_with_lines, plugins, shipping_amount
-):
-    # given
-    order_with_lines.tax_exemption = True
-    order_with_lines.save(update_fields=["tax_exemption"])
-    currency = order_with_lines.total.currency
-    expected_shipping_price = Money(shipping_amount, currency)
-
-    # when
-    taxed_shipping_price = PluginsManager(plugins=plugins).calculate_order_shipping(
-        order_with_lines
-    )
-
-    # then
-    assert (
-        TaxedMoney(expected_shipping_price, expected_shipping_price)
-        == taxed_shipping_price
-    )
-
-
-@pytest.mark.parametrize(
     "plugins, amount",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
@@ -324,35 +251,6 @@ def test_manager_calculates_checkout_line_total(
 
 
 @pytest.mark.parametrize(
-    "plugins, amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "15.0"), ([], "15.0")],
-)
-def test_manager_calculates_checkout_line_total_when_tax_exemption_enabled(
-    checkout_with_item_and_tax_exemption, discount_info, plugins, amount
-):
-    # given
-    checkout = checkout_with_item_and_tax_exemption
-    currency = checkout.currency
-    expected_total = Money(amount, currency)
-    manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
-    checkout_line_info = lines[0]
-
-    # when
-    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        checkout.shipping_address,
-        [discount_info],
-    )
-
-    # then
-    assert TaxedMoney(expected_total, expected_total) == taxed_total
-
-
-@pytest.mark.parametrize(
     "plugins",
     [["saleor.plugins.tests.sample_plugins.PluginSample"], []],
 )
@@ -374,37 +272,6 @@ def test_manager_calculates_order_line_total(order_line, plugins):
         )
         .price_with_discounts
     )
-    assert expected_total == taxed_total
-
-
-@pytest.mark.parametrize(
-    "plugins",
-    [["saleor.plugins.tests.sample_plugins.PluginSample"], []],
-)
-def test_manager_calculates_order_line_total_when_tax_exemption_enabled(
-    order_line, plugins
-):
-    # given
-    order_line.order.tax_exemption = True
-    order_line.order.save(update_fields=["tax_exemption"])
-    currency = order_line.order.currency
-
-    expected_total = quantize_price(
-        TaxedMoney(order_line.base_unit_price, order_line.base_unit_price)
-        * order_line.quantity,
-        currency,
-    )
-
-    # when
-    taxed_total = (
-        PluginsManager(plugins=plugins)
-        .calculate_order_line_total(
-            order_line.order, order_line, order_line.variant, order_line.variant.product
-        )
-        .price_with_discounts
-    )
-
-    # then
     assert expected_total == taxed_total
 
 
@@ -473,32 +340,6 @@ def test_manager_get_order_line_tax_rate_sample_plugin(order_with_lines):
         unit_price,
     )
     assert tax_rate == Decimal("0.08")
-
-
-def test_manager_get_order_line_tax_rate_sample_plugin_and_tax_exemption_enabled(
-    order_with_lines,
-):
-    # given
-    order = order_with_lines
-    order.tax_exemption = True
-    order.save(update_fields=["tax_exemption"])
-
-    line = order.lines.first()
-    product = Product.objects.get(name=line.product_name)
-    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    unit_price = TaxedMoney(Money(15, "USD"), Money(15, "USD"))
-
-    # when
-    tax_rate = PluginsManager(plugins=plugins).get_order_line_tax_rate(
-        order,
-        product,
-        line.variant,
-        None,
-        unit_price,
-    )
-
-    # then
-    assert tax_rate == Decimal("0.00")
 
 
 @pytest.mark.parametrize(
@@ -583,27 +424,6 @@ def test_manager_get_order_shipping_tax_rate_sample_plugin(order_with_lines):
     assert tax_rate == Decimal("0.08")
 
 
-def test_manager_get_order_shipping_tax_rate_sample_plugin_and_tax_exemption_enabled(
-    order_with_lines,
-):
-    # given
-    order = order_with_lines
-    order.tax_exemption = True
-    order.save(update_fields=["tax_exemption"])
-
-    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    shipping_price = TaxedMoney(Money(14, "USD"), Money(14, "USD"))
-
-    # when
-    tax_rate = PluginsManager(plugins=plugins).get_order_shipping_tax_rate(
-        order,
-        shipping_price,
-    )
-
-    # then
-    assert tax_rate == Decimal("0.00")
-
-
 @pytest.mark.parametrize(
     "shipping_price, expected_tax_rate",
     [
@@ -683,33 +503,6 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
         )
         .price_with_discounts
     )
-    assert expected_price == unit_price.gross
-
-
-@pytest.mark.parametrize(
-    "plugins, amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "12.30"), ([], "12.30")],
-)
-def test_manager_calculates_order_line_when_tax_exemption_enabled(
-    order_line, plugins, amount
-):
-    # given
-    order_line.order.tax_exemption = True
-    order_line.order.save(update_fields=["tax_exemption"])
-    variant = order_line.variant
-    currency = order_line.unit_price.currency
-    expected_price = Money(amount, currency)
-
-    # when
-    unit_price = (
-        PluginsManager(plugins=plugins)
-        .calculate_order_line_unit(
-            order_line.order, order_line, variant, variant.product
-        )
-        .price_with_discounts
-    )
-
-    # then
     assert expected_price == unit_price.gross
 
 
