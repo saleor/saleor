@@ -3882,6 +3882,17 @@ type Channel implements Node {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the allocation setting for this channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  allocationSettings: AllocationSettings!
 }
 
 """
@@ -4269,6 +4280,32 @@ enum WeightUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+Represents the channel allocation settings.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AllocationSettings {
+  """Allocation strategy options."""
+  allocationStrategy: AllocationStrategyEnum!
+}
+
+"""
+Determine the allocation strategy for the channel.
+
+    PRIORITIZE_SORTING_ORDER - the allocation is prioritized by the warehouses' sort
+    order within the channel
+
+    PRIORITIZE_HIGH_STOCK - the allocation is prioritized by the highest available
+    quantity in stocks
+"""
+enum AllocationStrategyEnum {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
 }
 
 """Represents shipping method postal code rule."""
@@ -19856,6 +19893,15 @@ input ChannelCreateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """
+  The channel allocation settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allocationSettings: AllocationSettingsInput
+
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
@@ -19887,6 +19933,11 @@ input ChannelCreateInput {
   defaultCountry: CountryCode!
 }
 
+input AllocationSettingsInput {
+  """Allocation strategy options."""
+  allocationStrategy: AllocationStrategyEnum!
+}
+
 """
 Update a channel. 
 
@@ -19901,6 +19952,15 @@ type ChannelUpdate {
 input ChannelUpdateInput {
   """isActive flag."""
   isActive: Boolean
+
+  """
+  The channel allocation settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allocationSettings: AllocationSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
