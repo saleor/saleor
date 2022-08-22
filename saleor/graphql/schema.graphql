@@ -7630,7 +7630,7 @@ type User implements Node & ObjectWithMetadata {
   isActive: Boolean!
 
   """List of all user's addresses."""
-  addresses: [Address!]
+  addresses: [Address!]!
 
   """Returns the last open checkout of this user."""
   checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
