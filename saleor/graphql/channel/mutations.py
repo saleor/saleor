@@ -15,7 +15,7 @@ from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_37, PREVIEW_FEATURE
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import ChannelError, ChannelErrorCode, NonNullList
@@ -533,7 +533,9 @@ class ChannelReorderWarehouses(BaseMutation):
         )
 
     class Meta:
-        description = "Reorder the warehouses of a channel." + PREVIEW_FEATURE
+        description = (
+            "Reorder the warehouses of a channel." + ADDED_IN_37 + PREVIEW_FEATURE
+        )
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
 
