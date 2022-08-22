@@ -1319,12 +1319,8 @@ type Webhook implements Node {
   """Informs if webhook is activated."""
   isActive: Boolean!
 
-  """
-  Used to create a hash signature with each payload.
-  
-  If not set, since Saleor 3.5, your payload will be signed using private key used also to sign JWT tokens.
-  """
-  secretKey: String
+  """Used to create a hash signature for each payload."""
+  secretKey: String @deprecated(reason: "This field will be removed in Saleor 4.0. As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.")
 
   """Used to define payloads for specific events."""
   subscriptionQuery: String
@@ -14408,7 +14404,11 @@ input WebhookCreateInput {
   """Determine if webhook will be set active or not."""
   isActive: Boolean
 
-  """The secret key used to create a hash signature with each payload."""
+  """
+  The secret key used to create a hash signature with each payload.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.
+  """
   secretKey: String
 
   """
@@ -14469,7 +14469,11 @@ input WebhookUpdateInput {
   """Determine if webhook will be set active or not."""
   isActive: Boolean
 
-  """Use to create a hash signature with each payload."""
+  """
+  Use to create a hash signature with each payload.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.
+  """
   secretKey: String
 
   """
