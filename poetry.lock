@@ -735,7 +735,7 @@ python-versions = ">=3.6"
 django-js-asset = "*"
 
 [package.extras]
-tests = ["mock-django", "coverage"]
+tests = ["coverage", "mock-django"]
 
 [[package]]
 name = "django-phonenumber-field"
@@ -1713,7 +1713,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [[package]]
 name = "petl"
-version = "1.7.9"
+version = "1.7.11"
 description = "A Python package for extracting, transforming and loading tables of data."
 category = "main"
 optional = false
@@ -2787,7 +2787,7 @@ watchgod = {version = ">=0.6", optional = true, markers = "extra == \"standard\"
 websockets = {version = ">=10.0", optional = true, markers = "extra == \"standard\""}
 
 [package.extras]
-standard = ["colorama (>=0.4)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "PyYAML (>=5.1)", "python-dotenv (>=0.13)", "watchgod (>=0.6)", "httptools (>=0.4.0)", "websockets (>=10.0)"]
+standard = ["websockets (>=10.0)", "httptools (>=0.4.0)", "watchgod (>=0.6)", "python-dotenv (>=0.13)", "PyYAML (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "colorama (>=0.4)"]
 
 [[package]]
 name = "uvloop"
@@ -2943,8 +2943,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "b46a042df6e46f1356364fc1626ac214ec4fccfe043ce8ebe0cc1073224b0ec1"
+python-versions = "~3.9"
+content-hash = "f8ecd703b6734591a860ba74cd832fdf7fed12783280755732bf70a61d96729c"
 
 [metadata.files]
 adyen = [
@@ -4045,7 +4045,7 @@ pathspec = [
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
 ]
 petl = [
-    {file = "petl-1.7.9.tar.gz", hash = "sha256:b750bd32496d4aea79069dc48fa2876a87a0b6d81f8531144e6d8160bd51eb31"},
+    {file = "petl-1.7.11.tar.gz", hash = "sha256:b067760e7de988031f6c16cec8b19f2ef7ac2d02ff07cb9365331e88fcfbed3c"},
 ]
 phonenumberslite = [
     {file = "phonenumberslite-8.12.54-py2.py3-none-any.whl", hash = "sha256:62b7160c366ee9649c741bffb67f1716469d9de018a700f200428b527fb501a0"},
