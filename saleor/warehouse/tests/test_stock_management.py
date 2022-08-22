@@ -4,6 +4,7 @@ import pytest
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
+from ...channel import AllocationStrategy
 from ...core.exceptions import InsufficientStock
 from ...order.fetch import OrderLineInfo
 from ...order.models import OrderLine
@@ -19,7 +20,7 @@ from ..management import (
     increase_allocations,
     increase_stock,
 )
-from ..models import Allocation, PreorderAllocation
+from ..models import Allocation, ChannelWarehouse, PreorderAllocation
 
 COUNTRY_CODE = "US"
 
@@ -41,7 +42,9 @@ def test_allocate_stocks(order_line, stock, channel_USD):
     assert allocation.quantity_allocated == stock.quantity_allocated == 50
 
 
-def test_allocate_stocks_multiple_lines(order_line, order, product, stock, channel_USD):
+def test_allocate_stocks_multiple_lines_the_highest_stock_strategy(
+    order_line, order, product, stock, channel_USD
+):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
@@ -82,7 +85,9 @@ def test_allocate_stocks_multiple_lines(order_line, order, product, stock, chann
     assert allocation.quantity_allocated == stock_2.quantity_allocated == quantity_2
 
 
-def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channel_USD):
+def test_allocate_stock_many_stocks_the_highest_stock_strategy(
+    order_line, variant_with_many_stocks, channel_USD
+):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
@@ -96,7 +101,55 @@ def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channe
     assert allocations[1].quantity_allocated == stocks[1].quantity_allocated == 1
 
 
-def test_allocate_stock_with_reservations(
+def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
+    order_line, variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
+    channel_USD.save(update_fields=["allocation_strategy"])
+
+    variant = variant_with_many_stocks
+    stock_1, stock_2 = variant.stocks.all()
+
+    channel_warehouse_1 = stock_1.warehouse.channelwarehouse.first()
+    channel_warehouse_2 = stock_2.warehouse.channelwarehouse.first()
+
+    channel_warehouse_2.sort_order = 0
+    channel_warehouse_1.sort_order = 1
+    ChannelWarehouse.objects.bulk_update(
+        [channel_warehouse_1, channel_warehouse_2], ["sort_order"]
+    )
+
+    quantity = 5
+
+    line_data = OrderLineInfo(
+        line=order_line, variant=order_line.variant, quantity=quantity
+    )
+
+    # when
+    allocate_stocks(
+        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+    )
+
+    # then
+    allocations = Allocation.objects.filter(
+        order_line=order_line, stock__in=[stock_2, stock_1]
+    )
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
+    assert (
+        allocations[0].quantity_allocated
+        == stock_2.quantity_allocated
+        == stock_2.quantity
+    )
+    assert (
+        allocations[1].quantity_allocated
+        == stock_1.quantity_allocated
+        == quantity - stock_2.quantity
+    )
+
+
+def test_allocate_stock_with_reservations_the_highest_stock_strategy(
     order_line,
     variant_with_many_stocks,
     channel_USD,
@@ -117,6 +170,57 @@ def test_allocate_stock_with_reservations(
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 2
     assert allocations[1].quantity_allocated == 1
+
+
+def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
+    order_line,
+    variant_with_many_stocks,
+    channel_USD,
+    checkout_line_with_one_reservation,
+):
+    # given
+    # set the prioritize sorting order stratefy
+    channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
+    channel_USD.save(update_fields=["allocation_strategy"])
+
+    variant = variant_with_many_stocks
+    stock_1, stock_2 = variant.stocks.all()
+
+    channel_warehouse_1 = stock_1.warehouse.channelwarehouse.first()
+    channel_warehouse_2 = stock_2.warehouse.channelwarehouse.first()
+
+    # se the warehouse order
+    channel_warehouse_2.sort_order = 0
+    channel_warehouse_1.sort_order = 1
+    ChannelWarehouse.objects.bulk_update(
+        [channel_warehouse_1, channel_warehouse_2], ["sort_order"]
+    )
+
+    # change the reservation stock to first in stock in order
+    reservation = checkout_line_with_one_reservation.reservations.first()
+    reservation.quantity_reserved = 1
+    reservation.stock = stock_2
+    reservation.save(update_fields=["stock", "quantity_reserved"])
+
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=3)
+
+    # when
+    allocate_stocks(
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(),
+        check_reservations=True,
+    )
+
+    # then
+    allocations = Allocation.objects.filter(
+        order_line=order_line, stock__in=[stock_2, stock_1]
+    )
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
+    assert allocations[0].quantity_allocated == 2 == stock_2.quantity_allocated
+    assert allocations[1].quantity_allocated == 1 == stock_1.quantity_allocated
 
 
 def test_allocate_stock_insufficient_stock_due_to_reservations(

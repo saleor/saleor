@@ -7,6 +7,7 @@ from django.db.models import F, Sum
 from django.db.models.expressions import Exists, OuterRef
 from django.db.models.functions import Coalesce
 
+from ..channel import AllocationStrategy
 from ..checkout.models import CheckoutLine
 from ..core.exceptions import (
     AllocationError,
@@ -21,6 +22,7 @@ from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .models import (
     Allocation,
+    ChannelWarehouse,
     PreorderAllocation,
     PreorderReservation,
     Reservation,
@@ -104,17 +106,13 @@ def allocate_stocks(
             "quantity_allocated_sum"
         ]
 
-    def sort_stocks(stock_data):
-        # in case of click and collect order we should allocate stocks from
-        # collection point warehouse at the first place
-        if stock_data.pop("warehouse_id") == collection_point_pk:
-            return math.inf
-        return stock_data["quantity"] - quantity_allocation_for_stocks.get(
-            stock_data["pk"], 0
-        )
-
-    # prioritize stocks with the highest quantity available
-    stocks.sort(key=sort_stocks, reverse=True)
+    stocks = _sort_stocks(
+        channel.allocation_strategy,
+        stocks,
+        channel,
+        collection_point_pk,
+        quantity_allocation_for_stocks,
+    )
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
@@ -184,6 +182,54 @@ def _prepare_stock_to_reserved_quantity_map(
                 "quantity_reserved"
             ]
     return quantity_reservation_for_stocks
+
+
+def _sort_stocks(
+    allocation_strategy,
+    stocks,
+    channel,
+    collection_point_pk,
+    quantity_allocation_for_stocks,
+):
+    warehouse_ids = [stock_data["warehouse_id"] for stock_data in stocks]
+    channel_warehouse_ids = ChannelWarehouse.objects.filter(
+        channel_id=channel.id, warehouse_id__in=warehouse_ids
+    ).values_list("warehouse_id", flat=True)
+
+    def sort_stocks_by_highest_stocks(stock_data):
+        """Sort the stocks by the highest quantity available."""
+        # in case of click and collect order we should allocate stocks from
+        # collection point warehouse at the first place
+        if stock_data.pop("warehouse_id") == collection_point_pk:
+            return math.inf
+        return stock_data["quantity"] - quantity_allocation_for_stocks.get(
+            stock_data["pk"], 0
+        )
+
+    def sort_stocks_by_warehouse_sorting_order(stock_data):
+        """Sort the stocks based on the warehouse with channel order."""
+        # get the sort order for stocks warehouses within the channel
+        sorted_warehouse_list = list(channel_warehouse_ids)
+
+        warehouse_id = stock_data.pop("warehouse_id")
+        # in case of click and collect order we should allocate stocks from
+        # collection point warehouse at the first place
+        if warehouse_id == collection_point_pk:
+            return math.inf
+        return sorted_warehouse_list.index(warehouse_id)
+
+    allocation_strategy_to_sort_method_and_reverse_option = {
+        AllocationStrategy.PRIORITIZE_HIGH_STOCK: (sort_stocks_by_highest_stocks, True),
+        AllocationStrategy.PRIORITIZE_SORTING_ORDER: (
+            sort_stocks_by_warehouse_sorting_order,
+            False,
+        ),
+    }
+    sort_method, reverse = allocation_strategy_to_sort_method_and_reverse_option[
+        allocation_strategy
+    ]
+    stocks.sort(key=sort_method, reverse=reverse)
+    return stocks
 
 
 def _create_allocations(
