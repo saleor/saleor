@@ -14,6 +14,7 @@ azure-core==1.25.0; python_version >= "3.7"
 azure-storage-blob==12.13.1; python_version >= "3.6"
 azure-storage-common==2.1.0
 babel==2.10.3; python_version >= "3.6"
+bcrypt==3.2.2; python_version >= "3.7" and python_version < "4.0"
 beautifulsoup4==4.7.1
 beautifultable==0.7.0
 before-after==1.0.1
@@ -27,7 +28,7 @@ brotlicffi==1.0.9.2; platform_python_implementation != "CPython" and python_vers
 cachetools==5.2.0; python_version >= "3.7" and python_version < "4.0" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")
 celery==5.2.7; python_version >= "3.7"
 certifi==2022.6.15; python_version >= "3.7" and python_version < "4" and (python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.0") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0")
-cffi==1.15.1; platform_python_implementation != "CPython" and python_version >= "3.7"
+cffi==1.15.1
 cfgv==3.3.1; python_full_version >= "3.6.1" and python_version >= "3.7"
 charset-normalizer==2.1.1; python_version >= "3.7" and python_version < "4" and python_full_version >= "3.6.0" and (python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.0") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0")
 click-didyoumean==0.3.0; python_full_version >= "3.6.2" and python_full_version < "4.0.0" and python_version >= "3.7"
@@ -71,7 +72,7 @@ draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
-faker==13.16.0; python_version >= "3.6"
+faker==14.1.0; python_version >= "3.6"
 fakeredis==1.9.0; python_version >= "3.7" and python_version < "4.0"
 filelock==3.8.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 flake8==4.0.1; python_version >= "3.6"
@@ -131,7 +132,7 @@ openpyxl==3.0.10; python_version >= "3.6"
 opentracing==2.4.0
 packaging==21.3; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
 pathspec==0.9.0; python_full_version >= "3.6.2"
-petl==1.7.9; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
+petl==1.7.11; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.54
 pillow==9.2.0; python_version >= "3.7"
 platformdirs==2.5.2; python_version >= "3.7" and python_full_version >= "3.7.2" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7")
@@ -149,7 +150,7 @@ pyasn1-modules==0.2.8; python_version >= "3.7" and python_full_version < "3.0.0"
 pyasn1==0.4.8; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7") or python_full_version >= "3.6.0" and python_version >= "3.7" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")
 pybars3==0.9.7
 pycodestyle==2.8.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
-pycparser==2.21; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.7"
+pycparser==2.21; python_version >= "3.7" and python_full_version < "3.0.0" or python_version >= "3.7" and python_full_version >= "3.4.0"
 pydocstyle==6.1.1; python_version >= "3.6"
 pydyf==0.2.0; python_version >= "3.7"
 pyflakes==2.4.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
