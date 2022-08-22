@@ -176,9 +176,9 @@ TEMPLATES = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
-# Add additional password algorithms that can be used
-# The password hashes not using the preferred algorithm (first in the list)
-# will be automatically converted upon user login
+# Additional password algorithms that can be used by Saleor.
+# The first algorithm defined by Django is the preferred one; users not using the
+# first algorithm will automatically be upgraded to it upon login
 PASSWORD_HASHERS = [
     *global_settings.PASSWORD_HASHERS,
     "django.contrib.auth.hashers.BCryptPasswordHasher",
