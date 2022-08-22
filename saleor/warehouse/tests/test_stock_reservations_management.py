@@ -24,7 +24,7 @@ def test_reserve_stocks(checkout_line, channel_USD):
         [checkout_line],
         [checkout_line.variant],
         COUNTRY_CODE,
-        channel_USD.slug,
+        channel_USD,
         RESERVATION_LENGTH,
     )
 
@@ -43,7 +43,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             [checkout_line],
             [checkout_line.variant],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             RESERVATION_LENGTH,
             replace=False,
         )
@@ -53,7 +53,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             [checkout_line],
             [checkout_line.variant],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             RESERVATION_LENGTH,
         )
 
@@ -86,7 +86,7 @@ def test_multiple_stocks_are_reserved_if_single_stock_is_not_enough(
         [checkout_line],
         [checkout_line.variant],
         COUNTRY_CODE,
-        channel_USD.slug,
+        channel_USD,
         RESERVATION_LENGTH,
     )
 
@@ -125,7 +125,7 @@ def test_stocks_reservation_removes_previous_reservations_for_checkout(
         [checkout_line],
         [checkout_line.variant],
         COUNTRY_CODE,
-        channel_USD.slug,
+        channel_USD,
         RESERVATION_LENGTH,
     )
 
@@ -148,7 +148,7 @@ def test_stock_reservation_fails_if_there_is_not_enough_stock_available(
             [checkout_line],
             [checkout_line.variant],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             RESERVATION_LENGTH,
         )
 
@@ -164,7 +164,7 @@ def test_stock_reservation_fails_if_there_is_no_stock(checkout_line, channel_USD
             [checkout_line],
             [checkout_line.variant],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             RESERVATION_LENGTH,
         )
 
@@ -185,7 +185,7 @@ def test_stock_reservation_accounts_for_order_allocations(
             [checkout_line],
             [variant],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             RESERVATION_LENGTH,
         )
 
@@ -222,6 +222,6 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
             [checkout_line],
             [variant],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             RESERVATION_LENGTH,
         )

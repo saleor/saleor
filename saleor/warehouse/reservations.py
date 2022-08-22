@@ -12,6 +12,7 @@ from ..product.models import ProductVariant, ProductVariantChannelListing
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 if TYPE_CHECKING:
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutLine
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -22,7 +23,7 @@ def reserve_stocks_and_preorders(
     checkout_lines: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     length_in_minutes: int,
     *,
     replace: bool = True,
@@ -47,7 +48,7 @@ def reserve_stocks_and_preorders(
             stock_lines,
             stock_variants,
             country_code,
-            channel_slug,
+            channel,
             length_in_minutes,
             replace=replace,
         )
@@ -57,7 +58,7 @@ def reserve_stocks_and_preorders(
             preorder_lines,
             preorder_variants,
             country_code,
-            channel_slug,
+            channel.slug,
             length_in_minutes,
             replace=replace,
         )
@@ -67,7 +68,7 @@ def reserve_stocks(
     checkout_lines: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     length_in_minutes: int,
     *,
     replace: bool = True,
@@ -87,7 +88,7 @@ def reserve_stocks(
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
-        .get_variants_stocks_for_country(country_code, channel_slug, variants)
+        .get_variants_stocks_for_country(country_code, channel.slug, variants)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")
     )

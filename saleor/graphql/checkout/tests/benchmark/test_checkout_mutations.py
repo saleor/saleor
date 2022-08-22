@@ -653,7 +653,7 @@ def test_update_checkout_lines_with_reservations(
             )
             for variant in variants
         ],
-        channel_USD.slug,
+        channel_USD,
         replace_reservations=True,
         reservation_length=5,
     )
