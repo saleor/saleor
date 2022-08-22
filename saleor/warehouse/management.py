@@ -83,24 +83,9 @@ def allocate_stocks(
     )
     stocks_id = (stock.pop("id") for stock in stocks)
 
-    quantity_reservation_for_stocks: Dict = defaultdict(int)
-
-    if check_reservations:
-        quantity_reservation = (
-            Reservation.objects.filter(
-                stock_id__in=stocks_id,
-            )
-            .not_expired()
-            .exclude_checkout_lines(checkout_lines or [])
-            .values("stock")
-            .annotate(
-                quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
-            )
-        )  # type: ignore
-        for reservation in quantity_reservation:
-            quantity_reservation_for_stocks[reservation["stock"]] += reservation[
-                "quantity_reserved"
-            ]
+    quantity_reservation_for_stocks: Dict = _prepare_stock_to_reserved_quantity_map(
+        checkout_lines, check_reservations, stocks_id
+    )
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
@@ -171,6 +156,31 @@ def allocate_stocks(
                 transaction.on_commit(
                     lambda: manager.product_variant_out_of_stock(allocation.stock)
                 )
+
+
+def _prepare_stock_to_reserved_quantity_map(
+    checkout_lines, check_reservations, stocks_id
+):
+    """Prepare stock id to quantity reserved map for provided stock ids."""
+    quantity_reservation_for_stocks: Dict = defaultdict(int)
+
+    if check_reservations:
+        quantity_reservation = (
+            Reservation.objects.filter(
+                stock_id__in=stocks_id,
+            )
+            .not_expired()
+            .exclude_checkout_lines(checkout_lines or [])
+            .values("stock")
+            .annotate(
+                quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
+            )
+        )  # type: ignore
+        for reservation in quantity_reservation:
+            quantity_reservation_for_stocks[reservation["stock"]] += reservation[
+                "quantity_reserved"
+            ]
+    return quantity_reservation_for_stocks
 
 
 def _create_allocations(
