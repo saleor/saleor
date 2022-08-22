@@ -131,7 +131,7 @@ class ChannelContextTypeWithMetadata(
 
 class AllocationSettings(ObjectType):
     allocation_strategy = AllocationStrategyEnum(
-        description=("Allocation strategy options."),
+        description="Allocation strategy options.",
         required=True,
     )
 
