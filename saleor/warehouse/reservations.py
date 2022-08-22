@@ -9,6 +9,7 @@ from django.utils import timezone
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..product.models import ProductVariant, ProductVariantChannelListing
+from .management import sort_stocks
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 if TYPE_CHECKING:
@@ -90,7 +91,7 @@ def reserve_stocks(
         Stock.objects.select_for_update(of=("self",))
         .get_variants_stocks_for_country(country_code, channel.slug, variants)
         .order_by("pk")
-        .values("id", "product_variant", "pk", "quantity")
+        .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
     stocks_id = [stock.pop("id") for stock in stocks]
 
@@ -123,6 +124,13 @@ def reserve_stocks(
         quantity_reservation_for_stocks[reservation["stock"]] += reservation[
             "quantity_reserved_sum"
         ]
+
+    stocks = sort_stocks(
+        channel.allocation_strategy,
+        stocks,
+        channel,
+        quantity_allocation_for_stocks,
+    )
 
     variant_to_stocks: Dict[int, List[StockData]] = defaultdict(list)
     for stock_data in stocks:

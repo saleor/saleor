@@ -189,7 +189,7 @@ def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
     channel_warehouse_1 = stock_1.warehouse.channelwarehouse.first()
     channel_warehouse_2 = stock_2.warehouse.channelwarehouse.first()
 
-    # se the warehouse order
+    # set the warehouse order
     channel_warehouse_2.sort_order = 0
     channel_warehouse_1.sort_order = 1
     ChannelWarehouse.objects.bulk_update(

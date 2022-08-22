@@ -110,8 +110,8 @@ def allocate_stocks(
         channel.allocation_strategy,
         stocks,
         channel,
-        collection_point_pk,
         quantity_allocation_for_stocks,
+        collection_point_pk,
     )
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
@@ -188,8 +188,8 @@ def sort_stocks(
     allocation_strategy: str,
     stocks: List[dict],
     channel: "Channel",
-    collection_point_pk: Optional[str],
     quantity_allocation_for_stocks: Dict[int, int],
+    collection_point_pk: Optional[str] = None,
 ):
     warehouse_ids = [stock_data["warehouse_id"] for stock_data in stocks]
     channel_warehouse_ids = ChannelWarehouse.objects.filter(
@@ -207,7 +207,7 @@ def sort_stocks(
         )
 
     def sort_stocks_by_warehouse_sorting_order(stock_data):
-        """Sort the stocks based on the warehouse with channel order."""
+        """Sort the stocks based on the warehouse within channel order."""
         # get the sort order for stocks warehouses within the channel
         sorted_warehouse_list = list(channel_warehouse_ids)
 
