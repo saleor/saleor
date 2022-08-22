@@ -1,7 +1,6 @@
 import pytest
 from django.conf import settings
 
-from ....channel import AllocationStrategy
 from ....channel.models import Channel
 
 
@@ -14,7 +13,6 @@ def channel_USD(db):
         currency_code="USD",
         default_country="US",
         is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
 
 
@@ -26,7 +24,6 @@ def other_channel_USD(db):
         currency_code="USD",
         default_country="US",
         is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
 
 
@@ -38,7 +35,6 @@ def channel_PLN(db):
         currency_code="PLN",
         default_country="PL",
         is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
 
 
@@ -50,5 +46,4 @@ def channel_JPY(db):
         currency_code="JPY",
         default_country="JP",
         is_active=True,
-        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )

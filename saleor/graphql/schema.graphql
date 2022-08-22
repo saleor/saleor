@@ -19893,6 +19893,15 @@ input ChannelCreateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """
+  The channel allocation settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allocationSettings: AllocationSettingsInput
+
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
@@ -19922,15 +19931,6 @@ input ChannelCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultCountry: CountryCode!
-
-  """
-  The channel allocation settings.
-  
-  Added in Saleor 3.7.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  allocationSettings: AllocationSettingsInput!
 }
 
 input AllocationSettingsInput {
@@ -19952,6 +19952,15 @@ type ChannelUpdate {
 input ChannelUpdateInput {
   """isActive flag."""
   isActive: Boolean
+
+  """
+  The channel allocation settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allocationSettings: AllocationSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
@@ -19989,15 +19998,6 @@ input ChannelUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeWarehouses: [ID!]
-
-  """
-  The channel allocation settings.
-  
-  Added in Saleor 3.7.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  allocationSettings: AllocationSettingsInput
 }
 
 """

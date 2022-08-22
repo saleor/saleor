@@ -1,6 +1,5 @@
 import pytest
 
-from .....channel import AllocationStrategy
 from .....channel.models import Channel
 from .....warehouse.models import Warehouse
 
@@ -24,7 +23,6 @@ def channels_for_benchmark(address):
         Channel(
             name=f"channel {i}",
             slug=f"channel-{i}",
-            allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
         )
         for i in range(CHANNEL_COUNT_IN_BENCHMARKS)
     ]

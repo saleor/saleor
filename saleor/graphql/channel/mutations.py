@@ -37,6 +37,13 @@ class AllocationSettingsInput(graphene.InputObjectType):
 
 class ChannelInput(graphene.InputObjectType):
     is_active = graphene.Boolean(description="isActive flag.")
+    allocation_settings = graphene.Field(
+        AllocationSettingsInput,
+        description=(
+            "The channel allocation settings." + ADDED_IN_37 + PREVIEW_FEATURE
+        ),
+        required=False,
+    )
     add_shipping_zones = NonNullList(
         graphene.ID,
         description="List of shipping zones to assign to the channel.",
@@ -67,13 +74,6 @@ class ChannelCreateInput(ChannelInput):
         ),
         required=True,
     )
-    allocation_settings = graphene.Field(
-        AllocationSettingsInput,
-        description=(
-            "The channel allocation settings." + ADDED_IN_37 + PREVIEW_FEATURE
-        ),
-        required=True,
-    )
 
 
 class ChannelCreate(ModelMutation):
@@ -100,9 +100,10 @@ class ChannelCreate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
-        cleaned_input["allocation_strategy"] = cleaned_input["allocation_settings"][
-            "allocation_strategy"
-        ]
+        if allocation_settings := cleaned_input.get("allocation_settings"):
+            cleaned_input["allocation_strategy"] = allocation_settings[
+                "allocation_strategy"
+            ]
 
         return cleaned_input
 
@@ -142,13 +143,6 @@ class ChannelUpdateInput(ChannelInput):
         description="List of warehouses to unassign from the channel."
         + ADDED_IN_35
         + PREVIEW_FEATURE,
-        required=False,
-    )
-    allocation_settings = graphene.Field(
-        AllocationSettingsInput,
-        description=(
-            "The channel allocation settings." + ADDED_IN_37 + PREVIEW_FEATURE
-        ),
         required=False,
     )
 

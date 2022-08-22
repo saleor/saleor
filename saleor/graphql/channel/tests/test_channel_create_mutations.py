@@ -52,7 +52,7 @@ def test_channel_create_mutation_as_staff_user(
     slug = "test_slug"
     currency_code = "USD"
     default_country = "US"
-    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
+    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_HIGH_STOCK.name
     variables = {
         "input": {
             "name": name,
@@ -98,14 +98,12 @@ def test_channel_create_mutation_as_app(
     slug = "test_slug"
     currency_code = "USD"
     default_country = "US"
-    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
     variables = {
         "input": {
             "name": name,
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -131,7 +129,8 @@ def test_channel_create_mutation_as_app(
         == default_country
     )
     assert (
-        channel_data["allocationSettings"]["allocationStrategy"] == allocation_strategy
+        channel_data["allocationSettings"]["allocationStrategy"]
+        == AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
     )
 
 
@@ -169,14 +168,12 @@ def test_channel_create_mutation_as_anonymous(api_client):
     slug = "test_slug"
     currency_code = "USD"
     default_country = "US"
-    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
     variables = {
         "input": {
             "name": name,
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -200,14 +197,12 @@ def test_channel_create_mutation_slugify_slug_field(
     slug = "Invalid slug"
     currency_code = "USD"
     default_country = "US"
-    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
     variables = {
         "input": {
             "name": name,
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
