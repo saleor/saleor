@@ -16323,6 +16323,9 @@ input ProductVariantCreateInput {
   """Stock keeping unit."""
   sku: String
 
+  """Variant name."""
+  name: String
+
   """
   Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
   """
@@ -16432,6 +16435,9 @@ input ProductVariantBulkCreateInput {
 
   """Stock keeping unit."""
   sku: String
+
+  """Variant name."""
+  name: String
 
   """
   Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
@@ -16611,6 +16617,9 @@ input ProductVariantInput {
 
   """Stock keeping unit."""
   sku: String
+
+  """Variant name."""
+  name: String
 
   """
   Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
