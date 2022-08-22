@@ -106,7 +106,7 @@ def allocate_stocks(
             "quantity_allocated_sum"
         ]
 
-    stocks = _sort_stocks(
+    stocks = sort_stocks(
         channel.allocation_strategy,
         stocks,
         channel,
@@ -184,12 +184,12 @@ def _prepare_stock_to_reserved_quantity_map(
     return quantity_reservation_for_stocks
 
 
-def _sort_stocks(
-    allocation_strategy,
-    stocks,
-    channel,
-    collection_point_pk,
-    quantity_allocation_for_stocks,
+def sort_stocks(
+    allocation_strategy: str,
+    stocks: List[dict],
+    channel: "Channel",
+    collection_point_pk: Optional[str],
+    quantity_allocation_for_stocks: Dict[int, int],
 ):
     warehouse_ids = [stock_data["warehouse_id"] for stock_data in stocks]
     channel_warehouse_ids = ChannelWarehouse.objects.filter(
