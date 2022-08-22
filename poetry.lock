@@ -51,7 +51,7 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-tests = ["mypy (>=0.800)", "pytest-asyncio", "pytest"]
+tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
 
 [[package]]
 name = "astroid"
@@ -633,10 +633,10 @@ python-versions = "*"
 typing-extensions = "*"
 
 [package.extras]
-test = ["graphene-django", "djangorestframework", "pytest-cov", "pytest-django", "pytest"]
+dev = ["tox", "black", "django", "pytest", "pytest-django", "djangorestframework", "graphene-django"]
+maintainer = ["transifex-client", "zest.releaser", "django"]
 pyuca = ["pyuca"]
-maintainer = ["django", "zest.releaser", "transifex-client"]
-dev = ["graphene-django", "djangorestframework", "pytest-django", "pytest", "django", "black", "tox"]
+test = ["pytest", "pytest-django", "pytest-cov", "djangorestframework", "graphene-django"]
 
 [[package]]
 name = "django-debug-toolbar"
@@ -924,7 +924,7 @@ testing = ["pre-commit"]
 
 [[package]]
 name = "faker"
-version = "13.16.0"
+version = "14.1.0"
 description = "Faker is a Python package that generates fake data for you."
 category = "main"
 optional = false
@@ -1150,8 +1150,8 @@ python-versions = ">= 3.6"
 google-crc32c = ">=1.0,<2.0dev"
 
 [package.extras]
-requests = ["requests (>=2.18.0,<3.0.0dev)"]
 aiohttp = ["aiohttp (>=3.6.2,<4.0.0dev)"]
+requests = ["requests (>=2.18.0,<3.0.0dev)"]
 
 [[package]]
 name = "googleapis-common-protos"
@@ -1966,10 +1966,10 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
-docs = ["zope.interface", "sphinx-rtd-theme", "sphinx"]
-dev = ["pre-commit", "mypy", "coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)", "cryptography (>=3.3.1)", "zope.interface", "sphinx-rtd-theme", "sphinx"]
 crypto = ["cryptography (>=3.3.1)"]
+dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
+docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
+tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pylint"
@@ -2879,8 +2879,8 @@ Pyphen = ">=0.9.1"
 tinycss2 = ">=1.0.0"
 
 [package.extras]
-test = ["coverage", "pytest-cov", "pytest-isort", "pytest-flake8", "pytest-xdist", "pytest"]
-doc = ["sphinx-rtd-theme", "sphinx"]
+doc = ["sphinx", "sphinx-rtd-theme"]
+test = ["pytest", "pytest-xdist", "pytest-flake8", "pytest-isort", "pytest-cov", "coverage"]
 
 [[package]]
 name = "webencodings"
@@ -2944,7 +2944,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "f8ecd703b6734591a860ba74cd832fdf7fed12783280755732bf70a61d96729c"
+content-hash = "1d20c67e20520ff012e272762c50ea3455aa92c38f396bfe34a391dc425a0600"
 
 [metadata.files]
 adyen = [
@@ -3475,8 +3475,8 @@ execnet = [
     {file = "execnet-1.9.0.tar.gz", hash = "sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5"},
 ]
 faker = [
-    {file = "Faker-13.16.0-py3-none-any.whl", hash = "sha256:920f94d5aa865fd922bc29f2cf75c75b4d86b30eec23e7174d7513241b759b05"},
-    {file = "Faker-13.16.0.tar.gz", hash = "sha256:25c5be99bc5fd8676eea8c1490e0de87f6d9734651c7af2cefc99b322b2936f4"},
+    {file = "Faker-14.1.0-py3-none-any.whl", hash = "sha256:067a03f64e555261610e69277536072997b4576dbf84b113faef3c06d85b466b"},
+    {file = "Faker-14.1.0.tar.gz", hash = "sha256:0e00bfa1eadf1493f15662edb181222fea4847764cf3f9ff3e66ee0f95c9a644"},
 ]
 fakeredis = [
     {file = "fakeredis-1.9.0-py3-none-any.whl", hash = "sha256:868467ff399520fc77e37ff002c60d1b2a1674742982e27338adaeebcc537648"},
