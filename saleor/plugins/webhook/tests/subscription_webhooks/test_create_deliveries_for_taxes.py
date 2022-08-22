@@ -5,7 +5,8 @@ from functools import partial
 from freezegun import freeze_time
 from prices import Money, fixed_discount
 
-from .....discount import DiscountValueType
+from .....core.prices import quantize_price
+from .....discount import DiscountValueType, VoucherType
 from .....graphql.core.utils import to_global_id_or_none
 from .....order.models import Order
 from .....tests.fixtures import recalculate_order
@@ -191,6 +192,64 @@ def test_checkout_calculate_taxes_with_voucher(
 
 
 @freeze_time("2020-03-18 12:00:00")
+def test_checkout_calculate_taxes_with_shipping_voucher(
+    checkout_with_voucher,
+    voucher,
+    webhook_app,
+    permission_handle_taxes,
+):
+
+    # given
+    voucher.type = VoucherType.SHIPPING
+    webhook_app.permissions.add(permission_handle_taxes)
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(
+        event_type, checkout_with_voucher, webhook
+    )
+
+    # then
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": None,
+            "currency": "USD",
+            "discounts": [{"amount": {"amount": 20.0}}],
+            "lines": [
+                {
+                    "chargeTaxes": True,
+                    "productName": "Test product",
+                    "productSku": "123",
+                    "quantity": 3,
+                    "sourceLine": {
+                        "id": to_global_id_or_none(checkout_with_voucher.lines.first()),
+                        "__typename": "CheckoutLine",
+                    },
+                    "totalPrice": {"amount": 30.0},
+                    "unitPrice": {"amount": 10.0},
+                    "variantName": "",
+                }
+            ],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": 0.0},
+            "sourceObject": {
+                "id": to_global_id_or_none(checkout_with_voucher),
+                "__typename": "Checkout",
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
 def test_checkout_calculate_taxes_empty_checkout(
     checkout,
     webhook_app,
@@ -233,13 +292,13 @@ def test_checkout_calculate_taxes_empty_checkout(
 
 @freeze_time("2020-03-18 12:00:00")
 def test_order_calculate_taxes(
-    order_line,
-    webhook_app,
-    permission_handle_taxes,
+    order_line, webhook_app, permission_handle_taxes, shipping_zone
 ):
 
     # given
     order = order_line.order
+    shipping_method = shipping_zone.shipping_methods.first()
+    order.shipping_method = shipping_method
     webhook_app.permissions.add(permission_handle_taxes)
     event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
     webhook = Webhook.objects.create(
@@ -255,6 +314,10 @@ def test_order_calculate_taxes(
     deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
 
     # then
+    shipping_price_amount = shipping_method.channel_listings.get(
+        channel=order.channel
+    ).price.amount
+    shipping_price_amount = quantize_price(shipping_price_amount, order.currency)
     assert json.loads(deliveries.payload.payload) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -277,7 +340,7 @@ def test_order_calculate_taxes(
                 }
             ],
             "pricesEnteredWithTax": True,
-            "shippingPrice": {"amount": 0.0},
+            "shippingPrice": {"amount": shipping_price_amount},
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),

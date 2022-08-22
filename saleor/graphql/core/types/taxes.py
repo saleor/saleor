@@ -62,7 +62,11 @@ class TaxSourceLine(graphene.Union):
 
 
 class TaxableObjectLine(graphene.ObjectType):
-    source_line = graphene.Field(TaxSourceLine, required=True)
+    source_line = graphene.Field(
+        TaxSourceLine,
+        required=True,
+        description="The source line related to this tax line.",
+    )
     quantity = graphene.Int(required=True, description="Number of items.")
     charge_taxes = graphene.Boolean(
         required=True,
@@ -246,7 +250,11 @@ class TaxableObjectDiscount(graphene.ObjectType):
 
 
 class TaxableObject(graphene.ObjectType):
-    source_object = graphene.Field(TaxSourceObject, required=True)
+    source_object = graphene.Field(
+        TaxSourceObject,
+        required=True,
+        description="The source object related to this tax object.",
+    )
     prices_entered_with_tax = graphene.Boolean(
         required=True, description="Determine if prices contain entered tax."
     )

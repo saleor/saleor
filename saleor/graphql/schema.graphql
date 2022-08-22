@@ -23959,6 +23959,13 @@ type ShippingListMethodsForCheckout implements Event {
   shippingMethods: [ShippingMethod!]
 }
 
+"""
+Synchronous webhook for calculating checkout/order taxes.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type CalculateTaxes implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -23976,6 +23983,7 @@ type CalculateTaxes implements Event {
 
 """Taxable object."""
 type TaxableObject {
+  """The source object related to this tax object."""
   sourceObject: TaxSourceObject!
 
   """Determine if prices contain entered tax."""
@@ -24008,6 +24016,7 @@ type TaxableObjectDiscount {
 }
 
 type TaxableObjectLine {
+  """The source line related to this tax line."""
   sourceLine: TaxSourceLine!
 
   """Number of items."""
