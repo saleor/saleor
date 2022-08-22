@@ -59,6 +59,16 @@ class AvataxConfiguration:
     company_name: str = "DEFAULT"
     autocommit: bool = False
     shipping_tax_code: str = ""
+    override_global_tax: bool = False
+    include_taxes_in_prices: bool = True
+
+    @property
+    def tax_included(self) -> bool:
+        return (
+            self.include_taxes_in_prices
+            if self.override_global_tax
+            else Site.objects.get_current().settings.include_taxes_in_prices
+        )
 
 
 class TransactionType:

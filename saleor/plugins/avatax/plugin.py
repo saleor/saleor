@@ -170,6 +170,8 @@ class AvataxPlugin(BasePlugin):
             from_country_area=configuration["from_country_area"],
             from_postal_code=configuration["from_postal_code"],
             shipping_tax_code=configuration["shipping_tax_code"],
+            override_global_tax=configuration["override_global_tax"],
+            include_taxes_in_prices=configuration["include_taxes_in_prices"],
         )
 
     def _skip_plugin(
@@ -207,7 +209,7 @@ class AvataxPlugin(BasePlugin):
         if not _validate_checkout(checkout_info, lines):
             return checkout_total
         response = get_checkout_tax_data(
-            checkout_info, lines, self._tax_included(), discounts, self.config
+            checkout_info, lines, self.config.tax_included, discounts, self.config
         )
         if not response or "error" in response:
             return checkout_total
@@ -219,7 +221,7 @@ class AvataxPlugin(BasePlugin):
             taxed_line_total_data = self._calculate_checkout_line_total_price(
                 taxes_data=response,
                 item_code=line.variant.sku or line.variant.get_global_id(),
-                tax_included=self._tax_included,
+                tax_included=self.config.tax_included,
                 # for some cases we will need a base_value but no need to call it for
                 # each line
                 base_value=SimpleLazyObject(  # type:ignore
@@ -260,7 +262,7 @@ class AvataxPlugin(BasePlugin):
                 shipping_tax = Decimal(line["tax"])
                 break
 
-        if currency == "JPY" and self._tax_included():
+        if currency == "JPY" and self.config.tax_included:
             shipping_gross = Money(amount=shipping_price.amount, currency=currency)
             shipping_net = Money(
                 amount=shipping_gross.amount - shipping_tax, currency=currency
@@ -293,7 +295,7 @@ class AvataxPlugin(BasePlugin):
             return base_shipping_price
 
         response = get_checkout_tax_data(
-            checkout_info, lines, self._tax_included(), discounts, self.config
+            checkout_info, lines, self.config.tax_included, discounts, self.config
         )
         if not response or "error" in response:
             return base_shipping_price
@@ -329,7 +331,7 @@ class AvataxPlugin(BasePlugin):
             checkout_info,
             lines,
             self.config,
-            self._tax_included(),
+            self.config.tax_included,
             transaction_token=str(checkout_info.checkout.token),
             transaction_type=TransactionType.ORDER,
             discounts=discounts,
@@ -363,7 +365,9 @@ class AvataxPlugin(BasePlugin):
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active or order.is_unconfirmed():
             return previous_value
-        request_data = get_order_request_data(order, self.config, self._tax_included())
+        request_data = get_order_request_data(
+            order, self.config, self.config.tax_included
+        )
 
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
@@ -396,14 +400,14 @@ class AvataxPlugin(BasePlugin):
             return base_total
 
         taxes_data = get_checkout_tax_data(
-            checkout_info, lines, self._tax_included(), discounts, self.config
+            checkout_info, lines, self.config.tax_included, discounts, self.config
         )
         variant = checkout_line_info.variant
 
         return self._calculate_checkout_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            self._tax_included,
+            self.config.tax_included,
             previous_value,
         )
 
@@ -411,7 +415,7 @@ class AvataxPlugin(BasePlugin):
     def _calculate_checkout_line_total_price(
         taxes_data: Dict[str, Any],
         item_code: str,
-        tax_included: Callable[[], bool],
+        tax_included: bool,
         base_value: TaxedMoney,
     ) -> TaxedMoney:
         if not taxes_data or "error" in taxes_data:
@@ -429,7 +433,7 @@ class AvataxPlugin(BasePlugin):
             discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
 
-            if currency == "JPY" and tax_included():
+            if currency == "JPY" and tax_included:
                 line_gross = base_value.gross
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
@@ -461,7 +465,7 @@ class AvataxPlugin(BasePlugin):
         return self._calculate_order_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            self._tax_included,
+            self.config.tax_included,
             previous_value,
         )
 
@@ -469,7 +473,7 @@ class AvataxPlugin(BasePlugin):
     def _calculate_order_line_total_price(
         taxes_data: Dict[str, Any],
         item_code: str,
-        tax_included: Callable[[], bool],
+        tax_included: bool,
         base_value: OrderTaxedPricesData,
     ) -> OrderTaxedPricesData:
         if not taxes_data or "error" in taxes_data:
@@ -488,7 +492,7 @@ class AvataxPlugin(BasePlugin):
             discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
 
-            if currency == "JPY" and tax_included():
+            if currency == "JPY" and tax_included:
                 line_gross = Money(
                     base_value.price_with_discounts.gross.amount - discount_amount,
                     currency,
@@ -532,13 +536,13 @@ class AvataxPlugin(BasePlugin):
 
         quantity = checkout_line_info.line.quantity
         taxes_data = get_checkout_tax_data(
-            checkout_info, lines, self._tax_included(), discounts, self.config
+            checkout_info, lines, self.config.tax_included, discounts, self.config
         )
         default_total = previous_value * quantity
         taxed_total_price = self._calculate_checkout_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            self._tax_included,
+            self.config.tax_included,
             default_total,
         )
         return taxed_total_price / quantity
@@ -563,24 +567,13 @@ class AvataxPlugin(BasePlugin):
         taxed_total_prices_data = self._calculate_order_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
-            self._tax_included,
+            self.config.tax_included,
             default_total,
         )
         return OrderTaxedPricesData(
             undiscounted_price=taxed_total_prices_data.undiscounted_price / quantity,
             price_with_discounts=taxed_total_prices_data.price_with_discounts
             / quantity,
-        )
-
-    @property
-    def _tax_included(self) -> Callable[[], bool]:
-        configuration = {item["name"]: item["value"] for item in self.configuration}
-        override_global_tax = configuration["override_global_tax"]
-        include_taxes_in_prices = configuration["include_taxes_in_prices"]
-        return lambda: (
-            include_taxes_in_prices
-            if override_global_tax
-            else Site.objects.get_current().settings.include_taxes_in_prices
         )
 
     def calculate_order_shipping(
@@ -594,14 +587,16 @@ class AvataxPlugin(BasePlugin):
 
         if not _validate_order(order):
             return previous_value
-        taxes_data = get_order_tax_data(order, self.config, self._tax_included(), False)
+        taxes_data = get_order_tax_data(
+            order, self.config, self.config.tax_included, False
+        )
 
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line["itemCode"] == "Shipping":
                 tax = Decimal(line.get("tax", 0.0))
                 net = Decimal(line.get("lineAmount", 0.0))
-                if currency == "JPY" and self._tax_included():
+                if currency == "JPY" and self.config.tax_included:
                     gross = previous_value.gross
                     net = Money(amount=gross.amount - tax, currency=currency)
                 else:
@@ -699,7 +694,7 @@ class AvataxPlugin(BasePlugin):
             return None
 
         response = get_checkout_tax_data(
-            checkout_info, lines_info, self._tax_included(), discounts, self.config
+            checkout_info, lines_info, self.config.tax_included, discounts, self.config
         )
         if not response or "error" in response:
             return None
@@ -716,7 +711,9 @@ class AvataxPlugin(BasePlugin):
         if not valid:
             return None
 
-        response = get_order_tax_data(order, self.config, self._tax_included(), False)
+        response = get_order_tax_data(
+            order, self.config, self.config.tax_included, False
+        )
         if not response or "error" in response:
             return None
 

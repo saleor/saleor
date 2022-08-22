@@ -3386,6 +3386,8 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         "from_country": conf["from_country"],
         "from_country_area": conf["from_country_area"],
         "shipping_tax_code": conf["shipping_tax_code"],
+        "override_global_tax": conf["override_global_tax"],
+        "include_taxes_in_prices": conf["include_taxes_in_prices"],
     }
 
     api_post_request_task_mock.assert_called_once_with(
