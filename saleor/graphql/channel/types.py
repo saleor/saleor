@@ -11,7 +11,13 @@ from promise import Promise
 from ...channel import models
 from ...core.permissions import AuthorizationFilters, ChannelPermissions
 from ..account.enums import CountryCodeEnum
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_36, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    ADDED_IN_36,
+    ADDED_IN_37,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -132,7 +138,7 @@ class AllocationSettings(ObjectType):
     class Meta:
         description = (
             "Represents the channel allocation settings."
-            # TODO: Add `ADDED_IN_37` label
+            + ADDED_IN_37
             + PREVIEW_FEATURE
         )
 
@@ -221,7 +227,7 @@ class Channel(ModelObjectType):
         AllocationSettings,
         description=(
             "Define the allocation setting for this channel."
-            # TODO: Add `ADDED_IN_37` label
+            + ADDED_IN_37
             + PREVIEW_FEATURE
         ),
         required=True,

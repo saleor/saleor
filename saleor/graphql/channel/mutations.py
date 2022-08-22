@@ -70,9 +70,7 @@ class ChannelCreateInput(ChannelInput):
     allocation_settings = graphene.Field(
         AllocationSettingsInput,
         description=(
-            "The channel allocation settings."
-            # TODO: Add `ADDED_IN_37` label
-            + PREVIEW_FEATURE
+            "The channel allocation settings." + ADDED_IN_37 + PREVIEW_FEATURE
         ),
         required=True,
     )
@@ -149,9 +147,7 @@ class ChannelUpdateInput(ChannelInput):
     allocation_settings = graphene.Field(
         AllocationSettingsInput,
         description=(
-            "The channel allocation settings."
-            # TODO: Add `ADDED_IN_37` label
-            + PREVIEW_FEATURE
+            "The channel allocation settings." + ADDED_IN_37 + PREVIEW_FEATURE
         ),
         required=False,
     )

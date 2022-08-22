@@ -3886,6 +3886,8 @@ type Channel implements Node {
   """
   Define the allocation setting for this channel.
   
+  Added in Saleor 3.7.
+  
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
@@ -4282,6 +4284,8 @@ enum WeightUnitsEnum {
 
 """
 Represents the channel allocation settings.
+
+Added in Saleor 3.7.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -19922,6 +19926,8 @@ input ChannelCreateInput {
   """
   The channel allocation settings.
   
+  Added in Saleor 3.7.
+  
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allocationSettings: AllocationSettingsInput!
@@ -19986,6 +19992,8 @@ input ChannelUpdateInput {
 
   """
   The channel allocation settings.
+  
+  Added in Saleor 3.7.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
