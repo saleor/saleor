@@ -29,6 +29,7 @@ from .models import (
 )
 
 if TYPE_CHECKING:
+    from ..channel.models import Channel
     from ..order.models import Order
 
 
@@ -39,7 +40,7 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 def allocate_stocks(
     order_lines_info: Iterable["OrderLineInfo"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     manager: PluginsManager,
     collection_point_pk: Optional[str] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
@@ -60,6 +61,8 @@ def allocate_stocks(
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
     if not order_lines_info:
         return
+
+    channel_slug = channel.slug
 
     variants = [line_info.variant for line_info in order_lines_info]
     filter_lookup = {"product_variant__in": variants}
@@ -350,7 +353,7 @@ def increase_stock(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: Iterable["OrderLineInfo"], channel_slug: str, manager: PluginsManager
+    lines_info: Iterable["OrderLineInfo"], channel: "Channel", manager: PluginsManager
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -382,7 +385,7 @@ def increase_allocations(
     allocate_stocks(
         lines_info,
         lines_info[0].line.order.shipping_address.country.code,  # type: ignore
-        channel_slug,
+        channel,
         manager,
     )
 

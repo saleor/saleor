@@ -31,7 +31,7 @@ def test_allocate_stocks(order_line, stock, channel_USD):
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
 
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
+        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
     )
 
     stock.refresh_from_db()
@@ -68,7 +68,7 @@ def test_allocate_stocks_multiple_lines(order_line, order, product, stock, chann
     allocate_stocks(
         [line_data_1, line_data_2],
         COUNTRY_CODE,
-        channel_USD.slug,
+        channel_USD,
         manager=get_plugins_manager(),
     )
 
@@ -88,7 +88,7 @@ def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channe
 
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=5)
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
+        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
     )
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
@@ -109,7 +109,7 @@ def test_allocate_stock_with_reservations(
     allocate_stocks(
         [line_data],
         COUNTRY_CODE,
-        channel_USD.slug,
+        channel_USD,
         manager=get_plugins_manager(),
         check_reservations=True,
     )
@@ -134,7 +134,7 @@ def test_allocate_stock_insufficient_stock_due_to_reservations(
         allocate_stocks(
             [line_data],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             manager=get_plugins_manager(),
             check_reservations=True,
         )
@@ -161,7 +161,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
 
     # when
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
+        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
     )
 
     # then
@@ -187,7 +187,7 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=6)
     with pytest.raises(InsufficientStock):
         allocate_stocks(
-            [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
+            [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
         )
 
     assert not Allocation.objects.filter(
@@ -204,7 +204,7 @@ def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_US
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
     with pytest.raises(InsufficientStock):
         allocate_stocks(
-            [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
+            [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
         )
 
 
@@ -217,7 +217,7 @@ def test_allocate_stock_insufficient_stocks(
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=10)
     with pytest.raises(InsufficientStock):
         allocate_stocks(
-            [line_data], COUNTRY_CODE, channel_USD.slug, manager=get_plugins_manager()
+            [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
         )
 
     assert not Allocation.objects.filter(
@@ -254,7 +254,7 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
         allocate_stocks(
             [line_data_1, line_data_2],
             COUNTRY_CODE,
-            channel_USD.slug,
+            channel_USD,
             manager=get_plugins_manager(),
         )
 
@@ -431,7 +431,7 @@ def test_increase_allocations(quantity, allocation):
     allocation.save(update_fields=["quantity_allocated"])
 
     increase_allocations(
-        [order_line_info], order_line.order.channel.slug, manager=get_plugins_manager()
+        [order_line_info], order_line.order.channel, manager=get_plugins_manager()
     )
 
     stock.refresh_from_db()
@@ -464,7 +464,7 @@ def test_increase_allocation_insufficient_stock(allocation):
     with pytest.raises(InsufficientStock):
         increase_allocations(
             [order_line_info],
-            order_line.order.channel.slug,
+            order_line.order.channel,
             manager=get_plugins_manager(),
         )
 
