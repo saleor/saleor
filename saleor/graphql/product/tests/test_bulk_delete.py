@@ -553,7 +553,7 @@ def test_delete_products_with_images(
     assert delete_from_storage_task_mock.call_count == 2
     assert {
         call_args.args[0] for call_args in delete_from_storage_task_mock.call_args_list
-    } == {media1.image.path, media2.image.path}
+    } == {media1.image.name, media2.image.name}
     mocked_recalculate_orders_task.assert_not_called()
 
 

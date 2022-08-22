@@ -10,9 +10,9 @@ def drop_media_to_remove(apps, _schema_editor):
     # delete all related images
     image_paths_to_delete = []
     for media in ProductMedia.objects.filter(to_remove=True).iterator():
-        image_paths_to_delete.append(media.image.path)
+        image_paths_to_delete.append(media.image.name)
         for thumbnail in media.thumbnails.all():
-            image_paths_to_delete.append(thumbnail.image.path)
+            image_paths_to_delete.append(thumbnail.image.name)
 
     if image_paths_to_delete:
         delete_files_from_storage_task.delay(image_paths_to_delete)
