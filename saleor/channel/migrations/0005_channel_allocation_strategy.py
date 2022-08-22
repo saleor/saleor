@@ -23,4 +23,16 @@ class Migration(migrations.Migration):
             ),
             preserve_default=False,
         ),
+        migrations.AlterField(
+            model_name="channel",
+            name="allocation_strategy",
+            field=models.CharField(
+                choices=[
+                    ("prioritize-sorting-order", "Prioritize sorting order"),
+                    ("prioritize-high-stock", "Prioritize high stock"),
+                ],
+                default="prioritize-sorting-order",
+                max_length=255,
+            ),
+        ),
     ]
