@@ -29,7 +29,7 @@ CHANNEL_CREATE_MUTATION = """
                 warehouses {
                     slug
                 }
-                allocationSettings {
+                stockSettings {
                     allocationStrategy
                 }
             }
@@ -59,7 +59,7 @@ def test_channel_create_mutation_as_staff_user(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -84,9 +84,7 @@ def test_channel_create_mutation_as_staff_user(
         == channel.default_country.code
         == default_country
     )
-    assert (
-        channel_data["allocationSettings"]["allocationStrategy"] == allocation_strategy
-    )
+    assert channel_data["stockSettings"]["allocationStrategy"] == allocation_strategy
 
 
 def test_channel_create_mutation_as_app(
@@ -129,7 +127,7 @@ def test_channel_create_mutation_as_app(
         == default_country
     )
     assert (
-        channel_data["allocationSettings"]["allocationStrategy"]
+        channel_data["stockSettings"]["allocationStrategy"]
         == AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
     )
 
@@ -147,7 +145,7 @@ def test_channel_create_mutation_as_customer(user_api_client):
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -234,7 +232,7 @@ def test_channel_create_mutation_with_duplicated_slug(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -273,7 +271,7 @@ def test_channel_create_mutation_with_shipping_zones(
             "currencyCode": currency_code,
             "addShippingZones": shipping_zones_ids,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -297,9 +295,7 @@ def test_channel_create_mutation_with_shipping_zones(
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
     for shipping_zone in shipping_zones:
         shipping_zone.channels.get(slug=slug)
-    assert (
-        channel_data["allocationSettings"]["allocationStrategy"] == allocation_strategy
-    )
+    assert channel_data["stockSettings"]["allocationStrategy"] == allocation_strategy
 
 
 def test_channel_create_mutation_with_warehouses(
@@ -324,7 +320,7 @@ def test_channel_create_mutation_with_warehouses(
             "currencyCode": currency_code,
             "addWarehouses": warehouses_ids,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
@@ -349,9 +345,7 @@ def test_channel_create_mutation_with_warehouses(
     assert {
         warehouse_data["slug"] for warehouse_data in channel_data["warehouses"]
     } == {warehouse.slug for warehouse in warehouses}
-    assert (
-        channel_data["allocationSettings"]["allocationStrategy"] == allocation_strategy
-    )
+    assert channel_data["stockSettings"]["allocationStrategy"] == allocation_strategy
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -380,7 +374,7 @@ def test_channel_create_mutation_trigger_webhook(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         }
     }
 
