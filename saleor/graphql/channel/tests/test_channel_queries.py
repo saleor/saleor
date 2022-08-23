@@ -165,7 +165,7 @@ QUERY_CHANNEL = """
             name
             slug
             currencyCode
-            allocationSettings{
+            stockSettings{
                 allocationStrategy
             }
         }
@@ -188,7 +188,7 @@ def test_query_channel_as_staff_user(staff_api_client, channel_USD):
     assert channel_data["name"] == channel_USD.name
     assert channel_data["slug"] == channel_USD.slug
     assert channel_data["currencyCode"] == channel_USD.currency_code
-    allocation_strategy = channel_data["allocationSettings"]["allocationStrategy"]
+    allocation_strategy = channel_data["stockSettings"]["allocationStrategy"]
     assert (
         AllocationStrategyEnum[allocation_strategy].value
         == channel_USD.allocation_strategy
@@ -210,7 +210,7 @@ def test_query_channel_as_app(app_api_client, channel_USD):
     assert channel_data["name"] == channel_USD.name
     assert channel_data["slug"] == channel_USD.slug
     assert channel_data["currencyCode"] == channel_USD.currency_code
-    allocation_strategy = channel_data["allocationSettings"]["allocationStrategy"]
+    allocation_strategy = channel_data["stockSettings"]["allocationStrategy"]
     assert (
         AllocationStrategyEnum[allocation_strategy].value
         == channel_USD.allocation_strategy

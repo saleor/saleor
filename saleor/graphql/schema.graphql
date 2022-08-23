@@ -3884,7 +3884,7 @@ type Channel implements Node {
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
 
   """
-  Define the allocation setting for this channel.
+  Define the stock setting for this channel.
   
   Added in Saleor 3.7.
   
@@ -3892,7 +3892,7 @@ type Channel implements Node {
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
-  allocationSettings: AllocationSettings!
+  stockSettings: StockSettings!
 }
 
 """
@@ -4283,14 +4283,16 @@ enum WeightUnitsEnum {
 }
 
 """
-Represents the channel allocation settings.
+Represents the channel stock settings.
 
 Added in Saleor 3.7.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AllocationSettings {
-  """Allocation strategy options."""
+type StockSettings {
+  """
+  Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
+  """
   allocationStrategy: AllocationStrategyEnum!
 }
 
@@ -19894,13 +19896,13 @@ input ChannelCreateInput {
   isActive: Boolean
 
   """
-  The channel allocation settings.
+  The channel stock settings.
   
   Added in Saleor 3.7.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  allocationSettings: AllocationSettingsInput
+  stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
@@ -19933,8 +19935,10 @@ input ChannelCreateInput {
   defaultCountry: CountryCode!
 }
 
-input AllocationSettingsInput {
-  """Allocation strategy options."""
+input StockSettingsInput {
+  """
+  Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
+  """
   allocationStrategy: AllocationStrategyEnum!
 }
 
@@ -19954,13 +19958,13 @@ input ChannelUpdateInput {
   isActive: Boolean
 
   """
-  The channel allocation settings.
+  The channel stock settings.
   
   Added in Saleor 3.7.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  allocationSettings: AllocationSettingsInput
+  stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]

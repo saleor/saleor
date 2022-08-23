@@ -129,17 +129,18 @@ class ChannelContextTypeWithMetadata(
         abstract = True
 
 
-class AllocationSettings(ObjectType):
+class StockSettings(ObjectType):
     allocation_strategy = AllocationStrategyEnum(
-        description="Allocation strategy options.",
+        description=(
+            "Allocation strategy options. Strategy defines the preference "
+            "of warehouses for allocations and reservations."
+        ),
         required=True,
     )
 
     class Meta:
         description = (
-            "Represents the channel allocation settings."
-            + ADDED_IN_37
-            + PREVIEW_FEATURE
+            "Represents the channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE
         )
 
 
@@ -223,12 +224,10 @@ class Channel(ModelObjectType):
         + ADDED_IN_36
         + PREVIEW_FEATURE,
     )
-    allocation_settings = PermissionsField(
-        AllocationSettings,
+    stock_settings = PermissionsField(
+        StockSettings,
         description=(
-            "Define the allocation setting for this channel."
-            + ADDED_IN_37
-            + PREVIEW_FEATURE
+            "Define the stock setting for this channel." + ADDED_IN_37 + PREVIEW_FEATURE
         ),
         required=True,
         permissions=[
@@ -364,5 +363,5 @@ class Channel(ModelObjectType):
         return shipping_zones_loader.then(get_shipping_methods)
 
     @staticmethod
-    def resolve_allocation_settings(root: models.Channel, _info):
-        return AllocationSettings(allocation_strategy=root.allocation_strategy)
+    def resolve_stock_settings(root: models.Channel, _info):
+        return StockSettings(allocation_strategy=root.allocation_strategy)

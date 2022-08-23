@@ -29,7 +29,7 @@ CHANNEL_UPDATE_MUTATION = """
                 warehouses {
                     slug
                 }
-                allocationSettings {
+                stockSettings {
                     allocationStrategy
                 }
             }
@@ -60,7 +60,7 @@ def test_channel_update_mutation_as_staff_user(
             "name": name,
             "slug": slug,
             "defaultCountry": default_country,
-            "allocationSettings": {"allocationStrategy": allocation_strategy},
+            "stockSettings": {"allocationStrategy": allocation_strategy},
         },
     }
 
@@ -85,9 +85,7 @@ def test_channel_update_mutation_as_staff_user(
         == channel_USD.default_country.code
         == default_country
     )
-    assert (
-        channel_data["allocationSettings"]["allocationStrategy"] == allocation_strategy
-    )
+    assert channel_data["stockSettings"]["allocationStrategy"] == allocation_strategy
 
 
 def test_channel_update_mutation_as_app(

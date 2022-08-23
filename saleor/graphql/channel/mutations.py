@@ -28,20 +28,21 @@ from .types import Channel
 from .utils import delete_invalid_warehouse_to_shipping_zone_relations
 
 
-class AllocationSettingsInput(graphene.InputObjectType):
+class StockSettingsInput(graphene.InputObjectType):
     allocation_strategy = AllocationStrategyEnum(
-        description=("Allocation strategy options."),
+        description=(
+            "Allocation strategy options. Strategy defines the preference "
+            "of warehouses for allocations and reservations."
+        ),
         required=True,
     )
 
 
 class ChannelInput(graphene.InputObjectType):
     is_active = graphene.Boolean(description="isActive flag.")
-    allocation_settings = graphene.Field(
-        AllocationSettingsInput,
-        description=(
-            "The channel allocation settings." + ADDED_IN_37 + PREVIEW_FEATURE
-        ),
+    stock_settings = graphene.Field(
+        StockSettingsInput,
+        description=("The channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE),
         required=False,
     )
     add_shipping_zones = NonNullList(
@@ -100,10 +101,8 @@ class ChannelCreate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
-        if allocation_settings := cleaned_input.get("allocation_settings"):
-            cleaned_input["allocation_strategy"] = allocation_settings[
-                "allocation_strategy"
-            ]
+        if stock_settings := cleaned_input.get("stock_settings"):
+            cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
 
         return cleaned_input
 
@@ -184,10 +183,8 @@ class ChannelUpdate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
-        if allocation_settings := cleaned_input.get("allocation_settings"):
-            cleaned_input["allocation_strategy"] = allocation_settings[
-                "allocation_strategy"
-            ]
+        if stock_settings := cleaned_input.get("stock_settings"):
+            cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
 
         return cleaned_input
 
