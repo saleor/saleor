@@ -28,7 +28,7 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppExtension, AppInstallation
+from ..app.models import App, AppExtension, AppInstallation, AppToken
 from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
@@ -2483,7 +2483,6 @@ def product_with_variant_with_file_attribute(
 
 @pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
-
     attribute = Attribute.objects.create(
         slug="modes",
         name="Available Modes",
@@ -4385,7 +4384,8 @@ def draft_order_with_fixed_discount_order(draft_order):
         value_type=DiscountValueType.FIXED,
         value=value,
         reason="Discount reason",
-        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,
+        # type: ignore
     )
     draft_order.save()
     return draft_order

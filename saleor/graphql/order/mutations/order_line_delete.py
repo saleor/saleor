@@ -12,6 +12,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Order, OrderLine
@@ -74,10 +75,11 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
                 "updated_at",
             ]
         # Create the removal event
+        app = load_app(info.context)
         events.order_removed_products_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             order_lines=[line],
         )
 

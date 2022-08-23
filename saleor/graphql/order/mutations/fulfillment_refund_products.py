@@ -5,6 +5,7 @@ from ....order import FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import create_refund_fulfillment
 from ....payment import PaymentError
+from ...app.dataloaders import load_app
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
 from ..types import Fulfillment, Order
@@ -133,9 +134,10 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         order = cleaned_input["order"]
 
         try:
+            app = load_app(info.context)
             refund_fulfillment = create_refund_fulfillment(
                 info.context.user,
-                info.context.app,
+                app,
                 order,
                 cleaned_input["payment"],
                 cleaned_input["transactions"],

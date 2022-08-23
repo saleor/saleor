@@ -7,7 +7,7 @@ from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType, NonNullList
 from ..core.utils import from_global_id_or_error
-from .dataloaders import AppByIdLoader, AppExtensionByIdLoader
+from .dataloaders import AppByIdLoader, AppExtensionByIdLoader, load_app
 from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
     AppActivate,
@@ -120,7 +120,7 @@ class AppQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_app(_root, info, *, id=None):
-        if app := info.context.app:
+        if app := load_app(info.context):
             if not id:
                 return app
             _, app_id = from_global_id_or_error(id, only_type="App")

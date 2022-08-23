@@ -6,6 +6,7 @@ from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
 from ....order.actions import cancel_fulfillment, cancel_waiting_fulfillment
 from ....order.error_codes import OrderErrorCode
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Fulfillment, Order
@@ -89,18 +90,19 @@ class FulfillmentCancel(BaseMutation):
 
         cls.validate_fulfillment(fulfillment, warehouse)
 
+        app = load_app(info.context)
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             fulfillment = cancel_waiting_fulfillment(
                 fulfillment,
                 info.context.user,
-                info.context.app,
+                app,
                 info.context.plugins,
             )
         else:
             fulfillment = cancel_fulfillment(
                 fulfillment,
                 info.context.user,
-                info.context.app,
+                app,
                 warehouse,
                 info.context.plugins,
             )

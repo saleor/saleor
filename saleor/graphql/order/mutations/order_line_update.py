@@ -13,6 +13,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ..types import Order, OrderLine
@@ -70,10 +71,11 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             variant=instance.variant,
             warehouse_pk=warehouse_pk,
         )
+        app = load_app(info.context)
         try:
             change_order_line_quantity(
                 info.context.user,
-                info.context.app,
+                app,
                 line_info,
                 instance.old_quantity,
                 instance.quantity,

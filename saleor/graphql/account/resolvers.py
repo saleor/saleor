@@ -16,6 +16,7 @@ from ...core.permissions import (
 from ...core.tracing import traced_resolver
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
+from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -201,7 +202,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
 @traced_resolver
 def resolve_address(info, id):
     user = info.context.user
-    app = info.context.app
+    app = load_app(info.context)
     _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
@@ -214,7 +215,7 @@ def resolve_address(info, id):
 
 def resolve_addresses(info, ids):
     user = info.context.user
-    app = info.context.app
+    app = load_app(info.context)
     ids = [
         from_global_id_or_error(address_id, Address, raise_error=True)[1]
         for address_id in ids
