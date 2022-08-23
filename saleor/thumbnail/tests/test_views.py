@@ -70,11 +70,11 @@ def test_handle_thumbnail_view_for_user(
     staff_user.save(update_fields=["avatar"])
 
     size = 200
-    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    user_uuid = graphene.Node.to_global_id("User", staff_user.uuid)
     thumbnail_count = Thumbnail.objects.count()
 
     # when
-    response = client.get(f"/thumbnail/{user_id}/{size}/")
+    response = client.get(f"/thumbnail/{user_uuid}/{size}/")
 
     # then
     assert response.status_code == 302
@@ -151,11 +151,11 @@ def test_handle_thumbnail_view_for_user_thumbnail_already_exist(
     # given
     size = 128
     thumbnail = Thumbnail.objects.create(user=staff_user, size=128, image=image)
-    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    user_uuid = graphene.Node.to_global_id("User", staff_user.uuid)
     thumbnail_count = Thumbnail.objects.count()
 
     # when
-    response = client.get(f"/thumbnail/{user_id}/{size}/")
+    response = client.get(f"/thumbnail/{user_uuid}/{size}/")
 
     # then
     assert response.status_code == 302

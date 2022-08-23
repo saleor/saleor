@@ -791,8 +791,9 @@ def test_query_user_avatar_with_size_and_format_proxy_url_returned(
 
     format = ThumbnailFormatEnum.WEBP.name
 
-    id = graphene.Node.to_global_id("User", user.pk)
-    variables = {"id": id, "size": 120, "format": format}
+    user_id = graphene.Node.to_global_id("User", user.id)
+    user_uuid = graphene.Node.to_global_id("User", user.uuid)
+    variables = {"id": user_id, "size": 120, "format": format}
 
     # when
     response = staff_api_client.post_graphql(
@@ -804,7 +805,7 @@ def test_query_user_avatar_with_size_and_format_proxy_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{id}/128/{format.lower()}/"
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{user_uuid}/128/{format.lower()}/"
     )
 
 
@@ -818,8 +819,9 @@ def test_query_user_avatar_with_size_proxy_url_returned(
     user.avatar = avatar_mock
     user.save(update_fields=["avatar"])
 
-    id = graphene.Node.to_global_id("User", user.pk)
-    variables = {"id": id, "size": 120}
+    user_id = graphene.Node.to_global_id("User", user.id)
+    user_uuid = graphene.Node.to_global_id("User", user.uuid)
+    variables = {"id": user_id, "size": 120}
 
     # when
     response = staff_api_client.post_graphql(
@@ -829,7 +831,10 @@ def test_query_user_avatar_with_size_proxy_url_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
-    assert data["avatar"]["url"] == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{id}/128/"
+    assert (
+        data["avatar"]["url"]
+        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{user_uuid}/128/"
+    )
 
 
 def test_query_user_avatar_with_size_thumbnail_url_returned(

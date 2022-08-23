@@ -38,3 +38,9 @@ def delete_event_payloads_task():
 def delete_product_media_task(media_id):
     # TODO: to delete
     pass
+
+
+@app.task
+def delete_files_from_storage_task(paths):
+    for path in paths:
+        default_storage.delete(path)
