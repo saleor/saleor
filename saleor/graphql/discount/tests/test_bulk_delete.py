@@ -85,7 +85,7 @@ def test_delete_sales_triggers_webhook(
     sale_list,
     permission_manage_discounts,
     any_webhook,
-    settings
+    settings,
 ):
     query = """
     mutation saleBulkDelete($ids: [ID!]!) {
