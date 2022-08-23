@@ -540,7 +540,7 @@ def _create_order(
     allocate_stocks(
         order_lines_info,
         country_code,
-        checkout_info.channel.slug,
+        checkout_info.channel,
         manager,
         checkout_info.delivery_method_info.warehouse_pk,
         additional_warehouse_lookup,
@@ -915,7 +915,7 @@ def _handle_allocations_of_order_lines(
     allocate_stocks(
         order_lines_info,
         country_code,
-        checkout_info.channel.slug,
+        checkout_info.channel,
         manager,
         checkout_info.delivery_method_info.warehouse_pk,
         additional_warehouse_lookup,
