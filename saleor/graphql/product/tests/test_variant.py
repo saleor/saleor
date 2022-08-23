@@ -4497,6 +4497,55 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+def test_product_variant_bulk_create_by_name(
+    product_variant_created_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    attribute_value_count = size_attribute.values.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    sku = str(uuid4())[:12]
+    name = "new-variant-anem"
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "name": name,
+            "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["errors"]
+    assert data["count"] == 1
+    assert data["productVariants"][0]["name"] == name
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+    assert attribute_value_count == size_attribute.values.count()
+    product_variant = ProductVariant.objects.get(sku=sku)
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
+    assert product_variant_created_webhook_mock.call_count == data["count"]
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_attribute_id(
     product_variant_created_webhook_mock,
     staff_api_client,
