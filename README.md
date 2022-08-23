@@ -98,7 +98,7 @@ The fastest way to develop with Saleor is by using developer accounts in [Saleor
 
 Register [here](https://cloud.saleor.io/register) or install our [CLI tool](https://github.com/saleor/saleor-cli):
 
-`npm i -g saleor@latest`
+`npm i -g @saleor/cli`
 
 and run the following command:
 
