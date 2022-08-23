@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saleor"
-version = "3.6.3"
+version = "3.6.4"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -16,7 +16,6 @@ documentation = "https://docs.saleor.io/"
   braintree = ">=4.2,<4.17"
   dj-database-url = "^0"
   dj-email-url = "^1"
-  django = {version = "^3.2.15", extras = ["bcrypt"]}
   django-countries = "^7.2"
   django-filter = "^22.1"
   django-measurement = "^3.0"
@@ -71,6 +70,10 @@ documentation = "https://docs.saleor.io/"
   graphene = "<3.0"
   Authlib = "^1.0.0"
   types-redis = "^4.2.6"
+
+    [tool.poetry.dependencies.django]
+    version = "^3.2.15"
+    extras = [ "bcrypt" ]
 
     [tool.poetry.dependencies.uvicorn]
     extras = [ "standard" ]
