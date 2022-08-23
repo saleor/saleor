@@ -14,7 +14,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
-from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
+from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...discount import DiscountInfo
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
@@ -290,7 +290,12 @@ class AvataxPlugin(BasePlugin):
     ) -> TaxedMoney:
         base_shipping_price = previous_value
 
-        if not charge_taxes_on_shipping():
+        tax_class = getattr(
+            checkout_info.delivery_method_info.delivery_method, "tax_class", None
+        )
+        charge_taxes_on_shipping = tax_class is not None
+
+        if not charge_taxes_on_shipping:
             return base_shipping_price
 
         if self._skip_plugin(previous_value):
@@ -588,7 +593,10 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        if not charge_taxes_on_shipping():
+        tax_class = getattr(order.shipping_method, "tax_class", None)
+        charge_taxes_on_shipping = tax_class is not None
+
+        if not charge_taxes_on_shipping:
             return previous_value
 
         if not _validate_order(order):

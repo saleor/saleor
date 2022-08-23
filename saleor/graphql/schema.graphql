@@ -7779,9 +7779,6 @@ type Shop {
   """
   fulfillmentAllowUnpaid: Boolean!
 
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean!
-
   """Enable inventory tracking."""
   trackInventoryByDefault: Boolean
 
@@ -7876,6 +7873,9 @@ type Shop {
 
   """Display prices with tax in store."""
   displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
+
+  """Charge taxes on shipping."""
+  chargeTaxesOnShipping: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
 }
 
 """
@@ -15513,23 +15513,6 @@ input ShopSettingsInput {
   """SEO description."""
   description: String
 
-  """
-  Include taxes in prices. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
-  """
-  includeTaxesInPrices: Boolean
-
-  """
-  Display prices with tax in store. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
-  """
-  displayGrossPrices: Boolean
-
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean
-
   """Enable inventory tracking."""
   trackInventoryByDefault: Boolean
 
@@ -15590,6 +15573,27 @@ input ShopSettingsInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   limitQuantityPerCheckout: Int
+
+  """
+  Include taxes in prices. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
+  includeTaxesInPrices: Boolean
+
+  """
+  Display prices with tax in store. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
+  displayGrossPrices: Boolean
+
+  """
+  Charge taxes on shipping. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.
+  """
+  chargeTaxesOnShipping: Boolean
 }
 
 """

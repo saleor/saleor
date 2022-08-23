@@ -26,21 +26,6 @@ from .types import GiftCardSettings, OrderSettings, Shop
 class ShopSettingsInput(graphene.InputObjectType):
     header_text = graphene.String(description="Header text.")
     description = graphene.String(description="SEO description.")
-    include_taxes_in_prices = graphene.Boolean(
-        description=(
-            f"Include taxes in prices. {DEPRECATED_IN_3X_INPUT} Use "
-            "`taxConfigurationUpdate` mutation to configure this setting per channel "
-            "or country."
-        )
-    )
-    display_gross_prices = graphene.Boolean(
-        description=(
-            f"Display prices with tax in store. {DEPRECATED_IN_3X_INPUT} Use "
-            "`taxConfigurationUpdate` mutation to configure this setting per channel "
-            "or country."
-        )
-    )
-    charge_taxes_on_shipping = graphene.Boolean(description="Charge taxes on shipping.")
     track_inventory_by_default = graphene.Boolean(
         description="Enable inventory tracking."
     )
@@ -91,6 +76,29 @@ class ShopSettingsInput(graphene.InputObjectType):
             + ADDED_IN_31
             + PREVIEW_FEATURE
         )
+    )
+
+    # deprecated
+    include_taxes_in_prices = graphene.Boolean(
+        description=(
+            f"Include taxes in prices. {DEPRECATED_IN_3X_INPUT} Use "
+            "`taxConfigurationUpdate` mutation to configure this setting per channel "
+            "or country."
+        )
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            f"Display prices with tax in store. {DEPRECATED_IN_3X_INPUT} Use "
+            "`taxConfigurationUpdate` mutation to configure this setting per channel "
+            "or country."
+        )
+    )
+    charge_taxes_on_shipping = graphene.Boolean(
+        description=(
+            f"Charge taxes on shipping. {DEPRECATED_IN_3X_INPUT} To enable taxes for "
+            "a shipping method, assign a tax class to the shipping method with "
+            "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
+        ),
     )
 
 

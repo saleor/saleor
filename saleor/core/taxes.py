@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import List
 
-from django.contrib.sites.models import Site
 from prices import Money, TaxedMoney
 
 
@@ -21,10 +20,6 @@ def zero_money(currency: str) -> Money:
 def zero_taxed_money(currency: str) -> TaxedMoney:
     zero = zero_money(currency)
     return TaxedMoney(net=zero, gross=zero)
-
-
-def charge_taxes_on_shipping() -> bool:
-    return Site.objects.get_current().settings.charge_taxes_on_shipping
 
 
 @dataclass(frozen=True)

@@ -31,7 +31,7 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
-def _get_tax_class_name_and_metadata(obj):
+def _populate_tax_class_name_and_metadata(obj):
     avatax_code = obj.metadata.get(AVATAX_CODE_META_KEY)
     avatax_description = obj.metadata.get(AVATAX_DESCRIPTION_META_KEY)
     vatlayer_code = obj.metadata.get(VATLAYER_CODE_META_KEY)
@@ -84,7 +84,9 @@ def migrate_product_tax_codes(apps, _schema_editor):
         tax_classes_from_product_types = defaultdict(list)
         product_types = ProductType.objects.filter(pk__in=batch_pks)
         for product_type in product_types:
-            tax_class_name, metadata = _get_tax_class_name_and_metadata(product_type)
+            tax_class_name, metadata = _populate_tax_class_name_and_metadata(
+                product_type
+            )
             tax_classes_from_product_types[tax_class_name].append(product_type.pk)
             tax_class_metadata[tax_class_name] = metadata
 
@@ -99,7 +101,7 @@ def migrate_product_tax_codes(apps, _schema_editor):
     for batch_pks in queryset_in_batches(products):
         products = Product.objects.filter(pk__in=batch_pks)
         for product in products:
-            tax_class_name, metadata = _get_tax_class_name_and_metadata(product)
+            tax_class_name, metadata = _populate_tax_class_name_and_metadata(product)
             tax_classes_from_products[tax_class_name].append(product.pk)
             tax_class_metadata[tax_class_name] = metadata
 
@@ -110,35 +112,6 @@ def migrate_product_tax_codes(apps, _schema_editor):
             Product.objects.filter(id__in=ids).update(tax_class=tax_class)
 
 
-def migrate_shipping_tax_code(apps, _schema_editor):
-    """Create tax classes for Avalara shipping tax codes.
-
-    If Avatax is enabled, get shipping tax codes from its config and for each channel
-    where it's set, create a tax class with this code and channel name in metadata.
-    """
-
-    PluginConfiguration = apps.get_model("plugins", "PluginConfiguration")
-    TaxClass = apps.get_model("tax", "TaxClass")
-
-    avatax_configs = PluginConfiguration.objects.filter(
-        active=True, identifier=AVATAX_PLUGIN_ID
-    )
-
-    for avatax_config in avatax_configs:
-        channel = avatax_config.channel
-        config_dict = {
-            item["name"]: item["value"] for item in avatax_config.configuration
-        }
-        shipping_tax_code = config_dict.get("shipping_tax_code")
-        if shipping_tax_code:
-            name = f"Shipping {channel.slug}"
-            metadata = {
-                AVATAX_CODE_META_KEY: shipping_tax_code,
-                "channel": channel.slug,
-            }
-            TaxClass.objects.get_or_create(name=name, metadata=metadata)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -147,5 +120,4 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(migrate_product_tax_codes, migrations.RunPython.noop),
-        migrations.RunPython(migrate_shipping_tax_code, migrations.RunPython.noop),
     ]
