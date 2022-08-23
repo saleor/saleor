@@ -76,6 +76,38 @@ def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
     assert not Sale.objects.filter(id__in=[sale.id for sale in sale_list]).exists()
 
 
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_sales_triggers_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    staff_api_client,
+    sale_list,
+    permission_manage_discounts,
+    any_webhook,
+    settings,
+):
+    query = """
+    mutation saleBulkDelete($ids: [ID!]!) {
+        saleBulkDelete(ids: $ids) {
+            count
+        }
+    }
+    """
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variables = {
+        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["saleBulkDelete"]["count"] == 3
+    assert mocked_webhook_trigger.call_count == 3
+
+
 BULK_DELETE_VOUCHERS_MUTATION = """
     mutation voucherBulkDelete($ids: [ID!]!) {
         voucherBulkDelete(ids: $ids) {
