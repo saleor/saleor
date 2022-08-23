@@ -1,6 +1,9 @@
 from collections import defaultdict
 
-from ...app.models import App, AppExtension
+from django.contrib.auth.hashers import check_password
+
+from ...app.models import App, AppExtension, AppToken
+from ...core.auth import get_token_from_request
 from ..core.dataloaders import DataLoader
 
 
@@ -35,3 +38,43 @@ class AppExtensionByAppIdLoader(DataLoader):
             extensions_map[extension.app_id].append(extension)
             app_extension_loader.prime(extension.id, extension)
         return [extensions_map.get(app_id, []) for app_id in keys]
+
+
+class AppByTokenLoader(DataLoader):
+    context_key = "app_by_token"
+
+    def batch_load(self, keys):
+        last_4s_to_raw_token_map = defaultdict(list)
+        for raw_token in keys:
+            last_4s_to_raw_token_map[raw_token[-4:]].append(raw_token)
+
+        tokens = (
+            AppToken.objects.using(self.database_connection_name)
+            .filter(token_last_4__in=last_4s_to_raw_token_map.keys())
+            .values_list("auth_token", "token_last_4", "app_id")
+        )
+        authed_apps = {}
+        for auth_token, token_last_4, app_id in tokens:
+            for raw_token in last_4s_to_raw_token_map[token_last_4]:
+                if check_password(raw_token, auth_token):
+                    authed_apps[raw_token] = app_id
+
+        apps = (
+            App.objects.using(self.database_connection_name)
+            .filter(id__in=authed_apps.values(), is_active=True)
+            .in_bulk()
+        )
+
+        return [apps.get(authed_apps.get(key)) for key in keys]
+
+
+def promise_app(context):
+    auth_token = get_token_from_request(context)
+    if not auth_token or len(auth_token) != 30:
+        return None
+    return AppByTokenLoader(context).load(auth_token)
+
+
+def load_app(context):
+    promise = promise_app(context)
+    return None if promise is None else promise.get()

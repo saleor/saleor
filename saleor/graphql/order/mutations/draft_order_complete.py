@@ -17,6 +17,7 @@ from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Order
@@ -129,14 +130,14 @@ class DraftOrderComplete(BaseMutation):
             payment=order.get_last_payment(),
             lines_data=order_lines_info,
         )
+        app = load_app(info.context)
         transaction.on_commit(
             lambda: order_created(
                 order_info=order_info,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 manager=info.context.plugins,
                 from_draft=True,
             )
         )
-
         return DraftOrderComplete(order=order)

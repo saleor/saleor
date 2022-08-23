@@ -944,8 +944,10 @@ def _update_order_total_charged(order: Order):
         sum(order.payments.values_list("captured_amount", flat=True))  # type: ignore
         or 0
     )
-    order.total_charged_amount += sum(
-        order.payment_transactions.values_list("charged_value", flat=True)  # type: ignore # noqa: E501
+    order.total_charged_amount += sum(  # type: ignore
+        order.payment_transactions.values_list(  # type: ignore
+            "charged_value", flat=True
+        )
     )
 
 

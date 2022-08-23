@@ -9,12 +9,13 @@ from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from .types import Webhook, WebhookEvent
 
 
 def resolve_webhook(info, id):
-    app = info.context.app
+    app = load_app(info.context)
     _, id = from_global_id_or_error(id, Webhook)
     if app:
         return app.webhooks.filter(id=id).first()
@@ -33,7 +34,7 @@ def resolve_webhook_events():
 
 @traced_resolver
 def resolve_sample_payload(info, event_name):
-    app = info.context.app
+    app = load_app(info.context)
     required_permission = WebhookEventAsyncType.PERMISSIONS.get(
         event_name, WebhookEventSyncType.PERMISSIONS.get(event_name)
     )

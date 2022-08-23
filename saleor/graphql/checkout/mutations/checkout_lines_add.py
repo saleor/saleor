@@ -10,6 +10,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -164,7 +165,8 @@ class CheckoutLinesAdd(BaseMutation):
     def perform_mutation(
         cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
     ):
-        check_permissions_for_custom_prices(info.context.app, lines)
+        app = load_app(info.context)
+        check_permissions_for_custom_prices(app, lines)
 
         checkout = get_checkout(
             cls,

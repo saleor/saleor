@@ -6,6 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...core.utils import validate_required_string_field
@@ -59,10 +60,11 @@ class OrderAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
+        app = load_app(info.context)
         event = events.order_note_added_event(
             order=order,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             message=cleaned_input["message"],
         )
         func = get_webhook_handler_by_order_status(order.status, info)
