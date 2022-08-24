@@ -132,8 +132,8 @@ class ChannelContextTypeWithMetadata(
 class StockSettings(ObjectType):
     allocation_strategy = AllocationStrategyEnum(
         description=(
-            "Allocation strategy options. Strategy defines the preference "
-            "of warehouses for allocations and reservations."
+            "Allocation strategy defines the preference of warehouses "
+            "for allocations and reservations."
         ),
         required=True,
     )

@@ -4291,7 +4291,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 """
 type StockSettings {
   """
-  Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
+  Allocation strategy defines the preference of warehouses for allocations and reservations.
   """
   allocationStrategy: AllocationStrategyEnum!
 }
@@ -4299,11 +4299,10 @@ type StockSettings {
 """
 Determine the allocation strategy for the channel.
 
-    PRIORITIZE_SORTING_ORDER - the allocation is prioritized by the warehouses' sort
-    order within the channel
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
 
-    PRIORITIZE_HIGH_STOCK - the allocation is prioritized by the highest available
-    quantity in stocks
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
 """
 enum AllocationStrategyEnum {
   PRIORITIZE_SORTING_ORDER

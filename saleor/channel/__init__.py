@@ -1,11 +1,10 @@
 class AllocationStrategy:
     """Determine the allocation strategy for the channel.
 
-    PRIORITIZE_SORTING_ORDER - the allocation is prioritized by the warehouses' sort
-    order within the channel
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
 
-    PRIORITIZE_HIGH_STOCK - the allocation is prioritized by the highest available
-    quantity in stocks
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
     """
 
     PRIORITIZE_SORTING_ORDER = "prioritize-sorting-order"
