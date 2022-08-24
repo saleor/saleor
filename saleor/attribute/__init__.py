@@ -109,5 +109,10 @@ class AttributeEntityType:
 
     PAGE = "Page"
     PRODUCT = "Product"
+    PRODUCT_VARIANT = "ProductVariant"
 
-    CHOICES = [(PAGE, "Page"), (PRODUCT, "Product")]
+    CHOICES = [
+        (PAGE, "Page"),
+        (PRODUCT, "Product"),
+        (PRODUCT_VARIANT, "Product Variant"),
+    ]
