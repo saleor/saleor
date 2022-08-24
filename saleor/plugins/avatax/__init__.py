@@ -239,7 +239,7 @@ def append_shipping_to_data(
     prices_entered_with_tax: bool,
     discounted: Optional[bool] = False,
 ):
-    if shipping_tax_code and shipping_price_amount is not None:
+    if shipping_price_amount is not None:
         append_line_to_data(
             data,
             quantity=1,
