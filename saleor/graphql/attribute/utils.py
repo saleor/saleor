@@ -69,14 +69,23 @@ class AttributeAssignmentMixin:
     be unable to build or might only be partially built.
     """
 
+    # TODO: consider refactoring those mappings into the NamedTuple
     REFERENCE_VALUE_NAME_MAPPING = {
         AttributeEntityType.PAGE: "title",
         AttributeEntityType.PRODUCT: "name",
+        AttributeEntityType.PRODUCT_VARIANT: "name",
     }
 
     ENTITY_TYPE_TO_MODEL_MAPPING = {
         AttributeEntityType.PAGE: page_models.Page,
         AttributeEntityType.PRODUCT: product_models.Product,
+        AttributeEntityType.PRODUCT_VARIANT: product_models.ProductVariant,
+    }
+
+    ENTITY_TYPE_TO_VALUE_FIELD_MAPPING = {
+        AttributeEntityType.PAGE: "reference_page",
+        AttributeEntityType.PRODUCT: "reference_product",
+        AttributeEntityType.PRODUCT_VARIANT: "reference_variant",
     }
 
     @classmethod
@@ -489,7 +498,7 @@ class AttributeAssignmentMixin:
 
         Slug value is generated based on instance and reference entity id.
         """
-        if not attr_values.references:
+        if not attr_values.references or not attribute.entity_type:
             return tuple()
 
         field_name = cls.REFERENCE_VALUE_NAME_MAPPING[
@@ -498,25 +507,17 @@ class AttributeAssignmentMixin:
         get_or_create = attribute.values.get_or_create
 
         reference_list = []
+        attr_value_field = cls.ENTITY_TYPE_TO_VALUE_FIELD_MAPPING[attribute.entity_type]
         for ref in attr_values.references:
-            reference_page = None
-            reference_product = None
-
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                reference_page = ref
-            else:
-                reference_product = ref
-
             reference_list.append(
                 get_or_create(
                     attribute=attribute,
-                    reference_product=reference_product,
-                    reference_page=reference_page,
                     slug=slugify(
                         f"{instance.id}_{ref.id}",  # type: ignore
                         allow_unicode=True,
                     ),
                     defaults={"name": getattr(ref, field_name)},
+                    **{attr_value_field: ref},
                 )[0]
             )
         return tuple(reference_list)
