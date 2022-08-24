@@ -24003,6 +24003,7 @@ type TaxableObject {
 
   """List of lines assigned to the object."""
   lines: [TaxableObjectLine!]!
+  channel: Channel!
 }
 
 union TaxSourceObject = Checkout | Order

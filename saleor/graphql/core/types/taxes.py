@@ -4,8 +4,7 @@ from typing import List, Union
 import graphene
 from promise import Promise
 
-from saleor.checkout import base_calculations
-
+from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
 from ....core.taxes import include_taxes_in_prices, zero_money
@@ -13,6 +12,8 @@ from ....discount import VoucherType
 from ....order.models import Order, OrderLine
 from ....shipping.models import ShippingMethodChannelListing
 from ...account.dataloaders import AddressByIdLoader
+from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.types import Channel
 from ...checkout import types as checkout_types
 from ...checkout.dataloaders import (
     CheckoutByTokenLoader,
@@ -274,10 +275,16 @@ class TaxableObject(graphene.ObjectType):
         description="List of lines assigned to the object.",
         required=True,
     )
+    channel = graphene.Field(Channel, required=True)
 
     class Meta:
         description = "Taxable object."
 
+    @staticmethod
+    def resolve_channel(root: Union[Checkout, Order], info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
+
+    @staticmethod
     def resolve_address(root: Union[Checkout, Order], info):
         address_id = root.shipping_address_id or root.billing_address_id
         if not address_id:
