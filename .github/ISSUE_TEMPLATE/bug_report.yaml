@@ -15,7 +15,7 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce the problem
-      description: Tell us how to reproduce the problem starting with an empty database. You can use a free Saleor Cloud environment as a quick starting point.
+      description: Reproduction steps starting with an empty database. You can use a free Saleor Cloud environment as a quick starting point.
       placeholder: |
         1. Create a product with two attributes…
         2. …
@@ -27,7 +27,7 @@ body:
     id: expected-behavior
     attributes:
       label: What did you expect to happen?
-      description: Tell us why you think the behavior described earlier is incorrect.
+      description: Describe why behavior described earlier is incorrect.
     validations:
       required: true
   - type: textarea
