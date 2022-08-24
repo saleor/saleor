@@ -1,8 +1,7 @@
 name: Bug report
 description: Create a bug report
-title: ""
+title: "Bug: "
 labels: ["bug", "triage"]
-assignees: []
 
 body:
   - type: textarea
