@@ -8,15 +8,15 @@ body:
   - type: textarea
     id: goal
     attributes:
-      label: "What were you trying to do?"
-      description: Tell us what you were trying to achieve when you encountered the problem.
+      label: What are you trying to achieve?
+      description: Describe your goal, use case, or provide context of your problem from the business point of view.
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: "How can we reproduce the problem?"
-      description: Tell us how to reproduce the problem starting with an empty database.
+      label: Steps to reproduce the problem
+      description: Tell us how to reproduce the problem starting with an empty database. You can use a free Saleor Cloud environment as a quick starting point.
       placeholder: |
         1. Create a product with two attributes…
         2. …
@@ -27,21 +27,21 @@ body:
   - type: textarea
     id: expected-behavior
     attributes:
-      label: "What did you expect to happen?"
+      label: What did you expect to happen?
       description: Tell us why you think the behavior described earlier is incorrect.
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: "Logs"
-      description: Include any logs from the console, screenshots, and any API queries or responses that could help us understand the problem.
+      label: Logs
+      description: Include any logs from the console, screenshots, and any API queries or responses that could help us understand the problem. Make sure to omit any personal identifiable information or data sensitive to your business.
     validations:
       required: false
   - type: textarea
     id: environment
     attributes:
-      label: "Environment"
+      label: Environment
       description: Provide some information about your environment.
       value: |
         Saleor version: …
