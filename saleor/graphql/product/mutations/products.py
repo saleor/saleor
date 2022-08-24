@@ -803,6 +803,7 @@ class ProductVariantInput(graphene.InputObjectType):
         description="List of attributes specific to this variant.",
     )
     sku = graphene.String(description="Stock keeping unit.")
+    name = graphene.String(description="Variant name.", required=False)
     track_inventory = graphene.Boolean(
         description=(
             "Determines if the inventory of this variant should be tracked. If false, "
@@ -1052,7 +1053,9 @@ class ProductVariantCreate(ModelMutation):
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
 
-        generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+        if not instance.name:
+            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+
         update_product_search_vector(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created
