@@ -13,13 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="product",
             name="search_index_dirty",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=True),
         ),
-        migrations.RunSQL(
-            """
-            ALTER TABLE product_product ALTER COLUMN search_index_dirty SET DEFAULT
-            false;
-            """,
-            migrations.RunSQL.noop,
+        migrations.AlterField(
+            model_name="product",
+            name="search_index_dirty",
+            field=models.BooleanField(default=False),
         ),
     ]
