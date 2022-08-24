@@ -33,7 +33,7 @@ def test_calculate_checkout_total_use_cache(
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -94,7 +94,7 @@ def test_calculate_checkout_total_save_avatax_response_in_cache(
     assert result == TaxedMoney(net=Money("72.2", "USD"), gross=Money("75", "USD"))
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
@@ -122,7 +122,7 @@ def test_calculate_checkout_subtotal_use_cache(
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -183,7 +183,7 @@ def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
     assert result == TaxedMoney(net=Money("64.07", "USD"), gross=Money("65", "USD"))
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
@@ -211,7 +211,7 @@ def test_calculate_checkout_shipping_use_cache(
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -272,7 +272,7 @@ def test_calculate_checkout_shipping_save_avatax_response_in_cache(
     assert result == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10", "USD"))
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
@@ -301,7 +301,7 @@ def test_calculate_checkout_line_total_use_cache(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -363,7 +363,7 @@ def test_calculate_checkout_line_save_avatax_response_in_cache(
     assert result == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5", "USD"))
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
@@ -392,7 +392,7 @@ def test_calculate_checkout_line_unit_price_use_cache(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -466,7 +466,7 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
     assert result == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5", "USD"))
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
@@ -495,7 +495,7 @@ def test_get_checkout_line_tax_rate_use_cache(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -574,7 +574,7 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
     assert result == Decimal("0.36")
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
@@ -602,7 +602,7 @@ def test_get_checkout_shipping_tax_rate_use_cache(
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_cache = Mock(
         return_value=(
@@ -665,6 +665,6 @@ def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
     assert result == Decimal("0.46")
 
     avalara_request_data = generate_request_data_from_checkout(
-        checkout_info, lines, plugin.config, []
+        checkout_info, lines, plugin.config, tax_included=True, transaction_token=[]
     )
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)

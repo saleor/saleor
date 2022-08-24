@@ -9,7 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek
 - Replaced `context.app` lazy object with a dataloader.
 - Add support for bcrypt password hashes - #10346 by @pkucmus
-
+- Add ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
 
 # 3.6.0
 
