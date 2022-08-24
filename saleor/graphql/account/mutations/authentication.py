@@ -45,7 +45,7 @@ def get_payload(token):
     return payload
 
 
-def get_user(payload):
+def get_user(payload, request=None):  # FIXME: propagate request
     try:
         user = get_user_from_payload(payload)
     except Exception:

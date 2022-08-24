@@ -222,6 +222,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     @property
     def effective_permissions(self) -> "QuerySet[Permission]":
+        # TODO: dataloader and/or Promise support
         if self._effective_permissions is None:
             self._effective_permissions = get_permissions()
             if not self.is_superuser:
@@ -260,6 +261,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     @effective_permissions.setter
     def effective_permissions(self, value: "QuerySet[Permission]"):
+        # TODO: dataloader and/or Promise support
         self._effective_permissions = value
         # Drop cache for authentication backend
         self._effective_permissions_cache = None

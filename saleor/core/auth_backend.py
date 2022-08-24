@@ -1,19 +1,12 @@
 from django.contrib.auth.backends import ModelBackend
 
 from ..account.models import User
-from .auth import get_token_from_request
-from .jwt import get_user_from_access_token
+from ..graphql.account.dataloaders import load_user_from_request
 
 
 class JSONWebTokenBackend(ModelBackend):
     def authenticate(self, request=None, **kwargs):
-        if request is None:
-            return None
-
-        token = get_token_from_request(request)
-        if not token:
-            return None
-        return get_user_from_access_token(token)
+        return load_user_from_request(request)
 
     def get_user(self, user_id):
         try:

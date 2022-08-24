@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add support for bcrypt password hashes - #10346 by @pkucmus
 - Add ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
 
+
 # 3.6.0
 
 ### Breaking changes
