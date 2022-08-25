@@ -445,29 +445,24 @@ class BaseMutationWithMetadata(BaseMutation):
             )
 
     @classmethod
-    def check_metadata_permissions(cls, info, object_id):
-        type_name = cls._meta.metadata_permissions_map_key
+    def check_metadata_permissions(cls, type_name, info, object_id, private=False):
+        if private:
+            meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)
+            map_name = "PRIVATE_META_PERMISSION_MAP"
+        else:
+            meta_permission = PUBLIC_META_PERMISSION_MAP.get(type_name)
+            map_name = "PUBLIC_META_PERMISSION_MAP"
 
-        public_meta_permission = PUBLIC_META_PERMISSION_MAP.get(type_name)
-        private_meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)
-
-        if not private_meta_permission or not public_meta_permission:
+        if not meta_permission:
             raise NotImplementedError(
                 f"Couldn't resolve permission to item type: {type_name}. "
-                "Make sure that type exists inside PRIVATE_META_PERMISSION_MAP "
-                "and PUBLIC_META_PERMISSION_MAP"
+                f"Make sure that type exists inside {map_name}."
             )
 
-        if not cls.check_permissions(
-            info.context, public_meta_permission(info, object_id)
-        ):
-            raise PermissionDenied("You do not have permission to update metadata.")
-        if not cls.check_permissions(
-            info.context, private_meta_permission(info, object_id)
-        ):
-            raise PermissionDenied(
-                "You do not have permission to update private metadata."
-            )
+        if not cls.check_permissions(info.context, meta_permission(info, object_id)):
+            metadata_type = "private metadata" if private else "metadata"
+            message = f"You do not have permission to update {metadata_type}."
+            raise PermissionDenied(message)
 
     @classmethod
     def mutate(cls, root, info, **data):
@@ -478,9 +473,13 @@ class BaseMutationWithMetadata(BaseMutation):
 
         metadata = data.get("metadata", [])
         private_metadata = data.get("private_metadata", [])
+        type_name = cls._meta.metadata_permissions_map_key
 
-        if metadata or private_metadata:
-            cls.check_metadata_permissions(info, data["id"])
+        if metadata:
+            cls.check_metadata_permissions(type_name, info, data["id"])
+
+        if private_metadata:
+            cls.check_metadata_permissions(type_name, info, data["id"], True)
 
         result = info.context.plugins.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
