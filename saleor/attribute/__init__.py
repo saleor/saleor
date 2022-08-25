@@ -102,11 +102,8 @@ class AttributeType:
 class AttributeEntityType:
     """Type of a reference entity type. Must match the name of the graphql type.
 
-    After adding new value following mapping in saleor/graphql/attribute/utils.py
-    must be updated:
-    - `REFERENCE_VALUE_NAME_MAPPING`
-    - `ENTITY_TYPE_TO_VALUE_FIELD_MAPPING`
-    - `ENTITY_TYPE_TO_MODEL_MAPPING`
+    After adding a new value the `ENTITY_TYPE_MAPPING` in
+    saleor/graphql/attribute/utils.py must be updated.
     """
 
     PAGE = "Page"

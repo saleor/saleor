@@ -91,11 +91,9 @@ class AttributeValue(ModelObjectType):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
-            reference_field = (
-                AttributeAssignmentMixin.ENTITY_TYPE_TO_VALUE_FIELD_MAPPING[
-                    attribute.entity_type
-                ]
-            )
+            reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
+                attribute.entity_type
+            ].value_field
             reference_pk = getattr(root, f"{reference_field}_id", None)
             if reference_pk is None:
                 return
