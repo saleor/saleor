@@ -4,10 +4,12 @@ from typing import List
 import graphene
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import DatabaseError
+from graphene.types.mutation import MutationOptions
 from graphql.error.base import GraphQLError
 
 from ...checkout import models as checkout_models
 from ...core import models
+from ...core.db.utils import set_mutation_flag_in_context
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...discount import models as discount_models
@@ -399,3 +401,99 @@ class DeletePrivateMetadata(BaseMetadataMutation):
                 instance.delete_value_from_private_metadata(key)
             _save_instance(instance, "private_metadata")
         return cls.success_response(instance)
+
+
+class BaseMutationWithMetadata(BaseMutation):
+    class Arguments:
+        private_metadata = NonNullList(
+            MetadataInput,
+            description="Fields required to update the object's private metadata.",
+            required=False,
+        )
+        metadata = NonNullList(
+            MetadataInput,
+            description="Fields required to update the object's metadata.",
+            required=False,
+        )
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(
+        cls,
+        metadata_permissions_map_key=None,
+        _meta=None,
+        **kwargs,
+    ):
+        if not _meta:
+            _meta = MutationOptions(cls)
+
+        _meta.metadata_permissions_map_key = metadata_permissions_map_key
+        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+
+    @classmethod
+    def validate_metadata_keys(cls, metadata_list: List[dict]):
+        if metadata_contains_empty_key(metadata_list):
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def check_metadata_permissions(cls, info, object_id):
+        type_name = cls._meta.metadata_permissions_map_key
+
+        public_meta_permission = PUBLIC_META_PERMISSION_MAP.get(type_name)
+        private_meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)
+
+        if not private_meta_permission or not public_meta_permission:
+            raise NotImplementedError(
+                f"Couldn't resolve permission to item type: {type_name}. "
+                "Make sure that type exists inside PRIVATE_META_PERMISSION_MAP "
+                "and PUBLIC_META_PERMISSION_MAP"
+            )
+
+        if not cls.check_permissions(
+            info.context, public_meta_permission(info, object_id)
+        ):
+            raise PermissionDenied("You do not have permission to update metadata.")
+        if not cls.check_permissions(
+            info.context, private_meta_permission(info, object_id)
+        ):
+            raise PermissionDenied(
+                "You do not have permission to update private metadata."
+            )
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
+
+        if not cls.check_permissions(info.context):
+            raise PermissionDenied(permissions=cls._meta.permissions)
+
+        metadata = data.get("metadata", [])
+        private_metadata = data.get("private_metadata", [])
+
+        if metadata or private_metadata:
+            cls.check_metadata_permissions(info, data["id"])
+
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
+        try:
+            cls.validate_metadata_keys(metadata)
+            cls.validate_metadata_keys(private_metadata)
+            response = cls.perform_mutation(root, info, **data)
+            if response.errors is None:
+                response.errors = []
+            return response
+        except ValidationError as e:
+            return cls.handle_errors(e)

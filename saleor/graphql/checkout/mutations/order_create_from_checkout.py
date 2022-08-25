@@ -10,8 +10,8 @@ from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
-from ...core.mutations import BaseMutation
 from ...core.types import Error
+from ...meta.mutations import BaseMutationWithMetadata
 from ...discount.dataloaders import load_discounts
 from ...order.types import Order
 from ..enums import OrderCreateFromCheckoutErrorCode
@@ -35,10 +35,10 @@ class OrderCreateFromCheckoutError(Error):
     )
 
 
-class OrderCreateFromCheckout(BaseMutation):
+class OrderCreateFromCheckout(BaseMutationWithMetadata):
     order = graphene.Field(Order, description="Placed order.")
 
-    class Arguments:
+    class Arguments(BaseMutationWithMetadata.Arguments):
         id = graphene.ID(
             required=True,
             description="ID of a checkout that will be converted to an order.",
@@ -62,6 +62,7 @@ class OrderCreateFromCheckout(BaseMutation):
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
+        metadata_permissions_map_key = "Checkout"
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
@@ -109,6 +110,8 @@ class OrderCreateFromCheckout(BaseMutation):
                 app=app,
                 tracking_code=tracking_code,
                 delete_checkout=data["remove_checkout"],
+                metadata_list=data.get("metadata"),
+                private_metadata_list=data.get("private_metadata"),
             )
         except NotApplicable:
             code = OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value
