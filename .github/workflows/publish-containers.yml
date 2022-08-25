@@ -88,7 +88,7 @@ jobs:
             printf -v CACHE_FROM_VERSION "%s." "${PREVIOUS_VERSION[@]}"
             CACHE_FROM_VERSION="${CACHE_FROM_VERSION%.}"
           else
-            # setting to unstable-main if patch is lower than 0 or is not
+            # setting to unstable-main if patch is lower than 1 or is not
             # a digit
             CACHE_FROM_VERSION="unstable-main"
           fi
