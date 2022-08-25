@@ -373,7 +373,7 @@ class AttributeInput(graphene.InputObjectType):
 
 
 class AttributeValueInput(graphene.InputObjectType):
-    id = graphene.ID(description="ID of the selected attribute.")
+    id = graphene.ID(description="ID of the selected attribute.", required=True)
     values = NonNullList(
         graphene.String,
         required=False,

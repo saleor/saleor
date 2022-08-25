@@ -8825,32 +8825,6 @@ def test_update_product_with_non_existing_attribute(
     ]
 
 
-def test_update_product_with_no_attribute_slug_or_id(
-    staff_api_client, product, permission_manage_products, color_attribute
-):
-    """Ensure only supplying values triggers a validation error."""
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-
-    # Try to assign multiple values from an attribute that does not support such things
-    variables = {
-        "productId": graphene.Node.to_global_id("Product", product.pk),
-        "attributes": [{"values": ["Oopsie!"]}],
-    }
-
-    data = get_graphql_content(
-        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
-    )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {
-            "field": "attributes",
-            "code": ProductErrorCode.REQUIRED.name,
-            "message": ANY,
-            "attributes": None,
-        }
-    ]
-
-
 def test_update_product_with_negative_weight(
     staff_api_client, product_with_default_variant, permission_manage_products, product
 ):

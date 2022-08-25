@@ -15862,7 +15862,7 @@ input ProductCreateInput {
 
 input AttributeValueInput {
   """ID of the selected attribute."""
-  id: ID
+  id: ID!
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
