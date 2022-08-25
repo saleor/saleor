@@ -58,13 +58,14 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
     """
     subscriptions = []
     for definition in document.document_ast.definitions:
-        if len(definition.selection_set.selections) != 1:
-            return False
         if isinstance(definition, FragmentDefinition):
             pass
         elif isinstance(definition, OperationDefinition):
             if definition.operation == "subscription":
+                if len(definition.selection_set.selections) != 1:
+                    return False
                 subscriptions.append(definition)
+
             else:
                 return False
         else:
