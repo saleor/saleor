@@ -317,6 +317,7 @@ AttributeData = namedtuple(
         "date_time",
         "reference_page",
         "reference_product",
+        "reference_variant",
     ],
 )
 
@@ -330,6 +331,7 @@ def handle_attribute_data(
     attribute_owner: str,
 ):
     attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
+    # TODO: try to refactor
     attribute_data = AttributeData(
         slug=data.pop(attribute_fields["slug"], None),
         input_type=data.pop(attribute_fields["input_type"], None),
@@ -344,6 +346,7 @@ def handle_attribute_data(
         date_time=data.pop(attribute_fields["date_time"], None),
         reference_page=data.pop(attribute_fields["value_reference_page"], None),
         reference_product=data.pop(attribute_fields["value_reference_product"], None),
+        reference_variant=data.pop(attribute_fields["value_reference_variant"], None),
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -442,12 +445,16 @@ def prepare_attribute_value(attribute_data: AttributeData):
             else ""
         )
     elif input_type == AttributeInputType.REFERENCE and (
-        attribute_data.reference_page or attribute_data.reference_product
+        attribute_data.reference_page
+        or attribute_data.reference_product
+        or attribute_data.reference_variant
     ):
         if attribute_data.reference_page:
             reference_id = attribute_data.reference_page
-        else:
+        elif attribute_data.reference_product:
             reference_id = attribute_data.reference_product
+        else:
+            reference_id = attribute_data.reference_variant
         value = f"{attribute_data.entity_type}_{reference_id}"
     elif input_type == AttributeInputType.NUMERIC:
         value = f"{attribute_data.value_name}"
