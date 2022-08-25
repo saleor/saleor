@@ -22,12 +22,16 @@ assignees: ''
 <!-- If applicable, add screenshots to help explain your problem. -->
 
 **System information**
-<!-- Provide the version of Saleor or whether you're using it from the `main` branch. If using Saleor Dashboard or Storefront, provide their versions too. -->
-Saleor version:
+<!--
+Provide the version of Saleor or whether you're using it from the `main` branch. If using Saleor Dashboard or Storefront, provide their versions too. -->
+Saleor core version:
 - [ ] dev (current main)
-- [ ] 3.0
-- [ ] 2.11
-- [ ] 2.10
+- [ ] 3.6
+- [ ] 3.5
+- [ ] 3.4
+- [ ] 3.3
+- [ ] 3.2
+- [ ] 3.1
 
 Operating system:
 - [ ] Windows
