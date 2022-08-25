@@ -5698,6 +5698,79 @@ def test_create_product_with_product_reference_attribute(
     assert product_type_product_reference_attribute.values.count() == values_count + 1
 
 
+def test_create_product_with_variant_reference_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    color_attribute,
+    product_type_variant_reference_attribute,
+    permission_manage_products,
+    variant,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    values_count = product_type_variant_reference_attribute.values.count()
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_variant_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    reference = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": [reference]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{product_id}_{variant.id}",
+                    "name": variant.name,
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                    "reference": reference,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    product_type_variant_reference_attribute.refresh_from_db()
+    assert product_type_variant_reference_attribute.values.count() == values_count + 1
+
+
 def test_create_product_with_product_reference_attribute_values_saved_in_order(
     staff_api_client,
     product_type,
@@ -8204,6 +8277,74 @@ def test_update_product_with_product_reference_attribute_value(
 
     product_type_product_reference_attribute.refresh_from_db()
     assert product_type_product_reference_attribute.values.count() == values_count + 1
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_variant_reference_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_variant_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_list[0]
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = product_list[1].variants.first()
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_variant_reference_attribute)
+
+    values_count = product_type_variant_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("ProductVariant", variant_ref.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_variant_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": ANY,
+                "name": variant_ref.name,
+                "slug": f"{product.id}_{variant_ref.id}",
+                "file": None,
+                "reference": reference,
+                "boolean": None,
+                "plainText": None,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    product_type_variant_reference_attribute.refresh_from_db()
+    assert product_type_variant_reference_attribute.values.count() == values_count + 1
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
