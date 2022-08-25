@@ -39,22 +39,15 @@ def _populate_tax_class_name_and_metadata(obj):
     name = None
     metadata = {}
 
-    if avatax_code and vatlayer_code:
+    if avatax_code:
         name = avatax_description or avatax_code
         metadata = {
             AVATAX_CODE_META_KEY: avatax_code,
             AVATAX_DESCRIPTION_META_KEY: avatax_description,
         }
-    else:
-        if avatax_code:
-            name = avatax_description or avatax_code
-            metadata = {
-                AVATAX_CODE_META_KEY: avatax_code,
-                AVATAX_DESCRIPTION_META_KEY: avatax_description,
-            }
-        if vatlayer_code:
-            name = vatlayer_code
-            metadata = {VATLAYER_CODE_META_KEY: vatlayer_code}
+    elif vatlayer_code:
+        name = vatlayer_code
+        metadata = {VATLAYER_CODE_META_KEY: vatlayer_code}
 
     return name, metadata
 
@@ -87,8 +80,9 @@ def migrate_product_tax_codes(apps, _schema_editor):
             tax_class_name, metadata = _populate_tax_class_name_and_metadata(
                 product_type
             )
-            tax_classes_from_product_types[tax_class_name].append(product_type.pk)
-            tax_class_metadata[tax_class_name] = metadata
+            if tax_class_name:
+                tax_classes_from_product_types[tax_class_name].append(product_type.pk)
+                tax_class_metadata[tax_class_name] = metadata
 
         for name, ids in tax_classes_from_product_types.items():
             tax_class, _ = TaxClass.objects.get_or_create(
@@ -102,8 +96,9 @@ def migrate_product_tax_codes(apps, _schema_editor):
         products = Product.objects.filter(pk__in=batch_pks)
         for product in products:
             tax_class_name, metadata = _populate_tax_class_name_and_metadata(product)
-            tax_classes_from_products[tax_class_name].append(product.pk)
-            tax_class_metadata[tax_class_name] = metadata
+            if tax_class_name:
+                tax_classes_from_products[tax_class_name].append(product.pk)
+                tax_class_metadata[tax_class_name] = metadata
 
         for name, ids in tax_classes_from_products.items():
             tax_class, _ = TaxClass.objects.get_or_create(
