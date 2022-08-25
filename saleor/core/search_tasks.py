@@ -114,7 +114,7 @@ def set_product_search_document_values(updated_count: int = 0) -> None:
 def set_search_document_values(instances: List, prepare_search_document_func):
     if not instances:
         return 0
-    Model = instances[0]._meta.Model
+    Model = instances[0]._meta.model
     for instance in instances:
         instance.search_document = prepare_search_document_func(
             instance, already_prefetched=True
