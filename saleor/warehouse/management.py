@@ -215,7 +215,7 @@ def sort_stocks(
         # in case of click and collect order we should allocate stocks from
         # collection point warehouse at the first place
         if warehouse_id == collection_point_pk:
-            return math.inf
+            return -math.inf
         return sorted_warehouse_list.index(warehouse_id)
 
     allocation_strategy_to_sort_method_and_reverse_option = {

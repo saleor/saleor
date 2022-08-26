@@ -101,6 +101,36 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
     assert allocations[1].quantity_allocated == stocks[1].quantity_allocated == 1
 
 
+def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
+    order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
+):
+    """Ensure that when the collection point is set as delivery method,
+    the stock will be allocate in this warehouse."""
+    variant = variant_with_many_stocks
+
+    quantity = 5
+    cc_stock = warehouse_for_cc.stock_set.first()
+    cc_stock.quantity = quantity
+    cc_stock.product_variant = variant
+    cc_stock.save(update_fields=["quantity", "product_variant"])
+
+    stocks = variant.stocks.all()
+
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=5)
+    allocate_stocks(
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(),
+        collection_point_pk=warehouse_for_cc.pk,
+    )
+
+    allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
+    assert len(allocations) == 1
+    assert allocations[0].stock == cc_stock
+    assert allocations[0].quantity_allocated == quantity
+
+
 def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
     order_line, variant_with_many_stocks, channel_USD
 ):
@@ -147,6 +177,53 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
         == stock_1.quantity_allocated
         == quantity - stock_2.quantity
     )
+
+
+def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
+    order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
+):
+    """Ensure that when the collection point is set as delivery method,
+    the stock will be allocate in this warehouse."""
+    # given
+    channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
+    channel_USD.save(update_fields=["allocation_strategy"])
+
+    variant = variant_with_many_stocks
+    stock_1, stock_2 = variant.stocks.all()
+
+    channel_warehouse_1 = stock_1.warehouse.channelwarehouse.first()
+    channel_warehouse_2 = stock_2.warehouse.channelwarehouse.first()
+
+    channel_warehouse_2.sort_order = 0
+    channel_warehouse_1.sort_order = 1
+    ChannelWarehouse.objects.bulk_update(
+        [channel_warehouse_1, channel_warehouse_2], ["sort_order"]
+    )
+
+    quantity = 5
+    cc_stock = warehouse_for_cc.stock_set.first()
+    cc_stock.quantity = quantity
+    cc_stock.product_variant = variant
+    cc_stock.save(update_fields=["quantity", "product_variant"])
+
+    line_data = OrderLineInfo(
+        line=order_line, variant=order_line.variant, quantity=quantity
+    )
+
+    # when
+    allocate_stocks(
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(),
+        collection_point_pk=warehouse_for_cc.pk,
+    )
+
+    # then
+    allocations = Allocation.objects.filter(order_line=order_line)
+    assert len(allocations) == 1
+    assert allocations[0].stock == cc_stock
+    assert allocations[0].quantity_allocated == quantity
 
 
 def test_allocate_stock_with_reservations_the_highest_stock_strategy(
