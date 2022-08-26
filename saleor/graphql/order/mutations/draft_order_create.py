@@ -300,6 +300,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def _commit_changes(cls, info, instance, cleaned_input, is_new_instance):
+        if shipping_method := cleaned_input["shipping_method"]:
+            instance.shipping_method_name = shipping_method.name
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
