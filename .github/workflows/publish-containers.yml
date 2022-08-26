@@ -24,12 +24,6 @@ jobs:
           IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
           echo ::set-output name=image_name::${IMAGE_NAME}
 
-          # setting defaults
-          echo "
-          CACHE_FROM_VERSION="unstable-main"
-          CACHE_TO_VERSION="unstable-main"
-          " >> "${GITHUB_ENV}"
-
       # Outputs container tags for tagged pushes starting by 'v'
       # Pushes only to GitHub Container Repository (ghcr.io)
       #
@@ -49,21 +43,9 @@ jobs:
           if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             # Matches 1.0.0, 1.0.1, etc.
             NAMED_VERSION="latest"
-
-            # setting version for cache-from
-            IFS="." read -r -a VERSION_ARRAY <<< "$VERSION"
-            if [ "${VERSION_ARRAY[-1]}" -gt 0 ]; then
-              PREVIOUS_VERSION[-1]="$((${VERSION_ARRAY[-1]} - 1))"
-              printf -v CACHE_FROM_VERSION "%s." "${PREVIOUS_VERSION[@]}"
-              CACHE_FROM_VERSION="${CACHE_FROM_VERSION%.}"
-            else
-              # setting to unstable-main if patch is lower than 1
-              CACHE_FROM_VERSION="unstable-main"
-            fi
           else
             # Matches 1.0.0a1, 1.0.0rc1, etc.
             NAMED_VERSION="snapshot"
-            CACHE_FROM_VERSION="unstable-main"
           fi
 
           TAGS=$"\
@@ -76,8 +58,6 @@ jobs:
           CONTAINER_TAGS=${TAGS}
           NAMED_VERSION=${NAMED_VERSION}
           VERSION=${VERSION}
-          CACHE_FROM_VERSION=${CACHE_FROM_VERSION}
-          CACHE_TO_VERSION=${VERSION}
           " >> "${GITHUB_ENV}"
 
       # Outputs the containers tags for staging branches
@@ -140,8 +120,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.CONTAINER_TAGS }}
-          cache-from: type=registry,ref=ghcr.io/saleor/saleor:${{ env.CACHE_FROM_VERSION }}
-          cache-to: type=registry,ref=ghcr.io/saleor/saleor:${{ env.CACHE_TO_VERSION }},mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: |
             PROJECT_VERSION=${{ env.NAMED_VERSION }}
             COMMIT_ID=${{ github.sha }}
