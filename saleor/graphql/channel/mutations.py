@@ -548,7 +548,7 @@ class ChannelReorderWarehouses(BaseMutation):
             ReorderInput,
             required=True,
             description=(
-                "The list of reordering operations for given channel warehouses."
+                "The list of reordering operations for the given channel warehouses."
             ),
         )
 

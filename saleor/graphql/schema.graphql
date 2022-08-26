@@ -13695,7 +13695,7 @@ type Mutation {
     """ID of a channel."""
     channelId: ID!
 
-    """The list of reordering operations for given channel warehouses."""
+    """The list of reordering operations for the given channel warehouses."""
     moves: [ReorderInput!]!
   ): ChannelReorderWarehouses
 
