@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
@@ -14,17 +15,36 @@ from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_37, PREVIEW_FEATURE
+from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import ChannelError, ChannelErrorCode, NonNullList
 from ..core.utils import get_duplicated_values, get_duplicates_items
+from ..core.utils.reordering import perform_reordering
 from ..utils.validators import check_for_duplicates
+from ..warehouse.types import Warehouse
+from .enums import AllocationStrategyEnum
 from .types import Channel
 from .utils import delete_invalid_warehouse_to_shipping_zone_relations
 
 
+class StockSettingsInput(graphene.InputObjectType):
+    allocation_strategy = AllocationStrategyEnum(
+        description=(
+            "Allocation strategy options. Strategy defines the preference "
+            "of warehouses for allocations and reservations."
+        ),
+        required=True,
+    )
+
+
 class ChannelInput(graphene.InputObjectType):
     is_active = graphene.Boolean(description="isActive flag.")
+    stock_settings = graphene.Field(
+        StockSettingsInput,
+        description=("The channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE),
+        required=False,
+    )
     add_shipping_zones = NonNullList(
         graphene.ID,
         description="List of shipping zones to assign to the channel.",
@@ -81,6 +101,8 @@ class ChannelCreate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
+        if stock_settings := cleaned_input.get("stock_settings"):
+            cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
 
         return cleaned_input
 
@@ -161,6 +183,8 @@ class ChannelUpdate(ModelMutation):
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
+        if stock_settings := cleaned_input.get("stock_settings"):
+            cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
 
         return cleaned_input
 
@@ -508,3 +532,82 @@ class ChannelDeactivate(BaseMutation):
         channel.save(update_fields=["is_active"])
         info.context.plugins.channel_status_changed(channel)
         return ChannelDeactivate(channel=channel)
+
+
+class ChannelReorderWarehouses(BaseMutation):
+    channel = graphene.Field(
+        Channel, description="Channel within the warehouses are reordered."
+    )
+
+    class Arguments:
+        channel_id = graphene.ID(
+            description="ID of a channel.",
+            required=True,
+        )
+        moves = NonNullList(
+            ReorderInput,
+            required=True,
+            description=(
+                "The list of reordering operations for the given channel warehouses."
+            ),
+        )
+
+    class Meta:
+        description = (
+            "Reorder the warehouses of a channel." + ADDED_IN_37 + PREVIEW_FEATURE
+        )
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, channel_id, moves):
+        channel = cls.get_node_or_error(
+            info, channel_id, field="channel_id", only_type=Channel
+        )
+
+        warehouses_m2m = channel.channelwarehouse
+        operations = cls.get_operations(moves, warehouses_m2m)
+
+        with traced_atomic_transaction():
+            perform_reordering(warehouses_m2m, operations)
+
+        return ChannelReorderWarehouses(channel=channel)
+
+    @classmethod
+    def get_operations(cls, moves, channel_warehouses_m2m):
+        warehouse_ids = [move["id"] for move in moves]
+        warehouse_pks = cls.get_global_ids_or_error(
+            warehouse_ids, only_type=Warehouse, field="moves"
+        )
+
+        warehouses_m2m = channel_warehouses_m2m.filter(warehouse_id__in=warehouse_pks)
+
+        if warehouses_m2m.count() != len(set(warehouse_pks)):
+            pks = {
+                str(pk) for pk in warehouses_m2m.values_list("warehouse_id", flat=True)
+            }
+            invalid_values = set(warehouse_pks) - pks
+            invalid_ids = [
+                graphene.Node.to_global_id("Warehouse", warehouse_id)
+                for warehouse_id in invalid_values
+            ]
+            raise ValidationError(
+                {
+                    "moves": ValidationError(
+                        "Couldn't resolve to a warehouse",
+                        code=ChannelErrorCode.NOT_FOUND,
+                        params={"warehouses": invalid_ids},
+                    )
+                }
+            )
+
+        warehouse_id_to_warehouse_m2m_id = {
+            str(warehouse_data["warehouse_id"]): warehouse_data["id"]
+            for warehouse_data in warehouses_m2m.values("id", "warehouse_id")
+        }
+        operations = defaultdict(int)
+        for warehouse_pk, move in zip(warehouse_pks, moves):
+            warehouse_m2m_id = warehouse_id_to_warehouse_m2m_id[warehouse_pk]
+            operations[warehouse_m2m_id] += move.sort_order
+
+        return dict(operations)

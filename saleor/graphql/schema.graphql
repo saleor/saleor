@@ -3878,6 +3878,17 @@ type Channel implements Node {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the stock setting for this channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  stockSettings: StockSettings!
 }
 
 """
@@ -4265,6 +4276,33 @@ enum WeightUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+Represents the channel stock settings.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type StockSettings {
+  """
+  Allocation strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
+"""
+Determine the allocation strategy for the channel.
+
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
+
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
+"""
+enum AllocationStrategyEnum {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
 }
 
 """Represents shipping method postal code rule."""
@@ -13640,6 +13678,23 @@ type Mutation {
     id: ID!
   ): ChannelDeactivate
 
+  """
+  Reorder the warehouses of a channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_CHANNELS.
+  """
+  channelReorderWarehouses(
+    """ID of a channel."""
+    channelId: ID!
+
+    """The list of reordering operations for the given channel warehouses."""
+    moves: [ReorderInput!]!
+  ): ChannelReorderWarehouses
+
   """Creates an attribute."""
   attributeCreate(
     """Fields required to create an attribute."""
@@ -19852,6 +19907,15 @@ input ChannelCreateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """
+  The channel stock settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stockSettings: StockSettingsInput
+
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
@@ -19883,6 +19947,13 @@ input ChannelCreateInput {
   defaultCountry: CountryCode!
 }
 
+input StockSettingsInput {
+  """
+  Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
 """
 Update a channel. 
 
@@ -19897,6 +19968,15 @@ type ChannelUpdate {
 input ChannelUpdateInput {
   """isActive flag."""
   isActive: Boolean
+
+  """
+  The channel stock settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
@@ -19973,6 +20053,21 @@ type ChannelDeactivate {
   """Deactivated channel."""
   channel: Channel
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [ChannelError!]!
+}
+
+"""
+Reorder the warehouses of a channel.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_CHANNELS.
+"""
+type ChannelReorderWarehouses {
+  """Channel within the warehouses are reordered."""
+  channel: Channel
   errors: [ChannelError!]!
 }
 

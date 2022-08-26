@@ -51,6 +51,7 @@ from .models import Order, OrderLine
 
 if TYPE_CHECKING:
     from ..app.models import App
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
     from ..plugins.manager import PluginsManager
 
@@ -302,7 +303,7 @@ def create_order_line(
                     warehouse_pk=None,
                 )
             ],
-            channel.slug,
+            channel,
             manager=manager,
         )
 
@@ -337,7 +338,7 @@ def add_variant_to_order(
             line_info,
             old_quantity,
             new_quantity,
-            channel.slug,
+            channel,
             manager=manager,
             send_event=False,
         )
@@ -352,7 +353,7 @@ def add_variant_to_order(
                         warehouse_pk=None,
                     )
                 ],
-                channel.slug,
+                channel,
                 manager=manager,
             )
 
@@ -437,7 +438,7 @@ def _update_allocations_for_line(
     line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
-    channel_slug: str,
+    channel: "Channel",
     manager: "PluginsManager",
 ):
     if old_quantity == new_quantity:
@@ -448,7 +449,7 @@ def _update_allocations_for_line(
 
     if old_quantity < new_quantity:
         line_info.quantity = new_quantity - old_quantity
-        increase_allocations([line_info], channel_slug, manager)
+        increase_allocations([line_info], channel, manager)
     else:
         line_info.quantity = old_quantity - new_quantity
         decrease_allocations([line_info], manager)
@@ -460,7 +461,7 @@ def change_order_line_quantity(
     line_info,
     old_quantity: int,
     new_quantity: int,
-    channel_slug: str,
+    channel: "Channel",
     manager: "PluginsManager",
     send_event=True,
 ):
@@ -469,7 +470,7 @@ def change_order_line_quantity(
     if new_quantity:
         if line.order.is_unconfirmed():
             _update_allocations_for_line(
-                line_info, old_quantity, new_quantity, channel_slug, manager
+                line_info, old_quantity, new_quantity, channel, manager
             )
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
