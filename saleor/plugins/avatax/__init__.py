@@ -16,7 +16,8 @@ from requests.auth import HTTPBasicAuth
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
-from ...discount import VoucherType
+from ...discount import OrderDiscountType, VoucherType
+from ...order import base_calculations as base_order_calculations
 from ...order.utils import (
     get_total_order_discount_excluding_shipping,
     get_voucher_discount_assigned_to_order,
@@ -368,7 +369,7 @@ def get_order_lines_data(
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        prices_data = base_calculations.base_order_line_total(line)
+        prices_data = base_order_calculations.base_order_line_total(line)
 
         if tax_included:
             undiscounted_amount = prices_data.undiscounted_price.gross.amount
@@ -412,8 +413,15 @@ def get_order_lines_data(
             shipping_method_channel_listing.price.amount - shipping_discount_amount,
             Decimal("0"),
         )
+        shipping_discounted = order.discounts.filter(
+            type=OrderDiscountType.MANUAL
+        ).exists()
         append_shipping_to_data(
-            data, shipping_price, config.shipping_tax_code, tax_included
+            data,
+            shipping_price,
+            config.shipping_tax_code,
+            tax_included,
+            shipping_discounted,
         )
     return data
 

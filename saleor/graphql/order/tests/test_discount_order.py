@@ -256,7 +256,7 @@ def test_update_percentage_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # Use `net` values in comparison due to that fixture have taxes included in
     # prices but after recalculation taxes are removed because in tests we
     # don't use any tax app.
     assert order.undiscounted_total.net == current_undiscounted_total.net

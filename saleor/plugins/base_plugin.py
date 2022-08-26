@@ -334,6 +334,14 @@ class BasePlugin:
     #  changes in draft order. Return TaxedMoney.
     calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
 
+    #  Calculate order total.
+    #
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of a order total. Return TaxedMoney.
+    calculate_order_total: Callable[
+        ["Order", List["OrderLine"], TaxedMoney], TaxedMoney
+    ]
+
     capture_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Trigger when category is created.
