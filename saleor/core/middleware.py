@@ -12,7 +12,6 @@ from django.utils.translation import get_language
 from ..discount.utils import fetch_discounts
 from ..graphql.utils import get_user_or_app_from_context
 from ..plugins.manager import PluginsManager, get_plugins_manager
-from ..site.models import load_site
 from . import analytics
 from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode_with_exception_handler
 
@@ -65,23 +64,6 @@ def discounts(get_response):
         return get_response(request)
 
     return _discounts_middleware
-
-
-def site(get_response):
-    # FIXME: remove
-    """Legacy request.site loader.
-
-    By default django.contrib.sites caches Site instances at the module
-    level. This leads to problems when updating Site instances, as it's
-    required to restart all application servers in order to invalidate
-    the cache. Using dataloader solves this problem.
-    """
-
-    def _site_middleware(request):
-        request.site = load_site(request)
-        return get_response(request)
-
-    return _site_middleware
 
 
 def plugins(get_response):

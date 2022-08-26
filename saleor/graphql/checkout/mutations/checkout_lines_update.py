@@ -4,6 +4,7 @@ import graphene
 from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
+from ....site.models import load_site
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...checkout.types import CheckoutLine
@@ -103,18 +104,18 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         variants, quantities = get_variants_and_total_quantities(
             variants, checkout_lines_data, quantity_to_update_check=True
         )
-
+        site = load_site(info.context)
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
-            info.context.site.settings.limit_quantity_per_checkout,
+            site.settings.limit_quantity_per_checkout,
             delivery_method_info=delivery_method_info,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            check_reservations=is_reservation_enabled(site.settings),
         )
 
     @classmethod

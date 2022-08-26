@@ -4,6 +4,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ...core.permissions import OrderPermissions, ProductPermissions
+from ...site.models import load_site
 from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -184,7 +185,8 @@ class Stock(ModelObjectType):
 
     @staticmethod
     def resolve_quantity_reserved(root, info):
-        if not is_reservation_enabled(info.context.site.settings):
+        site = load_site(info.context)
+        if not is_reservation_enabled(site.settings):
             return 0
 
         return root.reservations.aggregate(

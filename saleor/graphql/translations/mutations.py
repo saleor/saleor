@@ -12,7 +12,7 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
-from ...site.models import SiteSettings
+from ...site.models import SiteSettings, load_site
 from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
 from ..core.descriptions import RICH_CONTENT
@@ -489,7 +489,8 @@ class ShopSettingsTranslate(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         validate_input_against_model(SiteSettings, data["input"])
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")

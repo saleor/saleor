@@ -46,6 +46,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
+from ...site.models import load_site
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -1463,7 +1464,8 @@ class Order(ModelObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            keep_gross = info.context.site.settings.include_taxes_in_prices
+            site = load_site(info.context)
+            keep_gross = site.settings.include_taxes_in_prices
             price = root.shipping_price_gross if keep_gross else root.shipping_price_net
             return ShippingMethodData(
                 id=external_app_shipping_id,

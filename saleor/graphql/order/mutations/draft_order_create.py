@@ -20,6 +20,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ....site.models import load_site
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import load_app
@@ -114,6 +115,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
+        site = load_site(info.context)
 
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
@@ -143,7 +145,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
-        display_gross_prices = info.context.site.settings.display_gross_prices
+        display_gross_prices = site.settings.display_gross_prices
         cleaned_input["display_gross_prices"] = display_gross_prices
 
         cls.clean_addresses(
@@ -279,13 +281,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     @staticmethod
     def _save_lines(info, instance, lines_data):
         if lines_data:
+            site = load_site(info.context)
             lines = []
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,
                     line_data,
                     info.context.plugins,
-                    info.context.site.settings,
+                    site.settings,
                 )
                 lines.append(new_line)
 

@@ -17,6 +17,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
@@ -153,6 +154,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
         app = load_app(info.context)
+        site = load_site(info.context)
 
         added_lines = cls.add_lines_to_order(
             order,
@@ -160,7 +162,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             info.context.user,
             app,
             info.context.plugins,
-            info.context.site.settings,
+            site.settings,
             info.context.discounts,
         )
 

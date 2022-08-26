@@ -4,6 +4,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, remove_discount_from_order_line
+from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ..types import Order, OrderLine
@@ -36,7 +37,8 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        tax_included = info.context.site.settings.include_taxes_in_prices
+        site = load_site(info.context)
+        tax_included = site.settings.include_taxes_in_prices
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )

@@ -15,6 +15,7 @@ from ...core.permissions import (
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
+from ...site.models import load_site
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -670,7 +671,8 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_stock_reservation_expires(root: models.Checkout, info):
-        if not is_reservation_enabled(info.context.site.settings):
+        site = load_site(info.context)
+        if not is_reservation_enabled(site.settings):
             return None
 
         def get_oldest_stock_reservation_expiration_date(reservations):

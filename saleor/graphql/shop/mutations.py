@@ -7,7 +7,7 @@ from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermi
 from ...core.utils.url import validate_storefront_url
 from ...site import GiftCardSettingsExpiryType
 from ...site.error_codes import GiftCardSettingsErrorCode
-from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
+from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT, load_site
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
@@ -147,7 +147,8 @@ class ShopSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
@@ -173,23 +174,23 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site_settings = info.context.site.settings
+        site = load_site(info.context)
         data = data.get("input")
 
         if data:
-            if not site_settings.company_address:
+            if not site.settings.company_address:
                 company_address = account_models.Address()
             else:
-                company_address = site_settings.company_address
+                company_address = site.settings.company_address
             company_address = cls.validate_address(
                 data, instance=company_address, info=info
             )
             company_address.save()
-            site_settings.company_address = company_address
-            site_settings.save(update_fields=["company_address"])
+            site.settings.company_address = company_address
+            site.settings.save(update_fields=["company_address"])
         else:
-            if site_settings.company_address:
-                site_settings.company_address.delete()
+            if site.settings.company_address:
+                site.settings.company_address.delete()
         return ShopAddressUpdate(shop=Shop())
 
 
@@ -207,7 +208,7 @@ class ShopDomainUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = info.context.site
+        site = load_site(info.context)
         data = data.get("input")
         domain = data.get("domain")
         name = data.get("name")
@@ -382,8 +383,8 @@ class OrderSettingsUpdate(BaseMutation):
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
         ]
-
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         update_fields = []
         for field in FIELDS:
             value = data["input"].get(field)
@@ -420,7 +421,8 @@ class GiftCardSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         input = data["input"]
         cls.clean_input(input, instance)
 

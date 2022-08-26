@@ -10,6 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
+from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
@@ -177,10 +178,10 @@ class OrderFulfill(BaseMutation):
 
     @classmethod
     def clean_input(cls, info, order, data):
-        site_settings = info.context.site.settings
+        site = load_site(info.context)
         if not order.is_fully_paid() and (
-            site_settings.fulfillment_auto_approve
-            and not site_settings.fulfillment_allow_unpaid
+            site.settings.fulfillment_auto_approve
+            and not site.settings.fulfillment_allow_unpaid
         ):
             raise ValidationError(
                 {
@@ -210,7 +211,7 @@ class OrderFulfill(BaseMutation):
 
         cls.clean_lines(order_lines, quantities_for_lines)
 
-        if site_settings.fulfillment_auto_approve:
+        if site.settings.fulfillment_auto_approve:
             cls.check_lines_for_preorder(order_lines)
 
         cls.check_total_quantity_of_items(quantities_for_lines)
@@ -253,8 +254,8 @@ class OrderFulfill(BaseMutation):
         allow_stock_to_be_exceeded = cleaned_input.get(
             "allow_stock_to_be_exceeded", False
         )
-
-        approved = info.context.site.settings.fulfillment_auto_approve
+        site = load_site(info.context)
+        approved = site.settings.fulfillment_auto_approve
         tracking_number = cleaned_input.get("tracking_number", "")
         try:
             fulfillments = create_fulfillments(
@@ -263,7 +264,7 @@ class OrderFulfill(BaseMutation):
                 order,
                 dict(lines_for_warehouses),
                 manager,
-                context.site.settings,
+                site.settings,
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 approved=approved,

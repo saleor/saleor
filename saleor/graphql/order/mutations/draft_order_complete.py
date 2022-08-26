@@ -15,6 +15,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country
+from ....site.models import load_site
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
@@ -101,6 +102,7 @@ class DraftOrderComplete(BaseMutation):
                     line=line, quantity=line.quantity, variant=line.variant
                 )
                 order_lines_info.append(line_data)
+                site = load_site(info.context)
                 try:
                     with traced_atomic_transaction():
                         allocate_stocks(
@@ -108,16 +110,12 @@ class DraftOrderComplete(BaseMutation):
                             country,
                             channel_slug,
                             manager,
-                            check_reservations=is_reservation_enabled(
-                                info.context.site.settings
-                            ),
+                            check_reservations=is_reservation_enabled(site.settings),
                         )
                         allocate_preorders(
                             [line_data],
                             channel_slug,
-                            check_reservations=is_reservation_enabled(
-                                info.context.site.settings
-                            ),
+                            check_reservations=is_reservation_enabled(site.settings),
                         )
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)

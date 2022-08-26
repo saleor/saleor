@@ -18,6 +18,7 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
+from ....site.models import load_site
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
@@ -248,6 +249,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             else:
                 customer = info.context.user
 
+            site = load_site(info.context)
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -257,7 +259,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 discounts=info.context.discounts,
                 user=customer,
                 app=load_app(info.context),
-                site_settings=info.context.site.settings,
+                site_settings=site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )
