@@ -216,9 +216,6 @@ class Shop(graphene.ObjectType):
         description="Allow to approve fulfillments which are unpaid." + ADDED_IN_31,
         required=True,
     )
-    charge_taxes_on_shipping = graphene.Boolean(
-        description="Charge taxes on shipping.", required=True
-    )
     track_inventory_by_default = graphene.Boolean(
         description="Enable inventory tracking."
     )
@@ -309,6 +306,15 @@ class Shop(graphene.ObjectType):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
             "whether to display gross or net prices."
+        ),
+        required=True,
+    )
+    charge_taxes_on_shipping = graphene.Boolean(
+        description="Charge taxes on shipping.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `ShippingMethodType.taxClass` to determine "
+            "whether taxes are calculated for shipping methods; if a tax class is set, "
+            "the taxes will be calculated, otherwise no tax rate will be applied."
         ),
         required=True,
     )

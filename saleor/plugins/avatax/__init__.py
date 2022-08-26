@@ -9,7 +9,6 @@ from urllib.parse import urljoin
 import opentracing
 import opentracing.tags
 import requests
-from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
@@ -240,10 +239,7 @@ def append_shipping_to_data(
     prices_entered_with_tax: bool,
     discounted: Optional[bool] = False,
 ):
-    charge_taxes_on_shipping = (
-        Site.objects.get_current().settings.charge_taxes_on_shipping
-    )
-    if charge_taxes_on_shipping and shipping_price_amount is not None:
+    if shipping_price_amount is not None:
         append_line_to_data(
             data,
             quantity=1,
@@ -334,13 +330,16 @@ def get_checkout_lines_data(
         is_shipping_discount = (
             voucher.type == VoucherType.SHIPPING if voucher else False
         )
-        append_shipping_to_data(
-            data=data,
-            shipping_price_amount=price.amount if price else None,
-            shipping_tax_code=config.shipping_tax_code,
-            prices_entered_with_tax=prices_entered_with_tax,
-            discounted=is_shipping_discount,
-        )
+
+        tax_class = getattr(delivery_method, "tax_class", None)
+        if tax_class:
+            append_shipping_to_data(
+                data=data,
+                shipping_price_amount=price.amount if price else None,
+                shipping_tax_code=config.shipping_tax_code,
+                prices_entered_with_tax=prices_entered_with_tax,
+                discounted=is_shipping_discount,
+            )
 
     return data
 
@@ -409,12 +408,15 @@ def get_order_lines_data(
             shipping_method_channel_listing.price.amount - shipping_discount_amount,
             Decimal("0"),
         )
-        append_shipping_to_data(
-            data=data,
-            shipping_price_amount=shipping_price,
-            shipping_tax_code=config.shipping_tax_code,
-            prices_entered_with_tax=prices_entered_with_tax,
-        )
+
+        tax_class = getattr(order.shipping_method, "tax_class", None)
+        if tax_class:
+            append_shipping_to_data(
+                data=data,
+                shipping_price_amount=shipping_price,
+                shipping_tax_code=config.shipping_tax_code,
+                prices_entered_with_tax=prices_entered_with_tax,
+            )
     return data
 
 

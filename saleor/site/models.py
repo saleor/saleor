@@ -43,7 +43,6 @@ class SiteSettings(models.Model):
     bottom_menu = models.ForeignKey(
         "menu.Menu", on_delete=models.SET_NULL, related_name="+", blank=True, null=True
     )
-    charge_taxes_on_shipping = models.BooleanField(default=True)
     track_inventory_by_default = models.BooleanField(default=True)
     default_weight_unit = models.CharField(
         max_length=30,
@@ -96,6 +95,7 @@ class SiteSettings(models.Model):
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(default=True)
 
     # deprecated
+    charge_taxes_on_shipping = models.BooleanField(default=True)
     include_taxes_in_prices = models.BooleanField(default=True)
     display_gross_prices = models.BooleanField(default=True)
 

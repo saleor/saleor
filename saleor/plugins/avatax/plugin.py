@@ -14,7 +14,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
-from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
+from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...discount import DiscountInfo
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
@@ -44,9 +44,7 @@ from .tasks import api_post_request_task
 if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
-    from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
     from ..models import PluginConfiguration
@@ -289,10 +287,6 @@ class AvataxPlugin(BasePlugin):
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         base_shipping_price = previous_value
-
-        if not charge_taxes_on_shipping():
-            return base_shipping_price
-
         if self._skip_plugin(previous_value):
             return base_shipping_price
 
@@ -588,11 +582,9 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        if not charge_taxes_on_shipping():
-            return previous_value
-
         if not _validate_order(order):
             return previous_value
+
         taxes_data = get_order_tax_data(order, self.config, False)
 
         prices_entered_with_tax = partial(_get_prices_entered_with_tax_for_order, order)

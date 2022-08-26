@@ -1131,13 +1131,14 @@ def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def shipping_method(shipping_zone, channel_USD):
+def shipping_method(shipping_zone, channel_USD, default_tax_class):
     method = ShippingMethod.objects.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
         shipping_zone=shipping_zone,
         maximum_delivery_days=10,
         minimum_delivery_days=5,
+        tax_class=default_tax_class,
     )
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
