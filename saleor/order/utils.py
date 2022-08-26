@@ -1,20 +1,21 @@
 from decimal import Decimal
-from functools import partial, wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
+from functools import wraps
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
 from django.conf import settings
 from django.utils import timezone
-from prices import Money, TaxedMoney, fixed_discount, percentage_discount
+from prices import Money, TaxedMoney
 
 from ..account.models import User
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
-from ..discount import DiscountValueType, OrderDiscountType
+from ..discount import OrderDiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import (
+    apply_discount_to_value,
     get_products_voucher_discount,
     get_sale_id_applied_as_a_discount,
     validate_voucher_in_order,
@@ -42,6 +43,7 @@ from . import (
     OrderAuthorizeStatus,
     OrderChargeStatus,
     OrderStatus,
+    base_calculations,
     events,
 )
 from .fetch import OrderLineInfo
@@ -727,40 +729,19 @@ def get_order_discounts(order: Order) -> List[OrderDiscount]:
     return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
 
 
-def apply_discount_to_value(
-    value: Decimal,
-    value_type: str,
-    currency: str,
-    price_to_discount: Union[Money, TaxedMoney],
-):
-    """Calculate the price based on the provided values."""
-    if value_type == DiscountValueType.FIXED:
-        discount_method = fixed_discount
-        discount_kwargs = {"discount": Money(value, currency)}
-    else:
-        discount_method = percentage_discount
-        discount_kwargs = {"percentage": value}
-    discount = partial(
-        discount_method,
-        **discount_kwargs,
-    )
-    return discount(price_to_discount)
-
-
 def create_order_discount_for_order(
     order: Order, reason: str, value_type: str, value: Decimal
 ):
     """Add new order discount and update the prices."""
 
-    current_total = order.total
+    current_total = order.undiscounted_total
     currency = order.currency
 
-    net_total = apply_discount_to_value(value, value_type, currency, current_total.net)
     gross_total = apply_discount_to_value(
         value, value_type, currency, current_total.gross
     )
 
-    new_amount = (current_total - gross_total).gross
+    new_amount = quantize_price((current_total - gross_total).gross, currency)
 
     order_discount = order.discounts.create(
         value_type=value_type,
@@ -768,43 +749,39 @@ def create_order_discount_for_order(
         reason=reason,
         amount=new_amount,  # type: ignore
     )
-    order.total = TaxedMoney(net_total, gross_total)
-    order.save(update_fields=["total_net_amount", "total_gross_amount", "updated_at"])
     return order_discount
 
 
 def update_order_discount_for_order(
     order: Order,
+    lines: Iterable[OrderLine],
     order_discount_to_update: OrderDiscount,
     reason: Optional[str] = None,
     value_type: Optional[str] = None,
     value: Optional[Decimal] = None,
 ):
-    """Update the order_discount for an order and recalculate the order's prices."""
+    """Update the order_discount for an order."""
     current_value = order_discount_to_update.value
     value = value if value is not None else current_value
     value_type = value_type or order_discount_to_update.value_type
-    currency = order_discount_to_update.currency
     fields_to_update = []
     if reason is not None:
         order_discount_to_update.reason = reason
         fields_to_update.append("reason")
 
-    current_total = order.total
-
-    net_total = apply_discount_to_value(value, value_type, currency, current_total.net)
-    gross_total = apply_discount_to_value(
-        value, value_type, currency, current_total.gross
+    current_total = base_calculations.base_order_total_without_order_discount(
+        order, lines
     )
 
-    new_amount = (current_total - gross_total).gross
+    discounted_total = apply_discount_to_value(
+        value, value_type, order.currency, current_total
+    )
+    new_amount = quantize_price(current_total - discounted_total, order.currency)
 
     order_discount_to_update.amount = new_amount
     order_discount_to_update.value = value
     order_discount_to_update.value_type = value_type
     fields_to_update.extend(["value_type", "value", "amount_value"])
-
-    order.total = TaxedMoney(net_total, gross_total)
 
     order_discount_to_update.save(update_fields=fields_to_update)
 

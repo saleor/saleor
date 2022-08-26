@@ -21,9 +21,7 @@ def _recalculate_order_prices(
 
     Does not throw TaxError.
     """
-    currency = order.currency
-
-    subtotal = zero_taxed_money(currency)
+    undiscounted_subtotal = zero_taxed_money(order.currency)
     for line in lines:
         variant = line.variant
         if variant:
@@ -40,6 +38,7 @@ def _recalculate_order_prices(
                     order, line, variant, product
                 )
                 line.undiscounted_total_price = line_total.undiscounted_price
+                undiscounted_subtotal += line_total.undiscounted_price
                 line.total_price = line_total.price_with_discounts
 
                 line.tax_rate = manager.get_order_line_tax_rate(
@@ -48,7 +47,6 @@ def _recalculate_order_prices(
             except TaxError:
                 pass
 
-        subtotal += line.total_price
     try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
@@ -56,8 +54,8 @@ def _recalculate_order_prices(
         )
     except TaxError:
         pass
-
-    order.total = order.shipping_price + subtotal
+    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
+    order.total = manager.calculate_order_total(order, lines)
 
 
 def _apply_tax_data(
@@ -93,29 +91,6 @@ def _apply_tax_data(
     order.total = shipping_price + subtotal
 
 
-def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> None:
-    """Recalculate all order discounts and update order/lines prices."""
-    undiscounted_subtotal = zero_taxed_money(order.currency)
-    for line in lines:
-        line.undiscounted_unit_price = line.unit_price + line.unit_discount
-        undiscounted_total_price = (
-            line.undiscounted_unit_price * line.quantity
-            if line.unit_discount
-            else line.total_price
-        )
-        line.undiscounted_total_price = undiscounted_total_price
-        undiscounted_subtotal += undiscounted_total_price
-
-    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
-
-    order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
-    for order_discount in order_discounts:
-        utils.update_order_discount_for_order(
-            order,
-            order_discount,
-        )
-
-
 def fetch_order_prices_if_expired(
     order: Order,
     manager: PluginsManager,
@@ -143,6 +118,14 @@ def fetch_order_prices_if_expired(
 
     order.should_refresh_prices = False
 
+    order_discount = order.discounts.filter(type=OrderDiscountType.MANUAL).first()
+    if order_discount:
+        utils.update_order_discount_for_order(
+            order,
+            lines,
+            order_discount,
+        )
+
     _recalculate_order_prices(manager, order, lines)
 
     tax_data = manager.get_taxes_for_order(order)
@@ -150,8 +133,6 @@ def fetch_order_prices_if_expired(
     with transaction.atomic(savepoint=False):
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
-
-        _recalculate_order_discounts(order, lines)
 
         order.save(
             update_fields=[
