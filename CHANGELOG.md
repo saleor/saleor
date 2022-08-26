@@ -4,13 +4,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.7.0 [Unreleased]
 
-### Other changes
-
-- Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek
-- Replaced `context.app` lazy object with a dataloader.
-- Add support for bcrypt password hashes - #10346 by @pkucmus
-- Add ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
-
 # 3.6.0
 
 ### Breaking changes
@@ -71,11 +64,13 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add option to calculate taxes via webhooks more info in docs
 
 ### GraphQL API
+
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
   - Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum`
 - Add descriptions for some filters - #10240 by @dekoza
 
 ### Plugins
+
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
   - Add new method to plugin manager:
     - `get_taxes_for_checkout`
