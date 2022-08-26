@@ -192,7 +192,7 @@ def add_variants_to_checkout(
     checkout,
     variants,
     checkout_lines_data,
-    channel_slug,
+    channel,
     replace=False,
     replace_reservations=False,
     reservation_length: Optional[int] = None,
@@ -243,7 +243,7 @@ def add_variants_to_checkout(
             to_reserve,
             variants,
             country_code,
-            channel_slug,
+            channel,
             reservation_length,
             replace=replace_reservations,
         )

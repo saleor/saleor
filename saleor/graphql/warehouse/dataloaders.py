@@ -13,6 +13,7 @@ from ...product.models import ProductVariantChannelListing
 from ...site.models import load_site
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import (
+    ChannelWarehouse,
     PreorderReservation,
     Reservation,
     ShippingZone,
@@ -498,9 +499,8 @@ class WarehousesByChannelIdLoader(DataLoader):
     context_key = "warehouse_by_channel"
 
     def batch_load(self, keys):
-        WarehouseChannel = Warehouse.channels.through
         warehouse_and_channel_in_pairs = (
-            WarehouseChannel.objects.using(self.database_connection_name)
+            ChannelWarehouse.objects.using(self.database_connection_name)
             .filter(channel_id__in=keys)
             .values_list("warehouse_id", "channel_id")
         )

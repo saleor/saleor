@@ -10,9 +10,11 @@ from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from ..site.models import load_site
+from .management import sort_stocks
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 if TYPE_CHECKING:
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutLine
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -23,7 +25,7 @@ def reserve_stocks_and_preorders(
     checkout_lines: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     length_in_minutes: int,
     *,
     replace: bool = True,
@@ -48,7 +50,7 @@ def reserve_stocks_and_preorders(
             stock_lines,
             stock_variants,
             country_code,
-            channel_slug,
+            channel,
             length_in_minutes,
             replace=replace,
         )
@@ -58,7 +60,7 @@ def reserve_stocks_and_preorders(
             preorder_lines,
             preorder_variants,
             country_code,
-            channel_slug,
+            channel.slug,
             length_in_minutes,
             replace=replace,
         )
@@ -68,7 +70,7 @@ def reserve_stocks(
     checkout_lines: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     length_in_minutes: int,
     *,
     replace: bool = True,
@@ -88,9 +90,9 @@ def reserve_stocks(
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
-        .get_variants_stocks_for_country(country_code, channel_slug, variants)
+        .get_variants_stocks_for_country(country_code, channel.slug, variants)
         .order_by("pk")
-        .values("id", "product_variant", "pk", "quantity")
+        .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
     stocks_id = [stock.pop("id") for stock in stocks]
 
@@ -123,6 +125,13 @@ def reserve_stocks(
         quantity_reservation_for_stocks[reservation["stock"]] += reservation[
             "quantity_reserved_sum"
         ]
+
+    stocks = sort_stocks(
+        channel.allocation_strategy,
+        stocks,
+        channel,
+        quantity_allocation_for_stocks,
+    )
 
     variant_to_stocks: Dict[int, List[StockData]] = defaultdict(list)
     for stock_data in stocks:

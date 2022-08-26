@@ -4,6 +4,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.7.0 [Unreleased]
 
+### GraphQL API
+- Sorting warehouses within channel - #10416 by @IKarbowiak
+  - Add `channelReorderWarehouses` mutation
+  - Extend the `Channel` type with `stockSettings` field
+  - Extend `ChannelCreateInput` and `ChannelUpdateInput` with `stockSettings`
+
 ### Other changes
 
 - Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek

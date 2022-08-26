@@ -7,6 +7,7 @@ from django.db.models import F, Sum
 from django.db.models.expressions import Exists, OuterRef
 from django.db.models.functions import Coalesce
 
+from ..channel import AllocationStrategy
 from ..checkout.models import CheckoutLine
 from ..core.exceptions import (
     AllocationError,
@@ -21,6 +22,7 @@ from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .models import (
     Allocation,
+    ChannelWarehouse,
     PreorderAllocation,
     PreorderReservation,
     Reservation,
@@ -29,6 +31,7 @@ from .models import (
 )
 
 if TYPE_CHECKING:
+    from ..channel.models import Channel
     from ..order.models import Order
 
 
@@ -39,7 +42,7 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 def allocate_stocks(
     order_lines_info: Iterable["OrderLineInfo"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     manager: PluginsManager,
     collection_point_pk: Optional[str] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
@@ -60,6 +63,8 @@ def allocate_stocks(
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
     if not order_lines_info:
         return
+
+    channel_slug = channel.slug
 
     variants = [line_info.variant for line_info in order_lines_info]
     filter_lookup = {"product_variant__in": variants}
@@ -83,24 +88,9 @@ def allocate_stocks(
     )
     stocks_id = (stock.pop("id") for stock in stocks)
 
-    quantity_reservation_for_stocks: Dict = defaultdict(int)
-
-    if check_reservations:
-        quantity_reservation = (
-            Reservation.objects.filter(
-                stock_id__in=stocks_id,
-            )
-            .not_expired()
-            .exclude_checkout_lines(checkout_lines or [])
-            .values("stock")
-            .annotate(
-                quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
-            )
-        )  # type: ignore
-        for reservation in quantity_reservation:
-            quantity_reservation_for_stocks[reservation["stock"]] += reservation[
-                "quantity_reserved"
-            ]
+    quantity_reservation_for_stocks: Dict = _prepare_stock_to_reserved_quantity_map(
+        checkout_lines, check_reservations, stocks_id
+    )
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
@@ -116,17 +106,13 @@ def allocate_stocks(
             "quantity_allocated_sum"
         ]
 
-    def sort_stocks(stock_data):
-        # in case of click and collect order we should allocate stocks from
-        # collection point warehouse at the first place
-        if stock_data.pop("warehouse_id") == collection_point_pk:
-            return math.inf
-        return stock_data["quantity"] - quantity_allocation_for_stocks.get(
-            stock_data["pk"], 0
-        )
-
-    # prioritize stocks with the highest quantity available
-    stocks.sort(key=sort_stocks, reverse=True)
+    stocks = sort_stocks(
+        channel.allocation_strategy,
+        stocks,
+        channel,
+        quantity_allocation_for_stocks,
+        collection_point_pk,
+    )
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
@@ -171,6 +157,79 @@ def allocate_stocks(
                 transaction.on_commit(
                     lambda: manager.product_variant_out_of_stock(allocation.stock)
                 )
+
+
+def _prepare_stock_to_reserved_quantity_map(
+    checkout_lines, check_reservations, stocks_id
+):
+    """Prepare stock id to quantity reserved map for provided stock ids."""
+    quantity_reservation_for_stocks: Dict = defaultdict(int)
+
+    if check_reservations:
+        quantity_reservation = (
+            Reservation.objects.filter(
+                stock_id__in=stocks_id,
+            )
+            .not_expired()
+            .exclude_checkout_lines(checkout_lines or [])
+            .values("stock")
+            .annotate(
+                quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
+            )
+        )  # type: ignore
+        for reservation in quantity_reservation:
+            quantity_reservation_for_stocks[reservation["stock"]] += reservation[
+                "quantity_reserved"
+            ]
+    return quantity_reservation_for_stocks
+
+
+def sort_stocks(
+    allocation_strategy: str,
+    stocks: List[dict],
+    channel: "Channel",
+    quantity_allocation_for_stocks: Dict[int, int],
+    collection_point_pk: Optional[str] = None,
+):
+    warehouse_ids = [stock_data["warehouse_id"] for stock_data in stocks]
+    channel_warehouse_ids = ChannelWarehouse.objects.filter(
+        channel_id=channel.id, warehouse_id__in=warehouse_ids
+    ).values_list("warehouse_id", flat=True)
+
+    def sort_stocks_by_highest_stocks(stock_data):
+        """Sort the stocks by the highest quantity available."""
+        # in case of click and collect order we should allocate stocks from
+        # collection point warehouse at the first place
+        if stock_data.pop("warehouse_id") == collection_point_pk:
+            return math.inf
+        return stock_data["quantity"] - quantity_allocation_for_stocks.get(
+            stock_data["pk"], 0
+        )
+
+    def sort_stocks_by_warehouse_sorting_order(stock_data):
+        """Sort the stocks based on the warehouse within channel order."""
+        # get the sort order for stocks warehouses within the channel
+        sorted_warehouse_list = list(channel_warehouse_ids)
+
+        warehouse_id = stock_data.pop("warehouse_id")
+        # in case of click and collect order we should allocate stocks from
+        # collection point warehouse at the first place
+        if warehouse_id == collection_point_pk:
+            return -math.inf
+        return sorted_warehouse_list.index(warehouse_id)
+
+    allocation_strategy_to_sort_method_and_reverse_option = {
+        AllocationStrategy.PRIORITIZE_HIGH_STOCK: (sort_stocks_by_highest_stocks, True),
+        AllocationStrategy.PRIORITIZE_SORTING_ORDER: (
+            sort_stocks_by_warehouse_sorting_order,
+            False,
+        ),
+    }
+    sort_method, reverse = allocation_strategy_to_sort_method_and_reverse_option[
+        allocation_strategy
+    ]
+    stocks.sort(key=sort_method, reverse=reverse)
+    return stocks
 
 
 def _create_allocations(
@@ -340,7 +399,7 @@ def increase_stock(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: Iterable["OrderLineInfo"], channel_slug: str, manager: PluginsManager
+    lines_info: Iterable["OrderLineInfo"], channel: "Channel", manager: PluginsManager
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -372,7 +431,7 @@ def increase_allocations(
     allocate_stocks(
         lines_info,
         lines_info[0].line.order.shipping_address.country.code,  # type: ignore
-        channel_slug,
+        channel,
         manager,
     )
 

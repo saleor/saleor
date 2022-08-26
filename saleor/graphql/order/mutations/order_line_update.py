@@ -79,7 +79,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 line_info,
                 instance.old_quantity,
                 instance.quantity,
-                instance.order.channel.slug,
+                instance.order.channel,
                 manager,
             )
         except InsufficientStock:
