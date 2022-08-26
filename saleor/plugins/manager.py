@@ -280,7 +280,6 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
         default_value = TaxedMoney(price, price)
-
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_shipping",
@@ -324,7 +323,6 @@ class PluginsManager(PaymentInterface):
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
         )
-
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_order_shipping",
@@ -344,7 +342,6 @@ class PluginsManager(PaymentInterface):
         shipping_price: TaxedMoney,
     ):
         default_value = base_calculations.base_tax_rate(shipping_price)
-
         return self.__run_method_on_plugins(
             "get_checkout_shipping_tax_rate",
             default_value,
@@ -357,7 +354,6 @@ class PluginsManager(PaymentInterface):
 
     def get_order_shipping_tax_rate(self, order: "Order", shipping_price: TaxedMoney):
         default_value = base_calculations.base_tax_rate(shipping_price)
-
         return self.__run_method_on_plugins(
             "get_order_shipping_tax_rate",
             default_value,
@@ -392,7 +388,6 @@ class PluginsManager(PaymentInterface):
             discounts,
         )
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
-
         line_total = self.__run_method_on_plugins(
             "calculate_checkout_line_total",
             default_taxed_value,
@@ -446,7 +441,6 @@ class PluginsManager(PaymentInterface):
             checkout_line_info, checkout_info.channel, discounts
         )
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
-
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
             default_taxed_value,
@@ -476,7 +470,6 @@ class PluginsManager(PaymentInterface):
                 order_line.base_unit_price,
             ),
         )
-
         currency = order_line.currency
         line_unit = self.__run_method_on_plugins(
             "calculate_order_line_unit",
@@ -487,7 +480,6 @@ class PluginsManager(PaymentInterface):
             product,
             channel_slug=order.channel.slug,
         )
-
         line_unit.price_with_discounts = quantize_price(
             line_unit.price_with_discounts, currency
         )
@@ -506,7 +498,6 @@ class PluginsManager(PaymentInterface):
         unit_price: TaxedMoney,
     ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
-
         return self.__run_method_on_plugins(
             "get_checkout_line_tax_rate",
             default_value,
@@ -527,7 +518,6 @@ class PluginsManager(PaymentInterface):
         unit_price: TaxedMoney,
     ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
-
         return self.__run_method_on_plugins(
             "get_order_line_tax_rate",
             default_value,

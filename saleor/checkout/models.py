@@ -167,6 +167,7 @@ class Checkout(ModelWithMetadata):
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
+            (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
         )
 
     def __iter__(self):

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout as Checkout
 from ....checkout.utils import invalidate_checkout_prices
-from ....core.permissions import TaxPermissions
+from ....core.permissions import CheckoutPermissions
 from ....graphql.checkout.types import Checkout as CheckoutType
 from ....graphql.core.mutations import BaseMutation
 from ....graphql.order.types import Order as OrderType
@@ -45,7 +45,7 @@ class TaxExemptionManage(BaseMutation):
     class Meta:
         description = "Exempt taxes for Checkout or Order."
         error_type_class = TaxExemptionManageError
-        permissions = (TaxPermissions.MANAGE_TAXES,)
+        permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
     def validate_input(cls, data):
