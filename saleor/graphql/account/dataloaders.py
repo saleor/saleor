@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from django.contrib.auth.models import Permission
+
 from ...account.models import Address, CustomerEvent, User
 from ...thumbnail.models import Thumbnail
 from ..core.dataloaders import DataLoader
@@ -49,3 +51,27 @@ class ThumbnailByUserIdSizeAndFormatLoader(DataLoader):
                 (thumbnail.user_id, thumbnail.size, format)
             ] = thumbnail
         return [thumbnails_by_user_size_and_format_map.get(key) for key in keys]
+
+
+class UserByEmailLoader(DataLoader):
+    context_key = "user_by_email"
+
+    def batch_load(self, keys):
+        user_map = (
+            User.objects.using(self.database_connection_name)
+            .filter(is_active=True)
+            .in_bulk(keys, field_name="email")
+        )
+        return [user_map.get(email) for email in keys]
+
+
+class PermissionByCodenameLoader(DataLoader):
+    context_key = "permission_by_codename"
+
+    def batch_load(self, keys):
+        permission_map = (
+            Permission.objects.filter(codename__in=keys)
+            .prefetch_related("content_type")
+            .in_bulk(field_name="codename")
+        )
+        return [permission_map.get(codename) for codename in keys]
