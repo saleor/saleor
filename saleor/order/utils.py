@@ -741,7 +741,7 @@ def create_order_discount_for_order(
         value, value_type, currency, current_total.gross
     )
 
-    new_amount = (current_total - gross_total).gross
+    new_amount = quantize_price((current_total - gross_total).gross, currency)
 
     order_discount = order.discounts.create(
         value_type=value_type,
@@ -776,7 +776,7 @@ def update_order_discount_for_order(
     discounted_total = apply_discount_to_value(
         value, value_type, order.currency, current_total
     )
-    new_amount = current_total - discounted_total
+    new_amount = quantize_price(current_total - discounted_total, order.currency)
 
     order_discount_to_update.amount = new_amount
     order_discount_to_update.value = value
