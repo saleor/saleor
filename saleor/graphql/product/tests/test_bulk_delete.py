@@ -1160,9 +1160,12 @@ def test_product_delete_removes_reference_to_variant(
 
     variables = {"ids": [product_id]}
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["productBulkDelete"]
 

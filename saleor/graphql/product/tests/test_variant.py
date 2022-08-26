@@ -1413,6 +1413,7 @@ def test_create_variant_with_variant_reference_attribute(
     permission_manage_products,
     warehouse,
 ):
+    # given
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
@@ -1451,9 +1452,13 @@ def test_create_variant_with_variant_reference_attribute(
             "trackInventory": True,
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
@@ -1514,6 +1519,7 @@ def test_create_variant_with_variant_reference_attribute_no_references_given(
     permission_manage_products,
     warehouse,
 ):
+    # given
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
@@ -1545,9 +1551,13 @@ def test_create_variant_with_variant_reference_attribute_no_references_given(
             "trackInventory": True,
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
     errors = content["errors"]
@@ -3492,6 +3502,7 @@ def test_update_product_variant_with_variant_reference_attribute(
     product_type_variant_reference_attribute,
     permission_manage_products,
 ):
+    # given
     product = product_list[0]
     variant_ref = product_list[1].variants.first()
 
@@ -3515,11 +3526,14 @@ def test_update_product_variant_with_variant_reference_attribute(
         "attributes": [{"id": ref_attribute_id, "references": [reference]}],
     }
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_UPDATE_VARIANT_ATTRIBUTES,
         variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]

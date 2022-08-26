@@ -5707,6 +5707,7 @@ def test_create_product_with_variant_reference_attribute(
     permission_manage_products,
     variant,
 ):
+    # given
     query = CREATE_PRODUCT_MUTATION
 
     values_count = product_type_variant_reference_attribute.values.count()
@@ -5734,9 +5735,12 @@ def test_create_product_with_variant_reference_attribute(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["errors"] == []
