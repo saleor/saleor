@@ -36,13 +36,11 @@ MUTATION_CHECKOUT_COMPLETE = """
             $id: ID,
             $redirectUrl: String,
             $metadata: [MetadataInput!],
-            $privateMetadata: [MetadataInput!]
         ) {
         checkoutComplete(
                 id: $id,
                 redirectUrl: $redirectUrl,
                 metadata: $metadata,
-                privateMetadata: $privateMetadata
             ) {
             order {
                 id
@@ -310,7 +308,6 @@ def test_checkout_complete_with_metadata(
     payment_dummy,
     address,
     shipping_method,
-    permission_manage_checkouts,
 ):
     # given
     assert not gift_card.last_used_on
@@ -348,15 +345,10 @@ def test_checkout_complete_with_metadata(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": redirect_url,
         "metadata": [{"key": metadata_key, "value": metadata_value}],
-        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
     }
 
     # when
-    response = user_api_client.post_graphql(
-        MUTATION_CHECKOUT_COMPLETE,
-        variables,
-        permissions=(permission_manage_checkouts,),
-    )
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
@@ -369,10 +361,7 @@ def test_checkout_complete_with_metadata(
     assert not order.original
 
     assert order.metadata == {**checkout.metadata, **{metadata_key: metadata_value}}
-    assert order.private_metadata == {
-        **checkout.private_metadata,
-        **{metadata_key: metadata_value},
-    }
+    assert order.private_metadata == checkout.private_metadata
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -382,7 +371,7 @@ def test_checkout_complete_with_metadata(
 
 @pytest.mark.integration
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
-def test_checkout_complete_with_private_metadata_without_permissions(
+def test_checkout_complete_with_metadata_updates_existing_keys(
     site_settings,
     user_api_client,
     checkout_with_item,
@@ -392,20 +381,39 @@ def test_checkout_complete_with_private_metadata_without_permissions(
     shipping_method,
 ):
     # given
+    meta_key = "testKey"
+    new_meta_value = "newValue"
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
+    checkout.store_value_in_metadata(items={meta_key: "oldValue"})
     checkout.save()
 
-    metadata_value = "metaValue"
-    metadata_key = "metaKey"
+    assert checkout.metadata[meta_key] != new_meta_value
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
     redirect_url = "https://www.example.com"
     variables = {
         "id": to_global_id_or_none(checkout),
         "redirectUrl": redirect_url,
-        "metadata": [{"key": metadata_key, "value": metadata_value}],
-        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+        "metadata": [{"key": meta_key, "value": new_meta_value}],
     }
 
     # when
@@ -413,12 +421,13 @@ def test_checkout_complete_with_private_metadata_without_permissions(
         MUTATION_CHECKOUT_COMPLETE,
         variables,
     )
-    content = get_graphql_content(response, ignore_errors=True)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
 
     # then
-    message = "You do not have permission to update private metadata."
-    assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
-    assert content["errors"][0]["message"] == message
+    assert not data["errors"]
+    order = Order.objects.first()
+    assert order.metadata == {meta_key: new_meta_value}
 
 
 @pytest.mark.integration
@@ -483,7 +492,6 @@ def test_checkout_complete_by_app(
         tracking_code=ANY,
         redirect_url=ANY,
         metadata_list=ANY,
-        private_metadata_list=ANY,
     )
 
 
@@ -549,7 +557,6 @@ def test_checkout_complete_by_app_with_missing_permission(
         tracking_code=ANY,
         redirect_url=ANY,
         metadata_list=ANY,
-        private_metadata_list=ANY,
     )
 
 

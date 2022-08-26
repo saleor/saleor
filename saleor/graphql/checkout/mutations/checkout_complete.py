@@ -27,9 +27,9 @@ from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.scalars import UUID
-from ...core.types import CheckoutError
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...meta.mutations import BaseMutationWithMetadata
+from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
 from ...discount.dataloaders import load_discounts
 from ...order.types import Order
 from ...site.dataloaders import load_site
@@ -55,7 +55,7 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
         ),
     )
 
-    class Arguments(BaseMutationWithMetadata.Arguments):
+    class Arguments:
         id = graphene.ID(
             description="The checkout's ID." + ADDED_IN_34,
             required=False,
@@ -89,6 +89,11 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
             description=(
                 "Client-side generated data required to finalize the payment."
             ),
+        )
+        metadata = NonNullList(
+            MetadataInput,
+            description="Fields required to update the object's metadata.",
+            required=False,
         )
 
     class Meta:
@@ -258,7 +263,6 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
                 metadata_list=data.get("metadata"),
-                private_metadata_list=data.get("private_metadata"),
             )
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data

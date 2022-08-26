@@ -13222,9 +13222,6 @@ type Mutation {
     """Client-side generated data required to finalize the payment."""
     paymentData: JSONString
 
-    """Fields required to update the object's private metadata."""
-    privateMetadata: [MetadataInput!]
-
     """
     URL of a view where users should be redirected to see the order details. URL in RFC 1808 format.
     """
