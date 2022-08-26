@@ -137,14 +137,14 @@ class TaxClassCountryRate(ModelObjectType):
     )
     rate = graphene.Float(required=True, description="Tax rate value.")
     tax_class = graphene.Field(
-        TaxClass, description="Related tax class.", required=True
+        TaxClass, description="Related tax class.", required=False
     )
 
     class Meta:
         description = (
-            "Country-specific tax rate value for a tax class."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
+            "Tax rate for a country. When tax class is null, it represents the default "
+            "tax rate for that country; otherwise it's a country tax rate specific to "
+            "the given tax class." + ADDED_IN_35 + PREVIEW_FEATURE
         )
         model = models.TaxClassCountryRate
 
@@ -154,7 +154,11 @@ class TaxClassCountryRate(ModelObjectType):
 
     @staticmethod
     def resolve_tax_class(root, info):
-        return TaxClassByIdLoader(info.context).load(root.tax_class_id)
+        return (
+            TaxClassByIdLoader(info.context).load(root.tax_class_id)
+            if root.tax_class_id
+            else None
+        )
 
 
 class TaxCountryConfiguration(graphene.ObjectType):

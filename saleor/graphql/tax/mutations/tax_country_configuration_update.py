@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django_countries.fields import Country
 from graphql import GraphQLError
 
@@ -30,7 +31,7 @@ class TaxCountryConfigurationUpdateError(Error):
 
 class TaxClassRateInput(graphene.InputObjectType):
     tax_class_id = graphene.ID(
-        description="ID of a tax class for which to update the tax rate", required=True
+        description="ID of a tax class for which to update the tax rate", required=False
     )
     rate = graphene.Float(description="Tax rate value.", required=True)
 
@@ -68,13 +69,19 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         failed_ids = []
 
         for item in update_tax_class_rates:
-            global_id = item["tax_class_id"]
-            try:
-                _, pk = from_global_id_or_error(global_id, "TaxClass", raise_error=True)
-            except GraphQLError:
-                failed_ids.append(global_id)
-            else:
-                cleaned_data[int(pk)] = item
+            global_id = item.get("tax_class_id")
+            pk = None
+            if global_id:
+                try:
+                    _, pk = from_global_id_or_error(
+                        global_id, "TaxClass", raise_error=True
+                    )
+                except GraphQLError:
+                    failed_ids.append(global_id)
+                    continue
+                pk = int(pk)
+
+            cleaned_data[pk] = item
 
         if failed_ids:
             params = {"tax_class_ids": failed_ids}
@@ -102,13 +109,22 @@ class TaxCountryConfigurationUpdate(BaseMutation):
             update_tax_classes.append(obj.tax_class_id)
         models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))
 
+        # update the default country rate (without tax class)
+        default_rate = cleaned_data.get(None)
+        if default_rate:
+            models.TaxClassCountryRate.objects.update_or_create(
+                country=country_code,
+                tax_class=None,
+                defaults={"rate": default_rate["rate"]},
+            )
+
         # create new instances
         to_create = [
             models.TaxClassCountryRate(
                 country=country_code, tax_class_id=tax_class_id, rate=item["rate"]
             )
             for tax_class_id, item in cleaned_data.items()
-            if tax_class_id not in update_tax_classes
+            if tax_class_id not in update_tax_classes and tax_class_id is not None
         ]
         models.TaxClassCountryRate.objects.bulk_create(to_create)
 
@@ -117,8 +133,12 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         country_code = data["country_code"]
         cleaned_data = cls.clean_input(**data)
         cls.update_and_create_country_rates(country_code, cleaned_data)
+
+        tax_classes_lookup = Q(tax_class_id__in=cleaned_data.keys())
+        if None in cleaned_data:
+            tax_classes_lookup |= Q(tax_class=None)
         all_rates = models.TaxClassCountryRate.objects.filter(
-            country=country_code, tax_class_id__in=cleaned_data.keys()
+            tax_classes_lookup, country=country_code
         )
         country_config = TaxCountryConfiguration(
             country=Country(country_code), tax_class_country_rates=all_rates
