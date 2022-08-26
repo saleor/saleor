@@ -9,6 +9,7 @@ from django.utils import timezone
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..product.models import ProductVariant, ProductVariantChannelListing
+from ..site.models import load_site
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 if TYPE_CHECKING:
@@ -372,9 +373,10 @@ def is_reservation_enabled(settings) -> bool:
 
 
 def get_reservation_length(request) -> Optional[int]:
+    site = load_site(request)
     if request.user.is_authenticated:
-        return request.site.settings.reserve_stock_duration_authenticated_user
-    return request.site.settings.reserve_stock_duration_anonymous_user
+        return site.settings.reserve_stock_duration_authenticated_user
+    return site.settings.reserve_stock_duration_anonymous_user
 
 
 def get_listings_reservations(

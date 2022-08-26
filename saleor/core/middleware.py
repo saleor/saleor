@@ -4,7 +4,6 @@ from functools import partial
 from typing import TYPE_CHECKING, Callable, Union
 
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
@@ -13,6 +12,7 @@ from django.utils.translation import get_language
 from ..discount.utils import fetch_discounts
 from ..graphql.utils import get_user_or_app_from_context
 from ..plugins.manager import PluginsManager, get_plugins_manager
+from ..site.models import load_site
 from . import analytics
 from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode_with_exception_handler
 
@@ -68,20 +68,17 @@ def discounts(get_response):
 
 
 def site(get_response):
-    """Clear the Sites cache and assign the current site to `request.site`.
+    # FIXME: remove
+    """Legacy request.site loader.
 
     By default django.contrib.sites caches Site instances at the module
     level. This leads to problems when updating Site instances, as it's
     required to restart all application servers in order to invalidate
-    the cache. Using this middleware solves this problem.
+    the cache. Using dataloader solves this problem.
     """
 
-    def _get_site():
-        Site.objects.clear_cache()
-        return Site.objects.get_current()
-
     def _site_middleware(request):
-        request.site = SimpleLazyObject(_get_site)
+        request.site = load_site(request)
         return get_response(request)
 
     return _site_middleware
