@@ -112,6 +112,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 + invalidate_prices_updated_fields
             )
 
-            info.context.plugins.checkout_updated(checkout)
+            cls.call_event(lambda: info.context.plugins.checkout_updated(checkout))
 
         return CheckoutBillingAddressUpdate(checkout=checkout)

@@ -286,40 +286,40 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance: models.Checkout, cleaned_input):
-        # Create the checkout object
-        instance.save()
+        with traced_atomic_transaction():
+            # Create the checkout object
+            instance.save()
 
-        # Set checkout country
-        country = cleaned_input["country"]
-        instance.set_country(country)
-        # Create checkout lines
-        channel = cleaned_input["channel"]
-        variants = cleaned_input.get("variants")
-        checkout_lines_data = cleaned_input.get("lines_data")
-        if variants and checkout_lines_data:
-            add_variants_to_checkout(
-                instance,
-                variants,
-                checkout_lines_data,
-                channel.slug,
-                info.context.site.settings.limit_quantity_per_checkout,
-                reservation_length=get_reservation_length(info.context),
-            )
+            # Set checkout country
+            country = cleaned_input["country"]
+            instance.set_country(country)
+            # Create checkout lines
+            channel = cleaned_input["channel"]
+            variants = cleaned_input.get("variants")
+            checkout_lines_data = cleaned_input.get("lines_data")
+            if variants and checkout_lines_data:
+                add_variants_to_checkout(
+                    instance,
+                    variants,
+                    checkout_lines_data,
+                    channel.slug,
+                    info.context.site.settings.limit_quantity_per_checkout,
+                    reservation_length=get_reservation_length(info.context),
+                )
 
-        # Save addresses
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address and instance.is_shipping_required():
-            shipping_address.save()
-            instance.shipping_address = shipping_address.get_copy()
+            # Save addresses
+            shipping_address = cleaned_input.get("shipping_address")
+            if shipping_address and instance.is_shipping_required():
+                shipping_address.save()
+                instance.shipping_address = shipping_address.get_copy()
 
-        billing_address = cleaned_input.get("billing_address")
-        if billing_address:
-            billing_address.save()
-            instance.billing_address = billing_address.get_copy()
+            billing_address = cleaned_input.get("billing_address")
+            if billing_address:
+                billing_address.save()
+                instance.billing_address = billing_address.get_copy()
 
-        instance.save()
+            instance.save()
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -336,6 +336,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if channel:
             data["input"]["channel"] = channel
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.checkout_created(response.checkout)
+        cls.call_event(lambda: info.context.plugins.checkout_created(response.checkout))
         response.created = True
         return response
