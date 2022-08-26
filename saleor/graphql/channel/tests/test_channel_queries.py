@@ -7,6 +7,7 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..enums import AllocationStrategyEnum
 
 QUERY_CHANNELS = """
 query {
@@ -164,6 +165,9 @@ QUERY_CHANNEL = """
             name
             slug
             currencyCode
+            stockSettings{
+                allocationStrategy
+            }
         }
     }
 """
@@ -184,6 +188,11 @@ def test_query_channel_as_staff_user(staff_api_client, channel_USD):
     assert channel_data["name"] == channel_USD.name
     assert channel_data["slug"] == channel_USD.slug
     assert channel_data["currencyCode"] == channel_USD.currency_code
+    allocation_strategy = channel_data["stockSettings"]["allocationStrategy"]
+    assert (
+        AllocationStrategyEnum[allocation_strategy].value
+        == channel_USD.allocation_strategy
+    )
 
 
 def test_query_channel_as_app(app_api_client, channel_USD):
@@ -201,6 +210,11 @@ def test_query_channel_as_app(app_api_client, channel_USD):
     assert channel_data["name"] == channel_USD.name
     assert channel_data["slug"] == channel_USD.slug
     assert channel_data["currencyCode"] == channel_USD.currency_code
+    allocation_strategy = channel_data["stockSettings"]["allocationStrategy"]
+    assert (
+        AllocationStrategyEnum[allocation_strategy].value
+        == channel_USD.allocation_strategy
+    )
 
 
 def test_query_channel_as_customer(user_api_client, channel_USD):

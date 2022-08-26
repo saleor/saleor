@@ -93,7 +93,6 @@ class DraftOrderComplete(BaseMutation):
         order.save()
 
         channel = order.channel
-        channel_slug = channel.slug
         order_lines_info = []
         for line in order.lines.all():
             if line.variant.track_inventory or line.variant.is_preorder_active():
@@ -106,7 +105,7 @@ class DraftOrderComplete(BaseMutation):
                         allocate_stocks(
                             [line_data],
                             country,
-                            channel_slug,
+                            channel,
                             manager,
                             check_reservations=is_reservation_enabled(
                                 info.context.site.settings
@@ -114,7 +113,7 @@ class DraftOrderComplete(BaseMutation):
                         )
                         allocate_preorders(
                             [line_data],
-                            channel_slug,
+                            channel.slug,
                             check_reservations=is_reservation_enabled(
                                 info.context.site.settings
                             ),

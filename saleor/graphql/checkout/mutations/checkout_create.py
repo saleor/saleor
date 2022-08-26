@@ -303,7 +303,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 instance,
                 variants,
                 checkout_lines_data,
-                channel.slug,
+                channel,
                 info.context.site.settings.limit_quantity_per_checkout,
                 reservation_length=get_reservation_length(info.context),
             )

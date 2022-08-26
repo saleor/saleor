@@ -141,7 +141,7 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout,
                 variants,
                 checkout_lines_data,
-                channel_slug,
+                checkout_info.channel,
                 replace=replace,
                 replace_reservations=True,
                 reservation_length=get_reservation_length(info.context),
