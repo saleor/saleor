@@ -132,8 +132,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.CONTAINER_TAGS }}
-          cache-from: type=registry,ref=saleor/saleor:${CACHE_FROM_VERSION}
-          cache-to: type=registry,ref=saleor/saleor:${CACHE_TO_VERSION},mode=max
+          cache-from: type=registry,ref=ghcr.io/saleor/saleor:${{ env.CACHE_FROM_VERSION }}
+          cache-to: type=registry,ref=ghcr.io/saleor/saleor:${{ env.CACHE_TO_VERSION }},mode=max
           build-args: |
             PROJECT_VERSION=${{ env.NAMED_VERSION }}
             COMMIT_ID=${{ github.sha }}
