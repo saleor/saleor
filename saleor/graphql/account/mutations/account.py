@@ -3,7 +3,6 @@ import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, notifications, search, utils
@@ -133,27 +132,27 @@ class AccountRegister(ModelMutation):
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, user, cleaned_input):
-        password = cleaned_input["password"]
-        user.set_password(password)
-        user.search_document = search.prepare_user_search_document_value(
-            user, attach_addresses_data=False
-        )
-        if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
-            user.is_active = False
-            user.save()
-            notifications.send_account_confirmation(
-                user,
-                cleaned_input["redirect_url"],
-                info.context.plugins,
-                channel_slug=cleaned_input["channel"],
+        with traced_atomic_transaction():
+            password = cleaned_input["password"]
+            user.set_password(password)
+            user.search_document = search.prepare_user_search_document_value(
+                user, attach_addresses_data=False
             )
-        else:
-            user.save()
+            if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+                user.is_active = False
+                user.save()
+                notifications.send_account_confirmation(
+                    user,
+                    cleaned_input["redirect_url"],
+                    info.context.plugins,
+                    channel_slug=cleaned_input["channel"],
+                )
+            else:
+                user.save()
 
-        account_events.customer_account_created_event(user=user)
-        info.context.plugins.customer_created(customer=user)
+            account_events.customer_account_created_event(user=user)
+            cls.call_event(lambda: info.context.plugins.customer_created(customer=user))
 
 
 class AccountInput(AccountBaseInput):
@@ -305,21 +304,21 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         address_type = data.get("type", None)
         user = info.context.user
         cleaned_input = cls.clean_input(
             info=info, instance=Address(), data=data.get("input")
         )
-        address = cls.validate_address(cleaned_input, address_type=address_type)
-        cls.clean_instance(info, address)
-        cls.save(info, address, cleaned_input)
-        cls._save_m2m(info, address, cleaned_input)
-        if address_type:
-            utils.change_user_default_address(
-                user, address, address_type, info.context.plugins
-            )
+        with traced_atomic_transaction():
+            address = cls.validate_address(cleaned_input, address_type=address_type)
+            cls.clean_instance(info, address)
+            cls.save(info, address, cleaned_input)
+            cls._save_m2m(info, address, cleaned_input)
+            if address_type:
+                utils.change_user_default_address(
+                    user, address, address_type, info.context.plugins
+                )
         return AccountAddressCreate(user=user, address=address)
 
     @classmethod
@@ -330,16 +329,8 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         instance.user_addresses.add(user)
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
-        transaction.on_commit(
-            lambda: cls.trigger_post_account_address_create_webhooks(
-                info, instance, user
-            )
-        )
-
-    @classmethod
-    def trigger_post_account_address_create_webhooks(cls, info, address, user):
-        info.context.plugins.customer_updated(user)
-        info.context.plugins.address_created(address)
+        cls.call_event(lambda: info.context.plugins.customer_updated(user))
+        cls.call_event(lambda: info.context.plugins.address_created(instance))
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -406,7 +397,7 @@ class AccountSetDefaultAddress(BaseMutation):
         utils.change_user_default_address(
             user, address, address_type, info.context.plugins
         )
-        info.context.plugins.customer_updated(user)
+        cls.call_event(lambda: info.context.plugins.customer_updated(user))
         return cls(user=user)
 
 
@@ -555,5 +546,5 @@ class ConfirmEmailChange(BaseMutation):
         notifications.send_user_change_email_notification(
             old_email, user, info.context.plugins, channel_slug=channel_slug
         )
-        info.context.plugins.customer_updated(user)
+        cls.call_event(lambda: info.context.plugins.customer_updated(user))
         return ConfirmEmailChange(user=user)

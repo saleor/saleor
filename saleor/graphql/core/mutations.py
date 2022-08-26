@@ -12,6 +12,7 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.core.files.storage import default_storage
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
@@ -397,6 +398,14 @@ class BaseMutation(graphene.Mutation):
         if cls._meta.error_type_field is not None:
             extra.update({cls._meta.error_type_field: errors})
         return cls(errors=errors, **extra)
+
+    @classmethod
+    def call_event(cls, func_obj):
+        connection = transaction.get_connection()
+        if connection.in_atomic_block:
+            transaction.on_commit(func_obj)
+        else:
+            func_obj()
 
 
 class ModelMutation(BaseMutation):

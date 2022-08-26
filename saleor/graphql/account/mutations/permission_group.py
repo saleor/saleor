@@ -63,19 +63,19 @@ class PermissionGroupCreate(ModelMutation):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         add_permissions = cleaned_data.get("add_permissions")
-        if add_permissions:
-            instance.permissions.add(*add_permissions)
+        with traced_atomic_transaction():
+            if add_permissions:
+                instance.permissions.add(*add_permissions)
 
-        users = cleaned_data.get("add_users")
-        if users:
-            instance.user_set.add(*users)
+            users = cleaned_data.get("add_users")
+            if users:
+                instance.user_set.add(*users)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.permission_group_created(instance)
+        cls.call_event(lambda: info.context.plugins.permission_group_created(instance))
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -213,19 +213,19 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         remove_users = cleaned_data.get("remove_users")
-        if remove_users:
-            instance.user_set.remove(*remove_users)
-        remove_permissions = cleaned_data.get("remove_permissions")
-        if remove_permissions:
-            instance.permissions.remove(*remove_permissions)
+        with traced_atomic_transaction():
+            if remove_users:
+                instance.user_set.remove(*remove_users)
+            remove_permissions = cleaned_data.get("remove_permissions")
+            if remove_permissions:
+                instance.permissions.remove(*remove_permissions)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.permission_group_updated(instance)
+        cls.call_event(lambda: info.context.plugins.permission_group_updated(instance))
 
     @classmethod
     def clean_input(
@@ -442,7 +442,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.permission_group_deleted(instance)
+        cls.call_event(lambda: info.context.plugins.permission_group_deleted(instance))
 
     @classmethod
     def clean_instance(cls, info, instance):

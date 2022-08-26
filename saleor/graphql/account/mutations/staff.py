@@ -298,16 +298,16 @@ class StaffCreate(ModelMutation):
             )
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        groups = cleaned_data.get("add_groups")
-        if groups:
-            instance.groups.add(*groups)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            groups = cleaned_data.get("add_groups")
+            if groups:
+                instance.groups.add(*groups)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.staff_created(instance)
+        cls.call_event(lambda: info.context.plugins.staff_created(instance))
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -458,15 +458,15 @@ class StaffUpdate(StaffCreate):
             errors["is_active"].append(error)
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        add_groups = cleaned_data.get("add_groups")
-        if add_groups:
-            instance.groups.add(*add_groups)
-        remove_groups = cleaned_data.get("remove_groups")
-        if remove_groups:
-            instance.groups.remove(*remove_groups)
+        with traced_atomic_transaction():
+            add_groups = cleaned_data.get("add_groups")
+            if add_groups:
+                instance.groups.add(*add_groups)
+            remove_groups = cleaned_data.get("remove_groups")
+            if remove_groups:
+                instance.groups.remove(*remove_groups)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -481,7 +481,7 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.staff_updated(instance)
+        cls.call_event(lambda: info.context.plugins.staff_updated(instance))
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
@@ -511,7 +511,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         instance.id = db_id
 
         response = cls.success_response(instance)
-        info.context.plugins.staff_deleted(instance)
+        cls.call_event(lambda: info.context.plugins.staff_deleted(instance))
 
         return response
 
@@ -538,21 +538,21 @@ class AddressCreate(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         user_id = data["user_id"]
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
-        response = super().perform_mutation(root, info, **data)
-        if not response.errors:
-            address = info.context.plugins.change_user_address(
-                response.address, None, user
-            )
-            remove_the_oldest_user_address_if_address_limit_is_reached(user)
-            user.addresses.add(address)
-            response.user = user
-            user.search_document = prepare_user_search_document_value(user)
-            user.save(update_fields=["search_document", "updated_at"])
-        return response
+        with traced_atomic_transaction():
+            response = super().perform_mutation(root, info, **data)
+            if not response.errors:
+                address = info.context.plugins.change_user_address(
+                    response.address, None, user
+                )
+                remove_the_oldest_user_address_if_address_limit_is_reached(user)
+                user.addresses.add(address)
+                response.user = user
+                user.search_document = prepare_user_search_document_value(user)
+                user.save(update_fields=["search_document", "updated_at"])
+            return response
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
@@ -620,7 +620,7 @@ class AddressSetDefault(BaseMutation):
         utils.change_user_default_address(
             user, address, address_type, info.context.plugins
         )
-        info.context.plugins.customer_updated(user)
+        cls.call_event(lambda: info.context.plugins.customer_updated(user))
         return cls(user=user)
 
 
