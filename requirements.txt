@@ -42,7 +42,7 @@ django-filter==22.1; python_version >= "3.7"
 django-js-asset==2.0.0; python_version >= "3.6"
 django-measurement==3.2.4
 django-mptt==0.13.4; python_version >= "3.6"
-django-phonenumber-field==6.3.0; python_version >= "3.7"
+django-phonenumber-field==6.4.0; python_version >= "3.7"
 django-prices-openexchangerates==1.1.0
 django-prices-vatlayer==1.1.0
 django-prices==2.2.0
