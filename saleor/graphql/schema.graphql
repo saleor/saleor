@@ -14574,6 +14574,9 @@ type WarehouseError {
 
   """The error code."""
   code: WarehouseErrorCode!
+
+  """List of shipping zones IDs which causes the error."""
+  shippingZones: [ID!]
 }
 
 """An enumeration."""
@@ -14599,7 +14602,11 @@ input WarehouseCreateInput {
   """Address of the warehouse."""
   address: AddressInput!
 
-  """Shipping zones supported by the warehouse."""
+  """
+  Shipping zones supported by the warehouse.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing the zone ids will raise a ValidationError.
+  """
   shippingZones: [ID!]
 }
 
@@ -16816,7 +16823,7 @@ type PaymentError {
   """The error code."""
   code: PaymentErrorCode!
 
-  """List of varint IDs which causes the error."""
+  """List of variant IDs which causes the error."""
   variants: [ID!]
 }
 
