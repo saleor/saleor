@@ -4,7 +4,6 @@ import graphene
 from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
-from ....site.models import load_site
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...checkout.types import CheckoutLine
@@ -19,6 +18,7 @@ from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (

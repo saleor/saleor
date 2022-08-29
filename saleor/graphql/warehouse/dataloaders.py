@@ -10,7 +10,6 @@ from django.utils import timezone
 
 from ...channel.models import Channel
 from ...product.models import ProductVariantChannelListing
-from ...site.models import load_site
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import (
     ChannelWarehouse,
@@ -22,6 +21,7 @@ from ...warehouse.models import (
 )
 from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
+from ..site.dataloaders import load_site
 
 CountryCode = Optional[str]
 VariantIdCountryCodeChannelSlug = Tuple[int, CountryCode, str]

@@ -25,7 +25,6 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
-from ....site.models import load_site
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
@@ -83,6 +82,7 @@ from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
+from ...site.dataloaders import load_site
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,

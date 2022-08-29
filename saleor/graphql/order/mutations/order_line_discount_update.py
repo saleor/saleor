@@ -6,9 +6,9 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
-from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
+from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 

@@ -4,7 +4,6 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ...core.permissions import OrderPermissions, ProductPermissions
-from ...site.models import load_site
 from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -15,6 +14,7 @@ from ..core.fields import ConnectionField, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
+from ..site.dataloaders import load_site
 from .dataloaders import WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 

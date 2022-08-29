@@ -12,7 +12,7 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
-from ...site.models import SiteSettings, load_site
+from ...site.models import SiteSettings
 from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
 from ..core.descriptions import RICH_CONTENT
@@ -26,6 +26,7 @@ from ..menu.types import MenuItem
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
+from ..site.dataloaders import load_site
 from . import types as translation_types
 
 TRANSLATABLE_CONTENT_TO_MODEL = {

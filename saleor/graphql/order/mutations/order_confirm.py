@@ -10,10 +10,10 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
-from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
+from ...site.dataloaders import load_site
 from ..types import Order
 
 

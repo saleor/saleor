@@ -17,7 +17,6 @@ from ....checkout.utils import (
 )
 from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
-from ....site.models import load_site
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -30,6 +29,7 @@ from ...core.descriptions import (
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (

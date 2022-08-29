@@ -12,7 +12,6 @@ from ...menu import models
 from ...menu.error_codes import MenuErrorCode
 from ...page import models as page_models
 from ...product import models as product_models
-from ...site.models import load_site
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import MenuError, NonNullList
@@ -20,6 +19,7 @@ from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
 from ..product.types import Category, Collection
+from ..site.dataloaders import load_site
 from .dataloaders import MenuItemsByParentMenuLoader
 from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput

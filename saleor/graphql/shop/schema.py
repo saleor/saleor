@@ -1,8 +1,8 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions, OrderPermissions
-from ...site.models import load_site
 from ..core.fields import PermissionsField
+from ..site.dataloaders import load_site
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,

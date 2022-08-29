@@ -9,7 +9,6 @@ from ....checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
-from ....site.models import load_site
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
@@ -18,6 +17,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (

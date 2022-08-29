@@ -8,8 +8,8 @@ from django.utils import timezone
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
+from ..graphql.site.dataloaders import load_site
 from ..product.models import ProductVariant, ProductVariantChannelListing
-from ..site.models import load_site
 from .management import sort_stocks
 from .models import Allocation, PreorderReservation, Reservation, Stock
 

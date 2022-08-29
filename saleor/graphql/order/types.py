@@ -46,7 +46,6 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
-from ...site.models import load_site
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -108,6 +107,7 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
+from ..site.dataloaders import load_site
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,

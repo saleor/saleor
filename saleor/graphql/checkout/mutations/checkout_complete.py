@@ -18,7 +18,6 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
-from ....site.models import load_site
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
@@ -28,6 +27,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...order.types import Order
+from ...site.dataloaders import load_site
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout

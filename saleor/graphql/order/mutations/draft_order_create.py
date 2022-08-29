@@ -20,7 +20,6 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ....site.models import load_site
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import load_app
@@ -31,6 +30,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
+from ...site.dataloaders import load_site
 from ..types import Order
 from ..utils import (
     OrderLineData,

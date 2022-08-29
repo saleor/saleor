@@ -10,12 +10,12 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
-from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
+from ...site.dataloaders import load_site
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors

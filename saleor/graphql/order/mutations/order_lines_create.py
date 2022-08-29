@@ -17,11 +17,11 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
 from ..utils import (
     OrderLineData,

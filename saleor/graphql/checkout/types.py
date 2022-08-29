@@ -15,7 +15,6 @@ from ...core.permissions import (
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
-from ...site.models import load_site
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -45,6 +44,7 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
+from ..site.dataloaders import load_site
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse

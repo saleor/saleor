@@ -12,7 +12,6 @@ from ...channel import models as channel_models
 from ...core.permissions import AuthorizationFilters, SitePermissions, get_permissions
 from ...core.tracing import traced_resolver
 from ...site import models as site_models
-from ...site.models import load_site
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
@@ -28,6 +27,7 @@ from ..core.types import (
 )
 from ..core.utils import str_to_enum
 from ..shipping.types import ShippingMethod
+from ..site.dataloaders import load_site
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation

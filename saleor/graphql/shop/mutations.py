@@ -7,7 +7,7 @@ from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermi
 from ...core.utils.url import validate_storefront_url
 from ...site import GiftCardSettingsExpiryType
 from ...site.error_codes import GiftCardSettingsErrorCode
-from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT, load_site
+from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
@@ -19,6 +19,7 @@ from ..core.types import (
     ShopError,
     TimePeriodInputType,
 )
+from ..site.dataloaders import load_site
 from .enums import GiftCardSettingsExpiryTypeEnum
 from .types import GiftCardSettings, OrderSettings, Shop
 

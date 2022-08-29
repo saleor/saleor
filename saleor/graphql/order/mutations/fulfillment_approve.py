@@ -6,11 +6,11 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order.actions import approve_fulfillment
 from ....order.error_codes import OrderErrorCode
-from ....site.models import load_site
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...site.dataloaders import load_site
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
 from .order_fulfill import OrderFulfill

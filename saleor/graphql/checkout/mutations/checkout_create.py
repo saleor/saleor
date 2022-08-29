@@ -8,7 +8,6 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout
 from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
-from ....site.models import load_site
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -27,6 +26,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .utils import (
     check_lines_quantity,
