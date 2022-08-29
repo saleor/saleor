@@ -1,7 +1,10 @@
+from collections import defaultdict
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...channel import models as channel_models
 from ...core.permissions import ProductPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...warehouse import WarehouseClickAndCollectOption, models
@@ -48,11 +51,16 @@ class WarehouseMixin:
                 error.code = WarehouseErrorCode.REQUIRED.value
                 raise ValidationError({"name": error})
 
-        shipping_zones = cleaned_input.get("shipping_zones", [])
-        if not validate_warehouse_count(shipping_zones, instance):
-            msg = "Shipping zone can be assigned only to one warehouse."
+        # assigning shipping zones in the WarehouseCreate mutation is deprecated
+        if cleaned_input.get("shipping_zones"):
             raise ValidationError(
-                {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID
+                {
+                    "shipping_zones": ValidationError(
+                        "The shippingZone input field is deprecated. "
+                        "Use WarehouseShippingZoneAssign mutation",
+                        code=WarehouseErrorCode.INVALID.value,
+                    )
+                }
             )
 
         click_and_collect_option = cleaned_input.get(
@@ -103,7 +111,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
         info.context.plugins.warehouse_created(instance)
 
 
-class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
+class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
         object_type = Warehouse
@@ -126,11 +134,88 @@ class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
         shipping_zones = cls.get_nodes_or_error(
             data.get("shipping_zone_ids"), "shipping_zone_id", only_type=ShippingZone
         )
+        cls.clean_shipping_zones(warehouse, shipping_zones)
         warehouse.shipping_zones.add(*shipping_zones)
         return WarehouseShippingZoneAssign(warehouse=warehouse)
 
+    @classmethod
+    def clean_shipping_zones(cls, instance, shipping_zones):
+        if not validate_warehouse_count(shipping_zones, instance):
+            msg = "Shipping zone can be assigned only to one warehouse."
+            raise ValidationError(
+                {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID
+            )
 
-class WarehouseShippingZoneUnassign(WarehouseMixin, ModelMutation, I18nMixin):
+        cls.check_if_zones_can_be_assigned(instance, shipping_zones)
+
+    @classmethod
+    def check_if_zones_can_be_assigned(cls, instance, shipping_zones):
+        """Check if all shipping zones to add has common channel with warehouse.
+
+        Raise and error when the condition is not fulfilled.
+        """
+        shipping_zone_ids = [zone.id for zone in shipping_zones]
+        ChannelShippingZone = channel_models.Channel.shipping_zones.through
+        channel_shipping_zones = ChannelShippingZone.objects.filter(
+            shippingzone_id__in=shipping_zone_ids
+        )
+
+        # shipping zone cannot be assigned when any channel is assigned to the zone
+        if not channel_shipping_zones:
+            invalid_shipping_zone_ids = shipping_zone_ids
+
+        zone_to_channel_mapping = defaultdict(set)
+        for shipping_zone_id, channel_id in channel_shipping_zones.values_list(
+            "shippingzone_id", "channel_id"
+        ):
+            zone_to_channel_mapping[shipping_zone_id].add(channel_id)
+
+        WarehouseChannel = models.Warehouse.channels.through
+        zone_channel_ids = set(
+            WarehouseChannel.objects.filter(warehouse_id=instance.id).values_list(
+                "channel_id", flat=True
+            )
+        )
+
+        invalid_shipping_zone_ids = cls._find_invalid_shipping_zones(
+            zone_to_channel_mapping, shipping_zone_ids, zone_channel_ids
+        )
+
+        if invalid_shipping_zone_ids:
+            invalid_zones = {
+                graphene.Node.to_global_id("ShippingZone", pk)
+                for pk in invalid_shipping_zone_ids
+            }
+            raise ValidationError(
+                {
+                    "shipping_zones": ValidationError(
+                        "Only warehouses that have common channel with shipping zone "
+                        "can be assigned.",
+                        code=WarehouseErrorCode.INVALID,
+                        params={
+                            "shipping_zones": invalid_zones,
+                        },
+                    )
+                }
+            )
+
+    @staticmethod
+    def _find_invalid_shipping_zones(
+        zone_to_channel_mapping, shipping_zone_ids, warehouse_channel_ids
+    ):
+        invalid_warehouse_ids = []
+        for zone_id in shipping_zone_ids:
+            zone_channels = zone_to_channel_mapping.get(zone_id)
+            # shipping zone cannot be added if it hasn't got any channel assigned
+            # or if it does not have common channel with the warehouse
+            if not zone_channels or not zone_channels.intersection(
+                warehouse_channel_ids
+            ):
+                invalid_warehouse_ids.append(zone_id)
+        return invalid_warehouse_ids
+
+
+class WarehouseShippingZoneUnassign(ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
         object_type = Warehouse
