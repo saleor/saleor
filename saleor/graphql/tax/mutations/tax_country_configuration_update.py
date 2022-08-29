@@ -68,6 +68,30 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         cleaned_data = {}
         failed_ids = []
 
+        # Check if only one default rate is provided (only one item without the tax
+        # class).
+        default_rate_items = [
+            item for item in update_tax_class_rates if item.get("tax_class_id") is None
+        ]
+        if len(default_rate_items) > 1:
+            code = (
+                error_codes.TaxCountryConfigurationUpdateErrorCode.ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED  # noqa: E501
+            )
+            params = {"tax_class_ids": []}
+            raise ValidationError(
+                {
+                    "update_tax_class_rates": ValidationError(
+                        code=code,
+                        message=(
+                            "Only one default country rate can be created for "
+                            "a country (a rate without a tax class)."
+                        ),
+                        params=params,
+                    )
+                }
+            )
+
+        # Clean IDs
         for item in update_tax_class_rates:
             global_id = item.get("tax_class_id")
             pk = None

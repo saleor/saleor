@@ -32,6 +32,7 @@ class TaxCountryConfigurationUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+    ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED = "only_one_default_country_rate_allowed"
 
 
 class TaxCountryConfigurationDeleteErrorCode(Enum):

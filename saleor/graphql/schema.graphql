@@ -15361,6 +15361,7 @@ enum TaxCountryConfigurationUpdateErrorCode {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
 }
 
 input TaxClassRateInput {

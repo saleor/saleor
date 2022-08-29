@@ -122,3 +122,48 @@ def test_tax_class_id_not_found(staff_api_client, permission_manage_taxes):
         == TaxCountryConfigurationUpdateErrorCode.NOT_FOUND.name
     )
     assert data["errors"][0]["taxClassIds"] == [id]
+
+
+def test_update_default_country_rate(staff_api_client, permission_manage_taxes):
+    # when
+    variables = {
+        "countryCode": "PL",
+        "updateTaxClassRates": [
+            {"rate": 23},
+        ],
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxCountryConfigurationUpdate"]
+    assert not data["errors"]
+    assert len(data["taxCountryConfiguration"]["taxClassCountryRates"]) == 1
+
+    response_data = []
+    for item in data["taxCountryConfiguration"]["taxClassCountryRates"]:
+        response_data.append({"rate": item["rate"], "id": None})
+
+    assert {"rate": 23, "id": None} in response_data
+
+
+def test_update_default_country_rate_throws_error_with_multiple_rates(
+    staff_api_client, permission_manage_taxes
+):
+    # when
+    variables = {
+        "countryCode": "PL",
+        "updateTaxClassRates": [{"rate": 23}, {"rate": 25}],
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxCountryConfigurationUpdate"]
+    assert data["errors"]
+    code = TaxCountryConfigurationUpdateErrorCode.ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
+    assert data["errors"][0]["code"] == code.name
