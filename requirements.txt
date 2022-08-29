@@ -11,7 +11,7 @@ azure-core==1.25.0; python_version >= "3.7"
 azure-storage-blob==12.13.1; python_version >= "3.6"
 azure-storage-common==2.1.0
 babel==2.10.3; python_version >= "3.6"
-bcrypt==3.2.2; python_version >= "3.7"
+bcrypt==4.0.0; python_version >= "3.7"
 beautifulsoup4==4.7.1
 billiard==3.6.4.0; python_version >= "3.7"
 boto3==1.24.56; python_version >= "3.7"
