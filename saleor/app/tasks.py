@@ -5,7 +5,7 @@ from requests import HTTPError, RequestException
 
 from .. import celeryconf
 from ..core import JobStatus
-from .installation_utils import install_app
+from .installation_utils import AppInstallationError, install_app
 from .models import AppInstallation
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,9 @@ def install_app_task(job_id, activate=False):
     except ValidationError as e:
         msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])
         app_installation.message = msg
+    except AppInstallationError as e:
+        logger.warning("Failed to install an app. error: %s", e)
+        app_installation.set_message(str(e))
     except (RequestException, HTTPError) as e:
         logger.warning("Failed to install an app. error: %s", e)
         app_installation.message = (
