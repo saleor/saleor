@@ -18,7 +18,7 @@ bcrypt==4.0.0; python_version >= "3.7" and python_version < "4.0"
 beautifulsoup4==4.7.1
 beautifultable==0.7.0
 before-after==1.0.1
-billiard==3.6.4.0; python_version >= "3.7"
+billiard==4.0.2; python_version >= "3.7"
 black==22.6.0; python_full_version >= "3.6.2"
 boto3==1.24.61; python_version >= "3.7"
 botocore==1.27.61; python_version >= "3.7"
