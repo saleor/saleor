@@ -16823,7 +16823,7 @@ type PaymentError {
   """The error code."""
   code: PaymentErrorCode!
 
-  """List of variants IDs which causes the error."""
+  """List of variant IDs which causes the error."""
   variants: [ID!]
 }
 

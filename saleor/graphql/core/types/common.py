@@ -339,7 +339,7 @@ class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)
     variants = NonNullList(
         graphene.ID,
-        description="List of variants IDs which causes the error.",
+        description="List of variant IDs which causes the error.",
         required=False,
     )
 
