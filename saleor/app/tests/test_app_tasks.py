@@ -4,6 +4,7 @@ import pytest
 from requests import RequestException
 
 from ...core import JobStatus
+from ..installation_utils import AppInstallationError
 from ..models import App, AppInstallation
 from ..tasks import install_app_task
 
@@ -63,6 +64,18 @@ def test_install_app_task_wrong_response_code(monkeypatch):
         app_installation.message
         == "Failed to connect to app. Try later or contact with app support."
     )
+
+
+def test_install_app_task_installation_error(monkeypatch, app_installation):
+    error_msg = "App installation error."
+    mock_install_app = Mock(side_effect=AppInstallationError(error_msg))
+    monkeypatch.setattr("saleor.app.tasks.install_app", mock_install_app)
+
+    install_app_task(app_installation.pk)
+
+    app_installation.refresh_from_db()
+    assert app_installation.status == JobStatus.FAILED
+    assert app_installation.message == error_msg
 
 
 def test_install_app_task_undefined_error(monkeypatch, app_installation):
