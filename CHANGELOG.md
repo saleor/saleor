@@ -64,11 +64,13 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add option to calculate taxes via webhooks more info in docs
 
 ### GraphQL API
+
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
   - Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum`
 - Add descriptions for some filters - #10240 by @dekoza
 
 ### Plugins
+
 - Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
   - Add new method to plugin manager:
     - `get_taxes_for_checkout`
