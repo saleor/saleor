@@ -48,22 +48,24 @@ class AppByTokenLoader(DataLoader):
         for raw_token in keys:
             last_4s_to_raw_token_map[raw_token[-4:]].append(raw_token)
 
-        tokens = (
-            AppToken.objects.using(self.database_connection_name)
-            .filter(token_last_4__in=last_4s_to_raw_token_map.keys())
-            .values_list("auth_token", "token_last_4", "app_id")
-        )
+        # The app should always be taken from the default database.
+        # The app is retrieved from the database before the mutation code is reached,
+        # in case the replica database is set the app from the replica will be returned.
+        # In such case, when in the mutation there is another ask for an app,
+        # the cached instance from the replica is returned. Then the error is raised
+        # when any object is saved with a reference to this app.
+        # Because of that loaders that are used in context shouldn't use
+        # the replica database.
+        tokens = AppToken.objects.filter(
+            token_last_4__in=last_4s_to_raw_token_map.keys()
+        ).values_list("auth_token", "token_last_4", "app_id")
         authed_apps = {}
         for auth_token, token_last_4, app_id in tokens:
             for raw_token in last_4s_to_raw_token_map[token_last_4]:
                 if check_password(raw_token, auth_token):
                     authed_apps[raw_token] = app_id
 
-        apps = (
-            App.objects.using(self.database_connection_name)
-            .filter(id__in=authed_apps.values(), is_active=True)
-            .in_bulk()
-        )
+        apps = App.objects.filter(id__in=authed_apps.values(), is_active=True).in_bulk()
 
         return [apps.get(authed_apps.get(key)) for key in keys]
 
