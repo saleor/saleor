@@ -139,6 +139,7 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         if variants and checkout_lines_data:
+            site = load_site(info.context)
             checkout = add_variants_to_checkout(
                 checkout,
                 variants,
@@ -146,7 +147,9 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout_info.channel,
                 replace=replace,
                 replace_reservations=True,
-                reservation_length=get_reservation_length(info.context),
+                reservation_length=get_reservation_length(
+                    site=site, user=info.context.user
+                ),
             )
 
         lines, _ = fetch_checkout_lines(checkout)

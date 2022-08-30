@@ -308,7 +308,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 checkout_lines_data,
                 channel,
                 site.settings.limit_quantity_per_checkout,
-                reservation_length=get_reservation_length(info.context),
+                reservation_length=get_reservation_length(
+                    site=site, user=info.context.user
+                ),
             )
 
         # Save addresses
