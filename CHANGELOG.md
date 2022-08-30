@@ -2,28 +2,38 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.7.0 [Unreleased]
+# 3.8.0 [Unreleased]
 
-### GraphQL API
+# 3.7.0
 
-- Sorting warehouses within channel - #10416 by @IKarbowiak
-  - Add `channelReorderWarehouses` mutation
-  - Extend the `Channel` type with `stockSettings` field
+### Highlights
+
+- Allow explicitly setting the name of a product variant - #10456 by @SzymJ
+  - Added `name` parameter to the `ProductVariantInput` input
+- Add a new stock allocation strategy based on the order of warehouses within a channel - #10416 by @IKarbowiak
+  - Add `channelReorderWarehouses` mutation to sort warehouses to set their priority
+  - Extend the `Channel` type with the `stockSettings` field
   - Extend `ChannelCreateInput` and `ChannelUpdateInput` with `stockSettings`
-  - Add `name` parameter to `ProductVariantInput` - #10456 by @SzymJ
 
 ### Breaking changes
 
 - Refactor warehouse mutations - #10239 by @IKarbowiak
   - Providing the value in `shippingZone` filed in `WarehouseCreate` mutation will raise a ValidationError.
-  Use `WarehouseShippingZoneAssign` to assign shipping zones to warehouse .
+    Use `WarehouseShippingZoneAssign` to assign shipping zones to a warehouse.
+
+### GraphQL API
+
+- Hide Subscription type from Apollo Federation (#10439) (f5132dfd3)
+- Mark `Webhook.secretKey` as deprecated (#10436) (ba445e6e8)
+
+### Saleor Apps
+
+- Trigger the `SALE_DELETED` webhook when deleting sales in bulk (#10461) (2052841e9)
 
 ### Other changes
 
-- Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek
-- Replaced `context.app` lazy object with a dataloader.
-- Add support for bcrypt password hashes - #10346 by @pkucmus
-- Add ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
+- Add support for `bcrypt` password hashes - #10346 by @pkucmus
+- Add the ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
 
 
 # 3.6.0
