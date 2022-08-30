@@ -332,12 +332,12 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
         cls.update_channels(product, cleaned_input.get("update_channels", []))
         cls.remove_channels(product, cleaned_input.get("remove_channels", []))
+        product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
         transaction.on_commit(lambda: info.context.plugins.product_updated(product))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
-        qs = ProductModel.objects.prefetched_for_webhook()
-        product = cls.get_node_or_error(info, id, only_type=Product, field="id", qs=qs)
+        product = cls.get_node_or_error(info, id, only_type=Product, field="id")
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
