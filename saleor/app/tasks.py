@@ -22,15 +22,24 @@ def install_app_task(job_id, activate=False):
         msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])
         app_installation.message = msg
     except AppInstallationError as e:
-        logger.warning("Failed to install an app. error: %s", e)
+        logger.warning("Failed to install app. Error: %s", e)
         app_installation.set_message(str(e))
-    except (RequestException, HTTPError) as e:
-        logger.warning("Failed to install an app. error: %s", e)
+    except HTTPError as e:
+        logger.warning(
+            "Failed to install app. Response structure incorrect: missing error field."
+            " Error: %s",
+            e,
+        )
+        app_installation.message = (
+            "App internal error. Try later or contact with app support."
+        )
+    except RequestException as e:
+        logger.warning("Failed to install app. Error: %s", e)
         app_installation.message = (
             "Failed to connect to app. Try later or contact with app support."
         )
     except Exception as e:
-        logger.warning("Failed to install app. error %s", e)
+        logger.warning("Failed to install app. Error: %s", e)
         app_installation.message = "Unknown error. Contact with app support."
     app_installation.status = JobStatus.FAILED
     app_installation.save()
