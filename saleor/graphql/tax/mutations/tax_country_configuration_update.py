@@ -61,17 +61,11 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         error_type_class = TaxCountryConfigurationUpdateError
         permissions = (TaxPermissions.MANAGE_TAXES,)
 
-    @classmethod
-    def clean_input(cls, **data):
-        update_tax_class_rates = data.get("update_tax_class_rates", [])
-
-        cleaned_data = {}
-        failed_ids = []
-
+    def _clean_default_rates(tax_rate_items):
         # Check if only one default rate is provided (only one item without the tax
         # class).
         default_rate_items = [
-            item for item in update_tax_class_rates if item.get("tax_class_id") is None
+            item for item in tax_rate_items if item.get("tax_class_id") is None
         ]
         if len(default_rate_items) > 1:
             code = (
@@ -91,8 +85,10 @@ class TaxCountryConfigurationUpdate(BaseMutation):
                 }
             )
 
-        # Clean IDs
-        for item in update_tax_class_rates:
+    def _clean_tax_class_ids(tax_rate_items):
+        cleaned_data = {}
+        failed_ids = []
+        for item in tax_rate_items:
             global_id = item.get("tax_class_id")
             pk = None
             if global_id:
@@ -119,6 +115,13 @@ class TaxCountryConfigurationUpdate(BaseMutation):
                 }
             )
 
+        return cleaned_data
+
+    @classmethod
+    def clean_input(cls, **data):
+        update_tax_class_rates = data.get("update_tax_class_rates", [])
+        cls._clean_default_rates(update_tax_class_rates)
+        cleaned_data = cls._clean_tax_class_ids(update_tax_class_rates)
         return cleaned_data
 
     @classmethod
