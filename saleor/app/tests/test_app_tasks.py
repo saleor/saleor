@@ -62,7 +62,7 @@ def test_install_app_task_wrong_response_code(monkeypatch):
     assert app_installation.status == JobStatus.FAILED
     assert (
         app_installation.message
-        == "Failed to connect to app. Try later or contact with app support."
+        == "App internal error. Try later or contact with app support."
     )
 
 
