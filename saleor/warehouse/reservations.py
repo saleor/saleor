@@ -277,7 +277,7 @@ def reserve_preorders(
     )
 
     insufficient_stocks: List[InsufficientStockData] = []
-    reservations: List[Reservation] = []
+    reservations: List[PreorderReservation] = []
     for line in checkout_lines_to_reserve:
         insufficient_stocks, reservation = _create_preorder_reservation(
             line,

@@ -47,7 +47,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(
             product_count=Coalesce(
                 Subquery(
-                    Category.tree.add_related_count(
+                    Category.tree.add_related_count(  # type: ignore
                         queryset, Product, "category", "p_c", cumulative=True
                     )
                     .values("p_c")

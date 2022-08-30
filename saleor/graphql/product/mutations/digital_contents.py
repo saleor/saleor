@@ -1,12 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...channel import ChannelContext
+from ...core.context import set_mutation_flag_in_context
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import ProductError, Upload
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant

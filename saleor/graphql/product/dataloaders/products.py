@@ -303,7 +303,8 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             "price_amount__isnull": False,
         }
         variant_channel_listings = (
-            ProductVariantChannelListing.objects.using(self.database_connection_name)
+            ProductVariantChannelListing.objects.all()
+            .using(self.database_connection_name)
             .filter(**filter)
             .annotate_preorder_quantity_allocated()
         )
@@ -370,7 +371,8 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
         self, channel_slug: str, products_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[List[ProductVariantChannelListing]]]]:
         variants_channel_listings = (
-            ProductVariantChannelListing.objects.using(self.database_connection_name)
+            ProductVariantChannelListing.objects.all()
+            .using(self.database_connection_name)
             .filter(
                 channel__slug=channel_slug,
                 variant__product_id__in=products_ids,
