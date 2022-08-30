@@ -71,10 +71,10 @@ class TaxableObjectLine(graphene.ObjectType):
     quantity = graphene.Int(required=True, description="Number of items.")
     charge_taxes = graphene.Boolean(
         required=True,
-        description="Determine if taxes are being charged for the product.",
+        description="Determines if taxes are being charged for the product.",
     )
     product_name = graphene.String(description="The product name.", required=True)
-    variant_name = graphene.String(description="The variant name", required=True)
+    variant_name = graphene.String(description="The variant name.", required=True)
     product_sku = graphene.String(description="The product sku.")
 
     unit_price = graphene.Field(
@@ -249,6 +249,9 @@ class TaxableObjectDiscount(graphene.ObjectType):
         Money, description="The amount of the discount.", required=True
     )
 
+    class Meta:
+        description = "Taxable object discount."
+
 
 class TaxableObject(graphene.ObjectType):
     source_object = graphene.Field(
@@ -257,7 +260,7 @@ class TaxableObject(graphene.ObjectType):
         description="The source object related to this tax object.",
     )
     prices_entered_with_tax = graphene.Boolean(
-        required=True, description="Determine if prices contain entered tax."
+        required=True, description="Determines if prices contain entered tax.."
     )
     currency = graphene.String(required=True, description="The currency of the object.")
     shipping_price = graphene.Field(

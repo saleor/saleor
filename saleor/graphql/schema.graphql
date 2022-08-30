@@ -23986,7 +23986,7 @@ type TaxableObject {
   """The source object related to this tax object."""
   sourceObject: TaxSourceObject!
 
-  """Determine if prices contain entered tax."""
+  """Determines if prices contain entered tax.."""
   pricesEnteredWithTax: Boolean!
 
   """The currency of the object."""
@@ -24008,6 +24008,7 @@ type TaxableObject {
 
 union TaxSourceObject = Checkout | Order
 
+"""Taxable object discount."""
 type TaxableObjectDiscount {
   """The name of the discount."""
   name: String
@@ -24023,13 +24024,13 @@ type TaxableObjectLine {
   """Number of items."""
   quantity: Int!
 
-  """Determine if taxes are being charged for the product."""
+  """Determines if taxes are being charged for the product."""
   chargeTaxes: Boolean!
 
   """The product name."""
   productName: String!
 
-  """The variant name"""
+  """The variant name."""
   variantName: String!
 
   """The product sku."""
