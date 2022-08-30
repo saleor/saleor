@@ -7,7 +7,7 @@ from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...discount.dataloaders import load_request_discounts
+from ...discount.dataloaders import load_discounts
 from ..types import Checkout, CheckoutLine
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
@@ -59,7 +59,7 @@ class CheckoutLineDelete(BaseMutation):
 
         manager = info.context.plugins
         lines, _ = fetch_checkout_lines(checkout)
-        discounts = load_request_discounts(info.context)
+        discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)

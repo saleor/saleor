@@ -229,5 +229,5 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
         return [discount_map.get(order_id, []) for order_id in keys]
 
 
-def load_request_discounts(request):
+def load_discounts(request):
     return DiscountsByDateTimeLoader(request).load(request.request_time).get()

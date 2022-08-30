@@ -32,7 +32,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
-from ...discount.dataloaders import load_request_discounts
+from ...discount.dataloaders import load_discounts
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
 from ..types import Checkout
@@ -89,7 +89,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
-        discounts = load_request_discounts(info.context)
+        discounts = load_discounts(info.context)
         cls._update_delivery_method(
             manager,
             checkout_info,
@@ -125,7 +125,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
-        discounts = load_request_discounts(info.context)
+        discounts = load_discounts(info.context)
         cls._update_delivery_method(
             manager,
             checkout_info,
@@ -154,7 +154,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_method=None,
             collection_point=collection_point,
         )
-        discounts = load_request_discounts(info.context)
+        discounts = load_discounts(info.context)
         cls._update_delivery_method(
             manager,
             checkout_info,
@@ -294,7 +294,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             )
         type_name = cls._resolve_delivery_method_type(delivery_method_id)
 
-        discounts = load_request_discounts(info.context)
+        discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         if type_name == "Warehouse":
             return cls.perform_on_collection_point(

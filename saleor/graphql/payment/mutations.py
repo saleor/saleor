@@ -48,7 +48,7 @@ from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
-from ..discount.dataloaders import load_request_discounts
+from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
@@ -273,7 +273,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
-        discounts = load_request_discounts(info.context)
+        discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         cls.validate_token(

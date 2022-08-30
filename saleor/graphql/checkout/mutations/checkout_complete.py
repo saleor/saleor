@@ -26,7 +26,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...discount.dataloaders import load_request_discounts
+from ...discount.dataloaders import load_discounts
 from ...order.types import Order
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
@@ -233,7 +233,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                         )
                     }
                 )
-            discounts = load_request_discounts(info.context)
+            discounts = load_discounts(info.context)
             checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
             cls.validate_checkout_addresses(
