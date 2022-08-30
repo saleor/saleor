@@ -8,6 +8,7 @@ from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import Error, NonNullList
 from ...core.utils import get_duplicates_items
+from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
 
 TaxConfigurationUpdateErrorCode = graphene.Enum.from_enum(
@@ -23,6 +24,14 @@ class TaxConfigurationPerCountryInput(graphene.InputObjectType):
         description="Determines whether taxes are charged in this country.",
         required=True,
     )
+    tax_calculation_strategy = graphene.Field(
+        TaxCalculationStrategy,
+        required=False,
+        description=(
+            "A country-specific strategy to use for tax calculation. Taxes can be "
+            "calculated either using user-defined flat rates or with a tax app."
+        ),
+    )
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether prices displayed in a storefront should include taxes "
@@ -35,6 +44,15 @@ class TaxConfigurationPerCountryInput(graphene.InputObjectType):
 class TaxConfigurationUpdateInput(graphene.InputObjectType):
     charge_taxes = graphene.Boolean(
         description="Determines whether taxes are charged in the given channel."
+    )
+    tax_calculation_strategy = graphene.Field(
+        TaxCalculationStrategy,
+        required=False,
+        description=(
+            "The default strategy to use for tax calculation in the given channel. "
+            "Taxes can be calculated either using user-defined flat rates or with "
+            "a tax app."
+        ),
     )
     display_gross_prices = graphene.Boolean(
         description=(
