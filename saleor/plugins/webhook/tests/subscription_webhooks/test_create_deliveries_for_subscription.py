@@ -43,16 +43,12 @@ from .payloads import (
 @freeze_time("2022-05-12 12:00:00")
 @pytest.mark.parametrize("requestor_type", ["user", "app", None, "anonymous"])
 def test_subscription_query_with_meta(
-    requestor_type,
-    voucher,
-    staff_user,
-    app_with_token,
-    subscription_voucher_webhook_with_meta,
+    requestor_type, voucher, staff_user, app, subscription_voucher_webhook_with_meta
 ):
     # given
     requestor_map = {
         "user": staff_user,
-        "app": app_with_token,
+        "app": app,
         None: None,
         "anonymous": AnonymousUser(),
     }

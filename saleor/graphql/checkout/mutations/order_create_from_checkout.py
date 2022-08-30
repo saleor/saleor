@@ -8,7 +8,6 @@ from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
-from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
@@ -97,7 +96,7 @@ class OrderCreateFromCheckout(BaseMutation):
             discounts=discounts,
             manager=manager,
         )
-        app = load_app(info.context)
+
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
@@ -105,7 +104,7 @@ class OrderCreateFromCheckout(BaseMutation):
                 discounts=info.context.discounts,
                 manager=info.context.plugins,
                 user=info.context.user,
-                app=app,
+                app=info.context.app,
                 tracking_code=tracking_code,
                 delete_checkout=data["remove_checkout"],
             )

@@ -6,7 +6,6 @@ from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
 from ....order.actions import cancel_order
 from ....order.error_codes import OrderErrorCode
-from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Order
@@ -42,7 +41,7 @@ class OrderCancel(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
         user = info.context.user
-        app = load_app(info.context)
+        app = info.context.app
         cancel_order(
             order=order,
             user=user,
