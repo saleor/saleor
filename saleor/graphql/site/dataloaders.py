@@ -1,12 +1,13 @@
 from functools import reduce
 
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from django.http.request import split_domain_port
 
-from saleor.graphql.core.dataloaders import DataLoader
+from ..core.dataloaders import DataLoader
 
 
 class SiteByIdLoader(DataLoader):
@@ -31,8 +32,6 @@ class SiteByHostLoader(DataLoader):
 
 
 def load_current_site(request):
-    from django.conf import settings
-
     if getattr(settings, "SITE_ID", ""):
         site_id = settings.SITE_ID
         return SiteByIdLoader(request).load(site_id).get()
@@ -50,9 +49,9 @@ def load_current_site(request):
             "set the SITE_ID setting. Create a site in your database and "
             "set the SITE_ID setting."
         )
-    else:
-        # Populate the other loader for free
-        SiteByIdLoader(request).prime(site.id, site)
+
+    # Populate the other loader for free
+    SiteByIdLoader(request).prime(site.id, site)
     return site
 
 
