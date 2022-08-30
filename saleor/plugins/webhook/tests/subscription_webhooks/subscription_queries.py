@@ -47,6 +47,15 @@ ADDRESS_DELETED = (
 """
 )
 
+ADDRESS_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on AddressMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
 
 APP_INSTALLED = (
     fragments.APP_DETAILS
@@ -269,6 +278,15 @@ GIFT_CARD_STATUS_CHANGED = (
 """
 )
 
+GIFT_CARD_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on GiftCardMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
 
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
@@ -349,6 +367,16 @@ VOUCHER_DELETED = (
     }
 """
 )
+
+VOUCHER_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on VoucherMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
 
 
 CHANNEL_CREATED = """
@@ -546,6 +574,16 @@ SHIPPING_ZONE_DELETED = """
     }
 """
 
+SHIPPING_ZONE_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on ShippingZoneMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
+
 STAFF_CREATED = (
     fragments.STAFF_DETAILS
     + """
@@ -629,6 +667,16 @@ PRODUCT_DELETED = """
     }
 """
 
+PRODUCT_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
+
 PRODUCT_VARIANT_CREATED = """
     subscription{
       event{
@@ -661,6 +709,16 @@ PRODUCT_VARIANT_DELETED = """
           productVariant{
             id
           }
+        }
+      }
+    }
+"""
+
+PRODUCT_VARIANT_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantMetadataUpdated{
+          id
         }
       }
     }
@@ -757,6 +815,16 @@ ORDER_FULFILLED = """
           order{
             id
           }
+        }
+      }
+    }
+"""
+
+ORDER_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on OrderMetadataUpdated{
+          id
         }
       }
     }
@@ -958,6 +1026,20 @@ FULFILLMENT_APPROVED = (
 """
 )
 
+
+FULFILLMENT_METADATA_UPDATED =(
+    """
+    subscription{
+      event{
+        ...on FulfillmentMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
+)
+
+
 CUSTOMER_CREATED = (
     fragments.CUSTOMER_DETAILS
     + """
@@ -1002,6 +1084,19 @@ CUSTOMER_DELETED = (
       }
     }
 """
+)
+
+
+CUSTOMER_METADATA_UPDATED = (
+    """
+    subscription{
+      event{
+        ...on CustomerMetadataUpdated{
+          id
+        }
+      }
+    }
+    """
 )
 
 
@@ -1052,6 +1147,19 @@ COLLECTION_DELETED = (
 )
 
 
+COLLECTION_METADATA_UPDATED = (
+    """
+    subscription{
+      event{
+        ...on CollectionMetadataUpdated{
+          id
+        }
+      }
+    }
+    """
+)
+
+
 CHECKOUT_CREATED = """
     subscription{
       event{
@@ -1074,6 +1182,16 @@ CHECKOUT_UPDATED = """
           checkout{
             id
           }
+        }
+      }
+    }
+"""
+
+CHECKOUT_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on CheckoutMetadataUpdated{
+          id
         }
       }
     }
@@ -1213,6 +1331,19 @@ PERMISSION_GROUP_DELETED = (
       }
     }
 """
+)
+
+
+TRANSACTION_ITEM_METADATA_UPDATED = (
+    """
+    subscription{
+      event{
+        ...on TransactionItemMetadataUpdated{
+          id
+        }
+      }
+    }
+    """
 )
 
 
@@ -1570,6 +1701,16 @@ WAREHOUSE_DELETED = (
     }
 """
 )
+
+WAREHOUSE_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on WarehouseMetadataUpdated{
+          id
+        }
+      }
+    }
+"""
 
 PAYMENT_AUTHORIZE = (
     fragments.PAYMENT_DETAILS

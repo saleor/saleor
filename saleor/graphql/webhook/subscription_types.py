@@ -21,10 +21,11 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ..account.types import User as UserType
+from ..account.types import Address as AddressType, User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
+from ..checkout.types import Checkout as CheckoutType
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -35,11 +36,20 @@ from ..core.descriptions import (
 )
 from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
+from ..discount.types import Voucher as VoucherType
+from ..giftcard.types import GiftCard as GiftCardType
+from ..order.types import Fulfillment as FulfillmentType, Order as OrderType
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
+from ..product.types import (
+    Collection as CollectionType,
+    Product as ProductType,
+    ProductVariant as ProductVariantType,
+)
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethod, ShippingZone as ShippingZoneType
 from ..translations import types as translation_types
+from ..warehouse.types import Warehouse as WarehouseType
 from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {
@@ -142,6 +152,21 @@ class AddressDeleted(ObjectType, AddressBase):
         description = (
             "Event sent when address is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
         )
+
+
+class AddressMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=AddressType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when address metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
 
 
 class AppBase(AbstractType):
@@ -404,6 +429,21 @@ class OrderCancelled(ObjectType, OrderBase):
         )
 
 
+class OrderMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=OrderType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when order metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class DraftOrderCreated(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
@@ -474,6 +514,21 @@ class GiftCardStatusChanged(ObjectType, GiftCardBase):
             + ADDED_IN_32
             + PREVIEW_FEATURE
         )
+
+
+class GiftCardMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=GiftCardType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when gift card metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
 
 
 class MenuBase(AbstractType):
@@ -598,6 +653,21 @@ class ProductDeleted(ObjectType, ProductBase):
         )
 
 
+class ProductMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=ProductType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when product metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class ProductVariantBase(AbstractType):
     product_variant = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
@@ -641,6 +711,21 @@ class ProductVariantDeleted(ObjectType, ProductVariantBase):
             + ADDED_IN_32
             + PREVIEW_FEATURE
         )
+
+
+class ProductVariantMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=ProductVariantType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when product variant metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
 
 
 class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
@@ -827,6 +912,21 @@ class FulfillmentApproved(ObjectType, FulfillmentBase):
         )
 
 
+class FulfillmentMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=FulfillmentType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when fulfillment metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class UserBase(AbstractType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
@@ -855,6 +955,21 @@ class CustomerUpdated(ObjectType, UserBase):
         description = (
             "Event sent when customer user is updated." + ADDED_IN_32 + PREVIEW_FEATURE
         )
+
+
+class CustomerMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=UserType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when customer user metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
 
 
 class CollectionBase(AbstractType):
@@ -896,6 +1011,21 @@ class CollectionDeleted(ObjectType, CollectionBase):
         )
 
 
+class CollectionMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=CollectionType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when collection metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class CheckoutBase(AbstractType):
     checkout = graphene.Field(
         "saleor.graphql.checkout.types.Checkout",
@@ -922,6 +1052,21 @@ class CheckoutUpdated(ObjectType, CheckoutBase):
         description = (
             "Event sent when checkout is updated." + ADDED_IN_32 + PREVIEW_FEATURE
         )
+
+
+class CheckoutMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=CheckoutType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when checkout metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.token
 
 
 class PageBase(AbstractType):
@@ -1127,6 +1272,21 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
         )
 
 
+class ShippingZoneMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=ShippingZoneType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when shipping zone metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class StaffCreated(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
@@ -1198,6 +1358,21 @@ class TransactionActionRequest(ObjectType):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data
+
+
+class TransactionItemMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=TransactionItem, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction item metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
 
 
 class TranslationTypes(Union):
@@ -1279,6 +1454,21 @@ class VoucherDeleted(ObjectType, VoucherBase):
         description = (
             "Event sent when voucher is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
         )
+
+
+class VoucherMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=VoucherType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when voucher metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
 
 
 class WarehouseBase(AbstractType):
@@ -1460,6 +1650,21 @@ class WarehouseDeleted(ObjectType, WarehouseBase):
         )
 
 
+class WarehouseMetadataUpdated(ObjectType):
+    id = graphene.GlobalID(parent_type=WarehouseType, required=True)
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when warehouse metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class Subscription(ObjectType):
     event = graphene.Field(
         Event,
@@ -1475,6 +1680,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,
+    WebhookEventAsyncType.ADDRESS_METADATA_UPDATED: AddressMetadataUpdated,
     WebhookEventAsyncType.APP_INSTALLED: AppInstalled,
     WebhookEventAsyncType.APP_UPDATED: AppUpdated,
     WebhookEventAsyncType.APP_DELETED: AppDeleted,
@@ -1496,6 +1702,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
     WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
+    WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: GiftCardMetadataUpdated,
     WebhookEventAsyncType.MENU_CREATED: MenuCreated,
     WebhookEventAsyncType.MENU_UPDATED: MenuUpdated,
     WebhookEventAsyncType.MENU_DELETED: MenuDeleted,
@@ -1508,17 +1715,20 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_FULLY_PAID: OrderFullyPaid,
     WebhookEventAsyncType.ORDER_FULFILLED: OrderFulfilled,
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
+    WebhookEventAsyncType.ORDER_METADATA_UPDATED: OrderMetadataUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: DraftOrderDeleted,
     WebhookEventAsyncType.PRODUCT_CREATED: ProductCreated,
     WebhookEventAsyncType.PRODUCT_UPDATED: ProductUpdated,
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
+    WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: (ProductVariantOutOfStock),
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: (ProductVariantBackInStock),
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
+    WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: ProductVariantMetadataUpdated,
     WebhookEventAsyncType.SALE_CREATED: SaleCreated,
     WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
     WebhookEventAsyncType.SALE_DELETED: SaleDeleted,
@@ -1529,13 +1739,17 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.FULFILLMENT_CREATED: FulfillmentCreated,
     WebhookEventAsyncType.FULFILLMENT_CANCELED: FulfillmentCanceled,
     WebhookEventAsyncType.FULFILLMENT_APPROVED: FulfillmentApproved,
+    WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED: FulfillmentMetadataUpdated,
     WebhookEventAsyncType.CUSTOMER_CREATED: CustomerCreated,
     WebhookEventAsyncType.CUSTOMER_UPDATED: CustomerUpdated,
+    WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: CustomerMetadataUpdated,
     WebhookEventAsyncType.COLLECTION_CREATED: CollectionCreated,
     WebhookEventAsyncType.COLLECTION_UPDATED: CollectionUpdated,
     WebhookEventAsyncType.COLLECTION_DELETED: CollectionDeleted,
+    WebhookEventAsyncType.COLLECTION_METADATA_UPDATED: CollectionMetadataUpdated,
     WebhookEventAsyncType.CHECKOUT_CREATED: CheckoutCreated,
     WebhookEventAsyncType.CHECKOUT_UPDATED: CheckoutUpdated,
+    WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: CheckoutMetadataUpdated,
     WebhookEventAsyncType.PAGE_CREATED: PageCreated,
     WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,
     WebhookEventAsyncType.PAGE_DELETED: PageDeleted,
@@ -1551,18 +1765,22 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SHIPPING_ZONE_CREATED: ShippingZoneCreated,
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
+    WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: ShippingZoneMetadataUpdated,
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
+    WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: TransactionItemMetadataUpdated,
     WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
     WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
     WebhookEventAsyncType.VOUCHER_CREATED: VoucherCreated,
     WebhookEventAsyncType.VOUCHER_UPDATED: VoucherUpdated,
     WebhookEventAsyncType.VOUCHER_DELETED: VoucherDeleted,
+    WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: VoucherMetadataUpdated,
     WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
+    WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
     WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
     WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
     WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,

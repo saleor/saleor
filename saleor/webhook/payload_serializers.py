@@ -42,12 +42,14 @@ class PayloadSerializer(JSONSerializer):
         self.extra_dict_data = {}
         self.obj_id_name = "id"
         self.pk_field_name = "id"
+        self.dump_type_name = True
 
     def serialize(self, queryset, **options):
         self.additional_fields = options.pop("additional_fields", {})
         self.extra_dict_data = options.pop("extra_dict_data", {})
         self.obj_id_name = options.pop("obj_id_name", "id")
         self.pk_field_name = options.pop("pk_field_name", "id")
+        self.dump_type_name = options.pop("dump_type_name", True)
 
         return super().serialize(
             queryset,
@@ -64,9 +66,11 @@ class PayloadSerializer(JSONSerializer):
         obj_id = graphene.Node.to_global_id(
             obj._meta.object_name, getattr(obj, self.pk_field_name)
         )
-        data = OrderedDict(
-            [("type", str(obj._meta.object_name)), (self.obj_id_name, obj_id)]
-        )
+        data = {}
+        if self.dump_type_name:
+            data["type"] = str(obj._meta.object_name)
+        data[self.obj_id_name] = obj_id
+
         # Evaluate and add the "additional fields"
         python_serializer = PythonSerializer(extra_model_fields=self.extra_model_fields)
         for field_name, (qs, fields) in self.additional_fields.items():

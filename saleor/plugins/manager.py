@@ -774,6 +774,12 @@ class PluginsManager(PaymentInterface):
             "order_fulfilled", default_value, order, channel_slug=order.channel.slug
         )
 
+    def order_metadata_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_metadata_updated", default_value, order
+        )
+
     def fulfillment_created(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(
