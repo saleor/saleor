@@ -52,18 +52,21 @@ def test_install_app_task_wrong_response_code(monkeypatch):
         app_name="External App",
         manifest_url="http://localhost:3000/manifest-wrong1",
     )
+    response_status_code = 404
     mocked_post = Mock()
-    mocked_post.status_code = 404
+    mocked_post.status_code = response_status_code
     monkeypatch.setattr("saleor.app.installation_utils.requests.post", mocked_post)
+    message = (
+        f"App internal error ({response_status_code}). "
+        "Try later or contact with app support."
+    )
+
     install_app_task(app_installation.pk, activate=True)
     app_installation.refresh_from_db()
 
     assert not App.objects.all().exists()
     assert app_installation.status == JobStatus.FAILED
-    assert (
-        app_installation.message
-        == "App internal error. Try later or contact with app support."
-    )
+    assert app_installation.message == message
 
 
 def test_install_app_task_installation_error(monkeypatch, app_installation):

@@ -31,7 +31,8 @@ def install_app_task(job_id, activate=False):
             e,
         )
         app_installation.message = (
-            "App internal error. Try later or contact with app support."
+            f"App internal error ({e.response.status_code}). "
+            "Try later or contact with app support."
         )
     except RequestException as e:
         logger.warning("Failed to install app. Error: %s", e)
