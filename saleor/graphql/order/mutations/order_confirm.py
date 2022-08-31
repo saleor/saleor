@@ -10,7 +10,6 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
-from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ..types import Order
@@ -63,8 +62,6 @@ class OrderConfirm(ModelMutation):
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = info.context.plugins
-        app = load_app(info.context)
-
         if payment_transactions := list(order.payment_transactions.all()):
             try:
                 # We use the last transaction as we don't have a possibility to
@@ -76,7 +73,7 @@ class OrderConfirm(ModelMutation):
                     charge_value=payment_transaction.authorized_value,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=app,
+                    app=info.context.app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -91,7 +88,7 @@ class OrderConfirm(ModelMutation):
                 lambda: order_captured(
                     order_info,
                     info.context.user,
-                    app,
+                    info.context.app,
                     payment.total,
                     payment,
                     manager,
@@ -102,7 +99,7 @@ class OrderConfirm(ModelMutation):
             lambda: order_confirmed(
                 order,
                 info.context.user,
-                app,
+                info.context.app,
                 manager,
                 send_confirmation_email=True,
             )
