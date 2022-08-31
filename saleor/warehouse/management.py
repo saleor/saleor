@@ -31,6 +31,8 @@ from .models import (
 )
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
     from ..channel.models import Channel
     from ..order.models import Order
 
@@ -101,8 +103,8 @@ def allocate_stocks(
         .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
     )
     quantity_allocation_for_stocks: Dict = defaultdict(int)
-    for allocation in quantity_allocation_list:
-        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
+    for allocation_data in quantity_allocation_list:
+        quantity_allocation_for_stocks[allocation_data["stock"]] += allocation_data[
             "quantity_allocated_sum"
         ]
 
@@ -114,7 +116,7 @@ def allocate_stocks(
         collection_point_pk,
     )
 
-    variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
+    variant_to_stocks: Dict[int, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
         variant = stock_data.pop("product_variant")
         variant_to_stocks[variant].append(StockData(**stock_data))
@@ -296,7 +298,7 @@ def deallocate_stock(
         .order_by("stock__pk")
     )
 
-    line_to_allocations: Dict[int, List[Allocation]] = defaultdict(list)
+    line_to_allocations: Dict["UUID", List[Allocation]] = defaultdict(list)
     for allocation in lines_allocations:
         line_to_allocations[allocation.order_line_id].append(allocation)
 
@@ -373,6 +375,7 @@ def increase_stock(
     function increase `quantity_allocated`. If allocation does not exist function
     create a new allocation for this order line in this stock.
     """
+    assert order_line.variant
     stock = (
         Stock.objects.select_for_update(of=("self",))
         .filter(warehouse=warehouse, product_variant=order_line.variant)
@@ -410,7 +413,7 @@ def increase_allocations(
     )
     # evaluate allocations query to trigger select_for_update lock
     allocation_pks_to_delete = [alloc.pk for alloc in allocations]
-    allocation_quantity_map: Dict[int, list] = defaultdict(list)
+    allocation_quantity_map: Dict["UUID", list] = defaultdict(list)
 
     for alloc in allocations:
         allocation_quantity_map[alloc.order_line.pk].append(alloc.quantity_allocated)

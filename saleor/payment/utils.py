@@ -212,7 +212,7 @@ def create_payment_information(
         currency=payment.currency,
         billing=billing_address,
         shipping=shipping_address,
-        order_id=order_id,
+        order_id=str(order_id),
         order_channel_slug=channel_slug,
         payment_id=payment.pk,
         graphql_payment_id=graphql_payment_id,

@@ -126,7 +126,7 @@ class PaymentData:
     shipping: Optional[AddressData]
     payment_id: int
     graphql_payment_id: str
-    order_id: Optional[int]
+    order_id: Optional[str]
     customer_ip_address: Optional[str]
     customer_email: str
     order_channel_slug: Optional[str] = None

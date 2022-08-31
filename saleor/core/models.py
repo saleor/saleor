@@ -55,7 +55,7 @@ class PublishableModel(models.Model):
     published_at = models.DateTimeField(blank=True, null=True)
     is_published = models.BooleanField(default=False)
 
-    objects = models.Manager.from_queryset(PublishedQuerySet)()
+    objects: Any = models.Manager.from_queryset(PublishedQuerySet)()
 
     class Meta:
         abstract = True

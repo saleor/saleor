@@ -754,7 +754,7 @@ def create_fulfillments(
     notify_customer: bool = True,
     approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
-    tracking_number: Optional[str] = "",
+    tracking_number: str = "",
 ) -> List[Fulfillment]:
     """Fulfill order.
 

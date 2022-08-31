@@ -12,7 +12,6 @@ from ....account.notifications import (
 )
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
-from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
@@ -24,6 +23,7 @@ from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import load_app
 from ...channel.utils import clean_channel, validate_channel
+from ...core.context import set_mutation_flag_in_context
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,

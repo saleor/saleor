@@ -1,9 +1,9 @@
-from typing import Optional, Protocol, Union, cast
+from typing import Optional, Union, cast
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest
 from django.utils.functional import SimpleLazyObject
-from promise import Promise
 
 from ..account.models import User
 from ..app.models import App
@@ -11,9 +11,13 @@ from ..core.auth import get_token_from_request
 from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
 from .app.dataloaders import load_app
+from .core import SaleorContext
 
 
-def get_context_value(request):
+def get_context_value(request: HttpRequest) -> SaleorContext:
+    request = cast(SaleorContext, request)
+    request.dataloaders = {}
+    request.is_mutation = False
     set_app_on_context(request)
     set_auth_on_context(request)
     set_decoded_auth_token(request)
@@ -23,30 +27,31 @@ def get_context_value(request):
 UserType = Union[User, AnonymousUser]
 
 
-class RequestWithUser(Protocol):
+class RequestWithUser(HttpRequest):
     _cached_user: UserType
     app: Optional[App]
-    user: Union[UserType, SimpleLazyObject, Promise]
 
 
-def set_decoded_auth_token(request):
+def set_decoded_auth_token(request: SaleorContext):
     auth_token = get_token_from_request(request)
-    decoded_auth_token = jwt_decode_with_exception_handler(auth_token)
-    request.decoded_auth_token = decoded_auth_token
+    if auth_token:
+        request.decoded_auth_token = jwt_decode_with_exception_handler(auth_token)
+    else:
+        request.decoded_auth_token = None
 
 
-def set_app_on_context(request):
+def set_app_on_context(request: SaleorContext):
     if request.path == API_PATH and not hasattr(request, "app"):
         request.app = load_app(request)
 
 
-def get_user(request: RequestWithUser) -> Optional[UserType]:
+def get_user(request: SaleorContext) -> Optional[UserType]:
     if not hasattr(request, "_cached_user"):
         request._cached_user = cast(UserType, authenticate(request=request))
     return request._cached_user
 
 
-def set_auth_on_context(request: RequestWithUser):
+def set_auth_on_context(request: SaleorContext):
     if hasattr(request, "app") and request.app:
         request.user = AnonymousUser()
         return request
@@ -54,4 +59,4 @@ def set_auth_on_context(request: RequestWithUser):
     def user():
         return get_user(request) or AnonymousUser()
 
-    request.user = SimpleLazyObject(user)
+    request.user = SimpleLazyObject(user)  # type: ignore

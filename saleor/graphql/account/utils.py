@@ -239,7 +239,7 @@ def get_group_permission_codes(group: Group) -> "QuerySet":
     ).values_list("formated_codename", flat=True)
 
 
-def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
+def get_groups_which_user_can_manage(user: "User") -> List[Group]:
     """Return groups which user can manage."""
     if not user.is_staff:
         return []
@@ -249,7 +249,7 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
 
     groups = Group.objects.all().annotate(group_perms=ArrayAgg("permissions"))
 
-    editable_groups = []
+    editable_groups: List[Group] = []
     for group in groups.iterator():
         out_of_scope_permissions = set(group.group_perms) - user_permission_pks
         out_of_scope_permissions.discard(None)
