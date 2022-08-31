@@ -33,7 +33,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
     def __init__(self, context):
         if self.context != context:
             self.context = context
-            self.user = context.user
+            self.user = getattr(context, "user", None)
             super().__init__()
 
     def batch_load_fn(self, keys: Iterable[K]) -> Promise[List[R]]:

@@ -104,8 +104,7 @@ def create_refresh_token(
     return jwt_encode(payload)
 
 
-def get_user_from_payload(payload: Dict[str, Any], request=None) -> Optional[User]:
-    # TODO: dataloader
+def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
     user = User.objects.filter(email=payload["email"], is_active=True).first()
     user_jwt_token = payload.get("token")
     if not user_jwt_token or not user:
@@ -131,14 +130,21 @@ def is_saleor_token(token: str) -> bool:
     return True
 
 
-def get_user_from_access_payload(payload: dict, request=None) -> Optional[User]:
+def get_user_from_access_token(token: str) -> Optional[User]:
+    if not is_saleor_token(token):
+        return None
+    payload = jwt_decode(token)
+    return get_user_from_access_payload(payload)
+
+
+def get_user_from_access_payload(payload: dict) -> Optional[User]:
     jwt_type = payload.get("type")
     if jwt_type not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
         raise jwt.InvalidTokenError(
             "Invalid token. Create new one by using tokenCreate mutation."
         )
     permissions = payload.get(PERMISSIONS_FIELD, None)
-    user = get_user_from_payload(payload, request)
+    user = get_user_from_payload(payload)
     if user:
         if permissions is not None:
             token_permissions = get_permissions_from_names(permissions)
