@@ -4806,7 +4806,7 @@ type TaxClass implements Node & ObjectWithMetadata {
 }
 
 """
-Country-specific tax rate value for a tax class.
+Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
 
 Added in Saleor 3.5.
 
@@ -4820,7 +4820,7 @@ type TaxClassCountryRate {
   rate: Float!
 
   """Related tax class."""
-  taxClass: TaxClass!
+  taxClass: TaxClass
 }
 
 """
@@ -15361,11 +15361,12 @@ enum TaxCountryConfigurationUpdateErrorCode {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
 }
 
 input TaxClassRateInput {
   """ID of a tax class for which to update the tax rate"""
-  taxClassId: ID!
+  taxClassId: ID
 
   """Tax rate value."""
   rate: Float!
