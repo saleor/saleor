@@ -3,6 +3,7 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseBulkMutation
 from ...core.types import NonNullList, OrderError
 from ..mutations.order_cancel import clean_order_cancel
@@ -33,6 +34,6 @@ class OrderBulkCancel(BaseBulkMutation):
             cancel_order(
                 order=order,
                 user=info.context.user,
-                app=info.context.app,
+                app=load_app(info.context),
                 manager=info.context.plugins,
             )

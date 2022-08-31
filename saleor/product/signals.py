@@ -13,4 +13,4 @@ def delete_digital_content_file(sender, instance, **kwargs):
 
 def delete_product_media_image(sender, instance, **kwargs):
     if file := instance.image:
-        delete_from_storage_task.delay(file.path)
+        delete_from_storage_task.delay(file.name)

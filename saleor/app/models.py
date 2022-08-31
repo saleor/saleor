@@ -1,8 +1,9 @@
-from typing import Collection, Set, Union
+from typing import Collection, Set, Tuple, Union
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.db import models
+from django.utils.text import Truncator
 from oauthlib.common import generate_token
 
 from saleor.core.permissions.enums import BasePermissionEnum
@@ -117,6 +118,11 @@ class AppTokenManager(models.Manager):
         app_token.save()
         return app_token, auth_token
 
+    def create_with_token(self, *args, **kwargs) -> Tuple["AppToken", str]:
+        # As `create` is waiting to be fixed, I'm using this proper method from future
+        # to get both AppToken and auth_token.
+        return self.create(*args, **kwargs)
+
 
 class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
@@ -158,3 +164,9 @@ class AppInstallation(Job):
         related_name="app_installation_set",
         related_query_name="app_installation",
     )
+
+    def set_message(self, message: str, truncate=True):
+        if truncate:
+            max_length = self._meta.get_field("message").max_length
+            message = Truncator(message).chars(max_length)
+        self.message = message

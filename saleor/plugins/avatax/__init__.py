@@ -15,7 +15,8 @@ from requests.auth import HTTPBasicAuth
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
-from ...discount import VoucherType
+from ...discount import OrderDiscountType, VoucherType
+from ...order import base_calculations as base_order_calculations
 from ...order.utils import (
     get_total_order_discount_excluding_shipping,
     get_voucher_discount_assigned_to_order,
@@ -58,6 +59,8 @@ class AvataxConfiguration:
     company_name: str = "DEFAULT"
     autocommit: bool = False
     shipping_tax_code: str = ""
+    override_global_tax: bool = False
+    include_taxes_in_prices: bool = True
 
 
 class TransactionType:
@@ -364,7 +367,7 @@ def get_order_lines_data(
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        prices_data = base_calculations.base_order_line_total(line)
+        prices_data = base_order_calculations.base_order_line_total(line)
 
         if prices_entered_with_tax:
             undiscounted_amount = prices_data.undiscounted_price.gross.amount
@@ -408,6 +411,9 @@ def get_order_lines_data(
             shipping_method_channel_listing.price.amount - shipping_discount_amount,
             Decimal("0"),
         )
+        shipping_discounted = order.discounts.filter(
+            type=OrderDiscountType.MANUAL
+        ).exists()
 
         tax_class = getattr(order.shipping_method, "tax_class", None)
         if tax_class:
@@ -416,6 +422,7 @@ def get_order_lines_data(
                 shipping_price_amount=shipping_price,
                 shipping_tax_code=config.shipping_tax_code,
                 prices_entered_with_tax=prices_entered_with_tax,
+                discounted=shipping_discounted,
             )
     return data
 

@@ -26,7 +26,7 @@ from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
-from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
+from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader, load_app
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
@@ -56,7 +56,8 @@ def has_access_to_app_public_meta(root, info) -> bool:
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:
-        app_id = info.context.app.id if info.context.app else None
+        app = load_app(info.context)
+        app_id = app.id if app else None
     if app_id is not None and int(app_id) == root.id:
         return True
     requester = get_user_or_app_from_context(info.context)
@@ -125,7 +126,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
     @staticmethod
     def resolve_app(root, info):
         app_id = None
-        app = info.context.app
+        app = load_app(info.context)
         if app and app.id == root.app_id:
             app_id = root.app_id
         else:

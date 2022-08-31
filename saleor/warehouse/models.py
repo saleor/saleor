@@ -12,7 +12,7 @@ from django.utils import timezone
 from ..account.models import Address
 from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
-from ..core.models import ModelWithMetadata
+from ..core.models import ModelWithMetadata, SortableModel
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant, ProductVariantChannelListing
 from ..shipping.models import ShippingZone
@@ -144,11 +144,29 @@ class WarehouseQueryset(models.QuerySet):
         )
 
 
+class ChannelWarehouse(SortableModel):
+    channel = models.ForeignKey(
+        Channel, related_name="channelwarehouse", on_delete=models.CASCADE
+    )
+    warehouse = models.ForeignKey(
+        "Warehouse", related_name="channelwarehouse", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = (("channel", "warehouse"),)
+        ordering = ("sort_order", "pk")
+
+    def get_ordering_queryset(self):
+        return self.channel.channelwarehouse.all()
+
+
 class Warehouse(ModelWithMetadata):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    channels = models.ManyToManyField(Channel, related_name="warehouses")
+    channels = models.ManyToManyField(
+        Channel, related_name="warehouses", through=ChannelWarehouse
+    )
     shipping_zones = models.ManyToManyField(
         ShippingZone, blank=True, related_name="warehouses"
     )

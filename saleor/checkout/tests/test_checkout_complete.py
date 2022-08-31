@@ -596,7 +596,7 @@ def test_create_order_doesnt_duplicate_order(
         app=None,
         manager=manager,
     )
-    assert order_1.checkout_token == checkout.token
+    assert order_1.checkout_token == str(checkout.token)
 
     order_2 = _create_order(
         checkout_info=checkout_info,
@@ -1131,7 +1131,7 @@ def test_create_order_with_variant_tracking_false(
         app=None,
         manager=manager,
     )
-    assert order_1.checkout_token == checkout.token
+    assert order_1.checkout_token == str(checkout.token)
 
 
 @override_settings(LANGUAGE_CODE="fr")

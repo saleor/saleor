@@ -3,6 +3,7 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....order.actions import fulfillment_tracking_updated
 from ....order.notifications import send_fulfillment_update
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Fulfillment, Order
@@ -36,10 +37,11 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
+        app = load_app(info.context)
         fulfillment_tracking_updated(
             fulfillment,
             info.context.user,
-            info.context.app,
+            app,
             tracking_number,
             info.context.plugins,
         )

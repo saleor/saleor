@@ -2,8 +2,10 @@ import graphene
 
 from ...core.permissions import DiscountPermissions
 from ...discount import models
+from ...discount.utils import fetch_catalogue_info
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import DiscountError, NonNullList
+from .mutations.utils import convert_catalogue_info_to_global_ids
 from .types import Sale, Voucher
 
 
@@ -20,6 +22,16 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        sales = list(queryset)
+        queryset.delete()
+        for sale in sales:
+            previous_catalogue = fetch_catalogue_info(sale)
+            info.context.plugins.sale_deleted(
+                sale, convert_catalogue_info_to_global_ids(previous_catalogue)
+            )
 
 
 class VoucherBulkDelete(ModelBulkDeleteMutation):

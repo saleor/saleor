@@ -47,14 +47,21 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
 
     # return the thumbnail if it's already exist
     model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]
-    instance_id_lookup = model_data.thumbnail_field + "_id"
+    if object_type == "User":
+        instance_id_lookup = "user__uuid"
+    else:
+        instance_id_lookup = model_data.thumbnail_field + "_id"
+
     if thumbnail := Thumbnail.objects.filter(
         format=format, size=size, **{instance_id_lookup: pk}
     ).first():
         return HttpResponseRedirect(thumbnail.image.url)
 
     try:
-        instance = model_data.model.objects.get(id=pk)
+        if object_type == "User":
+            instance = model_data.model.objects.get(uuid=pk)
+        else:
+            instance = model_data.model.objects.get(id=pk)
     except ObjectDoesNotExist:
         return HttpResponseNotFound("Instance with the given id cannot be found.")
 

@@ -1714,6 +1714,28 @@ def test_calculate_order_shipping(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_total(order, order.lines.all())
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("38.13", "USD"), gross=Money("46.90", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_shipping_entire_order_voucher(
     order_line, shipping_zone, voucher, site_settings, address, plugin_configuration
 ):
@@ -3390,6 +3412,8 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         "from_country": conf["from_country"],
         "from_country_area": conf["from_country_area"],
         "shipping_tax_code": conf["shipping_tax_code"],
+        "override_global_tax": conf["override_global_tax"],
+        "include_taxes_in_prices": conf["include_taxes_in_prices"],
     }
 
     api_post_request_task_mock.assert_called_once_with(
@@ -3985,7 +4009,7 @@ def test_get_order_tax_data(
     response = get_order_tax_data(order, conf)
 
     # then
-    get_order_request_data_mock.assert_called_once_with(order, conf)
+    get_order_request_data_mock.assert_called_once_with(order, conf, True)
     assert response == return_value
 
 
@@ -4435,3 +4459,40 @@ def test_assign_tax_code_to_object_meta_no_obj_id(
         META_CODE_KEY: tax_code,
         META_DESCRIPTION_KEY: description,
     }
+
+
+@pytest.mark.parametrize(
+    "global_include_taxes_in_prices, override_global_tax, "
+    "include_taxes_in_prices, expected_tax_included",
+    [(True, False, False, True), (True, True, True, True), (True, True, False, False)],
+)
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_plugin_tax_override_setting(
+    api_post_request_task_mock,
+    global_include_taxes_in_prices,
+    override_global_tax,
+    include_taxes_in_prices,
+    expected_tax_included,
+    site_settings,
+    order_line,
+    plugin_configuration,
+):
+    # given
+    site_settings.include_taxes_in_prices = global_include_taxes_in_prices
+    site_settings.save()
+
+    plugin_configuration(
+        override_global_tax=override_global_tax,
+        include_taxes_in_prices=include_taxes_in_prices,
+    )
+
+    manager = get_plugins_manager()
+
+    # when
+    manager.order_created(order_line.order)
+
+    # then
+    transaction = api_post_request_task_mock.call_args[0][1]["createTransactionModel"]
+    transaction_line = transaction["lines"][0]
+    assert transaction_line["taxIncluded"] == expected_tax_included

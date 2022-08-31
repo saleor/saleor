@@ -9,7 +9,12 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -31,7 +36,10 @@ class WarehouseCreateInput(WarehouseInput):
         required=True,
     )
     shipping_zones = NonNullList(
-        graphene.ID, description="Shipping zones supported by the warehouse."
+        graphene.ID,
+        description="Shipping zones supported by the warehouse."
+        + DEPRECATED_IN_3X_INPUT
+        + " Providing the zone ids will raise a ValidationError.",
     )
 
 

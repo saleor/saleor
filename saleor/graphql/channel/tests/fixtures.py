@@ -1,6 +1,7 @@
 import pytest
 from django.conf import settings
 
+from ....channel import AllocationStrategy
 from ....channel.models import Channel
 from ....tax.models import TaxConfiguration
 
@@ -22,6 +23,7 @@ def channel_USD(db):
         currency_code="USD",
         default_country="US",
         is_active=True,
+        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
     _create_channel_tax_configuration(channel)
     return channel
@@ -35,6 +37,7 @@ def other_channel_USD(db):
         currency_code="USD",
         default_country="US",
         is_active=True,
+        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
     _create_channel_tax_configuration(channel)
     return channel
@@ -48,6 +51,7 @@ def channel_PLN(db):
         currency_code="PLN",
         default_country="PL",
         is_active=True,
+        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
     _create_channel_tax_configuration(channel)
     return channel
@@ -61,6 +65,7 @@ def channel_JPY(db):
         currency_code="JPY",
         default_country="JP",
         is_active=True,
+        allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
     _create_channel_tax_configuration(channel)
     return channel

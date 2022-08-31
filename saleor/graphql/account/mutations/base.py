@@ -12,7 +12,6 @@ from ....account.notifications import (
 )
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
-from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
@@ -22,7 +21,9 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
+from ...app.dataloaders import load_app
 from ...channel.utils import clean_channel, validate_channel
+from ...core.context import set_mutation_flag_in_context
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
@@ -49,7 +50,8 @@ def check_can_edit_address(context, address):
     requester = get_user_or_app_from_context(context)
     if requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
-    if not context.app and not context.user.is_anonymous:
+    app = load_app(context)
+    if not app and not context.user.is_anonymous:
         is_owner = requester.addresses.filter(pk=address.pk).exists()
         if is_owner:
             return True

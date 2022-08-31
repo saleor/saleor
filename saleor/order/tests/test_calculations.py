@@ -103,6 +103,7 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
         get_order_shipping_tax_rate=Mock(return_value=shipping_tax_rate),
         get_order_line_tax_rate=Mock(side_effect=tax_rates),
         calculate_order_shipping=Mock(return_value=shipping),
+        calculate_order_total=Mock(return_value=total),
     )
 
     # when
@@ -216,6 +217,7 @@ def test_recalculate_order_prices_tax_error_line_prices(
         get_order_shipping_tax_rate=Mock(return_value=shipping_tax_rate),
         get_order_line_tax_rate=Mock(side_effect=tax_rates[1:]),
         calculate_order_shipping=Mock(return_value=shipping),
+        calculate_order_total=Mock(return_value=total),
     )
 
     # when
@@ -287,6 +289,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
         get_order_shipping_tax_rate=Mock(return_value=shipping_tax_rate),
         get_order_line_tax_rate=Mock(side_effect=tax_rates),
         calculate_order_shipping=Mock(side_effect=TaxError),
+        calculate_order_total=Mock(return_value=subtotal + order.shipping_price),
     )
 
     # when
@@ -437,6 +440,7 @@ def test_fetch_order_prices_if_expired_plugins(
     plugins_manager.calculate_order_shipping = Mock(return_value=shipping)
     plugins_manager.get_order_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
     plugins_manager.get_taxes_for_order = Mock(return_value=None)
+    plugins_manager.calculate_order_total = Mock(return_value=total)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -513,17 +517,20 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
     assert order_with_lines.shipping_price == shipping_price
     assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate / 100
     subtotal = zero_taxed_money(currency)
+    undiscounted_subtotal = zero_taxed_money(currency)
     for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
         line_total = get_taxed_money(tax_line, "total", currency)
         subtotal += line_total
+        undiscounted_subtotal += order_line.undiscounted_total_price
         assert order_line.total_price == line_total
         assert order_line.unit_price == line_total / order_line.quantity
         assert order_line.tax_rate == tax_line.tax_rate / 100
 
-    assert order_with_lines.undiscounted_total == subtotal + shipping_price
-    assert order_with_lines.total == subtotal + shipping_price - create_taxed_money(
-        discount_amount, discount_amount, order_with_lines.currency
+    assert (
+        order_with_lines.undiscounted_total
+        == undiscounted_subtotal + shipping_price.net
     )
+    assert order_with_lines.total == subtotal + shipping_price
 
 
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):

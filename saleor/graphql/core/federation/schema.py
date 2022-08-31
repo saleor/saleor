@@ -135,8 +135,14 @@ def resolve_entities(_, info, *, representations):
 
 
 def create_service_sdl_resolver(schema):
+    # subscriptions are not handled by the federation protocol
+    schema_sans_subscriptions = graphene.Schema(
+        query=schema._query, mutation=schema._mutation, types=schema.types
+    )
     # Render schema to string
-    federated_schema_sdl = print_schema(schema)
+    federated_schema_sdl = print_schema(schema_sans_subscriptions)
+
+    del schema_sans_subscriptions
 
     # Remove "schema { ... }"
     schema_start = federated_schema_sdl.find("schema {")

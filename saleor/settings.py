@@ -11,6 +11,7 @@ import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
+from django.conf import global_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from graphql.execution import executor
@@ -174,6 +175,14 @@ TEMPLATES = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
+
+# Additional password algorithms that can be used by Saleor.
+# The first algorithm defined by Django is the preferred one; users not using the
+# first algorithm will automatically be upgraded to it upon login
+PASSWORD_HASHERS = [
+    *global_settings.PASSWORD_HASHERS,
+    "django.contrib.auth.hashers.BCryptPasswordHasher",
+]
 
 if not SECRET_KEY and DEBUG:
     warnings.warn("SECRET_KEY not configured, using a random temporary key.")

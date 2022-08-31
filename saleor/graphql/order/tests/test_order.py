@@ -3613,44 +3613,9 @@ def test_draft_order_create_update_display_gross_prices(
     assert not order.display_gross_prices
 
 
-TAX_RATE_1 = Decimal("1.23")
-TAX_RATE_2 = Decimal("1.18")
-
-
-def calculate_order_line_price_side_effect(price_name):
-    tax_rates = iter([TAX_RATE_1, TAX_RATE_2])
-
-    def inner(
-        order,
-        order_line,
-        variant,
-        product,
-    ):
-        tax_rate = next(tax_rates)
-        undiscounted_price = getattr(order_line, f"undiscounted_{price_name}")
-        undiscounted_price.gross *= tax_rate
-        price_with_discounts = getattr(order_line, price_name)
-        price_with_discounts.gross *= tax_rate
-
-        return OrderTaxedPricesData(
-            undiscounted_price=undiscounted_price.quantize(),
-            price_with_discounts=price_with_discounts.quantize(),
-        )
-
-    return inner
-
-
-@patch.object(
-    PluginsManager,
-    "calculate_order_line_unit",
-    new=Mock(side_effect=calculate_order_line_price_side_effect("unit_price")),
-)
-@patch.object(
-    PluginsManager,
-    "calculate_order_line_total",
-    new=Mock(side_effect=calculate_order_line_price_side_effect("total_price")),
-)
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_draft_order_create_price_recalculation(
+    mock_fetch_order_prices_if_expired,
     staff_api_client,
     permission_manage_orders,
     customer_user,
@@ -3661,6 +3626,10 @@ def test_draft_order_create_price_recalculation(
     voucher,
 ):
     # given
+    fake_order = Mock()
+    fake_order.total = zero_taxed_money(channel_PLN.currency_code)
+    response = Mock(return_value=(fake_order, None))
+    mock_fetch_order_prices_if_expired.side_effect = response
     query = DRAFT_ORDER_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     discount = "10"
@@ -3703,17 +3672,8 @@ def test_draft_order_create_price_recalculation(
     assert not content["data"]["draftOrderCreate"]["errors"]
     assert Order.objects.count() == 1
     order = Order.objects.first()
-    line1, line2 = order.lines.all()
-
-    assert line1.total_price == line1.unit_price * quantity_1
-    assert line1.unit_price.gross == line1.unit_price.net * TAX_RATE_1
-    assert line1.total_price.gross == line1.total_price.net * TAX_RATE_1
-
-    assert line2.total_price == line2.unit_price * quantity_2
-    assert line2.unit_price.gross == line2.unit_price.net * TAX_RATE_2
-    assert line2.total_price.gross == line2.total_price.net * TAX_RATE_2
-
-    assert order.total == line1.total_price + line2.total_price
+    lines = list(order.lines.all())
+    mock_fetch_order_prices_if_expired.assert_called_once_with(order, ANY, lines, False)
 
 
 DRAFT_UPDATE_QUERY = """

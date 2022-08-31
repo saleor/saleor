@@ -28,6 +28,7 @@ from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
+from ...app.dataloaders import load_app
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
@@ -163,10 +164,11 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
+        app = load_app(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_product_removed_event(
-                order, info.context.user, info.context.app, order_lines
+                order, info.context.user, app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -412,7 +414,8 @@ class ProductVariantBulkCreate(BaseMutation):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+            if not instance.name:
+                generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
     @classmethod
     def create_variants(cls, info, cleaned_inputs, product, errors):
@@ -627,10 +630,11 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
+        app = load_app(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_variant_removed_event(
-                order, info.context.user, info.context.app, order_lines
+                order, info.context.user, app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks

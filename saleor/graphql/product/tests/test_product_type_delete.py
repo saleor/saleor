@@ -46,7 +46,7 @@ def test_product_type_delete_mutation_deletes_also_images(
     query = PRODUCT_TYPE_DELETE_MUTATION
     product_type.products.add(product_with_image)
     media_obj = product_with_image.media.first()
-    media_path = media_obj.image.path
+    media_path = media_obj.image.name
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]

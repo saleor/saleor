@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
+from ..app.dataloaders import load_app
 from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
@@ -38,7 +39,9 @@ class WebhookCreateInput(graphene.InputObjectType):
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="The secret key used to create a hash signature with each payload.",
+        description="The secret key used to create a hash signature with each payload."
+        f"{DEPRECATED_IN_3X_INPUT} As of Saleor 3.5, webhook payloads default to "
+        "signing using a verifiable JWS.",
         required=False,
     )
     query = graphene.String(
@@ -108,7 +111,7 @@ class WebhookCreate(ModelMutation):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        app = info.context.app
+        app = load_app(info.context)
         instance.app = app
         return instance
 
@@ -155,7 +158,10 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="Use to create a hash signature with each payload.", required=False
+        description="Use to create a hash signature with each payload."
+        f"{DEPRECATED_IN_3X_INPUT} As of Saleor 3.5, webhook payloads default to "
+        "signing using a verifiable JWS.",
+        required=False,
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
@@ -240,7 +246,7 @@ class WebhookDelete(ModelDeleteMutation):
         node_id = data["id"]
         object_id = cls.get_global_id_or_error(node_id)
 
-        app = info.context.app
+        app = load_app(info.context)
         if app:
             if not app.is_active:
                 raise ValidationError(
