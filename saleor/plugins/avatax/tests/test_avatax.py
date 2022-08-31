@@ -4009,7 +4009,7 @@ def test_get_order_tax_data(
     response = get_order_tax_data(order, conf)
 
     # then
-    get_order_request_data_mock.assert_called_once_with(order, conf, True)
+    get_order_request_data_mock.assert_called_once_with(order, conf)
     assert response == return_value
 
 
@@ -4461,6 +4461,7 @@ def test_assign_tax_code_to_object_meta_no_obj_id(
     }
 
 
+@pytest.mark.skip(reason="Deprecated Avatax configuration.")
 @pytest.mark.parametrize(
     "global_include_taxes_in_prices, override_global_tax, "
     "include_taxes_in_prices, expected_tax_included",
