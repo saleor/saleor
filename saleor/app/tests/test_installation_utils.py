@@ -10,9 +10,34 @@ from freezegun import freeze_time
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
-from ..installation_utils import install_app
+from ..installation_utils import (
+    AppInstallationError,
+    install_app,
+    validate_app_install_response,
+)
 from ..models import App
 from ..types import AppExtensionMount, AppExtensionTarget
+
+
+def test_validate_app_install_response():
+    error_message = "Test error msg"
+    response = Mock(spec=requests.Response)
+    response.raise_for_status.side_effect = requests.HTTPError
+    response.json.return_value = {"error": {"message": error_message}}
+
+    with pytest.raises(AppInstallationError) as error:
+        validate_app_install_response(response)
+    assert str(error.value) == error_message
+
+
+@pytest.mark.parametrize("json_response", ({}, {"error": {}}, Exception))
+def test_validate_app_install_response_when_wrong_error_message(json_response):
+    response = Mock(spec=requests.Response)
+    response.raise_for_status.side_effect = requests.HTTPError
+    response.json.side_effect = json_response
+
+    with pytest.raises(requests.HTTPError):
+        validate_app_install_response(response)
 
 
 def test_install_app_created_app(
