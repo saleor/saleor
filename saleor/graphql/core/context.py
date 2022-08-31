@@ -1,27 +1,43 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest
+
+from ...account.models import User
+from ...app.models import App
 
 if TYPE_CHECKING:
-    from django.http import HttpRequest
+    from .dataloaders import DataLoader
 
 
-def set_mutation_flag_in_context(context: "HttpRequest"):
+UserType = Union[User, AnonymousUser]
+
+
+class SaleorContext(HttpRequest):
+    _cached_user: UserType
+    decoded_auth_token: Optional[Dict[str, Any]]
+    is_mutation: bool
+    dataloaders: Dict[str, "DataLoader"]
+    app: Optional["App"]
+
+
+def set_mutation_flag_in_context(context: SaleorContext) -> None:
     """Set information in context to don't use database replicas.
 
     Part of the database read replicas in Saleor.
     When Saleor builds a response for mutation `context` stores information
     `is_mutation=True`. That means that all data should be provided from
     the master database.
-    When Saleor build a response for query `context` doesn’t have the
+    When Saleor build a response for query `context` doesn't have the
     `is_mutation` field.
     That means that all data should be provided from reading replica of the database.
     Database read replica couldn't be used to save any data.
     """
-    context.is_mutation = True  # type: ignore
+    context.is_mutation = True
 
 
-def get_database_connection_name(context: "HttpRequest"):
+def get_database_connection_name(context: SaleorContext) -> str:
     """Retrieve connection name based on request context.
 
     Part of the database read replicas in Saleor.

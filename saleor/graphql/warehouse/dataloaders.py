@@ -74,8 +74,10 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     ) -> Iterable[Tuple[int, int]]:
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
-        stocks = Stock.objects.using(self.database_connection_name).filter(
-            product_variant_id__in=variant_ids
+        stocks = (
+            Stock.objects.all()
+            .using(self.database_connection_name)
+            .filter(product_variant_id__in=variant_ids)
         )
         additional_warehouse_filter = True if country_code or channel_slug else False
 
@@ -353,8 +355,10 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         channel_slug: Optional[str],
         variant_ids: Iterable[int],
     ) -> Iterable[Tuple[int, List[Stock]]]:
-        stocks = Stock.objects.using(self.database_connection_name).filter(
-            product_variant_id__in=variant_ids
+        stocks = (
+            Stock.objects.all()
+            .using(self.database_connection_name)
+            .filter(product_variant_id__in=variant_ids)
         )
         if country_code:
             stocks = stocks.filter(
@@ -478,8 +482,8 @@ class WarehouseByIdLoader(DataLoader):
     context_key = "warehouse_by_id"
 
     def batch_load(self, keys: Iterable[UUID]) -> List[Optional[Warehouse]]:
-        warehouses = Warehouse.objects.using(self.database_connection_name).in_bulk(
-            keys
+        warehouses = (
+            Warehouse.objects.all().using(self.database_connection_name).in_bulk(keys)
         )
         return [warehouses.get(warehouse_uuid) for warehouse_uuid in keys]
 

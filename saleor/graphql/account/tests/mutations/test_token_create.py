@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
 import graphene
-from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
 from .....account.error_codes import AccountErrorCode
@@ -12,6 +11,7 @@ from .....core.jwt import (
     jwt_decode,
 )
 from ....tests.utils import get_graphql_content
+from ...mutations.authentication import _get_new_csrf_token
 
 MUTATION_CREATE_TOKEN = """
     mutation tokenCreate($email: String!, $password: String!){
