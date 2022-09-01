@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 from unittest.mock import sentinel
 
@@ -9,7 +10,9 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....core.taxes import TaxType
 from ....webhook.event_types import WebhookEventSyncType
+from ....webhook.models import Webhook
 from ....webhook.payloads import generate_order_payload_for_tax_calculation
+from ...manager import get_plugins_manager
 from ..utils import DEFAULT_TAX_CODE, DEFAULT_TAX_DESCRIPTION, parse_tax_data
 
 
@@ -141,3 +144,84 @@ def test_get_tax_code_from_object_meta_default_code(
         code=DEFAULT_TAX_CODE,
         description=DEFAULT_TAX_DESCRIPTION,
     )
+
+
+@freeze_time()
+@mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_taxes_for_order_with_sync_subscription(
+    mock_request,
+    mock_fetch,
+    webhook_plugin,
+    tax_data_response,
+    order,
+    tax_app,
+):
+    # given
+    mock_request.return_value = tax_data_response
+    plugin = webhook_plugin()
+    webhook = Webhook.objects.create(
+        name="Tax checkout webhook",
+        app=tax_app,
+        target_url="https://localhost:8888/tax-order",
+        subscription_query=(
+            "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
+        ),
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+
+    # when
+    tax_data = plugin.get_taxes_for_order(order, None)
+
+    # then
+    payload = EventPayload.objects.get()
+    assert payload.payload == json.dumps({"taxBase": {"currency": "USD"}})
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    assert delivery.payload == payload
+    assert delivery.webhook == webhook
+    mock_request.assert_called_once_with(webhook.app.name, delivery)
+    mock_fetch.assert_not_called()
+    assert tax_data == parse_tax_data(tax_data_response)
+
+
+@freeze_time()
+@mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_taxes_for_checkout_with_sync_subscription(
+    mock_request,
+    mock_fetch,
+    webhook_plugin,
+    tax_data_response,
+    checkout,
+    tax_app,
+):
+    # given
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    mock_request.return_value = tax_data_response
+    plugin = webhook_plugin()
+    webhook = Webhook.objects.create(
+        name="Tax checkout webhook",
+        app=tax_app,
+        target_url="https://localhost:8888/tax-order",
+        subscription_query=(
+            "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
+        ),
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+
+    # when
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, [], None)
+
+    # then
+    payload = EventPayload.objects.get()
+    assert payload.payload == json.dumps({"taxBase": {"currency": "USD"}})
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    assert delivery.payload == payload
+    assert delivery.webhook == webhook
+    mock_request.assert_called_once_with(webhook.app.name, delivery)
+    mock_fetch.assert_not_called()
+    assert tax_data == parse_tax_data(tax_data_response)

@@ -8576,7 +8576,7 @@ type Order implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
 
   """
-  The delivery method selected for this checkout.
+  The delivery method selected for this order.
   
   Added in Saleor 3.1.
   
@@ -24073,6 +24073,92 @@ type ShippingListMethodsForCheckout implements Event {
   """
   shippingMethods: [ShippingMethod!]
 }
+
+"""
+Synchronous webhook for calculating checkout/order taxes.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CalculateTaxes implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  taxBase: TaxableObject!
+}
+
+"""Taxable object."""
+type TaxableObject {
+  """The source object related to this tax object."""
+  sourceObject: TaxSourceObject!
+
+  """Determines if prices contain entered tax.."""
+  pricesEnteredWithTax: Boolean!
+
+  """The currency of the object."""
+  currency: String!
+
+  """The price of shipping method."""
+  shippingPrice: Money!
+
+  """The address data."""
+  address: Address
+
+  """List of discounts."""
+  discounts: [TaxableObjectDiscount!]!
+
+  """List of lines assigned to the object."""
+  lines: [TaxableObjectLine!]!
+  channel: Channel!
+}
+
+union TaxSourceObject = Checkout | Order
+
+"""Taxable object discount."""
+type TaxableObjectDiscount {
+  """The name of the discount."""
+  name: String
+
+  """The amount of the discount."""
+  amount: Money!
+}
+
+type TaxableObjectLine {
+  """The source line related to this tax line."""
+  sourceLine: TaxSourceLine!
+
+  """Number of items."""
+  quantity: Int!
+
+  """Determines if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
+
+  """The product name."""
+  productName: String!
+
+  """The variant name."""
+  variantName: String!
+
+  """The product sku."""
+  productSku: String
+
+  """Price of the single item in the order line."""
+  unitPrice: Money!
+
+  """Price of the order line."""
+  totalPrice: Money!
+}
+
+union TaxSourceLine = CheckoutLine | OrderLine
 
 """_Any value scalar as defined by Federation spec."""
 scalar _Any
