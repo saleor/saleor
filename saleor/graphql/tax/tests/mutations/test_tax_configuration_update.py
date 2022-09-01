@@ -4,6 +4,7 @@ import pytest
 from .....tax.error_codes import TaxConfigurationUpdateErrorCode
 from .....tax.models import TaxConfiguration
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...enums import TaxCalculationStrategy
 from ..fragments import TAX_CONFIGURATION_FRAGMENT
 
 MUTATION = (
@@ -74,10 +75,16 @@ def _test_tax_configuration_update(
         "id": id,
         "input": {
             "chargeTaxes": False,
+            "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
             "displayGrossPrices": False,
             "pricesEnteredWithTax": False,
             "updateCountriesConfiguration": [
-                {"countryCode": "PL", "chargeTaxes": False, "displayGrossPrices": False}
+                {
+                    "countryCode": "PL",
+                    "chargeTaxes": False,
+                    "displayGrossPrices": False,
+                    "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
+                }
             ],
             "removeCountriesConfiguration": [],
         },
@@ -94,9 +101,17 @@ def _test_tax_configuration_update(
     assert not data["errors"]
     assert data["taxConfiguration"]["id"] == id
     assert data["taxConfiguration"]["chargeTaxes"] is False
+    assert (
+        data["taxConfiguration"]["taxCalculationStrategy"]
+        == TaxCalculationStrategy.FLAT_RATES.name
+    )
     assert data["taxConfiguration"]["displayGrossPrices"] is False
     assert data["taxConfiguration"]["pricesEnteredWithTax"] is False
     assert data["taxConfiguration"]["countries"][0]["chargeTaxes"] is False
+    assert (
+        data["taxConfiguration"]["countries"][0]["taxCalculationStrategy"]
+        == TaxCalculationStrategy.FLAT_RATES.name
+    )
     assert data["taxConfiguration"]["countries"][0]["displayGrossPrices"] is False
 
 
@@ -155,11 +170,13 @@ def test_create_and_update_country_configurations(
     update_PL_data = {
         "countryCode": "PL",
         "chargeTaxes": False,
+        "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
         "displayGrossPrices": False,
     }
     create_DE_data = {
         "countryCode": "DE",
         "chargeTaxes": False,
+        "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
         "displayGrossPrices": False,
     }
 
