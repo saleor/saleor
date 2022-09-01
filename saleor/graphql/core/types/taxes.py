@@ -7,7 +7,7 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....core.taxes import include_taxes_in_prices, zero_money
+from ....core.taxes import zero_money
 from ....discount import VoucherType
 from ....order.models import Order, OrderLine
 from ....shipping.models import ShippingMethodChannelListing
@@ -32,6 +32,7 @@ from ...product.dataloaders.products import (
     ProductVariantByIdLoader,
 )
 from ...shipping.dataloaders import ShippingMethodChannelListingByShippingMethodIdLoader
+from ...tax.dataloaders import TaxConfigurationByChannelId
 from .common import NonNullList
 from .money import Money
 
@@ -300,7 +301,8 @@ class TaxableObject(graphene.ObjectType):
 
     @staticmethod
     def resolve_prices_entered_with_tax(root: Union[Checkout, Order], info):
-        return include_taxes_in_prices()
+        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+        return tax_config.then(lambda tc: tc.prices_entered_with_tax)
 
     @staticmethod
     def resolve_currency(root: Union[Checkout, Order], info):
