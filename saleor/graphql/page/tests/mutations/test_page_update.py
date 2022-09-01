@@ -833,7 +833,7 @@ def test_update_page_with_variant_reference_attribute_new_value(
         "values": [
             {
                 "slug": f"{page.pk}_{variant.pk}",
-                "name": variant.name,
+                "name": f"{variant.product.name}: {variant.name}",
                 "file": None,
                 "plainText": None,
                 "reference": reference,

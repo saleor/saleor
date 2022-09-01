@@ -5756,7 +5756,7 @@ def test_create_product_with_variant_reference_attribute(
             "values": [
                 {
                     "slug": f"{product_id}_{variant.id}",
-                    "name": variant.name,
+                    "name": f"{variant.product.name}: {variant.name}",
                     "file": None,
                     "richText": None,
                     "plainText": None,
@@ -8334,7 +8334,7 @@ def test_update_product_with_variant_reference_attribute_value(
         "values": [
             {
                 "id": ANY,
-                "name": variant_ref.name,
+                "name": f"{variant_ref.product.name}: {variant_ref.name}",
                 "slug": f"{product.id}_{variant_ref.id}",
                 "file": None,
                 "reference": reference,

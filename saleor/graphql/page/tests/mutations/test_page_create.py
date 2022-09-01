@@ -1200,7 +1200,7 @@ def test_create_page_with_variant_reference_attribute(
             {
                 "slug": f"{new_page_pk}_{variant.pk}",
                 "file": None,
-                "name": variant.name,
+                "name": f"{variant.product.name}: {variant.name}",
                 "reference": reference,
                 "plainText": None,
                 "dateTime": None,
