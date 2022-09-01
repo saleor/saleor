@@ -47,16 +47,6 @@ ADDRESS_DELETED = (
 """
 )
 
-ADDRESS_METADATA_UPDATED = """
-    subscription{
-      event{
-        ...on AddressMetadataUpdated{
-          id
-        }
-      }
-    }
-"""
-
 APP_INSTALLED = (
     fragments.APP_DETAILS
     + """

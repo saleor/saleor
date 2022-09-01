@@ -22,7 +22,6 @@ class WebhookEventAsyncType:
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
     ADDRESS_DELETED = "address_deleted"
-    ADDRESS_METADATA_UPDATED = "address_metadata_updated"
 
     APP_INSTALLED = "app_installed"
     APP_UPDATED = "app_updated"
@@ -162,7 +161,6 @@ class WebhookEventAsyncType:
         ADDRESS_CREATED: "Address created",
         ADDRESS_UPDATED: "Address updated",
         ADDRESS_DELETED: "Address deleted",
-        ADDRESS_METADATA_UPDATED: "Address metadata updated",
         APP_INSTALLED: "App created",
         APP_UPDATED: "App updated",
         APP_DELETED: "App deleted",
@@ -273,7 +271,6 @@ class WebhookEventAsyncType:
         (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
         (ADDRESS_UPDATED, DISPLAY_LABELS[ADDRESS_UPDATED]),
         (ADDRESS_DELETED, DISPLAY_LABELS[ADDRESS_DELETED]),
-        (ADDRESS_METADATA_UPDATED, DISPLAY_LABELS[ADDRESS_METADATA_UPDATED]),
         (APP_INSTALLED, DISPLAY_LABELS[APP_INSTALLED]),
         (APP_UPDATED, DISPLAY_LABELS[APP_UPDATED]),
         (APP_DELETED, DISPLAY_LABELS[APP_DELETED]),
@@ -384,7 +381,6 @@ class WebhookEventAsyncType:
         ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_DELETED: AccountPermissions.MANAGE_USERS,
-        ADDRESS_METADATA_UPDATED: AccountPermissions.MANAGE_USERS,
         APP_INSTALLED: AppPermission.MANAGE_APPS,
         APP_UPDATED: AppPermission.MANAGE_APPS,
         APP_DELETED: AppPermission.MANAGE_APPS,

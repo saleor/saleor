@@ -5,7 +5,6 @@ from ..plugins.dataloaders import load_plugin_manager
 def extra_checkout_actions(instance, info, **data):
     manager = load_plugin_manager(info.context)
     manager.checkout_updated(instance)
-    manager.checkout_updated(instance)
     manager.checkout_metadata_updated(instance)
 
 

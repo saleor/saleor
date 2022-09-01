@@ -118,6 +118,13 @@ class Event(graphene.Interface):
         return info.context.requestor
 
 
+class MetadataUpdatedBase(AbstractType):
+    @staticmethod
+    def resolve_id(root, info):
+        _, root = root
+        return root.id
+
+
 class AddressBase(AbstractType):
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -152,21 +159,6 @@ class AddressDeleted(ObjectType, AddressBase):
         description = (
             "Event sent when address is deleted." + ADDED_IN_35 + PREVIEW_FEATURE
         )
-
-
-class AddressMetadataUpdated(ObjectType):
-    id = graphene.GlobalID(parent_type=AddressType, required=True)
-
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when address metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class AppBase(AbstractType):
@@ -429,7 +421,7 @@ class OrderCancelled(ObjectType, OrderBase):
         )
 
 
-class OrderMetadataUpdated(ObjectType):
+class OrderMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=OrderType, required=True)
 
     class Meta:
@@ -437,11 +429,6 @@ class OrderMetadataUpdated(ObjectType):
         description = (
             "Event sent when order metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class DraftOrderCreated(ObjectType, OrderBase):
@@ -516,7 +503,7 @@ class GiftCardStatusChanged(ObjectType, GiftCardBase):
         )
 
 
-class GiftCardMetadataUpdated(ObjectType):
+class GiftCardMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=GiftCardType, required=True)
 
     class Meta:
@@ -524,11 +511,6 @@ class GiftCardMetadataUpdated(ObjectType):
         description = (
             "Event sent when gift card metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class MenuBase(AbstractType):
@@ -653,7 +635,7 @@ class ProductDeleted(ObjectType, ProductBase):
         )
 
 
-class ProductMetadataUpdated(ObjectType):
+class ProductMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=ProductType, required=True)
 
     class Meta:
@@ -661,11 +643,6 @@ class ProductMetadataUpdated(ObjectType):
         description = (
             "Event sent when product metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class ProductVariantBase(AbstractType):
@@ -713,7 +690,7 @@ class ProductVariantDeleted(ObjectType, ProductVariantBase):
         )
 
 
-class ProductVariantMetadataUpdated(ObjectType):
+class ProductVariantMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=ProductVariantType, required=True)
 
     class Meta:
@@ -721,11 +698,6 @@ class ProductVariantMetadataUpdated(ObjectType):
         description = (
             "Event sent when product variant metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
@@ -912,7 +884,7 @@ class FulfillmentApproved(ObjectType, FulfillmentBase):
         )
 
 
-class FulfillmentMetadataUpdated(ObjectType):
+class FulfillmentMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=FulfillmentType, required=True)
 
     class Meta:
@@ -920,11 +892,6 @@ class FulfillmentMetadataUpdated(ObjectType):
         description = (
             "Event sent when fulfillment metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class UserBase(AbstractType):
@@ -957,7 +924,7 @@ class CustomerUpdated(ObjectType, UserBase):
         )
 
 
-class CustomerMetadataUpdated(ObjectType):
+class CustomerMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=UserType, required=True)
 
     class Meta:
@@ -965,11 +932,6 @@ class CustomerMetadataUpdated(ObjectType):
         description = (
             "Event sent when customer user metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class CollectionBase(AbstractType):
@@ -1011,7 +973,7 @@ class CollectionDeleted(ObjectType, CollectionBase):
         )
 
 
-class CollectionMetadataUpdated(ObjectType):
+class CollectionMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=CollectionType, required=True)
 
     class Meta:
@@ -1019,11 +981,6 @@ class CollectionMetadataUpdated(ObjectType):
         description = (
             "Event sent when collection metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class CheckoutBase(AbstractType):
@@ -1272,7 +1229,7 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
         )
 
 
-class ShippingZoneMetadataUpdated(ObjectType):
+class ShippingZoneMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=ShippingZoneType, required=True)
 
     class Meta:
@@ -1280,11 +1237,6 @@ class ShippingZoneMetadataUpdated(ObjectType):
         description = (
             "Event sent when shipping zone metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class StaffCreated(ObjectType, UserBase):
@@ -1360,7 +1312,7 @@ class TransactionActionRequest(ObjectType):
         return transaction_action_data
 
 
-class TransactionItemMetadataUpdated(ObjectType):
+class TransactionItemMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=TransactionItem, required=True)
 
     class Meta:
@@ -1368,11 +1320,6 @@ class TransactionItemMetadataUpdated(ObjectType):
         description = (
             "Event sent when transaction item metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class TranslationTypes(Union):
@@ -1456,7 +1403,7 @@ class VoucherDeleted(ObjectType, VoucherBase):
         )
 
 
-class VoucherMetadataUpdated(ObjectType):
+class VoucherMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=VoucherType, required=True)
 
     class Meta:
@@ -1464,11 +1411,6 @@ class VoucherMetadataUpdated(ObjectType):
         description = (
             "Event sent when voucher metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class WarehouseBase(AbstractType):
@@ -1650,7 +1592,7 @@ class WarehouseDeleted(ObjectType, WarehouseBase):
         )
 
 
-class WarehouseMetadataUpdated(ObjectType):
+class WarehouseMetadataUpdated(ObjectType, MetadataUpdatedBase):
     id = graphene.GlobalID(parent_type=WarehouseType, required=True)
 
     class Meta:
@@ -1658,11 +1600,6 @@ class WarehouseMetadataUpdated(ObjectType):
         description = (
             "Event sent when warehouse metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
 
 
 class Subscription(ObjectType):
@@ -1680,7 +1617,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,
-    WebhookEventAsyncType.ADDRESS_METADATA_UPDATED: AddressMetadataUpdated,
     WebhookEventAsyncType.APP_INSTALLED: AppInstalled,
     WebhookEventAsyncType.APP_UPDATED: AppUpdated,
     WebhookEventAsyncType.APP_DELETED: AppDeleted,

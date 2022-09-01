@@ -42,13 +42,6 @@ def subscription_address_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
-def subscription_address_metadata_updated_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.ADDRESS_METADATA_UPDATED, WebhookEventAsyncType.ADDRESS_METADATA_UPDATED
-    )
-
-
-@pytest.fixture
 def subscription_app_installed_webhook(subscription_webhook):
     return subscription_webhook(
         queries.APP_INSTALLED, WebhookEventAsyncType.APP_INSTALLED

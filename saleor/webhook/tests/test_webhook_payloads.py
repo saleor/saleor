@@ -1303,21 +1303,6 @@ def test_generate_unique_page_attribute_value_translation_payload(
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 
 
-@freeze_time()
-def test_generate_address_metadata_updated_payload(
-    address,
-    customer_user,
-):
-    # when
-    payload = json.loads(generate_metadata_updated_payload(address, customer_user))[0]
-
-    # then
-    assert payload == {
-        "id": graphene.Node.to_global_id("Address", address.id),
-        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
-    }
-
-
 @freeze_time("1914-06-28 10:50")
 def test_generate_customer_payload(customer_user, address_other_country, address):
     customer = customer_user

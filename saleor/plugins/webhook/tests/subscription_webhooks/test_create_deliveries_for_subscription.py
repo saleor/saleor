@@ -131,22 +131,6 @@ def test_address_deleted(address, subscription_address_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_address_metadata_updated(address, subscription_address_metadata_updated_webhook):
-    # given
-    webhooks = [subscription_address_metadata_updated_webhook]
-    event_type = WebhookEventAsyncType.ADDRESS_METADATA_UPDATED
-    address_id = graphene.Node.to_global_id("Address", address.id)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
-
-    # then
-    expected_payload = json.dumps({"id": address_id})
-    assert deliveries[0].payload.payload == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
 def test_app_installed(app, subscription_app_installed_webhook):
     # given
     webhooks = [subscription_app_installed_webhook]
