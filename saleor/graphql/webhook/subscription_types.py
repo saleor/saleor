@@ -21,7 +21,6 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ..account.types import Address as AddressType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
@@ -510,7 +509,9 @@ class GiftCardMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when gift card metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when gift card metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -642,7 +643,9 @@ class ProductMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when product metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when product metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -697,7 +700,9 @@ class ProductVariantMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when product variant metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when product variant metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -891,7 +896,9 @@ class FulfillmentMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when fulfillment metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when fulfillment metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -931,7 +938,9 @@ class CustomerMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when customer user metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when customer user metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -980,7 +989,9 @@ class CollectionMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when collection metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when collection metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -1018,7 +1029,9 @@ class CheckoutMetadataUpdated(ObjectType):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when checkout metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when checkout metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
     @staticmethod
@@ -1236,7 +1249,9 @@ class ShippingZoneMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when shipping zone metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when shipping zone metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -1319,7 +1334,9 @@ class TransactionItemMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when transaction item metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when transaction item metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -1410,7 +1427,9 @@ class VoucherMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when voucher metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when voucher metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -1599,7 +1618,9 @@ class WarehouseMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when warehouse metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when warehouse metadata is updated."
+            + ADDED_IN_36
+            + PREVIEW_FEATURE
         )
 
 
@@ -1662,10 +1683,12 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
-    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: (ProductVariantOutOfStock),
-    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: (ProductVariantBackInStock),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
-    WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: ProductVariantMetadataUpdated,
+    WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
+        ProductVariantMetadataUpdated
+    ),
     WebhookEventAsyncType.SALE_CREATED: SaleCreated,
     WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
     WebhookEventAsyncType.SALE_DELETED: SaleDeleted,
@@ -1707,7 +1730,9 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
-    WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: TransactionItemMetadataUpdated,
+    WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
+        TransactionItemMetadataUpdated
+    ),
     WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
     WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
     WebhookEventAsyncType.VOUCHER_CREATED: VoucherCreated,

@@ -485,7 +485,9 @@ def test_generate_fulfillment_metadata_updated_payload(
     fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
 
     # when
-    payload = json.loads(generate_metadata_updated_payload(fulfillment, customer_user))[0]
+    payload = json.loads(generate_metadata_updated_payload(fulfillment, customer_user))[
+        0
+    ]
 
     # then
     assert payload == {
@@ -496,7 +498,8 @@ def test_generate_fulfillment_metadata_updated_payload(
 
 @freeze_time()
 def test_generate_gift_card_metadata_updated_payload(
-    gift_card, customer_user,
+    gift_card,
+    customer_user,
 ):
     # when
     payload = json.loads(generate_metadata_updated_payload(gift_card, customer_user))[0]
@@ -510,7 +513,8 @@ def test_generate_gift_card_metadata_updated_payload(
 
 @freeze_time()
 def test_generate_voucher_metadata_updated_payload(
-    voucher, customer_user,
+    voucher,
+    customer_user,
 ):
     # when
     payload = json.loads(generate_metadata_updated_payload(voucher, customer_user))[0]
@@ -764,7 +768,9 @@ def test_generate_shipping_zone_metadata_updated_payload(
     customer_user,
 ):
     # when
-    payload = json.loads(generate_metadata_updated_payload(shipping_zone, customer_user))[0]
+    payload = json.loads(
+        generate_metadata_updated_payload(shipping_zone, customer_user)
+    )[0]
 
     # then
     assert payload == {
@@ -774,11 +780,14 @@ def test_generate_shipping_zone_metadata_updated_payload(
 
 
 @freeze_time()
-def test_generate_customer_metadata_updated_payload(
-    collection, customer_user,
+def test_generate_collection_metadata_updated_payload(
+    collection,
+    customer_user,
 ):
     # when
-    payload = json.loads(generate_metadata_updated_payload(collection, customer_user))[0]
+    payload = json.loads(generate_metadata_updated_payload(collection, customer_user))[
+        0
+    ]
 
     # then
     assert payload == {
@@ -1124,9 +1133,13 @@ def test_generate_payment_with_transactions_payload(dummy_webhook_app_payment_da
 
 
 @freeze_time()
-def test_generate_transaction_item_metadata_updated_payload(transaction_item, customer_user):
+def test_generate_transaction_item_metadata_updated_payload(
+    transaction_item, customer_user
+):
     # when
-    payload = json.loads(generate_metadata_updated_payload(transaction_item, customer_user))[0]
+    payload = json.loads(
+        generate_metadata_updated_payload(transaction_item, customer_user)
+    )[0]
 
     # then
     assert payload == {
@@ -1392,7 +1405,9 @@ def test_generate_customer_metadata_updated_payload(
     customer_user,
 ):
     # when
-    payload = json.loads(generate_metadata_updated_payload(customer_user, customer_user))[0]
+    payload = json.loads(
+        generate_metadata_updated_payload(customer_user, customer_user)
+    )[0]
 
     # then
     assert payload == {

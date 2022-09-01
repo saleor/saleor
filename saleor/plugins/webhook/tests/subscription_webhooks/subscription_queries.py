@@ -1077,8 +1077,7 @@ CUSTOMER_DELETED = (
 )
 
 
-CUSTOMER_METADATA_UPDATED = (
-    """
+CUSTOMER_METADATA_UPDATED = """
     subscription{
       event{
         ...on CustomerMetadataUpdated{
@@ -1087,7 +1086,6 @@ CUSTOMER_METADATA_UPDATED = (
       }
     }
     """
-)
 
 
 COLLECTION_CREATED = (
@@ -1137,8 +1135,7 @@ COLLECTION_DELETED = (
 )
 
 
-COLLECTION_METADATA_UPDATED = (
-    """
+COLLECTION_METADATA_UPDATED = """
     subscription{
       event{
         ...on CollectionMetadataUpdated{
@@ -1147,7 +1144,6 @@ COLLECTION_METADATA_UPDATED = (
       }
     }
     """
-)
 
 
 CHECKOUT_CREATED = """
@@ -1324,8 +1320,7 @@ PERMISSION_GROUP_DELETED = (
 )
 
 
-TRANSACTION_ITEM_METADATA_UPDATED = (
-    """
+TRANSACTION_ITEM_METADATA_UPDATED = """
     subscription{
       event{
         ...on TransactionItemMetadataUpdated{
@@ -1334,7 +1329,6 @@ TRANSACTION_ITEM_METADATA_UPDATED = (
       }
     }
     """
-)
 
 
 MULTIPLE_EVENTS = """

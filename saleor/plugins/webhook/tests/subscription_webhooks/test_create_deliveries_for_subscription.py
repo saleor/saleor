@@ -548,7 +548,9 @@ def test_gift_card_status_changed(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_gift_card_metadata_updated(gift_card, subscription_gift_card_metadata_updated_webhook):
+def test_gift_card_metadata_updated(
+    gift_card, subscription_gift_card_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_gift_card_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED
@@ -835,21 +837,24 @@ def test_shipping_zone_deleted(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_shipping_zone_metadata_updated(shipping_zone, subscription_shipping_zone_metadata_updated_webhook):
+def test_shipping_zone_metadata_updated(
+    shipping_zone, subscription_shipping_zone_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_shipping_zone_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, shipping_zone, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_zone, webhooks
+    )
 
     # then
     expected_payload = json.dumps({"id": shipping_zone_id})
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
-
 
 
 def test_staff_created(staff_user, subscription_staff_created_webhook):
@@ -938,7 +943,9 @@ def test_product_deleted(product, subscription_product_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_product_metadata_updated(product, subscription_product_metadata_updated_webhook):
+def test_product_metadata_updated(
+    product, subscription_product_metadata_updated_webhook
+):
     webhooks = [subscription_product_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_METADATA_UPDATED
     product_id = graphene.Node.to_global_id("Product", product.id)
@@ -986,7 +993,9 @@ def test_product_variant_deleted(variant, subscription_product_variant_deleted_w
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_product_variant_metadata_updated(variant, subscription_product_variant_metadata_updated_webhook):
+def test_product_variant_metadata_updated(
+    variant, subscription_product_variant_metadata_updated_webhook
+):
     webhooks = [subscription_product_variant_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -1299,7 +1308,9 @@ def test_fulfillment_approved(fulfillment, subscription_fulfillment_approved_web
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_fulfillment_metadata_updated(fulfillment, subscription_fulfillment_metadata_updated_webhook):
+def test_fulfillment_metadata_updated(
+    fulfillment, subscription_fulfillment_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_fulfillment_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED
@@ -1369,14 +1380,18 @@ def test_customer_deleted(customer_user, subscription_customer_created_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_customer_metadata_updated(customer_user, subscription_customer_metadata_updated_webhook):
+def test_customer_metadata_updated(
+    customer_user, subscription_customer_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_customer_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED
     customer_id = graphene.Node.to_global_id("User", customer_user.id)
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, customer_user, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, customer_user, webhooks
+    )
 
     # then
     expected_payload = json.dumps({"id": customer_id})
@@ -1483,7 +1498,9 @@ def test_checkout_update(checkout, subscription_checkout_updated_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_checkout_metadata_updated(checkout, subscription_checkout_metadata_updated_webhook):
+def test_checkout_metadata_updated(
+    checkout, subscription_checkout_metadata_updated_webhook
+):
     webhooks = [subscription_checkout_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.token)
@@ -1717,7 +1734,9 @@ def test_warehouse_deleted(warehouse, subscription_warehouse_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_warehouse_metadata_updated(warehouse, subscription_warehouse_metadata_updated_webhook):
+def test_warehouse_metadata_updated(
+    warehouse, subscription_warehouse_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_warehouse_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED
@@ -1786,7 +1805,9 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_voucher_metadata_updated(voucher, subscription_voucher_metadata_updated_webhook):
+def test_voucher_metadata_updated(
+    voucher, subscription_voucher_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_voucher_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.VOUCHER_METADATA_UPDATED
@@ -1802,14 +1823,20 @@ def test_voucher_metadata_updated(voucher, subscription_voucher_metadata_updated
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_transaction_item_metadata_updated(transaction_item, subscription_transaction_item_metadata_updated_webhook):
+def test_transaction_item_metadata_updated(
+    transaction_item, subscription_transaction_item_metadata_updated_webhook
+):
     # given
     webhooks = [subscription_transaction_item_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED
-    transaction_item_id = graphene.Node.to_global_id("TransactionItem", transaction_item.id)
+    transaction_item_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.id
+    )
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, transaction_item, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, transaction_item, webhooks
+    )
 
     # then
     expected_payload = json.dumps({"id": transaction_item_id})

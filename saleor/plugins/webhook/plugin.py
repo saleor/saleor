@@ -121,7 +121,9 @@ class WebhookPlugin(BasePlugin):
 
     def _trigger_metadata_updated_event(self, event_type, instance):
         if webhooks := get_webhooks_for_event(event_type):
-            metadata_updated_data = generate_metadata_updated_payload(instance, self.requestor)
+            metadata_updated_data = generate_metadata_updated_payload(
+                instance, self.requestor
+            )
             trigger_webhooks_async(
                 metadata_updated_data, event_type, webhooks, instance, self.requestor
             )
@@ -366,10 +368,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.GIFT_CARD_DELETED, gift_card
         )
 
-    def gift_card_metadata_updated(self, gift_card: "GiftCard", previous_value: None) -> None:
+    def gift_card_metadata_updated(
+        self, gift_card: "GiftCard", previous_value: None
+    ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED, gift_card)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED, gift_card
+        )
 
     def gift_card_status_changed(
         self, gift_card: "GiftCard", previous_value: None
@@ -614,7 +620,9 @@ class WebhookPlugin(BasePlugin):
     def order_metadata_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.ORDER_METADATA_UPDATED, order)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.ORDER_METADATA_UPDATED, order
+        )
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -678,7 +686,9 @@ class WebhookPlugin(BasePlugin):
     def fulfillment_metadata_updated(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED, fulfillment)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED, fulfillment
+        )
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
@@ -713,7 +723,9 @@ class WebhookPlugin(BasePlugin):
     def customer_metadata_updated(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED, customer)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED, customer
+        )
 
     def collection_created(self, collection: "Collection", previous_value: Any) -> Any:
         if not self.active:
@@ -745,10 +757,14 @@ class WebhookPlugin(BasePlugin):
                 collection_data, event_type, webhooks, collection, self.requestor
             )
 
-    def collection_metadata_updated(self, collection: "Collection", previous_value: Any) -> Any:
+    def collection_metadata_updated(
+        self, collection: "Collection", previous_value: Any
+    ) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.COLLECTION_METADATA_UPDATED, collection)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.COLLECTION_METADATA_UPDATED, collection
+        )
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
@@ -773,7 +789,9 @@ class WebhookPlugin(BasePlugin):
     def product_metadata_updated(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.PRODUCT_METADATA_UPDATED, product)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.PRODUCT_METADATA_UPDATED, product
+        )
 
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
@@ -847,10 +865,14 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
-    def product_variant_metadata_updated(self, product_variant: "ProductVariant", previous_value: Any) -> Any:
+    def product_variant_metadata_updated(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED, product_variant)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED, product_variant
+        )
 
     def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
@@ -894,10 +916,14 @@ class WebhookPlugin(BasePlugin):
                 checkout_data, event_type, webhooks, checkout, self.requestor
             )
 
-    def checkout_metadata_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
+    def checkout_metadata_updated(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout
+        )
 
     def notify(
         self, event: Union[NotifyEventType, str], payload: dict, previous_value
@@ -1096,10 +1122,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.SHIPPING_ZONE_DELETED, shipping_zone
         )
 
-    def shipping_zone_metadata_updated(self, shipping_zone: "ShippingZone", previous_value: Any) -> Any:
+    def shipping_zone_metadata_updated(
+        self, shipping_zone: "ShippingZone", previous_value: Any
+    ) -> Any:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED, shipping_zone)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED, shipping_zone
+        )
 
     def _trigger_staff_event(self, event_type, staff_user):
         if webhooks := get_webhooks_for_event(event_type):
@@ -1182,10 +1212,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.WAREHOUSE_DELETED, warehouse
         )
 
-    def warehouse_metadata_updated(self, warehouse: "Warehouse", previous_value: None) -> None:
+    def warehouse_metadata_updated(
+        self, warehouse: "Warehouse", previous_value: None
+    ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED, warehouse)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED, warehouse
+        )
 
     def _trigger_voucher_event(self, event_type, voucher):
         if webhooks := get_webhooks_for_event(event_type):
@@ -1216,10 +1250,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_DELETED, voucher)
 
-    def voucher_metadata_updated(self, voucher: "Voucher", previous_value: None) -> None:
+    def voucher_metadata_updated(
+        self, voucher: "Voucher", previous_value: None
+    ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher
+        )
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
         if not self.active:
@@ -1326,10 +1364,14 @@ class WebhookPlugin(BasePlugin):
                 gateways.extend(app_gateways)
         return gateways
 
-    def transaction_item_metadata_updated(self, transaction_item: "TransactionItem", previous_value: None) -> None:
+    def transaction_item_metadata_updated(
+        self, transaction_item: "TransactionItem", previous_value: None
+    ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED, transaction_item)
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED, transaction_item
+        )
 
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value, **kwargs

@@ -134,7 +134,9 @@ def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs)
 
 
 @traced_payload_generator
-def generate_metadata_updated_payload(instance: Any, requestor: Optional["RequestorOrLazyObject"] = None):
+def generate_metadata_updated_payload(
+    instance: Any, requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
 
     if isinstance(instance, Checkout):
