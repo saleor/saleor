@@ -29,7 +29,8 @@ class TaxConfigurationPerCountryInput(graphene.InputObjectType):
         required=False,
         description=(
             "A country-specific strategy to use for tax calculation. Taxes can be "
-            "calculated either using user-defined flat rates or with a tax app."
+            "calculated either using user-defined flat rates or with a tax app. If "
+            "not provided, use the value from the channel's tax configuration."
         ),
     )
     display_gross_prices = graphene.Boolean(
@@ -51,7 +52,8 @@ class TaxConfigurationUpdateInput(graphene.InputObjectType):
         description=(
             "The default strategy to use for tax calculation in the given channel. "
             "Taxes can be calculated either using user-defined flat rates or with "
-            "a tax app."
+            "a tax app. Empty value means that no method is selected and taxes are "
+            "not calculated."
         ),
     )
     display_gross_prices = graphene.Boolean(

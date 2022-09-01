@@ -7584,7 +7584,7 @@ type TaxConfiguration implements Node & ObjectWithMetadata {
   chargeTaxes: Boolean!
 
   """
-  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app.
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
@@ -7620,7 +7620,7 @@ type TaxConfigurationPerCountry {
   chargeTaxes: Boolean!
 
   """
-  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app.
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
@@ -15377,7 +15377,7 @@ input TaxConfigurationUpdateInput {
   chargeTaxes: Boolean
 
   """
-  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app.
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
@@ -15406,7 +15406,7 @@ input TaxConfigurationPerCountryInput {
   chargeTaxes: Boolean!
 
   """
-  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app.
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
