@@ -4828,7 +4828,7 @@ enum AttributeInputTypeEnum {
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
-  PRODUCTVARIANT
+  PRODUCT_VARIANT
 }
 
 """An enumeration."""

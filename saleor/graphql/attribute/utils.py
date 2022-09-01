@@ -52,7 +52,7 @@ T_INSTANCE = Union[
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 T_ERROR_DICT = Dict[Tuple[str, str], List[str]]
 
-EntityTypeData = namedtuple("EntityTypeData", ["model", "entity_field", "value_field"])
+EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
 
 
 class AttributeAssignmentMixin:
@@ -464,7 +464,7 @@ class AttributeAssignmentMixin:
             return tuple()
 
         entity_data = cls.ENTITY_TYPE_MAPPING[attribute.entity_type]  # type: ignore
-        field_name = entity_data.entity_field
+        field_name = entity_data.name_field
         get_or_create = attribute.values.get_or_create
 
         reference_list = []
