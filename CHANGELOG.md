@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.8.0 [Unreleased]
 
+### Other changes
+
+- Reference attribute linking to product variants - #10468 by @IKarbowiak
+
 # 3.7.0
 
 ### Highlights
@@ -34,14 +38,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add support for `bcrypt` password hashes - #10346 by @pkucmus
 - Add the ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
-- Fix situation when Payment Gateway try to save to long error message - #10402 by @fowczarek
-- Replaced `context.app` lazy object with a dataloader.
-- Add support for bcrypt password hashes - #10346 by @pkucmus
-- Add ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
-- Reference attribute linking to product variants - #10468 by @IKarbowiak
-
-### GraphQL API
- - Add `name` parameter to `ProductVariantInput` - #10456 by @SzymJ
 
 
 # 3.6.0
