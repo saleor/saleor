@@ -177,8 +177,7 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
-    def clean_input(cls, info, order, data):
-        site = load_site(info.context)
+    def clean_input(cls, info, order, data, site):
         if not order.is_fully_paid() and (
             site.settings.fulfillment_auto_approve
             and not site.settings.fulfillment_allow_unpaid
@@ -242,8 +241,8 @@ class OrderFulfill(BaseMutation):
             qs=order_models.Order.objects.prefetch_related("lines__variant"),
         )
         data = data.get("input")
-
-        cleaned_input = cls.clean_input(info, order, data)
+        site = load_site(info.context)
+        cleaned_input = cls.clean_input(info, order, data, site=site)
 
         context = info.context
         user = context.user if not context.user.is_anonymous else None
@@ -254,7 +253,6 @@ class OrderFulfill(BaseMutation):
         allow_stock_to_be_exceeded = cleaned_input.get(
             "allow_stock_to_be_exceeded", False
         )
-        site = load_site(info.context)
         approved = site.settings.fulfillment_auto_approve
         tracking_number = cleaned_input.get("tracking_number", "")
         try:
