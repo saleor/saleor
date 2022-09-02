@@ -166,7 +166,7 @@ def test_create_and_update_country_configurations(
     # given
     id = graphene.Node.to_global_id("TaxConfiguration", example_tax_configuration.pk)
 
-    # # update PL configuration and create DE configuration
+    # update PL configuration and create DE configuration
     update_PL_data = {
         "countryCode": "PL",
         "chargeTaxes": False,
@@ -208,6 +208,58 @@ def test_create_and_update_country_configurations(
 
     assert update_PL_data in response_data
     assert create_DE_data in response_data
+
+
+def test_create_and_update_country_configurations_no_tax_calculation_strategy(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    id = graphene.Node.to_global_id("TaxConfiguration", example_tax_configuration.pk)
+
+    # update PL configuration and create PT configuration with omitting the
+    # `taxCalculationStrategy` in both inputs
+    update_PL_data = {
+        "countryCode": "PL",
+        "chargeTaxes": False,
+        "displayGrossPrices": False,
+    }
+    create_PT_data = {
+        "countryCode": "PT",
+        "chargeTaxes": False,
+        "displayGrossPrices": False,
+    }
+
+    variables = {
+        "id": id,
+        "input": {
+            "updateCountriesConfiguration": [
+                update_PL_data,
+                create_PT_data,
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxConfigurationUpdate"]["taxConfiguration"]
+    assert len(data["countries"]) == 2
+
+    response_data = []
+    for item in data["countries"]:
+        new_item = {**item, "countryCode": item["country"]["code"]}
+        new_item.pop("country")
+        response_data.append(new_item)
+
+    update_PL_data["taxCalculationStrategy"] = None
+    create_PT_data["taxCalculationStrategy"] = None
+
+    assert update_PL_data in response_data
+    assert create_PT_data in response_data
 
 
 def test_remove_country_configurations(
