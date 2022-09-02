@@ -1531,6 +1531,9 @@ enum WebhookEventTypeEnum {
   """A product is deleted."""
   PRODUCT_DELETED
 
+  """A product metadata is updated."""
+  PRODUCT_METADATA_UPDATED
+
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -1571,8 +1574,12 @@ enum WebhookEventTypeEnum {
   FULFILLMENT_APPROVED
 =======
   """A fulfillment metadata is updated."""
+<<<<<<< HEAD
   FULFILLMENT_METADATA_CREATED
 >>>>>>> 679c79bb2... Update GraphQL schema
+=======
+  FULFILLMENT_METADATA_UPDATED
+>>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
 
   """User notification triggered."""
   NOTIFY_USER
@@ -1977,6 +1984,9 @@ enum WebhookEventTypeAsyncEnum {
   """A product is deleted."""
   PRODUCT_DELETED
 
+  """A product metadata is updated."""
+  PRODUCT_METADATA_UPDATED
+
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
 
@@ -2017,8 +2027,12 @@ enum WebhookEventTypeAsyncEnum {
   FULFILLMENT_APPROVED
 =======
   """A fulfillment metadata is updated."""
+<<<<<<< HEAD
   FULFILLMENT_METADATA_CREATED
 >>>>>>> 679c79bb2... Update GraphQL schema
+=======
+  FULFILLMENT_METADATA_UPDATED
+>>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2654,6 +2668,7 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
@@ -2666,10 +2681,14 @@ enum WebhookSampleEventTypeEnum {
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
 <<<<<<< HEAD
+<<<<<<< HEAD
   FULFILLMENT_APPROVED
 =======
   FULFILLMENT_METADATA_CREATED
 >>>>>>> 679c79bb2... Update GraphQL schema
+=======
+  FULFILLMENT_METADATA_UPDATED
+>>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
