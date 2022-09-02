@@ -84,6 +84,15 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("charge_taxes", models.BooleanField(default=True)),
+                (
+                    "tax_calculation_strategy",
+                    models.CharField(
+                        blank=True,
+                        choices=[("FLAT_RATES", "Flat rates"), ("TAX_APP", "Tax app")],
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
                 ("display_gross_prices", models.BooleanField(default=True)),
                 ("prices_entered_with_tax", models.BooleanField(default=True)),
                 (
@@ -141,6 +150,15 @@ class Migration(migrations.Migration):
                 ),
                 ("country", django_countries.fields.CountryField(max_length=2)),
                 ("charge_taxes", models.BooleanField(default=True)),
+                (
+                    "tax_calculation_strategy",
+                    models.CharField(
+                        blank=True,
+                        choices=[("FLAT_RATES", "Flat rates"), ("TAX_APP", "Tax app")],
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
                 ("display_gross_prices", models.BooleanField(default=True)),
                 (
                     "tax_configuration",

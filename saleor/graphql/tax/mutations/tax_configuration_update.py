@@ -139,7 +139,7 @@ class TaxConfigurationUpdate(ModelMutation):
             data = input_data_by_country[obj.country]
             obj.charge_taxes = data["charge_taxes"]
             obj.display_gross_prices = data["display_gross_prices"]
-            obj.tax_calculation_strategy = data.get("tax_calculation_strategy", None)
+            obj.tax_calculation_strategy = data.get("tax_calculation_strategy")
             updated_countries.append(obj.country.code)
         models.TaxConfigurationPerCountry.objects.bulk_update(
             to_update,
@@ -156,7 +156,7 @@ class TaxConfigurationUpdate(ModelMutation):
                 tax_configuration=instance,
                 country=item["country_code"],
                 charge_taxes=item["charge_taxes"],
-                tax_calculation_strategy=item.get("tax_calculation_strategy", None),
+                tax_calculation_strategy=item.get("tax_calculation_strategy"),
                 display_gross_prices=item["display_gross_prices"],
             )
             for item in countries_configuration
