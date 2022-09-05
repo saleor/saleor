@@ -469,9 +469,9 @@ def _create_order(
     user: User,
     app: Optional["App"],
     manager: "PluginsManager",
-    site_settings=None,
-    metadata_list=None,
-    private_metadata_list=None
+    site_settings: Optional["SiteSettings"] = None,
+    metadata_list: Optional[List] = None,
+    private_metadata_list: Optional[List] = None
 ) -> Order:
     """Create an order from the checkout.
 
@@ -746,8 +746,8 @@ def complete_checkout(
     site_settings=None,
     tracking_code=None,
     redirect_url=None,
-    metadata_list=None,
-    private_metadata_list=None,
+    metadata_list: Optional[List] = None,
+    private_metadata_list: Optional[List] = None,
 ) -> Tuple[Optional[Order], bool, dict]:
     """Logic required to finalize the checkout and convert it to order.
 

@@ -24,7 +24,7 @@ from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
@@ -92,7 +92,9 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
         )
         metadata = NonNullList(
             MetadataInput,
-            description="Fields required to update the object's metadata.",
+            description=(
+                "Fields required to update the object's metadata." + ADDED_IN_38
+            ),
             required=False,
         )
 

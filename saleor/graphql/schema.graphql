@@ -13216,7 +13216,11 @@ type Mutation {
     """
     id: ID
 
-    """Fields required to update the object's metadata."""
+    """
+    Fields required to update the object's metadata.
+    
+    Added in Saleor 3.8.
+    """
     metadata: [MetadataInput!]
 
     """Client-side generated data required to finalize the payment."""
@@ -13627,10 +13631,18 @@ type Mutation {
     """ID of a checkout that will be converted to an order."""
     id: ID!
 
-    """Fields required to update the object's metadata."""
+    """
+    Fields required to update the object's metadata.
+    
+    Added in Saleor 3.8.
+    """
     metadata: [MetadataInput!]
 
-    """Fields required to update the object's private metadata."""
+    """
+    Fields required to update the object's private metadata.
+    
+    Added in Saleor 3.8.
+    """
     privateMetadata: [MetadataInput!]
 
     """

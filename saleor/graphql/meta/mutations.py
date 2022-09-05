@@ -9,7 +9,6 @@ from graphql.error.base import GraphQLError
 
 from ...checkout import models as checkout_models
 from ...core import models
-from ...core.db.utils import set_mutation_flag_in_context
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...discount import models as discount_models
@@ -18,6 +17,8 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
+from ..core.context import set_mutation_flag_in_context
+from ..core.descriptions import ADDED_IN_38
 from ..core.mutations import BaseMutation
 from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
@@ -407,12 +408,16 @@ class BaseMutationWithMetadata(BaseMutation):
     class Arguments:
         private_metadata = NonNullList(
             MetadataInput,
-            description="Fields required to update the object's private metadata.",
+            description=(
+                "Fields required to update the object's private metadata." + ADDED_IN_38
+            ),
             required=False,
         )
         metadata = NonNullList(
             MetadataInput,
-            description="Fields required to update the object's metadata.",
+            description=(
+                "Fields required to update the object's metadata." + ADDED_IN_38
+            ),
             required=False,
         )
 
