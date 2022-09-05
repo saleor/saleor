@@ -1,7 +1,7 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_36, ADDED_IN_38, PREVIEW_FEATURE
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -46,25 +46,27 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: "A channel status is changed.",
     WebhookEventAsyncType.CHECKOUT_CREATED: "A new checkout is created.",
     WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
-    WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: "A checkout metadata is updated.",
+    WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: (
+        "A checkout metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
+    ),
     WebhookEventAsyncType.COLLECTION_CREATED: "A new collection is created.",
     WebhookEventAsyncType.COLLECTION_UPDATED: "A collection is updated.",
     WebhookEventAsyncType.COLLECTION_DELETED: "A collection is deleted.",
     WebhookEventAsyncType.COLLECTION_METADATA_UPDATED: (
-        "A collection metadata is updated."
+        "A collection metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.CUSTOMER_CREATED: "A new customer account is created.",
     WebhookEventAsyncType.CUSTOMER_UPDATED: "A customer account is updated.",
     WebhookEventAsyncType.CUSTOMER_DELETED: "A customer account is deleted.",
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: (
-        "A customer account metadata is updated."
+        "A customer account metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.GIFT_CARD_CREATED: "A new gift card created.",
     WebhookEventAsyncType.GIFT_CARD_UPDATED: "A gift card is updated.",
     WebhookEventAsyncType.GIFT_CARD_DELETED: "A gift card is deleted.",
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: "A gift card status is changed.",
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: (
-        "A gift card metadata is updated."
+        "A gift card metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
     WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
@@ -82,7 +84,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ORDER_UPDATED: order_updated_event_enum_description,
     WebhookEventAsyncType.ORDER_CANCELLED: "An order is cancelled.",
     WebhookEventAsyncType.ORDER_FULFILLED: "An order is fulfilled.",
-    WebhookEventAsyncType.ORDER_METADATA_UPDATED: "An order metadata is updated.",
+    WebhookEventAsyncType.ORDER_METADATA_UPDATED: (
+        "An order metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
+    ),
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: "A draft order is created.",
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: "A draft order is updated.",
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: "A draft order is deleted.",
@@ -100,7 +104,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
 >>>>>>> 295e689fb... Add webhook events for metadata updates
 =======
     WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED: (
-        "A fulfillment metadata is updated."
+        "A fulfillment metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
 >>>>>>> 70f0d3366... Fix linters
     WebhookEventAsyncType.PAGE_CREATED: "A new page is created.",
@@ -117,12 +121,14 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
-    WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: "A product metadata is updated.",
+    WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: (
+        "A product metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
+    ),
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: "A new product variant is created.",
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: "A product variant is updated.",
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: "A product variant is deleted.",
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
-        "A product variant metadata is updated."
+        "A product variant metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: (
         "A product variant is out of stock."
@@ -137,7 +143,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: "A shipping zone is updated.",
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: "A shipping zone is deleted.",
     WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: (
-        "A shipping zone metadata is updated."
+        "A shipping zone metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.STAFF_CREATED: "A new staff user is created.",
     WebhookEventAsyncType.STAFF_UPDATED: "A staff user is updated.",
@@ -146,7 +152,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
         "An action requested for transaction."
     ),
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
-        "Transaction item metadata is updated."
+        "Transaction item metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.TRANSLATION_CREATED: "A new translation is created.",
     WebhookEventAsyncType.TRANSLATION_UPDATED: "A translation is updated.",
@@ -154,12 +160,14 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.WAREHOUSE_UPDATED: "A warehouse is updated.",
     WebhookEventAsyncType.WAREHOUSE_DELETED: "A warehouse is deleted.",
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: (
-        "A warehouse metadata is updated."
+        "A warehouse metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
     WebhookEventAsyncType.VOUCHER_CREATED: "A new voucher created.",
     WebhookEventAsyncType.VOUCHER_UPDATED: "A voucher is updated.",
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
-    WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
+    WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: (
+        "A voucher metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
+    ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (

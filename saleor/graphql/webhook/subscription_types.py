@@ -32,6 +32,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_36,
     ADDED_IN_37,
+    ADDED_IN_38,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -427,7 +428,7 @@ class OrderMetadataUpdated(ObjectType, MetadataUpdatedBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when order metadata is updated." + ADDED_IN_36 + PREVIEW_FEATURE
+            "Event sent when order metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
         )
 
 
@@ -510,7 +511,7 @@ class GiftCardMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when gift card metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -644,7 +645,7 @@ class ProductMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when product metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -701,7 +702,7 @@ class ProductVariantMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when product variant metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -897,7 +898,7 @@ class FulfillmentMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when fulfillment metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -939,7 +940,7 @@ class CustomerMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when customer user metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -990,7 +991,7 @@ class CollectionMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when collection metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -1030,7 +1031,7 @@ class CheckoutMetadataUpdated(ObjectType):
         interfaces = (Event,)
         description = (
             "Event sent when checkout metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -1250,7 +1251,7 @@ class ShippingZoneMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when shipping zone metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -1335,7 +1336,7 @@ class TransactionItemMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when transaction item metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -1428,7 +1429,7 @@ class VoucherMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when voucher metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
@@ -1619,7 +1620,7 @@ class WarehouseMetadataUpdated(ObjectType, MetadataUpdatedBase):
         interfaces = (Event,)
         description = (
             "Event sent when warehouse metadata is updated."
-            + ADDED_IN_36
+            + ADDED_IN_38
             + PREVIEW_FEATURE
         )
 
