@@ -8,6 +8,7 @@ from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import Error, NonNullList
 from ...core.utils import get_duplicates_items
+from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
 
 TaxConfigurationUpdateErrorCode = graphene.Enum.from_enum(
@@ -23,6 +24,15 @@ class TaxConfigurationPerCountryInput(graphene.InputObjectType):
         description="Determines whether taxes are charged in this country.",
         required=True,
     )
+    tax_calculation_strategy = graphene.Field(
+        TaxCalculationStrategy,
+        required=False,
+        description=(
+            "A country-specific strategy to use for tax calculation. Taxes can be "
+            "calculated either using user-defined flat rates or with a tax app. If "
+            "not provided, use the value from the channel's tax configuration."
+        ),
+    )
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether prices displayed in a storefront should include taxes "
@@ -35,6 +45,16 @@ class TaxConfigurationPerCountryInput(graphene.InputObjectType):
 class TaxConfigurationUpdateInput(graphene.InputObjectType):
     charge_taxes = graphene.Boolean(
         description="Determines whether taxes are charged in the given channel."
+    )
+    tax_calculation_strategy = graphene.Field(
+        TaxCalculationStrategy,
+        required=False,
+        description=(
+            "The default strategy to use for tax calculation in the given channel. "
+            "Taxes can be calculated either using user-defined flat rates or with "
+            "a tax app. Empty value means that no method is selected and taxes are "
+            "not calculated."
+        ),
     )
     display_gross_prices = graphene.Boolean(
         description=(
@@ -119,12 +139,14 @@ class TaxConfigurationUpdate(ModelMutation):
             data = input_data_by_country[obj.country]
             obj.charge_taxes = data["charge_taxes"]
             obj.display_gross_prices = data["display_gross_prices"]
+            obj.tax_calculation_strategy = data.get("tax_calculation_strategy")
             updated_countries.append(obj.country.code)
         models.TaxConfigurationPerCountry.objects.bulk_update(
             to_update,
             fields=(
                 "charge_taxes",
                 "display_gross_prices",
+                "tax_calculation_strategy",
             ),
         )
 
@@ -134,6 +156,7 @@ class TaxConfigurationUpdate(ModelMutation):
                 tax_configuration=instance,
                 country=item["country_code"],
                 charge_taxes=item["charge_taxes"],
+                tax_calculation_strategy=item.get("tax_calculation_strategy"),
                 display_gross_prices=item["display_gross_prices"],
             )
             for item in countries_configuration

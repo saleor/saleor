@@ -1,8 +1,8 @@
-"""Contain functions which are base for calculating checkout properties.
+"""Contains functions which are base for calculating checkout properties.
 
 It's recommended to use functions from calculations.py module to take in account
 plugin manager. Functions from this module return price without
-taxes(Money instead of TaxedMoney). If you don't need pre-taxed prices use functions
+taxes (Money instead of TaxedMoney). If you don't need pre-taxed prices use functions
 from calculations.py.
 """
 

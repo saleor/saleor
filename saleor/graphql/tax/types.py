@@ -12,6 +12,7 @@ from .dataloaders import (
     TaxClassCountryRateByTaxClassIDLoader,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
+from .enums import TaxCalculationStrategy
 
 
 class TaxConfiguration(ModelObjectType):
@@ -23,6 +24,16 @@ class TaxConfiguration(ModelObjectType):
     charge_taxes = graphene.Boolean(
         description="Determines whether taxes are charged in the given channel.",
         required=True,
+    )
+    tax_calculation_strategy = graphene.Field(
+        TaxCalculationStrategy,
+        required=False,
+        description=(
+            "The default strategy to use for tax calculation in the given channel. "
+            "Taxes can be calculated either using user-defined flat rates or with "
+            "a tax app. Empty value means that no method is selected and taxes are "
+            "not calculated."
+        ),
     )
     display_gross_prices = graphene.Boolean(
         description=(
@@ -72,6 +83,15 @@ class TaxConfigurationPerCountry(ModelObjectType):
     charge_taxes = graphene.Boolean(
         description="Determines whether taxes are charged in this country.",
         required=True,
+    )
+    tax_calculation_strategy = graphene.Field(
+        TaxCalculationStrategy,
+        required=False,
+        description=(
+            "A country-specific strategy to use for tax calculation. Taxes can be "
+            "calculated either using user-defined flat rates or with a tax app. If "
+            "not provided, use the value from the channel's tax configuration."
+        ),
     )
     display_gross_prices = graphene.Boolean(
         description=(

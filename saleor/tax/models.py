@@ -6,6 +6,7 @@ from graphene import Int
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions.enums import TaxPermissions
+from . import TaxCalculationStrategy
 
 DEFAULT_TAX_CLASS_NAME = "Default"
 
@@ -80,6 +81,9 @@ class TaxConfiguration(ModelWithMetadata):
         Channel, related_name="tax_configuration", on_delete=models.CASCADE
     )
     charge_taxes = models.BooleanField(default=True)
+    tax_calculation_strategy = models.CharField(
+        max_length=20, choices=TaxCalculationStrategy.CHOICES, blank=True, null=True
+    )
     display_gross_prices = models.BooleanField(default=True)
     prices_entered_with_tax = models.BooleanField(default=True)
 
@@ -93,6 +97,9 @@ class TaxConfigurationPerCountry(models.Model):
     )
     country = CountryField()
     charge_taxes = models.BooleanField(default=True)
+    tax_calculation_strategy = models.CharField(
+        max_length=20, choices=TaxCalculationStrategy.CHOICES, blank=True, null=True
+    )
     display_gross_prices = models.BooleanField(default=True)
 
     class Meta:

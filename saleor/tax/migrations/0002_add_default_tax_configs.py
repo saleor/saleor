@@ -2,6 +2,15 @@
 
 from django.db import migrations
 
+from .. import TaxCalculationStrategy
+
+
+AVATAX_PLUGIN_ID = "mirumee.taxes.avalara"
+VATLAYER_ID = "mirumee.taxes.vatlayer"
+
+CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
+ORDER_CALCULATE_TAXES = "order_calculate_taxes"
+
 
 def add_tax_configuration_for_channels(apps, schema_editor):
     Channel = apps.get_model("channel", "Channel")
@@ -23,6 +32,52 @@ def add_tax_configuration_for_channels(apps, schema_editor):
     TaxConfiguration.objects.bulk_create(tax_configurations)
 
 
+def populate_tax_calculation_strategy(apps, schema_editor):
+    App = apps.get_model("app", "App")
+    PluginConfiguration = apps.get_model("plugins", "PluginConfiguration")
+    TaxConfiguration = apps.get_model("tax", "TaxConfiguration")
+
+    def _get_tax_app():
+        permissions = {}
+        permissions["permissions__content_type__app_label"] = "checkout"
+        permissions["permissions__codename"] = "handle_taxes"
+        return App.objects.filter(
+            is_active=True,
+            webhooks__is_active=True,
+            webhooks__events__event_type__in=[
+                CHECKOUT_CALCULATE_TAXES,
+                ORDER_CALCULATE_TAXES,
+            ],
+            **permissions,
+        )
+
+    # If there is any tax app enabled, turn on TAX_APP strategy for all channels.
+
+    is_tax_app_enabled = _get_tax_app().exists()
+    if is_tax_app_enabled:
+        TaxConfiguration.objects.update(
+            tax_calculation_strategy=TaxCalculationStrategy.TAX_APP
+        )
+        return
+
+    # Set TAX_APP calculation strategy for the channels where Avalara is configured.
+    # Set FLAT_RATES tax calculation strategy for channels where Vatlayer is enabled.
+
+    avatax_channels = PluginConfiguration.objects.filter(
+        active=True, identifier=AVATAX_PLUGIN_ID
+    ).values_list("channel_id", flat=True)
+    TaxConfiguration.objects.filter(channel_id__in=avatax_channels).update(
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP
+    )
+
+    vatlayer_channels = PluginConfiguration.objects.filter(
+        active=True, identifier=VATLAYER_ID
+    ).values_list("channel_id", flat=True)
+    TaxConfiguration.objects.filter(channel_id__in=vatlayer_channels).update(
+        tax_calculation_strategy=TaxCalculationStrategy.FLAT_RATES
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -31,6 +86,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            add_tax_configuration_for_channels, migrations.RunPython.noop
+            add_tax_configuration_for_channels,
+            migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            populate_tax_calculation_strategy,
+            migrations.RunPython.noop,
         ),
     ]

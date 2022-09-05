@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.tax.models import TaxClass, TaxClassCountryRate
+from ..models import TaxClass, TaxClassCountryRate
 
 
 @pytest.fixture(autouse=True)

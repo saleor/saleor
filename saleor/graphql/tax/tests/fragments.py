@@ -6,6 +6,7 @@ TAX_CONFIGURATION_FRAGMENT = """
       name
     }
     chargeTaxes
+    taxCalculationStrategy
     displayGrossPrices
     pricesEnteredWithTax
     countries {
@@ -14,6 +15,7 @@ TAX_CONFIGURATION_FRAGMENT = """
         country
       }
       chargeTaxes
+      taxCalculationStrategy
       displayGrossPrices
     }
     metadata {

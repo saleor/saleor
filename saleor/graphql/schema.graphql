@@ -7584,6 +7584,11 @@ type TaxConfiguration implements Node & ObjectWithMetadata {
   chargeTaxes: Boolean!
 
   """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
   Determines whether prices displayed in a storefront should include taxes.
   """
   displayGrossPrices: Boolean!
@@ -7593,6 +7598,11 @@ type TaxConfiguration implements Node & ObjectWithMetadata {
 
   """List of country-specific exceptions in tax configuration."""
   countries: [TaxConfigurationPerCountry!]!
+}
+
+enum TaxCalculationStrategy {
+  FLAT_RATES
+  TAX_APP
 }
 
 """
@@ -7608,6 +7618,11 @@ type TaxConfigurationPerCountry {
 
   """Determines whether taxes are charged in this country."""
   chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
 
   """
   Determines whether prices displayed in a storefront should include taxes for this country.
@@ -15362,6 +15377,11 @@ input TaxConfigurationUpdateInput {
   chargeTaxes: Boolean
 
   """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
   Determines whether prices displayed in a storefront should include taxes.
   """
   displayGrossPrices: Boolean
@@ -15384,6 +15404,11 @@ input TaxConfigurationPerCountryInput {
 
   """Determines whether taxes are charged in this country."""
   chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
 
   """
   Determines whether prices displayed in a storefront should include taxes for this country.
