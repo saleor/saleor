@@ -25,13 +25,13 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        sales = list(queryset)
+        sales_and_catalogues = [
+            (sale, convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale)))
+            for sale in list(queryset)
+        ]
         queryset.delete()
-        for sale in sales:
-            previous_catalogue = fetch_catalogue_info(sale)
-            info.context.plugins.sale_deleted(
-                sale, convert_catalogue_info_to_global_ids(previous_catalogue)
-            )
+        for sale, previous_catalogue in sales_and_catalogues:
+            info.context.plugins.sale_deleted(sale, previous_catalogue)
 
 
 class VoucherBulkDelete(ModelBulkDeleteMutation):
