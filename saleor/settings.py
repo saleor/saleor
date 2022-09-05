@@ -89,6 +89,8 @@ DATABASES = {
     # ),
 }
 
+DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 TIME_ZONE = "UTC"
