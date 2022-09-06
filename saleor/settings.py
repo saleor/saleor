@@ -285,7 +285,7 @@ if ENABLE_DEBUG_TOOLBAR:
         ]
         DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
 
-# Log Python 'warnings' events using the 'logging' module
+# Make the `logging` Python module capture `warnings.warn()` calls
 # This is needed in order to log them as JSON when DEBUG=False
 logging.captureWarnings(True)
 
