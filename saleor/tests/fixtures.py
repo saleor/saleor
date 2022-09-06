@@ -4526,7 +4526,7 @@ def dummy_gateway_config():
 
 
 @pytest.fixture
-def dummy_payment_data(payment_dummy):
+def dummy_payment_data(payment_dummy, order_line):
     return PaymentData(
         gateway=payment_dummy.gateway,
         amount=Decimal(10),
