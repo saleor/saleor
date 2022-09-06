@@ -1422,7 +1422,13 @@ enum WebhookEventTypeEnum {
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
-  """A gift card metadata is updated."""
+  """
+  A gift card metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   GIFT_CARD_METADATA_UPDATED
 
   """A new menu created."""
@@ -1465,7 +1471,13 @@ enum WebhookEventTypeEnum {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
-  """An order metadata is updated."""
+  """
+  An order metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   ORDER_METADATA_UPDATED
 
   """A draft order is created."""
@@ -1507,7 +1519,13 @@ enum WebhookEventTypeEnum {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
-  """A customer account metadata is updated."""
+  """
+  A customer account metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   CUSTOMER_METADATA_UPDATED
 
   """A new collection is created."""
@@ -1519,7 +1537,13 @@ enum WebhookEventTypeEnum {
   """A collection is deleted."""
   COLLECTION_DELETED
 
-  """A collection metadata is updated."""
+  """
+  A collection metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   COLLECTION_METADATA_UPDATED
 
   """A new product is created."""
@@ -1531,7 +1555,13 @@ enum WebhookEventTypeEnum {
   """A product is deleted."""
   PRODUCT_DELETED
 
-  """A product metadata is updated."""
+  """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   PRODUCT_METADATA_UPDATED
 
   """A new product variant is created."""
@@ -1549,7 +1579,13 @@ enum WebhookEventTypeEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
-  """A product variant metadata is updated."""
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
@@ -1560,7 +1596,13 @@ enum WebhookEventTypeEnum {
   """
   CHECKOUT_UPDATED
 
-  """A checkout metadata is updated."""
+  """
+  A checkout metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   CHECKOUT_METADATA_UPDATED
 
   """A new fulfillment is created."""
@@ -1570,6 +1612,7 @@ enum WebhookEventTypeEnum {
   FULFILLMENT_CANCELED
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
 =======
@@ -1578,6 +1621,15 @@ enum WebhookEventTypeEnum {
   FULFILLMENT_METADATA_CREATED
 >>>>>>> 679c79bb2... Update GraphQL schema
 =======
+=======
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+>>>>>>> dc920ba19... Update GraphQL schema
   FULFILLMENT_METADATA_UPDATED
 >>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
 
@@ -1629,7 +1681,13 @@ enum WebhookEventTypeEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
-  """A shipping zone metadata is updated."""
+  """
+  A shipping zone metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   SHIPPING_ZONE_METADATA_UPDATED
 
   """A new staff user is created."""
@@ -1644,7 +1702,13 @@ enum WebhookEventTypeEnum {
   """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
 
-  """Transaction item metadata is updated."""
+  """
+  Transaction item metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
@@ -1662,7 +1726,13 @@ enum WebhookEventTypeEnum {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
-  """A warehouse metadata is updated."""
+  """
+  A warehouse metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   WAREHOUSE_METADATA_UPDATED
 
   """A new voucher created."""
@@ -1674,7 +1744,13 @@ enum WebhookEventTypeEnum {
   """A voucher is deleted."""
   VOUCHER_DELETED
 
-  """A voucher metadata is updated."""
+  """
+  A voucher metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   VOUCHER_METADATA_UPDATED
 
   """An observability event is created."""
@@ -1875,7 +1951,13 @@ enum WebhookEventTypeAsyncEnum {
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
-  """A gift card metadata is updated."""
+  """
+  A gift card metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   GIFT_CARD_METADATA_UPDATED
 
   """A new menu created."""
@@ -1918,7 +2000,13 @@ enum WebhookEventTypeAsyncEnum {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
-  """An order metadata is updated."""
+  """
+  An order metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   ORDER_METADATA_UPDATED
 
   """A draft order is created."""
@@ -1960,7 +2048,13 @@ enum WebhookEventTypeAsyncEnum {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
-  """A customer account metadata is updated."""
+  """
+  A customer account metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   CUSTOMER_METADATA_UPDATED
 
   """A new collection is created."""
@@ -1972,7 +2066,13 @@ enum WebhookEventTypeAsyncEnum {
   """A collection is deleted."""
   COLLECTION_DELETED
 
-  """A collection metadata is updated."""
+  """
+  A collection metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   COLLECTION_METADATA_UPDATED
 
   """A new product is created."""
@@ -1984,7 +2084,13 @@ enum WebhookEventTypeAsyncEnum {
   """A product is deleted."""
   PRODUCT_DELETED
 
-  """A product metadata is updated."""
+  """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   PRODUCT_METADATA_UPDATED
 
   """A new product variant is created."""
@@ -2002,7 +2108,13 @@ enum WebhookEventTypeAsyncEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
-  """A product variant metadata is updated."""
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   PRODUCT_VARIANT_METADATA_UPDATED
 
   """A new checkout is created."""
@@ -2013,7 +2125,13 @@ enum WebhookEventTypeAsyncEnum {
   """
   CHECKOUT_UPDATED
 
-  """A checkout metadata is updated."""
+  """
+  A checkout metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   CHECKOUT_METADATA_UPDATED
 
   """A new fulfillment is created."""
@@ -2023,6 +2141,7 @@ enum WebhookEventTypeAsyncEnum {
   FULFILLMENT_CANCELED
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
 =======
@@ -2031,6 +2150,15 @@ enum WebhookEventTypeAsyncEnum {
   FULFILLMENT_METADATA_CREATED
 >>>>>>> 679c79bb2... Update GraphQL schema
 =======
+=======
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+>>>>>>> dc920ba19... Update GraphQL schema
   FULFILLMENT_METADATA_UPDATED
 >>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
 
@@ -2082,7 +2210,13 @@ enum WebhookEventTypeAsyncEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
-  """A shipping zone metadata is updated."""
+  """
+  A shipping zone metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   SHIPPING_ZONE_METADATA_UPDATED
 
   """A new staff user is created."""
@@ -2097,7 +2231,13 @@ enum WebhookEventTypeAsyncEnum {
   """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
 
-  """Transaction item metadata is updated."""
+  """
+  Transaction item metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
@@ -2115,7 +2255,13 @@ enum WebhookEventTypeAsyncEnum {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
-  """A warehouse metadata is updated."""
+  """
+  A warehouse metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   WAREHOUSE_METADATA_UPDATED
 
   """A new voucher created."""
@@ -2127,7 +2273,13 @@ enum WebhookEventTypeAsyncEnum {
   """A voucher is deleted."""
   VOUCHER_DELETED
 
-  """A voucher metadata is updated."""
+  """
+  A voucher metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   VOUCHER_METADATA_UPDATED
 
   """An observability event is created."""
@@ -22291,7 +22443,7 @@ type GiftCardStatusChanged implements Event {
 """
 Event sent when gift card metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -22619,7 +22771,7 @@ type OrderCancelled implements Event {
 """
 Event sent when order metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -22803,7 +22955,7 @@ type ProductDeleted implements Event {
 """
 Event sent when product metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -22966,7 +23118,7 @@ type ProductVariantDeleted implements Event {
 """
 Event sent when product variant metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -23237,7 +23389,7 @@ type FulfillmentApproved implements Event {
 =======
 Event sent when fulfillment metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -23317,7 +23469,7 @@ type CustomerUpdated implements Event {
 """
 Event sent when customer user metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -23420,7 +23572,7 @@ type CollectionDeleted implements Event {
 """
 Event sent when collection metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -23490,7 +23642,7 @@ type CheckoutUpdated implements Event {
 """
 Event sent when checkout metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -23908,7 +24060,7 @@ type ShippingZoneDeleted implements Event {
 """
 Event sent when shipping zone metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -24049,7 +24201,7 @@ type TransactionAction {
 """
 Event sent when transaction item metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -24202,7 +24354,7 @@ type VoucherDeleted implements Event {
 """
 Event sent when voucher metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -24296,7 +24448,7 @@ type WarehouseDeleted implements Event {
 """
 Event sent when warehouse metadata is updated.
 
-Added in Saleor 3.6.
+Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
