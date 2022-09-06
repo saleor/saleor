@@ -1,8 +1,13 @@
 import django_filters
+import graphene
 from django.db.models import Q
 
 from ...page import models
-from ..core.filters import GlobalIDMultipleChoiceFilter, MetadataFilterBase
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+)
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_id
@@ -32,10 +37,15 @@ def filter_page_type_search(qs, _, value):
     return qs.filter(Q(name__trigram_similar=value) | Q(slug__trigram_similar=value))
 
 
+def filter_slug_list(qs, _, values):
+    return qs.filter(slug__in=values)
+
+
 class PageFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_page_search)
     page_types = GlobalIDMultipleChoiceFilter(method=filter_page_page_types)
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id(Page))
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = models.Page

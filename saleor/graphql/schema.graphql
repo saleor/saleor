@@ -6005,6 +6005,7 @@ input ProductFilterInput {
   giftCard: Boolean
   ids: [ID!]
   hasPreorderedVariants: Boolean
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -9674,6 +9675,7 @@ input CategoryFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 input CategorySortingInput {
@@ -9707,6 +9709,7 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -9903,6 +9906,7 @@ input PageFilterInput {
   metadata: [MetadataFilter!]
   pageTypes: [ID!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 type PageTypeCountableConnection {

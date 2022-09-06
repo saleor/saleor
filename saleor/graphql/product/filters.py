@@ -586,6 +586,10 @@ def filter_updated_at_range(qs, _, value):
     return filter_range_field(qs, "updated_at", value)
 
 
+def filter_slug_list(qs, _, values):
+    return qs.filter(slug__in=values)
+
+
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = NonNullList(graphene.ID, required=False)
     quantity = graphene.Field(IntRangeInput, required=False)
@@ -628,6 +632,7 @@ class ProductFilter(MetadataFilterBase):
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants
     )
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Product
@@ -694,6 +699,7 @@ class CollectionFilter(MetadataFilterBase):
     )
     search = django_filters.CharFilter(method="collection_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Collection
@@ -717,6 +723,7 @@ class CollectionFilter(MetadataFilterBase):
 class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Category
