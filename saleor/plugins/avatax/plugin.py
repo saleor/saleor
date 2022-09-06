@@ -594,10 +594,11 @@ class AvataxPlugin(BasePlugin):
                     net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
 
-        # Ignore typing checks because it is checked in _validate_order
-        channel_listing = order.shipping_method.channel_listings.filter(  # type: ignore
-            channel_id=order.channel_id
-        ).first()
+        channel_listing = None
+        if shipping_method := order.shipping_method:
+            channel_listing = shipping_method.channel_listings.filter(
+                channel_id=order.channel_id
+            ).first()
         if not channel_listing:
             return previous_value
         price = channel_listing.price
