@@ -2,16 +2,16 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout as Checkout
+from ....checkout.models import Checkout
 from ....checkout.utils import invalidate_checkout_prices
 from ....core.permissions import CheckoutPermissions
-from ....graphql.checkout.types import Checkout as CheckoutType
 from ....graphql.core.mutations import BaseMutation
-from ....graphql.order.types import Order as OrderType
 from ....order import ORDER_EDITABLE_STATUS
-from ....order.models import Order as Order
+from ....order.models import Order
 from ....tax import error_codes
+from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.types import Error
+from ...core.types.taxes import TaxSourceObject
 
 TaxExemptionManageErrorCode = graphene.Enum.from_enum(
     error_codes.TaxExemptionManageErrorCode
@@ -22,37 +22,34 @@ class TaxExemptionManageError(Error):
     code = TaxExemptionManageErrorCode(description="The error code.", required=True)
 
 
-TAXABLE_OBJECTS_MAP = {Order: OrderType, Checkout: CheckoutType}
-
-
-class TaxableObject(graphene.Union):
-    class Meta:
-        types = tuple(TAXABLE_OBJECTS_MAP.values())
-
-    @classmethod
-    def resolve_type(cls, instance, info):
-        instance_type = type(instance)
-        return TAXABLE_OBJECTS_MAP[instance_type]
-
-
 class TaxExemptionManage(BaseMutation):
-    taxable_object = graphene.Field(TaxableObject)
+    taxable_object = graphene.Field(TaxSourceObject)
 
     class Arguments:
-        id = graphene.ID(description="ID of the Checkout or Order object.")
-        tax_exemption = graphene.Boolean()
+        id = graphene.ID(
+            description="ID of the Checkout or Order object.", required=True
+        )
+        tax_exemption = graphene.Boolean(
+            description="Determines if a taxes should be exempt.", required=True
+        )
 
     class Meta:
-        description = "Exempt taxes for Checkout or Order."
+        description = (
+            "Exempt checkout or order from charging the taxes. When tax exemption is "
+            "enabled, taxes won't be charged for the checkout or order. Taxes may "
+            "still be calculated in cases when product prices are entered with the "
+            "tax included and the net price needs to be known."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+        )
         error_type_class = TaxExemptionManageError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def validate_input(cls, data):
-        obj_type, _ = graphene.Node.from_global_id(data["id"])
-
-        if obj_type not in ["Order", "Checkout"]:
-            code = error_codes.TaxExemptionManageErrorCode.INVALID_OBJECT_ID.value
+    def validate_input(cls, info, data):
+        obj = cls.get_node_or_error(info, data["id"])
+        if not isinstance(obj, (Order, Checkout)):
+            code = error_codes.TaxExemptionManageErrorCode.NOT_FOUND.value
             message = "Invalid object ID. Only Checkout and Order ID's are accepted."
             raise ValidationError({"id": ValidationError(code=code, message=message)})
 
@@ -87,7 +84,7 @@ class TaxExemptionManage(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        cls.validate_input(data)
+        cls.validate_input(info, data)
         obj = cls.get_object(info, data["id"])
         obj.tax_exemption = data["tax_exemption"]
 
@@ -98,6 +95,8 @@ class TaxExemptionManage(BaseMutation):
         if isinstance(obj, Order):
             cls.validate_order_status(obj)
             obj.should_refresh_prices = True
-            obj.save(update_fields=["tax_exemption", "should_refresh_prices"])
+            obj.save(
+                update_fields=["tax_exemption", "should_refresh_prices", "updated_at"]
+            )
 
         return TaxExemptionManage(taxable_object=obj)

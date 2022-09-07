@@ -63,6 +63,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -877,7 +878,14 @@ class Order(ModelObjectType):
         description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
         required=True,
     )
-    tax_exemption = graphene.Boolean()
+    tax_exemption = graphene.Boolean(
+        description=(
+            "Returns True if order has to be exempt from taxes."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
     transactions = NonNullList(
         TransactionItem,
         description=(

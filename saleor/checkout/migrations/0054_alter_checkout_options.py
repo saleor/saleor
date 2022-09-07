@@ -11,7 +11,7 @@ def assign_permissions(apps, schema_editor):
         App = apps.get_model("app", "App")
         Group = apps.get_model("auth", "Group")
 
-        handle_taxes = Permission.objects.filter(
+        manage_taxes = Permission.objects.filter(
             codename="manage_taxes", content_type__app_label="checkout"
         ).first()
 
@@ -23,13 +23,13 @@ def assign_permissions(apps, schema_editor):
             permissions=manage_checkouts,
         )
         for app in apps_qs.iterator():
-            app.permissions.add(handle_taxes)
+            app.permissions.add(manage_taxes)
 
         groups = Group.objects.filter(
             permissions=manage_checkouts,
         )
         for group in groups.iterator():
-            group.permissions.add(handle_taxes)
+            group.permissions.add(manage_taxes)
 
     sender = registry.get_app_config("checkout")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)

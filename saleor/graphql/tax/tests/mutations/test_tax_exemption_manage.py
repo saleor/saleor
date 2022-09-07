@@ -30,7 +30,7 @@ TAX_EXEMPTION_MUTATION = """
 
 
 @freeze_time("2022-05-12 12:00:00")
-def test_tax_exemption_manage_for_checkout(
+def test_tax_exemption_manage_for_checkout_as_staff(
     staff_api_client, checkout, permission_manage_taxes
 ):
     # given
@@ -39,6 +39,28 @@ def test_tax_exemption_manage_for_checkout(
 
     # when
     response = staff_api_client.post_graphql(
+        TAX_EXEMPTION_MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["taxExemptionManage"]
+    checkout.refresh_from_db()
+
+    # then
+    assert data["taxableObject"]["id"] == global_id
+    assert data["taxableObject"]["taxExemption"]
+    assert checkout.price_expiration == timezone.now()
+
+
+@freeze_time("2022-05-12 12:00:00")
+def test_tax_exemption_manage_for_checkout_as_app(
+    app_api_client, checkout, permission_manage_taxes
+):
+    # given
+    global_id = graphene.Node.to_global_id("Checkout", checkout.token)
+    variables = {"id": global_id, "taxExemption": True}
+
+    # when
+    response = app_api_client.post_graphql(
         TAX_EXEMPTION_MUTATION, variables, permissions=[permission_manage_taxes]
     )
     content = get_graphql_content(response)
@@ -89,9 +111,7 @@ def test_tax_exemption_manage_return_error_when_invalid_object_id(
 
     # then
     assert data["errors"][0]["field"] == "id"
-    assert (
-        data["errors"][0]["code"] == TaxExemptionManageErrorCode.INVALID_OBJECT_ID.name
-    )
+    assert data["errors"][0]["code"] == TaxExemptionManageErrorCode.NOT_FOUND.name
     assert not data["taxableObject"]
 
 

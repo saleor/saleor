@@ -588,18 +588,21 @@ def test_fetch_order_prices_if_expired_when_tax_exemption_enabled(
     assert order_with_lines.shipping_price == shipping_price
     assert order_with_lines.shipping_tax_rate == Decimal("0.00")
     subtotal = zero_taxed_money(currency)
+    undiscounted_subtotal = zero_taxed_money(currency)
 
     for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
         line_total = get_taxed_money(tax_line, "total", currency, exempt_taxes=True)
         subtotal += line_total
+        undiscounted_subtotal += order_line.undiscounted_total_price
         assert order_line.total_price == line_total
         assert order_line.unit_price == line_total / order_line.quantity
         assert order_line.tax_rate == Decimal("0.00")
 
-    assert order_with_lines.undiscounted_total == subtotal + shipping_price
-    assert order_with_lines.total == subtotal + shipping_price - create_taxed_money(
-        discount_amount, discount_amount, order_with_lines.currency
+    assert (
+        order_with_lines.undiscounted_total
+        == undiscounted_subtotal + shipping_price.net
     )
+    assert order_with_lines.total == subtotal + shipping_price
 
 
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):
