@@ -904,6 +904,8 @@ def order_line_product_removed_event(
     app: AppType,
     order_lines: List[Tuple[int, OrderLine]],
 ):
+    if not user_is_valid(user):
+        user = None
     return OrderEvent.objects.create(
         type=OrderEvents.ORDER_LINE_PRODUCT_DELETED,
         order=order,
@@ -919,6 +921,8 @@ def order_line_variant_removed_event(
     app: AppType,
     order_lines: List[Tuple[int, OrderLine]],
 ):
+    if not user_is_valid(user):
+        user = None
     return OrderEvent.objects.create(
         type=OrderEvents.ORDER_LINE_VARIANT_DELETED,
         order=order,

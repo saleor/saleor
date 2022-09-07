@@ -2,6 +2,10 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.8.0 [Unreleased]
+
+- Fix error when app deleted product added to draft order - (#10574)
+
 # 3.7.0
 
 ### Highlights
