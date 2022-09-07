@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Iterable
 from prices import Money, TaxedMoney
 
 from ..core.taxes import zero_money
-from ..discount import OrderDiscountType
 from ..discount.utils import apply_discount_to_value
 from .interface import OrderTaxedPricesData
 
@@ -25,8 +24,8 @@ def base_order_shipping(order: "Order") -> Money:
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     currency = order.currency
     total = base_order_total_without_order_discount(order, lines)
-    order_discount = order.discounts.filter(type=OrderDiscountType.MANUAL).first()
-    if order_discount:
+    order_discounts = order.discounts.all()
+    for order_discount in order_discounts:
         total = apply_discount_to_value(
             value=order_discount.value,
             value_type=order_discount.value_type,
