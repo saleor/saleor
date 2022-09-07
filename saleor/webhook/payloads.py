@@ -657,12 +657,18 @@ def serialize_product_channel_listing_payload(channel_listings):
 
 
 def serialize_refund_data(refund_data):
-    order_lines_to_refund = refund_data.get("order_lines_to_refund", [])
-    for line_data in order_lines_to_refund:
-        line = line_data["line"]
-        line_data["line"] = str(line.pk)
-        line_data["variant"] = line.variant.pk
-    return order_lines_to_refund
+    if order_lines_to_refund := refund_data.get("order_lines_to_refund"):
+        for line_data in order_lines_to_refund:
+            line = line_data["line"]
+            line_data["line"] = str(line.pk)
+            line_data["variant"] = line.variant.pk
+        refund_data["order_lines_to_refund"] = order_lines_to_refund
+    if fulfillment_lines_to_refund := refund_data.get("fulfillment_lines_to_refund"):
+        for line_data in fulfillment_lines_to_refund:
+            line = line_data["line"]
+            line_data["line"] = line.pk
+        refund_data["fulfillment_lines_to_refund"] = fulfillment_lines_to_refund
+    return refund_data
 
 
 @traced_payload_generator
@@ -971,9 +977,7 @@ def generate_payment_payload(
 ):
     data = asdict(payment_data)
     if refund_data := data.get("refund_data"):
-        data["refund_data"]["order_lines_to_refund"] = serialize_refund_data(
-            refund_data
-        )
+        data["refund_data"] = serialize_refund_data(refund_data)
     data["amount"] = quantize_price(data["amount"], data["currency"])
     if payment_app_data := from_payment_app_id(data["gateway"]):
         data["payment_method"] = payment_app_data.name
