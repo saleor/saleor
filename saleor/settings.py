@@ -1,4 +1,5 @@
 import ast
+import logging
 import os.path
 import warnings
 from datetime import timedelta
@@ -283,6 +284,10 @@ if ENABLE_DEBUG_TOOLBAR:
             "debug_toolbar.panels.profiling.ProfilingPanel",
         ]
         DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
+
+# Make the `logging` Python module capture `warnings.warn()` calls
+# This is needed in order to log them as JSON when DEBUG=False
+logging.captureWarnings(True)
 
 LOGGING = {
     "version": 1,
