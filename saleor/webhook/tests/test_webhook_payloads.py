@@ -51,6 +51,7 @@ from ..payloads import (
     generate_order_payload,
     generate_order_payload_for_tax_calculation,
     generate_payment_payload,
+    generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_requestor,
@@ -307,7 +308,7 @@ def test_generate_order_payload_for_tax_calculation(
     tax_configuration = order.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete
+    tax_configuration.country_exceptions.all().delete()
 
     order_lines = '"order_lines"'
     mocked_order_lines.return_value = order_lines
@@ -557,16 +558,21 @@ def test_order_lines_have_all_required_fields(
     }
 
 
-@pytest.mark.parametrize("prices_entered_with_tax", [True])  # , False])
+@pytest.mark.parametrize(
+    "charge_taxes, prices_entered_with_tax",
+    [(False, False), (False, True), (True, False), (True, True)],
+)
 def test_order_lines_for_tax_calculation_have_all_required_fields(
     order,
     order_line_with_one_allocation,
+    charge_taxes,
     prices_entered_with_tax,
 ):
     tax_configuration = order.channel.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     order.lines.add(order_line_with_one_allocation)
     currency = order.currency
@@ -603,7 +609,7 @@ def test_order_lines_for_tax_calculation_have_all_required_fields(
         "product_type_metadata": {"product_type_meta": "value"},
         "quantity": line.quantity,
         "sku": line.product_sku,
-        "charge_taxes": variant.product.charge_taxes,
+        "charge_taxes": charge_taxes,
         "unit_amount": str(quantize_price(line.base_unit_price_amount, currency)),
         "total_amount": str(
             quantize_price(line.base_unit_price_amount * line.quantity, currency)
@@ -611,10 +617,14 @@ def test_order_lines_for_tax_calculation_have_all_required_fields(
     }
 
 
+@pytest.mark.parametrize("charge_taxes", [True, False])
 def test_order_lines_for_tax_calculation_with_removed_variant(
-    order,
-    order_line_with_one_allocation,
+    order, order_line_with_one_allocation, charge_taxes
 ):
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
+    tax_configuration.save(update_fields=["charge_taxes"])
+    tax_configuration.country_exceptions.all().delete()
 
     order.lines.add(order_line_with_one_allocation)
     currency = order.currency
@@ -646,7 +656,7 @@ def test_order_lines_for_tax_calculation_with_removed_variant(
         "product_type_metadata": {},
         "quantity": line.quantity,
         "sku": line.product_sku,
-        "charge_taxes": None,
+        "charge_taxes": charge_taxes,
         "unit_amount": str(quantize_price(line.base_unit_price_amount, currency)),
         "total_amount": str(
             quantize_price(line.base_unit_price_amount * line.quantity, currency)
@@ -695,6 +705,25 @@ def test_generate_collection_payload(collection):
     ]
 
     assert payload == expected_payload
+
+
+@pytest.mark.parametrize("tax_rate", [0, 23])
+def test_generate_product_payload_charge_taxes(
+    product_with_two_variants, default_tax_class, tax_rate
+):
+    # given
+    product = product_with_two_variants
+    default_tax_class.country_rates.all().delete()
+    default_tax_class.country_rates.create(country="PL", rate=tax_rate)
+    product.tax_class = default_tax_class
+    product.save(update_fields=["tax_class"])
+
+    # when
+    payload = json.loads(generate_product_payload(product_with_two_variants))
+
+    # then
+    expected_charge_taxes = tax_rate != 0
+    assert payload[0]["charge_taxes"] == expected_charge_taxes
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
@@ -1371,7 +1400,7 @@ def test_generate_checkout_payload_for_tax_calculation(
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete
+    tax_configuration.country_exceptions.all().delete()
 
     mocked_serialized_checkout_lines = {"data": "checkout_lines_data"}
     mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
@@ -1461,7 +1490,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete
+    tax_configuration.country_exceptions.all().delete()
 
     mocked_serialized_checkout_lines = {"data": "checkout_lines_data"}
     mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
@@ -1541,7 +1570,7 @@ def test_generate_checkout_payload(
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete
+    tax_configuration.country_exceptions.all().delete()
 
     # when
     payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]

@@ -88,6 +88,7 @@ from ...product.dataloaders.products import (
     ProductVariantsByProductIdAndChannel,
 )
 from ...tax.dataloaders import (
+    ProductChargeTaxesByTaxClassIdLoader,
     TaxClassByIdLoader,
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
@@ -774,7 +775,13 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     category = graphene.Field(lambda: Category)
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
-    charge_taxes = graphene.Boolean(required=True)
+    charge_taxes = graphene.Boolean(
+        required=True,
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` field to "
+            "determine whether tax collection is enabled."
+        ),
+    )
     weight = graphene.Field(Weight)
     default_variant = graphene.Field(ProductVariant)
     rating = graphene.Float()
@@ -1305,6 +1312,31 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             return TaxClassByIdLoader(info.context).load(tax_class_id)
 
         return Promise.resolve(product_type).then(resolve_tax_class)
+
+    def resolve_charge_taxes(root: ChannelContext[models.Product], info):
+        # Deprecated: this field is deprecated as it only checks whether there are any
+        # non-zero flat rates set for a product. Instead channel tax configuration
+        # should be used to check whether taxes are charged.
+
+        tax_class_id = root.node.tax_class_id
+        if not tax_class_id:
+            product_type = ProductTypeByIdLoader(info.context).load(
+                root.node.product_type_id
+            )
+
+            def with_product_type(product_type):
+                tax_class_id = product_type.tax_class_id
+                return (
+                    ProductChargeTaxesByTaxClassIdLoader(info.context).load(
+                        tax_class_id
+                    )
+                    if tax_class_id
+                    else False
+                )
+
+            return product_type.then(with_product_type)
+
+        return ProductChargeTaxesByTaxClassIdLoader(info.context).load(tax_class_id)
 
     @staticmethod
     def __resolve_references(roots: List["Product"], info):

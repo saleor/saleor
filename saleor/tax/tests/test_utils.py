@@ -1,12 +1,14 @@
-from ..utils import get_display_gross_prices, get_tax_country
+from ..utils import get_charge_taxes, get_display_gross_prices, get_tax_country
 
 
 def test_get_display_gross_prices(channel_USD):
     # given
     tax_configuration = channel_USD.tax_configuration
     tax_configuration.display_gross_prices = True
+    tax_configuration.save(update_fields=["charge_taxes"])
     country_exception = tax_configuration.country_exceptions.first()
     country_exception.display_gross_prices = False
+    country_exception.save(update_fields=["charge_taxes"])
 
     # then
     assert (
@@ -16,6 +18,23 @@ def test_get_display_gross_prices(channel_USD):
     assert (
         get_display_gross_prices(tax_configuration, country_exception)
         == country_exception.display_gross_prices
+    )
+
+
+def test_get_charge_taxes(channel_USD):
+    # given
+    tax_configuration = channel_USD.tax_configuration
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes"])
+    country_exception = tax_configuration.country_exceptions.first()
+    country_exception.charge_taxes = False
+    country_exception.save(update_fields=["charge_taxes"])
+
+    # then
+    assert get_charge_taxes(tax_configuration, None) == tax_configuration.charge_taxes
+    assert (
+        get_charge_taxes(tax_configuration, country_exception)
+        == country_exception.charge_taxes
     )
 
 

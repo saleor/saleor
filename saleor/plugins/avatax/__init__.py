@@ -22,6 +22,7 @@ from ...order.utils import (
     get_voucher_discount_assigned_to_order,
 )
 from ...shipping.models import ShippingMethodChannelListing
+from ...tax.utils import get_charge_taxes_for_checkout
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -263,8 +264,8 @@ def get_checkout_lines_data(
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
 
-    tax_configuration = checkout_info.tax_configuration
-    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
+    prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher
     is_entire_order_discount = (
@@ -274,7 +275,7 @@ def get_checkout_lines_data(
     )
     for line_info in lines_info:
         tax_override_data = {}
-        if not line_info.product.charge_taxes:
+        if not charge_taxes:
             if not is_entire_order_discount:
                 continue
             # if there is a voucher for the entire order we need to attach this line

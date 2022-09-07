@@ -525,7 +525,11 @@ class ProductInput(graphene.InputObjectType):
     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
-        description="Determine if taxes are being charged for the product."
+        description=(
+            "Determine if taxes are being charged for the product. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `Channel.taxConfiguration` to configure "
+            "whether tax collection is enabled."
+        )
     )
     collections = NonNullList(
         graphene.ID,

@@ -18,7 +18,6 @@ def _clear_str_list_country_codes(country_codes: str) -> List[str]:
 
 
 def create_tax_configurations(apps, vatlayer_configs):
-    TaxConfiguration = apps.get_model("tax", "TaxConfiguration")
     TaxConfigurationPerCountry = apps.get_model("tax", "TaxConfigurationPerCountry")
 
     # Map of countries to use origin country's tax, based on the
@@ -47,9 +46,6 @@ def create_tax_configurations(apps, vatlayer_configs):
         )
         if excluded_countries:
             tax_configuration = channel.tax_configuration
-            if not tax_configuration:
-                tax_configuration = TaxConfiguration.objects.create(channel=channel)
-
             for country in excluded_countries:
                 TaxConfigurationPerCountry.objects.update_or_create(
                     tax_configuration=tax_configuration,

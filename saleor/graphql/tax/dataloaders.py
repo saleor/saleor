@@ -1,4 +1,7 @@
 from collections import defaultdict
+from decimal import Decimal
+
+from django.db.models import Exists, OuterRef
 
 from ...tax.models import (
     TaxClass,
@@ -57,3 +60,18 @@ class TaxClassByIdLoader(DataLoader):
             keys
         )
         return [tax_class_map.get(obj_id) for obj_id in keys]
+
+
+class ProductChargeTaxesByTaxClassIdLoader(DataLoader):
+    context_key = "product_charge_taxes_by_tax_class_id"
+
+    def batch_load(self, keys):
+        non_zero_rates = TaxClassCountryRate.objects.filter(
+            tax_class=OuterRef("pk")
+        ).exclude(rate=Decimal(0))
+        tax_class_map = (
+            TaxClass.objects.filter(pk__in=keys)
+            .annotate(charge_taxes=Exists(non_zero_rates))
+            .in_bulk()
+        )
+        return [tax_class_map[tax_class_id].charge_taxes for tax_class_id in keys]

@@ -36,6 +36,8 @@ from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product
 from ..shipping.interface import ShippingMethodData
+from ..tax.models import TaxClassCountryRate
+from ..tax.utils import get_charge_taxes_for_order
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -624,7 +626,6 @@ PRODUCT_FIELDS = (
     "description",
     "currency",
     "updated_at",
-    "charge_taxes",
     "weight",
     "publication_date",
     "is_published",
@@ -655,6 +656,18 @@ def serialize_product_channel_listing_payload(channel_listings):
     return channel_listing_payload
 
 
+def _get_charge_taxes_for_product(product: "Product") -> bool:
+    charge_taxes = False
+    tax_class_id = product.tax_class_id or product.product_type.tax_class_id
+    if tax_class_id:
+        charge_taxes = (
+            TaxClassCountryRate.objects.filter(tax_class_id=tax_class_id)
+            .exclude(rate=Decimal("0"))
+            .exists()
+        )
+    return charge_taxes
+
+
 @traced_payload_generator
 def generate_product_payload(
     product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
@@ -683,6 +696,7 @@ def generate_product_payload(
                 }
                 for media_obj in product.media.all()
             ],
+            "charge_taxes": _get_charge_taxes_for_product(product),
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
                     product.channel_listings.all()  # type: ignore
@@ -709,6 +723,7 @@ def generate_product_deleted_payload(
         [product],
         fields=product_fields,
         extra_dict_data={
+            "charge_taxes": _get_charge_taxes_for_product(product),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "variants": list(product_variant_ids),
         },
@@ -1252,9 +1267,13 @@ def generate_checkout_payload_for_tax_calculation(
     return checkout_data
 
 
-def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]):
-
+def _generate_order_lines_payload_for_tax_calculation(lines: QuerySet[OrderLine]):
     serializer = PayloadSerializer()
+
+    charge_taxes = False
+    if lines:
+        charge_taxes = get_charge_taxes_for_order(lines[0].order)
+
     return serializer.serialize(
         lines,
         fields=("product_name", "variant_name", "quantity"),
@@ -1267,9 +1286,7 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
             "product_type_metadata": (
                 lambda l: l.variant.product.product_type.metadata if l.variant else {}
             ),
-            "charge_taxes": (
-                lambda l: l.variant.product.charge_taxes if l.variant else None
-            ),
+            "charge_taxes": (lambda _l: charge_taxes),
             "sku": (lambda l: l.product_sku),
             "unit_amount": (
                 lambda l: quantize_price(l.base_unit_price_amount, l.currency)

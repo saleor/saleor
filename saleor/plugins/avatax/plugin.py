@@ -19,6 +19,7 @@ from ...discount import DiscountInfo
 from ...order import base_calculations as base_order_calculations
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
+from ...tax.utils import get_charge_taxes_for_checkout, get_charge_taxes_for_order
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from . import (
@@ -403,7 +404,9 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         base_total = previous_value
-        if not checkout_line_info.product.charge_taxes:
+        charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
+
+        if not charge_taxes:
             return base_total
 
         if not _validate_checkout(checkout_info, lines):
@@ -467,7 +470,8 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        if not product.charge_taxes:
+        charge_taxes = get_charge_taxes_for_order(order)
+        if not charge_taxes:
             return previous_value
 
         if not _validate_order(order):
@@ -539,7 +543,9 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         base_total = previous_value
-        if not checkout_line_info.product.charge_taxes:
+        charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
+
+        if not charge_taxes:
             return base_total
 
         if not _validate_checkout(checkout_info, lines):
@@ -569,7 +575,8 @@ class AvataxPlugin(BasePlugin):
         product: "Product",
         previous_value: OrderTaxedPricesData,
     ) -> OrderTaxedPricesData:
-        if not variant or (variant and not product.charge_taxes):
+        charge_taxes = get_charge_taxes_for_order(order)
+        if not variant or (variant and not charge_taxes):
             return previous_value
 
         prices_entered_with_tax = partial(_get_prices_entered_with_tax_for_order, order)
@@ -709,8 +716,10 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
+        charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
         if not checkout_line_info.product.charge_taxes:
             return previous_value
+
         response = self._get_checkout_tax_data(
             checkout_info, lines, discounts, previous_value
         )
@@ -729,8 +738,10 @@ class AvataxPlugin(BasePlugin):
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
-        if not product.charge_taxes:
+        charge_taxes = get_charge_taxes_for_order(order)
+        if not charge_taxes:
             return previous_value
+
         response = self._get_order_tax_data(order, previous_value)
         return self._get_unit_tax_rate(
             response,
