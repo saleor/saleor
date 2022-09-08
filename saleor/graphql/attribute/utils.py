@@ -180,7 +180,12 @@ class AttributeAssignmentMixin:
         global_ids = []
 
         for attribute_input in raw_input:
-            global_id = attribute_input.pop("id")
+            global_id = attribute_input.pop("id", None)
+            if global_id is None:
+                raise ValidationError(
+                    "The attribute ID is required.",
+                    code=error_class.REQUIRED.value,  # type: ignore
+                )
             values = AttrValuesInput(
                 global_id=global_id,
                 values=attribute_input.pop("values", []),

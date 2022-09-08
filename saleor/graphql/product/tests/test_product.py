@@ -8351,6 +8351,35 @@ def test_update_product_with_variant_reference_attribute_value(
     assert product_type_variant_reference_attribute.values.count() == values_count + 1
 
 
+def test_update_product_with_no_id(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure only supplying values triggers a validation error."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"values": ["Oopsie!"]}],
+    }
+
+    # when
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+
+    # then
+    assert data["errors"] == [
+        {
+            "field": "attributes",
+            "code": ProductErrorCode.REQUIRED.name,
+            "message": ANY,
+            "attributes": None,
+        }
+    ]
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_product_reference_attribute_existing_value(
     updated_webhook_mock,
