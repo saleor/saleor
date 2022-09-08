@@ -42,6 +42,7 @@ from ..core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    filter_slug_list,
 )
 from ..core.types import (
     ChannelFilterInputObjectType,
@@ -584,10 +585,6 @@ def filter_quantity(qs, quantity_value, warehouse_ids=None):
 
 def filter_updated_at_range(qs, _, value):
     return filter_range_field(qs, "updated_at", value)
-
-
-def filter_slug_list(qs, _, values):
-    return qs.filter(slug__in=values)
 
 
 class ProductStockFilterInput(graphene.InputObjectType):

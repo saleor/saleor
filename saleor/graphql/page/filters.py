@@ -7,6 +7,7 @@ from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
+    filter_slug_list,
 )
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
@@ -35,10 +36,6 @@ def filter_page_type_search(qs, _, value):
     if not value:
         return qs
     return qs.filter(Q(name__trigram_similar=value) | Q(slug__trigram_similar=value))
-
-
-def filter_slug_list(qs, _, values):
-    return qs.filter(slug__in=values)
 
 
 class PageFilter(MetadataFilterBase):
