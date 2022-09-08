@@ -1932,6 +1932,33 @@ def test_calculate_order_shipping_no_channel_listing(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_not_shippable_order(
+    order_line, site_settings, address, plugin_configuration
+):
+    # given
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    order_line.is_shipping_required = False
+    order_line.save(update_fields=["is_shipping_required"])
+
+    order = order_line.order
+    order.shipping_address = order.billing_address.get_copy()
+    order.save(update_fields=["shipping_address"])
+
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+
+    # when
+    price = manager.calculate_order_shipping(order)
+
+    # then
+    price = quantize_price(price, price.currency)
+    assert price == zero_taxed_money(order.currency)
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_line_unit(
     order_line,
     shipping_zone,
