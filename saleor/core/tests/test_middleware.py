@@ -1,3 +1,4 @@
+import pytest
 from django.core.handlers.base import BaseHandler
 from freezegun import freeze_time
 
@@ -81,6 +82,7 @@ def test_jwt_refresh_token_middleware_samesite_none(rf, customer_user, settings)
     assert cookie["samesite"] == "None"
 
 
+@pytest.mark.skip("plugins middleware removed")  # TODO: change to testing loader
 def test_plugins_middleware_loads_requestor_in_plugin(rf, customer_user, settings):
     settings.MIDDLEWARE = [
         "saleor.core.middleware.plugins",
@@ -100,6 +102,7 @@ def test_plugins_middleware_loads_requestor_in_plugin(rf, customer_user, setting
     assert plugin.requestor.id == customer_user.id
 
 
+@pytest.mark.skip("plugins middleware removed")  # TODO: change to testing loader
 def test_plugins_middleware_requestor_in_plugin_when_no_app_and_user_in_req_is_none(
     rf, settings
 ):
