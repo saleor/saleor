@@ -78,9 +78,13 @@ def load_user_from_request(request):
 
     user = UserByEmailLoader(request).load(payload["email"]).get()
     user_jwt_token = payload.get("token")
-    if not user_jwt_token or not user:
+    if not user_jwt_token:
         raise jwt.InvalidTokenError(
             "Invalid token. Create new one by using tokenCreate mutation."
+        )
+    elif not user:
+        raise jwt.InvalidTokenError(
+            "Invalid token. User does not exist or is inactive."
         )
     if user.jwt_token_key != user_jwt_token:
         raise jwt.InvalidTokenError(
