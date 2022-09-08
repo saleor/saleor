@@ -52,7 +52,7 @@ def avatax_config():
     return AvataxConfiguration(
         username_or_account="test",
         password_or_license="test",
-        use_sandbox=False,
+        use_sandbox=True,
         from_street_address="Tęczowa 7",
         from_city="WROCŁAW",
         from_country_area="",
@@ -938,8 +938,8 @@ def test_calculate_order_shipping_order_not_valid(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
         (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.46", "5.0", False),
-        (False, "41.99", "51.05", "0.0", False),
+        (True, "21.99", "26.73", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
         (False, "32.04", "38.99", "3.0", True),
     ],
 )
@@ -1006,8 +1006,8 @@ def test_calculate_checkout_total_uses_default_calculation(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
         (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.46", "5.0", False),
-        (False, "41.99", "51.05", "0.0", False),
+        (True, "21.99", "26.73", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
         (False, "32.04", "38.99", "3.0", True),
     ],
 )
@@ -3440,7 +3440,7 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
     }
 
     api_post_request_task_mock.assert_called_once_with(
-        "https://rest.avatax.com/api/v2/transactions/createoradjust",
+        "https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust",
         expected_request_data,
         conf_data,
         order.pk,
@@ -3460,9 +3460,7 @@ def test_plugin_uses_configuration_from_db(
     settings,
 ):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    configuration = plugin_configuration(
-        username="test", password="test", sandbox=False
-    )
+    configuration = plugin_configuration(username="test", password="test", sandbox=True)
     manager = get_plugins_manager()
 
     monkeypatch.setattr(
