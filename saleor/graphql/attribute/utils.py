@@ -712,12 +712,13 @@ def validate_standard_attributes_input(
             attribute_id
         )
 
-    validate_values(
-        attribute_id,
-        attribute,
-        attr_values.values,
-        attribute_errors,
-    )
+    if attr_values.values is not None:
+        validate_values(
+            attribute_id,
+            attribute,
+            attr_values.values,
+            attribute_errors,
+        )
 
 
 def validate_date_time_input(
@@ -747,8 +748,6 @@ def validate_values(
 ):
     name_field = attribute.values.model.name.field  # type: ignore
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
-    if values is None:
-        return
     for value in values:
         if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
