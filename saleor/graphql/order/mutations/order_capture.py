@@ -11,6 +11,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugins
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -58,6 +59,7 @@ class OrderCapture(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
         app = load_app(info.context)
+        manager = load_plugins(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             try:
                 # We use the last transaction as we don't have a possibility to
@@ -65,7 +67,7 @@ class OrderCapture(BaseMutation):
                 payment_transaction = payment_transactions[-1]
                 request_charge_action(
                     transaction=payment_transaction,
-                    manager=info.context.plugins,
+                    manager=manager,
                     charge_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
@@ -87,7 +89,7 @@ class OrderCapture(BaseMutation):
                 payment,
                 gateway.capture,
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
             )
@@ -101,7 +103,7 @@ class OrderCapture(BaseMutation):
                     app,
                     amount,
                     payment,
-                    info.context.plugins,
+                    manager,
                     info.context.site.settings,
                 )
         return OrderCapture(order=order)

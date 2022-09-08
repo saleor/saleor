@@ -10,6 +10,7 @@ from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugins
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
 from .order_fulfill import OrderFulfill
@@ -60,6 +61,7 @@ class FulfillmentApprove(BaseMutation):
         cls.clean_input(info, fulfillment)
 
         order = fulfillment.order
+        manager = load_plugins(info.context)
 
         try:
             app = load_app(info.context)
@@ -67,7 +69,7 @@ class FulfillmentApprove(BaseMutation):
                 fulfillment,
                 info.context.user,
                 app,
-                info.context.plugins,
+                manager,
                 info.context.site.settings,
                 notify_customer=data["notify_customer"],
                 allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),

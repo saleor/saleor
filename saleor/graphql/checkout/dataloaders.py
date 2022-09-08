@@ -16,6 +16,7 @@ from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
+from ..plugins.dataloaders import load_plugins
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -297,7 +298,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             voucher=voucher,
                         )
 
-                        manager = self.context.plugins
+                        manager = load_plugins(self.context)
                         discounts = self.context.discounts
                         shipping_method_listings = [
                             listing

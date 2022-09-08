@@ -4,6 +4,7 @@ from ...core.permissions import PluginsPermissions
 from ...core.tracing import traced_resolver
 from ..core.connection import create_connection_slice
 from ..core.fields import ConnectionField, PermissionsField
+from .dataloaders import load_plugins
 from .filters import PluginFilterInput
 from .mutations import PluginUpdate
 from .resolvers import resolve_plugin, resolve_plugins
@@ -36,12 +37,14 @@ class PluginsQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_plugin(_root, info, **data):
-        return resolve_plugin(data.get("id"), info.context.plugins)
+        manager = load_plugins(info.context)
+        return resolve_plugin(data.get("id"), manager)
 
     @staticmethod
     @traced_resolver
     def resolve_plugins(_root, info, **kwargs):
-        qs = resolve_plugins(info.context.plugins, **kwargs)
+        manager = load_plugins(info.context)
+        qs = resolve_plugins(manager, **kwargs)
         return create_connection_slice(qs, info, kwargs, PluginCountableConnection)
 
 

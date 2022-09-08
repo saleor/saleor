@@ -102,7 +102,6 @@ def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
     request.discounts = SimpleLazyObject(  # type: ignore
         lambda: fetch_discounts(request_time)
     )
-    request.plugins = SimpleLazyObject(lambda: _get_plugins(requestor))  # type: ignore
 
     return request
 

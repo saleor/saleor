@@ -27,6 +27,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...order.types import Order
+from ...plugins.dataloaders import load_plugins
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -207,7 +208,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
 
             validate_checkout_email(checkout)
 
-            manager = info.context.plugins
+            manager = load_plugins(info.context)
             lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
             if unavailable_variant_pks:
                 not_available_variants_ids = {

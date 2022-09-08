@@ -29,6 +29,7 @@ from ...core.descriptions import (
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...plugins.dataloaders import load_plugins
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
@@ -155,7 +156,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         )
 
         discounts = info.context.discounts
-        manager = info.context.plugins
+        manager = load_plugins(info.context)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
             checkout, lines, discounts, manager, shipping_channel_listings

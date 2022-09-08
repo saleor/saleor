@@ -23,6 +23,7 @@ from ..core.types import TranslationError
 from ..core.utils import from_global_id_or_error
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
+from ..plugins.dataloaders import load_plugins
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
@@ -120,12 +121,13 @@ class BaseTranslateMutation(ModelMutation):
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
+        manager = load_plugins(info.context)
 
         def on_commit():
             if created:
-                info.context.plugins.translation_created(translation)
+                manager.translation_created(translation)
             else:
-                info.context.plugins.translation_updated(translation)
+                manager.translation_updated(translation)
 
         transaction.on_commit(on_commit)
         return cls(**{cls._meta.return_field_name: instance})
@@ -205,12 +207,13 @@ class ProductTranslate(BaseTranslateMutation):
             language_code=data["language_code"], defaults=data["input"]
         )
         product = ChannelContext(node=product, channel_slug=None)
+        manager = load_plugins(info.context)
 
         def on_commit():
             if created:
-                info.context.plugins.translation_created(translation)
+                manager.translation_created(translation)
             else:
-                info.context.plugins.translation_updated(translation)
+                manager.translation_updated(translation)
 
         transaction.on_commit(on_commit)
 
@@ -275,14 +278,15 @@ class ProductVariantTranslate(BaseTranslateMutation):
             language_code=data["language_code"], defaults=data["input"]
         )
         variant = ChannelContext(node=variant, channel_slug=None)
+        manager = load_plugins(info.context)
 
         def on_commit():
-            info.context.plugins.product_variant_updated(variant.node)
+            manager.product_variant_updated(variant.node)
 
             if created:
-                info.context.plugins.translation_created(translation)
+                manager.translation_created(translation)
             else:
-                info.context.plugins.translation_updated(translation)
+                manager.translation_updated(translation)
 
         transaction.on_commit(on_commit)
 
@@ -494,12 +498,13 @@ class ShopSettingsTranslate(BaseMutation):
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
+        manager = load_plugins(info.context)
 
         def on_commit():
             if created:
-                info.context.plugins.translation_created(translation)
+                manager.translation_created(translation)
             else:
-                info.context.plugins.translation_updated(translation)
+                manager.translation_updated(translation)
 
         transaction.on_commit(on_commit)
 

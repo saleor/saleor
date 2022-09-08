@@ -78,6 +78,7 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
+from ...plugins.dataloaders import load_plugins
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -558,6 +559,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
+        manager = load_plugins(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -592,7 +594,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                                     channel=channel,
                                     country=Country(country_code),
                                     local_currency=local_currency,
-                                    plugins=context.plugins,
+                                    plugins=manager,
                                 )
                                 return VariantPricingInfo(**asdict(availability))
 
@@ -900,7 +902,8 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root.node)
+        manager = load_plugins(info.context)
+        tax_data = manager.get_tax_code_from_object_meta(root.node)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -964,6 +967,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
+        manager = load_plugins(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -992,7 +996,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    manager=context.plugins,
+                                    manager=manager,
                                     country=Country(country_code),
                                     local_currency=local_currency,
                                 )
@@ -1337,7 +1341,8 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
+        manager = load_plugins(info.context)
+        tax_data = manager.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod

@@ -8,6 +8,7 @@ from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugins
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -58,7 +59,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-
+        manager = load_plugins(info.context)
         order_line_before_update = copy.deepcopy(order_line)
         tax_included = info.context.site.settings.include_taxes_in_prices
 
@@ -68,7 +69,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             reason=reason,
             value_type=value_type,
             value=value,
-            manager=info.context.plugins,
+            manager=manager,
             tax_included=tax_included,
         )
         if (

@@ -28,6 +28,7 @@ from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
+from ...plugins.dataloaders import load_plugins
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
@@ -114,7 +115,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
-
+        manager = load_plugins(info.context)
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
@@ -147,7 +148,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input["display_gross_prices"] = display_gross_prices
 
         cls.clean_addresses(
-            info, instance, cleaned_input, shipping_address, billing_address
+            info, instance, cleaned_input, shipping_address, billing_address, manager
         )
 
         if redirect_url:
@@ -232,7 +233,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_addresses(
-        cls, info, instance, cleaned_input, shipping_address, billing_address
+        cls, info, instance, cleaned_input, shipping_address, billing_address, manager
     ):
         if shipping_address:
             shipping_address = cls.validate_address(
@@ -241,7 +242,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 instance=instance.shipping_address,
                 info=info,
             )
-            shipping_address = info.context.plugins.change_user_address(
+            shipping_address = manager.change_user_address(
                 shipping_address, "shipping", user=instance
             )
             cleaned_input["shipping_address"] = shipping_address
@@ -252,7 +253,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 instance=instance.billing_address,
                 info=info,
             )
-            billing_address = info.context.plugins.change_user_address(
+            billing_address = manager.change_user_address(
                 billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
@@ -277,14 +278,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
-    def _save_lines(info, instance, lines_data):
+    def _save_lines(info, instance, lines_data, manager):
         if lines_data:
             lines = []
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,
                     line_data,
-                    info.context.plugins,
+                    manager,
                     info.context.site.settings,
                 )
                 lines.append(new_line)
@@ -322,13 +323,16 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        manager = load_plugins(info.context)
         return cls._save_draft_order(
-            info, instance, cleaned_input, is_new_instance=True
+            info, instance, cleaned_input, manager, is_new_instance=True
         )
 
     @classmethod
     @traced_atomic_transaction()
-    def _save_draft_order(cls, info, instance, cleaned_input, *, is_new_instance):
+    def _save_draft_order(
+        cls, info, instance, cleaned_input, manager, *, is_new_instance
+    ):
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
 
@@ -337,7 +341,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         try:
             # Process any lines to add
-            cls._save_lines(info, instance, cleaned_input.get("lines_data"))
+            cls._save_lines(info, instance, cleaned_input.get("lines_data"), manager)
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),
@@ -345,14 +349,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
         if is_new_instance:
-            transaction.on_commit(
-                lambda: info.context.plugins.draft_order_created(instance)
-            )
+            transaction.on_commit(lambda: manager.draft_order_created(instance))
 
         else:
-            transaction.on_commit(
-                lambda: info.context.plugins.draft_order_updated(instance)
-            )
+            transaction.on_commit(lambda: manager.draft_order_updated(instance))
 
         # Post-process the results
         updated_fields = ["weight", "search_vector", "updated_at"]
