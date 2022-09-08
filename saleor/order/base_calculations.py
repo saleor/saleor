@@ -4,6 +4,7 @@ from prices import Money, TaxedMoney
 
 from ..core.taxes import zero_money
 from ..discount import DiscountValueType, OrderDiscountType
+from ..discount.models import OrderDiscount
 from ..discount.utils import apply_discount_to_value
 from .interface import OrderTaxedPricesData
 
@@ -33,11 +34,24 @@ def _base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 
 
 def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
+    """Return order total, recalculate, and update order discounts.
+
+    This function returns the order total. All discounts are included in this price.
+    Shipping vouchers are included in the shipping price.
+    Specific product vouchers are included in line base prices.
+    Entire order vouchers are recalculated and updated in this function
+    (OrderDiscounts with type `order_discount.type == OrderDiscountType.VOUCHER`).
+    Staff order discounts are recalculated and updated in this function
+    (OrderDiscounts with type `order_discount.type == OrderDiscountType.MANUAL`).
+    """
     currency = order.currency
     subtotal = _base_order_subtotal(order, lines)
     shipping_price = base_order_shipping(order)
     order_discounts = order.discounts.all()
+    order_discounts_to_update = []
     for order_discount in order_discounts:
+        subtotal_before_discount = subtotal
+        shipping_price_before_discount = shipping_price
         if order_discount.type == OrderDiscountType.VOUCHER:
             subtotal = apply_discount_to_value(
                 value=order_discount.value,
@@ -75,16 +89,15 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
 
                 subtotal -= subtotal_discount
                 shipping_price -= shipping_discount
-
+        shipping_discount_amount = shipping_price_before_discount - shipping_price
+        subtotal_discount_amount = subtotal_before_discount - subtotal
+        total_discount_amount = shipping_discount_amount + subtotal_discount_amount
+        if order_discount.amount != total_discount_amount:
+            order_discount.amount = total_discount_amount
+            order_discounts_to_update.append(order_discount)
+    if order_discounts_to_update:
+        OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
     return max(subtotal + shipping_price, zero_money(currency))
-
-
-def base_order_total_without_order_discount(
-    order: "Order", lines: Iterable["OrderLine"]
-) -> Money:
-    subtotal = _base_order_subtotal(order, lines)
-    base_shipping_price = base_order_shipping(order)
-    return subtotal + base_shipping_price
 
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
