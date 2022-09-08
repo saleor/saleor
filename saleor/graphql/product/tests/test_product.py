@@ -7679,6 +7679,51 @@ def test_update_product_clean_file_attribute_value(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_none_as_attribute_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    product_attr = product.attributes.first()
+    attribute = product_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": None}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert not attributes[0]["values"]
+    with pytest.raises(product_attr._meta.model.DoesNotExist):
+        product_attr.refresh_from_db()
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_plain_text_attribute_value(
     updated_webhook_mock,
     staff_api_client,
