@@ -7,9 +7,8 @@ from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
-from ..discount import OrderDiscountType
 from ..plugins.manager import PluginsManager
-from . import ORDER_EDITABLE_STATUS, utils
+from . import ORDER_EDITABLE_STATUS
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -117,14 +116,6 @@ def fetch_order_prices_if_expired(
         prefetch_related_objects(lines, "variant__product__product_type")
 
     order.should_refresh_prices = False
-
-    order_discount = order.discounts.filter(type=OrderDiscountType.MANUAL).first()
-    if order_discount:
-        utils.update_order_discount_for_order(
-            order,
-            lines,
-            order_discount,
-        )
 
     _recalculate_order_prices(manager, order, lines)
 
