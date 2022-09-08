@@ -45,22 +45,22 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
                 currency=currency,
                 price_to_discount=subtotal,
             )
+        elif order_discount.value_type == DiscountValueType.PERCENTAGE:
+            subtotal = apply_discount_to_value(
+                value=order_discount.value,
+                value_type=order_discount.value_type,
+                currency=currency,
+                price_to_discount=subtotal,
+            )
+            shipping_price = apply_discount_to_value(
+                value=order_discount.value,
+                value_type=order_discount.value_type,
+                currency=currency,
+                price_to_discount=shipping_price,
+            )
         else:
-            if order_discount.value_type == DiscountValueType.PERCENTAGE:
-                subtotal = apply_discount_to_value(
-                    value=order_discount.value,
-                    value_type=order_discount.value_type,
-                    currency=currency,
-                    price_to_discount=subtotal,
-                )
-                shipping_price = apply_discount_to_value(
-                    value=order_discount.value,
-                    value_type=order_discount.value_type,
-                    currency=currency,
-                    price_to_discount=shipping_price,
-                )
-            else:
-                temporary_undiscounted_total = subtotal + shipping_price
+            temporary_undiscounted_total = subtotal + shipping_price
+            if temporary_undiscounted_total.amount > 0:
                 temporary_total = apply_discount_to_value(
                     value=order_discount.value,
                     value_type=order_discount.value_type,

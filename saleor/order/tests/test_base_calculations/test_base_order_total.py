@@ -132,6 +132,28 @@ def test_base_order_total_with_fixed_manual_discount(order_with_lines):
     assert order_total == undiscounted_total - Money(discount_amount, order.currency)
 
 
+def test_base_order_total_with_fixed_manual_discount_and_zero_order_total(order):
+    # given
+    lines = order.lines.all()
+
+    discount_amount = 0
+    order.discounts.create(
+        type=OrderDiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=0,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=order.currency,
+        amount_value=discount_amount,
+    )
+
+    # when
+    order_total = base_calculations.base_order_total(order, lines)
+
+    # then
+    assert order_total == zero_money(order.currency)
+
+
 def test_base_order_total_with_fixed_manual_discount_more_then_total(order_with_lines):
     # given
     order = order_with_lines
