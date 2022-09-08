@@ -255,7 +255,7 @@ def append_shipping_to_data(
         )
 
 
-def get_checkout_lines_data(
+def generate_request_data_from_checkout_lines(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
@@ -482,7 +482,9 @@ def generate_request_data_from_checkout(
     discounts=None,
 ):
     address = checkout_info.shipping_address or checkout_info.billing_address
-    lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
+    lines = generate_request_data_from_checkout_lines(
+        checkout_info, lines_info, config, discounts
+    )
     voucher = checkout_info.voucher
     # for apply_once_per_order vouchers the discount is already applied on lines
     discount_amount = (

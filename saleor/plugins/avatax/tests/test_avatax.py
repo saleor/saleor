@@ -37,8 +37,8 @@ from .. import (
     api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
+    generate_request_data_from_checkout_lines,
     get_cached_tax_codes_or_fetch,
-    get_checkout_lines_data,
     get_order_lines_data,
     get_order_request_data,
     get_order_tax_data,
@@ -4136,7 +4136,7 @@ def test_validate_order_not_shipping_required_no_shipping_method(order_line, add
     assert response is True
 
 
-def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
+def test_generate_request_data_from_checkout_lines_sets_different_tax_code_for_zero_amount(  # noqa: E501
     settings, channel_USD, plugin_configuration, checkout_with_item, avatax_config
 ):
     # given
@@ -4159,14 +4159,14 @@ def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
     config = avatax_config
 
     # when
-    lines_data = get_checkout_lines_data(checkout_info, lines, config)
+    lines_data = generate_request_data_from_checkout_lines(checkout_info, lines, config)
 
     # then
     assert lines_data[0]["amount"] == "0.00"
     assert lines_data[0]["taxCode"] == DEFAULT_TAX_CODE
 
 
-def test_get_checkout_lines_data_sets_different_tax_code_only_for_zero_amount(
+def test_generate_request_data_from_checkout_lines_sets_different_tax_code_only_for_zero_amount(  # noqa: E501
     settings, channel_USD, plugin_configuration, checkout_with_item, avatax_config
 ):
     # given
@@ -4192,14 +4192,14 @@ def test_get_checkout_lines_data_sets_different_tax_code_only_for_zero_amount(
     config = avatax_config
 
     # when
-    lines_data = get_checkout_lines_data(checkout_info, lines, config)
+    lines_data = generate_request_data_from_checkout_lines(checkout_info, lines, config)
 
     # then
     assert lines_data[0]["amount"] == "11.00"
     assert lines_data[0]["taxCode"] == "taxcode"
 
 
-def test_get_checkout_lines_data_with_collection_point(
+def test_generate_request_data_from_checkout_lines_with_collection_point(
     settings,
     channel_USD,
     plugin_configuration,
@@ -4233,13 +4233,13 @@ def test_get_checkout_lines_data_with_collection_point(
     config = avatax_config
 
     # when
-    lines_data = get_checkout_lines_data(checkout_info, lines, config)
+    lines_data = generate_request_data_from_checkout_lines(checkout_info, lines, config)
 
     # then
     assert len(lines_data) == checkout_with_item.lines.count()
 
 
-def test_get_checkout_lines_data_with_shipping_method(
+def test_generate_request_data_from_checkout_lines_with_shipping_method(
     settings,
     channel_USD,
     plugin_configuration,
@@ -4273,7 +4273,7 @@ def test_get_checkout_lines_data_with_shipping_method(
     config = avatax_config
 
     # when
-    lines_data = get_checkout_lines_data(checkout_info, lines, config)
+    lines_data = generate_request_data_from_checkout_lines(checkout_info, lines, config)
 
     # then
     assert len(lines_data) == checkout_with_item.lines.count() + 1
