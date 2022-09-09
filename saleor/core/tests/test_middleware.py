@@ -2,7 +2,7 @@ import pytest
 from django.core.handlers.base import BaseHandler
 from freezegun import freeze_time
 
-from ...graphql.plugins.dataloaders import load_plugins
+from ...graphql.plugins.dataloaders import load_plugin_manager
 from ..jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -95,7 +95,7 @@ def test_plugins_middleware_loads_requestor_in_plugin(rf, customer_user, setting
     handler = BaseHandler()
     handler.load_middleware()
     handler.get_response(request)
-    manager = load_plugins(request)
+    manager = load_plugin_manager(request)
     plugin = manager.all_plugins.pop()
 
     assert isinstance(plugin.requestor, type(customer_user))
@@ -117,7 +117,7 @@ def test_plugins_middleware_requestor_in_plugin_when_no_app_and_user_in_req_is_n
     handler = BaseHandler()
     handler.load_middleware()
     handler.get_response(request)
-    manager = load_plugins(request)
+    manager = load_plugin_manager(request)
     plugin = manager.all_plugins.pop()
 
     assert not plugin.requestor

@@ -1,24 +1,24 @@
 from ...product.models import Product, ProductVariant
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 
 
 def extra_checkout_actions(instance, info, **data):
-    manager = load_plugins(info.context)
+    manager = load_plugin_manager(info.context)
     manager.checkout_updated(instance)
 
 
 def extra_product_actions(instance, info, **data):
-    manager = load_plugins(info.context)
+    manager = load_plugin_manager(info.context)
     manager.product_updated(instance)
 
 
 def extra_variant_actions(instance, info, **data):
-    manager = load_plugins(info.context)
+    manager = load_plugin_manager(info.context)
     manager.product_variant_updated(instance)
 
 
 def extra_user_actions(instance, info, **data):
-    manager = load_plugins(info.context)
+    manager = load_plugin_manager(info.context)
     manager.customer_updated(instance)
 
 

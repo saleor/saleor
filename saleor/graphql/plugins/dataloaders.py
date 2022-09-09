@@ -30,7 +30,7 @@ class PluginManagerByRequestorDataloader(DataLoader):
         return [get_plugins_manager(lambda: key) for key in keys]
 
 
-def load_plugins(request):
+def load_plugin_manager(request):
     app = load_app(request)
     user = request.user
     requestor = app or user

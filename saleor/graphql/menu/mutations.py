@@ -18,7 +18,7 @@ from ..core.types import MenuError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection
 from ..site.dataloaders import load_site
 from .dataloaders import MenuItemsByParentMenuLoader
@@ -134,7 +134,7 @@ class MenuCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.menu_created(instance)
 
     @classmethod
@@ -165,7 +165,7 @@ class MenuUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.menu_updated(instance)
 
     @classmethod
@@ -188,7 +188,7 @@ class MenuDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.menu_deleted(instance)
 
     @classmethod
@@ -237,7 +237,7 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.menu_item_created(instance)
 
     @classmethod
@@ -299,7 +299,7 @@ class MenuItemUpdate(MenuItemCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.menu_item_updated(instance)
 
 
@@ -317,7 +317,7 @@ class MenuItemDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.menu_item_deleted(instance)
 
     @classmethod
@@ -474,7 +474,7 @@ class MenuItemMove(BaseMutation):
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
         operations = cls.clean_moves(info, menu, moves)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         for operation in operations:
             cls.perform_change_parent_operation(operation)
 

@@ -22,7 +22,7 @@ from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList
 from ...meta.mutations import MetadataInput
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User
@@ -141,7 +141,7 @@ class AccountRegister(ModelMutation):
         user.search_document = search.prepare_user_search_document_value(
             user, attach_addresses_data=False
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
@@ -227,7 +227,7 @@ class AccountRequestDeletion(BaseMutation):
         channel_slug = clean_channel(
             data.get("channel"), error_class=AccountErrorCode
         ).slug
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         notifications.send_account_delete_confirmation_notification(
             redirect_url, user, manager, channel_slug=channel_slug
         )
@@ -320,7 +320,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
         if address_type:
-            manager = load_plugins(info.context)
+            manager = load_plugin_manager(info.context)
             utils.change_user_default_address(user, address, address_type, manager)
         return AccountAddressCreate(user=user, address=address)
 
@@ -340,7 +340,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def trigger_post_account_address_create_webhooks(cls, info, address, user):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.customer_updated(user)
         manager.address_created(address)
 
@@ -405,7 +405,7 @@ class AccountSetDefaultAddress(BaseMutation):
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         utils.change_user_default_address(user, address, address_type, manager)
         manager.customer_updated(user)
         return cls(user=user)
@@ -478,7 +478,7 @@ class RequestEmailChange(BaseMutation):
             "user_pk": user.pk,
         }
         token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         notifications.send_request_user_change_email_notification(
             redirect_url,
             user,
@@ -553,7 +553,7 @@ class ConfirmEmailChange(BaseMutation):
 
         assign_user_gift_cards(user)
         match_orders_with_new_user(user)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         notifications.send_user_change_email_notification(
             old_email, user, manager, channel_slug=channel_slug
         )

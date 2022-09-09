@@ -78,7 +78,7 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -558,7 +558,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -901,7 +901,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         tax_data = manager.get_tax_code_from_object_meta(root.node)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
@@ -966,7 +966,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -1340,7 +1340,7 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         tax_data = manager.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 

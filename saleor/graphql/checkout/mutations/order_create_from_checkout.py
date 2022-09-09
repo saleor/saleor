@@ -14,7 +14,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import Error
 from ...discount.dataloaders import load_discounts
 from ...order.types import Order
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..enums import OrderCreateFromCheckoutErrorCode
 from ..types import Checkout
 from ..utils import prepare_insufficient_stock_checkout_validation_error
@@ -85,7 +85,7 @@ class OrderCreateFromCheckout(BaseMutation):
         )
         tracking_code = analytics.get_client_id(info.context)
 
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         discounts = load_discounts(info.context)
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(

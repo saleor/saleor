@@ -25,7 +25,7 @@ from ..core.scalars import PositiveDecimal
 from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.utils import validate_required_string_field
 from ..core.validators import validate_price_precision
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils.validators import check_for_duplicates
 from .types import GiftCard, GiftCardEvent
 
@@ -227,7 +227,7 @@ class GiftCardCreate(ModelMutation):
             user=user,
             app=app,
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         if note := cleaned_input.get("note"):
             events.gift_card_note_added_event(
                 gift_card=instance, user=user, app=app, message=note
@@ -341,7 +341,7 @@ class GiftCardUpdate(GiftCardCreate):
             )
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.gift_card_updated(instance)
         return cls.success_response(instance)
 
@@ -380,7 +380,7 @@ class GiftCardDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.gift_card_deleted(instance)
 
 
@@ -412,7 +412,7 @@ class GiftCardDeactivate(BaseMutation):
                 user=info.context.user,
                 app=app,
             )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.gift_card_status_changed(gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
@@ -446,7 +446,7 @@ class GiftCardActivate(BaseMutation):
                 user=info.context.user,
                 app=app,
             )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.gift_card_status_changed(gift_card)
         return GiftCardActivate(gift_card=gift_card)
 
@@ -517,7 +517,7 @@ class GiftCardResend(BaseMutation):
         if not user_is_valid(user):
             user = None
         app = load_app(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         send_gift_card_notification(
             user,
             app,
@@ -579,6 +579,6 @@ class GiftCardAddNote(BaseMutation):
             app=app,
             message=cleaned_input["message"],
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.gift_card_updated(gift_card)
         return GiftCardAddNote(gift_card=gift_card, event=event)

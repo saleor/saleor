@@ -16,7 +16,7 @@ from ....order.utils import (
 from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order, OrderLine
 from .draft_order_create import OrderLineInput
 from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
@@ -60,7 +60,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         warehouse_pk = (
             instance.allocations.first().stock.warehouse.pk
             if instance.order.is_unconfirmed()

@@ -9,7 +9,7 @@ from ...core.tracing import traced_atomic_transaction
 from ...page import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import NonNullList, PageError
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from .types import Page, PageType
 
 
@@ -97,7 +97,7 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info, queryset):
         page_types = list(queryset)
         queryset.delete()
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         for pt in page_types:
             transaction.on_commit(lambda: manager.page_type_deleted(pt))
 

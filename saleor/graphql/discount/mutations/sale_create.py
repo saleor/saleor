@@ -17,7 +17,7 @@ from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..enums import DiscountValueTypeEnum
 from ..types import Sale
 from .utils import convert_catalogue_info_to_global_ids
@@ -94,7 +94,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
         instance = getattr(response, cls._meta.return_field_name).node
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         cls.send_sale_notifications(manager, instance)
         return response
 

@@ -21,7 +21,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import ChannelError, ChannelErrorCode, NonNullList
 from ..core.utils import get_duplicated_values, get_duplicates_items
 from ..core.utils.reordering import perform_reordering
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils.validators import check_for_duplicates
 from ..warehouse.types import Warehouse
 from .enums import AllocationStrategyEnum
@@ -120,7 +120,7 @@ class ChannelCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.channel_created(instance)
 
 
@@ -241,7 +241,7 @@ class ChannelUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.channel_updated(instance)
 
 
@@ -331,7 +331,7 @@ class ChannelDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.channel_deleted(instance)
 
     @classmethod
@@ -500,7 +500,7 @@ class ChannelActivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = True
         channel.save(update_fields=["is_active"])
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.channel_status_changed(channel)
         return ChannelActivate(channel=channel)
 
@@ -535,7 +535,7 @@ class ChannelDeactivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = False
         channel.save(update_fields=["is_active"])
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.channel_status_changed(channel)
         return ChannelDeactivate(channel=channel)
 

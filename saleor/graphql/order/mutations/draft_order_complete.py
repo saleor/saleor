@@ -20,7 +20,7 @@ from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
 from ..types import Order
 from ..utils import (
@@ -67,7 +67,7 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         order = cls.get_node_or_error(
             info,
             id,

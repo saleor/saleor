@@ -28,7 +28,7 @@ from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
 from ...site.dataloaders import load_site
@@ -116,7 +116,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         site = load_site(info.context)
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
@@ -323,7 +323,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         app = load_app(info.context)
         site = load_site(info.context)
         return cls._save_draft_order(

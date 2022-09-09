@@ -9,7 +9,7 @@ from ...channel import ChannelContext
 from ...core.context import set_mutation_flag_in_context
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import ProductError, Upload
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
 
@@ -139,7 +139,7 @@ class DigitalContentDelete(BaseMutation):
         set_mutation_flag_in_context(info.context)
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         result = manager.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
         )

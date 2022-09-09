@@ -9,7 +9,7 @@ from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
 
 
@@ -44,7 +44,7 @@ class OrderCancel(BaseMutation):
         clean_order_cancel(order)
         user = info.context.user
         app = load_app(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         cancel_order(
             order=order,
             user=user,

@@ -6,7 +6,7 @@ from ....order.notifications import send_fulfillment_update
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Fulfillment, Order
 from .order_fulfill import FulfillmentUpdateTrackingInput
 
@@ -39,7 +39,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.save()
         order = fulfillment.order
         app = load_app(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         fulfillment_tracking_updated(
             fulfillment,
             info.context.user,

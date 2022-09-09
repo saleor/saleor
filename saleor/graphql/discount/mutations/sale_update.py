@@ -10,7 +10,7 @@ from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Sale
 from .sale_create import SaleInput, SaleUpdateDiscountedPriceMixin
 from .utils import convert_catalogue_info_to_global_ids
@@ -38,7 +38,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         previous_catalogue = fetch_catalogue_info(instance)
         previous_end_date = instance.end_date
         data = data.get("input")
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)

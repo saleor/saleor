@@ -92,7 +92,7 @@ from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -648,7 +648,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_unit_price(root: models.OrderLine, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_unit_price(data):
             order, lines = data
@@ -667,7 +667,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_undiscounted_unit_price(root: models.OrderLine, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_undiscounted_unit_price(data):
             order, lines = data
@@ -694,7 +694,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_tax_rate(root: models.OrderLine, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_tax_rate(data):
             order, lines = data
@@ -707,7 +707,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_total_price(root: models.OrderLine, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_total_price(data):
             order, lines = data
@@ -722,7 +722,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_undiscounted_total_price(root: models.OrderLine, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_undiscounted_total_price(data):
             order, lines = data
@@ -1157,7 +1157,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_shipping_price(root: models.Order, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_shipping_price(lines):
             return calculations.order_shipping(root, manager, lines)
@@ -1171,7 +1171,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_shipping_tax_rate(root: models.Order, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_shipping_tax_rate(lines):
             return calculations.order_shipping_tax_rate(root, manager, lines)
@@ -1216,7 +1216,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_total(root: models.Order, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_total(lines):
             return calculations.order_total(root, manager, lines)
@@ -1228,7 +1228,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_undiscounted_total(root: models.Order, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def _resolve_undiscounted_total(lines):
             return calculations.order_undiscounted_total(root, manager, lines)
@@ -1429,7 +1429,7 @@ class Order(ModelObjectType):
     @traced_resolver
     def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
-            manager = load_plugins(info.context)
+            manager = load_plugin_manager(info.context)
             country = get_order_country(root)
             try:
                 validate_draft_order(root, country, manager)
@@ -1528,7 +1528,7 @@ class Order(ModelObjectType):
     @prevent_sync_event_circular_query
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_methods(cls, root: models.Order, info):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def with_channel(channel):
             def with_listings(channel_listings):
@@ -1607,7 +1607,7 @@ class Order(ModelObjectType):
     def resolve_errors(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
-            manager = load_plugins(info.context)
+            manager = load_plugin_manager(info.context)
             try:
                 validate_draft_order(root, country, manager)
             except ValidationError as e:

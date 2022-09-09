@@ -23,7 +23,7 @@ from ..core.types import TranslationError
 from ..core.utils import from_global_id_or_error
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
@@ -122,7 +122,7 @@ class BaseTranslateMutation(ModelMutation):
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def on_commit():
             if created:
@@ -208,7 +208,7 @@ class ProductTranslate(BaseTranslateMutation):
             language_code=data["language_code"], defaults=data["input"]
         )
         product = ChannelContext(node=product, channel_slug=None)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def on_commit():
             if created:
@@ -279,7 +279,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
             language_code=data["language_code"], defaults=data["input"]
         )
         variant = ChannelContext(node=variant, channel_slug=None)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def on_commit():
             manager.product_variant_updated(variant.node)
@@ -500,7 +500,7 @@ class ShopSettingsTranslate(BaseMutation):
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
 
         def on_commit():
             if created:

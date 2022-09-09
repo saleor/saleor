@@ -21,7 +21,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
@@ -156,7 +156,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
         app = load_app(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         site = load_site(info.context)
         discounts = load_discounts(info.context)
         added_lines = cls.add_lines_to_order(

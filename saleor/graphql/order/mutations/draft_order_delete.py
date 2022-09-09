@@ -8,7 +8,7 @@ from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
 
 
@@ -41,6 +41,6 @@ class DraftOrderDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         transaction.on_commit(lambda: manager.draft_order_deleted(order))
         return response

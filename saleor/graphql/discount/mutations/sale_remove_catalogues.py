@@ -5,7 +5,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.channel import ChannelContext
 from ...core.types import DiscountError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Sale
 from .sale_base_catalogue import SaleBaseCatalogueMutation
 from .utils import convert_catalogue_info_to_global_ids
@@ -27,7 +27,7 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         previous_catalogue = fetch_catalogue_info(sale)
         cls.remove_catalogues_from_node(sale, data.get("input"))
         current_catalogue = fetch_catalogue_info(sale)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         transaction.on_commit(
             lambda: manager.sale_updated(
                 sale,

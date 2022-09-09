@@ -32,7 +32,7 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.types import AccountError
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -80,7 +80,7 @@ class SetPassword(CreateToken):
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         result = manager.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
         )
@@ -195,7 +195,7 @@ class RequestPasswordReset(BaseMutation):
             channel_slug = validate_channel(
                 channel_slug, error_class=AccountErrorCode
             ).slug
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         send_password_reset_notification(
             redirect_url,
             user,
@@ -332,7 +332,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         user = address.user_addresses.first()
         user.search_document = prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.customer_updated(user)
         address = manager.change_user_address(address, None, user)
         manager.address_updated(address)
@@ -395,7 +395,7 @@ class BaseAddressDelete(ModelDeleteMutation):
         response = cls.success_response(instance)
 
         response.user = user
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         manager.customer_updated(user)
         manager.address_deleted(instance)
         return response
@@ -488,7 +488,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         if default_shipping_address:
             default_shipping_address = manager.change_user_address(
                 default_shipping_address, "shipping", instance

@@ -50,7 +50,7 @@ from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
-from ..plugins.dataloaders import load_plugins
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -246,7 +246,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         cls.validate_gateway(manager, gateway, checkout)
         cls.validate_return_url(data)
 
@@ -353,7 +353,7 @@ class PaymentCapture(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         try:
             gateway.capture(
                 payment,
@@ -384,7 +384,7 @@ class PaymentRefund(PaymentCapture):
             if payment.order
             else payment.checkout.channel.slug
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         try:
             gateway.refund(
                 payment,
@@ -420,7 +420,7 @@ class PaymentVoid(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         try:
             gateway.void(payment, manager, channel_slug=channel_slug)
             payment.refresh_from_db()
@@ -479,7 +479,7 @@ class PaymentInitialize(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, gateway, channel, payment_data):
         cls.validate_channel(channel_slug=channel)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         try:
             response = manager.initialize_payment(
                 gateway, payment_data, channel_slug=channel
@@ -541,7 +541,7 @@ class PaymentCheckBalance(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         gateway_id = data["input"]["gateway_id"]
         money = data["input"]["card"].get("money", {})
 
@@ -1009,7 +1009,7 @@ class TransactionRequestAction(BaseMutation):
             else transaction.checkout.channel.slug
         )
         app = load_app(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": info.context.user,

@@ -42,7 +42,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
@@ -86,7 +86,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         delete_categories(queryset.values_list("pk", flat=True), manager)
 
 
@@ -112,7 +112,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             .filter(collections__in=collections_ids)
             .distinct()
         )
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         for collection in queryset.iterator():
             manager.collection_deleted(collection)
         queryset.delete()
@@ -194,7 +194,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
         products = [product for product in queryset]
         queryset.delete()
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         for product in products:
             variants = product_variant_map.get(product.id, [])
             manager.product_deleted(product, variants)
@@ -563,7 +563,7 @@ class ProductVariantBulkCreate(BaseMutation):
         ]
 
         update_product_search_vector(product)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         transaction.on_commit(
             lambda: [
                 manager.product_variant_created(instance.node) for instance in instances
@@ -619,7 +619,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         cls.delete_assigned_attribute_values(pks)
         cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids, **data)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         transaction.on_commit(
             lambda: [manager.product_variant_deleted(variant) for variant in variants]
         )
@@ -724,7 +724,7 @@ class ProductVariantStocksCreate(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         errors = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
@@ -814,7 +814,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
 
-            manager = load_plugins(info.context)
+            manager = load_plugin_manager(info.context)
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
         StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
@@ -871,7 +871,7 @@ class ProductVariantStocksDelete(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )

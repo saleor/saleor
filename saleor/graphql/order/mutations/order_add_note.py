@@ -10,7 +10,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...core.utils import validate_required_string_field
-from ...plugins.dataloaders import load_plugins
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order, OrderEvent
 from .utils import get_webhook_handler_by_order_status
 
@@ -62,7 +62,7 @@ class OrderAddNote(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         app = load_app(info.context)
-        manager = load_plugins(info.context)
+        manager = load_plugin_manager(info.context)
         event = events.order_note_added_event(
             order=order,
             user=info.context.user,
