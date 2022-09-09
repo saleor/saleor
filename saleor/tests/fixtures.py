@@ -1688,6 +1688,28 @@ def page_type_product_reference_attribute(db):
 
 
 @pytest.fixture
+def product_type_variant_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="variant-reference",
+        name="Variant reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
+def page_type_variant_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="variant-reference",
+        name="Variant reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size",
