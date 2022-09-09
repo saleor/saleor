@@ -28,6 +28,7 @@ from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
 from ...order.types import Order
+from ...site.dataloaders import load_site
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -248,6 +249,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             else:
                 customer = info.context.user
 
+            site = load_site(info.context)
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -257,7 +259,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 discounts=discounts,
                 user=customer,
                 app=load_app(info.context),
-                site_settings=info.context.site.settings,
+                site_settings=site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )
