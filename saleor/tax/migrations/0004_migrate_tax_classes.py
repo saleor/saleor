@@ -10,6 +10,9 @@ AVATAX_CODE_META_KEY = "avatax.code"
 AVATAX_DESCRIPTION_META_KEY = "avatax.description"
 VATLAYER_CODE_META_KEY = "vatlayer.code"
 
+# Non-taxable product's tax code for Avalara.
+TAX_CODE_NON_TAXABLE_PRODUCT = "NT"
+
 TAX_CLASS_ZERO_RATE = "No Taxes"
 
 AVATAX_PLUGIN_ID = "mirumee.taxes.avalara"
@@ -114,7 +117,15 @@ def migrate_products_with_disabled_taxes(apps, _schema_editor):
     TaxClassCountryRate = apps.get_model("tax", "TaxClassCountryRate")
 
     qs = Product.objects.filter(charge_taxes=False).order_by("pk")
-    zero_rate_tax_class, _ = TaxClass.objects.get_or_create(name=TAX_CLASS_ZERO_RATE)
+    zero_rate_tax_class, _ = TaxClass.objects.get_or_create(
+        name=TAX_CLASS_ZERO_RATE,
+        defaults={
+            "metadata": {
+                AVATAX_CODE_META_KEY: TAX_CODE_NON_TAXABLE_PRODUCT,
+                AVATAX_DESCRIPTION_META_KEY: "Non-taxable product",
+            }
+        },
+    )
 
     if qs.exists():
         # Create 0% rates for all countries

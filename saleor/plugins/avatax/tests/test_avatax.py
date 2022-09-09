@@ -30,6 +30,7 @@ from .. import (
     DEFAULT_TAX_CODE,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
+    TAX_CODE_NON_TAXABLE_PRODUCT,
     AvataxConfiguration,
     TransactionType,
     _validate_adddress_details,
@@ -981,6 +982,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     monkeypatch,
     plugin_configuration,
     non_default_category,
+    tax_class_zero_rates,
 ):
     plugin_configuration()
     monkeypatch.setattr(
@@ -993,7 +995,7 @@ def test_calculate_checkout_total_uses_default_calculation(
 
     tax_configuration = checkout_with_item.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.charge_taxes = False
+    tax_configuration.charge_taxes = True
     tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete()
 
@@ -1009,6 +1011,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
     product.product_type.save()
+    product_with_single_variant.tax_class = tax_class_zero_rates
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
     discounts = [discount_info] if with_discount else None
@@ -1053,11 +1056,12 @@ def test_calculate_checkout_total(
     monkeypatch,
     plugin_configuration,
     non_default_category,
+    tax_class_zero_rates,
 ):
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {"PS081282": "desc"},
+        lambda _: {"PS081282": "desc", TAX_CODE_NON_TAXABLE_PRODUCT: "desc"},
     )
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
@@ -1068,7 +1072,7 @@ def test_calculate_checkout_total(
 
     tax_configuration = checkout_with_item.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.charge_taxes = False
+    tax_configuration.charge_taxes = True
     tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete()
 
@@ -1080,13 +1084,19 @@ def test_calculate_checkout_total(
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type, "PS081282")
-    product.save()
-    product.product_type.save()
 
+    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    product.save()
+    product.tax_class.save()
+
+    product_with_single_variant.tax_class = tax_class_zero_rates
     product_with_single_variant.category = non_default_category
-    product_with_single_variant.save()
+    product_with_single_variant.save(
+        update_fields=[
+            "category",
+            "tax_class",
+        ]
+    )
     discounts = [discount_info] if with_discount else None
     checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
@@ -1507,8 +1517,9 @@ def test_calculate_checkout_subtotal(
     manager = get_plugins_manager()
 
     tax_configuration = checkout_with_item.channel.tax_configuration
-    tax_configuration.prices_entered_with_tax = True
-    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete()
 
     checkout_with_item.shipping_address = ship_to_pl_address
@@ -1541,6 +1552,9 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
 ):
     plugin_configuration()
     variant = stock.product_variant
+    product = variant.product
+    product.charge_taxes = False
+    product.save(update_fields=["charge_taxes"])
 
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -1676,7 +1690,7 @@ def test_calculate_checkout_subtotal_voucher_on_shipping(
     channel = checkout_with_item.channel
 
     tax_configuration = channel.tax_configuration
-    tax_configuration.prices_entered_with_tax = True
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
     tax_configuration.country_exceptions.all().delete()
 
@@ -2716,6 +2730,7 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
     plugin_configuration,
     shipping_zone,
     site_settings,
+    tax_class_zero_rates,
 ):
     # given
     site_settings.company_address = address
@@ -2757,6 +2772,9 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
     )
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
+    product = checkout_line_info.product
+    product.tax_class = tax_class_zero_rates
+    product.save(update_fields=["tax_class"])
 
     # when
     tax_rate = manager.get_checkout_line_tax_rate(
@@ -2782,6 +2800,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     shipping_zone,
     site_settings,
     product_with_two_variants,
+    tax_class_zero_rates,
 ):
     # given
     site_settings.company_address = address
@@ -2796,11 +2815,10 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     manager = get_plugins_manager()
 
     product_type = ProductType.objects.create(
-        name="non-taxable", kind=ProductTypeKind.NORMAL
+        name="non-taxable", kind=ProductTypeKind.NORMAL, tax_class=tax_class_zero_rates
     )
     product2 = product_with_two_variants
     product2.product_type = product_type
-    manager.assign_tax_code_to_object_meta(product_type, "NT")
     product2.save()
     product_type.save()
 
@@ -4179,10 +4197,10 @@ def test_generate_request_data_from_checkout_lines_sets_different_tax_code_only_
 
     variant = line.variant
     variant.channel_listings.all().update(price_amount=Decimal("11"))
-    variant.product.store_value_in_metadata(
+    variant.product.tax_class.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
     )
-    variant.product.save()
+    variant.product.tax_class.save()
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(

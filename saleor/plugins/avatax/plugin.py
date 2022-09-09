@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
+    from ...tax.models import TaxClass
     from ..models import PluginConfiguration
 
 
@@ -845,7 +846,7 @@ class AvataxPlugin(BasePlugin):
 
     def assign_tax_code_to_object_meta(
         self,
-        obj: Union["Product", "ProductType"],
+        obj: Union["Product", "ProductType", "TaxClass"],
         tax_code: Optional[str],
         previous_value: Any,
     ):
@@ -867,7 +868,7 @@ class AvataxPlugin(BasePlugin):
         return previous_value
 
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"], previous_value: Any
+        self, obj: Union["Product", "ProductType", "TaxClass"], previous_value: Any
     ) -> TaxType:
         if not self.active:
             return previous_value

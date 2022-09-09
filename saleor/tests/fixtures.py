@@ -1952,13 +1952,14 @@ def permission_manage_taxes():
 
 
 @pytest.fixture
-def product_type(color_attribute, size_attribute):
+def product_type(color_attribute, size_attribute, default_tax_class):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
         kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
+        tax_class=default_tax_class,
     )
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(
@@ -2018,7 +2019,7 @@ def product_type_without_variant():
 
 
 @pytest.fixture
-def product(product_type, category, warehouse, channel_USD):
+def product(product_type, category, warehouse, channel_USD, default_tax_class):
     product_attr = product_type.product_attributes.first()
     product_attr_value = product_attr.values.first()
 
@@ -2027,6 +2028,7 @@ def product(product_type, category, warehouse, channel_USD):
         slug="test-product-11",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,

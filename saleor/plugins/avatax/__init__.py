@@ -27,7 +27,9 @@ from ...tax.utils import get_charge_taxes_for_checkout
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order
-    from ...product.models import Product, ProductType, ProductVariant
+    from ...product.models import Product, ProductType
+    from ...tax.models import TaxClass
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,8 @@ COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 # Temporary Unmapped Other SKU - taxable default
 DEFAULT_TAX_CODE = "O9999999"
 DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
+
+TAX_CODE_NON_TAXABLE_PRODUCT = "NT"
 
 
 @dataclass
@@ -273,9 +277,27 @@ def generate_request_data_from_checkout_lines(
         if voucher and not voucher.apply_once_per_order
         else False
     )
+
     for line_info in lines_info:
+        tax_code = None
+        product = line_info.product
+        product_type = line_info.product_type
+
+        tax_code = (
+            retrieve_tax_code_from_meta(product.tax_class, default=None)
+            if product.tax_class
+            else None
+        )
+        tax_code = (
+            tax_code or retrieve_tax_code_from_meta(product_type.tax_class)
+            if product_type.tax_class
+            else DEFAULT_TAX_CODE
+        )
+
+        is_non_taxable_product = tax_code == TAX_CODE_NON_TAXABLE_PRODUCT
+
         tax_override_data = {}
-        if not charge_taxes:
+        if not charge_taxes or is_non_taxable_product:
             if not is_entire_order_discount:
                 continue
             # if there is a voucher for the entire order we need to attach this line
@@ -286,12 +308,6 @@ def generate_request_data_from_checkout_lines(
                 "reason": "Charge taxes for this product are turned off.",
             }
 
-        product = line_info.product
-        name = product.name
-        product_type = line_info.product_type
-        item_code = line_info.variant.sku or line_info.variant.get_global_id()
-        tax_code = retrieve_tax_code_from_meta(product, default=None)
-        tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
@@ -311,6 +327,8 @@ def generate_request_data_from_checkout_lines(
             if checkout_line_total.amount and not tax_override_data
             else DEFAULT_TAX_CODE
         )
+        name = product.name
+        item_code = line_info.variant.sku or line_info.variant.get_global_id()
         append_line_to_data_kwargs = {
             "data": data,
             "quantity": line_info.line.quantity,
@@ -632,7 +650,7 @@ def get_cached_tax_codes_or_fetch(
 
 
 def retrieve_tax_code_from_meta(
-    obj: Union["Product", "ProductVariant", "ProductType"],
+    obj: Union["Product", "ProductType", "TaxClass"],
     default: Optional[str] = DEFAULT_TAX_CODE,
 ):
     tax_code = obj.get_value_from_metadata(META_CODE_KEY, default)
