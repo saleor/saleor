@@ -31,6 +31,7 @@ from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import load_plugins
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
+from ...site.dataloaders import load_site
 from ..types import Order
 from ..utils import (
     OrderLineData,
@@ -116,6 +117,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
         manager = load_plugins(info.context)
+        site = load_site(info.context)
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
@@ -144,7 +146,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
-        display_gross_prices = info.context.site.settings.display_gross_prices
+        display_gross_prices = site.settings.display_gross_prices
         cleaned_input["display_gross_prices"] = display_gross_prices
 
         cls.clean_addresses(
@@ -278,7 +280,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
-    def _save_lines(info, instance, lines_data, manager):
+    def _save_lines(info, instance, lines_data, app, site, manager):
         if lines_data:
             lines = []
             for line_data in lines_data:
@@ -286,12 +288,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     instance,
                     line_data,
                     manager,
-                    info.context.site.settings,
+                    site.settings,
                 )
                 lines.append(new_line)
 
             # New event
-            app = load_app(info.context)
             events.order_added_products_event(
                 order=instance,
                 user=info.context.user,
@@ -300,14 +301,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance):
+    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app):
         if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
         if is_new_instance:
-            app = load_app(info.context)
             events.draft_order_created_event(
                 order=instance, user=info.context.user, app=app
             )
@@ -324,24 +324,34 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         manager = load_plugins(info.context)
+        app = load_app(info.context)
+        site = load_site(info.context)
         return cls._save_draft_order(
-            info, instance, cleaned_input, manager, is_new_instance=True
+            info,
+            instance,
+            cleaned_input,
+            is_new_instance=True,
+            app=app,
+            site=site,
+            manager=manager,
         )
 
     @classmethod
     @traced_atomic_transaction()
     def _save_draft_order(
-        cls, info, instance, cleaned_input, manager, *, is_new_instance
+        cls, info, instance, cleaned_input, *, is_new_instance, app, site, manager
     ):
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
-        cls._commit_changes(info, instance, cleaned_input, is_new_instance)
+        cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
 
         try:
             # Process any lines to add
-            cls._save_lines(info, instance, cleaned_input.get("lines_data"), manager)
+            cls._save_lines(
+                info, instance, cleaned_input.get("lines_data"), app, site, manager
+            )
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),

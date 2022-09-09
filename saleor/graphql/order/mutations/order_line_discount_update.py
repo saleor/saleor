@@ -9,6 +9,7 @@ from ....order.utils import invalidate_order_prices, update_discount_for_order_l
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugins
+from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -60,8 +61,9 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         value_type = input.get("value_type")
         value = input.get("value")
         manager = load_plugins(info.context)
+        site = load_site(info.context)
         order_line_before_update = copy.deepcopy(order_line)
-        tax_included = info.context.site.settings.include_taxes_in_prices
+        tax_included = site.settings.include_taxes_in_prices
 
         update_discount_for_order_line(
             order_line,

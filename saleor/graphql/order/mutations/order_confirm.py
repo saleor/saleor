@@ -14,6 +14,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugins
+from ...site.dataloaders import load_site
 from ..types import Order
 
 
@@ -86,6 +87,7 @@ class OrderConfirm(ModelMutation):
                 )
         elif payment and payment.is_authorized and payment.can_capture():
             gateway.capture(payment, manager, channel_slug=order.channel.slug)
+            site = load_site(info.context)
             transaction.on_commit(
                 lambda: order_captured(
                     order_info,
@@ -94,7 +96,7 @@ class OrderConfirm(ModelMutation):
                     payment.total,
                     payment,
                     manager,
-                    info.context.site.settings,
+                    site.settings,
                 )
             )
         transaction.on_commit(

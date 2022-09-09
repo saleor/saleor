@@ -16,6 +16,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import load_plugins
+from ...site.dataloaders import load_site
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -177,11 +178,10 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
-    def clean_input(cls, info, order, data):
-        site_settings = info.context.site.settings
+    def clean_input(cls, info, order, data, site):
         if not order.is_fully_paid() and (
-            site_settings.fulfillment_auto_approve
-            and not site_settings.fulfillment_allow_unpaid
+            site.settings.fulfillment_auto_approve
+            and not site.settings.fulfillment_allow_unpaid
         ):
             raise ValidationError(
                 {
@@ -211,7 +211,7 @@ class OrderFulfill(BaseMutation):
 
         cls.clean_lines(order_lines, quantities_for_lines)
 
-        if site_settings.fulfillment_auto_approve:
+        if site.settings.fulfillment_auto_approve:
             cls.check_lines_for_preorder(order_lines)
 
         cls.check_total_quantity_of_items(quantities_for_lines)
@@ -242,8 +242,8 @@ class OrderFulfill(BaseMutation):
             qs=order_models.Order.objects.prefetch_related("lines__variant"),
         )
         data = data.get("input")
-
-        cleaned_input = cls.clean_input(info, order, data)
+        site = load_site(info.context)
+        cleaned_input = cls.clean_input(info, order, data, site=site)
 
         context = info.context
         user = context.user if not context.user.is_anonymous else None
@@ -254,8 +254,7 @@ class OrderFulfill(BaseMutation):
         allow_stock_to_be_exceeded = cleaned_input.get(
             "allow_stock_to_be_exceeded", False
         )
-
-        approved = info.context.site.settings.fulfillment_auto_approve
+        approved = site.settings.fulfillment_auto_approve
         tracking_number = cleaned_input.get("tracking_number", "")
         try:
             fulfillments = create_fulfillments(
@@ -264,7 +263,7 @@ class OrderFulfill(BaseMutation):
                 order,
                 dict(lines_for_warehouses),
                 manager,
-                context.site.settings,
+                site.settings,
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 approved=approved,

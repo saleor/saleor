@@ -12,6 +12,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugins
+from ...site.dataloaders import load_site
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -97,6 +98,7 @@ class OrderCapture(BaseMutation):
             # Confirm that we changed the status to capture. Some payment can receive
             # asynchronous webhook with update status
             if transaction.kind == TransactionKind.CAPTURE:
+                site = load_site(info.context)
                 order_captured(
                     order_info,
                     info.context.user,
@@ -104,6 +106,6 @@ class OrderCapture(BaseMutation):
                     amount,
                     payment,
                     manager,
-                    info.context.site.settings,
+                    site.settings,
                 )
         return OrderCapture(order=order)
