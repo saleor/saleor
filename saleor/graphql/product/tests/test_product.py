@@ -5698,6 +5698,83 @@ def test_create_product_with_product_reference_attribute(
     assert product_type_product_reference_attribute.values.count() == values_count + 1
 
 
+def test_create_product_with_variant_reference_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    color_attribute,
+    product_type_variant_reference_attribute,
+    permission_manage_products,
+    variant,
+):
+    # given
+    query = CREATE_PRODUCT_MUTATION
+
+    values_count = product_type_variant_reference_attribute.values.count()
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_variant_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    reference = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": [reference]}],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{product_id}_{variant.id}",
+                    "name": f"{variant.product.name}: {variant.name}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                    "reference": reference,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    product_type_variant_reference_attribute.refresh_from_db()
+    assert product_type_variant_reference_attribute.values.count() == values_count + 1
+
+
 def test_create_product_with_product_reference_attribute_values_saved_in_order(
     staff_api_client,
     product_type,
@@ -7679,6 +7756,51 @@ def test_update_product_clean_file_attribute_value(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_none_as_attribute_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    product_attr = product.attributes.first()
+    attribute = product_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": None}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert not attributes[0]["values"]
+    with pytest.raises(product_attr._meta.model.DoesNotExist):
+        product_attr.refresh_from_db()
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_plain_text_attribute_value(
     updated_webhook_mock,
     staff_api_client,
@@ -8207,6 +8329,103 @@ def test_update_product_with_product_reference_attribute_value(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_variant_reference_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_variant_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_list[0]
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = product_list[1].variants.first()
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_variant_reference_attribute)
+
+    values_count = product_type_variant_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("ProductVariant", variant_ref.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_variant_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": ANY,
+                "name": f"{variant_ref.product.name}: {variant_ref.name}",
+                "slug": f"{product.id}_{variant_ref.id}",
+                "file": None,
+                "reference": reference,
+                "boolean": None,
+                "plainText": None,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    product_type_variant_reference_attribute.refresh_from_db()
+    assert product_type_variant_reference_attribute.values.count() == values_count + 1
+
+
+def test_update_product_with_no_id(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure only supplying values triggers a validation error."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"values": ["Oopsie!"]}],
+    }
+
+    # when
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+
+    # then
+    assert data["errors"] == [
+        {
+            "field": "attributes",
+            "code": ProductErrorCode.REQUIRED.name,
+            "message": ANY,
+            "attributes": None,
+        }
+    ]
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_product_reference_attribute_existing_value(
     updated_webhook_mock,
     staff_api_client,
@@ -8678,32 +8897,6 @@ def test_update_product_with_non_existing_attribute(
         {
             "field": "attributes",
             "code": ProductErrorCode.NOT_FOUND.name,
-            "message": ANY,
-            "attributes": None,
-        }
-    ]
-
-
-def test_update_product_with_no_attribute_slug_or_id(
-    staff_api_client, product, permission_manage_products, color_attribute
-):
-    """Ensure only supplying values triggers a validation error."""
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-
-    # Try to assign multiple values from an attribute that does not support such things
-    variables = {
-        "productId": graphene.Node.to_global_id("Product", product.pk),
-        "attributes": [{"values": ["Oopsie!"]}],
-    }
-
-    data = get_graphql_content(
-        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
-    )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {
-            "field": "attributes",
-            "code": ProductErrorCode.REQUIRED.name,
             "message": ANY,
             "attributes": None,
         }
