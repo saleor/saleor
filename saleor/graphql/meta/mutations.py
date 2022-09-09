@@ -481,10 +481,10 @@ class BaseMutationWithMetadata(BaseMutation):
         type_name = cls._meta.metadata_permissions_map_key
 
         if metadata:
-            cls.check_metadata_permissions(type_name, info, data["id"])
+            cls.check_metadata_permissions(type_name, info, data.get("id"))
 
         if private_metadata:
-            cls.check_metadata_permissions(type_name, info, data["id"], True)
+            cls.check_metadata_permissions(type_name, info, data.get("id"), True)
 
         result = info.context.plugins.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
