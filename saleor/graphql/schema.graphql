@@ -5033,6 +5033,7 @@ enum AttributeInputTypeEnum {
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
+  PRODUCT_VARIANT
 }
 
 """An enumeration."""

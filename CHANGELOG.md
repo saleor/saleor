@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.8.0 [Unreleased]
 
+### Other changes
+
+- Reference attribute linking to product variants - #10468 by @IKarbowiak
+
 # 3.7.0
 
 ### Highlights
