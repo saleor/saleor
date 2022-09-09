@@ -397,9 +397,10 @@ def get_order_lines_data(
         shipping_method=order.shipping_method_id, channel=order.channel_id
     ).first()
     if shipping_method_channel_listing:
+        shipping_price = shipping_method_channel_listing.price.amount
         append_shipping_to_data(
             data,
-            shipping_method_channel_listing.price.amount,
+            shipping_price if shipping_price else None,
             config.shipping_tax_code,
         )
     return data
@@ -459,6 +460,9 @@ def generate_request_data_from_checkout(
     address = checkout_info.shipping_address or checkout_info.billing_address
     lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
 
+    if not lines:
+        return {}
+
     currency = checkout_info.checkout.currency
     customer_email = cast(str, checkout_info.get_customer_email())
     data = generate_request_data(
@@ -504,6 +508,9 @@ def get_cached_response_or_fetch(
 
     Return cached response if requests data are the same. Fetch new data in other cases.
     """
+    # if the data is empty it means there is nothing to send to avalara
+    if not data:
+        return None
     data_cache_key = CACHE_KEY + token_in_cache
     cached_data = cache.get(data_cache_key)
     if taxes_need_new_fetch(data, cached_data) or force_refresh:
@@ -534,6 +541,10 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     )
     is_invoice_transaction = transaction == TransactionType.INVOICE
     lines = get_order_lines_data(order, config, is_invoice_transaction)
+
+    if not lines:
+        return {}
+
     data = generate_request_data(
         transaction_type=transaction,
         lines=lines,
@@ -553,9 +564,8 @@ def get_order_tax_data(
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.token, config, force_refresh
     )
-    error = response.get("error")
-    if error:
-        raise TaxError(error)
+    if response and "error" in response:
+        raise TaxError(response.get("error"))
     return response
 
 
