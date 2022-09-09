@@ -679,7 +679,6 @@ class WebhookPlugin(BasePlugin):
             )
 
     def collection_created(self, collection: "Collection", previous_value: Any) -> Any:
-        print("plagiiiiininin")
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.COLLECTION_CREATED
