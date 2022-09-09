@@ -117,7 +117,9 @@ class ApiClient(Client):
             response = super().post(API_PATH, *args, **kwargs)
             assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
-        return super().post(API_PATH, *args, **kwargs)
+        result = super().post(API_PATH, *args, **kwargs)
+        flush_post_commit_hooks()
+        return result
 
 
 @pytest.fixture

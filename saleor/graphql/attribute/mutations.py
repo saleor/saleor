@@ -523,7 +523,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda: info.context.plugins.attribute_created(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.attribute_created(i))
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
@@ -593,7 +593,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda: info.context.plugins.attribute_updated(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.attribute_updated(i))
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -610,7 +610,7 @@ class AttributeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda: info.context.plugins.attribute_deleted(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.attribute_deleted(i))
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -702,9 +702,11 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda: info.context.plugins.attribute_value_created(instance))
         cls.call_event(
-            lambda: info.context.plugins.attribute_updated(instance.attribute)
+            lambda i=instance: info.context.plugins.attribute_value_created(i)
+        )
+        cls.call_event(
+            lambda a=instance.attribute: info.context.plugins.attribute_updated(a)
         )
 
 
@@ -758,9 +760,11 @@ class AttributeValueUpdate(AttributeValueCreate):
             | Q(Exists(variants.filter(product_id=OuterRef("id"))))
         ).update(search_index_dirty=True)
 
-        cls.call_event(lambda: info.context.plugins.attribute_value_updated(instance))
         cls.call_event(
-            lambda: info.context.plugins.attribute_updated(instance.attribute)
+            lambda i=instance: info.context.plugins.attribute_value_updated(i)
+        )
+        cls.call_event(
+            lambda a=instance.attribute: info.context.plugins.attribute_updated(a)
         )
 
 
@@ -787,9 +791,11 @@ class AttributeValueDelete(ModelDeleteMutation):
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )
-        cls.call_event(lambda: info.context.plugins.attribute_value_deleted(instance))
         cls.call_event(
-            lambda: info.context.plugins.attribute_updated(instance.attribute)
+            lambda i=instance: info.context.plugins.attribute_value_deleted(i)
+        )
+        cls.call_event(
+            lambda a=instance.attribute: info.context.plugins.attribute_updated(a)
         )
         return response
 
@@ -875,9 +881,11 @@ class AttributeReorderValues(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
-
-        for value in [v for v in values_m2m if v.id in operations.keys()]:
-            cls.call_event(lambda: info.context.plugins.attribute_value_updated(value))
-        cls.call_event(lambda: info.context.plugins.attribute_updated(attribute))
+        events_list = [v for v in values_m2m if v.id in operations.keys()]
+        for value in events_list:
+            cls.call_event(
+                lambda v=value: info.context.plugins.attribute_value_updated(v)
+            )
+        cls.call_event(lambda v=attribute: info.context.plugins.attribute_updated(v))
 
         return AttributeReorderValues(attribute=attribute)

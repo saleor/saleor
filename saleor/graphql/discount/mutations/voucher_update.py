@@ -24,4 +24,4 @@ class VoucherUpdate(VoucherCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.voucher_updated(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.voucher_updated(i))

@@ -2,7 +2,6 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
-from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
 from ....order.actions import cancel_order
 from ....order.error_codes import OrderErrorCode
@@ -37,7 +36,6 @@ class OrderCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)

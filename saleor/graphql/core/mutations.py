@@ -399,8 +399,8 @@ class BaseMutation(graphene.Mutation):
             extra.update({cls._meta.error_type_field: errors})
         return cls(errors=errors, **extra)
 
-    @classmethod
-    def call_event(cls, func_obj):
+    @staticmethod
+    def call_event(func_obj):
         connection = transaction.get_connection()
         if connection.in_atomic_block:
             transaction.on_commit(func_obj)

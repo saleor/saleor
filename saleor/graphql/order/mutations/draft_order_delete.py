@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -36,9 +35,9 @@ class DraftOrderDelete(ModelDeleteMutation):
             )
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_instance(info, **data)
-        response = super().perform_mutation(_root, info, **data)
-        transaction.on_commit(lambda: info.context.plugins.draft_order_deleted(order))
+        with traced_atomic_transaction():
+            response = super().perform_mutation(_root, info, **data)
+            cls.call_event(lambda o=order: info.context.plugins.draft_order_deleted(o))
         return response

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Dict, List
 import graphene
 import pytz
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
@@ -123,18 +122,18 @@ class PageCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
 
-        attributes = cleaned_data.get("attributes")
-        if attributes:
-            AttributeAssignmentMixin.save(instance, attributes)
+            attributes = cleaned_data.get("attributes")
+            if attributes:
+                AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        info.context.plugins.page_created(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.page_created(i))
 
 
 class PageUpdate(PageCreate):
@@ -163,7 +162,7 @@ class PageUpdate(PageCreate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
-        info.context.plugins.page_updated(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.page_updated(i))
 
 
 class PageDelete(ModelDeleteMutation):
@@ -179,12 +178,12 @@ class PageDelete(ModelDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         page = cls.get_instance(info, **data)
-        cls.delete_assigned_attribute_values(page)
-        response = super().perform_mutation(_root, info, **data)
-        transaction.on_commit(lambda: info.context.plugins.page_deleted(page))
+        with traced_atomic_transaction():
+            cls.delete_assigned_attribute_values(page)
+            response = super().perform_mutation(_root, info, **data)
+            cls.call_event(lambda p=page: info.context.plugins.page_deleted(p))
         return response
 
     @staticmethod
@@ -282,7 +281,7 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.page_type_created(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.page_type_created(i))
 
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
@@ -342,7 +341,7 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.page_type_updated(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.page_type_updated(i))
 
 
 class PageTypeDelete(ModelDeleteMutation):
@@ -358,14 +357,14 @@ class PageTypeDelete(ModelDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         page_type_pk = cls.get_global_id_or_error(
             node_id, only_type=PageType, field="pk"
         )
-        cls.delete_assigned_attribute_values(page_type_pk)
-        return super().perform_mutation(_root, info, **data)
+        with traced_atomic_transaction():
+            cls.delete_assigned_attribute_values(page_type_pk)
+            return super().perform_mutation(_root, info, **data)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pk):
@@ -376,4 +375,4 @@ class PageTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        transaction.on_commit(lambda: info.context.plugins.page_type_deleted(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.page_type_deleted(i))

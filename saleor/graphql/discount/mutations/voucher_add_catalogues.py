@@ -68,6 +68,6 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         cls.add_catalogues_to_node(voucher, input_data)
 
         if input_data:
-            info.context.plugins.voucher_updated(voucher)
+            cls.call_event(lambda v=voucher: info.context.plugins.voucher_updated(v))
 
         return VoucherAddCatalogues(voucher=voucher)

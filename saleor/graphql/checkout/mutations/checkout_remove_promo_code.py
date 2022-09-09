@@ -106,7 +106,7 @@ class CheckoutRemovePromoCode(BaseMutation):
                 recalculate_discount=False,
                 save=True,
             )
-            manager.checkout_updated(checkout)
+            cls.call_event(lambda c=checkout: manager.checkout_updated(c))
 
         return CheckoutRemovePromoCode(checkout=checkout)
 

@@ -574,6 +574,7 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("customer_updated", default_value, customer)
 
     def collection_created(self, collection: "Collection"):
+        print("mamananamamanamamna")
         default_value = None
         return self.__run_method_on_plugins(
             "collection_created", default_value, collection

@@ -20,6 +20,6 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
         cls.remove_catalogues_from_node(voucher, input_data)
 
         if input_data:
-            info.context.plugins.voucher_updated(voucher)
+            cls.call_event(lambda v=voucher: info.context.plugins.voucher_updated(v))
 
         return VoucherRemoveCatalogues(voucher=voucher)

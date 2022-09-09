@@ -3,7 +3,6 @@ from datetime import datetime
 import graphene
 import pytz
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -89,9 +88,9 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
+        with traced_atomic_transaction():
+            response = super().perform_mutation(_root, info, **data)
         instance = getattr(response, cls._meta.return_field_name).node
         cls.send_sale_notifications(info, instance)
         return response
@@ -102,7 +101,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             fetch_catalogue_info(instance)
         )
 
-        transaction.on_commit(
+        cls.call_event(
             lambda: info.context.plugins.sale_created(
                 instance,
                 current_catalogue,

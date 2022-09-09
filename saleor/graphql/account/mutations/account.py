@@ -152,7 +152,9 @@ class AccountRegister(ModelMutation):
                 user.save()
 
             account_events.customer_account_created_event(user=user)
-            cls.call_event(lambda: info.context.plugins.customer_created(customer=user))
+            cls.call_event(
+                lambda u=user: info.context.plugins.customer_created(customer=u)
+            )
 
 
 class AccountInput(AccountBaseInput):
@@ -329,8 +331,8 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         instance.user_addresses.add(user)
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
-        cls.call_event(lambda: info.context.plugins.customer_updated(user))
-        cls.call_event(lambda: info.context.plugins.address_created(instance))
+        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
+        cls.call_event(lambda i=instance: info.context.plugins.address_created(i))
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -397,7 +399,7 @@ class AccountSetDefaultAddress(BaseMutation):
         utils.change_user_default_address(
             user, address, address_type, info.context.plugins
         )
-        cls.call_event(lambda: info.context.plugins.customer_updated(user))
+        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
         return cls(user=user)
 
 
@@ -546,5 +548,5 @@ class ConfirmEmailChange(BaseMutation):
         notifications.send_user_change_email_notification(
             old_email, user, info.context.plugins, channel_slug=channel_slug
         )
-        cls.call_event(lambda: info.context.plugins.customer_updated(user))
+        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
         return ConfirmEmailChange(user=user)

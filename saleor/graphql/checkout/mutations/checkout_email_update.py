@@ -65,5 +65,5 @@ class CheckoutEmailUpdate(BaseMutation):
         checkout.email = email
         cls.clean_instance(info, checkout)
         checkout.save(update_fields=["email", "last_change"])
-        info.context.plugins.checkout_updated(checkout)
+        cls.call_event(lambda c=checkout: info.context.plugins.checkout_updated(c))
         return CheckoutEmailUpdate(checkout=checkout)

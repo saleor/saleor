@@ -185,7 +185,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             + invalidate_prices_updated_fields
         )
 
-        manager.checkout_updated(checkout)
+        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
     @classmethod
@@ -214,6 +214,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        manager.checkout_updated(checkout)
+        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
 
         return CheckoutShippingMethodUpdate(checkout=checkout)

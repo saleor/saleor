@@ -331,9 +331,9 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         user.search_document = prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
 
-        cls.call_event(lambda: info.context.plugins.customer_updated(user))
+        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
         address = info.context.plugins.change_user_address(address, None, user)
-        cls.call_event(lambda: info.context.plugins.address_updated(address))
+        cls.call_event(lambda a=address: info.context.plugins.address_updated(a))
 
         success_response = cls.success_response(address)
         success_response.user = user
@@ -393,8 +393,8 @@ class BaseAddressDelete(ModelDeleteMutation):
         response = cls.success_response(instance)
 
         response.user = user
-        cls.call_event(lambda: info.context.plugins.customer_updated(user))
-        cls.call_event(lambda: info.context.plugins.address_deleted(instance))
+        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
+        cls.call_event(lambda i=instance: info.context.plugins.address_deleted(i))
         return response
 
 

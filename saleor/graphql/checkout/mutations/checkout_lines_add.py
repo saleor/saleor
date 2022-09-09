@@ -205,7 +205,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
-        manager.checkout_updated(checkout)
+        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
 
         return CheckoutLinesAdd(checkout=checkout)
 

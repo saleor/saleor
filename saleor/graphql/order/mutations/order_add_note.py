@@ -56,17 +56,17 @@ class OrderAddNote(BaseMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         app = load_app(info.context)
-        event = events.order_note_added_event(
-            order=order,
-            user=info.context.user,
-            app=app,
-            message=cleaned_input["message"],
-        )
-        func = get_webhook_handler_by_order_status(order.status, info)
-        transaction.on_commit(lambda: func(order))
+        with traced_atomic_transaction():
+            event = events.order_note_added_event(
+                order=order,
+                user=info.context.user,
+                app=app,
+                message=cleaned_input["message"],
+            )
+            func = get_webhook_handler_by_order_status(order.status, info)
+            transaction.on_commit(lambda: func(order))
         return OrderAddNote(order=order, event=event)

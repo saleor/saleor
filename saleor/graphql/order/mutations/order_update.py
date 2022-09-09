@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
@@ -72,18 +71,18 @@ class OrderUpdate(DraftOrderCreate):
         )
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        cls._save_addresses(info, instance, cleaned_input)
-        if instance.user_email:
-            user = User.objects.filter(email=instance.user_email).first()
-            instance.user = user
-        instance.search_vector = FlatConcatSearchVector(
-            *prepare_order_search_vector_value(instance)
-        )
+        with traced_atomic_transaction():
+            cls._save_addresses(info, instance, cleaned_input)
+            if instance.user_email:
+                user = User.objects.filter(email=instance.user_email).first()
+                instance.user = user
+            instance.search_vector = FlatConcatSearchVector(
+                *prepare_order_search_vector_value(instance)
+            )
 
-        if cls.should_invalidate_prices(instance, cleaned_input, False):
-            invalidate_order_prices(instance)
+            if cls.should_invalidate_prices(instance, cleaned_input, False):
+                invalidate_order_prices(instance)
 
-        instance.save()
-        transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
+            instance.save()
+            cls.call_event(lambda i=instance: info.context.plugins.order_updated(i))

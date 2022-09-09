@@ -61,5 +61,5 @@ class CheckoutCustomerDetach(BaseMutation):
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
 
-        info.context.plugins.checkout_updated(checkout)
+        cls.call_event(lambda c=checkout: info.context.plugins.checkout_updated(c))
         return CheckoutCustomerDetach(checkout=checkout)

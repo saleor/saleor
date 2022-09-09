@@ -307,7 +307,7 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda: info.context.plugins.staff_created(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.staff_created(i))
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -481,7 +481,7 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda: info.context.plugins.staff_updated(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.staff_updated(i))
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
@@ -511,7 +511,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         instance.id = db_id
 
         response = cls.success_response(instance)
-        cls.call_event(lambda: info.context.plugins.staff_deleted(instance))
+        cls.call_event(lambda i=instance: info.context.plugins.staff_deleted(i))
 
         return response
 
@@ -620,7 +620,7 @@ class AddressSetDefault(BaseMutation):
         utils.change_user_default_address(
             user, address, address_type, info.context.plugins
         )
-        cls.call_event(lambda: info.context.plugins.customer_updated(user))
+        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
         return cls(user=user)
 
 

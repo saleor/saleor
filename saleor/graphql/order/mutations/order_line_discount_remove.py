@@ -34,7 +34,6 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         cls.validate_order(info, order)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         tax_included = info.context.site.settings.include_taxes_in_prices
         order_line = cls.get_node_or_error(
@@ -42,17 +41,20 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         )
         order = order_line.order
         cls.validate(info, order)
+        with traced_atomic_transaction():
+            remove_discount_from_order_line(
+                order_line,
+                order,
+                manager=info.context.plugins,
+                tax_included=tax_included,
+            )
+            app = load_app(info.context)
+            events.order_line_discount_removed_event(
+                order=order,
+                user=info.context.user,
+                app=app,
+                line=order_line,
+            )
 
-        remove_discount_from_order_line(
-            order_line, order, manager=info.context.plugins, tax_included=tax_included
-        )
-        app = load_app(info.context)
-        events.order_line_discount_removed_event(
-            order=order,
-            user=info.context.user,
-            app=app,
-            line=order_line,
-        )
-
-        invalidate_order_prices(order, save=True)
+            invalidate_order_prices(order, save=True)
         return OrderLineDiscountRemove(order_line=order_line, order=order)

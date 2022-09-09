@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Model
 
 from ...core.permissions import MenuPermissions, SitePermissions
@@ -132,7 +131,7 @@ class MenuCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_created(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.menu_created(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -162,7 +161,7 @@ class MenuUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_updated(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.menu_updated(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -184,7 +183,7 @@ class MenuDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_deleted(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.menu_deleted(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -232,7 +231,7 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_item_created(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.menu_item_created(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -293,7 +292,7 @@ class MenuItemUpdate(MenuItemCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_item_updated(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.menu_item_updated(i))
 
 
 class MenuItemDelete(ModelDeleteMutation):
@@ -310,7 +309,7 @@ class MenuItemDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_item_deleted(instance)
+        cls.call_event(lambda i=instance: info.context.plugins.menu_item_deleted(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -458,7 +457,6 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         menu: str = data["menu"]
         moves: List[MenuItemMoveInput] = data["moves"]
@@ -466,22 +464,22 @@ class MenuItemMove(BaseMutation):
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
         operations = cls.clean_moves(info, menu, moves)
+        with traced_atomic_transaction():
+            for operation in operations:
+                cls.perform_change_parent_operation(operation)
 
-        for operation in operations:
-            cls.perform_change_parent_operation(operation)
+                menu_item = operation.menu_item
 
-            menu_item = operation.menu_item
+                if operation.sort_order:
+                    perform_reordering(
+                        menu_item.get_ordering_queryset(),
+                        {menu_item.pk: operation.sort_order},
+                    )
 
-            if operation.sort_order:
-                perform_reordering(
-                    menu_item.get_ordering_queryset(),
-                    {menu_item.pk: operation.sort_order},
-                )
-
-            if operation.sort_order or operation.parent_changed:
-                transaction.on_commit(
-                    lambda: info.context.plugins.menu_item_updated(menu_item)
-                )
+                if operation.sort_order or operation.parent_changed:
+                    cls.call_event(
+                        lambda m=menu_item: info.context.plugins.menu_item_updated(m)
+                    )
 
         menu = qs.get(pk=menu.pk)
         MenuItemsByParentMenuLoader(info.context).clear(menu.id)

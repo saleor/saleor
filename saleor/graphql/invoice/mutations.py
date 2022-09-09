@@ -210,7 +210,7 @@ class InvoiceRequestDelete(ModelMutation):
         invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
-        info.context.plugins.invoice_delete(invoice)
+        cls.call_event(lambda i=invoice: info.context.plugins.invoice_delete(i))
         app = load_app(info.context)
         events.invoice_requested_deletion_event(
             user=info.context.user, app=app, invoice=invoice

@@ -108,10 +108,13 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         )
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, shipping_method: "ShippingMethodModel", cleaned_input: Dict):
-        cls.add_channels(shipping_method, cleaned_input.get("add_channels", []))
-        cls.remove_channels(shipping_method, cleaned_input.get("remove_channels", []))
+        # transaction ensures consistent channels data
+        with traced_atomic_transaction():
+            cls.add_channels(shipping_method, cleaned_input.get("add_channels", []))
+            cls.remove_channels(
+                shipping_method, cleaned_input.get("remove_channels", [])
+            )
 
     @classmethod
     def get_shipping_method_channel_listing_to_update(
@@ -248,7 +251,9 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(info, shipping_method, cleaned_input)
-        info.context.plugins.shipping_price_updated(shipping_method)
+        cls.call_event(
+            lambda: info.context.plugins.shipping_price_updated(shipping_method)
+        )
 
         return ShippingMethodChannelListingUpdate(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)

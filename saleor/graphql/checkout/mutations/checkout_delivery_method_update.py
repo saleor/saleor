@@ -190,8 +190,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 }
             )
 
-    @staticmethod
+    @classmethod
     def _update_delivery_method(
+        cls,
         manager,
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
@@ -221,7 +222,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        manager.checkout_updated(checkout)
+        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
 
     @staticmethod
     def _resolve_delivery_method_type(id_) -> Optional[str]:

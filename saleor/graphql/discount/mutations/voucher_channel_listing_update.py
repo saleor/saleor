@@ -177,10 +177,10 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         voucher.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, voucher, cleaned_input):
-        cls.add_channels(voucher, cleaned_input.get("add_channels", []))
-        cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
+        with traced_atomic_transaction():
+            cls.add_channels(voucher, cleaned_input.get("add_channels", []))
+            cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -195,7 +195,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(voucher, cleaned_input)
-        info.context.plugins.voucher_updated(voucher)
+        cls.call_event(lambda v=voucher: info.context.plugins.voucher_updated(voucher))
 
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)
