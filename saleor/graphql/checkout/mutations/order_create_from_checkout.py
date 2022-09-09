@@ -12,6 +12,7 @@ from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
+from ...discount.dataloaders import load_discounts
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugins
 from ..enums import OrderCreateFromCheckoutErrorCode
@@ -84,8 +85,8 @@ class OrderCreateFromCheckout(BaseMutation):
         )
         tracking_code = analytics.get_client_id(info.context)
 
-        discounts = info.context.discounts
         manager = load_plugins(info.context)
+        discounts = load_discounts(info.context)
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout, checkout_lines, discounts, manager
@@ -103,7 +104,7 @@ class OrderCreateFromCheckout(BaseMutation):
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines=checkout_lines,
-                discounts=info.context.discounts,
+                discounts=discounts,
                 manager=manager,
                 user=info.context.user,
                 app=app,

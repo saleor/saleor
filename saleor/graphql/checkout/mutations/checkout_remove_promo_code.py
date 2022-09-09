@@ -18,6 +18,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...discount.dataloaders import load_discounts
 from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
 from ...plugins.dataloaders import load_plugins
@@ -85,9 +86,8 @@ class CheckoutRemovePromoCode(BaseMutation):
         )
 
         manager = load_plugins(info.context)
-        checkout_info = fetch_checkout_info(
-            checkout, [], info.context.discounts, manager
-        )
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 
         removed = False
         if promo_code:
@@ -103,7 +103,7 @@ class CheckoutRemovePromoCode(BaseMutation):
                 checkout_info,
                 lines,
                 manager,
-                info.context.discounts,
+                discounts,
                 recalculate_discount=False,
                 save=True,
             )

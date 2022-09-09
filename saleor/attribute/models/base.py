@@ -15,7 +15,7 @@ from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
 from ...core.utils.translations import Translation, TranslationProxy
 from ...page.models import Page, PageType
-from ...product.models import Product, ProductType
+from ...product.models import Product, ProductType, ProductVariant
 from .. import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
@@ -225,6 +225,14 @@ class AttributeValue(SortableModel):
 
     reference_product = models.ForeignKey(
         Product,
+        related_name="references",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    reference_variant = models.ForeignKey(
+        ProductVariant,
         related_name="references",
         on_delete=models.CASCADE,
         null=True,
