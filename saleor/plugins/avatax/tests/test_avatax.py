@@ -24,6 +24,7 @@ from ....order import OrderStatus
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ....shipping.utils import convert_to_shipping_method_data
+from ....tax.models import TaxClass
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
@@ -1008,7 +1009,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     line = checkout_with_item.lines.first()
     product = line.variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
+    manager.assign_tax_code_to_object_meta(product.product_type.tax_class, "PC040156")
     product.save()
     product.product_type.save()
     product_with_single_variant.tax_class = tax_class_zero_rates
@@ -1427,7 +1428,7 @@ def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
     variant = line.variant
     product = variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type, "PS081282")
+    manager.assign_tax_code_to_object_meta(product.product_type.tax_class, "PS081282")
     product.save()
     product.product_type.save()
 
@@ -4435,10 +4436,10 @@ def test_assign_tax_code_to_object_meta(
     manager = get_plugins_manager()
 
     # when
-    manager.assign_tax_code_to_object_meta(product, tax_code)
+    manager.assign_tax_code_to_object_meta(product.tax_class, tax_code)
 
     # then
-    assert product.metadata == {
+    assert product.tax_class.metadata == {
         META_CODE_KEY: tax_code,
         META_DESCRIPTION_KEY: description,
     }
@@ -4461,7 +4462,7 @@ def test_assign_tax_code_to_object_meta_none_as_tax_code(
     manager = get_plugins_manager()
 
     # when
-    manager.assign_tax_code_to_object_meta(product, tax_code)
+    manager.assign_tax_code_to_object_meta(product.tax_class, tax_code)
 
     # then
     assert product.metadata == {}
@@ -4482,14 +4483,14 @@ def test_assign_tax_code_to_object_meta_no_obj_id_and_none_as_tax_code(
         lambda _: {"standard": description},
     )
 
-    product = Product(name="A new product.")
+    tax_class = TaxClass(name="A new tax class.")
     manager = get_plugins_manager()
 
     # when
-    manager.assign_tax_code_to_object_meta(product, tax_code)
+    manager.assign_tax_code_to_object_meta(tax_class, tax_code)
 
     # then
-    assert product.metadata == {}
+    assert tax_class.metadata == {}
 
 
 def test_assign_tax_code_to_object_meta_no_obj_id(
@@ -4506,14 +4507,14 @@ def test_assign_tax_code_to_object_meta_no_obj_id(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {tax_code: description},
     )
-    product = Product(name="A new product.")
+    tax_class = TaxClass(name="A new product.")
     manager = get_plugins_manager()
 
     # when
-    manager.assign_tax_code_to_object_meta(product, tax_code)
+    manager.assign_tax_code_to_object_meta(tax_class, tax_code)
 
     # then
-    assert product.metadata == {
+    assert tax_class.metadata == {
         META_CODE_KEY: tax_code,
         META_DESCRIPTION_KEY: description,
     }

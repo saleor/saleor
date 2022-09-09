@@ -545,7 +545,12 @@ class ProductInput(graphene.InputObjectType):
             "will use the tax class which is assigned to the product type."
         )
     )
-    tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
+    tax_code = graphene.String(
+        description=(
+            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT} "
+            "Use tax classes to control the tax calculation for a product."
+        )
+    )
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     rating = graphene.Float(description="Defines the product rating value.")
@@ -630,11 +635,6 @@ class ProductCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
-
-        if "tax_code" in cleaned_input:
-            info.context.plugins.assign_tax_code_to_object_meta(
-                instance, cleaned_input["tax_code"]
-            )
 
         if attributes and product_type:
             try:

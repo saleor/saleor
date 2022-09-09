@@ -62,6 +62,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..tax.models import TaxClass
     from ..warehouse.models import Warehouse
 
 PluginConfigurationType = List[dict]
@@ -195,7 +196,7 @@ class BasePlugin:
 
     #  Assign tax code dedicated to plugin.
     assign_tax_code_to_object_meta: Callable[
-        [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
+        ["TaxClass", Union[str, NoneType], Any], Any
     ]
 
     #  Trigger when attribute is created.

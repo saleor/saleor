@@ -846,7 +846,7 @@ class AvataxPlugin(BasePlugin):
 
     def assign_tax_code_to_object_meta(
         self,
-        obj: Union["Product", "ProductType", "TaxClass"],
+        obj: "TaxClass",
         tax_code: Optional[str],
         previous_value: Any,
     ):
