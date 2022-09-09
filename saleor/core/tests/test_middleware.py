@@ -1,8 +1,6 @@
-import pytest
 from django.core.handlers.base import BaseHandler
 from freezegun import freeze_time
 
-from ...graphql.plugins.dataloaders import load_plugin_manager
 from ..jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -80,44 +78,3 @@ def test_jwt_refresh_token_middleware_samesite_none(rf, customer_user, settings)
     response = handler.get_response(request)
     cookie = response.cookies.get(JWT_REFRESH_TOKEN_COOKIE_NAME)
     assert cookie["samesite"] == "None"
-
-
-@pytest.mark.skip("plugins middleware removed")  # TODO: change to testing loader
-def test_plugins_middleware_loads_requestor_in_plugin(rf, customer_user, settings):
-    settings.MIDDLEWARE = [
-        "saleor.core.middleware.plugins",
-    ]
-    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
-    request = rf.request()
-    request.user = customer_user
-    request.app = None
-
-    handler = BaseHandler()
-    handler.load_middleware()
-    handler.get_response(request)
-    manager = load_plugin_manager(request)
-    plugin = manager.all_plugins.pop()
-
-    assert isinstance(plugin.requestor, type(customer_user))
-    assert plugin.requestor.id == customer_user.id
-
-
-@pytest.mark.skip("plugins middleware removed")  # TODO: change to testing loader
-def test_plugins_middleware_requestor_in_plugin_when_no_app_and_user_in_req_is_none(
-    rf, settings
-):
-    settings.MIDDLEWARE = [
-        "saleor.core.middleware.plugins",
-    ]
-    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
-    request = rf.request()
-    request.user = None
-    request.app = None
-
-    handler = BaseHandler()
-    handler.load_middleware()
-    handler.get_response(request)
-    manager = load_plugin_manager(request)
-    plugin = manager.all_plugins.pop()
-
-    assert not plugin.requestor

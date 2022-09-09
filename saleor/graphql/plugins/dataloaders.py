@@ -24,14 +24,23 @@ class EmailTemplatesByPluginConfigurationLoader(DataLoader):
 
 
 class PluginManagerByRequestorDataloader(DataLoader):
-    context_key = "plugin_by_requestor"
+    context_key = "plugin_manager_by_requestor"
 
     def batch_load(self, keys):
         return [get_plugins_manager(lambda: key) for key in keys]
+
+
+class AnonymousPluginManagerLoader(DataLoader):
+    context_key = "anonymous_plugin_manager"
+
+    def batch_load(self, keys):
+        return [get_plugins_manager() for key in keys]
 
 
 def load_plugin_manager(request):
     app = load_app(request)
     user = request.user
     requestor = app or user
+    if requestor is None:
+        return AnonymousPluginManagerLoader(request).load("Anonymous").get()
     return PluginManagerByRequestorDataloader(request).load(requestor).get()
