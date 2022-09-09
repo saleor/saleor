@@ -13,6 +13,7 @@ from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...discount.dataloaders import load_discounts
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
@@ -62,7 +63,7 @@ class CheckoutAddPromoCode(BaseMutation):
         validate_checkout_email(checkout)
 
         manager = info.context.plugins
-        discounts = info.context.discounts
+        discounts = load_discounts(info.context)
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:

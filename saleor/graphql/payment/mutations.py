@@ -48,6 +48,7 @@ from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
+from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
@@ -272,9 +273,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         cls.validate_token(
             manager, gateway, data, channel_slug=checkout_info.channel.slug
@@ -288,7 +288,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             checkout_info=checkout_info,
             lines=lines,
             address=address,
-            discounts=info.context.discounts,
+            discounts=discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
