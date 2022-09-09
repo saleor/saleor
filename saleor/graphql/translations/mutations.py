@@ -26,6 +26,7 @@ from ..menu.types import MenuItem
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
+from ..site.dataloaders import load_site
 from . import types as translation_types
 
 TRANSLATABLE_CONTENT_TO_MODEL = {
@@ -489,7 +490,8 @@ class ShopSettingsTranslate(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         validate_input_against_model(SiteSettings, data["input"])
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")

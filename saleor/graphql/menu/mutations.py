@@ -19,6 +19,7 @@ from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
 from ..product.types import Category, Collection
+from ..site.dataloaders import load_site
 from .dataloaders import MenuItemsByParentMenuLoader
 from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput
@@ -506,16 +507,16 @@ class AssignNavigation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, navigation_type, menu=None):
-        site_settings = info.context.site.settings
+        site = load_site(info.context)
         if menu is not None:
             menu = cls.get_node_or_error(info, menu, field="menu")
 
         if navigation_type == NavigationType.MAIN:
-            site_settings.top_menu = menu
-            site_settings.save(update_fields=["top_menu"])
+            site.settings.top_menu = menu
+            site.settings.save(update_fields=["top_menu"])
         elif navigation_type == NavigationType.SECONDARY:
-            site_settings.bottom_menu = menu
-            site_settings.save(update_fields=["bottom_menu"])
+            site.settings.bottom_menu = menu
+            site.settings.save(update_fields=["bottom_menu"])
 
         if menu is None:
             return AssignNavigation(menu=None)

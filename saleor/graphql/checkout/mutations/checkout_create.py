@@ -26,6 +26,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .utils import (
     check_lines_quantity,
@@ -170,6 +171,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls, info, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List["CheckoutLineData"]]:
         app = load_app(info.context)
+        site = load_site(info.context)
         check_permissions_for_custom_prices(app, lines)
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
@@ -199,8 +201,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             quantities,
             country,
             channel.slug,
-            info.context.site.settings.limit_quantity_per_checkout,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            site.settings.limit_quantity_per_checkout,
+            check_reservations=is_reservation_enabled(site.settings),
         )
         return variants, checkout_lines_data
 
@@ -299,13 +301,16 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         variants = cleaned_input.get("variants")
         checkout_lines_data = cleaned_input.get("lines_data")
         if variants and checkout_lines_data:
+            site = load_site(info.context)
             add_variants_to_checkout(
                 instance,
                 variants,
                 checkout_lines_data,
                 channel,
-                info.context.site.settings.limit_quantity_per_checkout,
-                reservation_length=get_reservation_length(info.context),
+                site.settings.limit_quantity_per_checkout,
+                reservation_length=get_reservation_length(
+                    site=site, user=info.context.user
+                ),
             )
 
         # Save addresses
