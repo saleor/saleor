@@ -579,7 +579,7 @@ class ProductCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.product_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -708,7 +708,7 @@ class ProductUpdate(ProductCreate):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.product_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
@@ -862,7 +862,7 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -1100,7 +1100,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )

@@ -560,7 +560,7 @@ def fulfillment_restocked_items_event(
     user: UserType,
     app: AppType,
     fulfillment: Union[Order, Fulfillment],
-    warehouse_pk: Optional[int] = None,
+    warehouse_pk: Optional["UUID"] = None,
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None

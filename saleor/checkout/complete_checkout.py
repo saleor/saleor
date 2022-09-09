@@ -498,7 +498,7 @@ def _create_order(
     )
     order = Order.objects.create(
         **order_data,
-        checkout_token=checkout.token,
+        checkout_token=str(checkout.token),
         status=status,
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
@@ -1042,11 +1042,11 @@ def _create_order_from_checkout(
         status=status,
         language_code=checkout_info.checkout.language_code,
         tracking_client_id=tracking_code or "",
-        total=taxed_total,
-        undiscounted_total=undiscounted_total,
+        total=taxed_total,  # type: ignore
+        undiscounted_total=undiscounted_total,  # type: ignore
         shipping_tax_rate=shipping_tax_rate,
         voucher=voucher,
-        checkout_token=checkout_info.checkout.token,
+        checkout_token=str(checkout_info.checkout.token),
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
         metadata=checkout_info.checkout.metadata,

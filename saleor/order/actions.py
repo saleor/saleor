@@ -617,7 +617,15 @@ def automatically_fulfill_digital_lines(
             FulfillmentLine(fulfillment=fulfillment, order_line=line, quantity=quantity)
         )
         allocation = line.allocations.first()
-        line_data.warehouse_pk = allocation.stock.warehouse.pk  # type: ignore
+        if allocation:
+            line_data.warehouse_pk = allocation.stock.warehouse.pk
+        else:
+            # allocation is not created when track inventory for given product
+            # is turned off so it doesn't matter which warehouse we'll use
+            line_data.warehouse_pk = (
+                line_data.variant.stocks.first().warehouse  # type: ignore
+            )
+
         lines_info.append(line_data)
 
     FulfillmentLine.objects.bulk_create(fulfillments)
@@ -754,7 +762,7 @@ def create_fulfillments(
     notify_customer: bool = True,
     approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
-    tracking_number: Optional[str] = "",
+    tracking_number: str = "",
 ) -> List[Fulfillment]:
     """Fulfill order.
 

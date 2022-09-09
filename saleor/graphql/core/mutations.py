@@ -2,7 +2,7 @@ import os
 import secrets
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 from uuid import UUID
 
 import graphene
@@ -18,7 +18,6 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
-from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AuthorizationFilters,
@@ -26,6 +25,7 @@ from ...core.permissions import (
     one_of_permissions_or_auth_filter_required,
 )
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from .context import set_mutation_flag_in_context
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import (
     TYPES_WITH_DOUBLE_ID_AVAILABLE,
@@ -66,8 +66,12 @@ def validation_error_to_error_type(
     error_class_fields = set(error_type_class._meta.fields.keys())
     if hasattr(validation_error, "error_dict"):
         # convert field errors
-        for field, field_errors in validation_error.error_dict.items():
-            field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
+        for field_label, field_errors in validation_error.error_dict.items():
+            field = (
+                None
+                if field_label == NON_FIELD_ERRORS
+                else snake_to_camel_case(field_label)
+            )
             for err in field_errors:
                 error = error_type_class(
                     field=field,
@@ -88,7 +92,7 @@ def validation_error_to_error_type(
     return err_list
 
 
-def attach_error_params(error, params: dict, error_class_fields: set):
+def attach_error_params(error, params: Optional[dict], error_class_fields: set):
     if not params:
         return {}
     # If some of the params key overlap with error class fields
