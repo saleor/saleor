@@ -146,6 +146,9 @@ class AttributeAssignmentMixin:
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
 
+        if not attr_values.values:
+            return tuple()
+
         return tuple(
             get_or_create(
                 attribute=attribute,
@@ -703,12 +706,13 @@ def validate_standard_attributes_input(
             attribute_id
         )
 
-    validate_values(
-        attribute_id,
-        attribute,
-        attr_values.values,
-        attribute_errors,
-    )
+    if attr_values.values is not None:
+        validate_values(
+            attribute_id,
+            attribute,
+            attr_values.values,
+            attribute_errors,
+        )
 
 
 def validate_date_time_input(
