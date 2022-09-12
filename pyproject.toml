@@ -47,7 +47,7 @@ documentation = "https://docs.saleor.io/"
   text-unidecode = "^1.2"
   # libpango >=1.44 is required
   weasyprint = ">=53.0"
-  oauthlib = "^3.1"
+  oauthlib = "^3.2"
   jaeger-client = "^4.5.0"
   openpyxl = "^3.0.3"
   django-cache-url = "^3.1.2"
