@@ -1780,7 +1780,8 @@ def test_complete_checkout_for_local_click_and_collect(
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
-    checkout.save(update_fields=["collection_point"])
+    checkout.shipping_address = None
+    checkout.save(update_fields=["collection_point", "shipping_address"])
 
     variables = {
         "id": to_global_id_or_none(checkout),
