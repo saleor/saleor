@@ -4,7 +4,6 @@ from typing import List
 import graphene
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import DatabaseError
-from graphene.types.mutation import MutationOptions
 from graphql.error.base import GraphQLError
 
 from ...checkout import models as checkout_models
@@ -17,8 +16,6 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
-from ..core.context import set_mutation_flag_in_context
-from ..core.descriptions import ADDED_IN_38
 from ..core.mutations import BaseMutation
 from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
@@ -405,37 +402,8 @@ class DeletePrivateMetadata(BaseMetadataMutation):
 
 
 class BaseMutationWithMetadata(BaseMutation):
-    class Arguments:
-        private_metadata = NonNullList(
-            MetadataInput,
-            description=(
-                "Fields required to update the object's private metadata." + ADDED_IN_38
-            ),
-            required=False,
-        )
-        metadata = NonNullList(
-            MetadataInput,
-            description=(
-                "Fields required to update the object's metadata." + ADDED_IN_38
-            ),
-            required=False,
-        )
-
     class Meta:
         abstract = True
-
-    @classmethod
-    def __init_subclass_with_meta__(
-        cls,
-        metadata_permissions_map_key=None,
-        _meta=None,
-        **kwargs,
-    ):
-        if not _meta:
-            _meta = MutationOptions(cls)
-
-        _meta.metadata_permissions_map_key = metadata_permissions_map_key
-        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: List[dict]):
@@ -453,15 +421,12 @@ class BaseMutationWithMetadata(BaseMutation):
     def check_metadata_permissions(cls, type_name, info, object_id, private=False):
         if private:
             meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)
-            map_name = "PRIVATE_META_PERMISSION_MAP"
         else:
             meta_permission = PUBLIC_META_PERMISSION_MAP.get(type_name)
-            map_name = "PUBLIC_META_PERMISSION_MAP"
 
         if not meta_permission:
             raise NotImplementedError(
                 f"Couldn't resolve permission to item type: {type_name}. "
-                f"Make sure that type exists inside {map_name}."
             )
 
         if not cls.check_permissions(info.context, meta_permission(info, object_id)):
@@ -470,34 +435,13 @@ class BaseMutationWithMetadata(BaseMutation):
             raise PermissionDenied(message)
 
     @classmethod
-    def mutate(cls, root, info, **data):
-        set_mutation_flag_in_context(info.context)
-
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied(permissions=cls._meta.permissions)
-
-        metadata = data.get("metadata", [])
-        private_metadata = data.get("private_metadata", [])
-        type_name = cls._meta.metadata_permissions_map_key
+    def validate_metadata(cls, info, obj_id, metadata=None, private_metadata=None):
+        type_name, db_id = graphene.Node.from_global_id(obj_id)
 
         if metadata:
-            cls.check_metadata_permissions(type_name, info, data.get("id"))
+            cls.check_metadata_permissions(type_name, info, db_id)
+            cls.validate_metadata_keys(metadata)
 
         if private_metadata:
-            cls.check_metadata_permissions(type_name, info, data.get("id"), True)
-
-        result = info.context.plugins.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
-
-        try:
-            cls.validate_metadata_keys(metadata)
+            cls.check_metadata_permissions(type_name, info, db_id, True)
             cls.validate_metadata_keys(private_metadata)
-            response = cls.perform_mutation(root, info, **data)
-            if response.errors is None:
-                response.errors = []
-            return response
-        except ValidationError as e:
-            return cls.handle_errors(e)

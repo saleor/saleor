@@ -9,10 +9,10 @@ from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
 from ...app.dataloaders import load_app
-from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
-from ...core.types import Error
+from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
+from ...core.types import Error, NonNullList
 from ...discount.dataloaders import load_discounts
-from ...meta.mutations import BaseMutationWithMetadata
+from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
 from ...order.types import Order
 from ..enums import OrderCreateFromCheckoutErrorCode
 from ..types import Checkout
@@ -38,7 +38,7 @@ class OrderCreateFromCheckoutError(Error):
 class OrderCreateFromCheckout(BaseMutationWithMetadata):
     order = graphene.Field(Order, description="Placed order.")
 
-    class Arguments(BaseMutationWithMetadata.Arguments):
+    class Arguments:
         id = graphene.ID(
             required=True,
             description="ID of a checkout that will be converted to an order.",
@@ -49,6 +49,20 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
                 "Default true."
             ),
             default_value=True,
+        )
+        private_metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the object's private metadata." + ADDED_IN_38
+            ),
+            required=False,
+        )
+        metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the object's metadata." + ADDED_IN_38
+            ),
+            required=False,
         )
 
     class Meta:
@@ -62,7 +76,6 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
-        metadata_permissions_map_key = "Checkout"
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
@@ -83,6 +96,14 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
             only_type=Checkout,
             code=OrderCreateFromCheckoutErrorCode.CHECKOUT_NOT_FOUND.value,
         )
+
+        cls.validate_metadata(
+            info,
+            checkout_id,
+            data.get("metadata"),
+            data.get("private_metadata"),
+        )
+
         tracking_code = analytics.get_client_id(info.context)
 
         discounts = load_discounts(info.context)

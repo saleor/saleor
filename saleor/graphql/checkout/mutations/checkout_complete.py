@@ -109,7 +109,6 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
         )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-        metadata_permissions_map_key = "Checkout"
 
     @classmethod
     def validate_checkout_addresses(
@@ -210,6 +209,12 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
                         order=order, confirmation_needed=False, confirmation_data={}
                     )
                 raise e
+
+            cls.validate_metadata(
+                info,
+                id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+                data.get("metadata"),
+            )
 
             validate_checkout_email(checkout)
 
