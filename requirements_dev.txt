@@ -127,7 +127,7 @@ multidict==6.0.2; python_version >= "3.7"
 mypy-extensions==0.4.3; python_full_version >= "3.6.2" and python_version >= "3.6"
 mypy==0.971; python_version >= "3.6"
 nodeenv==1.7.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.7.0" and python_version >= "3.7"
-oauthlib==3.2.0; python_version >= "3.6"
+oauthlib==3.2.1; python_version >= "3.6"
 openpyxl==3.0.10; python_version >= "3.6"
 opentracing==2.4.0
 packaging==21.3; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
