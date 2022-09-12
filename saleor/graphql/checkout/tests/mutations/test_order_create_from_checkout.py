@@ -855,6 +855,7 @@ def test_order_from_checkout_for_click_and_collect(
     checkout = checkout_with_item_for_cc
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
+    checkout.shipping_address = None
     checkout.billing_address = address
     checkout.collection_point = warehouse_for_cc
 
