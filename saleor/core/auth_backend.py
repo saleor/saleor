@@ -1,10 +1,9 @@
 import jwt
-from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 
 from ..account.models import User
 from ..graphql.account.dataloaders import UserByEmailLoader
-from ..plugins.manager import PluginsManager
+from ..graphql.plugins.dataloaders import AnonymousPluginManagerLoader
 from .auth import get_token_from_request
 from .jwt import (
     JWT_ACCESS_TYPE,
@@ -57,7 +56,7 @@ class PluginBackend(JSONWebTokenBackend):
     def authenticate(self, request=None, **kwargs):
         if request is None:
             return None
-        manager = PluginsManager(settings.PLUGINS)
+        manager = AnonymousPluginManagerLoader(request).load("Anonymous").get()
         return manager.authenticate_user(request)
 
 
