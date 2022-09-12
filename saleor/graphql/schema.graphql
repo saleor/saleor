@@ -1319,12 +1319,8 @@ type Webhook implements Node {
   """Informs if webhook is activated."""
   isActive: Boolean!
 
-  """
-  Used to create a hash signature with each payload.
-  
-  If not set, since Saleor 3.5, your payload will be signed using private key used also to sign JWT tokens.
-  """
-  secretKey: String
+  """Used to create a hash signature for each payload."""
+  secretKey: String @deprecated(reason: "This field will be removed in Saleor 4.0. As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.")
 
   """Used to define payloads for specific events."""
   subscriptionQuery: String
@@ -3882,6 +3878,17 @@ type Channel implements Node {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the stock setting for this channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  stockSettings: StockSettings!
 }
 
 """
@@ -4269,6 +4276,33 @@ enum WeightUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+Represents the channel stock settings.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type StockSettings {
+  """
+  Allocation strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
+"""
+Determine the allocation strategy for the channel.
+
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
+
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
+"""
+enum AllocationStrategyEnum {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
 }
 
 """Represents shipping method postal code rule."""
@@ -4794,6 +4828,7 @@ enum AttributeInputTypeEnum {
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
+  PRODUCT_VARIANT
 }
 
 """An enumeration."""
@@ -7630,7 +7665,7 @@ type User implements Node & ObjectWithMetadata {
   isActive: Boolean!
 
   """List of all user's addresses."""
-  addresses: [Address!]
+  addresses: [Address!]!
 
   """Returns the last open checkout of this user."""
   checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
@@ -8542,7 +8577,7 @@ type Order implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
 
   """
-  The delivery method selected for this checkout.
+  The delivery method selected for this order.
   
   Added in Saleor 3.1.
   
@@ -13644,6 +13679,23 @@ type Mutation {
     id: ID!
   ): ChannelDeactivate
 
+  """
+  Reorder the warehouses of a channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_CHANNELS.
+  """
+  channelReorderWarehouses(
+    """ID of a channel."""
+    channelId: ID!
+
+    """The list of reordering operations for the given channel warehouses."""
+    moves: [ReorderInput!]!
+  ): ChannelReorderWarehouses
+
   """Creates an attribute."""
   attributeCreate(
     """Fields required to create an attribute."""
@@ -14408,7 +14460,11 @@ input WebhookCreateInput {
   """Determine if webhook will be set active or not."""
   isActive: Boolean
 
-  """The secret key used to create a hash signature with each payload."""
+  """
+  The secret key used to create a hash signature with each payload.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.
+  """
   secretKey: String
 
   """
@@ -14469,7 +14525,11 @@ input WebhookUpdateInput {
   """Determine if webhook will be set active or not."""
   isActive: Boolean
 
-  """Use to create a hash signature with each payload."""
+  """
+  Use to create a hash signature with each payload.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.
+  """
   secretKey: String
 
   """
@@ -14515,6 +14575,9 @@ type WarehouseError {
 
   """The error code."""
   code: WarehouseErrorCode!
+
+  """List of shipping zones IDs which causes the error."""
+  shippingZones: [ID!]
 }
 
 """An enumeration."""
@@ -14540,7 +14603,11 @@ input WarehouseCreateInput {
   """Address of the warehouse."""
   address: AddressInput!
 
-  """Shipping zones supported by the warehouse."""
+  """
+  Shipping zones supported by the warehouse.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing the zone ids will raise a ValidationError.
+  """
   shippingZones: [ID!]
 }
 
@@ -16319,6 +16386,9 @@ input ProductVariantCreateInput {
   """Stock keeping unit."""
   sku: String
 
+  """Variant name."""
+  name: String
+
   """
   Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
   """
@@ -16428,6 +16498,9 @@ input ProductVariantBulkCreateInput {
 
   """Stock keeping unit."""
   sku: String
+
+  """Variant name."""
+  name: String
 
   """
   Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
@@ -16608,6 +16681,9 @@ input ProductVariantInput {
   """Stock keeping unit."""
   sku: String
 
+  """Variant name."""
+  name: String
+
   """
   Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
   """
@@ -16748,7 +16824,7 @@ type PaymentError {
   """The error code."""
   code: PaymentErrorCode!
 
-  """List of varint IDs which causes the error."""
+  """List of variant IDs which causes the error."""
   variants: [ID!]
 }
 
@@ -17591,6 +17667,13 @@ input OrderFulfillInput {
 
   """If true, then allow proceed fulfillment when stock is exceeded."""
   allowStockToBeExceeded: Boolean = false
+
+  """
+  Fulfillment tracking number.
+  
+  Added in Saleor 3.6.
+  """
+  trackingNumber: String
 }
 
 input OrderFulfillLineInput {
@@ -19832,6 +19915,15 @@ input ChannelCreateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """
+  The channel stock settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stockSettings: StockSettingsInput
+
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
@@ -19863,6 +19955,13 @@ input ChannelCreateInput {
   defaultCountry: CountryCode!
 }
 
+input StockSettingsInput {
+  """
+  Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
 """
 Update a channel. 
 
@@ -19877,6 +19976,15 @@ type ChannelUpdate {
 input ChannelUpdateInput {
   """isActive flag."""
   isActive: Boolean
+
+  """
+  The channel stock settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
@@ -19953,6 +20061,21 @@ type ChannelDeactivate {
   """Deactivated channel."""
   channel: Channel
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [ChannelError!]!
+}
+
+"""
+Reorder the warehouses of a channel.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_CHANNELS.
+"""
+type ChannelReorderWarehouses {
+  """Channel within the warehouses are reordered."""
+  channel: Channel
   errors: [ChannelError!]!
 }
 
@@ -22200,13 +22323,13 @@ type OrderFullyPaid implements Event {
 }
 
 """
-Event sent when order is canceled.
+Event sent when order is fulfilled.
 
 Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderCancelled implements Event {
+type OrderFulfilled implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -22224,13 +22347,13 @@ type OrderCancelled implements Event {
 }
 
 """
-Event sent when order is fulfilled.
+Event sent when order is canceled.
 
 Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFulfilled implements Event {
+type OrderCancelled implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23951,6 +24074,92 @@ type ShippingListMethodsForCheckout implements Event {
   """
   shippingMethods: [ShippingMethod!]
 }
+
+"""
+Synchronous webhook for calculating checkout/order taxes.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CalculateTaxes implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  taxBase: TaxableObject!
+}
+
+"""Taxable object."""
+type TaxableObject {
+  """The source object related to this tax object."""
+  sourceObject: TaxSourceObject!
+
+  """Determines if prices contain entered tax.."""
+  pricesEnteredWithTax: Boolean!
+
+  """The currency of the object."""
+  currency: String!
+
+  """The price of shipping method."""
+  shippingPrice: Money!
+
+  """The address data."""
+  address: Address
+
+  """List of discounts."""
+  discounts: [TaxableObjectDiscount!]!
+
+  """List of lines assigned to the object."""
+  lines: [TaxableObjectLine!]!
+  channel: Channel!
+}
+
+union TaxSourceObject = Checkout | Order
+
+"""Taxable object discount."""
+type TaxableObjectDiscount {
+  """The name of the discount."""
+  name: String
+
+  """The amount of the discount."""
+  amount: Money!
+}
+
+type TaxableObjectLine {
+  """The source line related to this tax line."""
+  sourceLine: TaxSourceLine!
+
+  """Number of items."""
+  quantity: Int!
+
+  """Determines if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
+
+  """The product name."""
+  productName: String!
+
+  """The variant name."""
+  variantName: String!
+
+  """The product sku."""
+  productSku: String
+
+  """Price of the single item in the order line."""
+  unitPrice: Money!
+
+  """Price of the order line."""
+  totalPrice: Money!
+}
+
+union TaxSourceLine = CheckoutLine | OrderLine
 
 """_Any value scalar as defined by Federation spec."""
 scalar _Any

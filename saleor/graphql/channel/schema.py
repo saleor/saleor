@@ -9,6 +9,7 @@ from .mutations import (
     ChannelCreate,
     ChannelDeactivate,
     ChannelDelete,
+    ChannelReorderWarehouses,
     ChannelUpdate,
 )
 from .resolvers import resolve_channel, resolve_channels
@@ -52,3 +53,4 @@ class ChannelMutations(graphene.ObjectType):
     channel_delete = ChannelDelete.Field()
     channel_activate = ChannelActivate.Field()
     channel_deactivate = ChannelDeactivate.Field()
+    channel_reorder_warehouses = ChannelReorderWarehouses.Field()

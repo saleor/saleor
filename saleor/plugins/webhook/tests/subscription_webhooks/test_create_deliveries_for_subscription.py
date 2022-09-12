@@ -43,12 +43,16 @@ from .payloads import (
 @freeze_time("2022-05-12 12:00:00")
 @pytest.mark.parametrize("requestor_type", ["user", "app", None, "anonymous"])
 def test_subscription_query_with_meta(
-    requestor_type, voucher, staff_user, app, subscription_voucher_webhook_with_meta
+    requestor_type,
+    voucher,
+    staff_user,
+    app_with_token,
+    subscription_voucher_webhook_with_meta,
 ):
     # given
     requestor_map = {
         "user": staff_user,
-        "app": app,
+        "app": app_with_token,
         None: None,
         "anonymous": AnonymousUser(),
     }
@@ -1974,6 +1978,25 @@ def test_validate_invalid_multiple_subscriptions():
         subscription_queries.TEST_INVALID_MULTIPLE_SUBSCRIPTION
     )
     assert result is False
+
+
+def test_vaidate_invalid_multiple_events_in_subscription():
+    result = validate_subscription_query(subscription_queries.INVALID_MULTIPLE_EVENTS)
+    assert result is False
+
+
+def test_vaidate_invalid_multiple_events_and_fragments_in_subscription():
+    result = validate_subscription_query(
+        subscription_queries.INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS
+    )
+    assert result is False
+
+
+def test_validate_query_with_multiple_fragments():
+    result = validate_subscription_query(
+        subscription_queries.QUERY_WITH_MULTIPLE_FRAGMENTS
+    )
+    assert result is True
 
 
 def test_generate_payload_from_subscription_return_permission_errors_in_payload(

@@ -28,7 +28,7 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppExtension, AppInstallation
+from ..app.models import App, AppExtension, AppInstallation, AppToken
 from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
@@ -1688,6 +1688,28 @@ def page_type_product_reference_attribute(db):
 
 
 @pytest.fixture
+def product_type_variant_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="variant-reference",
+        name="Variant reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
+def page_type_variant_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="variant-reference",
+        name="Variant reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size",
@@ -2483,7 +2505,6 @@ def product_with_variant_with_file_attribute(
 
 @pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
-
     attribute = Attribute.objects.create(
         slug="modes",
         name="Available Modes",
@@ -4385,7 +4406,8 @@ def draft_order_with_fixed_discount_order(draft_order):
         value_type=DiscountValueType.FIXED,
         value=value,
         reason="Discount reason",
-        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,
+        # type: ignore
     )
     draft_order.save()
     return draft_order

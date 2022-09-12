@@ -25,7 +25,7 @@ def plugin_configuration(db, channel_USD):
     def set_configuration(
         username=default_username,
         password=default_password,
-        sandbox=False,
+        sandbox=True,
         channel=None,
         active=True,
         from_street_address="Teczowa 7",
@@ -34,6 +34,8 @@ def plugin_configuration(db, channel_USD):
         from_country_area="",
         from_postal_code="53-601",
         shipping_tax_code="FR000000",
+        override_global_tax=False,
+        include_taxes_in_prices=True,
     ):
         channel = channel or channel_USD
         data = {
@@ -52,6 +54,8 @@ def plugin_configuration(db, channel_USD):
                 {"name": "from_country_area", "value": from_country_area},
                 {"name": "from_postal_code", "value": from_postal_code},
                 {"name": "shipping_tax_code", "value": shipping_tax_code},
+                {"name": "override_global_tax", "value": override_global_tax},
+                {"name": "include_taxes_in_prices", "value": include_taxes_in_prices},
             ],
         }
         configuration = PluginConfiguration.objects.create(

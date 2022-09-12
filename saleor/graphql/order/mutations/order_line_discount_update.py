@@ -6,7 +6,9 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
+from ...app.dataloaders import load_app
 from ...core.types import OrderError
+from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -57,9 +59,10 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
+        site = load_site(info.context)
 
         order_line_before_update = copy.deepcopy(order_line)
-        tax_included = info.context.site.settings.include_taxes_in_prices
+        tax_included = site.settings.include_taxes_in_prices
 
         update_discount_for_order_line(
             order_line,
@@ -75,10 +78,11 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             or order_line_before_update.unit_discount_type != value_type
         ):
             # Create event only when we change type or value of the discount
+            app = load_app(info.context)
             events.order_line_discount_updated_event(
                 order=order,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 line=order_line,
                 line_before_update=order_line_before_update,
             )

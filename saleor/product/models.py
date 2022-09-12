@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
@@ -31,7 +31,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from measurement.measures import Weight
@@ -92,7 +91,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
-    tree = TreeManager()
+    tree = TreeManager()  # type: ignore
     translated = TranslationProxy()
 
     class Meta:
@@ -658,7 +657,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         product_display = (
             f"{product} ({variant_display})" if variant_display else str(product)
         )
-        return smart_text(product_display)
+        return product_display
 
     def get_ordering_queryset(self):
         return self.product.variants.all()
@@ -795,7 +794,12 @@ class DigitalContentUrl(models.Model):
 
 class ProductMedia(SortableModel):
     product = models.ForeignKey(
-        Product, related_name="media", on_delete=models.SET_NULL, null=True, blank=True
+        Product,
+        related_name="media",
+        on_delete=models.CASCADE,
+        # DEPRECATED
+        null=True,
+        blank=True,
     )
     image = models.ImageField(upload_to="products", blank=True, null=True)
     alt = models.CharField(max_length=128, blank=True)
@@ -806,6 +810,7 @@ class ProductMedia(SortableModel):
     )
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
+    # DEPRECATED
     to_remove = models.BooleanField(default=False)
 
     class Meta:
@@ -818,16 +823,6 @@ class ProductMedia(SortableModel):
     @transaction.atomic
     def delete(self, *args, **kwargs):
         super(SortableModel, self).delete(*args, **kwargs)
-
-    @transaction.atomic
-    def set_to_remove(self):
-        self.to_remove = True
-        self.save(update_fields=["to_remove"])
-        if self.sort_order is not None:
-            qs = self.get_ordering_queryset()
-            qs.filter(sort_order__gt=self.sort_order).update(
-                sort_order=F("sort_order") - 1
-            )
 
 
 class VariantMedia(models.Model):

@@ -509,16 +509,19 @@ def test_draft_orders_query_pagination_with_filter_search(
                 user_email="test@mirumee.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                should_refresh_prices=False,
             ),
             Order(
                 user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                should_refresh_prices=False,
             ),
             Order(
                 user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                should_refresh_prices=False,
             ),
         ]
     )

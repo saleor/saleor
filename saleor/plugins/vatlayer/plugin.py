@@ -546,10 +546,12 @@ class VatlayerPlugin(BasePlugin):
         if tax_code is None and obj.pk:
             obj.delete_value_from_metadata(self.META_CODE_KEY)
             obj.delete_value_from_metadata(self.META_DESCRIPTION_KEY)
-            return previous_value
-
-        tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}
-        obj.store_value_in_metadata(items=tax_item)
+        elif tax_code is not None:
+            tax_item = {
+                self.META_CODE_KEY: tax_code,
+                self.META_DESCRIPTION_KEY: tax_code,
+            }
+            obj.store_value_in_metadata(items=tax_item)
         return previous_value
 
     def get_tax_code_from_object_meta(

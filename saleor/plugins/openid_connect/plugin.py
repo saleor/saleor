@@ -435,7 +435,7 @@ class OpenIDConnectPlugin(BasePlugin):
         ):
             # Check if the token is created by this plugin
             payload = jwt_decode(token)
-            user = get_user_from_access_payload(payload)
+            user = get_user_from_access_payload(payload, request)
             return user
 
         if self.use_oauth_access_token:

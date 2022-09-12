@@ -12,7 +12,7 @@ from django.utils import timezone
 from ..account.models import Address
 from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
-from ..core.models import ModelWithMetadata
+from ..core.models import ModelWithMetadata, SortableModel
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant, ProductVariantChannelListing
 from ..shipping.models import ShippingZone
@@ -144,11 +144,29 @@ class WarehouseQueryset(models.QuerySet):
         )
 
 
+class ChannelWarehouse(SortableModel):
+    channel = models.ForeignKey(
+        Channel, related_name="channelwarehouse", on_delete=models.CASCADE
+    )
+    warehouse = models.ForeignKey(
+        "Warehouse", related_name="channelwarehouse", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = (("channel", "warehouse"),)
+        ordering = ("sort_order", "pk")
+
+    def get_ordering_queryset(self):
+        return self.channel.channelwarehouse.all()
+
+
 class Warehouse(ModelWithMetadata):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    channels = models.ManyToManyField(Channel, related_name="warehouses")
+    channels = models.ManyToManyField(
+        Channel, related_name="warehouses", through=ChannelWarehouse
+    )
     shipping_zones = models.ManyToManyField(
         ShippingZone, blank=True, related_name="warehouses"
     )
@@ -223,8 +241,19 @@ class StockQuerySet(models.QuerySet):
         )
 
     def for_channel_and_country(
-        self, channel_slug: str, country_code: Optional[str] = None
+        self,
+        channel_slug: str,
+        country_code: Optional[str] = None,
+        include_cc_warehouses: bool = False,
     ):
+        """Get stocks for given channel and country_code.
+
+        The returned stocks, must be in warehouse that is available in provided channel
+        and in the shipping zone that is available in the given channel and country.
+        When the country_code is not provided or include_cc_warehouses is set to True,
+        also the stocks from collection point warehouses allowed in given channel are
+        returned.
+        """
         ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
         WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
         WarehouseChannel = Channel.warehouses.through  # type: ignore
@@ -234,7 +263,11 @@ class StockQuerySet(models.QuerySet):
         shipping_zone_channels = ShippingZoneChannel.objects.filter(
             Exists(channels.filter(pk=OuterRef("channel_id")))
         )
+        warehouse_channels = WarehouseChannel.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id")))
+        ).values("warehouse_id")
 
+        cc_warehouses = Warehouse.objects.none()
         if country_code:
             shipping_zones = ShippingZone.objects.filter(
                 countries__contains=country_code
@@ -242,12 +275,18 @@ class StockQuerySet(models.QuerySet):
             shipping_zone_channels = shipping_zone_channels.filter(
                 Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id")))
             )
+        if not country_code or include_cc_warehouses:
+            # when the country code is not provided we should also include
+            # the collection point warehouses
+            cc_warehouses = Warehouse.objects.filter(
+                Exists(warehouse_channels.filter(warehouse_id=OuterRef("id"))),
+                click_and_collect_option__in=[
+                    WarehouseClickAndCollectOption.LOCAL_STOCK,
+                    WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                ],
+            )
 
         shipping_zone_channels.values("shippingzone_id")
-
-        warehouse_channels = WarehouseChannel.objects.filter(
-            Exists(channels.filter(pk=OuterRef("channel_id")))
-        ).values("warehouse_id")
 
         warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
             Exists(
@@ -261,6 +300,7 @@ class StockQuerySet(models.QuerySet):
             Exists(
                 warehouse_shipping_zones.filter(warehouse_id=OuterRef("warehouse_id"))
             )
+            | Exists(cc_warehouses.filter(id=OuterRef("warehouse_id")))
         )
 
     def get_variant_stocks_for_country(

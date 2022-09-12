@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -29,6 +29,8 @@ from ...core.descriptions import (
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...discount.dataloaders import load_discounts
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
@@ -37,6 +39,9 @@ from .utils import (
     get_checkout,
     update_checkout_shipping_method_if_invalid,
 )
+
+if TYPE_CHECKING:
+    from ....checkout.fetch import DeliveryMethodBase
 
 
 class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
@@ -82,6 +87,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         lines: Iterable["CheckoutLineInfo"],
         country: str,
         channel_slug: str,
+        delivery_method_info: "DeliveryMethodBase",
     ) -> None:
         variant_ids = [line_info.variant.id for line_info in lines]
         variants = list(
@@ -90,17 +96,19 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ).prefetch_related("product__product_type")
         )  # FIXME: is this prefetch needed?
         quantities = [line_info.line.quantity for line_info in lines]
+        site = load_site(info.context)
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
-            info.context.site.settings.limit_quantity_per_checkout,
+            site.settings.limit_quantity_per_checkout,
+            delivery_method_info=delivery_method_info,
             # Set replace=True to avoid existing_lines and quantities from
             # being counted twice by the check_stock_quantity_bulk
             replace=True,
             existing_lines=lines,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            check_reservations=is_reservation_enabled(site.settings),
         )
 
     @classmethod
@@ -149,7 +157,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ),
         )
 
-        discounts = info.context.discounts
+        discounts = load_discounts(info.context)
         manager = info.context.plugins
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
@@ -161,7 +169,13 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         # Resolve and process the lines, validating variants quantities
         if lines:
-            cls.process_checkout_lines(info, lines, country, checkout_info.channel.slug)
+            cls.process_checkout_lines(
+                info,
+                lines,
+                country,
+                checkout_info.channel.slug,
+                checkout_info.delivery_method_info,
+            )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
 

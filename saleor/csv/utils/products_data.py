@@ -1,4 +1,5 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 from urllib.parse import urljoin
 
@@ -301,24 +302,22 @@ def add_image_uris_to_data(
     return result_data
 
 
-AttributeData = namedtuple(
-    "AttributeData",
-    [
-        "slug",
-        "input_type",
-        "entity_type",
-        "unit",
-        "value_slug",
-        "value_name",
-        "value",
-        "file_url",
-        "rich_text",
-        "boolean",
-        "date_time",
-        "reference_page",
-        "reference_product",
-    ],
-)
+@dataclass
+class AttributeData:
+    slug: str
+    input_type: str
+    entity_type: Optional[str] = None
+    unit: Optional[str] = None
+    value_slug: Optional[str] = None
+    value_name: Optional[str] = None
+    value: Optional[str] = None
+    file_url: Optional[str] = None
+    rich_text: Optional[str] = None
+    boolean: Optional[str] = None
+    date_time: Optional[str] = None
+    reference_page: Optional[str] = None
+    reference_product: Optional[str] = None
+    reference_variant: Optional[str] = None
 
 
 def handle_attribute_data(
@@ -331,19 +330,11 @@ def handle_attribute_data(
 ):
     attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
     attribute_data = AttributeData(
-        slug=data.pop(attribute_fields["slug"], None),
-        input_type=data.pop(attribute_fields["input_type"], None),
-        file_url=data.pop(attribute_fields["file_url"], None),
-        value_slug=data.pop(attribute_fields["value_slug"], None),
-        value_name=data.pop(attribute_fields["value_name"], None),
-        value=data.pop(attribute_fields["value"], None),
-        entity_type=data.pop(attribute_fields["entity_type"], None),
-        unit=data.pop(attribute_fields["unit"], None),
-        rich_text=data.pop(attribute_fields["rich_text"], None),
-        boolean=data.pop(attribute_fields["boolean"], None),
-        date_time=data.pop(attribute_fields["date_time"], None),
-        reference_page=data.pop(attribute_fields["value_reference_page"], None),
-        reference_product=data.pop(attribute_fields["value_reference_product"], None),
+        **{
+            field: data.pop(lookup, None)
+            for field, lookup in attribute_fields.items()
+            if field != "attribute_pk"
+        }
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -434,46 +425,59 @@ def add_attribute_info_to_data(
 def prepare_attribute_value(attribute_data: AttributeData):
     """Prepare value of attribute value depending on the attribute input type."""
     input_type = attribute_data.input_type
-    if input_type == AttributeInputType.FILE:
-        file_url = attribute_data.file_url
-        value = (
-            build_absolute_uri(urljoin(settings.MEDIA_URL, file_url))
-            if file_url
-            else ""
-        )
-    elif input_type == AttributeInputType.REFERENCE and (
-        attribute_data.reference_page or attribute_data.reference_product
-    ):
-        if attribute_data.reference_page:
-            reference_id = attribute_data.reference_page
-        else:
-            reference_id = attribute_data.reference_product
-        value = f"{attribute_data.entity_type}_{reference_id}"
-    elif input_type == AttributeInputType.NUMERIC:
-        value = f"{attribute_data.value_name}"
-        if attribute_data.unit:
-            value += f" {attribute_data.unit}"
-    elif input_type == AttributeInputType.RICH_TEXT:
-        value = clean_editor_js(attribute_data.rich_text, to_string=True)
-    elif (
-        input_type == AttributeInputType.BOOLEAN and attribute_data.boolean is not None
-    ):
-        value = str(attribute_data.boolean)
-    elif input_type == AttributeInputType.DATE:
-        value = str(attribute_data.date_time.date())
-    elif input_type == AttributeInputType.DATE_TIME:
-        value = str(attribute_data.date_time)
-    elif input_type == AttributeInputType.SWATCH:
-        if attribute_data.file_url:
-            value = build_absolute_uri(
-                urljoin(settings.MEDIA_URL, attribute_data.file_url)
-            )
-        else:
-            value = attribute_data.value
-    else:
-        value = attribute_data.value_name or attribute_data.value_slug or ""
+    input_type_to_get_value_func = {
+        AttributeInputType.FILE: _get_file_value,
+        AttributeInputType.REFERENCE: _get_reference_value,
+        AttributeInputType.NUMERIC: (
+            lambda data: data.value_name
+            if not attribute_data.unit
+            else f"{data.value_name} {data.unit}"
+        ),
+        AttributeInputType.RICH_TEXT: (
+            lambda data: clean_editor_js(data.rich_text, to_string=True)
+        ),
+        AttributeInputType.BOOLEAN: (
+            lambda data: str(data.boolean) if data.boolean is not None else None
+        ),
+        AttributeInputType.DATE: lambda data: str(data.date_time.date()),
+        AttributeInputType.DATE_TIME: lambda data: str(data.date_time),
+        AttributeInputType.SWATCH: (
+            lambda data: _get_file_value(data) if data.file_url else data.value
+        ),
+    }
 
+    value = None
+    if value_func := input_type_to_get_value_func.get(input_type):
+        value = value_func(attribute_data)
+    if value is None:
+        value = attribute_data.value_name or attribute_data.value_slug or ""
     return value
+
+
+def _get_file_value(attribute_data):
+    file_url = attribute_data.file_url
+    value = (
+        build_absolute_uri(urljoin(settings.MEDIA_URL, file_url)) if file_url else ""
+    )
+    return value
+
+
+def _get_reference_value(attribute_data):
+    if not any(
+        [
+            attribute_data.reference_page,
+            attribute_data.reference_product,
+            attribute_data.reference_variant,
+        ]
+    ):
+        return None
+    if attribute_data.reference_page:
+        reference_id = attribute_data.reference_page
+    elif attribute_data.reference_product:
+        reference_id = attribute_data.reference_product
+    else:
+        reference_id = attribute_data.reference_variant
+    return f"{attribute_data.entity_type}_{reference_id}"
 
 
 def add_warehouse_info_to_data(

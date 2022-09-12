@@ -184,6 +184,66 @@ def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
         assert apply_tax_to_price(None, "standard", 100)
 
 
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_assign_tax_code_to_object_meta(vatlayer, product):
+    # given
+    manager = get_plugins_manager()
+    tax_code = "standard"
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {
+        VatlayerPlugin.META_CODE_KEY: tax_code,
+        VatlayerPlugin.META_DESCRIPTION_KEY: tax_code,
+    }
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_assign_tax_code_to_object_meta_none_as_tax_code(vatlayer, product):
+    # given
+    manager = get_plugins_manager()
+    tax_code = None
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {}
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_assign_tax_code_to_object_meta_no_obj_id_and_none_as_tax_code(vatlayer):
+    # given
+    manager = get_plugins_manager()
+    product = Product(name="A new product.")
+    tax_code = None
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {}
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_assign_tax_code_to_object_meta_no_obj_id(vatlayer):
+    # given
+    manager = get_plugins_manager()
+    product = Product(name="A new product.")
+    tax_code = "standard"
+
+    # when
+    manager.assign_tax_code_to_object_meta(product, tax_code)
+
+    # then
+    assert product.metadata == {
+        VatlayerPlugin.META_CODE_KEY: tax_code,
+        VatlayerPlugin.META_DESCRIPTION_KEY: tax_code,
+    }
+
+
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [

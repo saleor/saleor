@@ -1330,6 +1330,8 @@ class WebhookPlugin(BasePlugin):
                 lines,
             ),
             parse_tax_data,
+            checkout_info.checkout,
+            self.requestor,
         )
 
     def get_taxes_for_order(
@@ -1339,6 +1341,8 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,
             lambda: generate_order_payload_for_tax_calculation(order),
             parse_tax_data,
+            order,
+            self.requestor,
         )
 
     def get_shipping_methods_for_checkout(

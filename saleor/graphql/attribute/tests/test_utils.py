@@ -1221,6 +1221,44 @@ def test_validate_numeric_attributes_input_for_product_blank_value(
 
 
 @pytest.mark.parametrize("creation", [True, False])
+def test_validate_numeric_attributes_input_none_as_values(
+    creation, numeric_attribute, product_type
+):
+    # given
+    numeric_attribute.value_required = True
+    numeric_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            numeric_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", numeric_attribute.pk),
+                values=None,
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        creation=creation,
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.REQUIRED.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    }
+
+
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_numeric_attributes_input_for_product_more_than_one_value_given(
     creation, numeric_attribute, product_type
 ):

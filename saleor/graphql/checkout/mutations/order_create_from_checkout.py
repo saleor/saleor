@@ -8,9 +8,11 @@ from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
+from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
+from ...discount.dataloaders import load_discounts
 from ...order.types import Order
 from ..enums import OrderCreateFromCheckoutErrorCode
 from ..types import Checkout
@@ -82,7 +84,7 @@ class OrderCreateFromCheckout(BaseMutation):
         )
         tracking_code = analytics.get_client_id(info.context)
 
-        discounts = info.context.discounts
+        discounts = load_discounts(info.context)
         manager = info.context.plugins
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
@@ -96,15 +98,15 @@ class OrderCreateFromCheckout(BaseMutation):
             discounts=discounts,
             manager=manager,
         )
-
+        app = load_app(info.context)
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines=checkout_lines,
-                discounts=info.context.discounts,
+                discounts=discounts,
                 manager=info.context.plugins,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 tracking_code=tracking_code,
                 delete_checkout=data["remove_checkout"],
             )

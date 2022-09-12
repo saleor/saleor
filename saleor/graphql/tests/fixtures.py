@@ -152,13 +152,28 @@ def api_client():
 
 @pytest.fixture
 def schema_context():
-    params = {"user": AnonymousUser(), "app": None, "plugins": get_plugins_manager()}
+    params = {
+        "user": AnonymousUser(),
+        "app": None,
+        "plugins": get_plugins_manager(),
+        "auth_token": "",
+    }
     return graphene.types.Context(**params)
 
 
 @pytest.fixture
 def info(schema_context):
     return Mock(context=schema_context)
+
+
+@pytest.fixture
+def anonymous_user():
+    return AnonymousUser()
+
+
+@pytest.fixture
+def anonymous_plugins():
+    return get_plugins_manager()
 
 
 class LoggingHandler(logging.Handler):

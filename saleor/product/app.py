@@ -1,16 +1,15 @@
 from django.apps import AppConfig
-from django.db.models.signals import post_delete, pre_delete
+from django.db.models.signals import post_delete
 
 
 class ProductAppConfig(AppConfig):
     name = "saleor.product"
 
     def ready(self):
-        from .models import Category, Collection, DigitalContent, Product, ProductMedia
+        from .models import Category, Collection, DigitalContent, ProductMedia
         from .signals import (
             delete_background_image,
             delete_digital_content_file,
-            delete_product_all_media,
             delete_product_media_image,
         )
 
@@ -34,9 +33,4 @@ class ProductAppConfig(AppConfig):
             delete_digital_content_file,
             sender=DigitalContent,
             dispatch_uid="delete_digital_content_file",
-        )
-        pre_delete.connect(
-            delete_product_all_media,
-            sender=Product,
-            dispatch_uid="delete_product_all_media",
         )

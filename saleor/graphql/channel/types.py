@@ -4,13 +4,20 @@ from typing import Dict, List, Type, Union, cast
 
 import graphene
 from django.db.models import Model
+from graphene.types.objecttype import ObjectType
 from graphene.types.resolver import get_default_resolver
 from promise import Promise
 
 from ...channel import models
 from ...core.permissions import AuthorizationFilters, ChannelPermissions
 from ..account.enums import CountryCodeEnum
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_36, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    ADDED_IN_36,
+    ADDED_IN_37,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -19,6 +26,7 @@ from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
+from .enums import AllocationStrategyEnum
 
 
 class ChannelContextTypeForObjectType(graphene.ObjectType):
@@ -121,6 +129,21 @@ class ChannelContextTypeWithMetadata(
         abstract = True
 
 
+class StockSettings(ObjectType):
+    allocation_strategy = AllocationStrategyEnum(
+        description=(
+            "Allocation strategy defines the preference of warehouses "
+            "for allocations and reservations."
+        ),
+        required=True,
+    )
+
+    class Meta:
+        description = (
+            "Represents the channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE
+        )
+
+
 class Channel(ModelObjectType):
     id = graphene.GlobalID(required=True)
     slug = graphene.String(
@@ -200,6 +223,17 @@ class Channel(ModelObjectType):
         description="Shipping methods that are available for the channel."
         + ADDED_IN_36
         + PREVIEW_FEATURE,
+    )
+    stock_settings = PermissionsField(
+        StockSettings,
+        description=(
+            "Define the stock setting for this channel." + ADDED_IN_37 + PREVIEW_FEATURE
+        ),
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
     )
 
     class Meta:
@@ -327,3 +361,7 @@ class Channel(ModelObjectType):
             )
 
         return shipping_zones_loader.then(get_shipping_methods)
+
+    @staticmethod
+    def resolve_stock_settings(root: models.Channel, _info):
+        return StockSettings(allocation_strategy=root.allocation_strategy)

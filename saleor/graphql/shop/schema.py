@@ -2,6 +2,7 @@ import graphene
 
 from ...core.permissions import GiftcardPermissions, OrderPermissions
 from ..core.fields import PermissionsField
+from ..site.dataloaders import load_site
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
@@ -39,10 +40,12 @@ class ShopQueries(graphene.ObjectType):
         return Shop()
 
     def resolve_order_settings(self, info):
-        return info.context.site.settings
+        site = load_site(info.context)
+        return site.settings
 
     def resolve_gift_card_settings(self, info):
-        return info.context.site.settings
+        site = load_site(info.context)
+        return site.settings
 
 
 class ShopMutations(graphene.ObjectType):

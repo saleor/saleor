@@ -69,7 +69,7 @@ class PageCreate(ModelMutation):
 
     @classmethod
     def clean_attributes(cls, attributes: dict, page_type: models.PageType):
-        attributes_qs = page_type.page_attributes
+        attributes_qs = page_type.page_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_page_attributes=True
         )
@@ -154,7 +154,7 @@ class PageUpdate(PageCreate):
 
     @classmethod
     def clean_attributes(cls, attributes: dict, page_type: models.PageType):
-        attributes_qs = page_type.page_attributes
+        attributes_qs = page_type.page_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True
         )

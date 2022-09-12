@@ -5,6 +5,7 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
+from ...app.dataloaders import load_app
 from ...checkout.types import CheckoutLine
 from ...core.descriptions import (
     ADDED_IN_31,
@@ -17,6 +18,7 @@ from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
@@ -96,22 +98,24 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         checkout_lines_data,
         country,
         channel_slug,
+        delivery_method_info,
         lines=None,
     ):
         variants, quantities = get_variants_and_total_quantities(
             variants, checkout_lines_data, quantity_to_update_check=True
         )
-
+        site = load_site(info.context)
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
-            info.context.site.settings.limit_quantity_per_checkout,
+            site.settings.limit_quantity_per_checkout,
+            delivery_method_info=delivery_method_info,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            check_reservations=is_reservation_enabled(site.settings),
         )
 
     @classmethod
@@ -127,8 +131,9 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         discounts,
         replace,
     ):
+        app = load_app(info.context)
         # if the requestor is not app, the quantity is required for all lines
-        if not info.context.app:
+        if not app:
             if any(
                 [
                     line_data.quantity_to_update is False

@@ -19,13 +19,16 @@ from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
+from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...discount.dataloaders import load_discounts
 from ...order.types import Order
+from ...site.dataloaders import load_site
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -231,9 +234,8 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                         )
                     }
                 )
-            checkout_info = fetch_checkout_info(
-                checkout, lines, info.context.discounts, manager
-            )
+            discounts = load_discounts(info.context)
+            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
             cls.validate_checkout_addresses(
                 lines, checkout_info.shipping_address, checkout_info.billing_address
@@ -247,16 +249,17 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             else:
                 customer = info.context.user
 
+            site = load_site(info.context)
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
-                discounts=info.context.discounts,
+                discounts=discounts,
                 user=customer,
-                app=info.context.app,
-                site_settings=info.context.site.settings,
+                app=load_app(info.context),
+                site_settings=site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )

@@ -25,6 +25,7 @@ from ...core.permissions import (
     ShippingPermissions,
 )
 from ...payment.utils import payment_owned_by_user
+from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 
 
@@ -86,17 +87,18 @@ def menu_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 def app_permissions(info, object_pk: str) -> List[BasePermissionEnum]:
     auth_token = info.context.decoded_auth_token or {}
+    app = load_app(info.context)
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:
-        app_id = info.context.app.id if info.context.app else None
+        app_id = app.id if app else None
     if app_id is not None and int(app_id) == int(object_pk):
         return []
     return [AppPermission.MANAGE_APPS]
 
 
 def private_app_permssions(info, object_pk: str) -> List[BasePermissionEnum]:
-    app = info.context.app
+    app = load_app(info.context)
     if app and app.pk == int(object_pk):
         return []
     return [AppPermission.MANAGE_APPS]
@@ -132,7 +134,8 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
     context_user = info.context.user
-    if info.context.app is not None or context_user.is_staff:
+    app = load_app(info.context)
+    if app is not None or context_user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
     if payment_owned_by_user(payment_pk, context_user):
         return []
@@ -140,7 +143,8 @@ def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum
 
 
 def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
-    if info.context.app is not None or info.context.user.is_staff:
+    app = load_app(info.context)
+    if app is not None or info.context.user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
     raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
 

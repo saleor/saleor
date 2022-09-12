@@ -1,4 +1,5 @@
 import ast
+import logging
 import os.path
 import warnings
 from datetime import timedelta
@@ -11,6 +12,7 @@ import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
+from django.conf import global_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from graphql.execution import executor
@@ -78,15 +80,17 @@ DATABASE_CONNECTION_REPLICA_NAME = "default"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
+        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=0
     ),
     # TODO: We need to add read only user to saleor platfrom, and we need to update
     # docs.
     # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
     #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
-    #     conn_max_age=600,
+    #     conn_max_age=0,
     # ),
 }
+
+DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -175,6 +179,14 @@ TEMPLATES = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
+# Additional password algorithms that can be used by Saleor.
+# The first algorithm defined by Django is the preferred one; users not using the
+# first algorithm will automatically be upgraded to it upon login
+PASSWORD_HASHERS = [
+    *global_settings.PASSWORD_HASHERS,
+    "django.contrib.auth.hashers.BCryptPasswordHasher",
+]
+
 if not SECRET_KEY and DEBUG:
     warnings.warn("SECRET_KEY not configured, using a random temporary key.")
     SECRET_KEY = get_random_secret_key()
@@ -189,9 +201,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.request_time",
-    "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
-    "saleor.core.middleware.site",
     "saleor.core.middleware.plugins",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
@@ -272,6 +282,10 @@ if ENABLE_DEBUG_TOOLBAR:
             "debug_toolbar.panels.profiling.ProfilingPanel",
         ]
         DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
+
+# Make the `logging` Python module capture `warnings.warn()` calls
+# This is needed in order to log them as JSON when DEBUG=False
+logging.captureWarnings(True)
 
 LOGGING = {
     "version": 1,

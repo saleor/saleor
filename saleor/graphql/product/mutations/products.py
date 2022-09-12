@@ -15,7 +15,6 @@ from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions
-from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.date_time import convert_to_utc_date_time
 from ....core.utils.editorjs import clean_editor_js
@@ -34,6 +33,7 @@ from ....product.utils import delete_categories, get_products_ids_without_varian
 from ....product.utils.variants import generate_and_set_variant_name
 from ....thumbnail import models as thumbnail_models
 from ....warehouse.management import deactivate_preorder_for_variant
+from ...app.dataloaders import load_app
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
@@ -579,7 +579,7 @@ class ProductCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.product_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -708,7 +708,7 @@ class ProductUpdate(ProductCreate):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.product_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
@@ -765,10 +765,11 @@ class ProductDelete(ModelDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
+        app = load_app(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_product_removed_event(
-                order, info.context.user, info.context.app, order_lines
+                order, info.context.user, app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -802,6 +803,7 @@ class ProductVariantInput(graphene.InputObjectType):
         description="List of attributes specific to this variant.",
     )
     sku = graphene.String(description="Stock keeping unit.")
+    name = graphene.String(description="Variant name.", required=False)
     track_inventory = graphene.Boolean(
         description=(
             "Determines if the inventory of this variant should be tracked. If false, "
@@ -860,7 +862,7 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -1051,7 +1053,9 @@ class ProductVariantCreate(ModelMutation):
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
 
-        generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+        if not instance.name:
+            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+
         update_product_search_vector(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created
@@ -1096,7 +1100,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
@@ -1181,9 +1185,10 @@ class ProductVariantDelete(ModelDeleteMutation):
         ).delete()
 
         # run order event for deleted lines
+        app = load_app(info.context)
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_variant_removed_event(
-                order, info.context.user, info.context.app, order_lines
+                order, info.context.user, app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -1406,9 +1411,7 @@ class ProductMediaReorder(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(),
         )
 
-        # we do not care about media with the to_remove flag set to True
-        # as they will be deleted soon
-        if len(media_ids) != product.media.exclude(to_remove=True).count():
+        if len(media_ids) != product.media.count():
             raise ValidationError(
                 {
                     "order": ValidationError(
@@ -1557,7 +1560,7 @@ class ProductVariantReorder(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
 
-        product.save(update_fields=["updated_at", "updated_at"])
+        product.save(update_fields=["updated_at"])
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)
@@ -1572,6 +1575,7 @@ class ProductMediaDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a product media."
+
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1579,18 +1583,8 @@ class ProductMediaDelete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         media_obj = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
-        if media_obj.to_remove:
-            raise ValidationError(
-                {
-                    "media_id": ValidationError(
-                        "Media not found.",
-                        code=ProductErrorCode.NOT_FOUND,
-                    )
-                }
-            )
         media_id = media_obj.id
-        media_obj.set_to_remove()
-        delete_product_media_task.delay(media_id)
+        media_obj.delete()
         media_obj.id = media_id
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media_obj.product_id

@@ -1,4 +1,6 @@
-from typing import Collection, Union
+from functools import partial
+from typing import Iterable, Union
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.models import _user_has_perm  # type: ignore
@@ -12,7 +14,7 @@ from django.contrib.auth.models import (
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import Q, QuerySet, Value
+from django.db.models import Q, Value
 from django.db.models.expressions import Exists, OuterRef
 from django.forms.models import model_to_dict
 from django.utils import timezone
@@ -179,11 +181,14 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
     )
     avatar = models.ImageField(upload_to="user-avatars", blank=True, null=True)
-    jwt_token_key = models.CharField(max_length=12, default=get_random_string)
+    jwt_token_key = models.CharField(
+        max_length=12, default=partial(get_random_string, length=12)
+    )
     language_code = models.CharField(
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
     search_document = models.TextField(blank=True, default="")
+    uuid = models.UUIDField(default=uuid4, unique=True)
 
     USERNAME_FIELD = "email"
 
@@ -219,7 +224,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         self._effective_permissions = None
 
     @property
-    def effective_permissions(self) -> "QuerySet[Permission]":
+    def effective_permissions(self) -> models.QuerySet[Permission]:
         if self._effective_permissions is None:
             self._effective_permissions = get_permissions()
             if not self.is_superuser:
@@ -257,7 +262,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         return self._effective_permissions
 
     @effective_permissions.setter
-    def effective_permissions(self, value: "QuerySet[Permission]"):
+    def effective_permissions(self, value: models.QuerySet[Permission]):
         self._effective_permissions = value
         # Drop cache for authentication backend
         self._effective_permissions_cache = None
@@ -285,7 +290,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         return _user_has_perm(self, perm, obj)
 
     def has_perms(
-        self, perm_list: Collection[Union[BasePermissionEnum, str]], obj=None
+        self, perm_list: Iterable[Union[BasePermissionEnum, str]], obj=None
     ) -> bool:
         # This method is overridden to accept perm as BasePermissionEnum
         perm_list = [

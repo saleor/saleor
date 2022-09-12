@@ -521,11 +521,11 @@ def test_delete_products_invalid_object_typed_of_given_ids(
     assert data["count"] == 0
 
 
-@patch("saleor.product.signals.delete_product_media_task.delay")
+@patch("saleor.product.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_with_images(
     mocked_recalculate_orders_task,
-    delete_product_media_task_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     product_list,
     image_list,
@@ -550,10 +550,10 @@ def test_delete_products_with_images(
     content = get_graphql_content(response)
 
     assert content["data"]["productBulkDelete"]["count"] == 3
-    assert delete_product_media_task_mock.call_count == 2
+    assert delete_from_storage_task_mock.call_count == 2
     assert {
-        call_args.args[0] for call_args in delete_product_media_task_mock.call_args_list
-    } == {media1.id, media2.id}
+        call_args.args[0] for call_args in delete_from_storage_task_mock.call_args_list
+    } == {media1.image.name, media2.image.name}
     mocked_recalculate_orders_task.assert_not_called()
 
 
@@ -1091,7 +1091,7 @@ def test_product_delete_removes_reference_to_product(
     assert not data["errors"]
 
 
-def test_product_delete_removes_reference_to_product_variant(
+def test_product_delete_removes_variant_reference_to_product(
     staff_api_client,
     variant,
     product_type_product_reference_attribute,
@@ -1128,6 +1128,51 @@ def test_product_delete_removes_reference_to_product_variant(
         attr_value.refresh_from_db()
     with pytest.raises(product_list[0]._meta.model.DoesNotExist):
         product_list[0].refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_variant(
+    staff_api_client,
+    product_type_variant_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = DELETE_PRODUCTS_MUTATION
+
+    product = product_list[0]
+    variant_ref = product_list[1].variants.first()
+
+    product_type.product_attributes.add(product_type_variant_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_variant_reference_attribute,
+        name=variant_ref.name,
+        slug=f"{product.pk}_{variant_ref.pk}",
+        reference_variant=variant_ref,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_variant_reference_attribute, attr_value
+    )
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"ids": [product_id]}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
 
     assert not data["errors"]
 

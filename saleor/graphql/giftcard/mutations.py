@@ -18,6 +18,7 @@ from ...giftcard.utils import (
     deactivate_gift_card,
     is_gift_card_expired,
 )
+from ..app.dataloaders import load_app
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
@@ -167,7 +168,7 @@ class GiftCardCreate(ModelMutation):
         if user_is_valid(user):
             cleaned_input["created_by"] = user
             cleaned_input["created_by_email"] = user.email
-        cleaned_input["app"] = info.context.app
+        cleaned_input["app"] = load_app(info.context)
 
     @classmethod
     def clean_expiry_date(cls, cleaned_input, instance):
@@ -219,7 +220,7 @@ class GiftCardCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         user = info.context.user
-        app = info.context.app
+        app = load_app(info.context)
         events.gift_card_issued_event(
             gift_card=instance,
             user=user,
@@ -329,7 +330,7 @@ class GiftCardUpdate(GiftCardCreate):
         cls._save_m2m(info, instance, cleaned_input)
 
         user = info.context.user
-        app = info.context.app
+        app = load_app(info.context)
         if "initial_balance_amount" in cleaned_input:
             events.gift_card_balance_reset_event(instance, old_instance, user, app)
         if "expiry_date" in cleaned_input:
@@ -402,8 +403,11 @@ class GiftCardDeactivate(BaseMutation):
         create_event = gift_card.is_active
         deactivate_gift_card(gift_card)
         if create_event:
+            app = load_app(info.context)
             events.gift_card_deactivated_event(
-                gift_card=gift_card, user=info.context.user, app=info.context.app
+                gift_card=gift_card,
+                user=info.context.user,
+                app=app,
             )
         info.context.plugins.gift_card_status_changed(gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
@@ -432,8 +436,11 @@ class GiftCardActivate(BaseMutation):
         create_event = not gift_card.is_active
         activate_gift_card(gift_card)
         if create_event:
+            app = load_app(info.context)
             events.gift_card_activated_event(
-                gift_card=gift_card, user=info.context.user, app=info.context.app
+                gift_card=gift_card,
+                user=info.context.user,
+                app=app,
             )
         info.context.plugins.gift_card_status_changed(gift_card)
         return GiftCardActivate(gift_card=gift_card)
@@ -504,9 +511,10 @@ class GiftCardResend(BaseMutation):
         user = info.context.user
         if not user_is_valid(user):
             user = None
+        app = load_app(info.context)
         send_gift_card_notification(
             user,
-            info.context.app,
+            app,
             customer_user,
             target_email,
             gift_card,
@@ -558,10 +566,11 @@ class GiftCardAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         gift_card = cls.get_node_or_error(info, data.get("id"), only_type=GiftCard)
         cleaned_input = cls.clean_input(info, gift_card, data)
+        app = load_app(info.context)
         event = events.gift_card_note_added_event(
             gift_card=gift_card,
             user=info.context.user,
-            app=info.context.app,
+            app=app,
             message=cleaned_input["message"],
         )
         info.context.plugins.gift_card_updated(gift_card)
