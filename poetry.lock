@@ -1750,7 +1750,7 @@ xpath = ["lxml (>=4.4.0)"]
 
 [[package]]
 name = "phonenumberslite"
-version = "8.12.54"
+version = "8.12.55"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 category = "main"
 optional = false
@@ -2965,7 +2965,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "a522036a9d79f2a43d46a885b53d2f94317577756b7474fba94ddaf177722e4e"
+content-hash = "0fdda4cfc10794fee86f856a21bd7729ff4c361e82cb4b800d785ade7face1d7"
 
 [metadata.files]
 Adyen = [
@@ -4105,8 +4105,8 @@ petl = [
     {file = "petl-1.7.11.tar.gz", hash = "sha256:b067760e7de988031f6c16cec8b19f2ef7ac2d02ff07cb9365331e88fcfbed3c"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.54-py2.py3-none-any.whl", hash = "sha256:62b7160c366ee9649c741bffb67f1716469d9de018a700f200428b527fb501a0"},
-    {file = "phonenumberslite-8.12.54.tar.gz", hash = "sha256:3fb83b0c8371f25ecda3e54464856836f01d9afef61cc3d5ee9cec62634fa0c7"},
+    {file = "phonenumberslite-8.12.55-py2.py3-none-any.whl", hash = "sha256:1be18f1fad8a9e51c90db2f09c0065b439a7129b8cfb68307bbe60934b023604"},
+    {file = "phonenumberslite-8.12.55.tar.gz", hash = "sha256:5fa37449be4e9d07d894c7073b9998dd161d92f68278e8103c1ccffcc9508353"},
 ]
 Pillow = [
     {file = "Pillow-9.2.0-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:a9c9bc489f8ab30906d7a85afac4b4944a572a7432e00698a7239f44a44e6efb"},
