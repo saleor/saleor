@@ -1800,9 +1800,11 @@ APPROVE_FULFILLMENT_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_fulfillment_approve(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_api_client,
     fulfillment,
     permission_manage_orders,
@@ -1829,6 +1831,7 @@ def test_fulfillment_approve(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
+    mock_fulfillment_approved.assert_called_once_with(fulfillment)
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
@@ -1869,9 +1872,11 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     assert event.user == staff_api_client.user
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceeded_false(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_api_client,
     fulfillment,
     permission_manage_orders,
@@ -1918,6 +1923,7 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     assert mock_email_fulfillment.call_count == 1
     events = fulfillment.order.events.all()
     assert len(events) == 0
+    mock_fulfillment_approved.assert_not_called()
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
