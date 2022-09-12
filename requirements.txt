@@ -55,7 +55,7 @@ draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 faker==13.15.1; python_version >= "3.6"
-fonttools==4.36.0; python_version >= "3.7"
+fonttools==4.37.1; python_version >= "3.7"
 freezegun==1.2.1; python_version >= "3.6"
 google-api-core==2.8.2; python_version >= "3.7"
 google-auth==2.10.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
@@ -93,7 +93,7 @@ measurement==3.2.0
 micawber==0.5.4
 mpmath==1.2.1; python_version >= "3.7"
 msrest==0.7.1; python_version >= "3.6"
-oauthlib==3.2.0; python_version >= "3.6"
+oauthlib==3.2.1; python_version >= "3.6"
 openpyxl==3.0.10; python_version >= "3.6"
 opentracing==2.4.0
 packaging==21.3; python_version >= "3.7"
@@ -110,7 +110,7 @@ psycopg2==2.9.3; python_version >= "3.6"
 pyasn1-modules==0.2.8; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
 pyasn1==0.4.8; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7") or python_full_version >= "3.6.0" and python_version >= "3.7" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")
 pybars3==0.9.7
-pycparser==2.21; python_version >= "3.7" and python_full_version < "3.0.0" or python_version >= "3.7" and python_full_version >= "3.4.0"
+pycparser==2.21; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.7"
 pydyf==0.2.0; python_version >= "3.7"
 pyjwt==2.4.0; python_version >= "3.6"
 pymeta3==0.5.1
