@@ -750,3 +750,35 @@ class OrderEvent(models.Model):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
+
+
+class OrderGrantedRefund(models.Model):
+    """Model used to store granted refund for the order."""
+
+    created_at = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
+
+    amount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    amount = MoneyField(amount_field="amount_value", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+    reason = models.TextField(blank=True, default="")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
+    order = models.ForeignKey(
+        Order, related_name="granted_refunds", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ("created_at", "id")

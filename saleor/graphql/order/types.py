@@ -63,6 +63,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -116,6 +117,7 @@ from .dataloaders import (
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedDiscounsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
     TransactionItemsByOrderIDLoader,
@@ -164,6 +166,19 @@ def get_payment_status_for_order(order):
     elif charged_money and charged_money < order.total.gross:
         status = ChargeStatus.PARTIALLY_CHARGED
     return status
+
+
+class OrderGrantedRefund(graphene.ObjectType):
+    id = graphene.GlobalID(required=True)
+    created_at = graphene.DateTime(required=True, description="Time of creation.")
+    updated_at = graphene.DateTime(required=True, description="Time of last update.")
+    amount = graphene.Field(Money, required=True, description="Refund amount.")
+    reason = graphene.String(description="Reason of the refund.")
+    user = graphene.Field(User, description="User who performed the action.")
+    app = graphene.Field(App, description=("App that performed the action."))
+
+    class Meta:
+        description = "The details of granted refund." + ADDED_IN_38 + PREVIEW_FEATURE
 
 
 class OrderDiscount(graphene.ObjectType):
@@ -1018,6 +1033,13 @@ class Order(ModelObjectType):
         required=True,
     )
 
+    granted_refunds = PermissionsField(
+        NonNullList(OrderGrantedRefund),
+        required=True,
+        description="List of granted refunds." + ADDED_IN_38 + PREVIEW_FEATURE,
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+
     class Meta:
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
@@ -1596,6 +1618,10 @@ class Order(ModelObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+    @staticmethod
+    def resolve_granted_refunds(root: models.Order, info):
+        return OrderGrantedDiscounsByOrderIdLoader(info.context).load(root.id)
 
 
 class OrderCountableConnection(CountableConnection):

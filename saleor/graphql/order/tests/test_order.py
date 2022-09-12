@@ -509,6 +509,22 @@ query OrdersQuery {
                         id
                     }
                 }
+                grantedRefunds{
+                    id
+                    createdAt
+                    updatedAt
+                    amount{
+                        amount
+                        currency
+                    }
+                    reason
+                    user{
+                        id
+                    }
+                    app{
+                        id
+                    }
+                }
             }
         }
     }
@@ -1300,6 +1316,73 @@ def test_order_query_shows_non_draft_orders(
     edges = get_graphql_content(response)["data"]["orders"]["edges"]
 
     assert len(edges) == Order.objects.non_draft().count()
+
+
+def test_order_granted_refunds_query(
+    staff_user,
+    app,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+    shipping_zone,
+):
+    # given
+    order = fulfilled_order
+    net = Money(amount=Decimal("10"), currency="USD")
+    gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
+    shipping_price = TaxedMoney(net=net, gross=gross)
+    order.shipping_price = shipping_price
+    shipping_tax_rate = Decimal("0.23")
+    order.shipping_tax_rate = shipping_tax_rate
+    order.save()
+    first_granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("10.0"),
+        currency="USD",
+        reason="Test reason",
+        user=staff_user,
+    )
+    second_granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("12.5"), currency="USD", reason="Test reason", app=app
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    granted_refunds = order_data["grantedRefunds"]
+    assert len(granted_refunds) == 2
+    assert granted_refunds == [
+        {
+            "id": to_global_id_or_none(first_granted_refund),
+            "createdAt": first_granted_refund.created_at.isoformat(),
+            "updatedAt": first_granted_refund.updated_at.isoformat(),
+            "amount": {
+                "amount": float(first_granted_refund.amount.amount),
+                "currency": first_granted_refund.currency,
+            },
+            "reason": first_granted_refund.reason,
+            "user": {"id": to_global_id_or_none(first_granted_refund.user)},
+            "app": None,
+        },
+        {
+            "id": to_global_id_or_none(second_granted_refund),
+            "createdAt": second_granted_refund.created_at.isoformat(),
+            "updatedAt": second_granted_refund.updated_at.isoformat(),
+            "amount": {
+                "amount": float(second_granted_refund.amount.amount),
+                "currency": second_granted_refund.currency,
+            },
+            "reason": second_granted_refund.reason,
+            "app": {"id": to_global_id_or_none(second_granted_refund.app)},
+            "user": None,
+        },
+    ]
 
 
 ORDERS_QUERY_LINE_THUMBNAIL = """

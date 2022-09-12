@@ -2,7 +2,14 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from ...order.models import (
+    Fulfillment,
+    FulfillmentLine,
+    Order,
+    OrderEvent,
+    OrderGrantedRefund,
+    OrderLine,
+)
 from ...payment.models import TransactionItem
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
@@ -86,6 +93,20 @@ class OrderEventsByOrderIdLoader(DataLoader):
         for event in events.iterator():
             events_map[event.order_id].append(event)
         return [events_map.get(order_id, []) for order_id in keys]
+
+
+class OrderGrantedDiscounsByOrderIdLoader(DataLoader):
+    context_key = "order_granted_discounts_by_order_id"
+
+    def batch_load(self, keys):
+        refunds = OrderGrantedRefund.objects.using(
+            self.database_connection_name
+        ).filter(order_id__in=keys)
+        refunds_map = defaultdict(list)
+
+        for refund in refunds.iterator():
+            refunds_map[refund.order_id].append(refund)
+        return [refunds_map.get(order_id, []) for order_id in keys]
 
 
 class AllocationsByOrderLineIdLoader(DataLoader):
