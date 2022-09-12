@@ -249,14 +249,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.24.68"
+version = "1.24.70"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.27.68,<1.28.0"
+botocore = ">=1.27.70,<1.28.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -265,7 +265,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.27.68"
+version = "1.27.70"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -371,7 +371,7 @@ zstd = ["zstandard"]
 
 [[package]]
 name = "certifi"
-version = "2022.6.15"
+version = "2022.6.15.1"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
@@ -668,7 +668,7 @@ django-debug-toolbar = ">=2.0"
 
 [[package]]
 name = "django-extensions"
-version = "3.2.0"
+version = "3.2.1"
 description = "Extensions for Django"
 category = "dev"
 optional = false
@@ -1672,7 +1672,7 @@ setuptools = "*"
 
 [[package]]
 name = "oauthlib"
-version = "3.2.0"
+version = "3.2.1"
 description = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
 category = "main"
 optional = false
@@ -1750,7 +1750,7 @@ xpath = ["lxml (>=4.4.0)"]
 
 [[package]]
 name = "phonenumberslite"
-version = "8.12.54"
+version = "8.12.55"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 category = "main"
 optional = false
@@ -2734,7 +2734,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-requests"
-version = "2.28.9"
+version = "2.28.10"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -3083,12 +3083,12 @@ black = [
     {file = "black-22.6.0.tar.gz", hash = "sha256:6c6d39e28aed379aec40da1c65434c77d75e65bb59a1e1c283de545fb4e7c6c9"},
 ]
 boto3 = [
-    {file = "boto3-1.24.68-py3-none-any.whl", hash = "sha256:428d94d7c79b6ea65ade428afbd89fb1b869da631bb5acf22230b5b0b7486290"},
-    {file = "boto3-1.24.68.tar.gz", hash = "sha256:d8785ada565bd3118b9c4c26d8fa64c32d86e62c3404aab612571ae32c270be2"},
+    {file = "boto3-1.24.70-py3-none-any.whl", hash = "sha256:bb69ebe7c484305568b1aaed664db3d09716dc93235e41f23538f99ea4f3addc"},
+    {file = "boto3-1.24.70.tar.gz", hash = "sha256:abac9c7e54212ee68c2a311812a498ece2c43f98d1302f099128a9fe45cf37c5"},
 ]
 botocore = [
-    {file = "botocore-1.27.68-py3-none-any.whl", hash = "sha256:d7decff8d5d94c265ad533c11ba0d653acf0819fcdf1049452076cf8fc0f8946"},
-    {file = "botocore-1.27.68.tar.gz", hash = "sha256:aa8ce593e8d6e1aeb5852f8847e3d1750a1e840b221c01ff63ac0cb1dc583aba"},
+    {file = "botocore-1.27.70-py3-none-any.whl", hash = "sha256:c0a014b4dfd7ffe739393034aa6e70e73f3a1b22c7667a59858259b341bf5082"},
+    {file = "botocore-1.27.70.tar.gz", hash = "sha256:2ad5be6ca322a549f858d245237358ed300f7347096caacbb29c013e10663d34"},
 ]
 braintree = [
     {file = "braintree-4.16.0-py2.py3-none-any.whl", hash = "sha256:15e77c382f50d59e12cfd7e2e984ac6469e760ed56de82832a18aa8bf2e3f6f4"},
@@ -3199,8 +3199,8 @@ celery = [
     {file = "celery-5.2.7.tar.gz", hash = "sha256:fafbd82934d30f8a004f81e8f7a062e31413a23d444be8ee3326553915958c6d"},
 ]
 certifi = [
-    {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
-    {file = "certifi-2022.6.15.tar.gz", hash = "sha256:84c85a9078b11105f04f3036a9482ae10e4621616db313fe045dd24743a0820d"},
+    {file = "certifi-2022.6.15.1-py3-none-any.whl", hash = "sha256:43dadad18a7f168740e66944e4fa82c6611848ff9056ad910f8f7a3e46ab89e0"},
+    {file = "certifi-2022.6.15.1.tar.gz", hash = "sha256:cffdcd380919da6137f76633531a5817e3a9f268575c128249fb637e4f9e73fb"},
 ]
 cffi = [
     {file = "cffi-1.15.1-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:a66d3508133af6e8548451b25058d5812812ec3798c886bf38ed24a98216fab2"},
@@ -3429,8 +3429,8 @@ django-debug-toolbar-request-history = [
     {file = "django_debug_toolbar_request_history-0.1.4-py2.py3-none-any.whl", hash = "sha256:753ebed8b88dc8f71a8920cac5d69be18d56f510b25f841c877413c4549a2733"},
 ]
 django-extensions = [
-    {file = "django-extensions-3.2.0.tar.gz", hash = "sha256:7dc7cd1da50d83b76447a58f5d7e5c8e6cd83f21e9b7e5f97e6b644f4d4e21a6"},
-    {file = "django_extensions-3.2.0-py3-none-any.whl", hash = "sha256:4c234a7236e9e41c17d9036f6dae7a3a9b212527105b8a0d24b2459b267825f0"},
+    {file = "django-extensions-3.2.1.tar.gz", hash = "sha256:2a4f4d757be2563cd1ff7cfdf2e57468f5f931cc88b23cf82ca75717aae504a4"},
+    {file = "django_extensions-3.2.1-py3-none-any.whl", hash = "sha256:421464be390289513f86cb5e18eb43e5dc1de8b4c27ba9faa3b91261b0d67e09"},
 ]
 django-filter = [
     {file = "django-filter-22.1.tar.gz", hash = "sha256:ed473b76e84f7e83b2511bb2050c3efb36d135207d0128dfe3ae4b36e3594ba5"},
@@ -4084,8 +4084,8 @@ nodeenv = [
     {file = "nodeenv-1.7.0.tar.gz", hash = "sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b"},
 ]
 oauthlib = [
-    {file = "oauthlib-3.2.0-py3-none-any.whl", hash = "sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe"},
-    {file = "oauthlib-3.2.0.tar.gz", hash = "sha256:23a8208d75b902797ea29fd31fa80a15ed9dc2c6c16fe73f5d346f83f6fa27a2"},
+    {file = "oauthlib-3.2.1-py3-none-any.whl", hash = "sha256:88e912ca1ad915e1dcc1c06fc9259d19de8deacd6fd17cc2df266decc2e49066"},
+    {file = "oauthlib-3.2.1.tar.gz", hash = "sha256:1565237372795bf6ee3e5aba5e2a85bd5a65d0e2aa5c628b9a97b7d7a0da3721"},
 ]
 openpyxl = [
     {file = "openpyxl-3.0.10-py2.py3-none-any.whl", hash = "sha256:0ab6d25d01799f97a9464630abacbb34aafecdcaa0ef3cba6d6b3499867d0355"},
@@ -4106,8 +4106,8 @@ petl = [
     {file = "petl-1.7.11.tar.gz", hash = "sha256:b067760e7de988031f6c16cec8b19f2ef7ac2d02ff07cb9365331e88fcfbed3c"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.54-py2.py3-none-any.whl", hash = "sha256:62b7160c366ee9649c741bffb67f1716469d9de018a700f200428b527fb501a0"},
-    {file = "phonenumberslite-8.12.54.tar.gz", hash = "sha256:3fb83b0c8371f25ecda3e54464856836f01d9afef61cc3d5ee9cec62634fa0c7"},
+    {file = "phonenumberslite-8.12.55-py2.py3-none-any.whl", hash = "sha256:1be18f1fad8a9e51c90db2f09c0065b439a7129b8cfb68307bbe60934b023604"},
+    {file = "phonenumberslite-8.12.55.tar.gz", hash = "sha256:5fa37449be4e9d07d894c7073b9998dd161d92f68278e8103c1ccffcc9508353"},
 ]
 Pillow = [
     {file = "Pillow-9.2.0-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:a9c9bc489f8ab30906d7a85afac4b4944a572a7432e00698a7239f44a44e6efb"},
@@ -4578,8 +4578,8 @@ types-redis = [
     {file = "types_redis-4.3.20-py3-none-any.whl", hash = "sha256:b22e0f5a18b98b6a197dd403daed52a22cb76f50e3cbd7ddc539196af52ec23e"},
 ]
 types-requests = [
-    {file = "types-requests-2.28.9.tar.gz", hash = "sha256:feaf581bd580497a47fe845d506fa3b91b484cf706ff27774e87659837de9962"},
-    {file = "types_requests-2.28.9-py3-none-any.whl", hash = "sha256:86cb66d3de2f53eac5c09adc42cf6547eefbd0c7e1210beca1ee751c35d96083"},
+    {file = "types-requests-2.28.10.tar.gz", hash = "sha256:97d8f40aa1ffe1e58c3726c77d63c182daea9a72d9f1fa2cafdea756b2a19f2c"},
+    {file = "types_requests-2.28.10-py3-none-any.whl", hash = "sha256:45b485725ed58752f2b23461252f1c1ad9205b884a1e35f786bb295525a3e16a"},
 ]
 types-six = [
     {file = "types-six-1.16.19.tar.gz", hash = "sha256:5bd851a00d761c5b5df78a379cb174a9aa63defc8d967600bbb37df607099ed2"},
