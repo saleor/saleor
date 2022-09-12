@@ -819,6 +819,14 @@ class FulfillmentCanceled(ObjectType, FulfillmentBase):
         )
 
 
+class FulfillmentApproved(ObjectType, FulfillmentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when fulfillment is approved." + ADDED_IN_37 + PREVIEW_FEATURE
+        )
+
+
 class UserBase(AbstractType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
@@ -1520,6 +1528,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
     WebhookEventAsyncType.FULFILLMENT_CREATED: FulfillmentCreated,
     WebhookEventAsyncType.FULFILLMENT_CANCELED: FulfillmentCanceled,
+    WebhookEventAsyncType.FULFILLMENT_APPROVED: FulfillmentApproved,
     WebhookEventAsyncType.CUSTOMER_CREATED: CustomerCreated,
     WebhookEventAsyncType.CUSTOMER_UPDATED: CustomerUpdated,
     WebhookEventAsyncType.COLLECTION_CREATED: CollectionCreated,
