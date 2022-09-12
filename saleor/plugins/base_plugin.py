@@ -490,6 +490,11 @@ class BasePlugin:
     #  cancelled.
     fulfillment_canceled: Callable[["Fulfillment", Any], Any]
 
+    #  Trigger when fulfillemnt is approved.
+    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
+    #  approved.
+    fulfillment_approved: Callable[["Fulfillment", Any], Any]
+
     get_checkout_line_tax_rate: Callable[
         [
             "CheckoutInfo",

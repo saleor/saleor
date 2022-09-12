@@ -940,6 +940,24 @@ FULFILLMENT_CANCELED = (
 """
 )
 
+FULFILLMENT_APPROVED = (
+    fragments.FULFILLMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on FulfillmentApproved{
+          fulfillment{
+            ...FulfillmentDetails
+          }
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+)
+
 CUSTOMER_CREATED = (
     fragments.CUSTOMER_DETAILS
     + """
