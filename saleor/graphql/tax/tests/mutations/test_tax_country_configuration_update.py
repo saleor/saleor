@@ -1,7 +1,8 @@
 import graphene
+import pytest
 
 from .....tax.error_codes import TaxCountryConfigurationUpdateErrorCode
-from .....tax.models import TaxClass
+from .....tax.models import TaxClass, TaxClassCountryRate
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ..fragments import TAX_COUNTRY_CONFIGURATION_FRAGMENT
 
@@ -67,7 +68,7 @@ def _test_country_rates_update(api_client, permission_manage_taxes):
     variables = {
         "countryCode": "PL",
         "updateTaxClassRates": [
-            {"taxClassId": id_1, "rate": 20},  # should update existing rate
+            {"taxClassId": id_1, "rate": 0},  # should update existing rate
             {"taxClassId": id_2, "rate": 20},  # should create new rate
         ],
     }
@@ -85,7 +86,7 @@ def _test_country_rates_update(api_client, permission_manage_taxes):
     for item in data["taxCountryConfiguration"]["taxClassCountryRates"]:
         response_data.append({"rate": item["rate"], "id": item["taxClass"]["id"]})
 
-    assert {"rate": 20, "id": id_1} in response_data
+    assert {"rate": 0, "id": id_1} in response_data
     assert {"rate": 20, "id": id_2} in response_data
 
 
@@ -95,6 +96,64 @@ def test_update_rates_as_staff(staff_api_client, permission_manage_taxes):
 
 def test_update_rates_as_app(app_api_client, permission_manage_taxes):
     _test_country_rates_update(app_api_client, permission_manage_taxes)
+
+
+def test_create_country_rate_throws_exception_when_rate_is_none(
+    staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_class_1 = TaxClass.objects.create(name="Books")
+    tax_class_2 = TaxClass.objects.create(name="Accessories")
+    tax_class_1.country_rates.create(country="PL", rate=23)
+
+    id_1 = graphene.Node.to_global_id("TaxClass", tax_class_1.pk)
+    id_2 = graphene.Node.to_global_id("TaxClass", tax_class_2.pk)
+
+    # when
+    variables = {
+        "countryCode": "PL",
+        "updateTaxClassRates": [
+            {"taxClassId": id_1, "rate": 20},  # should update existing rate
+            {"taxClassId": id_2},  # try creating a new item, but the rate is missing
+        ],
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxCountryConfigurationUpdate"]
+    assert data["errors"]
+    assert (
+        data["errors"][0]["code"]
+        == TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_WITH_NULL_RATE.name
+    )
+    assert data["errors"][0]["taxClassIds"] == [id_2]
+
+
+def test_delete_country_rate(staff_api_client, permission_manage_taxes):
+    # given
+    tax_class_1 = TaxClass.objects.create(name="Books")
+    tax_class_1.country_rates.create(country="PL", rate=23)
+    id_1 = graphene.Node.to_global_id("TaxClass", tax_class_1.pk)
+
+    # when
+    variables = {
+        "countryCode": "PL",
+        "updateTaxClassRates": [
+            {"taxClassId": id_1},  # should delete this rate item
+        ],
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxCountryConfigurationUpdate"]
+    assert not data["errors"]
+    assert len(data["taxCountryConfiguration"]["taxClassCountryRates"]) == 0
 
 
 def test_tax_class_id_not_found(staff_api_client, permission_manage_taxes):
@@ -124,12 +183,13 @@ def test_tax_class_id_not_found(staff_api_client, permission_manage_taxes):
     assert data["errors"][0]["taxClassIds"] == [id]
 
 
-def test_update_default_country_rate(staff_api_client, permission_manage_taxes):
+@pytest.mark.parametrize("rate", [0, 23])
+def test_update_default_country_rate(staff_api_client, permission_manage_taxes, rate):
     # when
     variables = {
         "countryCode": "PL",
         "updateTaxClassRates": [
-            {"rate": 23},
+            {"rate": rate},
         ],
     }
     response = staff_api_client.post_graphql(
@@ -146,7 +206,27 @@ def test_update_default_country_rate(staff_api_client, permission_manage_taxes):
     for item in data["taxCountryConfiguration"]["taxClassCountryRates"]:
         response_data.append({"rate": item["rate"], "id": None})
 
-    assert {"rate": 23, "id": None} in response_data
+    assert {"rate": rate, "id": None} in response_data
+
+
+def test_delete_default_country_rate(staff_api_client, permission_manage_taxes):
+    # given
+    default_rate = TaxClassCountryRate.objects.create(country="PL", rate=0)
+
+    # when
+    variables = {
+        "countryCode": "PL",
+        "updateTaxClassRates": [
+            {"rate": None},
+        ],
+    }
+    staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    with pytest.raises(TaxClassCountryRate.DoesNotExist):
+        default_rate.refresh_from_db()
 
 
 def test_update_default_country_rate_throws_error_with_multiple_rates(

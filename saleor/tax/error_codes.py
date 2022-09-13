@@ -33,6 +33,7 @@ class TaxCountryConfigurationUpdateErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED = "only_one_default_country_rate_allowed"
+    CANNOT_CREATE_WITH_NULL_RATE = "cannot_create_with_null_rate"
 
 
 class TaxCountryConfigurationDeleteErrorCode(Enum):

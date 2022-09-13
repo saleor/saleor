@@ -33,7 +33,7 @@ class TaxClassRateInput(graphene.InputObjectType):
     tax_class_id = graphene.ID(
         description="ID of a tax class for which to update the tax rate", required=False
     )
-    rate = graphene.Float(description="Tax rate value.", required=True)
+    rate = graphene.Float(description="Tax rate value.", required=False)
 
 
 class TaxCountryConfigurationUpdate(BaseMutation):
@@ -48,7 +48,12 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         )
         update_tax_class_rates = NonNullList(
             TaxClassRateInput,
-            description="List of tax rates per tax class to update.",
+            description=(
+                "List of tax rates per tax class to update. When "
+                "`{taxClass: id, rate: null`} is passed, it deletes the rate object "
+                "for given taxClass ID. When `{rate: Int}` is passed without a tax "
+                "class, it updates the default tax class for this country."
+            ),
             required=True,
         )
 
@@ -121,44 +126,93 @@ class TaxCountryConfigurationUpdate(BaseMutation):
     def clean_input(cls, **data):
         update_tax_class_rates = data.get("update_tax_class_rates", [])
         cls._clean_default_rates(update_tax_class_rates)
-        cleaned_data = cls._clean_tax_class_ids(update_tax_class_rates)
-        return cleaned_data
+        return cls._clean_tax_class_ids(update_tax_class_rates)
+
+    @classmethod
+    def update_default_rate(cls, country_code, cleaned_data):
+        # Handle the default country rate first (the one without a tax class).
+        default_rate = cleaned_data.get(None)
+        if default_rate:
+            rate = default_rate.get("rate")
+            if rate is not None:
+                models.TaxClassCountryRate.objects.update_or_create(
+                    country=country_code,
+                    tax_class=None,
+                    defaults={"rate": default_rate["rate"]},
+                )
+            else:
+                default_rate_obj = models.TaxClassCountryRate.objects.filter(
+                    country=country_code,
+                    tax_class=None,
+                ).first()
+                if default_rate_obj:
+                    default_rate_obj.delete()
 
     @classmethod
     def update_and_create_country_rates(cls, country_code, cleaned_data):
-        # updating existing instances
-        to_update = models.TaxClassCountryRate.objects.filter(
-            country=country_code, tax_class_id__in=cleaned_data.keys()
+        # Prepare IDs to create and update.
+        input_ids = [key for key in cleaned_data.keys() if key is not None]
+        update_qs = models.TaxClassCountryRate.objects.filter(
+            country=country_code, tax_class_id__in=input_ids
         )
-        update_tax_classes = []
-        for obj in to_update:
-            obj.rate = cleaned_data[obj.tax_class_id]["rate"]
-            update_tax_classes.append(obj.tax_class_id)
-        models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))
+        update_ids = [item.tax_class_id for item in update_qs]
+        create_ids = set(input_ids) - set(update_ids)
+        delete_ids = []
 
-        # update the default country rate (without tax class)
-        default_rate = cleaned_data.get(None)
-        if default_rate:
-            models.TaxClassCountryRate.objects.update_or_create(
-                country=country_code,
-                tax_class=None,
-                defaults={"rate": default_rate["rate"]},
-            )
+        # Update existing instances.
+        for obj in update_qs:
+            rate = cleaned_data[obj.tax_class_id].get("rate")
+            if rate is None:
+                delete_ids.append(obj.tax_class_id)
+            else:
+                obj.rate = rate
+        models.TaxClassCountryRate.objects.bulk_update(update_qs, fields=("rate",))
 
-        # create new instances
-        to_create = [
-            models.TaxClassCountryRate(
-                country=country_code, tax_class_id=tax_class_id, rate=item["rate"]
-            )
-            for tax_class_id, item in cleaned_data.items()
-            if tax_class_id not in update_tax_classes and tax_class_id is not None
-        ]
+        # Create new instances.
+        to_create = []
+        for tax_class_id in create_ids:
+            input_item = cleaned_data[tax_class_id]
+            rate = input_item.get("rate")
+            if rate is None:
+                code = (
+                    TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_WITH_NULL_RATE
+                )
+                raise ValidationError(
+                    {
+                        "update_tax_class_rates": ValidationError(
+                            code=code,
+                            message=(
+                                "Cannot create a new tax rate without providing it's "
+                                "value."
+                            ),
+                            params={
+                                "tax_class_ids": [
+                                    graphene.Node.to_global_id(
+                                        "TaxClass", tax_class_id
+                                    ),
+                                ]
+                            },
+                        )
+                    }
+                )
+            else:
+                obj = models.TaxClassCountryRate(
+                    country=country_code, tax_class_id=tax_class_id, rate=rate
+                )
+                to_create.append(obj)
         models.TaxClassCountryRate.objects.bulk_create(to_create)
+
+        # Delete instances where null rates were provided.
+        models.TaxClassCountryRate.objects.filter(
+            country=country_code,
+            tax_class_id__in=delete_ids,
+        ).delete()
 
     @classmethod
     def perform_mutation(cls, _root, _info, **data):
         country_code = data["country_code"]
         cleaned_data = cls.clean_input(**data)
+        cls.update_default_rate(country_code, cleaned_data)
         cls.update_and_create_country_rates(country_code, cleaned_data)
 
         tax_classes_lookup = Q(tax_class_id__in=cleaned_data.keys())

@@ -11426,7 +11426,9 @@ type Mutation {
     """Country in which to update the tax class rates."""
     countryCode: CountryCode!
 
-    """List of tax rates per tax class to update."""
+    """
+    List of tax rates per tax class to update. When `{taxClass: id, rate: null`} is passed, it deletes the rate object for given taxClass ID. When `{rate: Int}` is passed without a tax class, it updates the default tax class for this country.
+    """
     updateTaxClassRates: [TaxClassRateInput!]!
   ): TaxCountryConfigurationUpdate
 
@@ -15454,6 +15456,7 @@ enum TaxCountryConfigurationUpdateErrorCode {
   INVALID
   NOT_FOUND
   ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
+  CANNOT_CREATE_WITH_NULL_RATE
 }
 
 input TaxClassRateInput {
@@ -15461,7 +15464,7 @@ input TaxClassRateInput {
   taxClassId: ID
 
   """Tax rate value."""
-  rate: Float!
+  rate: Float
 }
 
 """
