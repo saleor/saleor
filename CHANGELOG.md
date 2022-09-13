@@ -33,6 +33,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Trigger the `SALE_DELETED` webhook when deleting sales in bulk (#10461) (2052841e9)
+- Add `FULFILLMENT_APPROVED` webhook - #10621 by @IKarbowiak
 
 ### Other changes
 

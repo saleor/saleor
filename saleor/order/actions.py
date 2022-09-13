@@ -263,6 +263,8 @@ def order_fulfilled(
 
     if order.status == OrderStatus.FULFILLED:
         transaction.on_commit(lambda: manager.order_fulfilled(order))
+        for fulfillment in fulfillments:
+            transaction.on_commit(lambda f=fulfillment: manager.fulfillment_approved(f))
 
     if notify_customer:
         for fulfillment in fulfillments:
@@ -476,6 +478,7 @@ def approve_fulfillment(
     transaction.on_commit(lambda: manager.order_updated(order))
     if order.status == OrderStatus.FULFILLED:
         transaction.on_commit(lambda: manager.order_fulfilled(order))
+        transaction.on_commit(lambda f=fulfillment: manager.fulfillment_approved(f))
 
     if gift_card_lines_info:
         gift_cards_create(
