@@ -2656,7 +2656,9 @@ def test_show_taxes_on_storefront(plugin_configuration):
 
 @patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_order_created(api_post_request_task_mock, order, plugin_configuration):
+def test_order_created(
+    api_post_request_task_mock, order, order_line, plugin_configuration
+):
     # given
     plugin_conf = plugin_configuration(
         from_street_address="Tęczowa 7",
@@ -2678,7 +2680,16 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         "createTransactionModel": {
             "companyCode": conf["Company name"],
             "type": TransactionType.INVOICE,
-            "lines": [],
+            "lines": [
+                {
+                    "amount": str(round(order_line.total_price.gross.amount, 3)),
+                    "description": order_line.variant.product.name,
+                    "itemCode": order_line.variant.sku,
+                    "quantity": order_line.quantity,
+                    "taxCode": DEFAULT_TAX_CODE,
+                    "taxIncluded": True,
+                }
+            ],
             "code": order.token,
             "date": datetime.date.today().strftime("%Y-%m-%d"),
             "customerCode": 0,
@@ -2726,6 +2737,22 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         conf_data,
         order.pk,
     )
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_order_created_no_lines(
+    api_post_request_task_mock, order, plugin_configuration
+):
+    """Ensure that when order has no lines, the request to avatax api is not sent."""
+    # given
+    manager = get_plugins_manager()
+
+    # when
+    manager.order_created(order)
+
+    # then
+    api_post_request_task_mock.assert_not_called()
 
 
 @pytest.mark.vcr
@@ -3068,7 +3095,8 @@ def test_get_order_request_data_draft_order_with_voucher(
     request_data = get_order_request_data(order_with_lines, config)
     lines_data = request_data["createTransactionModel"]["lines"]
 
-    # every line has additional discount data and extra one from shipping data
+    # every line has additional discount data
+    # shipping line is not added as after discount shipping price is 0
     assert len(lines_data) == order_with_lines.lines.count() * 2 + 1
 
 
@@ -3135,6 +3163,20 @@ def test_get_order_tax_data(
     # then
     get_order_request_data_mock.assert_called_once_with(order, conf)
     assert response == return_value
+
+
+def test_get_order_tax_data_empty_data(
+    order,
+    plugin_configuration,
+):
+    # given
+    conf = plugin_configuration()
+
+    # when
+    response = get_order_tax_data(order, conf)
+
+    # then
+    assert response is None
 
 
 @patch("saleor.plugins.avatax.get_order_request_data")

@@ -189,15 +189,11 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
+        response = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, previous_value
+        )
+        if response is None:
             return previous_value
-        checkout_total = previous_value
-
-        if not _validate_checkout(checkout_info, lines):
-            return checkout_total
-        response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
-        if not response or "error" in response:
-            return checkout_total
 
         tax_included = (
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
@@ -294,15 +290,11 @@ class AvataxPlugin(BasePlugin):
         if not charge_taxes_on_shipping():
             return base_shipping_price
 
-        if self._skip_plugin(previous_value):
-            return base_shipping_price
-
-        if not _validate_checkout(checkout_info, lines):
-            return base_shipping_price
-
-        response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
-        if not response or "error" in response:
-            return base_shipping_price
+        response = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, base_shipping_price
+        )
+        if response is None:
+            return previous_value
 
         currency = str(response.get("currencyCode"))
         return self._calculate_checkout_shipping(
@@ -369,6 +361,8 @@ class AvataxPlugin(BasePlugin):
         if not self.active or order.is_unconfirmed():
             return previous_value
         request_data = get_order_request_data(order, self.config)
+        if not request_data:
+            return previous_value
 
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
@@ -390,21 +384,20 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable["DiscountInfo"],
         previous_value: CheckoutTaxedPricesData,
     ) -> CheckoutTaxedPricesData:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
         base_total = previous_value
         if not checkout_line_info.product.charge_taxes:
             return base_total
 
-        if not _validate_checkout(checkout_info, lines):
+        taxes_data = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, base_total
+        )
+        if not taxes_data:
             return base_total
 
         tax_included = (
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
         )
 
-        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         variant = checkout_line_info.variant
 
         return self._calculate_checkout_line_total_price(
@@ -481,20 +474,13 @@ class AvataxPlugin(BasePlugin):
         product: "Product",
         previous_value: OrderTaxedPricesData,
     ) -> OrderTaxedPricesData:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
         if not product.charge_taxes:
             return previous_value
 
-        if not _validate_order(order):
-            return previous_value
-
+        taxes_data = self._get_order_tax_data(order, previous_value)
         tax_included = (
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
         )
-
-        taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_order_line_total_price(
             taxes_data,
             variant.sku or variant.get_global_id(),
@@ -561,14 +547,14 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable["DiscountInfo"],
         previous_value: CheckoutTaxedPricesData,
     ) -> CheckoutTaxedPricesData:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
         base_total = previous_value
         if not checkout_line_info.product.charge_taxes:
             return base_total
 
-        if not _validate_checkout(checkout_info, lines):
+        taxes_data = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, base_total
+        )
+        if not taxes_data:
             return base_total
 
         tax_included = (
@@ -577,7 +563,6 @@ class AvataxPlugin(BasePlugin):
         variant = checkout_line_info.variant
 
         quantity = checkout_line_info.line.quantity
-        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         default_total = CheckoutTaxedPricesData(
             price_with_discounts=previous_value.price_with_discounts * quantity,
             price_with_sale=previous_value.price_with_sale * quantity,
@@ -632,15 +617,12 @@ class AvataxPlugin(BasePlugin):
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
     ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
         if not charge_taxes_on_shipping():
             return previous_value
 
-        if not _validate_order(order):
+        taxes_data = self._get_order_tax_data(order, previous_value)
+        if taxes_data is None:
             return previous_value
-        taxes_data = get_order_tax_data(order, self.config, False)
 
         tax_included = (
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
@@ -693,6 +675,8 @@ class AvataxPlugin(BasePlugin):
         response = self._get_checkout_tax_data(
             checkout_info, lines, discounts, previous_value
         )
+        if response is None:
+            return previous_value
         variant = checkout_line_info.variant
         return self._get_unit_tax_rate(
             response,
@@ -739,7 +723,7 @@ class AvataxPlugin(BasePlugin):
         checkout_info: "CheckoutInfo",
         lines_info: Iterable["CheckoutLineInfo"],
         discounts: Iterable[DiscountInfo],
-        base_value: Decimal,
+        base_value: Union[Decimal, CheckoutTaxedPricesData],
     ):
         if self._skip_plugin(base_value):
             return None
