@@ -52,7 +52,7 @@ def avatax_config():
     return AvataxConfiguration(
         username_or_account="test",
         password_or_license="test",
-        use_sandbox=False,
+        use_sandbox=True,
         from_street_address="Tęczowa 7",
         from_city="WROCŁAW",
         from_country_area="",
@@ -938,8 +938,8 @@ def test_calculate_order_shipping_order_not_valid(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
         (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.46", "5.0", False),
-        (False, "41.99", "51.05", "0.0", False),
+        (True, "21.99", "26.73", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
         (False, "32.04", "38.99", "3.0", True),
     ],
 )
@@ -1006,8 +1006,8 @@ def test_calculate_checkout_total_uses_default_calculation(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
         (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.46", "5.0", False),
-        (False, "41.99", "51.05", "0.0", False),
+        (True, "21.99", "26.73", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
         (False, "32.04", "38.99", "3.0", True),
     ],
 )
@@ -1703,6 +1703,28 @@ def test_calculate_order_shipping(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_total(order, order.lines.all())
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("38.13", "USD"), gross=Money("46.90", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_shipping_entire_order_voucher(
     order_line, shipping_zone, voucher, site_settings, address, plugin_configuration
 ):
@@ -1904,6 +1926,33 @@ def test_calculate_order_shipping_no_channel_listing(
     site_settings.save()
 
     price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == zero_taxed_money(order.currency)
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_not_shippable_order(
+    order_line, site_settings, address, plugin_configuration
+):
+    # given
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    order_line.is_shipping_required = False
+    order_line.save(update_fields=["is_shipping_required"])
+
+    order = order_line.order
+    order.shipping_address = order.billing_address.get_copy()
+    order.save(update_fields=["shipping_address"])
+
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+
+    # when
+    price = manager.calculate_order_shipping(order)
+
+    # then
     price = quantize_price(price, price.currency)
     assert price == zero_taxed_money(order.currency)
 
@@ -3323,7 +3372,9 @@ def test_show_taxes_on_storefront(plugin_configuration):
 
 @patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_order_created(api_post_request_task_mock, order, plugin_configuration):
+def test_order_created(
+    api_post_request_task_mock, order, order_line, plugin_configuration
+):
     # given
     plugin_conf = plugin_configuration(
         from_street_address="Tęczowa 7",
@@ -3345,7 +3396,17 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         "createTransactionModel": {
             "companyCode": conf["Company name"],
             "type": TransactionType.INVOICE,
-            "lines": [],
+            "lines": [
+                {
+                    "amount": str(round(order_line.total_price.gross.amount, 3)),
+                    "description": order_line.variant.product.name,
+                    "discounted": False,
+                    "itemCode": order_line.variant.sku,
+                    "quantity": order_line.quantity,
+                    "taxCode": DEFAULT_TAX_CODE,
+                    "taxIncluded": True,
+                }
+            ],
             "code": str(order.id),
             "date": datetime.date.today().strftime("%Y-%m-%d"),
             "customerCode": 0,
@@ -3391,11 +3452,27 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
     }
 
     api_post_request_task_mock.assert_called_once_with(
-        "https://rest.avatax.com/api/v2/transactions/createoradjust",
+        "https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust",
         expected_request_data,
         conf_data,
         order.pk,
     )
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_order_created_no_lines(
+    api_post_request_task_mock, order, plugin_configuration
+):
+    """Ensure that when order has no lines, the request to avatax api is not sent."""
+    # given
+    manager = get_plugins_manager()
+
+    # when
+    manager.order_created(order)
+
+    # then
+    api_post_request_task_mock.assert_not_called()
 
 
 @pytest.mark.vcr
@@ -3411,9 +3488,7 @@ def test_plugin_uses_configuration_from_db(
     settings,
 ):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    configuration = plugin_configuration(
-        username="test", password="test", sandbox=False
-    )
+    configuration = plugin_configuration(username="test", password="test", sandbox=True)
     manager = get_plugins_manager()
 
     monkeypatch.setattr(
@@ -3827,13 +3902,10 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
 
-    # lines + shipping
-    assert len(lines_data) == order_with_lines.lines.count() + 1
-    for line_data in lines_data[:-1]:
+    # only lines, shipping is not added as after discount shipping price is 0
+    assert len(lines_data) == order_with_lines.lines.count()
+    for line_data in lines_data:
         assert line_data["discounted"] is False
-    # shipping line shouldn't be discounted
-    assert lines_data[-1]["discounted"] is False
-    assert Decimal(lines_data[-1]["amount"]) == Decimal("0")
 
 
 def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
@@ -3892,13 +3964,10 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
 
-    # lines + shipping
-    assert len(lines_data) == order_with_lines.lines.count() + 1
+    # only lines, shipping is not added as after discount shipping price is 0
+    assert len(lines_data) == order_with_lines.lines.count()
     for line_data in lines_data[:-1]:
         assert line_data["discounted"] is False
-    # shipping line shouldn't be discounted
-    assert lines_data[-1]["discounted"] is False
-    assert Decimal(lines_data[-1]["amount"]) == Decimal("0")
 
 
 def test_get_order_request_data_draft_order_with_sale(
@@ -3970,6 +4039,20 @@ def test_get_order_tax_data(
     # then
     get_order_request_data_mock.assert_called_once_with(order, conf, True)
     assert response == return_value
+
+
+def test_get_order_tax_data_empty_data(
+    order,
+    plugin_configuration,
+):
+    # given
+    conf = plugin_configuration()
+
+    # when
+    response = get_order_tax_data(order, conf, tax_included=True)
+
+    # then
+    assert response is None
 
 
 @patch("saleor.plugins.avatax.get_order_request_data")

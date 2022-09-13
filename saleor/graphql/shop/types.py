@@ -27,6 +27,7 @@ from ..core.types import (
 )
 from ..core.utils import str_to_enum
 from ..shipping.types import ShippingMethod
+from ..site.dataloaders import load_site
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -332,7 +333,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_domain(_, info):
-        site = info.context.site
+        site = load_site(info.context)
         return Domain(
             host=site.domain,
             ssl_enabled=settings.ENABLE_SSL,
@@ -341,7 +342,8 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_description(_, info):
-        return info.context.site.settings.description
+        site = load_site(info.context)
+        return site.settings.description
 
     @staticmethod
     def resolve_languages(_, _info):
@@ -354,7 +356,8 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_name(_, info):
-        return info.context.site.name
+        site = load_site(info.context)
+        return site.name
 
     @staticmethod
     @traced_resolver
@@ -368,35 +371,43 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_header_text(_, info):
-        return info.context.site.settings.header_text
+        site = load_site(info.context)
+        return site.settings.header_text
 
     @staticmethod
     def resolve_include_taxes_in_prices(_, info):
-        return info.context.site.settings.include_taxes_in_prices
+        site = load_site(info.context)
+        return site.settings.include_taxes_in_prices
 
     @staticmethod
     def resolve_fulfillment_auto_approve(_, info):
-        return info.context.site.settings.fulfillment_auto_approve
+        site = load_site(info.context)
+        return site.settings.fulfillment_auto_approve
 
     @staticmethod
     def resolve_fulfillment_allow_unpaid(_, info):
-        return info.context.site.settings.fulfillment_allow_unpaid
+        site = load_site(info.context)
+        return site.settings.fulfillment_allow_unpaid
 
     @staticmethod
     def resolve_display_gross_prices(_, info):
-        return info.context.site.settings.display_gross_prices
+        site = load_site(info.context)
+        return site.settings.display_gross_prices
 
     @staticmethod
     def resolve_charge_taxes_on_shipping(_, info):
-        return info.context.site.settings.charge_taxes_on_shipping
+        site = load_site(info.context)
+        return site.settings.charge_taxes_on_shipping
 
     @staticmethod
     def resolve_track_inventory_by_default(_, info):
-        return info.context.site.settings.track_inventory_by_default
+        site = load_site(info.context)
+        return site.settings.track_inventory_by_default
 
     @staticmethod
     def resolve_default_weight_unit(_, info):
-        return info.context.site.settings.default_weight_unit
+        site = load_site(info.context)
+        return site.settings.default_weight_unit
 
     @staticmethod
     @traced_resolver
@@ -414,53 +425,58 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_default_mail_sender_name(_, info):
-        return info.context.site.settings.default_mail_sender_name
+        site = load_site(info.context)
+        return site.settings.default_mail_sender_name
 
     @staticmethod
     def resolve_default_mail_sender_address(_, info):
-        return info.context.site.settings.default_mail_sender_address
+        site = load_site(info.context)
+        return site.settings.default_mail_sender_address
 
     @staticmethod
     def resolve_company_address(_, info):
-        return info.context.site.settings.company_address
+        site = load_site(info.context)
+        return site.settings.company_address
 
     @staticmethod
     def resolve_customer_set_password_url(_, info):
-        return info.context.site.settings.customer_set_password_url
+        site = load_site(info.context)
+        return site.settings.customer_set_password_url
 
     @staticmethod
     def resolve_translation(_, info, *, language_code):
-        return resolve_translation(
-            info.context.site.settings, info, language_code=language_code
-        )
+        site = load_site(info.context)
+        return resolve_translation(site.settings, info, language_code=language_code)
 
     @staticmethod
     def resolve_automatic_fulfillment_digital_products(_, info):
-        site_settings = info.context.site.settings
-        return site_settings.automatic_fulfillment_digital_products
+        site = load_site(info.context)
+        return site.settings.automatic_fulfillment_digital_products
 
     @staticmethod
     def resolve_reserve_stock_duration_anonymous_user(_, info):
-        site_settings = info.context.site.settings
-        return site_settings.reserve_stock_duration_anonymous_user
+        site = load_site(info.context)
+        return site.settings.reserve_stock_duration_anonymous_user
 
     @staticmethod
     def resolve_reserve_stock_duration_authenticated_user(_, info):
-        site_settings = info.context.site.settings
-        return site_settings.reserve_stock_duration_authenticated_user
+        site = load_site(info.context)
+        return site.settings.reserve_stock_duration_authenticated_user
 
     @staticmethod
     def resolve_limit_quantity_per_checkout(_, info):
-        site_settings = info.context.site.settings
-        return site_settings.limit_quantity_per_checkout
+        site = load_site(info.context)
+        return site.settings.limit_quantity_per_checkout
 
     @staticmethod
     def resolve_default_digital_max_downloads(_, info):
-        return info.context.site.settings.default_digital_max_downloads
+        site = load_site(info.context)
+        return site.settings.default_digital_max_downloads
 
     @staticmethod
     def resolve_default_digital_url_valid_days(_, info):
-        return info.context.site.settings.default_digital_url_valid_days
+        site = load_site(info.context)
+        return site.settings.default_digital_url_valid_days
 
     @staticmethod
     def resolve_staff_notification_recipients(_, info):

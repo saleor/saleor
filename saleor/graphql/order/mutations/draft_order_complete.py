@@ -20,6 +20,7 @@ from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...site.dataloaders import load_site
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
@@ -93,7 +94,6 @@ class DraftOrderComplete(BaseMutation):
             order.save()
 
             channel = order.channel
-            channel_slug = channel.slug
             order_lines_info = []
             for line in order.lines.all():
                 if line.variant.track_inventory or line.variant.is_preorder_active():
@@ -101,22 +101,23 @@ class DraftOrderComplete(BaseMutation):
                         line=line, quantity=line.quantity, variant=line.variant
                     )
                     order_lines_info.append(line_data)
+                    site = load_site(info.context)
                     try:
                         with traced_atomic_transaction():
                             allocate_stocks(
                                 [line_data],
                                 country,
-                                channel_slug,
+                                channel,
                                 manager,
                                 check_reservations=is_reservation_enabled(
-                                    info.context.site.settings
+                                    site.settings
                                 ),
                             )
                             allocate_preorders(
                                 [line_data],
-                                channel_slug,
+                                channel.slug,
                                 check_reservations=is_reservation_enabled(
-                                    info.context.site.settings
+                                    site.settings
                                 ),
                             )
                     except InsufficientStock as exc:

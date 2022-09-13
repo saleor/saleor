@@ -12,6 +12,7 @@ from ...channel.models import Channel
 from ...product.models import ProductVariantChannelListing
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import (
+    ChannelWarehouse,
     PreorderReservation,
     Reservation,
     ShippingZone,
@@ -20,6 +21,7 @@ from ...warehouse.models import (
 )
 from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
+from ..site.dataloaders import load_site
 
 CountryCode = Optional[str]
 VariantIdCountryCodeChannelSlug = Tuple[int, CountryCode, str]
@@ -73,8 +75,11 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     ) -> Iterable[Tuple[int, int]]:
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
-        stocks = Stock.objects.using(self.database_connection_name).filter(
-            product_variant_id__in=variant_ids
+        site = load_site(self.context)
+        stocks = (
+            Stock.objects.all()
+            .using(self.database_connection_name)
+            .filter(product_variant_id__in=variant_ids)
         )
         additional_warehouse_filter = True if country_code or channel_slug else False
 
@@ -119,7 +124,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         # Return the quantities after capping them at the maximum quantity allowed in
         # checkout. This prevent users from tracking the store's precise stock levels.
         global_quantity_limit = (
-            self.context.site.settings.limit_quantity_per_checkout  # type: ignore
+            site.settings.limit_quantity_per_checkout  # type: ignore
         )
         return [
             (
@@ -206,7 +211,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     def prepare_stocks_reservations_map(self, variant_ids):
         """Prepare stock id to quantity reserved map for provided variant ids."""
         stocks_reservations = defaultdict(int)
-        if is_reservation_enabled(self.context.site.settings):  # type: ignore
+        site = load_site(self.context)
+        if is_reservation_enabled(site.settings):  # type: ignore
             # Can't do second annotation on same queryset because it made
             # available_quantity annotated value incorrect thanks to how
             # Django's ORM builds SQLs with annotations
@@ -352,8 +358,10 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         channel_slug: Optional[str],
         variant_ids: Iterable[int],
     ) -> Iterable[Tuple[int, List[Stock]]]:
-        stocks = Stock.objects.using(self.database_connection_name).filter(
-            product_variant_id__in=variant_ids
+        stocks = (
+            Stock.objects.all()
+            .using(self.database_connection_name)
+            .filter(product_variant_id__in=variant_ids)
         )
         if country_code:
             stocks = stocks.filter(
@@ -477,8 +485,8 @@ class WarehouseByIdLoader(DataLoader):
     context_key = "warehouse_by_id"
 
     def batch_load(self, keys: Iterable[UUID]) -> List[Optional[Warehouse]]:
-        warehouses = Warehouse.objects.using(self.database_connection_name).in_bulk(
-            keys
+        warehouses = (
+            Warehouse.objects.all().using(self.database_connection_name).in_bulk(keys)
         )
         return [warehouses.get(warehouse_uuid) for warehouse_uuid in keys]
 
@@ -495,9 +503,8 @@ class WarehousesByChannelIdLoader(DataLoader):
     context_key = "warehouse_by_channel"
 
     def batch_load(self, keys):
-        WarehouseChannel = Warehouse.channels.through
         warehouse_and_channel_in_pairs = (
-            WarehouseChannel.objects.using(self.database_connection_name)
+            ChannelWarehouse.objects.using(self.database_connection_name)
             .filter(channel_id__in=keys)
             .values_list("warehouse_id", "channel_id")
         )

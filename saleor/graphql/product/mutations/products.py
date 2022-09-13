@@ -578,7 +578,7 @@ class ProductCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.product_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -707,7 +707,7 @@ class ProductUpdate(ProductCreate):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.product_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
@@ -865,7 +865,7 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -1103,7 +1103,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False
         )
@@ -1425,6 +1425,7 @@ class ProductMediaReorder(BaseMutation):
                     )
                 }
             )
+
         ordered_media = []
         for media_id in media_ids:
             media = cls.get_node_or_error(
@@ -1563,7 +1564,7 @@ class ProductVariantReorder(BaseMutation):
 
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
-            product.save(update_fields=["updated_at", "updated_at"])
+            product.save(update_fields=["updated_at"])
             cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
             product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)

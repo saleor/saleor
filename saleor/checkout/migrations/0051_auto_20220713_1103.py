@@ -39,7 +39,9 @@ def set_default_checkout_line_currency(apps, schema_editor):
     Checkout = apps.get_model("checkout", "Checkout")
     CheckoutLine = apps.get_model("checkout", "CheckoutLine")
 
-    for currency in Checkout.objects.values_list("currency", flat=True):
+    for currency in (
+        Checkout.objects.values_list("currency", flat=True).distinct().order_by()
+    ):
         CheckoutLine.objects.filter(currency=None, checkout__currency=currency).update(
             currency=currency
         )

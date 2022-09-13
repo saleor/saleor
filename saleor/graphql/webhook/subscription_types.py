@@ -30,6 +30,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_35,
     ADDED_IN_36,
+    ADDED_IN_37,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -818,6 +819,14 @@ class FulfillmentCanceled(ObjectType, FulfillmentBase):
         )
 
 
+class FulfillmentApproved(ObjectType, FulfillmentBase):
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when fulfillment is approved." + ADDED_IN_37 + PREVIEW_FEATURE
+        )
+
+
 class UserBase(AbstractType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
@@ -1358,6 +1367,24 @@ class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
         )
 
 
+class CalculateTaxes(ObjectType):
+    tax_base = graphene.Field(
+        "saleor.graphql.core.types.taxes.TaxableObject", required=True
+    )
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Synchronous webhook for calculating checkout/order taxes."
+            + ADDED_IN_37
+            + PREVIEW_FEATURE
+        )
+
+    def resolve_tax_base(root, info):
+        _, tax_base = root
+        return tax_base
+
+
 class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
@@ -1501,6 +1528,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
     WebhookEventAsyncType.FULFILLMENT_CREATED: FulfillmentCreated,
     WebhookEventAsyncType.FULFILLMENT_CANCELED: FulfillmentCanceled,
+    WebhookEventAsyncType.FULFILLMENT_APPROVED: FulfillmentApproved,
     WebhookEventAsyncType.CUSTOMER_CREATED: CustomerCreated,
     WebhookEventAsyncType.CUSTOMER_UPDATED: CustomerUpdated,
     WebhookEventAsyncType.COLLECTION_CREATED: CollectionCreated,
@@ -1549,4 +1577,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         ShippingListMethodsForCheckout
     ),
+    WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes,
 }

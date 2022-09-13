@@ -339,7 +339,7 @@ class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)
     variants = NonNullList(
         graphene.ID,
-        description="List of varint IDs which causes the error.",
+        description="List of variant IDs which causes the error.",
         required=False,
     )
 
@@ -387,6 +387,11 @@ class UploadError(Error):
 
 class WarehouseError(Error):
     code = WarehouseErrorCode(description="The error code.", required=True)
+    shipping_zones = NonNullList(
+        graphene.ID,
+        description="List of shipping zones IDs which causes the error.",
+        required=False,
+    )
 
 
 class WebhookError(Error):

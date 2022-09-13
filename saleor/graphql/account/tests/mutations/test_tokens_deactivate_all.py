@@ -1,11 +1,11 @@
 import json
 
-from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
 from .....account.error_codes import AccountErrorCode
 from .....core.jwt import create_access_token, create_refresh_token, jwt_decode
 from ....tests.utils import get_graphql_content
+from ...mutations.authentication import _get_new_csrf_token
 from .test_token_refresh import MUTATION_TOKEN_REFRESH
 
 MUTATION_DEACTIVATE_ALL_USER_TOKENS = """

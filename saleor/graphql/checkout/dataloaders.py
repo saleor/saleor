@@ -15,7 +15,11 @@ from ...discount import VoucherType
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
-from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
+from ..discount.dataloaders import (
+    VoucherByCodeLoader,
+    VoucherInfoByVoucherCodeLoader,
+    load_discounts,
+)
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -103,11 +107,12 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                         voucher.type == VoucherType.SPECIFIC_PRODUCT
                         or voucher.apply_once_per_order
                     ):
+                        discounts = load_discounts(self.context)
                         apply_voucher_to_checkout_line(
                             voucher_info=voucher_info,
                             checkout=checkout,
                             lines_info=lines_info_map[checkout.pk],
-                            discounts=self.context.discounts,
+                            discounts=discounts,
                         )
                 return [lines_info_map[key] for key in keys]
 
@@ -298,7 +303,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         )
 
                         manager = self.context.plugins
-                        discounts = self.context.discounts
+                        discounts = load_discounts(self.context)
                         shipping_method_listings = [
                             listing
                             for channel_listings in listings_for_channels

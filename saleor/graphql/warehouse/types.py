@@ -9,11 +9,17 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
+from ..site.dataloaders import load_site
 from .dataloaders import WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
@@ -31,7 +37,10 @@ class WarehouseCreateInput(WarehouseInput):
         required=True,
     )
     shipping_zones = NonNullList(
-        graphene.ID, description="Shipping zones supported by the warehouse."
+        graphene.ID,
+        description="Shipping zones supported by the warehouse."
+        + DEPRECATED_IN_3X_INPUT
+        + " Providing the zone ids will raise a ValidationError.",
     )
 
 
@@ -184,7 +193,8 @@ class Stock(ModelObjectType):
 
     @staticmethod
     def resolve_quantity_reserved(root, info):
-        if not is_reservation_enabled(info.context.site.settings):
+        site = load_site(info.context)
+        if not is_reservation_enabled(site.settings):
             return 0
 
         return root.reservations.aggregate(

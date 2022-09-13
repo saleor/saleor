@@ -118,7 +118,7 @@ def create_deliveries_for_subscriptions(
 
 
 def create_delivery_for_subscription_sync_event(
-    event_type, subscribable_object, webhook, requestor=None
+    event_type, subscribable_object, webhook, requestor=None, request=None
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -129,6 +129,7 @@ def create_delivery_for_subscription_sync_event(
     :param subscribable_object: subscribable object to process via subscription query.
     :param webhook: webhook object for which delivery will be created.
     :param requestor: used in subscription webhooks to generate meta data for payload.
+    :param request: used to share context between sync event calls
     :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
@@ -137,11 +138,14 @@ def create_delivery_for_subscription_sync_event(
         )
         return None
 
+    if not request:
+        request = initialize_request(requestor, event_type in WebhookEventSyncType.ALL)
+
     data = generate_payload_from_subscription(
         event_type=event_type,
         subscribable_object=subscribable_object,
         subscription_query=webhook.subscription_query,
-        request=initialize_request(requestor, event_type in WebhookEventSyncType.ALL),
+        request=request,
         app=webhook.app,
     )
     if not data:
@@ -225,7 +229,6 @@ def trigger_webhook_sync(
         )
         if not delivery:
             return None
-
     else:
         event_payload = EventPayload.objects.create(payload=data)
         delivery = EventDelivery.objects.create(
@@ -247,6 +250,8 @@ def trigger_all_webhooks_sync(
     event_type: str,
     generate_payload: Callable,
     parse_response: Callable[[Any], Optional[R]],
+    subscribable_object=None,
+    requestor=None,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -257,19 +262,35 @@ def trigger_all_webhooks_sync(
     this function returns None.
     """
     webhooks = get_webhooks_for_event(event_type)
+    request_context = None
     event_payload = None
-    if webhooks:
-        event_payload = EventPayload.objects.create(payload=generate_payload())
     for webhook in webhooks:
-        delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        if webhook.subscription_query:
+            if request_context is None:
+                request_context = initialize_request(
+                    requestor, event_type in WebhookEventSyncType.ALL
+                )
+            delivery = create_delivery_for_subscription_sync_event(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                webhook=webhook,
+                request=request_context,
+                requestor=requestor,
+            )
+            if not delivery:
+                return None
+        else:
+            if event_payload is None:
+                event_payload = EventPayload.objects.create(payload=generate_payload())
+            delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
+
         response_data = send_webhook_request_sync(webhook.app.name, delivery)
-        parsed_response = parse_response(response_data)
-        if parsed_response:
+        if parsed_response := parse_response(response_data):
             return parsed_response
     return None
 

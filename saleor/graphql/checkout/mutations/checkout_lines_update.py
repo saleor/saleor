@@ -18,6 +18,7 @@ from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
+from ...site.dataloaders import load_site
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
@@ -103,18 +104,18 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         variants, quantities = get_variants_and_total_quantities(
             variants, checkout_lines_data, quantity_to_update_check=True
         )
-
+        site = load_site(info.context)
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
-            info.context.site.settings.limit_quantity_per_checkout,
+            site.settings.limit_quantity_per_checkout,
             delivery_method_info=delivery_method_info,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            check_reservations=is_reservation_enabled(site.settings),
         )
 
     @classmethod

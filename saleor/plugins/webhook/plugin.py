@@ -648,6 +648,16 @@ class WebhookPlugin(BasePlugin):
                 fulfillment_data, event_type, webhooks, fulfillment, self.requestor
             )
 
+    def fulfillment_approved(self, fulfillment: "Fulfillment", previous_value):
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
+        if webhooks := get_webhooks_for_event(event_type):
+            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            trigger_webhooks_async(
+                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+            )
+
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -1330,6 +1340,8 @@ class WebhookPlugin(BasePlugin):
                 lines,
             ),
             parse_tax_data,
+            checkout_info.checkout,
+            self.requestor,
         )
 
     def get_taxes_for_order(
@@ -1339,6 +1351,8 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,
             lambda: generate_order_payload_for_tax_calculation(order),
             parse_tax_data,
+            order,
+            self.requestor,
         )
 
     def get_shipping_methods_for_checkout(

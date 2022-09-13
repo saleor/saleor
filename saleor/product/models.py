@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
@@ -31,7 +31,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from measurement.measures import Weight
@@ -92,7 +91,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
-    tree = TreeManager()
+    tree = TreeManager()  # type: ignore
     translated = TranslationProxy()
 
     class Meta:
@@ -658,7 +657,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         product_display = (
             f"{product} ({variant_display})" if variant_display else str(product)
         )
-        return smart_text(product_display)
+        return product_display
 
     def get_ordering_queryset(self):
         return self.product.variants.all()

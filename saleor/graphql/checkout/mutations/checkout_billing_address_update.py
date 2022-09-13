@@ -17,6 +17,7 @@ from ...core.descriptions import (
 )
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...discount.dataloaders import load_discounts
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
@@ -96,14 +97,15 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 checkout, billing_address
             )
             lines, _ = fetch_checkout_lines(checkout)
+            discounts = load_discounts(info.context)
             checkout_info = fetch_checkout_info(
-                checkout, lines, info.context.discounts, info.context.plugins
+                checkout, lines, discounts, info.context.plugins
             )
             invalidate_prices_updated_fields = invalidate_checkout_prices(
                 checkout_info,
                 lines,
                 info.context.plugins,
-                info.context.discounts,
+                discounts,
                 recalculate_discount=False,
                 save=False,
             )

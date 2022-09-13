@@ -334,6 +334,14 @@ class BasePlugin:
     #  changes in draft order. Return TaxedMoney.
     calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
 
+    #  Calculate order total.
+    #
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of a order total. Return TaxedMoney.
+    calculate_order_total: Callable[
+        ["Order", List["OrderLine"], TaxedMoney], TaxedMoney
+    ]
+
     capture_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Trigger when category is created.
@@ -481,6 +489,11 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic when a fulfillment is
     #  cancelled.
     fulfillment_canceled: Callable[["Fulfillment", Any], Any]
+
+    #  Trigger when fulfillemnt is approved.
+    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
+    #  approved.
+    fulfillment_approved: Callable[["Fulfillment", Any], Any]
 
     get_checkout_line_tax_rate: Callable[
         [

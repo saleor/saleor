@@ -1544,6 +1544,9 @@ enum WebhookEventTypeEnum {
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
 
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
   """User notification triggered."""
   NOTIFY_USER
 
@@ -1951,6 +1954,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2578,6 +2584,7 @@ enum WebhookSampleEventTypeEnum {
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -3878,6 +3885,17 @@ type Channel implements Node {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the stock setting for this channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  stockSettings: StockSettings!
 }
 
 """
@@ -4265,6 +4283,33 @@ enum WeightUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+Represents the channel stock settings.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type StockSettings {
+  """
+  Allocation strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
+"""
+Determine the allocation strategy for the channel.
+
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
+
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
+"""
+enum AllocationStrategyEnum {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
 }
 
 """Represents shipping method postal code rule."""
@@ -4790,6 +4835,7 @@ enum AttributeInputTypeEnum {
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
+  PRODUCT_VARIANT
 }
 
 """An enumeration."""
@@ -8538,7 +8584,7 @@ type Order implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
 
   """
-  The delivery method selected for this checkout.
+  The delivery method selected for this order.
   
   Added in Saleor 3.1.
   
@@ -13640,6 +13686,23 @@ type Mutation {
     id: ID!
   ): ChannelDeactivate
 
+  """
+  Reorder the warehouses of a channel.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_CHANNELS.
+  """
+  channelReorderWarehouses(
+    """ID of a channel."""
+    channelId: ID!
+
+    """The list of reordering operations for the given channel warehouses."""
+    moves: [ReorderInput!]!
+  ): ChannelReorderWarehouses
+
   """Creates an attribute."""
   attributeCreate(
     """Fields required to create an attribute."""
@@ -14519,6 +14582,9 @@ type WarehouseError {
 
   """The error code."""
   code: WarehouseErrorCode!
+
+  """List of shipping zones IDs which causes the error."""
+  shippingZones: [ID!]
 }
 
 """An enumeration."""
@@ -14544,7 +14610,11 @@ input WarehouseCreateInput {
   """Address of the warehouse."""
   address: AddressInput!
 
-  """Shipping zones supported by the warehouse."""
+  """
+  Shipping zones supported by the warehouse.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing the zone ids will raise a ValidationError.
+  """
   shippingZones: [ID!]
 }
 
@@ -16761,7 +16831,7 @@ type PaymentError {
   """The error code."""
   code: PaymentErrorCode!
 
-  """List of varint IDs which causes the error."""
+  """List of variant IDs which causes the error."""
   variants: [ID!]
 }
 
@@ -19852,6 +19922,15 @@ input ChannelCreateInput {
   """isActive flag."""
   isActive: Boolean
 
+  """
+  The channel stock settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stockSettings: StockSettingsInput
+
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
@@ -19883,6 +19962,13 @@ input ChannelCreateInput {
   defaultCountry: CountryCode!
 }
 
+input StockSettingsInput {
+  """
+  Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
 """
 Update a channel. 
 
@@ -19897,6 +19983,15 @@ type ChannelUpdate {
 input ChannelUpdateInput {
   """isActive flag."""
   isActive: Boolean
+
+  """
+  The channel stock settings.
+  
+  Added in Saleor 3.7.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
@@ -19973,6 +20068,21 @@ type ChannelDeactivate {
   """Deactivated channel."""
   channel: Channel
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [ChannelError!]!
+}
+
+"""
+Reorder the warehouses of a channel.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_CHANNELS.
+"""
+type ChannelReorderWarehouses {
+  """Channel within the warehouses are reordered."""
+  channel: Channel
   errors: [ChannelError!]!
 }
 
@@ -22811,6 +22921,33 @@ type FulfillmentCanceled implements Event {
 }
 
 """
+Event sent when fulfillment is approved.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type FulfillmentApproved implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
+}
+
+"""
 Event sent when new customer user is created.
 
 Added in Saleor 3.2.
@@ -23971,6 +24108,92 @@ type ShippingListMethodsForCheckout implements Event {
   """
   shippingMethods: [ShippingMethod!]
 }
+
+"""
+Synchronous webhook for calculating checkout/order taxes.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CalculateTaxes implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  taxBase: TaxableObject!
+}
+
+"""Taxable object."""
+type TaxableObject {
+  """The source object related to this tax object."""
+  sourceObject: TaxSourceObject!
+
+  """Determines if prices contain entered tax.."""
+  pricesEnteredWithTax: Boolean!
+
+  """The currency of the object."""
+  currency: String!
+
+  """The price of shipping method."""
+  shippingPrice: Money!
+
+  """The address data."""
+  address: Address
+
+  """List of discounts."""
+  discounts: [TaxableObjectDiscount!]!
+
+  """List of lines assigned to the object."""
+  lines: [TaxableObjectLine!]!
+  channel: Channel!
+}
+
+union TaxSourceObject = Checkout | Order
+
+"""Taxable object discount."""
+type TaxableObjectDiscount {
+  """The name of the discount."""
+  name: String
+
+  """The amount of the discount."""
+  amount: Money!
+}
+
+type TaxableObjectLine {
+  """The source line related to this tax line."""
+  sourceLine: TaxSourceLine!
+
+  """Number of items."""
+  quantity: Int!
+
+  """Determines if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
+
+  """The product name."""
+  productName: String!
+
+  """The variant name."""
+  variantName: String!
+
+  """The product sku."""
+  productSku: String
+
+  """Price of the single item in the order line."""
+  unitPrice: Money!
+
+  """Price of the order line."""
+  totalPrice: Money!
+}
+
+union TaxSourceLine = CheckoutLine | OrderLine
 
 """_Any value scalar as defined by Federation spec."""
 scalar _Any

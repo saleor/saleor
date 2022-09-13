@@ -2,7 +2,6 @@ from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.utils import timezone
@@ -14,7 +13,6 @@ from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...discount.utils import fetch_discounts
 from ...plugins.manager import PluginsManager
 from ...settings import get_host
 from ...webhook.error_codes import WebhookErrorCode
@@ -98,10 +96,6 @@ def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
     request.sync_event = sync_event  # type: ignore
     request.requestor = requestor  # type: ignore
     request.request_time = request_time  # type: ignore
-    request.site = SimpleLazyObject(lambda: Site.objects.get_current())  # type: ignore
-    request.discounts = SimpleLazyObject(  # type: ignore
-        lambda: fetch_discounts(request_time)
-    )
     request.plugins = SimpleLazyObject(lambda: _get_plugins(requestor))  # type: ignore
 
     return request

@@ -82,6 +82,7 @@ from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
+from ...site.dataloaders import load_site
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -386,12 +387,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     ):
         if address is not None:
             country_code = address.country
-
+        site = load_site(info.context)
         channel_slug = str(root.channel_slug) if root.channel_slug else None
 
-        global_quantity_limit_per_checkout = (
-            info.context.site.settings.limit_quantity_per_checkout
-        )
+        global_quantity_limit_per_checkout = site.settings.limit_quantity_per_checkout
 
         if root.node.is_preorder_active():
             variant = root.node
@@ -404,7 +403,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                     channel_listing
                     and channel_listing.preorder_quantity_threshold is not None
                 ):
-                    if is_reservation_enabled(info.context.site.settings):
+                    if is_reservation_enabled(site.settings):
                         quantity_reserved = (
                             PreorderQuantityReservedByVariantChannelListingIdLoader(
                                 info.context
@@ -449,7 +448,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                         available_quantity = variant.preorder_global_threshold
                         available_quantity -= global_sold_units
 
-                        if is_reservation_enabled(info.context.site.settings):
+                        if is_reservation_enabled(site.settings):
                             quantity_reserved = (
                                 PreorderQuantityReservedByVariantChannelListingIdLoader(
                                     info.context

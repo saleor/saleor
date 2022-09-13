@@ -3,6 +3,7 @@ from typing import Collection, Set, Tuple, Union
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.db import models
+from django.utils.text import Truncator
 from oauthlib.common import generate_token
 
 from saleor.core.permissions.enums import BasePermissionEnum
@@ -163,3 +164,9 @@ class AppInstallation(Job):
         related_name="app_installation_set",
         related_query_name="app_installation",
     )
+
+    def set_message(self, message: str, truncate=True):
+        if truncate:
+            max_length = self._meta.get_field("message").max_length
+            message = Truncator(message).chars(max_length)
+        self.message = message

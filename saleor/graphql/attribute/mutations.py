@@ -275,7 +275,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 class AttributeMixin:
     # must be redefined by inheriting classes
-    ATTRIBUTE_VALUES_FIELD = None
+    ATTRIBUTE_VALUES_FIELD: str
 
     @classmethod
     def clean_values(cls, cleaned_input, attribute):

@@ -25,7 +25,7 @@ def plugin_configuration(db, channel_USD):
     def set_configuration(
         username=default_username,
         password=default_password,
-        sandbox=False,
+        sandbox=True,
         channel=None,
         active=True,
         from_street_address="Teczowa 7",
