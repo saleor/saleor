@@ -506,6 +506,7 @@ def _create_order(
         status=status,
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
+        should_refresh_prices=False,
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
@@ -1056,6 +1057,7 @@ def _create_order_from_checkout(
         metadata=checkout_info.checkout.metadata,
         private_metadata=checkout_info.checkout.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
+        should_refresh_prices=False,
         **_process_shipping_data_for_order(
             checkout_info, shipping_total, manager, checkout_lines_info
         ),
