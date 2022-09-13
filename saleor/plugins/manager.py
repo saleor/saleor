@@ -1363,7 +1363,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"]
+        self, obj: Union["Product", "ProductType", "TaxClass"]
     ) -> TaxType:
         default_value = TaxType(code="", description="")
         return self.__run_method_on_plugins(

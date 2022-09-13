@@ -811,7 +811,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         description="Whether the product is in stock and visible or not.",
     )
     tax_type = graphene.Field(
-        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+        TaxType,
+        description="A type of tax. Assigned by enabled tax gateway",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
     )
     attributes = NonNullList(
         SelectedAttribute,
@@ -937,8 +939,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root.node)
-        return TaxType(tax_code=tax_data.code, description=tax_data.description)
+        def with_tax_class(tax_class):
+            tax_data = info.context.plugins.get_tax_code_from_object_meta(tax_class)
+            return TaxType(tax_code=tax_data.code, description=tax_data.description)
+
+        if root.node.tax_class_id:
+            return (
+                TaxClassByIdLoader(info.context)
+                .load(root.node.tax_class_id)
+                .then(with_tax_class)
+            )
+
+        return None
 
     @staticmethod
     @traced_resolver
@@ -1390,7 +1402,9 @@ class ProductType(ModelObjectType):
         ),
     )
     tax_type = graphene.Field(
-        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+        TaxType,
+        description="A type of tax. Assigned by enabled tax gateway",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
     )
     tax_class = PermissionsField(
         TaxClass,
@@ -1447,8 +1461,18 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
-        return TaxType(tax_code=tax_data.code, description=tax_data.description)
+        def with_tax_class(tax_class):
+            tax_data = info.context.plugins.get_tax_code_from_object_meta(tax_class)
+            return TaxType(tax_code=tax_data.code, description=tax_data.description)
+
+        if root.tax_class_id:
+            return (
+                TaxClassByIdLoader(info.context)
+                .load(root.tax_class_id)
+                .then(with_tax_class)
+            )
+
+        return None
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):

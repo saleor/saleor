@@ -116,18 +116,19 @@ def migrate_products_with_disabled_taxes(apps, _schema_editor):
     TaxClass = apps.get_model("tax", "TaxClass")
     TaxClassCountryRate = apps.get_model("tax", "TaxClassCountryRate")
 
+    zero_rate_tax_class = None
     qs = Product.objects.filter(charge_taxes=False).order_by("pk")
-    zero_rate_tax_class, _ = TaxClass.objects.get_or_create(
-        name=TAX_CLASS_ZERO_RATE,
-        defaults={
-            "metadata": {
-                AVATAX_CODE_META_KEY: TAX_CODE_NON_TAXABLE_PRODUCT,
-                AVATAX_DESCRIPTION_META_KEY: "Non-taxable product",
-            }
-        },
-    )
-
     if qs.exists():
+        zero_rate_tax_class, _ = TaxClass.objects.get_or_create(
+            name=TAX_CLASS_ZERO_RATE,
+            defaults={
+                "metadata": {
+                    AVATAX_CODE_META_KEY: TAX_CODE_NON_TAXABLE_PRODUCT,
+                    AVATAX_DESCRIPTION_META_KEY: "Non-taxable product",
+                }
+            },
+        )
+
         # Create 0% rates for all countries
         rates = [
             TaxClassCountryRate(tax_class=zero_rate_tax_class, rate=0, country=code)
@@ -136,8 +137,11 @@ def migrate_products_with_disabled_taxes(apps, _schema_editor):
         TaxClassCountryRate.objects.bulk_create(rates)
 
     # Assign products with charge_taxes=False to the 0% rate tax class
-    for batch_pks in queryset_in_batches(qs):
-        Product.objects.filter(id__in=batch_pks).update(tax_class=zero_rate_tax_class)
+    if zero_rate_tax_class:
+        for batch_pks in queryset_in_batches(qs):
+            Product.objects.filter(id__in=batch_pks).update(
+                tax_class=zero_rate_tax_class
+            )
 
 
 class Migration(migrations.Migration):

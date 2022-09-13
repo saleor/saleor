@@ -283,16 +283,12 @@ def generate_request_data_from_checkout_lines(
         product = line_info.product
         product_type = line_info.product_type
 
-        tax_code = (
-            retrieve_tax_code_from_meta(product.tax_class, default=None)
-            if product.tax_class
-            else None
-        )
-        tax_code = (
-            tax_code or retrieve_tax_code_from_meta(product_type.tax_class)
-            if product_type.tax_class
-            else DEFAULT_TAX_CODE
-        )
+        if product.tax_class:
+            tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
+        elif product_type.tax_class:
+            tax_code = retrieve_tax_code_from_meta(product_type)
+        else:
+            tax_code = DEFAULT_TAX_CODE
 
         is_non_taxable_product = tax_code == TAX_CODE_NON_TAXABLE_PRODUCT
 

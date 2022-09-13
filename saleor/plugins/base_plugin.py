@@ -536,7 +536,7 @@ class BasePlugin:
 
     #  Return tax code from object meta.
     get_tax_code_from_object_meta: Callable[
-        [Union["Product", "ProductType"], "TaxType"], "TaxType"
+        [Union["Product", "ProductType", "TaxClass"], "TaxType"], "TaxType"
     ]
 
     #  Return list of all tax categories.
