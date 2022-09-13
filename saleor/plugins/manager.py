@@ -791,6 +791,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
+    def fulfillment_approved(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "fulfillment_approved",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+        )
+
     def tracking_number_updated(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(
