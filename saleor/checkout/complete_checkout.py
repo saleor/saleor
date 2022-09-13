@@ -65,6 +65,7 @@ from .checkout_cleaner import (
     clean_checkout_shipping,
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
+from .models import Checkout
 from .utils import get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
@@ -73,7 +74,6 @@ if TYPE_CHECKING:
     from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
-    from .models import Checkout
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -614,7 +614,7 @@ def _prepare_checkout(
     checkout = checkout_info.checkout
     with traced_atomic_transaction():
         # select_for_update locks objects rows till end of transaction block
-        Checkout.objects.select_for_update().filter(pk=checkout.pk)
+        checkout = Checkout.objects.select_for_update().get(pk=checkout.pk)
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
         clean_checkout_payment(
             manager,
@@ -653,6 +653,7 @@ def _prepare_checkout(
         if to_update:
             to_update.append("last_change")
             checkout.save(update_fields=to_update)
+            checkout_info.checkout = checkout
 
 
 def _get_order_data(
