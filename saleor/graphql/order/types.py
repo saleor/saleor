@@ -168,7 +168,7 @@ def get_payment_status_for_order(order):
     return status
 
 
-class OrderGrantedRefund(graphene.ObjectType):
+class OrderGrantedRefund(ModelObjectType):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(required=True, description="Time of creation.")
     updated_at = graphene.DateTime(required=True, description="Time of last update.")
@@ -179,6 +179,7 @@ class OrderGrantedRefund(graphene.ObjectType):
 
     class Meta:
         description = "The details of granted refund." + ADDED_IN_38 + PREVIEW_FEATURE
+        model = models.OrderGrantedRefund
 
 
 class OrderDiscount(graphene.ObjectType):

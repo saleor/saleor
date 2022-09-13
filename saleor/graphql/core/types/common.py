@@ -24,6 +24,8 @@ from ..enums import (
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
+    OrderGrandRefundCreateErrorCode,
+    OrderGrandRefundUpdateErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
@@ -207,6 +209,14 @@ class GiftCardSettingsError(Error):
 
 class MetadataError(Error):
     code = MetadataErrorCode(description="The error code.", required=True)
+
+
+class OrderGrantRefundCreateError(Error):
+    code = OrderGrandRefundCreateErrorCode(description="The error code.", required=True)
+
+
+class OrderGrantRefundUpdateError(Error):
+    code = OrderGrandRefundUpdateErrorCode(description="The error code.", required=True)
 
 
 class OrderError(Error):
