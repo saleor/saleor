@@ -56,7 +56,7 @@ class TaxClassCountryRate(models.Model):
     )
 
     class Meta:
-        ordering = ("country", "pk")
+        ordering = ("country", models.F("tax_class_id").asc(nulls_first=True), "pk")
         # Custom constraints to restrict unique pairs of ("country", "tax_class") and
         # allow exactly one object per country when tax_class is null ("country", None).
         # TaxClassCountryRate with tax_class=null is considered a default tax rate
