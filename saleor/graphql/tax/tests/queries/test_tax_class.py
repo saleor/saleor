@@ -41,9 +41,11 @@ def test_tax_class_query_no_permissions(staff_api_client):
     assert_no_permission(response)
 
 
-def test_tax_class_query_staff_user(staff_api_client, permission_manage_taxes):
+def test_tax_class_query_staff_user(
+    staff_api_client, permission_manage_taxes, default_tax_class
+):
     # given
-    tax_class = TaxClass.objects.first()
+    tax_class = default_tax_class
     id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
     variables = {"id": id}
 
@@ -58,9 +60,11 @@ def test_tax_class_query_staff_user(staff_api_client, permission_manage_taxes):
     _test_field_resolvers(tax_class, data)
 
 
-def test_tax_class_query_app(app_api_client, permission_manage_taxes):
+def test_tax_class_query_app(
+    app_api_client, permission_manage_taxes, default_tax_class
+):
     # given
-    tax_class = TaxClass.objects.first()
+    tax_class = default_tax_class
     id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
     variables = {"id": id}
 

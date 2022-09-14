@@ -1,4 +1,7 @@
 from collections import defaultdict
+from decimal import Decimal
+
+from django.db.models import Exists, OuterRef
 
 from ...tax.models import (
     TaxClass,
@@ -57,3 +60,29 @@ class TaxClassByIdLoader(DataLoader):
             keys
         )
         return [tax_class_map.get(obj_id) for obj_id in keys]
+
+
+class ProductChargeTaxesByTaxClassIdLoader(DataLoader):
+    # Deprecated: this dataloader is used only for deprecated `Product.chargeTaxes`
+    # and `ProductType.chargeTaxes` fields and it only reflects flat tax rates, while it
+    # ignores any tax apps. To determine whether to charge taxes, one should look into
+    # TaxConfiguration of a channel.
+
+    context_key = "product_charge_taxes_by_tax_class_id"
+
+    def batch_load(self, keys):
+        non_zero_rates = TaxClassCountryRate.objects.filter(
+            tax_class=OuterRef("pk")
+        ).exclude(rate=Decimal(0))
+        tax_class_map = (
+            TaxClass.objects.using(self.database_connection_name)
+            .filter(pk__in=keys)
+            .annotate(charge_taxes=Exists(non_zero_rates))
+            .in_bulk(keys)
+        )
+        return [
+            tax_class_map[tax_class_id].charge_taxes
+            if tax_class_map.get(tax_class_id)
+            else False
+            for tax_class_id in keys
+        ]

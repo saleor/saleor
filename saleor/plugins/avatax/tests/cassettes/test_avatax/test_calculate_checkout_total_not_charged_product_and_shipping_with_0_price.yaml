@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
-      "lines": [], "code": "b47700e7-dab7-4be8-8374-4f77de101efe", "date": "2022-09-08",
+      "lines": [], "code": "715e26e3-7f29-4ed6-926e-1894cc4117f2", "date": "2022-09-09",
       "customerCode": 0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa
       7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
       "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
@@ -34,9 +34,9 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 08 Sep 2022 10:53:23 GMT
+      - Fri, 09 Sep 2022 08:59:05 GMT
       ServerDuration:
-      - '00:00:00.0001835'
+      - '00:00:00.0001832'
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -50,9 +50,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubdomains
       x-avalara-uid:
-      - eab8e0b4-d5bd-4db4-afef-d20ae720183a
+      - 69c8484e-2153-44a3-a0fa-137eba02ab1c
       x-correlation-id:
-      - eab8e0b4-d5bd-4db4-afef-d20ae720183a
+      - 69c8484e-2153-44a3-a0fa-137eba02ab1c
       x-frame-options:
       - sameorigin
       x-permitted-cross-domain-policies:

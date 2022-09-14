@@ -22,11 +22,14 @@ from ...order.utils import (
     get_voucher_discount_assigned_to_order,
 )
 from ...shipping.models import ShippingMethodChannelListing
+from ...tax.utils import get_charge_taxes_for_checkout
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order
-    from ...product.models import Product, ProductType, ProductVariant
+    from ...product.models import Product, ProductType
+    from ...tax.models import TaxClass
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +47,8 @@ COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 # Temporary Unmapped Other SKU - taxable default
 DEFAULT_TAX_CODE = "O9999999"
 DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
+
+TAX_CODE_NON_TAXABLE_PRODUCT = "NT"
 
 
 @dataclass
@@ -254,7 +259,7 @@ def append_shipping_to_data(
         )
 
 
-def get_checkout_lines_data(
+def generate_request_data_from_checkout_lines(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
@@ -263,8 +268,8 @@ def get_checkout_lines_data(
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
 
-    tax_configuration = checkout_info.tax_configuration
-    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
+    prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher
     is_entire_order_discount = (
@@ -272,9 +277,23 @@ def get_checkout_lines_data(
         if voucher and not voucher.apply_once_per_order
         else False
     )
+
     for line_info in lines_info:
+        tax_code = None
+        product = line_info.product
+        product_type = line_info.product_type
+
+        if product.tax_class:
+            tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
+        elif product_type.tax_class:
+            tax_code = retrieve_tax_code_from_meta(product_type)
+        else:
+            tax_code = DEFAULT_TAX_CODE
+
+        is_non_taxable_product = tax_code == TAX_CODE_NON_TAXABLE_PRODUCT
+
         tax_override_data = {}
-        if not line_info.product.charge_taxes:
+        if not charge_taxes or is_non_taxable_product:
             if not is_entire_order_discount:
                 continue
             # if there is a voucher for the entire order we need to attach this line
@@ -285,12 +304,6 @@ def get_checkout_lines_data(
                 "reason": "Charge taxes for this product are turned off.",
             }
 
-        product = line_info.product
-        name = product.name
-        product_type = line_info.product_type
-        item_code = line_info.variant.sku or line_info.variant.get_global_id()
-        tax_code = retrieve_tax_code_from_meta(product, default=None)
-        tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
@@ -310,6 +323,8 @@ def get_checkout_lines_data(
             if checkout_line_total.amount and not tax_override_data
             else DEFAULT_TAX_CODE
         )
+        name = product.name
+        item_code = line_info.variant.sku or line_info.variant.get_global_id()
         append_line_to_data_kwargs = {
             "data": data,
             "quantity": line_info.line.quantity,
@@ -481,7 +496,9 @@ def generate_request_data_from_checkout(
     discounts=None,
 ):
     address = checkout_info.shipping_address or checkout_info.billing_address
-    lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
+    lines = generate_request_data_from_checkout_lines(
+        checkout_info, lines_info, config, discounts
+    )
     voucher = checkout_info.voucher
     # for apply_once_per_order vouchers the discount is already applied on lines
     discount_amount = (
@@ -629,7 +646,7 @@ def get_cached_tax_codes_or_fetch(
 
 
 def retrieve_tax_code_from_meta(
-    obj: Union["Product", "ProductVariant", "ProductType"],
+    obj: Union["Product", "ProductType", "TaxClass"],
     default: Optional[str] = DEFAULT_TAX_CODE,
 ):
     tax_code = obj.get_value_from_metadata(META_CODE_KEY, default)

@@ -2,6 +2,7 @@ import json
 from decimal import Decimal
 from functools import partial
 
+import pytest
 from freezegun import freeze_time
 from prices import Money, fixed_discount
 
@@ -80,10 +81,12 @@ subscription {
 
 
 @freeze_time("2020-03-18 12:00:00")
+@pytest.mark.parametrize("charge_taxes", [True, False])
 def test_checkout_calculate_taxes(
     checkout_ready_to_complete,
     webhook_app,
     permission_handle_taxes,
+    charge_taxes,
 ):
     # given
     webhook_app.permissions.add(permission_handle_taxes)
@@ -96,6 +99,11 @@ def test_checkout_calculate_taxes(
     )
     event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook.events.create(event_type=event_type)
+
+    tax_configuration = checkout_ready_to_complete.channel.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
+    tax_configuration.save(update_fields=["charge_taxes"])
+    tax_configuration.country_exceptions.all().delete()
 
     # when
     deliveries = create_delivery_for_subscription_sync_event(
@@ -114,7 +122,6 @@ def test_checkout_calculate_taxes(
             "channel": {"id": to_global_id_or_none(checkout_ready_to_complete.channel)},
             "lines": [
                 {
-                    "chargeTaxes": True,
                     "productName": "Test product",
                     "productSku": "123",
                     "quantity": 3,
@@ -124,6 +131,7 @@ def test_checkout_calculate_taxes(
                         ),
                         "__typename": "CheckoutLine",
                     },
+                    "chargeTaxes": charge_taxes,
                     "totalPrice": {"amount": 30.0},
                     "unitPrice": {"amount": 10.0},
                     "variantName": "",
@@ -298,8 +306,9 @@ def test_checkout_calculate_taxes_empty_checkout(
 
 
 @freeze_time("2020-03-18 12:00:00")
+@pytest.mark.parametrize("charge_taxes", [True, False])
 def test_order_calculate_taxes(
-    order_line, webhook_app, permission_handle_taxes, shipping_zone
+    order_line, webhook_app, permission_handle_taxes, shipping_zone, charge_taxes
 ):
 
     # given
@@ -316,6 +325,11 @@ def test_order_calculate_taxes(
     )
     event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
     webhook.events.create(event_type=event_type)
+
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
+    tax_configuration.save(update_fields=["charge_taxes"])
+    tax_configuration.country_exceptions.all().delete()
 
     # when
     deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
@@ -334,7 +348,7 @@ def test_order_calculate_taxes(
             "channel": {"id": to_global_id_or_none(order.channel)},
             "lines": [
                 {
-                    "chargeTaxes": True,
+                    "chargeTaxes": charge_taxes,
                     "productName": "Test product",
                     "productSku": "SKU_A",
                     "quantity": 3,

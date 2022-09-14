@@ -4511,7 +4511,7 @@ type Product implements Node & ObjectWithMetadata {
   category: Category
   created: DateTime!
   updatedAt: DateTime!
-  chargeTaxes: Boolean!
+  chargeTaxes: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
   weight: Weight
   defaultVariant: ProductVariant
   rating: Float
@@ -4562,7 +4562,7 @@ type Product implements Node & ObjectWithMetadata {
   ): Boolean
 
   """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType
+  taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
 
   """List of attributes assigned to this product."""
   attributes: [SelectedAttribute!]!
@@ -4705,7 +4705,7 @@ type ProductType implements Node & ObjectWithMetadata {
   ): ProductCountableConnection @deprecated(reason: "This field will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
 
   """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType
+  taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
 
   """
   Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
@@ -16654,7 +16654,11 @@ input ProductCreateInput {
   """ID of the product's category."""
   category: ID
 
-  """Determine if taxes are being charged for the product."""
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
   chargeTaxes: Boolean
 
   """List of IDs of collections that the product belongs to."""
@@ -16678,7 +16682,11 @@ input ProductCreateInput {
   """
   taxClass: ID
 
-  """Tax rate for enabled tax gateway."""
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
   taxCode: String
 
   """Search engine optimization fields."""
@@ -16769,7 +16777,11 @@ input ProductInput {
   """ID of the product's category."""
   category: ID
 
-  """Determine if taxes are being charged for the product."""
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
   chargeTaxes: Boolean
 
   """List of IDs of collections that the product belongs to."""
@@ -16793,7 +16805,11 @@ input ProductInput {
   """
   taxClass: ID
 
-  """Tax rate for enabled tax gateway."""
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
   taxCode: String
 
   """Search engine optimization fields."""
@@ -17055,7 +17071,11 @@ input ProductTypeInput {
   """Weight of the ProductType items."""
   weight: WeightScalar
 
-  """Tax rate for enabled tax gateway."""
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type.
+  """
   taxCode: String
 
   """

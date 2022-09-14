@@ -6721,7 +6721,6 @@ def test_create_product_no_slug_in_input(
     category,
     description_json,
     permission_manage_products,
-    monkeypatch,
     input_slug,
 ):
     query = CREATE_PRODUCT_MUTATION
@@ -6731,14 +6730,6 @@ def test_create_product_no_slug_in_input(
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
-    product_tax_rate = "STANDARD"
-
-    # Mock tax interface with fake response from tax gateway
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(description="", code=product_tax_rate),
-    )
 
     # test creating root product
     variables = {
@@ -6747,7 +6738,6 @@ def test_create_product_no_slug_in_input(
             "category": category_id,
             "name": product_name,
             "slug": input_slug,
-            "taxCode": product_tax_rate,
         }
     }
 
@@ -6759,7 +6749,6 @@ def test_create_product_no_slug_in_input(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == "test-name"
-    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
 
@@ -6768,28 +6757,18 @@ def test_create_product_no_category_id(
     staff_api_client,
     product_type,
     permission_manage_products,
-    monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     product_name = "test name"
-    product_tax_rate = "STANDARD"
     input_slug = "test-slug"
-
-    # Mock tax interface with fake response from tax gateway
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(description="", code=product_tax_rate),
-    )
 
     variables = {
         "input": {
             "productType": product_type_id,
             "name": product_name,
             "slug": input_slug,
-            "taxCode": product_tax_rate,
         }
     }
 
@@ -6801,7 +6780,6 @@ def test_create_product_no_category_id(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == input_slug
-    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"] is None
 

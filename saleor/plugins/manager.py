@@ -68,6 +68,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..tax.models import TaxClass
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
@@ -1355,16 +1356,14 @@ class PluginsManager(PaymentInterface):
 
     # FIXME these methods should be more generic
 
-    def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: Optional[str]
-    ):
+    def assign_tax_code_to_object_meta(self, obj: "TaxClass", tax_code: Optional[str]):
         default_value = None
         return self.__run_method_on_plugins(
             "assign_tax_code_to_object_meta", default_value, obj, tax_code
         )
 
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"]
+        self, obj: Union["Product", "ProductType", "TaxClass"]
     ) -> TaxType:
         default_value = TaxType(code="", description="")
         return self.__run_method_on_plugins(

@@ -88,6 +88,7 @@ from ...product.dataloaders.products import (
     ProductVariantsByProductIdAndChannel,
 )
 from ...tax.dataloaders import (
+    ProductChargeTaxesByTaxClassIdLoader,
     TaxClassByIdLoader,
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
@@ -774,7 +775,13 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     category = graphene.Field(lambda: Category)
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
-    charge_taxes = graphene.Boolean(required=True)
+    charge_taxes = graphene.Boolean(
+        required=True,
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` field to "
+            "determine whether tax collection is enabled."
+        ),
+    )
     weight = graphene.Field(Weight)
     default_variant = graphene.Field(ProductVariant)
     rating = graphene.Float()
@@ -804,7 +811,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         description="Whether the product is in stock and visible or not.",
     )
     tax_type = graphene.Field(
-        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+        TaxType,
+        description="A type of tax. Assigned by enabled tax gateway",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
     )
     attributes = NonNullList(
         SelectedAttribute,
@@ -930,8 +939,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root.node)
-        return TaxType(tax_code=tax_data.code, description=tax_data.description)
+        def with_tax_class(tax_class):
+            tax_data = info.context.plugins.get_tax_code_from_object_meta(tax_class)
+            return TaxType(tax_code=tax_data.code, description=tax_data.description)
+
+        if root.node.tax_class_id:
+            return (
+                TaxClassByIdLoader(info.context)
+                .load(root.node.tax_class_id)
+                .then(with_tax_class)
+            )
+
+        return None
 
     @staticmethod
     @traced_resolver
@@ -1306,6 +1325,31 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
         return Promise.resolve(product_type).then(resolve_tax_class)
 
+    def resolve_charge_taxes(root: ChannelContext[models.Product], info):
+        # Deprecated: this field is deprecated as it only checks whether there are any
+        # non-zero flat rates set for a product. Instead channel tax configuration
+        # should be used to check whether taxes are charged.
+
+        tax_class_id = root.node.tax_class_id
+        if not tax_class_id:
+            product_type = ProductTypeByIdLoader(info.context).load(
+                root.node.product_type_id
+            )
+
+            def with_product_type(product_type):
+                tax_class_id = product_type.tax_class_id
+                return (
+                    ProductChargeTaxesByTaxClassIdLoader(info.context).load(
+                        tax_class_id
+                    )
+                    if tax_class_id
+                    else False
+                )
+
+            return product_type.then(with_product_type)
+
+        return ProductChargeTaxesByTaxClassIdLoader(info.context).load(tax_class_id)
+
     @staticmethod
     def __resolve_references(roots: List["Product"], info):
         requestor = get_user_or_app_from_context(info.context)
@@ -1358,7 +1402,9 @@ class ProductType(ModelObjectType):
         ),
     )
     tax_type = graphene.Field(
-        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+        TaxType,
+        description="A type of tax. Assigned by enabled tax gateway",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
     )
     tax_class = PermissionsField(
         TaxClass,
@@ -1415,8 +1461,18 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
-        return TaxType(tax_code=tax_data.code, description=tax_data.description)
+        def with_tax_class(tax_class):
+            tax_data = info.context.plugins.get_tax_code_from_object_meta(tax_class)
+            return TaxType(tax_code=tax_data.code, description=tax_data.description)
+
+        if root.tax_class_id:
+            return (
+                TaxClassByIdLoader(info.context)
+                .load(root.tax_class_id)
+                .then(with_tax_class)
+            )
+
+        return None
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):
