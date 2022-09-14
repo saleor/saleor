@@ -81,6 +81,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.SALE_TOGGLE: "A sale is activated or deactivated.",
     WebhookEventAsyncType.FULFILLMENT_CREATED: "A new fulfillment is created.",
     WebhookEventAsyncType.FULFILLMENT_CANCELED: "A fulfillment is cancelled.",
+    WebhookEventAsyncType.FULFILLMENT_APPROVED: "A fulfillment is approved.",
     WebhookEventAsyncType.PAGE_CREATED: "A new page is created.",
     WebhookEventAsyncType.PAGE_UPDATED: "A page is updated.",
     WebhookEventAsyncType.PAGE_DELETED: "A page is deleted.",

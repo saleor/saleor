@@ -573,6 +573,45 @@ def test_checkout_create_with_custom_price(
     assert checkout_line.price_override == price
 
 
+def test_checkout_create_with_metadata_in_line(
+    api_client, stock, graphql_address_data, channel_USD
+):
+    """Ensure that app with handle checkouts permission can set custom price."""
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    metadata_key = "md key"
+    metadata_value = "md value"
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [
+                {
+                    "quantity": 1,
+                    "variantId": variant_id,
+                    "metadata": [{"key": metadata_key, "value": metadata_value}],
+                }
+            ],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is not None
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert new_checkout.lines.count() == 1
+    checkout_line = new_checkout.lines.first()
+    assert checkout_line.variant == variant
+    assert checkout_line.quantity == 1
+    assert checkout_line.metadata == {metadata_key: metadata_value}
+
+
 def test_checkout_create_with_custom_price_duplicated_items(
     app_api_client,
     stock,

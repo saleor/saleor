@@ -43,7 +43,6 @@ from . import (
     OrderAuthorizeStatus,
     OrderChargeStatus,
     OrderStatus,
-    base_calculations,
     events,
 )
 from .fetch import OrderLineInfo
@@ -751,40 +750,6 @@ def create_order_discount_for_order(
         amount=new_amount,  # type: ignore
     )
     return order_discount
-
-
-def update_order_discount_for_order(
-    order: Order,
-    lines: Iterable[OrderLine],
-    order_discount_to_update: OrderDiscount,
-    reason: Optional[str] = None,
-    value_type: Optional[str] = None,
-    value: Optional[Decimal] = None,
-):
-    """Update the order_discount for an order."""
-    current_value = order_discount_to_update.value
-    value = value if value is not None else current_value
-    value_type = value_type or order_discount_to_update.value_type
-    fields_to_update = []
-    if reason is not None:
-        order_discount_to_update.reason = reason
-        fields_to_update.append("reason")
-
-    current_total = base_calculations.base_order_total_without_order_discount(
-        order, lines
-    )
-
-    discounted_total = apply_discount_to_value(
-        value, value_type, order.currency, current_total
-    )
-    new_amount = quantize_price(current_total - discounted_total, order.currency)
-
-    order_discount_to_update.amount = new_amount
-    order_discount_to_update.value = value
-    order_discount_to_update.value_type = value_type
-    fields_to_update.extend(["value_type", "value", "amount_value"])
-
-    order_discount_to_update.save(update_fields=fields_to_update)
 
 
 def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount):
