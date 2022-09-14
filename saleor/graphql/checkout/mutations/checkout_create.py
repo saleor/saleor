@@ -17,6 +17,7 @@ from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_36,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -40,6 +41,8 @@ from .utils import (
 if TYPE_CHECKING:
     from ....account.models import Address
     from .utils import CheckoutLineData
+
+from ...meta.mutations import MetadataInput
 
 
 class CheckoutAddressValidationRules(graphene.InputObjectType):
@@ -105,6 +108,11 @@ class CheckoutLineInput(graphene.InputObjectType):
             "Flag that allow force splitting the same variant into multiple lines "
             "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
         ),
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the object's metadata." + ADDED_IN_38),
+        required=False,
     )
 
 
