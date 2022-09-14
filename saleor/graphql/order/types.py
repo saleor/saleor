@@ -117,7 +117,7 @@ from .dataloaders import (
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderEventsByOrderIdLoader,
-    OrderGrantedDiscounsByOrderIdLoader,
+    OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
     TransactionItemsByOrderIDLoader,
@@ -1622,7 +1622,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_granted_refunds(root: models.Order, info):
-        return OrderGrantedDiscounsByOrderIdLoader(info.context).load(root.id)
+        return OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
 
 
 class OrderCountableConnection(CountableConnection):

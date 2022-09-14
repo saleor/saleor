@@ -95,8 +95,8 @@ class OrderEventsByOrderIdLoader(DataLoader):
         return [events_map.get(order_id, []) for order_id in keys]
 
 
-class OrderGrantedDiscounsByOrderIdLoader(DataLoader):
-    context_key = "order_granted_discounts_by_order_id"
+class OrderGrantedRefundsByOrderIdLoader(DataLoader):
+    context_key = "order_granted_refunds_by_order_id"
 
     def batch_load(self, keys):
         refunds = OrderGrantedRefund.objects.using(
