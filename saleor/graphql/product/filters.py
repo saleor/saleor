@@ -749,6 +749,7 @@ class ProductTypeFilter(MetadataFilterBase):
     product_type = EnumFilter(input_class=ProductTypeEnum, method=filter_product_type)
     kind = EnumFilter(input_class=ProductTypeKindEnum, method=filter_product_type_kind)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = ProductType

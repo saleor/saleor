@@ -5069,6 +5069,7 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6253,6 +6254,7 @@ input WarehouseFilterInput {
   ids: [ID!]
   isPrivate: Boolean
   channels: [ID!]
+  slugs: [String!]
 }
 
 input WarehouseSortingInput {
@@ -9775,6 +9777,7 @@ input ProductTypeFilterInput {
   metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
   ids: [ID!]
+  slugs: [String!]
 }
 
 enum ProductTypeConfigurable {
@@ -9944,6 +9947,7 @@ enum PageTypeSortField {
 
 input PageTypeFilterInput {
   search: String
+  slugs: [String!]
 }
 
 type OrderEventCountableConnection {
@@ -10081,6 +10085,7 @@ input MenuFilterInput {
   search: String
   slug: [String!]
   metadata: [MetadataFilter!]
+  slugs: [String!]
 }
 
 type MenuItemCountableConnection {

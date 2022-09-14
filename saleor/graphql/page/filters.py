@@ -56,6 +56,7 @@ class PageFilterInput(FilterInputObjectType):
 
 class PageTypeFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_page_type_search)
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
 
 class PageTypeFilterInput(FilterInputObjectType):
