@@ -70,12 +70,14 @@ class ProductChargeTaxesByTaxClassIdLoader(DataLoader):
             tax_class=OuterRef("pk")
         ).exclude(rate=Decimal(0))
         tax_class_map = (
-            TaxClass.objects.filter(pk__in=keys)
+            TaxClass.objects.using(self.database_connection_name)
+            .filter(pk__in=keys)
             .annotate(charge_taxes=Exists(non_zero_rates))
             .in_bulk(keys)
         )
         return [
             tax_class_map[tax_class_id].charge_taxes
-            for tax_class_id in keys
             if tax_class_map.get(tax_class_id)
+            else False
+            for tax_class_id in keys
         ]
