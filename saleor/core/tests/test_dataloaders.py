@@ -1,6 +1,6 @@
 from django.core.handlers.base import BaseHandler
 
-from saleor.graphql.plugins.dataloaders import load_plugin_manager
+from ...graphql.plugins.dataloaders import load_plugin_manager
 
 
 def test_plugins_manager_loader_loads_requestor_in_plugin(rf, customer_user, settings):
