@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from ...core.enums import OrderGrandRefundCreateErrorCode
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -187,4 +188,4 @@ def test_grant_refund_incorrect_order_id(staff_api_client, permission_manage_ord
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == "GRAPHQL_ERROR"
+    assert errors[0]["code"] == OrderGrandRefundCreateErrorCode.GRAPHQL_ERROR.name

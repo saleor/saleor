@@ -17940,7 +17940,6 @@ type OrderGrantRefundCreate {
 
   """Created granted refund."""
   grantedRefund: OrderGrantedRefund
-  orderErrors: [OrderGrantRefundCreateError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderGrantRefundCreateError!]!
 }
 
@@ -17990,7 +17989,6 @@ type OrderGrantRefundUpdate {
 
   """Created granted refund."""
   grantedRefund: OrderGrantedRefund
-  orderErrors: [OrderGrantRefundUpdateError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderGrantRefundUpdateError!]!
 }
 

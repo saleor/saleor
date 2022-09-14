@@ -31,7 +31,6 @@ class OrderGrantRefundCreate(BaseMutation):
         description = "Adds granted refund to the order."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundCreateError
-        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from ...core.enums import OrderGrandRefundUpdateErrorCode
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import (
     assert_no_permission,
@@ -230,7 +231,7 @@ def test_grant_refund_update_by_user_missing_input(
     content = get_graphql_content_from_response(response)
     errors = content["data"]["orderGrantRefundUpdate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == "REQUIRED"
+    assert errors[0]["code"] == OrderGrandRefundUpdateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"
 
 
@@ -416,5 +417,5 @@ def test_grant_refund_update_by_app_missing_input(
     content = get_graphql_content_from_response(response)
     errors = content["data"]["orderGrantRefundUpdate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == "REQUIRED"
+    assert errors[0]["code"] == OrderGrandRefundUpdateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"

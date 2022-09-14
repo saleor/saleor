@@ -33,7 +33,6 @@ class OrderGrantRefundUpdate(BaseMutation):
         description = "Updates granted refund."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundUpdateError
-        error_type_field = "order_errors"
 
     @classmethod
     def validate_input(cls, amount, reason):
