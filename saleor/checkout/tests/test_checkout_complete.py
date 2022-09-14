@@ -1,5 +1,6 @@
 from unittest import mock
 
+import before_after
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
@@ -28,6 +29,7 @@ from ..complete_checkout import (
     complete_checkout,
 )
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
+from ..models import Checkout
 from ..utils import add_variant_to_checkout
 
 
@@ -1458,3 +1460,46 @@ def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_a
     new_address_data = warehouse_for_cc.address.as_data()
     assert new_user_address_count == user_address_count
     assert not customer_user.addresses.filter(**new_address_data).exists()
+
+
+def delete_checkout(*a, **k):
+    ch = Checkout.objects.filter(pk=a[0].checkout.pk).first()
+    ch.delete()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_complete_checkout_race_condition(
+    mock_notify, checkout_with_item_total_0, customer_user, channel_USD, app
+):
+    checkout_user = customer_user
+    checkout = checkout_with_item_total_0
+    # Prepare valid checkout
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+    token = checkout.token
+
+    # Place checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    with before_after.after(
+        "saleor.checkout.complete_checkout.clean_checkout_shipping", delete_checkout
+    ):
+        order, action_required, action_data = complete_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            discounts=None,
+            user=customer_user,
+            app=app,
+        )
+
+        flush_post_commit_hooks()
+    assert order.checkout_token == token
+    with pytest.raises(checkout._meta.model.DoesNotExist):
+        checkout.refresh_from_db()
