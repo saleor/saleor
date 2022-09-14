@@ -8603,6 +8603,17 @@ type Order implements Node & ObjectWithMetadata {
 
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
+
+  """
+  List of granted refunds.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  grantedRefunds: [OrderGrantedRefund!]!
 }
 
 """An enumeration."""
@@ -9438,6 +9449,35 @@ enum OrderErrorCode {
 enum AddressTypeEnum {
   BILLING
   SHIPPING
+}
+
+"""
+The details of granted refund.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderGrantedRefund {
+  id: ID!
+
+  """Time of creation."""
+  createdAt: DateTime!
+
+  """Time of last update."""
+  updatedAt: DateTime!
+
+  """Refund amount."""
+  amount: Money!
+
+  """Reason of the refund."""
+  reason: String
+
+  """User who performed the action."""
+  user: User
+
+  """App that performed the action."""
+  app: App
 }
 
 """Represents transaction's event."""
