@@ -13217,7 +13217,7 @@ type Mutation {
     id: ID
 
     """
-    Fields required to update the object's metadata.
+    Fields required to update the checkout metadata.
     
     Added in Saleor 3.8.
     """
@@ -13632,14 +13632,14 @@ type Mutation {
     id: ID!
 
     """
-    Fields required to update the object's metadata.
+    Fields required to update the checkout metadata.
     
     Added in Saleor 3.8.
     """
     metadata: [MetadataInput!]
 
     """
-    Fields required to update the object's private metadata.
+    Fields required to update the checkout private metadata.
     
     Added in Saleor 3.8.
     """

@@ -93,7 +93,7 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
         metadata = NonNullList(
             MetadataInput,
             description=(
-                "Fields required to update the object's metadata." + ADDED_IN_38
+                "Fields required to update the checkout metadata." + ADDED_IN_38
             ),
             required=False,
         )

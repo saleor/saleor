@@ -53,14 +53,14 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
         private_metadata = NonNullList(
             MetadataInput,
             description=(
-                "Fields required to update the object's private metadata." + ADDED_IN_38
+                "Fields required to update the checkout private metadata." + ADDED_IN_38
             ),
             required=False,
         )
         metadata = NonNullList(
             MetadataInput,
             description=(
-                "Fields required to update the object's metadata." + ADDED_IN_38
+                "Fields required to update the checkout metadata." + ADDED_IN_38
             ),
             required=False,
         )
