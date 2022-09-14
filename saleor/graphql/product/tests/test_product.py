@@ -49,7 +49,6 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
-from ....tax.models import TaxClass
 from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
@@ -4695,10 +4694,10 @@ def test_create_product_use_tax_class_from_product_type(
     staff_api_client,
     product_type,
     permission_manage_products,
+    default_tax_class,
     tax_classes,
 ):
     # given
-    default_tax_class = TaxClass.objects.get(is_default=True)
     default_tax_class_id = graphene.Node.to_global_id("TaxClass", default_tax_class.pk)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     variables = {

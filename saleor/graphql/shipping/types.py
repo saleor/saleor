@@ -136,7 +136,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     tax_class = PermissionsField(
         TaxClass,
         description="Tax class assigned to this shipping method.",
-        required=True,
+        required=False,
         permissions=[
             TaxPermissions.MANAGE_TAXES,
             ShippingPermissions.MANAGE_SHIPPING,
@@ -229,7 +229,11 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_tax_class(root: ChannelContext[models.ShippingMethod], info):
-        return TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
+        return (
+            TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
+            if root.node.tax_class_id
+            else None
+        )
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):

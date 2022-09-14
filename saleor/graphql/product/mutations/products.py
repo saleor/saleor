@@ -543,7 +543,8 @@ class ProductInput(graphene.InputObjectType):
         description=(
             "ID of a tax class to assign to this product. If not provided, product "
             "will use the tax class which is assigned to the product type."
-        )
+        ),
+        required=False,
     )
     tax_code = graphene.String(
         description=(

@@ -57,7 +57,7 @@ from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
-from ..tax.models import TaxClass, get_default_tax_class
+from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
@@ -161,8 +161,9 @@ class ProductType(ModelWithMetadata):
     tax_class = models.ForeignKey(
         TaxClass,
         related_name="product_types",
-        default=get_default_tax_class,
-        on_delete=models.SET_DEFAULT,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
     )
 
     class Meta(ModelWithMetadata.Meta):

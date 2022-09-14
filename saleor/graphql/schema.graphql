@@ -3093,7 +3093,7 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   
   Requires one of the following permissions: MANAGE_TAXES, MANAGE_SHIPPING.
   """
-  taxClass: TaxClass!
+  taxClass: TaxClass
 }
 
 """An enumeration."""
@@ -4629,7 +4629,7 @@ type Product implements Node & ObjectWithMetadata {
   
   Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS.
   """
-  taxClass: TaxClass!
+  taxClass: TaxClass
 }
 
 """
@@ -4719,7 +4719,7 @@ type ProductType implements Node & ObjectWithMetadata {
   
   Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  taxClass: TaxClass!
+  taxClass: TaxClass
 
   """Variant attributes of that product type."""
   variantAttributes(
@@ -4836,11 +4836,6 @@ type TaxClass implements Node & ObjectWithMetadata {
 
   """Name of the tax class."""
   name: String!
-
-  """
-  Determines whether a tax class is a default one. Default tax class is created by the system and cannot be removed.
-  """
-  isDefault: Boolean!
 
   """Country-specific tax rates for this tax class."""
   countries: [TaxClassCountryRate!]!
@@ -15308,7 +15303,6 @@ type TaxClassDeleteError {
 
 """An enumeration."""
 enum TaxClassDeleteErrorCode {
-  CANNOT_DELETE_DEFAULT_CLASS
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND

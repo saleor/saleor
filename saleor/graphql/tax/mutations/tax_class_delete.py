@@ -1,5 +1,4 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from ....core.permissions import TaxPermissions
 from ....tax import error_codes, models
@@ -33,16 +32,3 @@ class TaxClassDelete(ModelDeleteMutation):
         model = models.TaxClass
         object_type = TaxClass
         permissions = (TaxPermissions.MANAGE_TAXES,)
-
-    @classmethod
-    def clean_instance(cls, info, instance):
-        if instance.is_default:
-            code = error_codes.TaxClassDeleteErrorCode.CANNOT_DELETE_DEFAULT_CLASS.value
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Cannot delete a default tax class.",
-                        code=code,
-                    )
-                }
-            )

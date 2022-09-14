@@ -969,7 +969,7 @@ def staff_users(staff_user):
 
 
 @pytest.fixture
-def shipping_zone(db, channel_USD):  # pylint: disable=W0613
+def shipping_zone(db, channel_USD, default_tax_class):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name="Europe", countries=[code for code, name in countries]
     )
@@ -978,6 +978,7 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
         shipping_zone=shipping_zone,
+        tax_class=default_tax_class,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,

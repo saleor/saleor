@@ -887,7 +887,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             "Tax class assigned to this product type. All products of this product "
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
-        required=True,
+        required=False,
         permissions=[
             TaxPermissions.MANAGE_TAXES,
             ProductPermissions.MANAGE_PRODUCTS,
@@ -1333,7 +1333,11 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             tax_class_id = (
                 product_type.tax_class_id if product_type else root.node.tax_class_id
             )
-            return TaxClassByIdLoader(info.context).load(tax_class_id)
+            return (
+                TaxClassByIdLoader(info.context).load(tax_class_id)
+                if tax_class_id
+                else None
+            )
 
         return Promise.resolve(product_type).then(resolve_tax_class)
 
@@ -1424,7 +1428,7 @@ class ProductType(ModelObjectType):
             "Tax class assigned to this product type. All products of this product "
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
-        required=True,
+        required=False,
         permissions=[
             TaxPermissions.MANAGE_TAXES,
             ProductPermissions.MANAGE_PRODUCTS,
@@ -1578,7 +1582,11 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_class(root: models.ProductType, info):
-        return TaxClassByIdLoader(info.context).load(root.tax_class_id)
+        return (
+            TaxClassByIdLoader(info.context).load(root.tax_class_id)
+            if root.tax_class_id
+            else None
+        )
 
     @staticmethod
     def __resolve_references(roots: List["ProductType"], _info):

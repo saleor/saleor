@@ -13,7 +13,6 @@ from ..models import TaxClass, TaxClassCountryRate
 @pytest.fixture(autouse=True)
 def default_tax_class(db):
     tax_class, _ = TaxClass.objects.get_or_create(
-        is_default=True,
         name="Default",
         defaults={
             "metadata": {

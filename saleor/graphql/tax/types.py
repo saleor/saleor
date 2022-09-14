@@ -117,13 +117,6 @@ class TaxConfigurationPerCountry(ModelObjectType):
 
 class TaxClass(ModelObjectType):
     name = graphene.String(description="Name of the tax class.", required=True)
-    is_default = graphene.Boolean(
-        description=(
-            "Determines whether a tax class is a default one. Default tax class is "
-            "created by the system and cannot be removed."
-        ),
-        required=True,
-    )
     countries = NonNullList(
         "saleor.graphql.tax.types.TaxClassCountryRate",
         required=True,
