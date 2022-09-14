@@ -114,7 +114,11 @@ def _process_shipping_data_for_order(
     delivery_method_info = checkout_info.delivery_method_info
     shipping_address = delivery_method_info.shipping_address
 
-    if checkout_info.user and shipping_address:
+    if (
+        delivery_method_info.store_as_customer_address
+        and checkout_info.user
+        and shipping_address
+    ):
         store_user_address(
             checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
         )
