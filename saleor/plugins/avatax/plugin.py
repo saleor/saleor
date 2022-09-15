@@ -82,8 +82,6 @@ class AvataxPlugin(BasePlugin):
         {"name": "from_country_area", "value": None},
         {"name": "from_postal_code", "value": None},
         {"name": "shipping_tax_code", "value": "FR000000"},
-        {"name": "override_global_tax", "value": False},
-        {"name": "include_taxes_in_prices", "value": True},
     ]
     CONFIG_STRUCTURE = {
         "Username or account": {
@@ -149,16 +147,6 @@ class AvataxPlugin(BasePlugin):
             ),
             "label": "Shipping tax code",
         },
-        "override_global_tax": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Used when setting per channel is needed.",
-            "label": "Override global tax settings.",
-        },
-        "include_taxes_in_prices": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": 'Applied only if "Override global tax settings" is on.',
-            "label": "All products prices are entered with tax included.",
-        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -181,8 +169,6 @@ class AvataxPlugin(BasePlugin):
             from_country_area=configuration["from_country_area"],
             from_postal_code=configuration["from_postal_code"],
             shipping_tax_code=configuration["shipping_tax_code"],
-            override_global_tax=configuration["override_global_tax"],
-            include_taxes_in_prices=configuration["include_taxes_in_prices"],
         )
 
     def _skip_plugin(

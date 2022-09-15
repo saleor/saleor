@@ -64,8 +64,6 @@ class AvataxConfiguration:
     company_name: str = "DEFAULT"
     autocommit: bool = False
     shipping_tax_code: str = ""
-    override_global_tax: bool = False
-    include_taxes_in_prices: bool = True
 
 
 class TransactionType:
