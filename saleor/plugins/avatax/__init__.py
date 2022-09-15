@@ -13,6 +13,7 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
+from ...account.models import Address
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
@@ -22,7 +23,8 @@ from ...order.utils import (
     get_total_order_discount_excluding_shipping,
     get_voucher_discount_assigned_to_order,
 )
-from ...shipping.models import ShippingMethodChannelListing
+from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ...warehouse.models import Warehouse
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -146,13 +148,13 @@ def api_get_request(
 
 
 def _validate_adddress_details(
-    shipping_address, is_shipping_required, address, shipping_method
+    shipping_address, is_shipping_required, address, delivery_method
 ):
     if not is_shipping_required and address:
         return True
     if not shipping_address:
         return False
-    if not shipping_method:
+    if not delivery_method:
         return False
     return True
 
@@ -161,17 +163,23 @@ def _validate_order(order: "Order") -> bool:
     """Validate the order object if it is ready to generate a request to avatax."""
     if not order.lines.exists():
         return False
-    shipping_address = order.shipping_address
     shipping_required = order.is_shipping_required()
-    address = shipping_address or order.billing_address
-    shipping_method = order.shipping_method
+    if order.collection_point_id:
+        collection_point = order.collection_point
+        delivery_method: Union[None, ShippingMethod, Warehouse] = collection_point
+        shipping_address = collection_point.address  # type: ignore
+        address = shipping_address
+    else:
+        delivery_method = order.shipping_method
+        shipping_address = order.shipping_address
+        address = shipping_address or order.billing_address
     valid_address_details = _validate_adddress_details(
-        shipping_address, shipping_required, address, shipping_method
+        shipping_address, shipping_required, address, delivery_method
     )
     if not valid_address_details:
         return False
-    if shipping_required:
-        channel_listing = shipping_method.channel_listings.filter(  # type: ignore
+    if shipping_required and isinstance(delivery_method, ShippingMethod):
+        channel_listing = delivery_method.channel_listings.filter(  # type: ignore
             channel_id=order.channel_id
         ).first()
         if not channel_listing:
@@ -186,8 +194,8 @@ def _validate_checkout(
     if not lines:
         return False
 
-    shipping_address = checkout_info.shipping_address
     shipping_required = is_shipping_required(lines)
+    shipping_address = checkout_info.delivery_method_info.shipping_address
     address = shipping_address or checkout_info.billing_address
     return _validate_adddress_details(
         shipping_address,
@@ -426,6 +434,21 @@ def get_order_lines_data(
     return data
 
 
+def _is_single_location(ship_from, ship_to):
+    for key, value in ship_from.items():
+        if key not in ship_to:
+            return False
+        if not value and not ship_to[key]:
+            continue
+        if value is None or ship_to[key] is None:
+            return False
+
+        if value.lower() == ship_to[key].lower():
+            continue
+        return False
+    return True
+
+
 def generate_request_data(
     transaction_type: str,
     lines: List[Dict[str, Any]],
@@ -436,6 +459,26 @@ def generate_request_data(
     currency: str,
     discount: Optional[Decimal] = None,
 ):
+    ship_from = {
+        "line1": config.from_street_address,
+        "line2": "",
+        "city": config.from_city,
+        "region": config.from_country_area,
+        "country": config.from_country,
+        "postalCode": config.from_postal_code,
+    }
+    ship_to = {
+        "line1": address.get("street_address_1"),
+        "line2": address.get("street_address_2"),
+        "city": address.get("city"),
+        "region": address.get("country_area"),
+        "country": address.get("country"),
+        "postalCode": address.get("postal_code"),
+    }
+    if _is_single_location(ship_from, ship_to):
+        addresses: Dict[str, Dict] = {"singleLocation": ship_to}
+    else:
+        addresses = {"shipFrom": ship_from, "shipTo": ship_to}
     data = {
         "companyCode": config.company_name,
         "type": transaction_type,
@@ -446,24 +489,7 @@ def generate_request_data(
         "customerCode": 0,
         # https://developer.avalara.com/avatax/dev-guide/discounts-and-overrides/discounts/
         "discount": str(discount) if discount else None,
-        "addresses": {
-            "shipFrom": {
-                "line1": config.from_street_address,
-                "line2": None,
-                "city": config.from_city,
-                "region": config.from_country_area,
-                "country": config.from_country,
-                "postalCode": config.from_postal_code,
-            },
-            "shipTo": {
-                "line1": address.get("street_address_1"),
-                "line2": address.get("street_address_2"),
-                "city": address.get("city"),
-                "region": address.get("country_area"),
-                "country": address.get("country"),
-                "postalCode": address.get("postal_code"),
-            },
-        },
+        "addresses": addresses,
         "commit": config.autocommit,
         "currencyCode": currency,
         "email": customer_email,
@@ -480,7 +506,8 @@ def generate_request_data_from_checkout(
     transaction_type=TransactionType.ORDER,
     discounts=None,
 ):
-    address = checkout_info.shipping_address or checkout_info.billing_address
+    shipping_address = checkout_info.delivery_method_info.shipping_address
+    address = shipping_address or checkout_info.billing_address
     lines = get_checkout_lines_data(
         checkout_info, lines_info, config, tax_included, discounts
     )
@@ -570,7 +597,11 @@ def get_checkout_tax_data(
 def get_order_request_data(
     order: "Order", config: AvataxConfiguration, tax_included: bool
 ):
-    address = order.shipping_address or order.billing_address
+    if order.collection_point_id:
+        address: Address = order.collection_point.address  # type: ignore
+    else:
+        address = order.shipping_address or order.billing_address  # type: ignore
+
     transaction = (
         TransactionType.INVOICE
         if not (order.is_draft() or order.is_unconfirmed())
