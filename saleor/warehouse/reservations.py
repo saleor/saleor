@@ -380,10 +380,10 @@ def is_reservation_enabled(settings) -> bool:
     )
 
 
-def get_reservation_length(request) -> Optional[int]:
-    if request.user.is_authenticated:
-        return request.site.settings.reserve_stock_duration_authenticated_user
-    return request.site.settings.reserve_stock_duration_anonymous_user
+def get_reservation_length(site, user) -> Optional[int]:
+    if user.is_authenticated:
+        return site.settings.reserve_stock_duration_authenticated_user
+    return site.settings.reserve_stock_duration_anonymous_user
 
 
 def get_listings_reservations(

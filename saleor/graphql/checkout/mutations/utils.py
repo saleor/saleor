@@ -44,6 +44,7 @@ class CheckoutLineData:
     quantity_to_update: bool = False
     custom_price: Optional[Decimal] = None
     custom_price_to_update: bool = False
+    metadata_list: Optional[list] = None
 
 
 def clean_delivery_method(
@@ -311,10 +312,14 @@ def group_lines_input_on_add(
     for line in lines:
         variant_id = cast(str, line.get("variant_id"))
         force_new_line = line.get("force_new_line")
+        metadata_list = line.get("metadata")
+
         _, variant_db_id = graphene.Node.from_global_id(variant_id)
 
         if force_new_line:
-            line_data = CheckoutLineData(variant_id=variant_db_id)
+            line_data = CheckoutLineData(
+                variant_id=variant_db_id, metadata_list=metadata_list
+            )
             grouped_checkout_lines_data.append(line_data)
         else:
             _, variant_db_id = graphene.Node.from_global_id(variant_id)
@@ -327,6 +332,7 @@ def group_lines_input_on_add(
                 if not line_db_id:
                     line_data = checkout_lines_data_map[variant_db_id]
                     line_data.variant_id = variant_db_id
+                    line_data.metadata_list = metadata_list
                 else:
                     line_data = checkout_lines_data_map[line_db_id]
                     line_data.line_id = line_db_id
@@ -334,9 +340,16 @@ def group_lines_input_on_add(
                         line_db_id, existing_lines_info
                     )
 
+                    if line_data.metadata_list and metadata_list:
+                        line_data.metadata_list += metadata_list
+                    else:
+                        line_data.metadata_list = metadata_list
+
             # when variant already exist in multiple lines then create a new line
             except ValidationError:
-                line_data = CheckoutLineData(variant_id=variant_db_id)
+                line_data = CheckoutLineData(
+                    variant_id=variant_db_id, metadata_list=metadata_list
+                )
                 grouped_checkout_lines_data.append(line_data)
 
         if (quantity := line.get("quantity")) is not None:

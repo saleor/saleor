@@ -87,6 +87,7 @@ from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
+from ...site.dataloaders import load_site
 from ...tax.dataloaders import (
     ProductChargeTaxesByTaxClassIdLoader,
     TaxClassByIdLoader,
@@ -405,12 +406,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     ):
         if address is not None:
             country_code = address.country
-
+        site = load_site(info.context)
         channel_slug = str(root.channel_slug) if root.channel_slug else None
 
-        global_quantity_limit_per_checkout = (
-            info.context.site.settings.limit_quantity_per_checkout
-        )
+        global_quantity_limit_per_checkout = site.settings.limit_quantity_per_checkout
 
         if root.node.is_preorder_active():
             variant = root.node
@@ -423,7 +422,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                     channel_listing
                     and channel_listing.preorder_quantity_threshold is not None
                 ):
-                    if is_reservation_enabled(info.context.site.settings):
+                    if is_reservation_enabled(site.settings):
                         quantity_reserved = (
                             PreorderQuantityReservedByVariantChannelListingIdLoader(
                                 info.context
@@ -468,7 +467,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                         available_quantity = variant.preorder_global_threshold
                         available_quantity -= global_sold_units
 
-                        if is_reservation_enabled(info.context.site.settings):
+                        if is_reservation_enabled(site.settings):
                             quantity_reserved = (
                                 PreorderQuantityReservedByVariantChannelListingIdLoader(
                                     info.context
@@ -1032,6 +1031,19 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                     local_currency = None
                     country_code = address_country or channel.default_country.code
                     local_currency = get_currency_for_country(country_code)
+
+                    tax_config_country = next(
+                        (
+                            tc
+                            for tc in tax_configs_per_country
+                            if tc.country.code == country_code
+                        ),
+                        None,
+                    )
+                    display_gross_prices = get_display_gross_prices(
+                        tax_config,
+                        tax_config_country,
+                    )
 
                     tax_config_country = next(
                         (

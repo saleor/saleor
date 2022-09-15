@@ -70,7 +70,7 @@ documentation = "https://docs.saleor.io/"
   posuto = "^2022.3.0"
   cryptography = "^37.0.2"
   graphene = "<3.0"
-  uvicorn = {extras = ["standard"], version = "^0.17.5"}
+  uvicorn = {extras = ["standard"], version = "^0.18.3"}
   Authlib = "^1.0.0"
   types-redis = "^4.2.6"
 
