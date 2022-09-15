@@ -4,11 +4,14 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.8.0 [Unreleased]
 
+### GraphQL API
+- Add ability to filter by slug. #10578 by @kadewu
+  - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
+  - Deprecated `slug` in filter for `menus`. Use `slugs` instead
+
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
-- Add ability to filter by slug. #10578 by @kadewu
-  - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
 
 # 3.7.0
 
