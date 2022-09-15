@@ -98,6 +98,7 @@ class CheckoutInfo:
 class DeliveryMethodBase:
     delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]] = None
     shipping_address: Optional["Address"] = None
+    store_as_customer_address: bool = False
 
     @property
     def warehouse_pk(self) -> Optional[str]:
@@ -129,6 +130,7 @@ class DeliveryMethodBase:
 class ShippingMethodInfo(DeliveryMethodBase):
     delivery_method: "ShippingMethodData"
     shipping_address: Optional["Address"]
+    store_as_customer_address: bool = True
 
     @property
     def delivery_method_name(self) -> Dict[str, Optional[str]]:

@@ -434,7 +434,7 @@ def get_order_lines_data(
         if tax_class:
             append_shipping_to_data(
                 data=data,
-                shipping_price_amount=shipping_price,
+                shipping_price_amount=shipping_price if shipping_price else None,
                 shipping_tax_code=config.shipping_tax_code,
                 prices_entered_with_tax=prices_entered_with_tax,
                 discounted=shipping_discounted,
@@ -499,6 +499,8 @@ def generate_request_data_from_checkout(
     lines = generate_request_data_from_checkout_lines(
         checkout_info, lines_info, config, discounts
     )
+    if not lines:
+        return {}
     voucher = checkout_info.voucher
     # for apply_once_per_order vouchers the discount is already applied on lines
     discount_amount = (
@@ -555,6 +557,9 @@ def get_cached_response_or_fetch(
 
     Return cached response if requests data are the same. Fetch new data in other cases.
     """
+    # if the data is empty it means there is nothing to send to avalara
+    if not data:
+        return None
     data_cache_key = CACHE_KEY + token_in_cache
     cached_data = cache.get(data_cache_key)
     if taxes_need_new_fetch(data, cached_data) or force_refresh:
@@ -586,6 +591,9 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     discount_amount = get_total_order_discount_excluding_shipping(order).amount
     discounted_lines = discount_amount != Decimal("0")
     lines = get_order_lines_data(order, config, discounted=discounted_lines)
+    # if there is no lines to sent we do not want to send the request to avalara
+    if not lines:
+        return {}
     data = generate_request_data(
         transaction_type=transaction,
         lines=lines,
@@ -606,9 +614,8 @@ def get_order_tax_data(
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.id, config, force_refresh
     )
-    error = response.get("error")
-    if error:
-        raise TaxError(error)
+    if response and "error" in response:
+        raise TaxError(response.get("error"))
     return response
 
 

@@ -276,7 +276,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
-    def _save_lines(info, instance, lines_data):
+    def _save_lines(info, instance, lines_data, app):
         if lines_data:
             lines = []
             for line_data in lines_data:
@@ -288,7 +288,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 lines.append(new_line)
 
             # New event
-            app = load_app(info.context)
             events.order_added_products_event(
                 order=instance,
                 user=info.context.user,
@@ -297,14 +296,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance):
+    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app):
         if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
         if is_new_instance:
-            app = load_app(info.context)
             events.draft_order_created_event(
                 order=instance, user=info.context.user, app=app
             )
@@ -320,22 +318,23 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        app = load_app(info.context)
         return cls._save_draft_order(
-            info, instance, cleaned_input, is_new_instance=True
+            info, instance, cleaned_input, is_new_instance=True, app=app
         )
 
     @classmethod
     @traced_atomic_transaction()
-    def _save_draft_order(cls, info, instance, cleaned_input, *, is_new_instance):
+    def _save_draft_order(cls, info, instance, cleaned_input, *, is_new_instance, app):
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
-        cls._commit_changes(info, instance, cleaned_input, is_new_instance)
+        cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
 
         try:
             # Process any lines to add
-            cls._save_lines(info, instance, cleaned_input.get("lines_data"))
+            cls._save_lines(info, instance, cleaned_input.get("lines_data"), app)
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),

@@ -21,6 +21,7 @@ from ...warehouse.models import (
 )
 from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
+from ..site.dataloaders import load_site
 
 CountryCode = Optional[str]
 VariantIdCountryCodeChannelSlug = Tuple[int, CountryCode, str]
@@ -74,6 +75,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     ) -> Iterable[Tuple[int, int]]:
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
+        site = load_site(self.context)
         stocks = (
             Stock.objects.all()
             .using(self.database_connection_name)
@@ -122,7 +124,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         # Return the quantities after capping them at the maximum quantity allowed in
         # checkout. This prevent users from tracking the store's precise stock levels.
         global_quantity_limit = (
-            self.context.site.settings.limit_quantity_per_checkout  # type: ignore
+            site.settings.limit_quantity_per_checkout  # type: ignore
         )
         return [
             (
@@ -209,7 +211,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     def prepare_stocks_reservations_map(self, variant_ids):
         """Prepare stock id to quantity reserved map for provided variant ids."""
         stocks_reservations = defaultdict(int)
-        if is_reservation_enabled(self.context.site.settings):  # type: ignore
+        site = load_site(self.context)
+        if is_reservation_enabled(site.settings):  # type: ignore
             # Can't do second annotation on same queryset because it made
             # available_quantity annotated value incorrect thanks to how
             # Django's ORM builds SQLs with annotations
