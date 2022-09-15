@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.8.0 [Unreleased]
 
+### Other changes
+
+- Reference attribute linking to product variants - #10468 by @IKarbowiak
+
 # 3.7.0
 
 ### Highlights
@@ -29,6 +33,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Trigger the `SALE_DELETED` webhook when deleting sales in bulk (#10461) (2052841e9)
+- Add `FULFILLMENT_APPROVED` webhook - #10621 by @IKarbowiak
 
 ### Other changes
 

@@ -107,6 +107,7 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
+from ..site.dataloaders import load_site
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -1463,7 +1464,8 @@ class Order(ModelObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            keep_gross = info.context.site.settings.include_taxes_in_prices
+            site = load_site(info.context)
+            keep_gross = site.settings.include_taxes_in_prices
             price = root.shipping_price_gross if keep_gross else root.shipping_price_net
             return ShippingMethodData(
                 id=external_app_shipping_id,

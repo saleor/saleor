@@ -1544,6 +1544,9 @@ enum WebhookEventTypeEnum {
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
 
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
   """User notification triggered."""
   NOTIFY_USER
 
@@ -1951,6 +1954,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
+
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2578,6 +2584,7 @@ enum WebhookSampleEventTypeEnum {
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -4828,6 +4835,7 @@ enum AttributeInputTypeEnum {
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
+  PRODUCT_VARIANT
 }
 
 """An enumeration."""
@@ -13217,6 +13225,13 @@ type Mutation {
     """
     id: ID
 
+    """
+    Fields required to update the checkout metadata.
+    
+    Added in Saleor 3.8.
+    """
+    metadata: [MetadataInput!]
+
     """Client-side generated data required to finalize the payment."""
     paymentData: JSONString
 
@@ -13624,6 +13639,20 @@ type Mutation {
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
     id: ID!
+
+    """
+    Fields required to update the checkout metadata.
+    
+    Added in Saleor 3.8.
+    """
+    metadata: [MetadataInput!]
+
+    """
+    Fields required to update the checkout private metadata.
+    
+    Added in Saleor 3.8.
+    """
+    privateMetadata: [MetadataInput!]
 
     """
     Determines if checkout should be removed after creating an order. Default true.
@@ -19611,6 +19640,13 @@ input CheckoutLineInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   forceNewLine: Boolean = false
+
+  """
+  Fields required to update the object's metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
 }
 
 input CheckoutValidationRules {
@@ -22902,6 +22938,33 @@ Added in Saleor 3.4.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type FulfillmentCanceled implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
+}
+
+"""
+Event sent when fulfillment is approved.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type FulfillmentApproved implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

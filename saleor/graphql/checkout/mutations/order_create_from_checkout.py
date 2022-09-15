@@ -9,9 +9,10 @@ from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
 from ...app.dataloaders import load_app
-from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
-from ...core.mutations import BaseMutation
-from ...core.types import Error
+from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
+from ...core.types import Error, NonNullList
+from ...discount.dataloaders import load_discounts
+from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
 from ...order.types import Order
 from ..enums import OrderCreateFromCheckoutErrorCode
 from ..types import Checkout
@@ -34,7 +35,7 @@ class OrderCreateFromCheckoutError(Error):
     )
 
 
-class OrderCreateFromCheckout(BaseMutation):
+class OrderCreateFromCheckout(BaseMutationWithMetadata):
     order = graphene.Field(Order, description="Placed order.")
 
     class Arguments:
@@ -48,6 +49,20 @@ class OrderCreateFromCheckout(BaseMutation):
                 "Default true."
             ),
             default_value=True,
+        )
+        private_metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the checkout private metadata." + ADDED_IN_38
+            ),
+            required=False,
+        )
+        metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the checkout metadata." + ADDED_IN_38
+            ),
+            required=False,
         )
 
     class Meta:
@@ -81,9 +96,17 @@ class OrderCreateFromCheckout(BaseMutation):
             only_type=Checkout,
             code=OrderCreateFromCheckoutErrorCode.CHECKOUT_NOT_FOUND.value,
         )
+
+        cls.validate_metadata(
+            info,
+            checkout_id,
+            data.get("metadata"),
+            data.get("private_metadata"),
+        )
+
         tracking_code = analytics.get_client_id(info.context)
 
-        discounts = info.context.discounts
+        discounts = load_discounts(info.context)
         manager = info.context.plugins
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
@@ -102,12 +125,14 @@ class OrderCreateFromCheckout(BaseMutation):
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines=checkout_lines,
-                discounts=info.context.discounts,
+                discounts=discounts,
                 manager=info.context.plugins,
                 user=info.context.user,
                 app=app,
                 tracking_code=tracking_code,
                 delete_checkout=data["remove_checkout"],
+                metadata_list=data.get("metadata"),
+                private_metadata_list=data.get("private_metadata"),
             )
         except NotApplicable:
             code = OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value

@@ -10,6 +10,7 @@ from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...site.dataloaders import load_site
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
 from .order_fulfill import OrderFulfill
@@ -44,9 +45,9 @@ class FulfillmentApprove(BaseMutation):
             )
 
         OrderFulfill.check_lines_for_preorder([line.order_line for line in fulfillment])
-
+        site = load_site(info.context)
         if (
-            not info.context.site.settings.fulfillment_allow_unpaid
+            not site.settings.fulfillment_allow_unpaid
             and not fulfillment.order.is_fully_paid()
         ):
             raise ValidationError(
@@ -60,15 +61,15 @@ class FulfillmentApprove(BaseMutation):
         cls.clean_input(info, fulfillment)
 
         order = fulfillment.order
-
+        app = load_app(info.context)
+        site = load_site(info.context)
         try:
-            app = load_app(info.context)
             fulfillment = approve_fulfillment(
                 fulfillment,
                 info.context.user,
                 app,
                 info.context.plugins,
-                info.context.site.settings,
+                site.settings,
                 notify_customer=data["notify_customer"],
                 allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
             )

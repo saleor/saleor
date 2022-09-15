@@ -5,7 +5,7 @@ interactions:
       true, "itemCode": "123", "discounted": false, "description": "Test product",
       "ref1": "123"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded":
       true, "itemCode": "Shipping", "discounted": false, "description": null}], "code":
-      "75071540-ceff-4abd-9bd3-f317858d5071", "date": "2022-06-10", "customerCode":
+      "aa47aeb1-94c6-49e4-a05a-8ef59066021e", "date": "2022-09-08", "customerCode":
       0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
       null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
       "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
@@ -23,9 +23,9 @@ interactions:
       Content-Length:
       - '845'
       User-Agent:
-      - python-requests/2.27.1
+      - python-requests/2.28.1
     method: POST
-    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
       string: '{"error": {"code": "AuthenticationException","message": "Authentication
@@ -40,13 +40,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 10 Jun 2022 12:09:21 GMT
+      - Thu, 08 Sep 2022 10:53:26 GMT
       X-Content-Type-Options:
       - nosniff
       x-avalara-uid:
-      - ba50d016-7003-411c-b2ec-75466f242d47
+      - b077b5e5-5c80-4c04-a1d7-59bb3606fd66
       x-correlation-id:
-      - ba50d016-7003-411c-b2ec-75466f242d47
+      - b077b5e5-5c80-4c04-a1d7-59bb3606fd66
     status:
       code: 401
       message: Unauthorized
