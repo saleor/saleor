@@ -27,6 +27,7 @@ def checkout_shipping_price(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -39,6 +40,7 @@ def checkout_shipping_price(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -72,6 +74,7 @@ def checkout_subtotal(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -84,6 +87,7 @@ def checkout_subtotal(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -94,6 +98,7 @@ def calculate_checkout_total_with_gift_cards(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None,
 ) -> "TaxedMoney":
     total = (
         checkout_total(
@@ -102,6 +107,7 @@ def calculate_checkout_total_with_gift_cards(
             lines=lines,
             address=address,
             discounts=discounts,
+            site_settings=site_settings,
         )
         - checkout_info.checkout.get_total_gift_cards_balance()
     )
@@ -116,6 +122,7 @@ def checkout_total(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -131,6 +138,7 @@ def checkout_total(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -157,6 +165,7 @@ def checkout_line_total(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo] = [],
+    site_settings: Optional["SiteSettings"] = None
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -170,6 +179,7 @@ def checkout_line_total(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
     return quantize_price(checkout_line.total_price, currency)
