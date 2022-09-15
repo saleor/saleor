@@ -2813,7 +2813,8 @@ def test_get_checkout_line_tax_rate(
             convert_to_shipping_method_data(
                 delivery_method,
                 delivery_method.channel_listings.first(),
-            )
+            ),
+            address,
         ),
         shipping_address=address,
         billing_address=None,
@@ -2945,7 +2946,8 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
             convert_to_shipping_method_data(
                 delivery_method,
                 delivery_method.channel_listings.first(),
-            )
+            ),
+            address,
         ),
         shipping_address=address,
         billing_address=None,
@@ -2974,7 +2976,6 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         )
         for checkout_line_info in lines
     ]
-
     # then
     assert tax_rates[0] == Decimal("0.23")
     assert tax_rates[1] == Decimal("0.0")
@@ -3167,24 +3168,9 @@ def test_get_checkout_shipping_tax_rate(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
-    delivery_method = checkout_with_item.shipping_method
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = CheckoutInfo(
-        checkout=checkout_with_item,
-        delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(
-                delivery_method,
-                delivery_method.channel_listings.first(),
-            )
-        ),
-        shipping_address=address,
-        billing_address=None,
-        channel=checkout_with_item.channel,
-        user=None,
-        valid_pick_up_points=[],
-        all_shipping_methods=[],
-    )
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
