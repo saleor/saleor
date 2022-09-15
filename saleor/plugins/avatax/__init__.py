@@ -195,14 +195,8 @@ def _validate_checkout(
         return False
 
     shipping_required = is_shipping_required(lines)
-    if checkout_info.checkout.collection_point_id:
-        shipping_address = (
-            checkout_info.checkout.collection_point.address  # type: ignore
-        )
-        address = shipping_address
-    else:
-        shipping_address = checkout_info.shipping_address
-        address = shipping_address or checkout_info.billing_address
+    shipping_address = checkout_info.delivery_method_info.shipping_address
+    address = shipping_address or checkout_info.billing_address
     return _validate_adddress_details(
         shipping_address,
         shipping_required,
@@ -446,6 +440,9 @@ def _is_single_location(ship_from, ship_to):
             return False
         if not value and not ship_to[key]:
             continue
+        if value is None or ship_to[key] is None:
+            return False
+
         if value.lower() == ship_to[key].lower():
             continue
         return False
@@ -509,15 +506,8 @@ def generate_request_data_from_checkout(
     transaction_type=TransactionType.ORDER,
     discounts=None,
 ):
-    if checkout_info.checkout.collection_point_id:
-        address: Address = (
-            checkout_info.checkout.collection_point.address  # type:ignore
-        )
-    else:
-        address = (
-            checkout_info.shipping_address
-            or checkout_info.billing_address  # type:ignore
-        )
+    shipping_address = checkout_info.delivery_method_info.shipping_address
+    address = shipping_address or checkout_info.billing_address
     lines = get_checkout_lines_data(
         checkout_info, lines_info, config, tax_included, discounts
     )
