@@ -518,6 +518,9 @@ def test_products_with_filtering_without_channel(
         ({"price": {"gte": 11}}, 1),
         ({"minimalPrice": {"lte": 4}}, 1),
         ({"minimalPrice": {"gte": 5}}, 3),
+        ({"slugs": ["prod1"]}, 1),
+        ({"slugs": ["prod_prod1", "prod_prod2"]}, 2),
+        ({"slugs": []}, 4),
     ],
 )
 def test_products_with_filtering_with_channel_USD(
@@ -590,6 +593,7 @@ def test_products_with_filtering_with_channel_PLN(
         {"price": {"gte": 11}},
         {"minimalPrice": {"lte": 4}},
         {"minimalPrice": {"gte": 5}},
+        {"slugs": ["prod1"]},
     ],
 )
 def test_products_with_filtering_and_not_existing_channel(

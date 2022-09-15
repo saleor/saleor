@@ -641,7 +641,11 @@ type Query {
     """Sort menus."""
     sortBy: MenuSortingInput
 
-    """Filtering options for menus."""
+    """
+    Filtering options for menus. 
+    
+    `slug`: This field will be removed in Saleor 4.0. Use `slugs` instead.
+    """
     filter: MenuFilterInput
 
     """Return the elements in the list that come before the specified cursor."""
@@ -5077,6 +5081,7 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6013,6 +6018,7 @@ input ProductFilterInput {
   giftCard: Boolean
   ids: [ID!]
   hasPreorderedVariants: Boolean
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6260,6 +6266,7 @@ input WarehouseFilterInput {
   ids: [ID!]
   isPrivate: Boolean
   channels: [ID!]
+  slugs: [String!]
 }
 
 input WarehouseSortingInput {
@@ -9682,6 +9689,7 @@ input CategoryFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 input CategorySortingInput {
@@ -9715,6 +9723,7 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -9780,6 +9789,7 @@ input ProductTypeFilterInput {
   metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
   ids: [ID!]
+  slugs: [String!]
 }
 
 enum ProductTypeConfigurable {
@@ -9911,6 +9921,7 @@ input PageFilterInput {
   metadata: [MetadataFilter!]
   pageTypes: [ID!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 type PageTypeCountableConnection {
@@ -9948,6 +9959,7 @@ enum PageTypeSortField {
 
 input PageTypeFilterInput {
   search: String
+  slugs: [String!]
 }
 
 type OrderEventCountableConnection {
@@ -10085,6 +10097,7 @@ input MenuFilterInput {
   search: String
   slug: [String!]
   metadata: [MetadataFilter!]
+  slugs: [String!]
 }
 
 type MenuItemCountableConnection {
