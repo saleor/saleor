@@ -708,6 +708,7 @@ class AvataxPlugin(BasePlugin):
         response = get_checkout_tax_data(
             checkout_info, lines_info, self.config.tax_included, discounts, self.config
         )
+
         if not response or "error" in response:
             return None
 
