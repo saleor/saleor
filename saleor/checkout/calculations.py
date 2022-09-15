@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ..checkout import base_calculations
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
@@ -242,23 +243,27 @@ def fetch_checkout_prices_if_expired(
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
     checkout = checkout_info.checkout
-    if not force_update and checkout.price_expiration > timezone.now():
-        return checkout_info, lines
-
-    # Taxes are applied to the discounted prices
-    _apply_tax_data_from_plugins(
-        checkout, manager, checkout_info, lines, address, discounts
-    )
-
-    tax_data = manager.get_taxes_for_checkout(
-        checkout_info,
-        lines,
-    )
-    if tax_data:
-        _apply_tax_data_from_app(checkout, lines, tax_data)
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
+
+    if not force_update and checkout.price_expiration > timezone.now():
+        return checkout_info, lines
+
+    if checkout.tax_exemption and not site_settings.include_taxes_in_prices:
+        _get_checkout_default_tax_data(checkout, checkout_info, lines, discounts)
+    else:
+        # Taxes are applied to the discounted prices
+        _apply_tax_data_from_plugins(
+            checkout, manager, checkout_info, lines, address, discounts
+        )
+
+        tax_data = manager.get_taxes_for_checkout(
+            checkout_info,
+            lines,
+        )
+        if tax_data:
+            _apply_tax_data_from_app(checkout, lines, tax_data)
 
     if checkout.tax_exemption and site_settings.include_taxes_in_prices:
         _exempt_taxes_in_checkout(checkout, lines)
@@ -410,4 +415,60 @@ def _apply_tax_data_from_plugins(
     )
     checkout.total = manager.calculate_checkout_total(
         checkout_info, lines, address, discounts
+    )
+
+
+def _get_checkout_default_tax_data(
+    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> None:
+    if not discounts:
+        discounts = []
+
+    currency = checkout_info.checkout.currency
+
+    for line_info in lines:
+        line = line_info.line
+
+        total_price_default = base_calculations.calculate_base_line_total_price(
+            line_info,
+            checkout_info.channel,
+            discounts,
+        )
+        line.total_price = quantize_price(
+            TaxedMoney(net=total_price_default, gross=total_price_default), currency
+        )
+
+        unit_price_default = base_calculations.calculate_base_line_unit_price(
+            line_info, checkout_info.channel, discounts
+        )
+        unit_price = quantize_price(
+            TaxedMoney(net=unit_price_default, gross=unit_price_default), currency
+        )
+
+        line.tax_rate = base_calculations.base_tax_rate(unit_price)
+
+    shipping_price_default = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
+    )
+    checkout.shipping_price = quantize_price(
+        TaxedMoney(shipping_price_default, shipping_price_default), currency
+    )
+
+    checkout.shipping_tax_rate = base_calculations.base_tax_rate(
+        checkout.shipping_price
+    )
+
+    subtotal_default = sum(
+        [line_info.line.total_price for line_info in lines], zero_taxed_money(currency)
+    )
+    checkout.subtotal = subtotal_default
+
+    total_default = base_calculations.base_checkout_total(
+        checkout_info, discounts, lines
+    )
+    checkout.total = quantize_price(
+        TaxedMoney(net=total_default, gross=total_default), currency
     )
