@@ -1,0 +1,68 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesInvoice",
+      "lines": [{"quantity": 3, "amount": "36.900", "taxCode": "O9999999", "taxIncluded":
+      true, "itemCode": "SKU_A", "discounted": false, "description": "Test product"}],
+      "code": "02ac1095-b6cc-4f64-ad58-63c63c950f42", "date": "2022-09-15", "customerCode":
+      0, "discount": null, "addresses": {"singleLocation": {"line1": "4371 Lucas Knoll
+      Apt. 791", "line2": "", "city": "BENNETTMOUTH", "region": "", "country": "PL",
+      "postalCode": "53-601"}}, "commit": false, "currencyCode": "USD", "email": "test@example.com"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '584'
+      User-Agent:
+      - python-requests/2.28.1
+    method: POST
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: '{"id":85009482781094,"code":"02ac1095-b6cc-4f64-ad58-63c63c950f42","companyId":7799660,"date":"2022-09-15","status":"Saved","type":"SalesInvoice","batchCode":"","currencyCode":"USD","exchangeRateCurrencyCode":"USD","customerUsageType":"","entityUseCode":"","customerVendorCode":"0","customerCode":"0","exemptNo":"","reconciled":false,"locationCode":"","reportingLocationCode":"","purchaseOrderNo":"","referenceCode":"","salespersonCode":"","taxOverrideType":"None","taxOverrideAmount":0.0,"taxOverrideReason":"","totalAmount":30.0,"totalExempt":0.0,"totalDiscount":0.0,"totalTax":6.9,"totalTaxable":30.0,"totalTaxCalculated":6.9,"adjustmentReason":"NotAdjusted","adjustmentDescription":"","locked":false,"region":"","country":"PL","version":1,"softwareVersion":"22.8.2.0","originAddressId":85009482781095,"destinationAddressId":85009482781095,"exchangeRateEffectiveDate":"2022-09-15","exchangeRate":1.0,"description":"","email":"test@example.com","businessIdentificationNo":"","modifiedDate":"2022-09-15T08:49:34.1753817Z","modifiedUserId":6479978,"taxDate":"2022-09-15","lines":[{"id":85009482781104,"transactionId":85009482781094,"lineNumber":"1","boundaryOverrideId":0,"customerUsageType":"","entityUseCode":"","description":"Test
+        product","destinationAddressId":85009482781095,"originAddressId":85009482781095,"discountAmount":0.0,"discountTypeId":0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"isSSTP":false,"itemCode":"SKU_A","lineAmount":30.0000,"quantity":3.0,"ref1":"","ref2":"","reportingDate":"2022-09-15","revAccount":"","sourcing":"Destination","tax":6.9,"taxableAmount":30.0,"taxCalculated":6.9,"taxCode":"O9999999","taxCodeId":9111,"taxDate":"2022-09-15","taxEngine":"","taxOverrideType":"None","businessIdentificationNo":"","taxOverrideAmount":0.0,"taxOverrideReason":"","taxIncluded":true,"details":[{"id":85009482781132,"transactionLineId":85009482781104,"transactionId":85009482781094,"addressId":85009482781095,"country":"PL","region":"PL","countyFIPS":"","stateFIPS":"","exemptAmount":0.0000,"exemptReasonId":4,"inState":true,"jurisCode":"PL","jurisName":"POLAND","jurisdictionId":200102,"signatureCode":"","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0000,"nonTaxableRuleId":0,"nonTaxableType":"RateRule","rate":0.230000,"rateRuleId":411502,"rateSourceId":0,"serCode":"","sourcing":"Destination","tax":6.9000,"taxableAmount":30.0000,"taxType":"Output","taxSubTypeId":"O","taxTypeGroupId":"InputAndOutput","taxName":"Standard
+        Rate","taxAuthorityTypeId":45,"taxRegionId":205102,"taxCalculated":6.9000,"taxOverride":0.0000,"rateType":"Standard","rateTypeCode":"S","taxableUnits":30.0000,"nonTaxableUnits":0.0000,"exemptUnits":0.0000,"unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":30.0,"reportingNonTaxableUnits":0.0,"reportingExemptUnits":0.0,"reportingTax":6.9,"reportingTaxCalculated":6.9,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"lineLocationTypes":[{"documentLineLocationTypeId":85009482781106,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"ShipFrom"},{"documentLineLocationTypeId":85009482781107,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"ShipTo"},{"documentLineLocationTypeId":85009482781108,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"PointOfOrderAcceptance"},{"documentLineLocationTypeId":85009482781109,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"PointOfOrderOrigin"},{"documentLineLocationTypeId":85009482781110,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"GoodsPlaceOrServiceRendered"},{"documentLineLocationTypeId":85009482781111,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"Import"},{"documentLineLocationTypeId":85009482781112,"documentLineId":85009482781104,"documentAddressId":85009482781095,"locationTypeCode":"BillTo"}],"parameters":[{"name":"Transport","value":"None"},{"name":"IsMarketplace","value":"False"},{"name":"IsTriangulation","value":"false"},{"name":"IsGoodsSecondHand","value":"false"}],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230C","vatNumberTypeId":0}],"addresses":[{"id":85009482781095,"transactionId":85009482781094,"boundaryLevel":"Zip5","line1":"4371
+        Lucas Knoll Apt. 791","line2":"","line3":"","city":"BENNETTMOUTH","region":"","postalCode":"53-601","country":"PL","taxRegionId":205102}],"locationTypes":[{"documentLocationTypeId":85009482781097,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"ShipFrom"},{"documentLocationTypeId":85009482781098,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"ShipTo"},{"documentLocationTypeId":85009482781099,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"PointOfOrderAcceptance"},{"documentLocationTypeId":85009482781100,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"PointOfOrderOrigin"},{"documentLocationTypeId":85009482781101,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"GoodsPlaceOrServiceRendered"},{"documentLocationTypeId":85009482781102,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"Import"},{"documentLocationTypeId":85009482781103,"documentId":85009482781094,"documentAddressId":85009482781095,"locationTypeCode":"BillTo"}],"summary":[{"country":"PL","region":"PL","jurisType":"Country","jurisCode":"PL","jurisName":"POLAND","taxAuthorityType":45,"stateAssignedNo":"","taxType":"Output","taxSubType":"O","taxName":"Standard
+        Rate","rateType":"Standard","taxable":30.00,"rate":0.230000,"tax":6.90,"taxCalculated":6.90,"nonTaxable":0.00,"exemption":0.00}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 15 Sep 2022 08:49:34 GMT
+      Location:
+      - /api/v2/companies/7799660/transactions/85009482781094
+      ServerDuration:
+      - '00:00:00.0875476'
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      api-supported-versions:
+      - '2.0'
+      cache-control:
+      - private, no-cache, no-store
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - 0e26ad5a-f529-4437-b903-7c7982209764
+      x-correlation-id:
+      - 0e26ad5a-f529-4437-b903-7c7982209764
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1
