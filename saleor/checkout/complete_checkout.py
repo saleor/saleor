@@ -1086,6 +1086,7 @@ def _create_order_from_checkout(
         private_metadata=checkout_info.checkout.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
+        tax_exemption=checkout_info.checkout.tax_exemption,
         **_process_shipping_data_for_order(
             checkout_info, shipping_total, manager, checkout_lines_info
         ),
