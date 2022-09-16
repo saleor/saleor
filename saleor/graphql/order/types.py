@@ -1068,7 +1068,7 @@ class Order(ModelObjectType):
         required=True,
         description=(
             "The difference amount between granted refund and the "
-            "amounts that are pending and refunded.." + ADDED_IN_38 + PREVIEW_FEATURE
+            "amounts that are pending and refunded." + ADDED_IN_38 + PREVIEW_FEATURE
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )

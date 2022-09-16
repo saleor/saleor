@@ -8647,7 +8647,7 @@ type Order implements Node & ObjectWithMetadata {
   totalPendingRefund: Money!
 
   """
-  The difference amount between granted refund and the amounts that are pending and refunded..
+  The difference amount between granted refund and the amounts that are pending and refunded.
   
   Added in Saleor 3.8.
   
