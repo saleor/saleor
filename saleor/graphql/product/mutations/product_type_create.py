@@ -5,7 +5,6 @@ from ....attribute import AttributeType
 from ....core.permissions import ProductTypePermissions
 from ....product import ProductTypeKind, models
 from ....product.error_codes import ProductErrorCode
-from ....tax.models import TaxClass
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import ModelMutation
 from ...core.scalars import WeightScalar
@@ -57,7 +56,8 @@ class ProductTypeInput(graphene.InputObjectType):
             "ID of a tax class to assign to this product type. All products of this "
             "product type would use this tax class, unless it's overridden in the "
             "`Product` type."
-        )
+        ),
+        required=False,
     )
 
 
@@ -106,11 +106,6 @@ class ProductTypeCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
-
-        if "tax_class" in data and data["tax_class"] is None:
-            cleaned_input["tax_class"] = TaxClass.objects.filter(
-                is_default=True
-            ).first()
 
         cls.validate_attributes(cleaned_input)
 

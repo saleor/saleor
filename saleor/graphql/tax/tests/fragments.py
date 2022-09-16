@@ -34,7 +34,6 @@ TAX_CLASS_FRAGMENT = """
   fragment TaxClass on TaxClass {
     id
     name
-    isDefault
     countries {
       country {
         code

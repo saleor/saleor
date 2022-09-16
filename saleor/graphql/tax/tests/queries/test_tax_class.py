@@ -21,7 +21,6 @@ def _test_field_resolvers(tax_class: TaxClass, data: dict):
     country_rate = country_rates[0]
     assert data["id"] == graphene.Node.to_global_id("TaxClass", tax_class.pk)
     assert data["name"] == tax_class.name
-    assert data["isDefault"] == tax_class.is_default
     assert len(data["countries"]) == len(country_rates)
     assert country_rate
     assert data["countries"][0]["country"]["code"] == country_rate.country.code

@@ -22,7 +22,6 @@ class TaxClassUpdateErrorCode(Enum):
 
 
 class TaxClassDeleteErrorCode(Enum):
-    CANNOT_DELETE_DEFAULT_CLASS = "cannot_delete_default_class"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
