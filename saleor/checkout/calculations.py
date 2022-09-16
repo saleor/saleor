@@ -261,7 +261,7 @@ def fetch_checkout_prices_if_expired(
         return checkout_info, lines
 
     if checkout.tax_exemption and not site_settings.include_taxes_in_prices:
-        _get_checkout_default_tax_data(checkout, checkout_info, lines, discounts)
+        _get_checkout_base_prices(checkout, checkout_info, lines, discounts)
     else:
         # Taxes are applied to the discounted prices
         _apply_tax_data_from_plugins(
@@ -428,7 +428,7 @@ def _apply_tax_data_from_plugins(
     )
 
 
-def _get_checkout_default_tax_data(
+def _get_checkout_base_prices(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],

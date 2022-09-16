@@ -67,7 +67,7 @@ def _recalculate_order_prices(
     order.total = manager.calculate_order_total(order, lines)
 
 
-def _get_order_default_tax_prices(order, lines):
+def _get_order_base_prices(order, lines):
     currency = order.currency
     undiscounted_subtotal = zero_taxed_money(currency)
 
@@ -192,7 +192,7 @@ def fetch_order_prices_if_expired(
     order.should_refresh_prices = False
 
     if order.tax_exemption and not site_settings.include_taxes_in_prices:
-        _get_order_default_tax_prices(order, lines)
+        _get_order_base_prices(order, lines)
     else:
         _recalculate_order_prices(manager, order, lines)
 
