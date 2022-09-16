@@ -63,11 +63,24 @@ def populate_tax_calculation_strategy(apps, schema_editor):
     # Set TAX_APP calculation strategy for the channels where Avalara is configured.
     # Set FLAT_RATES tax calculation strategy for channels where Vatlayer is enabled.
 
-    avatax_channels = PluginConfiguration.objects.filter(
+    avatax_configs = PluginConfiguration.objects.filter(
         active=True, identifier=AVATAX_PLUGIN_ID
-    ).values_list("channel_id", flat=True)
-    TaxConfiguration.objects.filter(channel_id__in=avatax_channels).update(
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP
+    )
+    avatax_tax_configs = []
+    for config in avatax_configs:
+        config_dict = {item["name"]: item["value"] for item in config.configuration}
+        tc = config.channel.tax_configuration
+        tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+
+        override_global_tax = config_dict.get("override_global_tax")
+        if override_global_tax:
+            include_taxes_in_prices = config_dict.get("include_taxes_in_prices")
+            if include_taxes_in_prices is not None:
+                tc.prices_entered_with_tax = include_taxes_in_prices
+
+        avatax_tax_configs.append(tc)
+    TaxConfiguration.objects.bulk_update(
+        avatax_tax_configs, ["prices_entered_with_tax", "tax_calculation_strategy"]
     )
 
     vatlayer_channels = PluginConfiguration.objects.filter(
