@@ -1,4 +1,5 @@
 """Checkout-related utility functions."""
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
@@ -747,7 +748,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
     checkout.voucher_code = None
     checkout.discount_name = None
     checkout.translated_discount_name = None
-    checkout.discount_amount = 0
+    checkout.discount_amount = Decimal("0")
     checkout.save(
         update_fields=[
             "voucher_code",
