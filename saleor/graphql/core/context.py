@@ -1,7 +1,6 @@
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 
 from ...account.models import User
@@ -11,7 +10,7 @@ if TYPE_CHECKING:
     from .dataloaders import DataLoader
 
 
-UserType = Union[User, AnonymousUser]
+UserType = Optional[User]
 
 
 class SaleorContext(HttpRequest):
@@ -20,6 +19,7 @@ class SaleorContext(HttpRequest):
     is_mutation: bool
     dataloaders: Dict[str, "DataLoader"]
     app: Optional["App"]
+    user: UserType  # type: ignore
 
 
 def set_mutation_flag_in_context(context: SaleorContext) -> None:

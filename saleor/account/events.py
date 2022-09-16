@@ -71,7 +71,7 @@ def customer_email_changed_event(
 
 
 def customer_placed_order_event(*, user: User, order: Order) -> Optional[CustomerEvent]:
-    if user.is_anonymous:
+    if not user:
         return None
 
     return CustomerEvent.objects.create(

@@ -1301,7 +1301,7 @@ class Order(ModelObjectType):
     def resolve_fulfillments(root: models.Order, info):
         def _resolve_fulfillments(fulfillments):
             user = info.context.user
-            if user.is_staff:
+            if user and user.is_staff:
                 return fulfillments
             return filter(
                 lambda fulfillment: fulfillment.status != FulfillmentStatus.CANCELED,

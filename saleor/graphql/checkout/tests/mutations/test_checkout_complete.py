@@ -5,7 +5,6 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 import pytz
-from django.contrib.auth.models import AnonymousUser
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
@@ -564,7 +563,7 @@ def test_checkout_complete_by_app_with_missing_permission(
         payment_data=ANY,
         store_source=ANY,
         discounts=ANY,
-        user=AnonymousUser(),
+        user=None,
         app=ANY,
         site_settings=ANY,
         tracking_code=ANY,

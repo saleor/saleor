@@ -8,7 +8,6 @@ from unittest.mock import ANY, MagicMock, Mock, call, patch
 import graphene
 import pytest
 import pytz
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import Sum
@@ -6530,7 +6529,7 @@ def test_order_cancel_as_app(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=AnonymousUser(), app=app_api_client.app, manager=ANY
+        order=order, user=None, app=app_api_client.app, manager=ANY
     )
 
 
@@ -8451,7 +8450,7 @@ def test_order_bulk_cancel_as_app(
     assert not data["errors"]
 
     calls = [
-        call(order=order, user=AnonymousUser(), app=app_api_client.app, manager=ANY)
+        call(order=order, user=None, app=app_api_client.app, manager=ANY)
         for order in orders
     ]
 
