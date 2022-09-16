@@ -31,6 +31,8 @@ from .mutations.order_discount_add import OrderDiscountAdd
 from .mutations.order_discount_delete import OrderDiscountDelete
 from .mutations.order_discount_update import OrderDiscountUpdate
 from .mutations.order_fulfill import OrderFulfill
+from .mutations.order_grant_refund_create import OrderGrantRefundCreate
+from .mutations.order_grant_refund_update import OrderGrantRefundUpdate
 from .mutations.order_line_delete import OrderLineDelete
 from .mutations.order_line_discount_remove import OrderLineDiscountRemove
 from .mutations.order_line_discount_update import OrderLineDiscountUpdate
@@ -205,6 +207,9 @@ class OrderMutations(graphene.ObjectType):
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()
+
+    order_grant_refund_create = OrderGrantRefundCreate.Field()
+    order_grant_refund_update = OrderGrantRefundUpdate.Field()
 
     order_lines_create = OrderLinesCreate.Field()
     order_line_delete = OrderLineDelete.Field()

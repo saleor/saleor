@@ -12355,6 +12355,32 @@ type Mutation {
   ): FulfillmentReturnProducts
 
   """
+  Adds granted refund to the order. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderGrantRefundCreate(
+    """ID of the order."""
+    id: ID!
+
+    """Fields required to create a granted refund for the order."""
+    input: OrderGrantRefundCreateInput!
+  ): OrderGrantRefundCreate
+
+  """
+  Updates granted refund. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderGrantRefundUpdate(
+    """ID of the granted refund."""
+    id: ID!
+
+    """Fields required to update a granted refund."""
+    input: OrderGrantRefundUpdateInput!
+  ): OrderGrantRefundUpdate
+
+  """
   Create order lines for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
@@ -17901,6 +17927,98 @@ input OrderReturnFulfillmentLineInput {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+}
+
+"""
+Adds granted refund to the order. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderGrantRefundCreate {
+  """Order which has assigned new grant refund."""
+  order: Order
+
+  """Created granted refund."""
+  grantedRefund: OrderGrantedRefund
+  errors: [OrderGrantRefundCreateError!]!
+}
+
+type OrderGrantRefundCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundCreateErrorCode!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+input OrderGrantRefundCreateInput {
+  """Amount of the granted refund."""
+  amount: Decimal!
+
+  """Reason of the granted refund."""
+  reason: String
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+"""
+Updates granted refund. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderGrantRefundUpdate {
+  """Order which has assigned updated grant refund."""
+  order: Order
+
+  """Created granted refund."""
+  grantedRefund: OrderGrantedRefund
+  errors: [OrderGrantRefundUpdateError!]!
+  orderGrantedRefund: OrderGrantedRefund
+}
+
+type OrderGrantRefundUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+}
+
+input OrderGrantRefundUpdateInput {
+  """Amount of the granted refund."""
+  amount: Decimal
+
+  """Reason of the granted refund."""
+  reason: String
 }
 
 """

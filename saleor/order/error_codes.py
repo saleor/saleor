@@ -36,3 +36,14 @@ class OrderErrorCode(Enum):
     MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
         "missing_transaction_action_request_webhook"
     )
+
+
+class OrderGrantRefundCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+
+
+class OrderGrantRefundUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
