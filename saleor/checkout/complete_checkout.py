@@ -509,6 +509,7 @@ def _create_order(
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
         should_refresh_prices=False,
+        tax_exemption=checkout_info.checkout.tax_exemption,
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.

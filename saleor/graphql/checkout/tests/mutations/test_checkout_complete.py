@@ -236,6 +236,7 @@ def test_checkout_complete(
     checkout.billing_address = address
     checkout.store_value_in_metadata(items={"accepted": "true"})
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.tax_exemption = True
     checkout.save()
 
     checkout_line = checkout.lines.first()
