@@ -18,7 +18,7 @@ from ....product.models import (
     VariantMedia,
 )
 from ....thumbnail.models import Thumbnail
-from ...core.dataloaders import DataLoader
+from ...core.dataloaders import DataLoader, DataLoaderWithSort
 
 ProductIdAndChannelSlug = Tuple[int, str]
 VariantIdAndChannelSlug = Tuple[int, str]
@@ -146,6 +146,21 @@ class MediaByProductIdLoader(DataLoader):
     def batch_load(self, keys):
         media = ProductMedia.objects.using(self.database_connection_name).filter(
             product_id__in=keys,
+        )
+        media_map = defaultdict(list)
+        for media_obj in media.iterator():
+            media_map[media_obj.product_id].append(media_obj)
+        return [media_map[product_id] for product_id in keys]
+
+
+class MediaByProductIdLoaderSort(DataLoaderWithSort):
+    context_key = "media_by_product_and_sort"
+
+    def batch_load(self, keys):
+        media = (
+            ProductMedia.objects.using(self.database_connection_name)
+            .filter(product_id__in=keys)
+            .order_by(*self.order)
         )
         media_map = defaultdict(list)
         for media_obj in media.iterator():
