@@ -67,6 +67,15 @@ class TransactionItem(ModelWithMetadata):
         default=Decimal("0"),
     )
 
+    amount_pending_refund = MoneyField(
+        amount_field="pending_refund_value", currency_field="currency"
+    )
+    pending_refund_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
     checkout = models.ForeignKey(
         Checkout,
         null=True,

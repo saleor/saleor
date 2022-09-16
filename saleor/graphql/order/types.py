@@ -22,6 +22,7 @@ from ...core.permissions import (
     has_one_of_permissions,
 )
 from ...core.prices import quantize_price
+from ...core.taxes import zero_money
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -34,7 +35,7 @@ from ...order.utils import (
     get_valid_collection_points_for_order,
     get_valid_shipping_methods_for_order,
 )
-from ...payment import ChargeStatus
+from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
     get_last_payment,
@@ -91,6 +92,7 @@ from ..giftcard.types import GiftCard
 from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
+from ..payment.dataloaders import TransactionByPaymentIdLoader
 from ..payment.enums import OrderAction, TransactionStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..product.dataloaders import (
@@ -1040,6 +1042,36 @@ class Order(ModelObjectType):
         description="List of granted refunds." + ADDED_IN_38 + PREVIEW_FEATURE,
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
+    total_granted_refund = PermissionsField(
+        Money,
+        required=True,
+        description="Total amount of granted refund." + ADDED_IN_38 + PREVIEW_FEATURE,
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_refunded = graphene.Field(
+        Money,
+        required=True,
+        description="Total refund amount for the order."
+        + ADDED_IN_38
+        + PREVIEW_FEATURE,
+    )
+    total_pending_refund = PermissionsField(
+        Money,
+        required=True,
+        description="Total amount of refund requested for the order."
+        + ADDED_IN_38
+        + PREVIEW_FEATURE,
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_remaining_grant = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "The difference amount between granted refund and the "
+            "amounts that are pending and refunded.." + ADDED_IN_38 + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -1623,6 +1655,116 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_granted_refunds(root: models.Order, info):
         return OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_total_granted_refund(root: models.Order, info):
+        def calculate_total_granted_refund(granted_refunds):
+            return sum(
+                [granted_refund.amount for granted_refund in granted_refunds],
+                zero_money(root.currency),
+            )
+
+        return (
+            OrderGrantedRefundsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(calculate_total_granted_refund)
+        )
+
+    @staticmethod
+    def resolve_total_refunded(root: models.Order, info):
+        def _resolve_total_refunded_for_transactions(transactions):
+            return sum(
+                [transaction.amount_refunded for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        def _resolve_total_refunded_for_payment(transactions):
+            # Calculate payment total refund requires iterating
+            # over payment's transactions
+            total_refund_amount = Decimal(0)
+            print(transactions)
+            for transaction in transactions:
+                if transaction.kind == TransactionKind.REFUND:
+                    total_refund_amount += transaction.amount
+            return prices.Money(total_refund_amount, root.currency)
+
+        def _resolve_total_refund(data):
+            payments, transactions = data
+            last_payment = get_last_payment(payments)
+            if last_payment and last_payment.is_active:
+                return (
+                    TransactionByPaymentIdLoader(info.context)
+                    .load(last_payment.id)
+                    .then(_resolve_total_refunded_for_payment)
+                )
+            return _resolve_total_refunded_for_transactions(transactions)
+
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        return Promise.all([payments, transactions]).then(_resolve_total_refund)
+
+    @staticmethod
+    def resolve_total_pending_refund(root: models.Order, info):
+        def _resolve_total_pending_refund(transactions):
+            return sum(
+                [transaction.amount_pending_refund for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_pending_refund)
+        )
+
+    @staticmethod
+    def resolve_total_remaining_grant(root: models.Order, info):
+        def _resolve_total_remaining_grant_for_transactions(
+            transactions, total_granted_refund
+        ):
+            total_pending_refund = sum(
+                [transaction.amount_pending_refund for transaction in transactions],
+                zero_money(root.currency),
+            )
+            total_refund = sum(
+                [transaction.amount_refunded for transaction in transactions],
+                zero_money(root.currency),
+            )
+            return total_granted_refund - (total_pending_refund + total_refund)
+
+        def _resolve_total_remaining_grant(data):
+            transactions, payments, granted_refunds = data
+            total_granted_refund = sum(
+                [granted_refund.amount for granted_refund in granted_refunds],
+                zero_money(root.currency),
+            )
+
+            def _resolve_total_remaining_grant_for_payment(payment_transactions):
+                total_refund_amount = Decimal(0)
+                for transaction in payment_transactions:
+                    if transaction.kind == TransactionKind.REFUND:
+                        total_refund_amount += transaction.amount
+                return prices.Money(
+                    total_granted_refund.amount - total_refund_amount, root.currency
+                )
+
+            last_payment = get_last_payment(payments)
+            if last_payment and last_payment.is_active:
+                return (
+                    TransactionByPaymentIdLoader(info.context)
+                    .load(last_payment.id)
+                    .then(_resolve_total_remaining_grant_for_payment)
+                )
+            return _resolve_total_remaining_grant_for_transactions(
+                transactions, total_granted_refund
+            )
+
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments, granted_refunds]).then(
+            _resolve_total_remaining_grant
+        )
 
 
 class OrderCountableConnection(CountableConnection):

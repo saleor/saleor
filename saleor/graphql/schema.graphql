@@ -8614,6 +8614,48 @@ type Order implements Node & ObjectWithMetadata {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   grantedRefunds: [OrderGrantedRefund!]!
+
+  """
+  Total amount of granted refund.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalGrantedRefund: Money!
+
+  """
+  Total refund amount for the order.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  totalRefunded: Money!
+
+  """
+  Total amount of refund requested for the order.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalPendingRefund: Money!
+
+  """
+  The difference amount between granted refund and the amounts that are pending and refunded..
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalRemainingGrant: Money!
 }
 
 """An enumeration."""
