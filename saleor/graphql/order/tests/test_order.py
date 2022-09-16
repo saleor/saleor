@@ -335,22 +335,6 @@ query OrdersQuery {
                         amount
                     }
                 }
-                totalRefunded{
-                    currency
-                    amount
-                }
-                totalRemainingGrant{
-                    currency
-                    amount
-                }
-                totalGrantedRefund{
-                    currency
-                    amount
-                }
-                totalPendingRefund{
-                    currency
-                    amount
-                }
                 shippingTaxRate
                 lines {
                     id
