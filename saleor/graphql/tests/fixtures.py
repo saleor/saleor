@@ -5,7 +5,6 @@ from unittest.mock import Mock
 
 import graphene
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
@@ -166,11 +165,6 @@ def schema_context():
 @pytest.fixture
 def info(schema_context):
     return Mock(context=schema_context)
-
-
-@pytest.fixture
-def anonymous_user():
-    return AnonymousUser()
 
 
 @pytest.fixture
