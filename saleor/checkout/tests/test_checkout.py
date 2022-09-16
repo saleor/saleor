@@ -869,7 +869,13 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert not checkout.translated_discount_name
+    assert isinstance(checkout.discount_amount, Decimal)
     assert checkout.discount == zero_money(checkout.channel.currency_code)
+
+
+def test_checkout_discount_amount_should_be_decimal():
+    checkout = Checkout()
+    assert isinstance(checkout.discount_amount, Decimal)
 
 
 def test_recalculate_checkout_discount(
