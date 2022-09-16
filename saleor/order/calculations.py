@@ -46,6 +46,10 @@ def _recalculate_order_prices(
             except TaxError:
                 pass
 
+    # Plugins like Vatlayer don't implement Order line calculation instead of implement
+    # `update_taxes_for_order_lines`
+    manager.update_taxes_for_order_lines(order, list(lines))
+
     try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
