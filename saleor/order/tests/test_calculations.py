@@ -9,6 +9,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus, calculations
+from ..base_calculations import base_order_shipping
 from ..interface import OrderTaxedPricesData
 
 
@@ -406,11 +407,16 @@ def get_taxed_money(
     obj: Union[TaxData, TaxLineData],
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
     currency: str,
+    exempt_taxes: bool = False,
 ) -> TaxedMoney:
-    return TaxedMoney(
-        Money(getattr(obj, f"{attr}_net_amount"), currency),
-        Money(getattr(obj, f"{attr}_gross_amount"), currency),
-    )
+    net_value = Money(getattr(obj, f"{attr}_net_amount"), currency)
+
+    if exempt_taxes:
+        gross_value = net_value
+    else:
+        gross_value = Money(getattr(obj, f"{attr}_gross_amount"), currency)
+
+    return TaxedMoney(net_value, gross_value)
 
 
 def get_order_priced_taxes_data(
@@ -548,6 +554,154 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
         == undiscounted_subtotal + shipping_price.net
     )
     assert order_with_lines.total == subtotal + shipping_price
+
+
+def test_fetch_order_prices_when_tax_exemption_and_include_taxes_in_prices(
+    plugins_manager,
+    fetch_kwargs,
+    order_with_lines,
+    tax_data,
+):
+    """Test tax exemption when taxes are included in prices.
+
+    When Order.tax_exemption = True and SiteSettings.include_taxes_in_prices = True
+    taxes should be calculated by plugins and net prices returned.
+    """
+    # given
+    currency = order_with_lines.currency
+    discount_amount = Decimal("3.00")
+    order_with_lines.discounts.create(
+        value=discount_amount,
+        amount_value=discount_amount,
+        currency=order_with_lines.currency,
+    )
+    order_with_lines.total_net_amount = Decimal("0.00")
+    order_with_lines.total_gross_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
+    order_with_lines.tax_exemption = True
+    order_with_lines.save()
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    order_with_lines.refresh_from_db()
+    shipping_price = get_taxed_money(
+        tax_data, "shipping_price", currency, exempt_taxes=True
+    )
+    assert order_with_lines.shipping_price == shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.00")
+    subtotal = zero_taxed_money(currency)
+    undiscounted_subtotal = zero_taxed_money(currency)
+
+    for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
+        line_total = get_taxed_money(tax_line, "total", currency, exempt_taxes=True)
+        subtotal += line_total
+        undiscounted_subtotal += order_line.undiscounted_total_price
+        assert order_line.total_price == line_total
+        assert order_line.unit_price == line_total / order_line.quantity
+        assert order_line.tax_rate == Decimal("0.00")
+
+    assert (
+        order_with_lines.undiscounted_total
+        == undiscounted_subtotal + shipping_price.net
+    )
+    assert order_with_lines.total == subtotal + shipping_price
+
+
+def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
+    plugins_manager, fetch_kwargs, order_with_lines, tax_data, site_settings
+):
+    """Test tax exemption when taxes are not included in prices.
+
+    When Order.tax_exemption = True and SiteSettings.include_taxes_in_prices = False
+    tax plugins should be ignored and only net prices should be calculated and returned.
+    """
+    # given
+    currency = order_with_lines.currency
+    discount_amount = Decimal("3.00")
+    discount_as_money = Money(discount_amount, currency)
+    order_with_lines.discounts.create(
+        value=discount_amount,
+        amount_value=discount_amount,
+        currency=order_with_lines.currency,
+    )
+    order_with_lines.total_net_amount = Decimal("0.00")
+    order_with_lines.total_gross_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
+    order_with_lines.tax_exemption = True
+    order_with_lines.save()
+
+    site_settings.include_taxes_in_prices = False
+    site_settings.save(update_fields=["include_taxes_in_prices"])
+
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    subtotal = zero_taxed_money(currency)
+    undiscounted_subtotal = zero_taxed_money(currency)
+    shipping_price = base_order_shipping(order_with_lines)
+    shipping_price = quantize_price(
+        TaxedMoney(
+            shipping_price,
+            shipping_price,
+        ),
+        currency,
+    )
+
+    assert order_with_lines.shipping_price == shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.00")
+
+    for order_line in order_with_lines.lines.all():
+        line_price_with_discounts = quantize_price(
+            TaxedMoney(
+                order_line.base_unit_price,
+                order_line.base_unit_price,
+            ),
+            currency,
+        )
+        undiscounted_line_price = quantize_price(
+            TaxedMoney(
+                order_line.undiscounted_base_unit_price,
+                order_line.undiscounted_base_unit_price,
+            ),
+            currency,
+        )
+
+        line_total = line_price_with_discounts * order_line.quantity
+        undiscounted_total_price = undiscounted_line_price * order_line.quantity
+
+        subtotal += line_total
+        undiscounted_subtotal += order_line.undiscounted_total_price
+
+        assert order_line.total_price == line_total
+        assert order_line.undiscounted_total_price == undiscounted_total_price
+        assert order_line.unit_price == line_total / order_line.quantity
+        assert order_line.tax_rate == Decimal("0.00")
+
+    assert (
+        order_with_lines.undiscounted_total
+        == undiscounted_subtotal + shipping_price.net
+    )
+    assert order_with_lines.total == (
+        subtotal
+        + shipping_price
+        - quantize_price(
+            TaxedMoney(
+                discount_as_money,
+                discount_as_money,
+            ),
+            currency,
+        )
+    )
 
 
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):

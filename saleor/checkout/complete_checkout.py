@@ -509,6 +509,7 @@ def _create_order(
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
         should_refresh_prices=False,
+        tax_exemption=checkout_info.checkout.tax_exemption,
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
@@ -756,8 +757,12 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
+    fetch_checkout_prices_if_expired(
+        checkout_info, manager, lines, discounts=discounts, site_settings=site_settings
+    )
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
@@ -771,9 +776,6 @@ def complete_checkout(
         redirect_url=redirect_url,
         payment=payment,
     )
-
-    if site_settings is None:
-        site_settings = Site.objects.get_current().settings
 
     try:
         order_data = _get_order_data(
@@ -1085,6 +1087,7 @@ def _create_order_from_checkout(
         private_metadata=checkout_info.checkout.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
+        tax_exemption=checkout_info.checkout.tax_exemption,
         **_process_shipping_data_for_order(
             checkout_info, shipping_total, manager, checkout_lines_info
         ),
