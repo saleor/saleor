@@ -7,7 +7,9 @@ if TYPE_CHECKING:
     from ..models import ProductVariant
 
 
-def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str]):
+def generate_and_set_variant_name(
+    variant: "ProductVariant", sku: Optional[str], save: Optional[bool] = True
+):
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []
 
@@ -27,7 +29,9 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
         name = sku or variant.get_global_id()
 
     variant.name = name
-    variant.save(update_fields=["name", "updated_at"])
+    if save:
+        variant.save(update_fields=["name", "updated_at"])
+    return variant
 
 
 def get_variant_selection_attributes(
