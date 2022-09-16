@@ -775,7 +775,9 @@ class OrderGrantedRefund(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-    app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
+    app = models.ForeignKey(
+        App, related_name="+", on_delete=models.SET_NULL, null=True, blank=True
+    )
     order = models.ForeignKey(
         Order, related_name="granted_refunds", on_delete=models.CASCADE
     )

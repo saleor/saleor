@@ -2,19 +2,24 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
-from ...core.enums import OrderGrandRefundUpdateErrorCode
-from ...core.mutations import BaseMutation
+from ....order import models
+from ...core.mutations import ModelMutation
 from ...core.scalars import Decimal
-from ...core.types.common import OrderGrantRefundUpdateError
+from ...core.types.common import Error
+from ..enums import OrderGrantRefundUpdateErrorCode
 from ..types import Order, OrderGrantedRefund
 
 
-class OrderGrandRefundUpdateInput(graphene.InputObjectType):
+class OrderGrantRefundUpdateError(Error):
+    code = OrderGrantRefundUpdateErrorCode(description="The error code.", required=True)
+
+
+class OrderGrantRefundUpdateInput(graphene.InputObjectType):
     amount = Decimal(description="Amount of the granted refund.")
     reason = graphene.String(description="Reason of the granted refund.")
 
 
-class OrderGrantRefundUpdate(BaseMutation):
+class OrderGrantRefundUpdate(ModelMutation):
     order = graphene.Field(
         Order, description="Order which has assigned updated grant refund."
     )
@@ -24,7 +29,7 @@ class OrderGrantRefundUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of the granted refund.", required=True)
-        input = OrderGrandRefundUpdateInput(
+        input = OrderGrantRefundUpdateInput(
             required=True,
             description="Fields required to update a granted refund.",
         )
@@ -33,6 +38,8 @@ class OrderGrantRefundUpdate(BaseMutation):
         description = "Updates granted refund."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundUpdateError
+        model = models.OrderGrantedRefund
+        object_type = OrderGrantedRefund
 
     @classmethod
     def validate_input(cls, amount, reason):
@@ -43,22 +50,20 @@ class OrderGrantRefundUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "input": ValidationError(
-                        error_msg, code=OrderGrandRefundUpdateErrorCode.REQUIRED.value
+                        error_msg, code=OrderGrantRefundUpdateErrorCode.REQUIRED.value
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        granted_refund = cls.get_node_or_error(
-            info, data["id"], only_type=OrderGrantedRefund
-        )
-        amount = data["input"].get("amount")
-        reason = data["input"].get("reason")
-        cls.validate_input(amount, reason)
-        amount = amount if amount is not None else granted_refund.amount_value
-        reason = reason if reason is not None else granted_refund.reason
-        granted_refund.amount_value = amount
-        granted_refund.reason = reason
-        granted_refund.save(update_fields=["amount_value", "reason", "updated_at"])
-        return cls(order=granted_refund.order, granted_refund=granted_refund)
+    def success_response(cls, instance):
+        return cls(order=instance.order, granted_refund=instance)
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
+        amount = cleaned_input.pop("amount", None)
+        cls.validate_input(amount, data.get("reason"))
+        if amount is not None:
+            cleaned_input["amount_value"] = amount
+        return cleaned_input

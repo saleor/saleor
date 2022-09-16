@@ -12406,7 +12406,7 @@ type Mutation {
     id: ID!
 
     """Fields required to create a granted refund for the order."""
-    input: OrderGrandRefundCreateInput!
+    input: OrderGrantRefundCreateInput!
   ): OrderGrantRefundCreate
 
   """
@@ -12419,7 +12419,7 @@ type Mutation {
     id: ID!
 
     """Fields required to update a granted refund."""
-    input: OrderGrandRefundUpdateInput!
+    input: OrderGrantRefundUpdateInput!
   ): OrderGrantRefundUpdate
 
   """
@@ -18004,7 +18004,7 @@ enum OrderGrantRefundCreateErrorCode {
   NOT_FOUND
 }
 
-input OrderGrandRefundCreateInput {
+input OrderGrantRefundCreateInput {
   """Amount of the granted refund."""
   amount: Decimal!
 
@@ -18032,6 +18032,7 @@ type OrderGrantRefundUpdate {
   """Created granted refund."""
   grantedRefund: OrderGrantedRefund
   errors: [OrderGrantRefundUpdateError!]!
+  orderGrantedRefund: OrderGrantedRefund
 }
 
 type OrderGrantRefundUpdateError {
@@ -18054,7 +18055,7 @@ enum OrderGrantRefundUpdateErrorCode {
   REQUIRED
 }
 
-input OrderGrandRefundUpdateInput {
+input OrderGrantRefundUpdateInput {
   """Amount of the granted refund."""
   amount: Decimal
 

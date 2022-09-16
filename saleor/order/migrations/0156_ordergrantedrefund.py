@@ -44,6 +44,7 @@ class Migration(migrations.Migration):
                     "app",
                     models.ForeignKey(
                         null=True,
+                        blank=True,
                         on_delete=django.db.models.deletion.SET_NULL,
                         related_name="+",
                         to="app.app",
