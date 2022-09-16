@@ -350,14 +350,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 )
 
             if is_new_instance:
-                cls.call_event(
-                    lambda i=instance: info.context.plugins.draft_order_created(i)
-                )
+                cls.call_event(info.context.plugins.draft_order_created, instance)
 
             else:
-                cls.call_event(
-                    lambda i=instance: info.context.plugins.draft_order_updated(i)
-                )
+                cls.call_event(info.context.plugins.draft_order_updated, instance)
 
             # Post-process the results
             updated_fields = ["weight", "search_vector", "updated_at"]

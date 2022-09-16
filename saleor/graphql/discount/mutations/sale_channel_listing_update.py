@@ -119,9 +119,9 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def save(cls, info, sale: "SaleModel", cleaned_input: Dict):
-        cls.add_channels(sale, cleaned_input.get("add_channels", []))
-        cls.remove_channels(sale, cleaned_input.get("remove_channels", []))
         with traced_atomic_transaction():
+            cls.add_channels(sale, cleaned_input.get("add_channels", []))
+            cls.remove_channels(sale, cleaned_input.get("remove_channels", []))
             update_products_discounted_prices_of_discount_task.delay(sale.pk)
 
     @classmethod

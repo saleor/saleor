@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
 from ....order.actions import cancel_order
 from ....order.error_codes import OrderErrorCode
@@ -41,11 +42,12 @@ class OrderCancel(BaseMutation):
         clean_order_cancel(order)
         user = info.context.user
         app = load_app(info.context)
-        cancel_order(
-            order=order,
-            user=user,
-            app=app,
-            manager=info.context.plugins,
-        )
-        deactivate_order_gift_cards(order.id, user, app)
+        with traced_atomic_transaction():
+            cancel_order(
+                order=order,
+                user=user,
+                app=app,
+                manager=info.context.plugins,
+            )
+            deactivate_order_gift_cards(order.id, user, app)
         return OrderCancel(order=order)

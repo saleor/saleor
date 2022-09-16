@@ -404,12 +404,12 @@ class BaseMutation(graphene.Mutation):
         return cls(errors=errors, **extra)
 
     @staticmethod
-    def call_event(func_obj):
+    def call_event(func_obj, *func_args):
         connection = transaction.get_connection()
         if connection.in_atomic_block:
-            transaction.on_commit(func_obj)
+            transaction.on_commit(lambda: func_obj(*func_args))
         else:
-            func_obj()
+            func_obj(*func_args)
 
 
 class ModelMutation(BaseMutation):

@@ -59,12 +59,11 @@ class OrderDiscountAdd(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
+        app = load_app(info.context)
         with traced_atomic_transaction():
             order_discount = create_order_discount_for_order(
                 order, reason, value_type, value
             )
-            app = load_app(info.context)
-
             # Calling refreshing prices because it's set proper discount amount
             # on OrderDiscount.
             order, _ = fetch_order_prices_if_expired(order, manager, force_update=True)

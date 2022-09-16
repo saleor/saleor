@@ -63,6 +63,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             if instance.order.is_unconfirmed()
             else None
         )
+        app = load_app(info.context)
         with traced_atomic_transaction():
             line_info = OrderLineInfo(
                 line=instance,
@@ -70,7 +71,6 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 variant=instance.variant,
                 warehouse_pk=warehouse_pk,
             )
-            app = load_app(info.context)
             try:
                 change_order_line_quantity(
                     info.context.user,
@@ -78,7 +78,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                     line_info,
                     instance.old_quantity,
                     instance.quantity,
-                    instance.order.channel.slug,
+                    instance.order.channel,
                     manager,
                 )
             except InsufficientStock:
