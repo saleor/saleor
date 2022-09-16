@@ -3,11 +3,16 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
-from ...core.types.common import OrderGrantRefundCreateError
+from ...core.types.common import Error
+from ..enums import OrderGrantRefundCreateErrorCode
 from ..types import Order, OrderGrantedRefund
 
 
-class OrderGrandRefundCreateInput(graphene.InputObjectType):
+class OrderGrantRefundCreateError(Error):
+    code = OrderGrantRefundCreateErrorCode(description="The error code.", required=True)
+
+
+class OrderGrantRefundCreateInput(graphene.InputObjectType):
     amount = Decimal(required=True, description="Amount of the granted refund.")
     reason = graphene.String(description="Reason of the granted refund.")
 
@@ -22,7 +27,7 @@ class OrderGrantRefundCreate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of the order.", required=True)
-        input = OrderGrandRefundCreateInput(
+        input = OrderGrantRefundCreateInput(
             required=True,
             description="Fields required to create a granted refund for the order.",
         )

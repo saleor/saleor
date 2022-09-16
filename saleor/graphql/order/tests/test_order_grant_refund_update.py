@@ -1,16 +1,16 @@
 from decimal import Decimal
 
-from ...core.enums import OrderGrandRefundUpdateErrorCode
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..enums import OrderGrantRefundUpdateErrorCode
 
 ORDER_GRANT_REFUND_UPDATE = """
 mutation OrderGrantRefundUpdate(
-    $id: ID!, $input: OrderGrandRefundUpdateInput!
+    $id: ID!, $input: OrderGrantRefundUpdateInput!
 ){
   orderGrantRefundUpdate(id: $id, input:$input) {
     grantedRefund {
@@ -231,7 +231,7 @@ def test_grant_refund_update_by_user_missing_input(
     content = get_graphql_content_from_response(response)
     errors = content["data"]["orderGrantRefundUpdate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == OrderGrandRefundUpdateErrorCode.REQUIRED.name
+    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"
 
 
@@ -263,6 +263,7 @@ def test_grant_refund_update_by_app(
     # then
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
+
     assert not data["errors"]
 
     assert data["order"]["id"] == to_global_id_or_none(order)
@@ -417,5 +418,5 @@ def test_grant_refund_update_by_app_missing_input(
     content = get_graphql_content_from_response(response)
     errors = content["data"]["orderGrantRefundUpdate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == OrderGrandRefundUpdateErrorCode.REQUIRED.name
+    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"

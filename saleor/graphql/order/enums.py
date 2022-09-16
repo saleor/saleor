@@ -9,6 +9,7 @@ from ...order import (
     OrderEventsEmails,
     OrderOrigin,
     OrderStatus,
+    error_codes,
 )
 
 FulfillmentStatusEnum = to_enum(FulfillmentStatus, type_name="FulfillmentStatus")
@@ -21,6 +22,13 @@ OrderAuthorizeStatusEnum = to_enum(
 )
 OrderChargeStatusEnum = to_enum(
     OrderChargeStatus, description=OrderChargeStatus.__doc__
+)
+
+OrderGrantRefundCreateErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundCreateErrorCode
+)
+OrderGrantRefundUpdateErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundUpdateErrorCode
 )
 
 
