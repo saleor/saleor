@@ -176,7 +176,15 @@ class OrderGrantedRefund(ModelObjectType):
     updated_at = graphene.DateTime(required=True, description="Time of last update.")
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
-    user = graphene.Field(User, description="User who performed the action.")
+    user = graphene.Field(
+        User,
+        description=(
+            "User who performed the action. Requires of of the following "
+            f"permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
     app = graphene.Field(App, description=("App that performed the action."))
 
     class Meta:
