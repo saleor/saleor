@@ -183,6 +183,27 @@ class OrderGrantedRefund(ModelObjectType):
         description = "The details of granted refund." + ADDED_IN_38 + PREVIEW_FEATURE
         model = models.OrderGrantedRefund
 
+    def resolve_user(root: models.OrderGrantedRefund, info):
+        def _resolve_user(event_user):
+            requester = get_user_or_app_from_context(info.context)
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+
+    def resolve_app(root: models.OrderGrantedRefund, info):
+        if root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id)
+        return None
+
 
 class OrderDiscount(graphene.ObjectType):
     value_type = graphene.Field(
