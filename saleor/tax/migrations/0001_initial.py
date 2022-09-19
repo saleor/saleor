@@ -50,7 +50,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ("name", "pk"),
-                "permissions": (("manage_taxes", "Manage taxes."),),
             },
         ),
         migrations.CreateModel(

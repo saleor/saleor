@@ -309,6 +309,13 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_and_tax_exemption(checkout_with_item):
+    checkout_with_item.tax_exemption = True
+    checkout_with_item.save(update_fields=["tax_exemption"])
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_same_items_in_multiple_lines(checkout, product):
     variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())

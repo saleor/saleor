@@ -1,6 +1,6 @@
 import graphene
 
-from ....core.permissions import TaxPermissions
+from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelDeleteMutation
@@ -31,4 +31,4 @@ class TaxClassDelete(ModelDeleteMutation):
         error_type_class = TaxClassDeleteError
         model = models.TaxClass
         object_type = TaxClass
-        permissions = (TaxPermissions.MANAGE_TAXES,)
+        permissions = (CheckoutPermissions.MANAGE_TAXES,)

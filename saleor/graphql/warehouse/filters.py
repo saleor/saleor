@@ -1,4 +1,5 @@
 import django_filters
+import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ...account.models import Address
@@ -6,7 +7,12 @@ from ...product.models import Product, ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ..channel.types import Channel
-from ..core.filters import EnumFilter, GlobalIDMultipleChoiceFilter
+from ..core.filters import (
+    EnumFilter,
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    filter_slug_list,
+)
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
 from ..warehouse.enums import WarehouseClickAndCollectOptionEnum
@@ -86,6 +92,7 @@ class WarehouseFilter(django_filters.FilterSet):
         method=filter_click_and_collect_option,
     )
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Warehouse

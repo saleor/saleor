@@ -1,7 +1,7 @@
 import graphene
 from django_countries.fields import Country
 
-from ....core.permissions import TaxPermissions
+from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
@@ -38,7 +38,7 @@ class TaxCountryConfigurationDelete(BaseMutation):
             + PREVIEW_FEATURE
         )
         error_type_class = TaxCountryConfigurationDeleteError
-        permissions = (TaxPermissions.MANAGE_TAXES,)
+        permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
     def perform_mutation(cls, _root, _info, **data):

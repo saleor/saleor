@@ -3,7 +3,7 @@ from collections import defaultdict
 import graphene
 from django_countries.fields import Country
 
-from ...core.permissions.enums import TaxPermissions
+from ...core.permissions.enums import CheckoutPermissions
 from ...tax import models
 from ..account.enums import CountryCodeEnum
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -19,6 +19,7 @@ from .mutations import (
     TaxConfigurationUpdate,
     TaxCountryConfigurationDelete,
     TaxCountryConfigurationUpdate,
+    TaxExemptionManage,
 )
 from .sorters import TaxClassSortingInput
 from .types import (
@@ -37,7 +38,7 @@ class TaxQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of a tax configuration.", required=True
         ),
-        permissions=[TaxPermissions.MANAGE_TAXES],
+        permissions=[CheckoutPermissions.MANAGE_TAXES],
     )
     tax_configurations = FilterConnectionField(
         TaxConfigurationCountableConnection,
@@ -45,7 +46,7 @@ class TaxQueries(graphene.ObjectType):
         filter=TaxConfigurationFilterInput(
             description="Filtering options for tax configurations."
         ),
-        permissions=[TaxPermissions.MANAGE_TAXES],
+        permissions=[CheckoutPermissions.MANAGE_TAXES],
     )
     tax_class = PermissionsField(
         TaxClass,
@@ -53,14 +54,14 @@ class TaxQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of a tax class.", required=True
         ),
-        permissions=[TaxPermissions.MANAGE_TAXES],
+        permissions=[CheckoutPermissions.MANAGE_TAXES],
     )
     tax_classes = FilterConnectionField(
         TaxClassCountableConnection,
         description="List of tax classes." + ADDED_IN_35 + PREVIEW_FEATURE,
         sort_by=TaxClassSortingInput(description="Sort tax classes."),
         filter=TaxClassFilterInput(description="Filtering options for tax classes."),
-        permissions=[TaxPermissions.MANAGE_TAXES],
+        permissions=[CheckoutPermissions.MANAGE_TAXES],
     )
     tax_country_configuration = PermissionsField(
         TaxCountryConfiguration,
@@ -70,7 +71,7 @@ class TaxQueries(graphene.ObjectType):
             required=True,
         ),
         description="Tax class rates grouped by country.",
-        permissions=[TaxPermissions.MANAGE_TAXES],
+        permissions=[CheckoutPermissions.MANAGE_TAXES],
     )
     tax_country_configurations = PermissionsField(
         NonNullList(
@@ -78,7 +79,7 @@ class TaxQueries(graphene.ObjectType):
             description="A list of countries with grouped tax class rates.",
             required=True,
         ),
-        permissions=[TaxPermissions.MANAGE_TAXES],
+        permissions=[CheckoutPermissions.MANAGE_TAXES],
     )
 
     @staticmethod
@@ -134,3 +135,4 @@ class TaxMutations(graphene.ObjectType):
     tax_configuration_update = TaxConfigurationUpdate.Field()
     tax_country_configuration_update = TaxCountryConfigurationUpdate.Field()
     tax_country_configuration_delete = TaxCountryConfigurationDelete.Field()
+    tax_exemption_manage = TaxExemptionManage.Field()

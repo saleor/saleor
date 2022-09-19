@@ -11,10 +11,10 @@ from promise import Promise
 from ....attribute import models as attribute_models
 from ....core.permissions import (
     AuthorizationFilters,
+    CheckoutPermissions,
     OrderPermissions,
     ProductPermissions,
     ProductTypePermissions,
-    TaxPermissions,
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
@@ -889,7 +889,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ),
         required=False,
         permissions=[
-            TaxPermissions.MANAGE_TAXES,
+            CheckoutPermissions.MANAGE_TAXES,
             ProductPermissions.MANAGE_PRODUCTS,
         ],
     )
@@ -1430,7 +1430,7 @@ class ProductType(ModelObjectType):
         ),
         required=False,
         permissions=[
-            TaxPermissions.MANAGE_TAXES,
+            CheckoutPermissions.MANAGE_TAXES,
             ProductPermissions.MANAGE_PRODUCTS,
             ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
         ],

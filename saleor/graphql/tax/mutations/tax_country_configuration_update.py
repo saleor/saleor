@@ -4,7 +4,7 @@ from django.db.models import Q
 from django_countries.fields import Country
 from graphql import GraphQLError
 
-from ....core.permissions import TaxPermissions
+from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
@@ -64,7 +64,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
             + PREVIEW_FEATURE
         )
         error_type_class = TaxCountryConfigurationUpdateError
-        permissions = (TaxPermissions.MANAGE_TAXES,)
+        permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     def _clean_default_rates(tax_rate_items):
         # Check if only one default rate is provided (only one item without the tax

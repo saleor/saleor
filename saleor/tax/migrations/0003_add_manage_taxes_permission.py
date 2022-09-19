@@ -10,9 +10,11 @@ def assign_permissions(apps, schema_editor):
         Group = apps.get_model("auth", "Group")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
-        ct, _ = ContentType.objects.get_or_create(app_label="tax", model="taxclass")
+        ct, _ = ContentType.objects.get_or_create(
+            app_label="checkout", model="checkout"
+        )
         manage_taxes, _ = Permission.objects.get_or_create(
-            name="Manage taxes.", content_type=ct, codename="manage_taxes"
+            name="Manage taxes", content_type=ct, codename="manage_taxes"
         )
 
         # Assign MANAGE_TAXES to groups with MANAGE_SETTINGS
@@ -33,12 +35,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name="taxclass",
-            options={
-                "ordering": ("name", "pk"),
-                "permissions": (("manage_taxes", "Manage taxes."),),
-            },
-        ),
         migrations.RunPython(assign_permissions, migrations.RunPython.noop),
     ]

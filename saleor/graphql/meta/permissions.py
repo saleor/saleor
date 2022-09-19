@@ -23,7 +23,6 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
-    TaxPermissions,
 )
 from ...payment.utils import payment_owned_by_user
 from ..app.dataloaders import load_app
@@ -155,7 +154,10 @@ def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 
 def tax_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
-    return [TaxPermissions.MANAGE_TAXES]
+    return [
+        CheckoutPermissions.HANDLE_TAXES,
+        CheckoutPermissions.MANAGE_TAXES,
+    ]
 
 
 PUBLIC_META_PERMISSION_MAP = {

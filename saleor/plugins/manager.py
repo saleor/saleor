@@ -269,7 +269,7 @@ class PluginsManager(PaymentInterface):
         total = sum(line_totals, zero_taxed_money(currency))
         return quantize_price(
             total,
-            checkout_info.checkout.currency,
+            currency,
         )
 
     def calculate_checkout_shipping(
@@ -399,8 +399,8 @@ class PluginsManager(PaymentInterface):
             discounts,
             channel_slug=checkout_info.channel.slug,
         )
-        currency = checkout_info.checkout.currency
-        return quantize_price(line_total, currency)
+
+        return quantize_price(line_total, checkout_info.checkout.currency)
 
     def calculate_order_line_total(
         self,
@@ -410,6 +410,8 @@ class PluginsManager(PaymentInterface):
         product: "Product",
     ) -> OrderTaxedPricesData:
         default_value = base_order_calculations.base_order_line_total(order_line)
+        currency = order_line.currency
+
         line_total = self.__run_method_on_plugins(
             "calculate_order_line_total",
             default_value,
@@ -419,7 +421,7 @@ class PluginsManager(PaymentInterface):
             product,
             channel_slug=order.channel.slug,
         )
-        currency = order_line.currency
+
         line_total.price_with_discounts = quantize_price(
             line_total.price_with_discounts, currency
         )
@@ -450,8 +452,7 @@ class PluginsManager(PaymentInterface):
             discounts,
             channel_slug=checkout_info.channel.slug,
         )
-        currency = checkout_info.checkout.currency
-        return quantize_price(unit_price, currency)
+        return quantize_price(unit_price, checkout_info.checkout.currency)
 
     def calculate_order_line_unit(
         self,

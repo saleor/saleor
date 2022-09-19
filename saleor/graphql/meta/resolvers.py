@@ -7,6 +7,7 @@ from ...attribute import models as attribute_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
+from ...core.permissions import one_of_permissions_or_auth_filter_required
 from ...discount import models as discount_models
 from ...giftcard import models as giftcard_models
 from ...order import models as order_models
@@ -17,7 +18,6 @@ from ...shipping import models as shipping_models
 from ...shipping.interface import ShippingMethodData
 from ...tax import models as tax_models
 from ...warehouse import models as warehouse_models
-from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
 
@@ -104,8 +104,9 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
     if not isinstance(required_permissions, list):
         raise PermissionDenied()
 
-    requester = get_user_or_app_from_context(info.context)
-    if not requester.has_perms(required_permissions):
+    if not one_of_permissions_or_auth_filter_required(
+        info.context, required_permissions
+    ):
         raise PermissionDenied()
 
 

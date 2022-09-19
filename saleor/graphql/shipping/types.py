@@ -1,7 +1,7 @@
 import graphene
 from graphene import relay
 
-from ...core.permissions import ShippingPermissions, TaxPermissions
+from ...core.permissions import CheckoutPermissions, ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...product import models as product_models
@@ -138,7 +138,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         description="Tax class assigned to this shipping method.",
         required=False,
         permissions=[
-            TaxPermissions.MANAGE_TAXES,
+            CheckoutPermissions.MANAGE_TAXES,
             ShippingPermissions.MANAGE_SHIPPING,
         ],
     )
