@@ -183,6 +183,7 @@ class OrderGrantedRefund(ModelObjectType):
         description = "The details of granted refund." + ADDED_IN_38 + PREVIEW_FEATURE
         model = models.OrderGrantedRefund
 
+    @staticmethod
     def resolve_user(root: models.OrderGrantedRefund, info):
         def _resolve_user(event_user):
             requester = get_user_or_app_from_context(info.context)
@@ -199,6 +200,7 @@ class OrderGrantedRefund(ModelObjectType):
 
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
+    @staticmethod
     def resolve_app(root: models.OrderGrantedRefund, info):
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
