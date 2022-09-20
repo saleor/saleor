@@ -8352,6 +8352,14 @@ type TransactionItem implements Node & ObjectWithMetadata {
 
   """List of all transaction's events."""
   events: [TransactionEvent!]!
+
+  """
+  User who created the transaction. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  """
+  user: User
+
+  """App that created the transaction."""
+  app: App
 }
 
 """
@@ -11979,7 +11987,7 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
-  Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+  Create transaction for checkout or order. Requires the following permissions: PaymentPermissions.HANDLE_PAYMENTS.
   
   Added in Saleor 3.4.
   
@@ -11997,7 +12005,7 @@ type Mutation {
   ): TransactionCreate
 
   """
-  Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+  Create transaction for checkout or order. Requires the following permissions: OWNER and HANDLE_PAYMENTS.
   
   Added in Saleor 3.4.
   
@@ -17046,7 +17054,7 @@ input MoneyInput {
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+Create transaction for checkout or order. Requires the following permissions: PaymentPermissions.HANDLE_PAYMENTS.
 
 Added in Saleor 3.4.
 
@@ -17131,7 +17139,7 @@ input TransactionEventInput {
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+Create transaction for checkout or order. Requires the following permissions: OWNER and HANDLE_PAYMENTS.
 
 Added in Saleor 3.4.
 

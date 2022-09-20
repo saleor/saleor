@@ -13,6 +13,10 @@ All notable, unreleased changes to this project will be documented in this file.
 		- `totalRefunded` total amount of refund
     - `totalPendingRefund` total amount of pending refund
     - `totalRemainingGrant` the difference amount between granted refund and the amounts that are pending and refunded.
+  - Added fields: `user` and `app` to `transactionItem` type
+  - `transactionCreate` and `transactionUpdate` can be used by staff user with `HANDLE_PAYMENTS` permission.
+  - `transactionCreate` will store app/user who perform creation action.
+  - [FEATURE PREVIEW BREAKING CHANGE] - for all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak

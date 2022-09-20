@@ -5218,7 +5218,7 @@ def payment_dummy_credit_card(db, order_with_lines):
 
 
 @pytest.fixture
-def transaction_item(order):
+def transaction_item_created_by_app(order, app):
     return TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
@@ -5227,6 +5227,21 @@ def transaction_item(order):
         currency="USD",
         order_id=order.pk,
         charged_value=Decimal("10"),
+        app=app,
+    )
+
+
+@pytest.fixture
+def transaction_item_created_by_user(order, staff_user):
+    return TransactionItem.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        charged_value=Decimal("10"),
+        user=staff_user,
     )
 
 

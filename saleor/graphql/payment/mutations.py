@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -13,7 +13,12 @@ from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_s
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
-from ...core.permissions import OrderPermissions, PaymentPermissions
+from ...core.exceptions import PermissionDenied
+from ...core.permissions import (
+    AuthorizationFilters,
+    OrderPermissions,
+    PaymentPermissions,
+)
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
@@ -54,6 +59,10 @@ from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
+
+if TYPE_CHECKING:
+    from ...account.models import User
+    from ...app.models import App
 
 
 def add_to_order_total_authorized_and_total_charged(
@@ -649,20 +658,12 @@ class TransactionCreate(BaseMutation):
         auto_permission_message = False
         description = (
             "Create transaction for checkout or order. Requires the "
-            "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            f"following permissions: {PaymentPermissions.HANDLE_PAYMENTS}."
             + ADDED_IN_34
             + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
-
-    @classmethod
-    def check_permissions(cls, context, permissions=None):
-        """Determine whether app has rights to perform this mutation."""
-        permissions = permissions or cls._meta.permissions
-        if app := getattr(context, "app", None):
-            return app.has_perms(permissions)
-        return False
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: List[dict], field_name, error_code):
@@ -766,12 +767,12 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def create_transaction(
-        cls, transaction_input: dict
+        cls, transaction_input: dict, user, app
     ) -> payment_models.TransactionItem:
         cls.cleanup_money_data(transaction_input)
         cls.cleanup_metadata_data(transaction_input)
         return payment_models.TransactionItem.objects.create(
-            **transaction_input,
+            **transaction_input, user=user if user.is_authenticated else None, app=app
         )
 
     @classmethod
@@ -802,6 +803,9 @@ class TransactionCreate(BaseMutation):
         instance_id = data.get("id")
         order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
 
+        app = load_app(info.context)
+        user = info.context.user
+
         cls.validate_input(order_or_checkout_instance, data)
         transaction_data = {**data["transaction"]}
         transaction_data["currency"] = order_or_checkout_instance.currency
@@ -811,16 +815,15 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
-                app = load_app(info.context)
                 transaction_event(
                     order=order_or_checkout_instance,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
                 )
-        transaction = cls.create_transaction(transaction_data)
+        transaction = cls.create_transaction(transaction_data, user=user, app=app)
         if order_id := transaction_data.get("order_id"):
             cls.add_amounts_to_order(order_id, transaction_data)
 
@@ -848,13 +851,37 @@ class TransactionUpdate(TransactionCreate):
         auto_permission_message = False
         description = (
             "Create transaction for checkout or order. Requires the "
-            "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            f"following permissions: {AuthorizationFilters.OWNER.name} "
+            f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
             + ADDED_IN_34
             + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = TransactionItem
+
+    @classmethod
+    def check_can_update(
+        cls,
+        transaction: payment_models.TransactionItem,
+        user: Optional["User"],
+        app: Optional["App"],
+    ):
+        # Previously we didn't require app/user attached to transaction. We can't
+        # determine which app/user is an owner of the transaction. So for transaction
+        # without attached owner we require only HANDLE_PAYMENTS.
+        if not transaction.user_id and not transaction.app_id:
+            return
+
+        if user and transaction.user_id == user.id:
+            return
+
+        if app and transaction.app_id == app.id:
+            return
+
+        raise PermissionDenied(
+            permissions=[AuthorizationFilters.OWNER, PaymentPermissions.HANDLE_PAYMENTS]
+        )
 
     @classmethod
     def validate_transaction_input(
@@ -906,8 +933,15 @@ class TransactionUpdate(TransactionCreate):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        app = load_app(info.context)
+        user = info.context.user
         instance_id = data.get("id")
         instance = cls.get_node_or_error(info, instance_id, only_type=TransactionItem)
+
+        cls.check_can_update(
+            transaction=instance, user=user if user.is_authenticated else None, app=app
+        )
+
         transaction_data = data.get("transaction")
         if transaction_data:
             cls.validate_transaction_input(instance, transaction_data)
