@@ -17,18 +17,18 @@ from .postgres import FlatConcatSearchVector
 task_logger = get_task_logger(__name__)
 
 BATCH_SIZE = 500
-# Based on local testing, 500 should be a good ballance between performance
+# Based on local testing, 500 should be a good balance between performance
 # total time and memory usage. Should be tested after some time and adjusted by
 # running the task on different thresholds and measure memory usage, total time
-# and execution time of an single SQL statement.
+# and execution time of a single SQL statement.
 
 
 @app.task
 def set_user_search_document_values(updated_count: int = 0) -> None:
     users = list(
         User.objects.filter(search_document="")
-        .prefetch_related("addresses")[:BATCH_SIZE]
-        .iterator()
+        .prefetch_related("addresses")
+        .order_by()[:BATCH_SIZE]
     )
 
     if not users:
@@ -61,8 +61,8 @@ def set_order_search_document_values(updated_count: int = 0) -> None:
             "payments",
             "discounts",
             "lines",
-        )[:BATCH_SIZE]
-        .iterator()
+        )
+        .order_by()[:BATCH_SIZE]
     )
 
     if not orders:
@@ -86,8 +86,8 @@ def set_order_search_document_values(updated_count: int = 0) -> None:
 def set_product_search_document_values(updated_count: int = 0) -> None:
     products = list(
         Product.objects.filter(search_vector=None)
-        .prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)[:BATCH_SIZE]
-        .iterator()
+        .prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)
+        .order_by()[:BATCH_SIZE]
     )
 
     if not products:
