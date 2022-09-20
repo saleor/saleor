@@ -1310,7 +1310,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
         if sort_by is None:
             sort_by = {
-                "field": MediaChoicesSortField.ID,
+                "field": MediaChoicesSortField.ID.value,  # type: ignore
                 "direction": "",
             }
         return MediaByProductIdLoaderSort(info.context, sort_by).load(root.node.id)
