@@ -176,12 +176,43 @@ class OrderGrantedRefund(ModelObjectType):
     updated_at = graphene.DateTime(required=True, description="Time of last update.")
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
-    user = graphene.Field(User, description="User who performed the action.")
+    user = graphene.Field(
+        User,
+        description=(
+            "User who performed the action. Requires of of the following "
+            f"permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
     app = graphene.Field(App, description=("App that performed the action."))
 
     class Meta:
         description = "The details of granted refund." + ADDED_IN_38 + PREVIEW_FEATURE
         model = models.OrderGrantedRefund
+
+    @staticmethod
+    def resolve_user(root: models.OrderGrantedRefund, info):
+        def _resolve_user(event_user):
+            requester = get_user_or_app_from_context(info.context)
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+
+    @staticmethod
+    def resolve_app(root: models.OrderGrantedRefund, info):
+        if root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id)
+        return None
 
 
 class OrderDiscount(graphene.ObjectType):

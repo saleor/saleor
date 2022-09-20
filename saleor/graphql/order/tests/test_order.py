@@ -1391,6 +1391,7 @@ def test_order_granted_refunds_query_by_app(
     app_api_client,
     permission_manage_orders,
     permission_manage_shipping,
+    permission_manage_users,
     fulfilled_order,
     shipping_zone,
 ):
@@ -1414,7 +1415,7 @@ def test_order_granted_refunds_query_by_app(
     )
 
     app_api_client.app.permissions.set(
-        [permission_manage_orders, permission_manage_shipping]
+        [permission_manage_orders, permission_manage_shipping, permission_manage_users]
     )
 
     # when

@@ -9515,7 +9515,9 @@ type OrderGrantedRefund {
   """Reason of the refund."""
   reason: String
 
-  """User who performed the action."""
+  """
+  User who performed the action. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  """
   user: User
 
   """App that performed the action."""
