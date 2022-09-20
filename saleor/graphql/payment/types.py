@@ -13,7 +13,13 @@ from ..account.dataloaders import UserByUserIdLoader
 from ..app.dataloaders import AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_34,
+    ADDED_IN_36,
+    ADDED_IN_38,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
@@ -307,12 +313,18 @@ class TransactionItem(ModelObjectType):
             "User who created the transaction. Requires of of the "
             f"following permissions: {AccountPermissions.MANAGE_USERS.name}, "
             f"{AccountPermissions.MANAGE_STAFF.name}, "
-            f"{AuthorizationFilters.OWNER.name}."
+            f"{AuthorizationFilters.OWNER.name}." + ADDED_IN_38 + PREVIEW_FEATURE
         ),
     )
-    app = graphene.Field(
+    app = PermissionsField(
         "saleor.graphql.app.types.App",
-        description=("App that created the transaction."),
+        description=(
+            "App that created the transaction." + ADDED_IN_38 + PREVIEW_FEATURE
+        ),
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
 
     class Meta:
