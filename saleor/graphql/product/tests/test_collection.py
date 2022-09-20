@@ -433,7 +433,8 @@ CREATE_COLLECTION_MUTATION = """
         mutation createCollection(
                 $name: String!, $slug: String,
                 $description: JSONString, $products: [ID!],
-                $backgroundImage: Upload, $backgroundImageAlt: String) {
+                $backgroundImage: Upload, $backgroundImageAlt: String
+                $metadata: [MetadataInput!], $privateMetadata: [MetadataInput!]) {
             collectionCreate(
                 input: {
                     name: $name,
@@ -441,7 +442,10 @@ CREATE_COLLECTION_MUTATION = """
                     description: $description,
                     products: $products,
                     backgroundImage: $backgroundImage,
-                    backgroundImageAlt: $backgroundImageAlt}) {
+                    backgroundImageAlt: $backgroundImageAlt
+                    metadata: $metadata
+                    privateMetadata: $privateMetadata
+                    }) {
                 collection {
                     name
                     slug
@@ -451,6 +455,14 @@ CREATE_COLLECTION_MUTATION = """
                     }
                     backgroundImage{
                         alt
+                    }
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
                     }
                 }
                 errors {
@@ -474,14 +486,16 @@ def test_create_collection(
     media_root,
     permission_manage_products,
 ):
-    query = CREATE_COLLECTION_MUTATION
-
+    # given
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
     name = "test-name"
     slug = "test-slug"
     description = dummy_editorjs("description", True)
+    metadata_key = "md key"
+    metadata_value = "md value"
+
     variables = {
         "name": name,
         "slug": slug,
@@ -489,13 +503,21 @@ def test_create_collection(
         "products": product_ids,
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
     }
-    body = get_multipart_request_body(query, variables, image_file, image_name)
+    body = get_multipart_request_body(
+        CREATE_COLLECTION_MUTATION, variables, image_file, image_name
+    )
+
+    # when
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionCreate"]["collection"]
+
+    # then
     assert data["name"] == name
     assert data["slug"] == slug
     assert data["description"] == description
@@ -508,6 +530,9 @@ def test_create_collection(
     assert file_name.startswith(f"collection-backgrounds/{img_name}")
     assert file_name.endswith(format)
     assert data["backgroundImage"]["alt"] == image_alt
+    assert collection.metadata == {metadata_key: metadata_value}
+    assert collection.private_metadata == {metadata_key: metadata_value}
+
     created_webhook_mock.assert_called_once()
     updated_webhook_mock.assert_not_called()
 
@@ -612,22 +637,42 @@ def test_update_collection(
     collection,
     permission_manage_products,
 ):
+    # given
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: JSONString, $id: ID!) {
+            $name: String!, $slug: String!, $description: JSONString, $id: ID!,
+            $metadata: [MetadataInput!], $privateMetadata: [MetadataInput!]
+            ) {
 
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, description: $description}) {
+                id: $id, input: {
+                    name: $name, slug: $slug, description: $description,
+                    metadata: $metadata, privateMetadata: $privateMetadata
+                }) {
 
                 collection {
                     name
                     slug
                     description
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
+                    }
                 }
             }
         }
     """
     description = dummy_editorjs("test description", True)
+    old_meta = {"old": "meta"}
+    collection.store_value_in_metadata(items=old_meta)
+    collection.store_value_in_private_metadata(items=old_meta)
+    collection.save(update_fields=["metadata", "private_metadata"])
+    metadata_key = "md key"
+    metadata_value = "md value"
 
     name = "new-name"
     slug = "new-slug"
@@ -637,14 +682,23 @@ def test_update_collection(
         "slug": slug,
         "description": description,
         "id": to_global_id("Collection", collection.id),
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]["collection"]
+    collection.refresh_from_db()
+
+    # then
     assert data["name"] == name
     assert data["slug"] == slug
+    assert collection.metadata == {metadata_key: metadata_value, **old_meta}
+    assert collection.private_metadata == {metadata_key: metadata_value, **old_meta}
 
     created_webhook_mock.assert_not_called()
     updated_webhook_mock.assert_called_once()

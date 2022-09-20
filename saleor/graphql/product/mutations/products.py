@@ -38,6 +38,7 @@ from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
     RICH_CONTENT,
@@ -58,6 +59,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...meta.mutations import MetadataInput, MutationWithMetadataMixin
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductMedia, ProductVariant
@@ -78,9 +80,21 @@ class CategoryInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a product media.")
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the category metadata." + ADDED_IN_38),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the category private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
-class CategoryCreate(ModelMutation):
+class CategoryCreate(MutationWithMetadataMixin, ModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description="Fields required to create a category."
@@ -126,6 +140,11 @@ class CategoryCreate(ModelMutation):
             validate_image_file(image_data, "background_image", ProductErrorCode)
             add_hash_to_file_name(image_data)
         clean_seo_fields(cleaned_input)
+
+        cls.validate_metadata(
+            cleaned_input.get("metadata"), cleaned_input.get("private_metadata")
+        )
+
         return cleaned_input
 
     @classmethod
@@ -208,6 +227,20 @@ class CollectionInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     publication_date = graphene.Date(
         description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the collection metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the collection private metadata." + ADDED_IN_38
+        ),
+        required=False,
     )
 
 
@@ -543,6 +576,18 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     rating = graphene.Float(description="Defines the product rating value.")
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the product metadata." + ADDED_IN_38),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -830,6 +875,21 @@ class ProductVariantInput(graphene.InputObjectType):
             "Determines maximum quantity of `ProductVariant`,"
             "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product variant metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product variant private metadata."
+            + ADDED_IN_38
+        ),
+        required=False,
     )
 
 

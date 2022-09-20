@@ -582,12 +582,29 @@ class ModelMutation(BaseMutation):
         instance = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
+
+        if metadata_list or private_metadata_list:
+            cls.update_metadata(instance, metadata_list, private_metadata_list)
+
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)
+
+    @classmethod
+    def update_metadata(cls, instance, metadata_list=None, private_metadata_list=None):
+        if metadata_list:
+            instance.store_value_in_metadata(
+                {data.key: data.value for data in metadata_list}
+            )
+        if private_metadata_list:
+            instance.store_value_in_private_metadata(
+                {data.key: data.value for data in private_metadata_list}
+            )
 
 
 class ModelDeleteMutation(ModelMutation):

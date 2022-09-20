@@ -401,10 +401,7 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class BaseMutationWithMetadata(BaseMutation):
-    class Meta:
-        abstract = True
-
+class MutationWithMetadataMixin:
     @classmethod
     def validate_metadata_keys(cls, metadata_list: List[dict]):
         if metadata_contains_empty_key(metadata_list):
@@ -418,7 +415,9 @@ class BaseMutationWithMetadata(BaseMutation):
             )
 
     @classmethod
-    def check_metadata_permissions(cls, type_name, info, object_id, private=False):
+    def check_metadata_permissions(cls, info, object_id, private=False):
+        type_name, db_id = graphene.Node.from_global_id(object_id)
+
         if private:
             meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)
         else:
@@ -435,13 +434,19 @@ class BaseMutationWithMetadata(BaseMutation):
             raise PermissionDenied(message)
 
     @classmethod
-    def validate_metadata(cls, info, obj_id, metadata=None, private_metadata=None):
-        type_name, db_id = graphene.Node.from_global_id(obj_id)
-
+    def validate_metadata(cls, metadata=None, private_metadata=None):
         if metadata:
-            cls.check_metadata_permissions(type_name, info, db_id)
             cls.validate_metadata_keys(metadata)
-
         if private_metadata:
-            cls.check_metadata_permissions(type_name, info, db_id, True)
             cls.validate_metadata_keys(private_metadata)
+
+    @classmethod
+    def update_metadata(cls, instance, metadata_list=None, private_metadata_list=None):
+        if metadata_list:
+            instance.store_value_in_metadata(
+                {data.key: data.value for data in metadata_list}
+            )
+        if private_metadata_list:
+            instance.store_value_in_private_metadata(
+                {data.key: data.value for data in private_metadata_list}
+            )

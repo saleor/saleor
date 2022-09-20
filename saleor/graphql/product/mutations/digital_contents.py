@@ -7,8 +7,10 @@ from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...channel import ChannelContext
 from ...core.context import set_mutation_flag_in_context
+from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import ProductError, Upload
+from ...core.types import NonNullList, ProductError, Upload
+from ...meta.mutations import MetadataInput, MutationWithMetadataMixin
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
@@ -36,6 +38,21 @@ class DigitalContentInput(graphene.InputObjectType):
         description="Overwrite default automatic_fulfillment setting for variant.",
         required=False,
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the digital content metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the digital content private metadata."
+            + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class DigitalContentUploadInput(DigitalContentInput):
@@ -44,7 +61,7 @@ class DigitalContentUploadInput(DigitalContentInput):
     )
 
 
-class DigitalContentCreate(BaseMutation):
+class DigitalContentCreate(MutationWithMetadataMixin, BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -111,6 +128,12 @@ class DigitalContentCreate(BaseMutation):
         digital_content.automatic_fulfillment = clean_input.get(
             "automatic_fulfillment", False
         )
+        metadata_list = clean_input.pop("metadata", None)
+        private_metadata_list = clean_input.pop("private_metadata", None)
+
+        if metadata_list or private_metadata_list:
+            cls.validate_metadata(metadata_list, private_metadata_list)
+            cls.update_metadata(digital_content, metadata_list, private_metadata_list)
 
         variant.digital_content = digital_content
         variant.digital_content.save()
@@ -157,7 +180,7 @@ class DigitalContentDelete(BaseMutation):
         return DigitalContentDelete(variant=variant)
 
 
-class DigitalContentUpdate(BaseMutation):
+class DigitalContentUpdate(MutationWithMetadataMixin, BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -227,6 +250,13 @@ class DigitalContentUpdate(BaseMutation):
         digital_content.automatic_fulfillment = clean_input.get(
             "automatic_fulfillment", False
         )
+
+        metadata_list = clean_input.pop("metadata", None)
+        private_metadata_list = clean_input.pop("private_metadata", None)
+
+        if metadata_list or private_metadata_list:
+            cls.validate_metadata(metadata_list, private_metadata_list)
+            cls.update_metadata(digital_content, metadata_list, private_metadata_list)
 
         variant.digital_content = digital_content
         variant.digital_content.save()
