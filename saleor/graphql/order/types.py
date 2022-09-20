@@ -1682,7 +1682,6 @@ class Order(ModelObjectType):
             # Calculate payment total refund requires iterating
             # over payment's transactions
             total_refund_amount = Decimal(0)
-            print(transactions)
             for transaction in transactions:
                 if transaction.kind == TransactionKind.REFUND:
                     total_refund_amount += transaction.amount
