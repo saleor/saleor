@@ -936,7 +936,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     media = NonNullList(
         lambda: ProductMedia,
-        sort_by=graphene.Argument(MediaSortingInput, description="aaa"),
+        sort_by=graphene.Argument(MediaSortingInput, description="Sort media"),
         description="List of media for the product.",
     )
     images = NonNullList(

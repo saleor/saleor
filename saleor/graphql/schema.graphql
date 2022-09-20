@@ -4847,7 +4847,7 @@ type Product implements Node & ObjectWithMetadata {
 
   """List of media for the product."""
   media(
-    """aaa"""
+    """Sort media"""
     sortBy: MediaSortingInput
   ): [ProductMedia!]
 
