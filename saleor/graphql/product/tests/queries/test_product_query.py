@@ -1978,15 +1978,15 @@ def test_query_product_media_for_federation(
 )
 def test_product_variant_field_filtering(
     staff_api_client,
-    permission_manage_products,
     product,
     variant_id,
     sku,
     result,
+    channel_USD,
 ):
     query = """
-    query Product($id: ID!, $variant_id: ID, $sku: String){
-        product(id: $id){
+    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
+        product(id: $id, channel: $channel){
            variant(id: $variant_id, sku: $sku){
             id
             sku
@@ -2003,8 +2003,74 @@ def test_product_variant_field_filtering(
             else None
         ),
         "sku": sku,
+        "channel": channel_USD.slug,
     }
-    permissions = [permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert content["data"]["variant"]["sku"] == result
+    if result is None:
+        assert content["data"]["product"]["variant"] is None
+    else:
+        assert content["data"]["product"]["variant"]["sku"] == result
+
+
+@pytest.mark.parametrize(
+    "sort_by",
+    ({"field": "ID", "direction": "ASC"}, {"field": "ID", "direction": "DESC"}),
+)
+def test_query_product_media_sorting(
+    staff_api_client, product_with_image_list, channel_USD, sort_by
+):
+    query = """
+        query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
+            product(id: $id, channel: $channel){
+                media(sortBy: $sort_by){
+                    id
+                }
+            }
+        }
+    """
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
+        "channel": channel_USD.slug,
+        "sort_by": sort_by,
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    media = content["data"]["product"]["media"]
+    media1 = graphene.Node.from_global_id(media[0]["id"])
+    media2 = graphene.Node.from_global_id(media[1]["id"])
+    if sort_by["direction"] == "ASC":
+        assert media1 < media2
+    else:
+        assert media1 > media2
+
+
+@pytest.mark.parametrize("slug, result", (("color", "color"), ("", None)))
+def test_product_attribute_field_filtering(
+    staff_api_client, product, slug, result, channel_USD
+):
+    query = """
+    query Product($id: ID!, $channel: String, $slug: String!){
+        product(id: $id, channel: $channel){
+           attribute(slug: $slug){
+            attribute{
+                id
+                slug
+            }
+           }
+        }
+    }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "slug": slug,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    if result is None:
+        assert content["data"]["product"]["attribute"] is None
+    else:
+        assert content["data"]["product"]["attribute"]["attribute"]["slug"] == result
