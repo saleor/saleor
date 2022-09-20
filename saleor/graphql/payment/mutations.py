@@ -658,7 +658,7 @@ class TransactionCreate(BaseMutation):
         auto_permission_message = False
         description = (
             "Create transaction for checkout or order. Requires the "
-            f"following permissions: {PaymentPermissions.HANDLE_PAYMENTS}."
+            f"following permissions: {PaymentPermissions.HANDLE_PAYMENTS.name}."
             + ADDED_IN_34
             + PREVIEW_FEATURE
         )

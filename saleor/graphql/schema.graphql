@@ -11987,7 +11987,7 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
-  Create transaction for checkout or order. Requires the following permissions: PaymentPermissions.HANDLE_PAYMENTS.
+  Create transaction for checkout or order. Requires the following permissions: HANDLE_PAYMENTS.
   
   Added in Saleor 3.4.
   
@@ -17054,7 +17054,7 @@ input MoneyInput {
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: PaymentPermissions.HANDLE_PAYMENTS.
+Create transaction for checkout or order. Requires the following permissions: HANDLE_PAYMENTS.
 
 Added in Saleor 3.4.
 
