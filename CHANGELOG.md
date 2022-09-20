@@ -66,6 +66,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add sorting by `CREATED_AT` field. #10911 by @zedzior
   - Affected types: GiftCard, Page.
   - Deprecated `CREATION_DATE` sort field on Page type. Use `CREATED_AT` instead.
+- Add new properties for `Product` by @kadewu
+  - `attribute` and `variant`
+  - `sortBy` to `media`
 
 ### Other changes
 
