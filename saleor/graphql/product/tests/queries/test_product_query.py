@@ -1970,3 +1970,41 @@ def test_query_product_media_for_federation(
             "url": f"http://{site_settings.site.domain}/media/products/product.jpg",
         }
     ]
+
+
+@pytest.mark.parametrize(
+    "variant_id, sku, result",
+    ((False, "123", "123"), (False, None, None), (True, None, "123")),
+)
+def test_product_variant_field_filtering(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    variant_id,
+    sku,
+    result,
+):
+    query = """
+    query Product($id: ID!, $variant_id: ID, $sku: String){
+        product(id: $id){
+           variant(id: $variant_id, sku: $sku){
+            id
+            sku
+           }
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": (
+            graphene.Node.to_global_id("ProductVariant", variant.pk)
+            if variant_id
+            else None
+        ),
+        "sku": sku,
+    }
+    permissions = [permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert content["data"]["variant"]["sku"] == result
