@@ -310,10 +310,13 @@ class TransactionItem(ModelObjectType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description=(
-            "User who created the transaction. Requires of of the "
-            f"following permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            "User who created the transaction."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+            + "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
             f"{AccountPermissions.MANAGE_STAFF.name}, "
-            f"{AuthorizationFilters.OWNER.name}." + ADDED_IN_38 + PREVIEW_FEATURE
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     app = PermissionsField(

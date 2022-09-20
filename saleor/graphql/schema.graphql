@@ -8354,11 +8354,13 @@ type TransactionItem implements Node & ObjectWithMetadata {
   events: [TransactionEvent!]!
 
   """
-  User who created the transaction. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  User who created the transaction.
   
   Added in Saleor 3.8.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
   """
   user: User
 
