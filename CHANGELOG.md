@@ -3,7 +3,16 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 # 3.8.0 [Unreleased]
-
+### Highlights
+- Improve support for handling transactions - #10350 by @korycins
+  - Add new type `GrantedRefund`. It defines the amount of the refund, granted for the order.
+  - Add new mutation `orderGrantRefundCreate` and `orderGrantRefundUpdate` responsible for managing the granted refunds attached to the order.
+  - Add new fields to Order type:
+    - `grantedRefunds` list of `GrantedRefund` assigned to the order.
+    - `totalGrantedRefund` total amount of all granted refunds
+		- `totalRefunded` total amount of refund
+    - `totalPendingRefund` total amount of pending refund
+    - `totalRemainingGrant` the difference amount between granted refund and the amounts that are pending and refunded.
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
