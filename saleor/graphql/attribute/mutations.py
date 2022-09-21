@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
 
@@ -747,14 +748,16 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
-        )
-
-        product_models.Product.objects.filter(
-            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
-            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
-        ).update(search_index_dirty=True)
+        with transaction.atomic():
+            variants = product_models.ProductVariant.objects.filter(
+                Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+            )
+            qs = product_models.Product.objects.select_for_update(of=("self",)).filter(
+                Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
+                | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+            )
+            list(qs)  # evaluate qs to enforce acquiring the lock.
+            qs.update(search_index_dirty=True)
 
         info.context.plugins.attribute_value_updated(instance)
         info.context.plugins.attribute_updated(instance.attribute)
