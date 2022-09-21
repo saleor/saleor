@@ -1,3 +1,5 @@
+from typing import Any
+
 import graphene
 from promise import Promise
 
@@ -6,7 +8,8 @@ from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
 )
-from ...checkout.utils import get_valid_collection_points_for_checkout
+from ...checkout.utils import get_valid_collection_points_for_checkout, \
+    get_or_create_checkout_metadata
 from ...core.permissions import (
     AccountPermissions,
     CheckoutPermissions,

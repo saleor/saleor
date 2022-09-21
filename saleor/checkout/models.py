@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.deletion import SET_NULL
@@ -36,7 +37,7 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
-class Checkout(ModelWithMetadata):
+class Checkout(models.Model):
     """A shopping checkout."""
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -159,7 +160,7 @@ class Checkout(ModelWithMetadata):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
 
-    class Meta(ModelWithMetadata.Meta):
+    class Meta:
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
@@ -298,3 +299,9 @@ class CheckoutLine(ModelWithMetadata):
     def is_shipping_required(self) -> bool:
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
+
+
+class CheckoutMetadata(ModelWithMetadata):
+    checkout = models.OneToOneField(
+        Checkout, related_name="metadata", on_delete=models.CASCADE
+    )

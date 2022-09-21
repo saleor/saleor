@@ -505,8 +505,6 @@ def generate_checkout_payload(
         "discount_amount",
         "discount_name",
         "language_code",
-        "private_metadata",
-        "metadata",
     )
 
     checkout_price_fields = ("discount_amount",)
@@ -553,6 +551,14 @@ def generate_checkout_payload(
             # We add token as a graphql ID as it worked in that way since we introduce
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
+            "metadata": (
+                lambda c=checkout: c.metadata.metadata if hasattr(c, 'metadata') else {}
+            ),
+            "private_metadata": (
+                lambda c=checkout: c.metadata.private_metadata if hasattr(
+                    c, 'metadata'
+                ) else {}
+            ),
         },
     )
     return checkout_data
@@ -1176,7 +1182,6 @@ def generate_checkout_payload_for_tax_calculation(
 
     checkout_fields = (
         "currency",
-        "metadata",
     )
 
     # Prepare checkout data
@@ -1247,6 +1252,7 @@ def generate_checkout_payload_for_tax_calculation(
             "shipping_name": shipping_method_name,
             "discounts": discounts,
             "lines": lines_dict_data,
+            "metadata": (lambda c: c.metadata.metadata if c.metadata else {}),
         },
     )
     return checkout_data

@@ -161,7 +161,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
         )
-
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:

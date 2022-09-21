@@ -96,7 +96,7 @@ def test_is_valid_delivery_method_external_method(
     mock_send_request.return_value = mock_json_response
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
+    checkout.metadata.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
     checkout.save()
 
     manager = get_plugins_manager()
@@ -126,7 +126,7 @@ def test_is_valid_delivery_method_external_method_no_longer_available(
     mock_send_request.return_value = mock_json_response
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
+    checkout.metadata.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
     checkout.save()
 
     manager = get_plugins_manager()
@@ -1401,16 +1401,16 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
 def test_manage_external_shipping_id(checkout):
     app_shipping_id = "abcd"
     initial_private_metadata = {"test": 123}
-    checkout.private_metadata = initial_private_metadata
+    checkout.metadata.private_metadata = initial_private_metadata
 
     set_external_shipping_id(checkout, app_shipping_id)
-    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata.private_metadata
 
     shipping_id = get_external_shipping_id(checkout)
     assert shipping_id == app_shipping_id
 
     delete_external_shipping_id(checkout)
-    assert checkout.private_metadata == initial_private_metadata
+    assert checkout.metadata.private_metadata == initial_private_metadata
 
 
 def test_checkout_total_setter():

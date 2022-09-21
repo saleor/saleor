@@ -66,7 +66,7 @@ from .checkout_cleaner import (
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
-from .utils import get_voucher_for_checkout_info
+from .utils import get_voucher_for_checkout_info, get_or_create_checkout_metadata
 
 if TYPE_CHECKING:
     from ..account.models import Address
@@ -563,11 +563,12 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+    checkout_metadata = get_or_create_checkout_metadata(checkout)
 
     # copy metadata from the checkout into the new order
-    order.metadata = checkout.metadata
+    order.metadata = checkout_metadata.metadata
     order.redirect_url = checkout.redirect_url
-    order.private_metadata = checkout.private_metadata
+    order.private_metadata = checkout_metadata.private_metadata
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
     order.search_vector = FlatConcatSearchVector(
@@ -747,105 +748,105 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
-    checkout_for_update = (
-        Checkout.objects.select_for_update()
-        .filter(pk=checkout_info.checkout.pk)
-        .first()
-    )
-    with traced_atomic_transaction():
-        if checkout_for_update:
-            fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
+    # checkout_for_update = (
+    #     Checkout.objects.select_for_update()
+    #     .filter(pk=checkout_info.checkout.pk)
+    #     .first()
+    # )
+    # with traced_atomic_transaction():
+    #     if checkout_for_update:
+    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
 
-            checkout = checkout_info.checkout
-            channel_slug = checkout_info.channel.slug
-            payment = checkout.get_last_active_payment()
-            _prepare_checkout(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                discounts=discounts,
-                tracking_code=tracking_code,
-                redirect_url=redirect_url,
-                payment=payment,
+    checkout = checkout_info.checkout
+    channel_slug = checkout_info.channel.slug
+    payment = checkout.get_last_active_payment()
+    _prepare_checkout(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=discounts,
+        tracking_code=tracking_code,
+        redirect_url=redirect_url,
+        payment=payment,
+    )
+
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
+    try:
+        order_data = _get_order_data(
+            manager, checkout_info, lines, discounts, site_settings
+        )
+    except ValidationError as exc:
+        gateway.payment_refund_or_void(
+            payment, manager, channel_slug=channel_slug
+        )
+        raise exc
+
+    customer_id = None
+    if payment and user.is_authenticated:
+        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
+
+    action_required = False
+    action_data: Dict[str, str] = {}
+    if payment:
+        txn = _process_payment(
+            payment=payment,  # type: ignore
+            customer_id=customer_id,
+            store_source=store_source,
+            payment_data=payment_data,
+            order_data=order_data,
+            manager=manager,
+            channel_slug=channel_slug,
+        )
+
+        if txn.customer_id and user.is_authenticated:
+            store_customer_id(
+                user, payment.gateway, txn.customer_id
+            )  # type: ignore
+
+        action_required = txn.action_required
+        if action_required:
+            action_data = txn.action_required_data
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
             )
 
-            if site_settings is None:
-                site_settings = Site.objects.get_current().settings
+    order = None
+    if not action_required and not _is_refund_ongoing(payment):
+        try:
+            order = _create_order(
+                checkout_info=checkout_info,
+                checkout_lines=lines,
+                order_data=order_data,
+                user=user,  # type: ignore
+                app=app,
+                manager=manager,
+                site_settings=site_settings,
+            )
+            # remove checkout after order is successfully created
+            checkout.delete()
+        except InsufficientStock as e:
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
+            )
+            gateway.payment_refund_or_void(
+                payment, manager, channel_slug=channel_slug
+            )
+            error = prepare_insufficient_stock_checkout_validation_error(e)
+            raise error
+        except GiftCardNotApplicable as e:
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
+            )
+            gateway.payment_refund_or_void(
+                payment, manager, channel_slug=channel_slug
+            )
+            raise ValidationError(code=e.code, message=e.message)
 
-            try:
-                order_data = _get_order_data(
-                    manager, checkout_info, lines, discounts, site_settings
-                )
-            except ValidationError as exc:
-                gateway.payment_refund_or_void(
-                    payment, manager, channel_slug=channel_slug
-                )
-                raise exc
-
-            customer_id = None
-            if payment and user.is_authenticated:
-                customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
-
-            action_required = False
-            action_data: Dict[str, str] = {}
-            if payment:
-                txn = _process_payment(
-                    payment=payment,  # type: ignore
-                    customer_id=customer_id,
-                    store_source=store_source,
-                    payment_data=payment_data,
-                    order_data=order_data,
-                    manager=manager,
-                    channel_slug=channel_slug,
-                )
-
-                if txn.customer_id and user.is_authenticated:
-                    store_customer_id(
-                        user, payment.gateway, txn.customer_id
-                    )  # type: ignore
-
-                action_required = txn.action_required
-                if action_required:
-                    action_data = txn.action_required_data
-                    release_voucher_usage(
-                        order_data.get("voucher"), order_data.get("user_email")
-                    )
-
-            order = None
-            if not action_required and not _is_refund_ongoing(payment):
-                try:
-                    order = _create_order(
-                        checkout_info=checkout_info,
-                        checkout_lines=lines,
-                        order_data=order_data,
-                        user=user,  # type: ignore
-                        app=app,
-                        manager=manager,
-                        site_settings=site_settings,
-                    )
-                    # remove checkout after order is successfully created
-                    checkout.delete()
-                except InsufficientStock as e:
-                    release_voucher_usage(
-                        order_data.get("voucher"), order_data.get("user_email")
-                    )
-                    gateway.payment_refund_or_void(
-                        payment, manager, channel_slug=channel_slug
-                    )
-                    error = prepare_insufficient_stock_checkout_validation_error(e)
-                    raise error
-                except GiftCardNotApplicable as e:
-                    release_voucher_usage(
-                        order_data.get("voucher"), order_data.get("user_email")
-                    )
-                    gateway.payment_refund_or_void(
-                        payment, manager, channel_slug=channel_slug
-                    )
-                    raise ValidationError(code=e.code, message=e.message)
-
-                # if the order total value is 0 it is paid from the definition
-                if order.total.net.amount == 0:
-                    mark_order_as_paid(order, user, app, manager)
+        # if the order total value is 0 it is paid from the definition
+        if order.total.net.amount == 0:
+            mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
 
@@ -1059,7 +1060,7 @@ def _create_order_from_checkout(
         if site_settings.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
-
+    checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)
     # order
     order = Order.objects.create(
         status=status,
@@ -1072,8 +1073,8 @@ def _create_order_from_checkout(
         checkout_token=checkout_info.checkout.token,
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
-        metadata=checkout_info.checkout.metadata,
-        private_metadata=checkout_info.checkout.private_metadata,
+        metadata=checkout_metadata.metadata,
+        private_metadata=checkout_metadata.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
         **_process_shipping_data_for_order(

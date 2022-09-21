@@ -40,7 +40,7 @@ from .fetch import (
     update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
 )
-from .models import Checkout, CheckoutLine
+from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -831,10 +831,10 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         update_fields=[
             "shipping_method",
             "collection_point",
-            "private_metadata",
             "last_change",
         ]
     )
+    checkout.metadata.save()
 
 
 def is_fully_paid(
@@ -901,14 +901,25 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
-    checkout.store_value_in_private_metadata(
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
+    if type(container) == Checkout:
+        container = get_or_create_checkout_metadata(container)
     return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
 def delete_external_shipping_id(checkout: Checkout):
-    checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+def get_or_create_checkout_metadata(checkout: "Checkout"):
+    if hasattr(checkout, "metadata"):
+        return checkout.metadata
+    else:
+        return CheckoutMetadata.objects.create(checkout=checkout)

@@ -215,12 +215,12 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
                 "collection_point",
             ]
             + invalidate_prices_updated_fields
         )
+        checkout.metadata.save()
         manager.checkout_updated(checkout)
 
     @staticmethod

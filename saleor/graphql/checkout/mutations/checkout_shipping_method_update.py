@@ -179,11 +179,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
             ]
             + invalidate_prices_updated_fields
         )
+        checkout.metadata.save()
 
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -209,11 +209,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
             ]
             + invalidate_prices_updated_fields
         )
+        checkout.metadata.save(update_fields=["private_metadata"])
         manager.checkout_updated(checkout)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
