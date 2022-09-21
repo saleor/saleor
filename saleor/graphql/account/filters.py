@@ -51,6 +51,7 @@ def filter_search(qs, _, value):
 
 
 class CustomerFilter(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
     )

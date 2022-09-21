@@ -5802,6 +5802,30 @@ def test_query_customer_members_with_filter_search(
     assert len(users) == count
 
 
+def test_query_customers_with_filter_by_ids(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+):
+    # given
+    variables = {
+        "filter": {
+            "ids": [graphene.Node.to_global_id("User", customer_user.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    users = content["data"]["customers"]["edges"]
+    assert len(users) == 1
+
+
 @pytest.mark.parametrize(
     "staff_member_filter, count",
     [({"status": "DEACTIVATED"}, 1), ({"status": "ACTIVE"}, 2)],

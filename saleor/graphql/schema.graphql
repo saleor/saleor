@@ -10793,6 +10793,7 @@ input CustomerFilterInput {
   placedOrders: DateRangeInput
   search: String
   metadata: [MetadataFilter!]
+  ids: [ID!]
   updatedAt: DateTimeRangeInput
 }
 
