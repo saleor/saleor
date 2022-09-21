@@ -176,7 +176,7 @@ def create_payment_information(
         email = cast(str, checkout.get_customer_email())
         user_id = checkout.user_id
         checkout_token = str(checkout.token)
-        checkout_metadata = checkout.metadata
+        checkout_metadata = checkout.metadata.metadata
     elif order := payment.order:
         billing = order.billing_address
         shipping = order.shipping_address

@@ -74,9 +74,10 @@ def test_order_from_checkout_with_inactive_channel(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
@@ -115,9 +116,10 @@ def test_order_from_checkout(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
 
@@ -162,8 +164,8 @@ def test_order_from_checkout(
     assert not order.original
     assert str(order.pk) == order_token
     assert order.total.gross == total.gross
-    assert order.metadata == checkout.metadata
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == checkout.metadata.metadata
+    assert order.private_metadata == checkout.metadata.private_metadata
 
     order_line = order.lines.first()
     line_tax_class = order_line.variant.product.tax_class
@@ -312,10 +314,11 @@ def test_order_from_checkout_gift_card_bought(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.user = customer_user
     checkout.save()
+    checkout.metadata.save()
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -389,10 +392,11 @@ def test_order_from_checkout_no_checkout_email(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.email = None
     checkout.save()
+    checkout.metadata.save()
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
@@ -544,9 +548,11 @@ def test_order_from_checkout_with_voucher(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -568,8 +574,8 @@ def test_order_from_checkout_with_voucher(
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert str(order.pk) == order_token
-    assert order.metadata == checkout.metadata
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == checkout.metadata.metadata
+    assert order.private_metadata == checkout.metadata.private_metadata
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
@@ -631,9 +637,10 @@ def test_order_from_checkout_without_inventory_tracking(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -663,8 +670,8 @@ def test_order_from_checkout_without_inventory_tracking(
     order = Order.objects.first()
     assert str(order.pk) == order_token
     assert order.total.gross == total.gross
-    assert order.metadata == checkout.metadata
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == checkout.metadata.metadata
+    assert order.private_metadata == checkout.metadata.private_metadata
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
@@ -686,9 +693,10 @@ def test_order_from_checkout_checkout_without_lines(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     lines, _ = fetch_checkout_lines(checkout)
     assert not lines
@@ -890,9 +898,10 @@ def test_order_from_checkout_0_total_value(
 
     checkout = checkout_with_item
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -932,8 +941,8 @@ def test_order_from_checkout_0_total_value(
     order = Order.objects.first()
     assert str(order.pk) == order_token
     assert order.total.gross == total.gross
-    assert order.metadata == checkout.metadata
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == checkout.metadata.metadata
+    assert order.private_metadata == checkout.metadata.private_metadata
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
@@ -1286,9 +1295,10 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -1336,9 +1346,10 @@ def test_order_from_draft_create_variant_channel_listing_no_price(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     variants = []
     for line in checkout.lines.all()[:2]:
@@ -1390,9 +1401,10 @@ def test_order_from_draft_create_product_channel_listing_does_not_exist(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -1444,9 +1456,10 @@ def test_order_from_draft_create_product_channel_listing_not_available_for_purch
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -1495,12 +1508,13 @@ def test_order_from_draft_create_0_total_value_from_voucher(
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.voucher_code = voucher.code
     checkout.discount = Money("10.00", "USD")
 
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -1531,8 +1545,8 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     order = Order.objects.first()
     assert str(order.pk) == order_token
     assert order.total.gross == total.gross
-    assert order.metadata == checkout.metadata
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == checkout.metadata.metadata
+    assert order.private_metadata == checkout.metadata.private_metadata
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
@@ -1555,10 +1569,11 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.gift_cards.add(gift_card)
     checkout.save()
+    checkout.metadata.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -1588,8 +1603,8 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     order = Order.objects.first()
     assert str(order.pk) == order_token
     assert order.total.gross == total.gross
-    assert order.metadata == checkout.metadata
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == checkout.metadata.metadata
+    assert order.private_metadata == checkout.metadata.private_metadata
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity

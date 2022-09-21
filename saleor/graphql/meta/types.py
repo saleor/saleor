@@ -1,6 +1,7 @@
 import graphene
 from graphene.types.generic import GenericScalar
 
+from ...checkout.models import Checkout
 from ...core.models import ModelWithMetadata
 from ..channel import ChannelContext
 from ..core.descriptions import ADDED_IN_33, PREVIEW_FEATURE
@@ -90,28 +91,34 @@ class ObjectWithMetadata(graphene.Interface):
 
     @staticmethod
     def resolve_metadata(root: ModelWithMetadata, _info):
+        root = get_valid_metadata_instance(root)
         return resolve_metadata(root.metadata)
 
     @staticmethod
     def resolve_metafield(root: ModelWithMetadata, _info, *, key: str):
+        root = get_valid_metadata_instance(root)
         return root.metadata.get(key)
 
     @staticmethod
     def resolve_metafields(root: ModelWithMetadata, _info, *, keys=None):
+        root = get_valid_metadata_instance(root)
         return _filter_metadata(root.metadata, keys)
 
     @staticmethod
     def resolve_private_metadata(root: ModelWithMetadata, info):
+        root = get_valid_metadata_instance(root)
         return resolve_private_metadata(root, info)
 
     @staticmethod
     def resolve_private_metafield(root: ModelWithMetadata, info, *, key: str):
         check_private_metadata_privilege(root, info)
+        root = get_valid_metadata_instance(root)
         return root.private_metadata.get(key)
 
     @staticmethod
     def resolve_private_metafields(root: ModelWithMetadata, info, *, keys=None):
         check_private_metadata_privilege(root, info)
+        root = get_valid_metadata_instance(root)
         return _filter_metadata(root.private_metadata, keys)
 
     @classmethod
@@ -119,5 +126,13 @@ class ObjectWithMetadata(graphene.Interface):
         if isinstance(instance, ChannelContext):
             # Return instance for types that use ChannelContext
             instance = instance.node
+        else:
+            instance = get_valid_metadata_instance(instance)
         item_type, _ = resolve_object_with_metadata_type(instance)
         return item_type
+
+
+def get_valid_metadata_instance(instance):
+    if isinstance(instance, Checkout):
+        instance = instance.metadata
+    return instance

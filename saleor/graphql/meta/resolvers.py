@@ -48,6 +48,7 @@ def resolve_object_with_metadata_type(instance):
             app_models.App: app_types.App,
             attribute_models.Attribute: attribute_types.Attribute,
             checkout_models.Checkout: checkout_types.Checkout,
+            checkout_models.CheckoutMetadata: checkout_types.Checkout,
             checkout_models.CheckoutLine: checkout_types.CheckoutLine,
             discount_models.Sale: discount_types.Sale,
             discount_models.Voucher: discount_types.Voucher,
@@ -82,6 +83,9 @@ def resolve_object_with_metadata_type(instance):
 
 
 def resolve_metadata(metadata: dict):
+    # Metadata for checkout uses separate model to store metadata
+    if isinstance(metadata, checkout_models.CheckoutMetadata):
+        metadata = metadata.metadata
     return sorted(
         [{"key": k, "value": v} for k, v in metadata.items()],
         key=itemgetter("key"),
@@ -113,5 +117,8 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
 
 
 def resolve_private_metadata(root: ModelWithMetadata, info):
+    # Metadata for checkout uses separate model to store metadata
+    if isinstance(root, checkout_models.Checkout):
+        root = root.metadata
     check_private_metadata_privilege(root, info)
     return resolve_metadata(root.private_metadata)
