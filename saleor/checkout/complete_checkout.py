@@ -774,9 +774,7 @@ def complete_checkout(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(
-        checkout_info, manager, lines, discounts=discounts, site_settings=site_settings
-    )
+    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts=discounts)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug

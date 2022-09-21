@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple
 
 if TYPE_CHECKING:
     from ..account.models import Address
@@ -66,6 +66,23 @@ def get_charge_taxes(
     )
 
 
+def get_tax_calculation_strategy(
+    channel_tax_configuration: "TaxConfiguration",
+    country_tax_configuration: Optional["TaxConfigurationPerCountry"],
+) -> Optional[str]:
+    """Get tax_calculation_strategy value for tax channel configuration.
+
+    :param channel_tax_configuration: Channel-specific tax configuration.
+    :param country_tax_configuration: Country-specific tax configuration for the given
+    channel.
+    """
+    return (
+        country_tax_configuration.tax_calculation_strategy
+        if country_tax_configuration
+        else channel_tax_configuration.tax_calculation_strategy
+    )
+
+
 def get_charge_taxes_for_order(order: "Order") -> bool:
     """Get charge_taxes value for order."""
     channel = order.channel
@@ -87,10 +104,9 @@ def get_charge_taxes_for_order(order: "Order") -> bool:
     return get_charge_taxes(tax_configuration, country_tax_configuration)
 
 
-def get_charge_taxes_for_checkout(
+def _get_tax_configuration_for_checkout(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
-):
-    """Get charge_taxes value for checkout."""
+) -> Tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
     from ..checkout.utils import is_shipping_required
 
     tax_configuration = checkout_info.tax_configuration
@@ -108,4 +124,23 @@ def get_charge_taxes_for_checkout(
         ),
         None,
     )
+    return tax_configuration, country_tax_configuration
+
+
+def get_charge_taxes_for_checkout(
+    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+):
+    """Get charge_taxes value for checkout."""
+    tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
+        checkout_info, lines
+    )
     return get_charge_taxes(tax_configuration, country_tax_configuration)
+
+
+def get_tax_calculation_strategy_for_checkout(
+    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+):
+    tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
+        checkout_info, lines
+    )
+    return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
