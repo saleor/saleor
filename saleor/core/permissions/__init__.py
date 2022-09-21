@@ -66,6 +66,7 @@ __all__ = [
     "split_permission_codename",
 ]
 
+
 if TYPE_CHECKING:
     from ...account.models import User
     from ...app.models import App
@@ -88,11 +89,13 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
     granted_by_authorization_filters = False
 
     # TODO: move this function from graphql to core
-    from saleor.graphql.utils import get_user_or_app_from_context
+    # from ...graphql.account.dataloaders import load_requestor
+    # requestor = load_requestor(context)
+    from ...graphql.utils import get_user_or_app_from_context
 
     requestor = get_user_or_app_from_context(context)
 
-    if permissions:
+    if requestor and permissions:
         perm_checks_results = []
         for permission in permissions:
             perm_checks_results.append(requestor.has_perm(permission))
@@ -117,11 +120,12 @@ def permission_required(
 
     if isinstance(requestor, User):
         return requestor.has_perms(perms)
-    else:
+    elif requestor:
         # for now MANAGE_STAFF permission for app is not supported
         if AccountPermissions.MANAGE_STAFF in perms:
             return False
         return requestor.has_perms(perms)
+    return False
 
 
 def has_one_of_permissions(

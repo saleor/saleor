@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
-RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
+RequestorOrCallable = Union[Callable, "Requestor"]
 
 
 class ConfigurationTypeField:
@@ -136,8 +136,8 @@ class BasePlugin:
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
         self.channel = channel
-        self.requestor: Optional[RequestorOrLazyObject] = (
-            SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
+        self.requestor: Optional[RequestorOrCallable] = (
+            requestor_getter() if requestor_getter else None
         )
         self.db_config = db_config
 

@@ -6,7 +6,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
 
 import graphene
-from django.contrib.auth.models import AnonymousUser
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
@@ -58,7 +57,7 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData, TransactionActionData
     from ..payment.models import Payment
-    from ..plugins.base_plugin import RequestorOrLazyObject
+    from ..plugins.base_plugin import RequestorOrCallable
     from ..translation.models import Translation
 
 
@@ -106,10 +105,10 @@ ORDER_PRICE_FIELDS = (
 )
 
 
-def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
+def generate_requestor(requestor: Optional["RequestorOrCallable"] = None):
     if not requestor:
         return {"id": None, "type": None}
-    if isinstance(requestor, (User, AnonymousUser)):
+    if isinstance(requestor, User):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
     return {"id": requestor.name, "type": "app"}  # type: ignore
 
@@ -245,7 +244,7 @@ def _generate_shipping_method_payload(shipping_method, channel):
 @traced_payload_generator
 def generate_order_payload(
     order: "Order",
-    requestor: Optional["RequestorOrLazyObject"] = None,
+    requestor: Optional["RequestorOrCallable"] = None,
     with_meta: bool = True,
 ):
     serializer = PayloadSerializer()
@@ -386,7 +385,7 @@ def generate_sale_payload(
     sale: "Sale",
     previous_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
     current_catalogue: Optional[DefaultDict[str, Set[str]]] = None,
-    requestor: Optional["RequestorOrLazyObject"] = None,
+    requestor: Optional["RequestorOrCallable"] = None,
 ):
     if previous_catalogue is None:
         previous_catalogue = defaultdict(set)
@@ -433,7 +432,7 @@ def generate_sale_payload(
 def generate_sale_toggle_payload(
     sale: "Sale",
     catalogue: DefaultDict[str, Set[str]],
-    requestor: Optional["RequestorOrLazyObject"] = None,
+    requestor: Optional["RequestorOrCallable"] = None,
 ):
     serializer = PayloadSerializer()
     sale_fields = ("id",)
@@ -453,7 +452,7 @@ def generate_sale_toggle_payload(
 
 @traced_payload_generator
 def generate_invoice_payload(
-    invoice: "Invoice", requestor: Optional["RequestorOrLazyObject"] = None
+    invoice: "Invoice", requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     invoice_fields = ("id", "number", "external_url", "created")
@@ -493,7 +492,7 @@ def _generate_order_payload_for_invoice(order: "Order"):
 
 @traced_payload_generator
 def generate_checkout_payload(
-    checkout: "Checkout", requestor: Optional["RequestorOrLazyObject"] = None
+    checkout: "Checkout", requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     checkout_fields = (
@@ -560,7 +559,7 @@ def generate_checkout_payload(
 
 @traced_payload_generator
 def generate_customer_payload(
-    customer: "User", requestor: Optional["RequestorOrLazyObject"] = None
+    customer: "User", requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     data = serializer.serialize(
@@ -598,7 +597,7 @@ def generate_customer_payload(
 
 @traced_payload_generator
 def generate_collection_payload(
-    collection: "Collection", requestor: Optional["RequestorOrLazyObject"] = None
+    collection: "Collection", requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     data = serializer.serialize(
@@ -658,7 +657,7 @@ def serialize_product_channel_listing_payload(channel_listings):
 
 @traced_payload_generator
 def generate_product_payload(
-    product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
+    product: "Product", requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
@@ -699,7 +698,7 @@ def generate_product_payload(
 
 @traced_payload_generator
 def generate_product_deleted_payload(
-    product: "Product", variants_id, requestor: Optional["RequestorOrLazyObject"] = None
+    product: "Product", variants_id, requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     product_fields = PRODUCT_FIELDS
@@ -759,7 +758,7 @@ def generate_product_variant_media_payload(product_variant):
 
 @traced_payload_generator
 def generate_product_variant_with_stock_payload(
-    stocks: Iterable["Stock"], requestor: Optional["RequestorOrLazyObject"] = None
+    stocks: Iterable["Stock"], requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     extra_dict_data = {
@@ -781,7 +780,7 @@ def generate_product_variant_with_stock_payload(
 @traced_payload_generator
 def generate_product_variant_payload(
     product_variants: Iterable["ProductVariant"],
-    requestor: Optional["RequestorOrLazyObject"] = None,
+    requestor: Optional["RequestorOrCallable"] = None,
     with_meta: bool = True,
 ):
     extra_dict_data = {
@@ -885,7 +884,7 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
 
 @traced_payload_generator
 def generate_fulfillment_payload(
-    fulfillment: Fulfillment, requestor: Optional["RequestorOrLazyObject"] = None
+    fulfillment: Fulfillment, requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
 
@@ -932,7 +931,7 @@ def generate_fulfillment_payload(
 
 @traced_payload_generator
 def generate_page_payload(
-    page: Page, requestor: Optional["RequestorOrLazyObject"] = None
+    page: Page, requestor: Optional["RequestorOrCallable"] = None
 ):
     serializer = PayloadSerializer()
     page_fields = [
@@ -958,7 +957,7 @@ def generate_page_payload(
 
 @traced_payload_generator
 def generate_payment_payload(
-    payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
+    payment_data: "PaymentData", requestor: Optional["RequestorOrCallable"] = None
 ):
     data = asdict(payment_data)
     data["amount"] = quantize_price(data["amount"], data["currency"])
@@ -1091,7 +1090,7 @@ def process_translation_context(context):
 
 @traced_payload_generator
 def generate_translation_payload(
-    translation: "Translation", requestor: Optional["RequestorOrLazyObject"] = None
+    translation: "Translation", requestor: Optional["RequestorOrCallable"] = None
 ):
     object_type, object_id = translation.get_translated_object_id()
     translated_keys = [
@@ -1341,7 +1340,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
 @traced_payload_generator
 def generate_transaction_action_request_payload(
     transaction_data: "TransactionActionData",
-    requestor: Optional["RequestorOrLazyObject"] = None,
+    requestor: Optional["RequestorOrCallable"] = None,
 ) -> str:
     transaction = transaction_data.transaction
 

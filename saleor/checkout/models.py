@@ -143,7 +143,7 @@ class Checkout(ModelWithMetadata):
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     discount = MoneyField(amount_field="discount_amount", currency_field="currency")
     discount_name = models.CharField(max_length=255, blank=True, null=True)
@@ -159,12 +159,15 @@ class Checkout(ModelWithMetadata):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
 
+    tax_exemption = models.BooleanField(default=False)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
+            (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
         )
 
     def __iter__(self):

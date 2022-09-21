@@ -238,6 +238,7 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.app",
+    "saleor.tax",
     "saleor.thumbnail",
     "saleor.schedulers",
     # External apps

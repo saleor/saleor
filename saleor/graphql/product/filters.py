@@ -42,6 +42,7 @@ from ..core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    filter_slug_list,
 )
 from ..core.types import (
     ChannelFilterInputObjectType,
@@ -628,6 +629,7 @@ class ProductFilter(MetadataFilterBase):
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants
     )
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Product
@@ -694,6 +696,7 @@ class CollectionFilter(MetadataFilterBase):
     )
     search = django_filters.CharFilter(method="collection_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Collection
@@ -717,6 +720,7 @@ class CollectionFilter(MetadataFilterBase):
 class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Category
@@ -745,6 +749,7 @@ class ProductTypeFilter(MetadataFilterBase):
     product_type = EnumFilter(input_class=ProductTypeEnum, method=filter_product_type)
     kind = EnumFilter(input_class=ProductTypeKindEnum, method=filter_product_type_kind)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = ProductType

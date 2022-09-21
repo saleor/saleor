@@ -63,6 +63,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -886,6 +887,14 @@ class Order(ModelObjectType):
         description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
         required=True,
     )
+    tax_exemption = graphene.Boolean(
+        description=(
+            "Returns True if order has to be exempt from taxes."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
     transactions = NonNullList(
         TransactionItem,
         description=(
@@ -1292,7 +1301,7 @@ class Order(ModelObjectType):
     def resolve_fulfillments(root: models.Order, info):
         def _resolve_fulfillments(fulfillments):
             user = info.context.user
-            if user.is_staff:
+            if user and user.is_staff:
                 return fulfillments
             return filter(
                 lambda fulfillment: fulfillment.status != FulfillmentStatus.CANCELED,

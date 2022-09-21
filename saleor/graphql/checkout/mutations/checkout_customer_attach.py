@@ -74,12 +74,14 @@ class CheckoutCustomerAttach(BaseMutation):
 
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)
-            if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            if not requestor or not requestor.has_perm(
+                AccountPermissions.IMPERSONATE_USER
+            ):
                 raise PermissionDenied(
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
-        elif info.context.user.is_anonymous:
+        elif not info.context.user:
             raise ValidationError(
                 {
                     "customer_id": ValidationError(

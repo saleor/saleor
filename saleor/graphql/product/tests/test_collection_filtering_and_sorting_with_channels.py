@@ -294,7 +294,13 @@ def test_collections_with_filtering_without_channel(
 
 @pytest.mark.parametrize(
     "filter_by, collections_count",
-    [({"published": "PUBLISHED"}, 1), ({"published": "HIDDEN"}, 3)],
+    [
+        ({"published": "PUBLISHED"}, 1),
+        ({"published": "HIDDEN"}, 3),
+        ({"slugs": ["collection1"]}, 1),
+        ({"slugs": ["collection2", "collection3"]}, 2),
+        ({"slugs": []}, 4),
+    ],
 )
 def test_collections_with_filtering_with_channel_USD(
     filter_by,
@@ -352,7 +358,11 @@ def test_collections_with_filtering_with_channel_PLN(
 
 @pytest.mark.parametrize(
     "filter_by",
-    [{"published": "PUBLISHED"}, {"published": "HIDDEN"}],
+    [
+        {"published": "PUBLISHED"},
+        {"published": "HIDDEN"},
+        {"slugs": ["collection1"]},
+    ],
 )
 def test_collections_with_filtering_and_not_existing_channel(
     filter_by,

@@ -25,13 +25,26 @@ from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_CREATE_FROM_CHECKOUT = """
-mutation orderCreateFromCheckout($id: ID!){
-    orderCreateFromCheckout(id: $id){
+mutation orderCreateFromCheckout(
+        $id: ID!, $metadata: [MetadataInput!], $privateMetadata: [MetadataInput!]
+    ){
+    orderCreateFromCheckout(
+            id: $id, metadata: $metadata, privateMetadata: $privateMetadata
+        ){
         order{
-            id,
+            id
             token
             original
             origin
+            total {
+                currency
+                net {
+                    amount
+                }
+                gross {
+                    amount
+                }
+            }
         }
         errors{
             field
@@ -82,9 +95,11 @@ def test_order_from_checkout_with_inactive_channel(
 
 
 @pytest.mark.integration
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     app_api_client,
     permission_handle_checkouts,
     site_settings,
@@ -166,6 +181,75 @@ def test_order_from_checkout(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
 
+    order_confirmed_mock.assert_called_once_with(order)
+    _recalculate_order_prices_mock.assert_not_called()
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_order_from_checkout_with_metadata(
+    order_confirmed_mock,
+    app_api_client,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    site_settings,
+    checkout_with_gift_card,
+    gift_card,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+    assert str(order.pk) == order_token
+    assert order.total.gross == total.gross
+    assert order.metadata == {**checkout.metadata, **{metadata_key: metadata_value}}
+    assert order.private_metadata == {
+        **checkout.private_metadata,
+        **{metadata_key: metadata_value},
+    }
     order_confirmed_mock.assert_called_once_with(order)
 
 
@@ -396,9 +480,11 @@ def test_order_from_checkout_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout_requires_confirmation(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     app_api_client,
     permission_handle_checkouts,
     site_settings,
@@ -423,6 +509,7 @@ def test_order_from_checkout_requires_confirmation(
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
+    _recalculate_order_prices_mock.assert_not_called()
 
 
 @pytest.mark.integration

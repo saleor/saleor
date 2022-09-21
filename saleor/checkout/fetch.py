@@ -197,7 +197,7 @@ class CollectionPointInfo(DeliveryMethodBase):
 @singledispatch
 def get_delivery_method_info(
     delivery_method: Optional[Union["ShippingMethodData", "Warehouse", Callable]],
-    address=Optional["Address"],
+    address: Optional["Address"] = None,
 ) -> DeliveryMethodBase:
     if callable(delivery_method):
         delivery_method = delivery_method()

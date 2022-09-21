@@ -1,9 +1,23 @@
 from collections import defaultdict
 
-from django.contrib.auth.models import Permission
+import jwt
+from django.contrib.auth.models import AnonymousUser, Permission
 
 from ...account.models import Address, CustomerEvent, User
+from ...core.auth import get_token_from_request
+from ...core.jwt import (
+    JWT_ACCESS_TYPE,
+    JWT_THIRDPARTY_ACCESS_TYPE,
+    PERMISSIONS_FIELD,
+    is_saleor_token,
+    jwt_decode,
+)
+from ...core.permissions import (
+    get_permissions_from_codenames,
+    get_permissions_from_names,
+)
 from ...thumbnail.models import Thumbnail
+from ..app.dataloaders import AppByTokenLoader
 from ..core.dataloaders import DataLoader
 
 
@@ -75,3 +89,68 @@ class PermissionByCodenameLoader(DataLoader):
             .in_bulk(field_name="codename")
         )
         return [permission_map.get(codename) for codename in keys]
+
+
+def load_user_from_token(context, token):
+    if not token or not is_saleor_token(token):
+        return None
+    payload = jwt_decode(token)
+
+    jwt_type = payload.get("type")
+    if jwt_type not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
+        raise jwt.InvalidTokenError(
+            "Invalid token. Create new one by using tokenCreate mutation."
+        )
+    permissions = payload.get(PERMISSIONS_FIELD, None)
+
+    user = UserByEmailLoader(context).load(payload["email"]).get()
+    user_jwt_token = payload.get("token")
+    if not user_jwt_token:
+        raise jwt.InvalidTokenError(
+            "Invalid token. Create new one by using tokenCreate mutation."
+        )
+    elif not user:
+        raise jwt.InvalidTokenError(
+            "Invalid token. User does not exist or is inactive."
+        )
+    if user.jwt_token_key != user_jwt_token:
+        raise jwt.InvalidTokenError(
+            "Invalid token. Create new one by using tokenCreate mutation."
+        )
+
+    if permissions is not None:
+        token_permissions = get_permissions_from_names(permissions)
+        token_codenames = [perm.codename for perm in token_permissions]
+        user.effective_permissions = get_permissions_from_codenames(token_codenames)
+        user.is_staff = True if user.effective_permissions else False
+
+    if payload.get("is_staff"):
+        user.is_staff = True
+    return user
+
+
+class RequestorByTokenDataloader(DataLoader):
+    context_key = "requestor_by_token"
+
+    def batch_load(self, keys):
+        results = []
+        for key in keys:
+            app = AppByTokenLoader(self.context).load(key).get()
+            if app:
+                results.append(app)
+                continue
+            user = load_user_from_token(self.context, key)
+            if not user:
+                user = AnonymousUser()
+            results.append(user)
+        return results
+
+
+def promise_requestor(request):
+    token = get_token_from_request(request) or "empty"
+    return RequestorByTokenDataloader(request).load(token)
+
+
+def load_requestor(request):
+    promise = promise_requestor(request)
+    return promise.get()

@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import timedelta
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 from urllib.parse import urlencode
+from uuid import uuid4
 
 import graphene
 import pytest
@@ -2591,7 +2592,7 @@ def test_customer_delete_by_app(
     assert mocked_deletion_event.call_count == 1
     args, kwargs = mocked_deletion_event.call_args
     assert kwargs["deleted_count"] == 1
-    assert kwargs["staff_user"].is_anonymous
+    assert kwargs["staff_user"] is None
     assert kwargs["app"] == app
     delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
@@ -4969,7 +4970,10 @@ def test_account_reset_password_user_is_inactive(
     mocked_notify, user_api_client, customer_user, channel_USD
 ):
     user = customer_user
+    user.id = None
+    user.email = "test_customer@example.com"
     user.is_active = False
+    user.uuid = uuid4()
     user.save()
 
     variables = {
@@ -4979,11 +4983,10 @@ def test_account_reset_password_user_is_inactive(
     }
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     results = response.json()
-    assert "errors" in results
-    assert (
-        results["errors"][0]["message"]
-        == "Invalid token. User does not exist or is inactive."
-    )
+    assert "requestPasswordReset" in results["data"]
+    assert "errors" in results["data"]["requestPasswordReset"]
+    message = results["data"]["requestPasswordReset"]["errors"][0]["message"]
+    assert message == "User with this email is inactive"
     assert not mocked_notify.called
 
 

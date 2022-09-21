@@ -79,9 +79,6 @@ def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
     return: HttpRequest
     """
 
-    def _get_plugins(requestor_getter):
-        return PluginsManager(settings.PLUGINS, requestor_getter)
-
     request_time = timezone.now()
 
     request = HttpRequest()
