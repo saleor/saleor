@@ -19,6 +19,7 @@ from ...core.permissions import (
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import generate_unique_slug
 from ...product import models as product_models
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
@@ -193,8 +194,18 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
 class AttributeValueInput(graphene.InputObjectType):
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
-    rich_text = JSONString(description=AttributeValueDescriptions.RICH_TEXT)
-    plain_text = graphene.String(description=AttributeValueDescriptions.PLAIN_TEXT)
+    rich_text = JSONString(
+        description=AttributeValueDescriptions.RICH_TEXT
+        + DEPRECATED_IN_3X_INPUT
+        + "The rich text attribute hasn't got predefined value, so can be specified "
+        "only from instance support the given attribute."
+    )
+    plain_text = graphene.String(
+        description=AttributeValueDescriptions.PLAIN_TEXT
+        + DEPRECATED_IN_3X_INPUT
+        + "The plain text attribute hasn't got predefined value, so can be specified "
+        "only from instance support the given attribute."
+    )
     file_url = graphene.String(
         required=False,
         description="URL of the file attribute. Every time, a new value is created.",
