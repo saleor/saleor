@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from django.conf import settings
 from django.http import HttpRequest
+from django.utils.functional import empty
 
 from ...account.models import User
 from ...app.models import App
@@ -51,3 +52,9 @@ def get_database_connection_name(context: SaleorContext) -> str:
     if not is_mutation:
         return settings.DATABASE_CONNECTION_REPLICA_NAME
     return settings.DATABASE_CONNECTION_DEFAULT_NAME
+
+
+def setup_context_user(context: SaleorContext) -> None:
+    if getattr(context.user, "_wrapped", None) is empty:
+        context.user._setup()  # type: ignore
+        context.user = context.user._wrapped  # type: ignore

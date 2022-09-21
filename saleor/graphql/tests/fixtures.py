@@ -8,6 +8,7 @@ import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
+from django.utils.functional import SimpleLazyObject
 
 from ...account.models import User
 from ...core.jwt import create_access_token
@@ -154,8 +155,8 @@ def api_client():
 @pytest.fixture
 def schema_context():
     params = {
-        "user": None,
-        "app": None,
+        "user": SimpleLazyObject(lambda: None),
+        "app": SimpleLazyObject(lambda: None),
         "plugins": get_plugins_manager(),
         "auth_token": "",
     }

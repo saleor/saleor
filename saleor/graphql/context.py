@@ -52,7 +52,7 @@ def get_user(request: SaleorContext) -> UserType:
 
 def set_auth_on_context(request: SaleorContext):
     if hasattr(request, "app") and request.app:
-        request.user = None
+        request.user = SimpleLazyObject(lambda: None)  # type: ignore
         return request
 
     def user():
