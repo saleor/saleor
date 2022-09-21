@@ -4,56 +4,32 @@
   <meta charset=utf-8/>
   <meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
   <title>GraphQL Playground</title>
-  <link rel="stylesheet" crossorigin="anonymous" integrity="sha256-dKnNLEFwKSVFpkpjRWe+o/jQDM6n/JsvQ0J3l5Dk3fc" href="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/css/index.css" />
   <link rel="shortcut icon" href="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
-  <script crossorigin="anonymous" integrity="sha256-24AcA5M3t+KN6ZRQvfqBG51OyLciyk0UJwVBAX94SZI=" src="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/js/middleware.js"></script>
-  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src 'sha256-24AcA5M3t+KN6ZRQvfqBG51OyLciyk0UJwVBAX94SZI=' 'sha256-jpQ7CLb9c8nrwEY+pDfFNOgGpKzrNTRsWVv4yB8QVnQ='; style-src https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/css/index.css 'sha256-jkwxzyKPdPQHgIYu9x7it0jbIOtzMGr9iFmRtSaiwX4='; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/media/logo.8c98d067.png https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png">
+
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-0/dist/umd/index.css"
+    integrity="sha512-ivOjBFuy6pAspvPNtIz/vpI8ZHAU4X2EDuRnqOWK64GwlRCwypdgbPuaGqMWt20Bg2KjcNk2Vq9kkl8+XgSb9g=="
+    crossorigin="anonymous"
+  />
+
+  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-0/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-0/dist/umd/index.css; font-src 'self' data:; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
 </head>
 <body>
-  <div id="root" data-endpoint="{{ api_url }}" {% if query %}data-query="{{ query }}"{% endif %}>
-    {# sha256-jkwxzyKPdPQHgIYu9x7it0jbIOtzMGr9iFmRtSaiwX4= #}
-    <style>
-      body {
-        background-color: rgb(23, 42, 58);
-        font-family: Open Sans, sans-serif;
-        height: 90vh;
-      }
-      #root {
-        height: 100%;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .loading {
-        font-size: 32px;
-        font-weight: 200;
-        color: rgba(255, 255, 255, .6);
-        margin-left: 20px;
-      }
-      img {
-        width: 78px;
-        height: 78px;
-      }
-      .title {
-        font-weight: 400;
-      }
-    </style>
-    <img src='https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/media/logo.8c98d067.png' alt=''>
-    <div class="loading"> Loading
-      <span class="title">GraphQL Playground</span>
-    </div>
-  </div>
-  {# sha256-jpQ7CLb9c8nrwEY+pDfFNOgGpKzrNTRsWVv4yB8QVnQ= #}
-  <script>window.addEventListener('load', function (event) {
-      const settings = {
-        "schema.polling.enable": false
-      };
-      const root = document.getElementById("root");
-      const endpoint = root.dataset.endpoint;
-      const query = root.dataset.query;
-      const tabs = query && endpoint ? [{ endpoint, query }] : null;
-      GraphQLPlayground.init(root, { settings, tabs });
-    })</script>
+  <div id="root" data-endpoint="{{ api_url }}" {% if query %}data-query="{{ query }}"{% endif %}></div>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-0/dist/umd/index.js"
+    integrity="sha512-qsKAT98vfXNeckMOMa7oXU78EKKVcfX4ukhSoDtAcQPawlyrrkoQDPYUaqjiMrstEwWtBm65PGesrNh5/q64OA=="
+    crossorigin="anonymous"
+  ></script>
+
+  {# sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c= #}
+  <script type="module">
+    const root = document.querySelector("#root");
+    const endpoint = root.dataset.endpoint;
+    const query = root.dataset.query;
+
+    createPlayground(root, { query, endpoint });
+  </script>
 </body>
 </html>
