@@ -8,7 +8,6 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models.deletion import SET_NULL
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -36,7 +35,7 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
-class Checkout(ModelWithMetadata):
+class Checkout(models.Model):
     """A shopping checkout."""
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -161,7 +160,7 @@ class Checkout(ModelWithMetadata):
 
     tax_exemption = models.BooleanField(default=False)
 
-    class Meta(ModelWithMetadata.Meta):
+    class Meta:
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
@@ -301,3 +300,9 @@ class CheckoutLine(ModelWithMetadata):
     def is_shipping_required(self) -> bool:
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
+
+
+class CheckoutMetadata(ModelWithMetadata):
+    checkout = models.OneToOneField(
+        Checkout, related_name="metadata", on_delete=models.CASCADE
+    )
