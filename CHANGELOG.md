@@ -19,7 +19,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ
-- Fix error when app deleted product added to draft order - (#10574)
 
 # 3.7.0
 
