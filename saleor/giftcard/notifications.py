@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from ..account.notifications import get_default_user_payload
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
+from ..core.prices import quantize_price
 
 if TYPE_CHECKING:
     from .models import GiftCard
@@ -38,6 +39,6 @@ def get_default_gift_card_payload(gift_card: "GiftCard"):
     return {
         "id": gift_card.id,
         "code": gift_card.code,
-        "balance": gift_card.current_balance_amount,
+        "balance": quantize_price(gift_card.current_balance_amount, gift_card.currency),
         "currency": gift_card.currency,
     }
