@@ -2014,11 +2014,15 @@ def test_product_variant_field_filtering(
 
 
 @pytest.mark.parametrize(
-    "sort_by",
-    ({"field": "ID", "direction": "ASC"}, {"field": "ID", "direction": "DESC"}),
+    "sort_by, ascending",
+    (
+        ({"field": "ID", "direction": "ASC"}, True),
+        ({"field": "ID", "direction": "DESC"}, False),
+        (None, True),
+    ),
 )
 def test_query_product_media_sorting(
-    staff_api_client, product_with_image_list, channel_USD, sort_by
+    staff_api_client, product_with_image_list, channel_USD, sort_by, ascending
 ):
     query = """
         query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
@@ -2041,7 +2045,7 @@ def test_query_product_media_sorting(
     media = content["data"]["product"]["media"]
     media1 = graphene.Node.from_global_id(media[0]["id"])
     media2 = graphene.Node.from_global_id(media[1]["id"])
-    if sort_by["direction"] == "ASC":
+    if ascending:
         assert media1 < media2
     else:
         assert media1 > media2

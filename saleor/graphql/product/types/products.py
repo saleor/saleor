@@ -55,6 +55,7 @@ from ...core.connection import (
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -126,7 +127,6 @@ from ..dataloaders import (
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
     MediaByProductIdLoader,
-    MediaByProductIdLoaderSort,
     MediaByProductVariantIdLoader,
     ProductAttributesByProductTypeIdLoader,
     ProductByIdLoader,
@@ -811,31 +811,6 @@ class ProductVariantCountableConnection(CountableConnection):
         node = ProductVariant
 
 
-def resolve_variants(root: ChannelContext[models.Product], info):
-    requestor = get_user_or_app_from_context(info.context)
-    has_required_permissions = has_one_of_permissions(
-        requestor, ALL_PRODUCTS_PERMISSIONS
-    )
-    if has_required_permissions and not root.channel_slug:
-        variants = ProductVariantsByProductIdLoader(info.context).load(root.node.id)
-    elif has_required_permissions and root.channel_slug:
-        variants = ProductVariantsByProductIdAndChannel(info.context).load(
-            (root.node.id, root.channel_slug)
-        )
-    else:
-        variants = AvailableProductVariantsByProductIdAndChannel(info.context).load(
-            (root.node.id, root.channel_slug)
-        )
-
-    def map_channel_context(variants):
-        return [
-            ChannelContext(node=variant, channel_slug=root.channel_slug)
-            for variant in variants
-        ]
-
-    return variants.then(map_channel_context)
-
-
 @federated_entity("id channel")
 class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     id = graphene.GlobalID(required=True)
@@ -895,7 +870,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             description="Slug of the attribute",
             required=True,
         ),
-        description="Get a single attribute attached to product by attribute slug",
+        description=(
+            f"Get a single attribute attached to product by attribute slug."
+            f"{ADDED_IN_38}"
+        ),
     )
     attributes = NonNullList(
         SelectedAttribute,
@@ -924,7 +902,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ProductVariant,
         id=graphene.Argument(graphene.ID, description="ID of the variant"),
         sku=graphene.Argument(graphene.String, description="SKU of the variant"),
-        description="Get a single variant by SKU or ID",
+        description=f"Get a single variant by SKU or ID. {ADDED_IN_38}",
     )
     variants = NonNullList(
         ProductVariant,
@@ -936,7 +914,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     media = NonNullList(
         lambda: ProductMedia,
-        sort_by=graphene.Argument(MediaSortingInput, description="Sort media"),
+        sort_by=graphene.Argument(
+            MediaSortingInput, description=f"Sort media. {ADDED_IN_38}"
+        ),
         description="List of media for the product.",
     )
     images = NonNullList(
@@ -1313,7 +1293,17 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                 "field": MediaChoicesSortField.ID.value,  # type: ignore
                 "direction": "",
             }
-        return MediaByProductIdLoaderSort(info.context, sort_by).load(root.node.id)
+
+        def sort_media(media) -> list[ProductMedia]:
+            reversed = sort_by["direction"] == "-"
+            media_sorted = sorted(
+                media,
+                key=lambda x: tuple(getattr(x, field) for field in sort_by["field"]),
+                reverse=reversed,
+            )
+            return media_sorted
+
+        return MediaByProductIdLoader(info.context).load(root.node.id).then(sort_media)
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.Product], info):
@@ -1324,37 +1314,60 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         if id is None and sku is None:
             return None
 
-        keys = {}
-        if id is not None:
-            _, pk = from_global_id_or_error(id, ProductVariant)
-            keys["id"] = int(pk)
-
-        if sku is not None:
-            keys["sku"] = sku
-
-        def get_product_variant_by_id_and_sku(
-            product_variants, keys
+        def get_product_variant(
+            product_variants,
         ) -> Optional[ProductVariant]:
-            def condition(variant):
-                con = True
-                for key, val in keys.items():
-                    if val is None:
-                        con &= getattr(variant, key) is None
-                    else:
-                        con &= getattr(variant, key) == val
-                return con
+            if id:
+                id_type, variant_id = graphene.Node.from_global_id(id)
+                if id_type != "ProductVariant":
+                    return None
 
-            return next(
-                (variant for variant in product_variants if condition(variant.node)),
-                None,
-            )
+                return next(
+                    (
+                        variant
+                        for variant in product_variants
+                        if variant.node.id == int(variant_id)
+                    ),
+                    None,
+                )
+            if sku:
+                return next(
+                    (
+                        variant
+                        for variant in product_variants
+                        if variant.node.sku == sku
+                    ),
+                    None,
+                )
+            return None
 
-        variants = resolve_variants(root, info)
-        return variants.then(lambda x: get_product_variant_by_id_and_sku(x, keys))
+        variants = Product.resolve_variants(root, info)
+        return variants.then(get_product_variant)
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
-        return resolve_variants(root, info)
+        requestor = get_user_or_app_from_context(info.context)
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        if has_required_permissions and not root.channel_slug:
+            variants = ProductVariantsByProductIdLoader(info.context).load(root.node.id)
+        elif has_required_permissions and root.channel_slug:
+            variants = ProductVariantsByProductIdAndChannel(info.context).load(
+                (root.node.id, root.channel_slug)
+            )
+        else:
+            variants = AvailableProductVariantsByProductIdAndChannel(info.context).load(
+                (root.node.id, root.channel_slug)
+            )
+
+        def map_channel_context(variants):
+            return [
+                ChannelContext(node=variant, channel_slug=root.channel_slug)
+                for variant in variants
+            ]
+
+        return variants.then(map_channel_context)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Product], info):

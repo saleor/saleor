@@ -4803,7 +4803,11 @@ type Product implements Node & ObjectWithMetadata {
   """A type of tax. Assigned by enabled tax gateway"""
   taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
 
-  """Get a single attribute attached to product by attribute slug"""
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.8.
+  """
   attribute(
     """Slug of the attribute"""
     slug: String!
@@ -4831,7 +4835,11 @@ type Product implements Node & ObjectWithMetadata {
     id: ID
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
-  """Get a single variant by SKU or ID"""
+  """
+  Get a single variant by SKU or ID. 
+  
+  Added in Saleor 3.8.
+  """
   variant(
     """ID of the variant"""
     id: ID
@@ -4847,7 +4855,11 @@ type Product implements Node & ObjectWithMetadata {
 
   """List of media for the product."""
   media(
-    """Sort media"""
+    """
+    Sort media. 
+    
+    Added in Saleor 3.8.
+    """
     sortBy: MediaSortingInput
   ): [ProductMedia!]
 

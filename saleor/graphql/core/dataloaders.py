@@ -50,17 +50,3 @@ class DataLoader(BaseLoader, Generic[K, R]):
 
     def batch_load(self, keys: Iterable[K]) -> Union[Promise[List[R]], List[R]]:
         raise NotImplementedError()
-
-
-class DataLoaderWithSort(DataLoader):
-    def __new__(cls, context: SaleorContext, sort_by: dict[str, str]):
-        cls.sort_by = sort_by
-        return super().__new__(cls, context)
-
-    def __init__(self, context, sort_by: dict[str, str]):
-        if self.sort_by != sort_by:
-            self.sort_by = sort_by
-        self.order = [
-            self.sort_by["direction"] + field for field in self.sort_by["field"]
-        ]
-        super().__init__(context)
