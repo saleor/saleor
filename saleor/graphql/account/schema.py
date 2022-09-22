@@ -194,7 +194,7 @@ class AccountQueries(graphene.ObjectType):
     @staticmethod
     def resolve_me(_root, info):
         user = info.context.user
-        return user if bool(user) else None
+        return user if user else None
 
     @staticmethod
     def resolve_staff_users(_root, info, **kwargs):
