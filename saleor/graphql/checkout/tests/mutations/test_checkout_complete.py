@@ -563,7 +563,7 @@ def test_checkout_complete_by_app_with_missing_permission(
         payment_data=ANY,
         store_source=ANY,
         discounts=ANY,
-        user=ANY,
+        user=None,
         app=ANY,
         site_settings=ANY,
         tracking_code=ANY,
