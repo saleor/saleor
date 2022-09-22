@@ -8,6 +8,7 @@ from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -94,6 +95,6 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.user = customer
         checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
-
-        info.context.plugins.checkout_updated(checkout)
+        manager = load_plugin_manager(info.context)
+        manager.checkout_updated(checkout)
         return CheckoutCustomerAttach(checkout=checkout)

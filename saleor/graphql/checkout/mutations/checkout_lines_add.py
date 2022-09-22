@@ -17,6 +17,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...site.dataloaders import load_site
 from ..types import Checkout
@@ -182,12 +183,9 @@ class CheckoutLinesAdd(BaseMutation):
             id=id,
             error_class=CheckoutErrorCode,
         )
-
+        manager = load_plugin_manager(info.context)
         discounts = load_discounts(info.context)
-        manager = info.context.plugins
-
         variants = cls._get_variants_from_lines_input(lines)
-
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
             checkout, [], discounts, manager, shipping_channel_listings

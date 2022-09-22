@@ -78,5 +78,7 @@ def promise_app(context):
 
 
 def load_app(context):
+    if hasattr(context, "app"):
+        return context.app
     promise = promise_app(context)
     return None if promise is None else promise.get()

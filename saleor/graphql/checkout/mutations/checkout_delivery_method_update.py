@@ -33,6 +33,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
 from ..types import Checkout
@@ -266,7 +267,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             not_available_variants_ids = {

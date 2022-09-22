@@ -39,6 +39,7 @@ from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import TransactionItem
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.dataloaders import (
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
@@ -135,6 +136,8 @@ class CheckoutLine(ModelObjectType):
 
     @staticmethod
     def resolve_unit_price(root, info):
+        manager = load_plugin_manager(info.context)
+
         def with_checkout(checkout):
             discounts = DiscountsByDateTimeLoader(info.context).load(
                 info.context.request_time
@@ -155,7 +158,7 @@ class CheckoutLine(ModelObjectType):
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_unit_price(
-                            manager=info.context.plugins,
+                            manager=manager,
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
@@ -216,6 +219,8 @@ class CheckoutLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_total_price(root, info):
+        manager = load_plugin_manager(info.context)
+
         def with_checkout(checkout):
             discounts = DiscountsByDateTimeLoader(info.context).load(
                 info.context.request_time
@@ -233,7 +238,7 @@ class CheckoutLine(ModelObjectType):
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
-                            manager=info.context.plugins,
+                            manager=manager,
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
@@ -531,10 +536,12 @@ class Checkout(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_total_price(root: models.Checkout, info):
+        manager = load_plugin_manager(info.context)
+
         def calculate_total_price(data):
             address, lines, checkout_info, discounts, site = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                manager=info.context.plugins,
+                manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
@@ -561,10 +568,12 @@ class Checkout(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_subtotal_price(root: models.Checkout, info):
+        manager = load_plugin_manager(info.context)
+
         def calculate_subtotal_price(data):
             address, lines, checkout_info, discounts, site = data
             return calculations.checkout_subtotal(
-                manager=info.context.plugins,
+                manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
@@ -591,10 +600,12 @@ class Checkout(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_price(root: models.Checkout, info):
+        manager = load_plugin_manager(info.context)
+
         def calculate_shipping_price(data):
             address, lines, checkout_info, discounts, site = data
             return calculations.checkout_shipping_price(
-                manager=info.context.plugins,
+                manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
@@ -647,7 +658,8 @@ class Checkout(ModelObjectType):
     @staticmethod
     @prevent_sync_event_circular_query
     def resolve_available_payment_gateways(root: models.Checkout, info):
-        return info.context.plugins.list_payment_gateways(
+        manager = load_plugin_manager(info.context)
+        return manager.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
 

@@ -10,6 +10,7 @@ from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Sale
 from .sale_create import SaleInput, SaleUpdateDiscountedPriceMixin
 from .utils import convert_catalogue_info_to_global_ids
@@ -37,25 +38,26 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         previous_catalogue = fetch_catalogue_info(instance)
         previous_end_date = instance.end_date
         data = data.get("input")
+        manager = load_plugin_manager(info.context)
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         cls.send_sale_notifications(
-            info, instance, cleaned_input, previous_catalogue, previous_end_date
+            manager, instance, cleaned_input, previous_catalogue, previous_end_date
         )
         return cls.success_response(instance)
 
     @classmethod
     def send_sale_notifications(
-        cls, info, instance, cleaned_input, previous_catalogue, previous_end_date
+        cls, manager, instance, cleaned_input, previous_catalogue, previous_end_date
     ):
         current_catalogue = convert_catalogue_info_to_global_ids(
             fetch_catalogue_info(instance)
         )
         transaction.on_commit(
-            lambda: info.context.plugins.sale_updated(
+            lambda: manager.sale_updated(
                 instance,
                 convert_catalogue_info_to_global_ids(previous_catalogue),
                 current_catalogue,
@@ -63,12 +65,12 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         )
 
         cls.send_sale_toggle_notification(
-            info, instance, cleaned_input, current_catalogue, previous_end_date
+            manager, instance, cleaned_input, current_catalogue, previous_end_date
         )
 
     @staticmethod
     def send_sale_toggle_notification(
-        info, instance, clean_input, catalogue, previous_end_date
+        manager, instance, clean_input, catalogue, previous_end_date
     ):
         """Send the notification about starting or ending sale if it wasn't sent yet.
 
@@ -76,7 +78,6 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         ans the notification_date is not set or the last notification was sent
         before start or end date.
         """
-        manager = info.context.plugins
         now = datetime.now(pytz.utc)
 
         notification_date = instance.notification_sent_datetime

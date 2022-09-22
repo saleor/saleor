@@ -6,10 +6,9 @@ from django.core.exceptions import ImproperlyConfigured
 from graphql import GraphQLError
 from graphql.execution import ExecutionResult
 
-from saleor.core.permissions import ProductPermissions
-from saleor.plugins.tests.sample_plugins import PluginSample
-
+from ....core.permissions import ProductPermissions
 from ....order.models import Order
+from ....plugins.tests.sample_plugins import PluginSample
 from ....product.models import Product
 from ...order import types as order_types
 from ...product import types as product_types

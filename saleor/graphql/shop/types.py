@@ -26,6 +26,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
+from ..plugins.dataloaders import load_plugin_manager
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import load_site
 from ..translations.fields import TranslationField
@@ -306,14 +307,14 @@ class Shop(graphene.ObjectType):
     def resolve_available_payment_gateways(
         _, info, currency: Optional[str] = None, channel: Optional[str] = None
     ):
-        return info.context.plugins.list_payment_gateways(
-            currency=currency, channel_slug=channel
-        )
+        manager = load_plugin_manager(info.context)
+        return manager.list_payment_gateways(currency=currency, channel_slug=channel)
 
     @staticmethod
     @traced_resolver
     def resolve_available_external_authentications(_, info):
-        return info.context.plugins.list_external_authentications(active_only=True)
+        manager = load_plugin_manager(info.context)
+        return manager.list_external_authentications(active_only=True)
 
     @staticmethod
     def resolve_available_shipping_methods(_, info, *, channel, address=None):
