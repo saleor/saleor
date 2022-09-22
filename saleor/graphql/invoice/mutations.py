@@ -11,6 +11,7 @@ from ..app.dataloaders import load_app
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import InvoiceError
 from ..order.types import Order
+from ..plugins.dataloaders import load_plugin_manager
 from .types import Invoice
 from .utils import is_event_active_for_any_plugin
 
@@ -63,10 +64,8 @@ class InvoiceRequest(ModelMutation):
             info, data["order_id"], only_type=Order, field="orderId"
         )
         cls.clean_order(order)
-
-        if not is_event_active_for_any_plugin(
-            "invoice_request", info.context.plugins.all_plugins
-        ):
+        manager = load_plugin_manager(info.context)
+        if not is_event_active_for_any_plugin("invoice_request", manager.all_plugins):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
@@ -81,7 +80,7 @@ class InvoiceRequest(ModelMutation):
             number=data.get("number"),
         )
 
-        invoice = info.context.plugins.invoice_request(
+        invoice = manager.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
         app = load_app(info.context)
@@ -210,7 +209,8 @@ class InvoiceRequestDelete(ModelMutation):
         invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
-        info.context.plugins.invoice_delete(invoice)
+        manager = load_plugin_manager(info.context)
+        manager.invoice_delete(invoice)
         app = load_app(info.context)
         events.invoice_requested_deletion_event(
             user=info.context.user, app=app, invoice=invoice
@@ -348,10 +348,11 @@ class InvoiceSendNotification(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         send_invoice(
             invoice=instance,
             staff_user=info.context.user,
             app=app,
-            manager=info.context.plugins,
+            manager=manager,
         )
         return InvoiceSendNotification(invoice=instance)

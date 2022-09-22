@@ -96,7 +96,6 @@ def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
     request.sync_event = sync_event  # type: ignore
     request.requestor = requestor  # type: ignore
     request.request_time = request_time  # type: ignore
-    request.plugins = SimpleLazyObject(lambda: _get_plugins(requestor))  # type: ignore
 
     return request
 

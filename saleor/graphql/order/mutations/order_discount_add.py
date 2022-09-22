@@ -9,6 +9,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -52,7 +53,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)

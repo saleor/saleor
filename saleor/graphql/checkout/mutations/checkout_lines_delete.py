@@ -9,6 +9,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
@@ -77,7 +78,7 @@ class CheckoutLinesDelete(BaseMutation):
 
         lines, _ = fetch_checkout_lines(checkout)
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

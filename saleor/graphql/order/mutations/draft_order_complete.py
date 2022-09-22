@@ -20,6 +20,7 @@ from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
 from ..types import Order
 from ..utils import (
@@ -66,7 +67,7 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         order = cls.get_node_or_error(
             info,
             id,
@@ -77,7 +78,7 @@ class DraftOrderComplete(BaseMutation):
         cls.validate_order(order)
 
         country = get_order_country(order)
-        validate_draft_order(order, country, info.context.plugins)
+        validate_draft_order(order, country, manager)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 
@@ -133,7 +134,7 @@ class DraftOrderComplete(BaseMutation):
                 order_info=order_info,
                 user=info.context.user,
                 app=app,
-                manager=info.context.plugins,
+                manager=manager,
                 from_draft=True,
             )
         )

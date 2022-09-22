@@ -9,6 +9,7 @@ from ....payment.gateway import request_void_action
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -43,14 +44,14 @@ class OrderVoid(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         app = load_app(info.context)
-
+        manager = load_plugin_manager(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
             # provide way of handling multiple transaction here
             try:
                 request_void_action(
                     payment_transactions[-1],
-                    info.context.plugins,
+                    manager,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
                     app=app,
@@ -70,7 +71,7 @@ class OrderVoid(BaseMutation):
                 payment,
                 gateway.void,
                 payment,
-                info.context.plugins,
+                manager,
                 channel_slug=order.channel.slug,
             )
             # Confirm that we changed the status to void. Some payment can receive
@@ -81,6 +82,6 @@ class OrderVoid(BaseMutation):
                     info.context.user,
                     app,
                     payment,
-                    info.context.plugins,
+                    manager,
                 )
         return OrderVoid(order=order)
