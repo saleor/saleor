@@ -290,6 +290,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
 class AttributeMixin:
     # must be redefined by inheriting classes
     ATTRIBUTE_VALUES_FIELD: str
+    ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 
     @classmethod
     def clean_values(cls, cleaned_input, attribute):
@@ -306,9 +307,8 @@ class AttributeMixin:
             return
 
         if (
-            attribute_input_type
-            in [AttributeInputType.FILE, AttributeInputType.REFERENCE]
-            and values_input
+            values_input
+            and attribute_input_type not in AttributeInputType.TYPES_WITH_CHOICES
         ):
             raise ValidationError(
                 {
@@ -320,30 +320,37 @@ class AttributeMixin:
                 }
             )
 
-        is_numeric_attr = attribute_input_type == AttributeInputType.NUMERIC
         is_swatch_attr = attribute_input_type == AttributeInputType.SWATCH
         for value_data in values_input:
-            cls.validate_value(attribute, value_data, is_numeric_attr, is_swatch_attr)
+            cls._validate_value(attribute, value_data, is_swatch_attr)
 
         cls.check_values_are_unique(values_input, attribute)
 
     @classmethod
-    def validate_value(
+    def _validate_value(
         cls,
         attribute: models.Attribute,
         value_data: dict,
-        is_numeric_attr: bool,
         is_swatch_attr: bool,
     ):
-        value = value_data["name"]
-        cls.clean_value_input_data(value_data, is_swatch_attr)
+        """Validate the new attribute value."""
+        value = value_data.get("name")
+        if value is None:
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "The name field is required.",
+                        code=AttributeErrorCode.REQUIRED.value,
+                    )
+                }
+            )
 
-        if is_numeric_attr:
-            cls.validate_numeric_value(value)
-        elif is_swatch_attr:
+        if is_swatch_attr:
             cls.validate_swatch_attr_value(value_data)
+        else:
+            cls.validate_non_swatch_attr_value(value_data)
 
-        slug_value = value if not is_numeric_attr else value.replace(".", "_")
+        slug_value = value
         value_data["slug"] = slugify(unidecode(slug_value))
 
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
@@ -356,30 +363,13 @@ class AttributeMixin:
                 raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
 
     @classmethod
-    def clean_value_input_data(cls, value_data: dict, is_swatch_attr: bool):
-        swatch_fields = ["file_url", "content_type", "value"]
-        if not is_swatch_attr and any(
-            [value_data.get(field) for field in swatch_fields]
-        ):
+    def validate_non_swatch_attr_value(cls, value_data: dict):
+        if any([value_data.get(field) for field in cls.ONLY_SWATCH_FIELDS]):
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
                         "Cannot define value, file and contentType fields "
                         "for not swatch attribute.",
-                        code=AttributeErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def validate_numeric_value(cls, value):
-        try:
-            float(value)
-        except ValueError:
-            raise ValidationError(
-                {
-                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                        "Value of numeric attribute must be numeric.",
                         code=AttributeErrorCode.INVALID.value,
                     )
                 }
@@ -678,10 +668,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
-        only_swatch_fields = ["file_url", "content_type"]
         errors = {}
         if not is_swatch_attr:
-            for field in only_swatch_fields:
+            for field in cls.ONLY_SWATCH_FIELDS:
                 if cleaned_input.get(field):
                     errors[field] = ValidationError(
                         f"The field {field} can be defined only for swatch attributes.",
@@ -693,6 +682,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
             except ValidationError as error:
                 errors["value"] = error.error_dict[cls.ATTRIBUTE_VALUES_FIELD]
                 errors["fileUrl"] = error.error_dict[cls.ATTRIBUTE_VALUES_FIELD]
+
         if errors:
             raise ValidationError(errors)
 
