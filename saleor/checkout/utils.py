@@ -197,13 +197,15 @@ def add_variants_to_checkout(
     to_reserve = to_create + to_update
     if reservation_length and to_reserve:
         updated_lines_ids = [line.pk for line in to_reserve + to_delete]
+        to_update_reserved_until = []
+
         for line in checkout_lines:
             if line.pk not in updated_lines_ids:
-                to_reserve.append(line)
-                variants.append(line.variant)
+                to_update_reserved_until.append(line)
 
         reserve_stocks_and_preorders(
             to_reserve,
+            to_update_reserved_until,
             variants,
             country_code,
             channel_slug,
