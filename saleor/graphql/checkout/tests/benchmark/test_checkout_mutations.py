@@ -11,7 +11,6 @@ from .....checkout.models import Checkout
 from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariant, ProductVariantChannelListing
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content

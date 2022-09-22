@@ -83,12 +83,7 @@ def checkout_with_prices(
             "shipping_price_gross_amount",
         ]
     )
-    checkout_with_items.metadata.save(
-        update_fields=[
-            "metadata",
-            "private_metadata"
-        ]
-    )
+    checkout_with_items.metadata.save(update_fields=["metadata", "private_metadata"])
 
     user = checkout_with_items.user
     user.metadata = {"user_public_meta_key": "user_public_meta_value"}

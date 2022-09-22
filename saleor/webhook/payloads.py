@@ -552,12 +552,12 @@ def generate_checkout_payload(
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
             "metadata": (
-                lambda c=checkout: c.metadata.metadata if hasattr(c, 'metadata') else {}
+                lambda c=checkout: c.metadata.metadata if hasattr(c, "metadata") else {}
             ),
             "private_metadata": (
-                lambda c=checkout: c.metadata.private_metadata if hasattr(
-                    c, 'metadata'
-                ) else {}
+                lambda c=checkout: c.metadata.private_metadata
+                if hasattr(c, "metadata")
+                else {}
             ),
         },
     )
@@ -1180,9 +1180,7 @@ def generate_checkout_payload_for_tax_calculation(
 
     serializer = PayloadSerializer()
 
-    checkout_fields = (
-        "currency",
-    )
+    checkout_fields = ("currency",)
 
     # Prepare checkout data
     address = checkout_info.shipping_address or checkout_info.billing_address

@@ -2218,7 +2218,9 @@ def test_add_private_metadata_for_checkout(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["updatePrivateMetadata"]["item"],
+        checkout.metadata,
+        checkout_id,
     )
 
 
@@ -2254,7 +2256,9 @@ def test_add_private_metadata_for_checkout_by_token(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["updatePrivateMetadata"]["item"],
+        checkout.metadata,
+        checkout_id,
     )
 
 
@@ -3222,7 +3226,9 @@ def test_delete_private_metadata_for_checkout(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deletePrivateMetadata"]["item"],
+        checkout.metadata,
+        checkout_id,
     )
 
 
@@ -3241,7 +3247,9 @@ def test_delete_private_metadata_for_checkout_by_token(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deletePrivateMetadata"]["item"],
+        checkout.metadata,
+        checkout_id,
     )
 
 
@@ -3752,7 +3760,9 @@ def test_delete_private_metadata_for_not_exist_key(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deletePrivateMetadata"]["item"],
+        checkout.metadata,
+        checkout_id,
     )
 
 
@@ -3779,7 +3789,7 @@ def test_delete_private_metadata_for_one_key(
     assert item_contains_proper_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],
         checkout.metadata,
-        checkout_id
+        checkout_id,
     )
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],

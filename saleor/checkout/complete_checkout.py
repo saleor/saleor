@@ -66,7 +66,7 @@ from .checkout_cleaner import (
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
-from .utils import get_voucher_for_checkout_info, get_or_create_checkout_metadata
+from .utils import get_or_create_checkout_metadata, get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
     from ..account.models import Address
@@ -778,9 +778,7 @@ def complete_checkout(
             manager, checkout_info, lines, discounts, site_settings
         )
     except ValidationError as exc:
-        gateway.payment_refund_or_void(
-            payment, manager, channel_slug=channel_slug
-        )
+        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
     customer_id = None
@@ -801,9 +799,7 @@ def complete_checkout(
         )
 
         if txn.customer_id and user.is_authenticated:
-            store_customer_id(
-                user, payment.gateway, txn.customer_id
-            )  # type: ignore
+            store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
         action_required = txn.action_required
         if action_required:
@@ -830,18 +826,14 @@ def complete_checkout(
             release_voucher_usage(
                 order_data.get("voucher"), order_data.get("user_email")
             )
-            gateway.payment_refund_or_void(
-                payment, manager, channel_slug=channel_slug
-            )
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
         except GiftCardNotApplicable as e:
             release_voucher_usage(
                 order_data.get("voucher"), order_data.get("user_email")
             )
-            gateway.payment_refund_or_void(
-                payment, manager, channel_slug=channel_slug
-            )
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             raise ValidationError(code=e.code, message=e.message)
 
         # if the order total value is 0 it is paid from the definition
