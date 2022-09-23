@@ -4978,11 +4978,12 @@ def test_account_reset_password_user_is_inactive(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["requestPasswordReset"]
-    assert data["errors"] == [
-        {"field": "email", "message": "User with this email is inactive"}
-    ]
+    results = response.json()
+    assert "errors" in results
+    assert (
+        results["errors"][0]["message"]
+        == "Invalid token. User does not exist or is inactive."
+    )
     assert not mocked_notify.called
 
 
@@ -5814,7 +5815,6 @@ def test_query_staff_members_with_filter_status(
     permission_manage_staff,
     staff_user,
 ):
-
     User.objects.bulk_create(
         [
             User(email="second@example.com", is_staff=True, is_active=False),

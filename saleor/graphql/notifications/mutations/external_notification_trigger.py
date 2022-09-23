@@ -16,6 +16,7 @@ from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import ExternalNotificationError, NonNullList
 from ...notifications.error_codes import ExternalNotificationErrorCodes
+from ...plugins.dataloaders import load_plugin_manager
 
 
 class ExternalNotificationTriggerInput(graphene.InputObjectType):
@@ -66,7 +67,7 @@ class ExternalNotificationTrigger(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         plugin_id = data.get("plugin_id")
         channel_slug = validate_and_get_channel(data, ExternalNotificationErrorCodes)
         if data_input := data.get("input"):

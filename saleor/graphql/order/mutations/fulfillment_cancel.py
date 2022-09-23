@@ -9,6 +9,7 @@ from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Fulfillment, Order
 
 
@@ -91,12 +92,13 @@ class FulfillmentCancel(BaseMutation):
         cls.validate_fulfillment(fulfillment, warehouse)
 
         app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             fulfillment = cancel_waiting_fulfillment(
                 fulfillment,
                 info.context.user,
                 app,
-                info.context.plugins,
+                manager,
             )
         else:
             fulfillment = cancel_fulfillment(
@@ -104,7 +106,7 @@ class FulfillmentCancel(BaseMutation):
                 info.context.user,
                 app,
                 warehouse,
-                info.context.plugins,
+                manager,
             )
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

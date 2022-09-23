@@ -6,6 +6,7 @@ from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -65,5 +66,6 @@ class CheckoutEmailUpdate(BaseMutation):
         checkout.email = email
         cls.clean_instance(info, checkout)
         checkout.save(update_fields=["email", "last_change"])
-        info.context.plugins.checkout_updated(checkout)
+        manager = load_plugin_manager(info.context)
+        manager.checkout_updated(checkout)
         return CheckoutEmailUpdate(checkout=checkout)

@@ -19,6 +19,7 @@ from ...payment.utils import fetch_customer_id
 from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .types import Address, AddressValidationData, ChoiceValue, User
 from .utils import (
@@ -159,7 +160,7 @@ def resolve_address_validation_rules(
 
 @traced_resolver
 def resolve_payment_sources(info, user: models.User, channel_slug: str):
-    manager = info.context.plugins
+    manager = load_plugin_manager(info.context)
     stored_customer_accounts = (
         (gtw.id, fetch_customer_id(user, gtw.id))
         for gtw in gateway.list_gateways(manager, channel_slug)

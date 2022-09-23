@@ -389,7 +389,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(57):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -407,7 +407,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(57):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10

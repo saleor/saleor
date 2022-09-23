@@ -16,6 +16,7 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, ShippingError
 from ...core.validators import validate_decimal_max_value, validate_price_precision
+from ...plugins.dataloaders import load_plugin_manager
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import ShippingMethodType
 
@@ -248,7 +249,8 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(info, shipping_method, cleaned_input)
-        info.context.plugins.shipping_price_updated(shipping_method)
+        manager = load_plugin_manager(info.context)
+        manager.shipping_price_updated(shipping_method)
 
         return ShippingMethodChannelListingUpdate(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)

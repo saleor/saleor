@@ -15,6 +15,7 @@ from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
+from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order, OrderLine
@@ -247,7 +248,7 @@ class OrderFulfill(BaseMutation):
         context = info.context
         user = context.user if not context.user.is_anonymous else None
         app = load_app(info.context)
-        manager = context.plugins
+        manager = load_plugin_manager(info.context)
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
         allow_stock_to_be_exceeded = cleaned_input.get(

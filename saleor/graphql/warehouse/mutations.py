@@ -17,6 +17,7 @@ from ..core.utils import (
     validate_required_string_field,
     validate_slug_and_generate_if_needed,
 )
+from ..plugins.dataloaders import load_plugin_manager
 from ..shipping.types import ShippingZone
 from .types import Warehouse, WarehouseCreateInput, WarehouseUpdateInput
 
@@ -108,7 +109,8 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.warehouse_created(instance)
+        manager = load_plugin_manager(info.context)
+        manager.warehouse_created(instance)
 
 
 class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
@@ -268,7 +270,8 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.warehouse_updated(instance)
+        manager = load_plugin_manager(info.context)
+        manager.warehouse_updated(instance)
 
 
 class WarehouseDelete(ModelDeleteMutation):
@@ -286,7 +289,7 @@ class WarehouseDelete(ModelDeleteMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
@@ -321,4 +324,5 @@ class WarehouseDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        transaction.on_commit(lambda: info.context.plugins.warehouse_deleted(instance))
+        manager = load_plugin_manager(info.context)
+        transaction.on_commit(lambda: manager.warehouse_deleted(instance))

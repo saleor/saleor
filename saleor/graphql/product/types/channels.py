@@ -25,6 +25,7 @@ from ...core.descriptions import (
 from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
+from ...plugins.dataloaders import load_plugin_manager
 from ..dataloaders import (
     CollectionsByProductIdLoader,
     ProductByIdLoader,
@@ -196,6 +197,7 @@ class ProductChannelListing(ModelObjectType):
         context = info.context
 
         address_country = address.country if address is not None else None
+        manager = load_plugin_manager(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -222,7 +224,7 @@ class ProductChannelListing(ModelObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    manager=context.plugins,
+                                    manager=manager,
                                     country=Country(country_code),
                                     local_currency=local_currency,
                                 )

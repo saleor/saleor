@@ -7,6 +7,7 @@ from ...product import models as product_models
 from ...product.search import update_products_search_vector
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import resolve_global_ids_to_primary_keys
 from .types import Attribute, AttributeValue
 
@@ -66,8 +67,9 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info, queryset):
         attributes = list(queryset)
         queryset.delete()
+        manager = load_plugin_manager(info.context)
         for attribute in attributes:
-            info.context.plugins.attribute_deleted(attribute)
+            manager.attribute_deleted(attribute)
 
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
@@ -103,10 +105,11 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         attributes = {value.attribute for value in queryset}
         values = list(queryset)
         queryset.delete()
+        manager = load_plugin_manager(info.context)
         for value in values:
-            info.context.plugins.attribute_value_deleted(value)
+            manager.attribute_value_deleted(value)
         for attribute in attributes:
-            info.context.plugins.attribute_updated(attribute)
+            manager.attribute_updated(attribute)
 
     @classmethod
     def get_product_ids_to_update(cls, value_pks):
