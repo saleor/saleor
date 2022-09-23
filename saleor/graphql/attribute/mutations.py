@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Subquery
 from django.utils.text import slugify
 
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
@@ -752,9 +752,8 @@ class AttributeValueUpdate(AttributeValueCreate):
             variants = product_models.ProductVariant.objects.filter(
                 Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
             )
-            # .select_for_update locks all relevant rows upfront, it's performed with
-            # defined .order_by to ensure a consistent locking order and prevent
-            # deadlocks by multithreading.
+            # select_for_update needs to lock objects in consistent way to avoid
+            # deadlocks notice .order_by("pk") which ensures that.
             qs = (
                 product_models.Product.objects.select_for_update(of=("self",))
                 .filter(
@@ -769,10 +768,11 @@ class AttributeValueUpdate(AttributeValueCreate):
                 )
                 .order_by("pk")
             )
-            # force evaluate the qs, without it above select_for_update won't set
-            # the locks (as no SELECT will be executed at all).
-            list(qs.values("pk"))
-            qs.update(search_index_dirty=True)
+            # qs is executed in a subquery to make sure the SELECT statement gets
+            # properly evaluated and locks the rows in the same order every time.
+            product_models.Product.objects.filter(
+                pk__in=Subquery(qs.values("pk"))
+            ).update(search_index_dirty=True)
 
         info.context.plugins.attribute_value_updated(instance)
         info.context.plugins.attribute_updated(instance.attribute)
