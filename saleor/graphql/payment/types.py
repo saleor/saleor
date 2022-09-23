@@ -2,12 +2,24 @@ import graphene
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import OrderPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    AuthorizationFilters,
+    OrderPermissions,
+)
 from ...core.tracing import traced_resolver
 from ...payment import models
+from ..account.dataloaders import UserByUserIdLoader
+from ..app.dataloaders import AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_34,
+    ADDED_IN_36,
+    ADDED_IN_38,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
@@ -295,6 +307,28 @@ class TransactionItem(ModelObjectType):
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
     )
+    user = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "User who created the transaction."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+            + "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    app = PermissionsField(
+        "saleor.graphql.app.types.App",
+        description=(
+            "App that created the transaction." + ADDED_IN_38 + PREVIEW_FEATURE
+        ),
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
+    )
 
     class Meta:
         description = (
@@ -332,3 +366,26 @@ class TransactionItem(ModelObjectType):
     @staticmethod
     def resolve_events(root: models.TransactionItem, info):
         return TransactionEventByTransactionIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_user(root: models.TransactionItem, info):
+        def _resolve_user(event_user):
+            requester = get_user_or_app_from_context(info.context)
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+
+    @staticmethod
+    def resolve_app(root: models.TransactionItem, info):
+        if root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id)
+        return None

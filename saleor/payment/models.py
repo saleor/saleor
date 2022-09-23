@@ -88,6 +88,16 @@ class TransactionItem(ModelWithMetadata):
         null=True,
         on_delete=models.PROTECT,
     )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    app = models.ForeignKey(
+        "app.App", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     class Meta:
         ordering = ("pk",)
