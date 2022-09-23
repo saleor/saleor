@@ -296,6 +296,7 @@ def generate_order_payload(
     extra_dict_data = {
         "id": graphene.Node.to_global_id("Order", order.id),
         "token": str(order.id),
+        "number": order.number,
         "user_email": order.get_customer_email(),
         "created": order.created_at,
         "original": graphene.Node.to_global_id("Order", order.original_id),
