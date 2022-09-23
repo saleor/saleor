@@ -752,8 +752,8 @@ class AttributeValueUpdate(AttributeValueCreate):
             variants = product_models.ProductVariant.objects.filter(
                 Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
             )
-            # select_for_update needs to lock objects in consistent way to avoid
-            # deadlocks notice .order_by("pk") which ensures that.
+            # SELECT … FOR UPDATE needs to lock rows in a consistent order
+            # to avoid deadlocks between updates touching the same rows.
             qs = (
                 product_models.Product.objects.select_for_update(of=("self",))
                 .filter(
