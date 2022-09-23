@@ -198,13 +198,13 @@ class AttributeValueInput(graphene.InputObjectType):
         description=AttributeValueDescriptions.RICH_TEXT
         + DEPRECATED_IN_3X_INPUT
         + "The rich text attribute hasn't got predefined value, so can be specified "
-        "only from instance support the given attribute."
+        "only from instance that supports the given attribute."
     )
     plain_text = graphene.String(
         description=AttributeValueDescriptions.PLAIN_TEXT
         + DEPRECATED_IN_3X_INPUT
         + "The plain text attribute hasn't got predefined value, so can be specified "
-        "only from instance support the given attribute."
+        "only from instance that supports the given attribute."
     )
     file_url = graphene.String(
         required=False,
