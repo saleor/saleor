@@ -752,11 +752,21 @@ class AttributeValueUpdate(AttributeValueCreate):
             variants = product_models.ProductVariant.objects.filter(
                 Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
             )
-            qs = product_models.Product.objects.select_for_update(of=("self",)).filter(
-                Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
-                | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+            qs = (
+                product_models.Product.objects.select_for_update(of=("self",))
+                .filter(
+                    Q(
+                        Exists(
+                            instance.productassignments.filter(
+                                product_id=OuterRef("id")
+                            )
+                        )
+                    )
+                    | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+                )
+                .order_by("pk")
             )
-            list(qs)  # evaluate qs to enforce acquiring the lock.
+            list(qs.values("pk"))  # evaluate the qs to enforce acquiring the lock.
             qs.update(search_index_dirty=True)
 
         info.context.plugins.attribute_value_updated(instance)
