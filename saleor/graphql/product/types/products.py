@@ -148,7 +148,7 @@ from ..dataloaders import (
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..resolvers import resolve_product_variants, resolve_products
-from ..sorters import MediaChoicesSortField, MediaSortingInput, ProductOrder
+from ..sorters import MediaSortingInput, ProductOrder
 from .channels import (
     CollectionChannelListing,
     ProductChannelListing,
@@ -900,8 +900,8 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     variant = graphene.Field(
         ProductVariant,
-        id=graphene.Argument(graphene.ID, description="ID of the variant"),
-        sku=graphene.Argument(graphene.String, description="SKU of the variant"),
+        id=graphene.Argument(graphene.ID, description="ID of the variant."),
+        sku=graphene.Argument(graphene.String, description="SKU of the variant."),
         description=f"Get a single variant by SKU or ID. {ADDED_IN_38}",
     )
     variants = NonNullList(
@@ -1290,7 +1290,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
         if sort_by is None:
             sort_by = {
-                "field": MediaChoicesSortField.ID.value,  # type: ignore
+                "field": ["sort_order"],
                 "direction": "",
             }
 

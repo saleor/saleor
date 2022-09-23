@@ -4841,10 +4841,10 @@ type Product implements Node & ObjectWithMetadata {
   Added in Saleor 3.8.
   """
   variant(
-    """ID of the variant"""
+    """ID of the variant."""
     id: ID
 
-    """SKU of the variant"""
+    """SKU of the variant."""
     sku: String
   ): ProductVariant
 
