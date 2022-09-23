@@ -46,6 +46,7 @@ class CheckoutPermissions(BasePermissionEnum):
     MANAGE_CHECKOUTS = "checkout.manage_checkouts"
     HANDLE_CHECKOUTS = "checkout.handle_checkouts"
     HANDLE_TAXES = "checkout.handle_taxes"
+    MANAGE_TAXES = "checkout.manage_taxes"
 
 
 class OrderPermissions(BasePermissionEnum):
@@ -84,6 +85,7 @@ class SitePermissions(BasePermissionEnum):
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
+    CheckoutPermissions,
     ChannelPermissions,
     DiscountPermissions,
     PluginsPermissions,
@@ -97,7 +99,6 @@ PERMISSIONS_ENUMS = [
     ProductTypePermissions,
     ShippingPermissions,
     SitePermissions,
-    CheckoutPermissions,
 ]
 
 

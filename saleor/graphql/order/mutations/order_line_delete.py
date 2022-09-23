@@ -15,6 +15,7 @@ from ....order.utils import (
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order, OrderLine
 from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
 
@@ -37,7 +38,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         line = cls.get_node_or_error(
             info,
             id,
@@ -90,6 +91,6 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             ["should_refresh_prices", "weight", "search_vector", "updated_at"]
         )
         order.save(update_fields=updated_fields)
-        func = get_webhook_handler_by_order_status(order.status, info)
+        func = get_webhook_handler_by_order_status(order.status, manager)
         transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)

@@ -17,6 +17,7 @@ from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_36,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -25,6 +26,7 @@ from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...site.dataloaders import load_site
 from ..types import Checkout
@@ -40,6 +42,8 @@ from .utils import (
 if TYPE_CHECKING:
     from ....account.models import Address
     from .utils import CheckoutLineData
+
+from ...meta.mutations import MetadataInput
 
 
 class CheckoutAddressValidationRules(graphene.InputObjectType):
@@ -105,6 +109,11 @@ class CheckoutLineInput(graphene.InputObjectType):
             "Flag that allow force splitting the same variant into multiple lines "
             "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
         ),
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the object's metadata." + ADDED_IN_38),
+        required=False,
     )
 
 
@@ -341,6 +350,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if channel:
             data["input"]["channel"] = channel
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.checkout_created(response.checkout)
+        manager = load_plugin_manager(info.context)
+        manager.checkout_created(response.checkout)
         response.created = True
         return response

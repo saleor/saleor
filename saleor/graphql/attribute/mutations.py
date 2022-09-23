@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Exists, OuterRef, Q
+from django.db import transaction
+from django.db.models import Exists, OuterRef, Q, Subquery
 from django.utils.text import slugify
 
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
@@ -24,6 +25,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AttributeError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
+from ..plugins.dataloaders import load_plugin_manager
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .types import Attribute, AttributeValue
@@ -523,7 +525,8 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.attribute_created(instance)
+        manager = load_plugin_manager(info.context)
+        manager.attribute_created(instance)
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
@@ -593,7 +596,8 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.attribute_updated(instance)
+        manager = load_plugin_manager(info.context)
+        manager.attribute_updated(instance)
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -610,7 +614,8 @@ class AttributeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.attribute_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        manager.attribute_deleted(instance)
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -702,8 +707,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.attribute_value_created(instance)
-        info.context.plugins.attribute_updated(instance.attribute)
+        manager = load_plugin_manager(info.context)
+        manager.attribute_value_created(instance)
+        manager.attribute_updated(instance.attribute)
 
 
 class AttributeValueUpdate(AttributeValueCreate):
@@ -747,17 +753,35 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
-        )
+        with transaction.atomic():
+            variants = product_models.ProductVariant.objects.filter(
+                Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+            )
+            # SELECT … FOR UPDATE needs to lock rows in a consistent order
+            # to avoid deadlocks between updates touching the same rows.
+            qs = (
+                product_models.Product.objects.select_for_update(of=("self",))
+                .filter(
+                    Q(
+                        Exists(
+                            instance.productassignments.filter(
+                                product_id=OuterRef("id")
+                            )
+                        )
+                    )
+                    | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+                )
+                .order_by("pk")
+            )
+            # qs is executed in a subquery to make sure the SELECT statement gets
+            # properly evaluated and locks the rows in the same order every time.
+            product_models.Product.objects.filter(
+                pk__in=Subquery(qs.values("pk"))
+            ).update(search_index_dirty=True)
 
-        product_models.Product.objects.filter(
-            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
-            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
-        ).update(search_index_dirty=True)
-
-        info.context.plugins.attribute_value_updated(instance)
-        info.context.plugins.attribute_updated(instance.attribute)
+        manager = load_plugin_manager(info.context)
+        manager.attribute_value_updated(instance)
+        manager.attribute_updated(instance.attribute)
 
 
 class AttributeValueDelete(ModelDeleteMutation):
@@ -783,8 +807,9 @@ class AttributeValueDelete(ModelDeleteMutation):
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )
-        info.context.plugins.attribute_value_deleted(instance)
-        info.context.plugins.attribute_updated(instance.attribute)
+        manager = load_plugin_manager(info.context)
+        manager.attribute_value_deleted(instance)
+        manager.attribute_updated(instance.attribute)
         return response
 
     @classmethod
@@ -869,9 +894,9 @@ class AttributeReorderValues(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
-
+        manager = load_plugin_manager(info.context)
         for value in [v for v in values_m2m if v.id in operations.keys()]:
-            info.context.plugins.attribute_value_updated(value)
-        info.context.plugins.attribute_updated(attribute)
+            manager.attribute_value_updated(value)
+        manager.attribute_updated(attribute)
 
         return AttributeReorderValues(attribute=attribute)

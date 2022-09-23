@@ -24,6 +24,8 @@ from .utils.variants import generate_and_set_variant_name
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
+VARIANTS_UPDATE_BATCH = 500
+
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     """Product variant names are created from names of assigned attributes.
@@ -35,15 +37,23 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     attributes_changed = initial_attributes.intersection(saved_attributes)
     if not attributes_changed:
         return
-    variants_to_be_updated = ProductVariant.objects.filter(
+
+    variants = ProductVariant.objects.filter(
         product__in=instance.products.all(),
         product__product_type__variant_attributes__in=attributes_changed,
     )
-    variants_to_be_updated = variants_to_be_updated.prefetch_related(
-        "attributes__values__translations"
-    ).all()
-    for variant in variants_to_be_updated:
-        generate_and_set_variant_name(variant, variant.sku)
+
+    variants_to_update = []
+    for variant in variants:
+        variants_to_update.append(
+            generate_and_set_variant_name(variant, variant.sku, save=False)
+        )
+        if len(variants_to_update) > VARIANTS_UPDATE_BATCH:
+            ProductVariant.objects.bulk_update(
+                variants_to_update, ["name", "updated_at"]
+            )
+            variants_to_update = []
+    ProductVariant.objects.bulk_update(variants_to_update, ["name", "updated_at"])
 
 
 @app.task

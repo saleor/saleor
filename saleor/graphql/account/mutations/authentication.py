@@ -27,6 +27,7 @@ from ....core.permissions import AuthorizationFilters, get_permissions_from_name
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import User
 
 
@@ -350,7 +351,7 @@ class ExternalAuthenticationUrl(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         return cls(
             authentication_data=manager.external_authentication_url(
                 plugin_id, input_data, request
@@ -389,7 +390,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         access_tokens_response = manager.external_obtain_access_tokens(
             plugin_id, input_data, request
         )
@@ -439,7 +440,7 @@ class ExternalRefresh(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         access_tokens_response = manager.external_refresh(
             plugin_id, input_data, request
         )
@@ -479,7 +480,7 @@ class ExternalLogout(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         return cls(logout_data=manager.external_logout(plugin_id, input_data, request))
 
 
@@ -511,6 +512,6 @@ class ExternalVerify(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         user, data = manager.external_verify(plugin_id, input_data, request)
         return cls(user=user, is_valid=bool(user), verify_data=data)

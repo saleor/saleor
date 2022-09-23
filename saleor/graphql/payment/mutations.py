@@ -55,6 +55,7 @@ from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -254,7 +255,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         cls.validate_gateway(manager, gateway, checkout)
         cls.validate_return_url(data)
 
@@ -361,10 +362,11 @@ class PaymentCapture(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
+        manager = load_plugin_manager(info.context)
         try:
             gateway.capture(
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=channel_slug,
             )
@@ -391,10 +393,11 @@ class PaymentRefund(PaymentCapture):
             if payment.order
             else payment.checkout.channel.slug
         )
+        manager = load_plugin_manager(info.context)
         try:
             gateway.refund(
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=channel_slug,
             )
@@ -426,8 +429,9 @@ class PaymentVoid(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
+        manager = load_plugin_manager(info.context)
         try:
-            gateway.void(payment, info.context.plugins, channel_slug=channel_slug)
+            gateway.void(payment, manager, channel_slug=channel_slug)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
@@ -484,9 +488,9 @@ class PaymentInitialize(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, gateway, channel, payment_data):
         cls.validate_channel(channel_slug=channel)
-
+        manager = load_plugin_manager(info.context)
         try:
-            response = info.context.plugins.initialize_payment(
+            response = manager.initialize_payment(
                 gateway, payment_data, channel_slug=channel
             )
         except PaymentError as e:
@@ -546,7 +550,7 @@ class PaymentCheckBalance(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         gateway_id = data["input"]["gateway_id"]
         money = data["input"]["card"].get("money", {})
 
@@ -1039,12 +1043,13 @@ class TransactionRequestAction(BaseMutation):
             else transaction.checkout.channel.slug
         )
         app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": info.context.user,
             "app": app,
             "transaction": transaction,
-            "manager": info.context.plugins,
+            "manager": manager,
         }
 
         try:
