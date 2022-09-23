@@ -5,11 +5,11 @@ import pytest
 
 from .....order import OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionStatus
+from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
-from .....payment.models import TransactionItem
+from .....payment.models import TransactionEvent, TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum, TransactionStatusEnum
+from ...enums import TransactionActionEnum, TransactionEventStatusEnum
 
 MUTATION_TRANSACTION_UPDATE = """
 mutation TransactionUpdate(
@@ -25,7 +25,7 @@ mutation TransactionUpdate(
         transaction{
                 id
                 actions
-                reference
+                pspReference
                 type
                 status
                 modifiedAt
@@ -48,7 +48,7 @@ mutation TransactionUpdate(
                 }
                 events{
                    status
-                   reference
+                   pspReference
                    name
                    createdAt
                 }
@@ -145,17 +145,17 @@ def test_transaction_update_type_by_app(
     assert transaction.type == type
 
 
-def test_transaction_update_reference_by_app(
+def test_transaction_update_psp_reference_by_app(
     transaction_item_created_by_app, permission_manage_payments, app_api_client
 ):
     # given
-    reference = "PSP:123AAA"
+    psp_peference = "PSP:123AAA"
     transaction = transaction_item_created_by_app
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {
-            "reference": reference,
+            "pspReference": psp_peference,
         },
     }
 
@@ -168,8 +168,8 @@ def test_transaction_update_reference_by_app(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["reference"] == reference
-    assert transaction.reference == reference
+    assert data["pspReference"] == psp_peference
+    assert transaction.psp_reference == psp_peference
 
 
 def test_transaction_update_available_actions_by_app(
@@ -680,7 +680,7 @@ def test_transaction_update_adds_transaction_event_to_order_by_app(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
             "status": transaction_status,
-            "reference": transaction_reference,
+            "pspReference": transaction_reference,
             "name": transaction_name,
         },
     }
@@ -712,14 +712,14 @@ def test_creates_transaction_event_for_order_by_app(
     # given
 
     transaction = order_with_lines.payment_transactions.first()
-    event_status = TransactionStatus.FAILURE
+    event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
-            "status": TransactionStatusEnum.FAILURE.name,
-            "reference": event_reference,
+            "status": TransactionEventStatusEnum.FAILURE.name,
+            "pspReference": event_reference,
             "name": event_name,
         },
     }
@@ -737,14 +737,14 @@ def test_creates_transaction_event_for_order_by_app(
     assert len(events_data) == 1
     event_data = events_data[0]
     assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionStatusEnum.FAILURE.name
-    assert event_data["reference"] == event_reference
+    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
+    assert event_data["pspReference"] == event_reference
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.name == event_name
     assert event.status == event_status
-    assert event.reference == event_reference
+    assert event.psp_reference == event_reference
 
 
 def test_only_owner_can_update_its_transaction_by_staff(
@@ -826,7 +826,7 @@ def test_transaction_update_type_by_staff(
     assert transaction.type == type
 
 
-def test_transaction_update_reference_by_staff(
+def test_transaction_update_psp_reference_by_staff(
     transaction_item_created_by_user, permission_manage_payments, staff_api_client
 ):
     # given
@@ -836,7 +836,7 @@ def test_transaction_update_reference_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {
-            "reference": reference,
+            "pspReference": reference,
         },
     }
 
@@ -849,8 +849,8 @@ def test_transaction_update_reference_by_staff(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["reference"] == reference
-    assert transaction.reference == reference
+    assert data["pspReference"] == reference
+    assert transaction.psp_reference == reference
 
 
 def test_transaction_update_available_actions_by_staff(
@@ -1361,7 +1361,7 @@ def test_transaction_update_adds_transaction_event_to_order_by_staff(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
             "status": transaction_status,
-            "reference": transaction_reference,
+            "pspReference": transaction_reference,
             "name": transaction_name,
         },
     }
@@ -1393,14 +1393,14 @@ def test_creates_transaction_event_for_order_by_staff(
     # given
 
     transaction = order_with_lines.payment_transactions.first()
-    event_status = TransactionStatus.FAILURE
+    event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
-            "status": TransactionStatusEnum.FAILURE.name,
-            "reference": event_reference,
+            "status": TransactionEventStatusEnum.FAILURE.name,
+            "pspReference": event_reference,
             "name": event_name,
         },
     }
@@ -1418,11 +1418,165 @@ def test_creates_transaction_event_for_order_by_staff(
     assert len(events_data) == 1
     event_data = events_data[0]
     assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionStatusEnum.FAILURE.name
-    assert event_data["reference"] == event_reference
+    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
+    assert event_data["pspReference"] == event_reference
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.name == event_name
     assert event.status == event_status
-    assert event.reference == event_reference
+    assert event.psp_reference == event_reference
+
+
+def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
+    transaction_item_created_by_user,
+    transaction_item_created_by_app,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+
+    transaction = transaction_item_created_by_user
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "pspReference": transaction_item_created_by_app.psp_reference,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    transaction = content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+
+    assert not transaction
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.UNIQUE.name
+    assert error["field"] == "transaction"
+
+    assert order_with_lines.payment_transactions.count() == 2
+    assert TransactionEvent.objects.count() == 0
+
+
+def test_transaction_raises_error_when_psp_reference_already_exists_by_app(
+    transaction_item_created_by_user,
+    transaction_item_created_by_app,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+
+    transaction = transaction_item_created_by_app
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "pspReference": transaction_item_created_by_user.psp_reference,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    transaction = content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+
+    assert not transaction
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.UNIQUE.name
+    assert error["field"] == "transaction"
+
+    assert order_with_lines.payment_transactions.count() == 2
+    assert TransactionEvent.objects.count() == 0
+
+
+def test_transaction_raises_error_when_event_psp_reference_already_exists_by_staff(
+    transaction_item_created_by_user,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+
+    event_psp_reference = "event-psp-reference"
+    transaction = transaction_item_created_by_user
+    transaction_item_created_by_user.events.create(psp_reference=event_psp_reference)
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_event": {
+            "status": TransactionEventStatusEnum.FAILURE.name,
+            "pspReference": event_psp_reference,
+            "name": "Event name",
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    transaction = content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+
+    assert not transaction
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.UNIQUE.name
+    assert error["field"] == "transactionEvent"
+
+    assert order_with_lines.payment_transactions.count() == 1
+    assert TransactionEvent.objects.count() == 1
+
+
+def test_transaction_raises_error_when_event_psp_reference_already_exists_by_app(
+    transaction_item_created_by_app,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+
+    event_psp_reference = "event-psp-reference"
+    transaction = transaction_item_created_by_app
+    transaction_item_created_by_app.events.create(psp_reference=event_psp_reference)
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_event": {
+            "status": TransactionEventStatusEnum.FAILURE.name,
+            "pspReference": event_psp_reference,
+            "name": "Event name",
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    transaction = content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+
+    assert not transaction
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.UNIQUE.name
+    assert error["field"] == "transactionEvent"
+
+    assert order_with_lines.payment_transactions.count() == 1
+    assert TransactionEvent.objects.count() == 1

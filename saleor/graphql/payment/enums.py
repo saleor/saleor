@@ -4,8 +4,8 @@ from ...payment import (
     ChargeStatus,
     StorePaymentMethod,
     TransactionAction,
+    TransactionEventStatus,
     TransactionKind,
-    TransactionStatus,
 )
 from ..core.enums import to_enum
 
@@ -16,7 +16,11 @@ TransactionActionEnum = to_enum(
     type_name="TransactionActionEnum",
     description=TransactionAction.__doc__,
 )
-TransactionStatusEnum = to_enum(TransactionStatus, type_name="TransactionStatus")
+TransactionEventStatusEnum = to_enum(
+    TransactionEventStatus,
+    type_name="TransactionEventStatus",
+    description=TransactionEventStatus.__doc__,
+)
 
 
 class OrderAction(graphene.Enum):

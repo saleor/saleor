@@ -149,23 +149,43 @@ class TransactionAction:
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action.
+    VOID - Represents a void action. DEPRECATED: this enum value will be removed
+    in Saleor 3.9 (Feature Preview). Use `CANCEL` instead.
+    CANCEL - Represents a cancel action.
     """
 
     CHARGE = "charge"
     REFUND = "refund"
     VOID = "void"
+    CANCEL = "cancel"
 
     CHOICES = [
         (CHARGE, "Charge payment"),
         (REFUND, "Refund payment"),
         (VOID, "Void payment"),
+        (CANCEL, "Cancel payment"),
     ]
 
 
-class TransactionStatus:
+class TransactionEventStatus:
+    """Represents a status of payment transaction.
+
+    The following statuses are possible:
+    SUCCESS - Represents a sucess action.
+    FAILURE - Represents a failure action.
+    PENDING - Represents a pending action. DEPRECATED: this enum value will be removed
+    in Saleor 3.9 (Feature Preview). Saleor automatically marks transaction as pending.
+    REQUEST - Represents a request that was send for the payment transaction.
+    """
+
     PENDING = "pending"
     SUCCESS = "success"
     FAILURE = "failure"
+    REQUEST = "request"
 
-    CHOICES = [(PENDING, "Pending"), (SUCCESS, "Success"), (FAILURE, "Failure")]
+    CHOICES = [
+        (PENDING, "Pending"),
+        (SUCCESS, "Success"),
+        (FAILURE, "Failure"),
+        (REQUEST, "Request"),
+    ]

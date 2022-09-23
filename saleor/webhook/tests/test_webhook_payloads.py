@@ -1764,7 +1764,7 @@ def test_generate_transaction_action_request_payload_for_order(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -1795,7 +1795,8 @@ def test_generate_transaction_action_request_payload_for_order(
         "transaction": {
             "status": transaction.status,
             "type": transaction.type,
-            "reference": transaction.reference,
+            "reference": transaction.psp_reference,
+            "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
             "currency": currency,
             "charged_value": str(quantize_price(transaction.charged_value, currency)),
@@ -1840,7 +1841,7 @@ def test_generate_transaction_action_request_payload_for_checkout(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -1871,7 +1872,8 @@ def test_generate_transaction_action_request_payload_for_checkout(
         "transaction": {
             "status": transaction.status,
             "type": transaction.type,
-            "reference": transaction.reference,
+            "reference": transaction.psp_reference,
+            "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
             "currency": currency,
             "charged_value": str(quantize_price(transaction.charged_value, currency)),

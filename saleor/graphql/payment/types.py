@@ -35,8 +35,8 @@ from .enums import (
     OrderAction,
     PaymentChargeStatusEnum,
     TransactionActionEnum,
+    TransactionEventStatusEnum,
     TransactionKindEnum,
-    TransactionStatusEnum,
 )
 
 
@@ -260,12 +260,20 @@ class PaymentInitialized(graphene.ObjectType):
 class TransactionEvent(ModelObjectType):
     created_at = graphene.DateTime(required=True)
     status = graphene.Field(
-        TransactionStatusEnum,
+        TransactionEventStatusEnum,
         description="Status of transaction's event.",
         required=True,
     )
     reference = graphene.String(
-        description="Reference of transaction's event.", required=True
+        description="Reference of transaction's event.",
+        required=True,
+        deprecation_reason=(
+            "This field will be removed in Saleor 3.9 (Feature Preview). "
+            "Use `pspReference` instead."
+        ),
+    )
+    psp_reference = graphene.String(
+        description="PSP reference of transaction." + ADDED_IN_38, required=True
     )
     name = graphene.String(description="Name of the transaction's event.")
 
@@ -273,6 +281,14 @@ class TransactionEvent(ModelObjectType):
         description = "Represents transaction's event."
         interfaces = [relay.Node]
         model = models.TransactionEvent
+
+    @staticmethod
+    def resolve_reference(root: models.TransactionEvent, info):
+        return root.psp_reference or ""
+
+    @staticmethod
+    def resolve_psp_reference(root: models.TransactionEvent, info):
+        return root.psp_reference or ""
 
 
 class TransactionItem(ModelObjectType):
@@ -299,7 +315,17 @@ class TransactionItem(ModelObjectType):
     )
     status = graphene.String(description="Status of transaction.", required=True)
     type = graphene.String(description="Type of transaction.", required=True)
-    reference = graphene.String(description="Reference of transaction.", required=True)
+    reference = graphene.String(
+        description="Reference of transaction.",
+        required=True,
+        deprecation_reason=(
+            "This field will be removed in Saleor 3.9 (Feature Preview). "
+            "Use `pspReference` instead."
+        ),
+    )
+    psp_reference = graphene.String(
+        description="PSP reference of transaction." + ADDED_IN_38, required=True
+    )
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         description="The related order." + ADDED_IN_36,
@@ -389,3 +415,11 @@ class TransactionItem(ModelObjectType):
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
         return None
+
+    @staticmethod
+    def resolve_reference(root: models.TransactionItem, info):
+        return root.psp_reference or ""
+
+    @staticmethod
+    def resolve_psp_reference(root: models.TransactionItem, info):
+        return root.psp_reference or ""

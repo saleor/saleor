@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from django.db.utils import IntegrityError
 
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
@@ -19,6 +20,7 @@ from ...core.permissions import (
     OrderPermissions,
     PaymentPermissions,
 )
+from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
@@ -46,6 +48,7 @@ from ..checkout.types import Checkout
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -56,7 +59,11 @@ from ..core.types import common as common_types
 from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..utils import get_user_or_app_from_context
-from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
+from .enums import (
+    StorePaymentMethodEnum,
+    TransactionActionEnum,
+    TransactionEventStatusEnum,
+)
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
 
@@ -599,7 +606,22 @@ class TransactionUpdateInput(graphene.InputObjectType):
     type = graphene.String(
         description="Payment type used for this transaction.",
     )
-    reference = graphene.String(description="Reference of the transaction.")
+    reference = graphene.String(
+        description=(
+            "Reference of the transaction. "
+            "The reference and PSP reference must be unique across all "
+            "`transactionItem` objects."
+            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview)"
+            "Use `pspReference` instead."
+        )
+    )
+    psp_reference = graphene.String(
+        description=(
+            "PSP Reference of the transaction. "
+            "The PSP reference must be unique across all `transactionItem` objects."
+            + ADDED_IN_38
+        )
+    )
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -619,6 +641,12 @@ class TransactionUpdateInput(graphene.InputObjectType):
         description="Payment private metadata.",
         required=False,
     )
+    reference_url = graphene.String(
+        description=(
+            "The url that will allow to redirect user to "
+            "payment provider page with transaction details." + ADDED_IN_38
+        )
+    )
 
 
 class TransactionCreateInput(TransactionUpdateInput):
@@ -630,12 +658,43 @@ class TransactionCreateInput(TransactionUpdateInput):
 
 class TransactionEventInput(graphene.InputObjectType):
     status = graphene.Field(
-        TransactionStatusEnum,
+        TransactionEventStatusEnum,
         required=True,
         description="Current status of the payment transaction.",
     )
-    reference = graphene.String(description="Reference of the transaction.")
+    reference = graphene.String(
+        description=(
+            "Reference of the transaction. "
+            "The reference and PSP reference must be unique across all "
+            "`transactionEvent` objects."
+            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview)"
+            "Use `pspReference` instead."
+        )
+    )
+
+    psp_reference = graphene.String(
+        description=(
+            "PSP Reference related to this action. "
+            "The PSP reference must be unique across all `transactionEvent` objects."
+            + ADDED_IN_38
+        )
+    )
     name = graphene.String(description="Name of the transaction.")
+    type = graphene.Field(
+        TransactionActionEnum,
+        description=(
+            "The transaction action that is related to this event." + ADDED_IN_38
+        ),
+    )
+    amount = graphene.Field(
+        PositiveDecimal, description="The amount related to this event." + ADDED_IN_38
+    )
+    reference_url = graphene.String(
+        description=(
+            "The url that will allow to redirect user to "
+            "payment provider page with transaction event details." + ADDED_IN_38
+        )
+    )
 
 
 class TransactionCreate(BaseMutation):
@@ -771,20 +830,49 @@ class TransactionCreate(BaseMutation):
     ) -> payment_models.TransactionItem:
         cls.cleanup_money_data(transaction_input)
         cls.cleanup_metadata_data(transaction_input)
-        return payment_models.TransactionItem.objects.create(
-            **transaction_input, user=user if user.is_authenticated else None, app=app
+
+        reference = transaction_input.pop("reference", None)
+        transaction_input["psp_reference"] = transaction_input.get(
+            "psp_reference", reference
         )
+        try:
+            return payment_models.TransactionItem.objects.create(
+                **transaction_input,
+                user=user if user.is_authenticated else None,
+                app=app,
+            )
+        except IntegrityError:
+            raise ValidationError(
+                {
+                    "transaction": ValidationError(
+                        "Transaction with provided `pspReference` already exists.",
+                        code=TransactionCreateErrorCode.UNIQUE.value,
+                    )
+                }
+            )
 
     @classmethod
     def create_transaction_event(
         cls, transaction_event_input: dict, transaction: payment_models.TransactionItem
     ) -> payment_models.TransactionEvent:
-        return transaction.events.create(
-            status=transaction_event_input["status"],
-            reference=transaction_event_input.get("reference", ""),
-            name=transaction_event_input.get("name", ""),
-            transaction=transaction,
-        )
+        reference = transaction_event_input.pop("reference", None)
+        psp_reference = transaction_event_input.get("psp_reference", reference)
+        try:
+            return transaction.events.create(
+                status=transaction_event_input["status"],
+                psp_reference=psp_reference,
+                name=transaction_event_input.get("name", ""),
+                transaction=transaction,
+            )
+        except IntegrityError:
+            raise ValidationError(
+                {
+                    "transactionEvent": ValidationError(
+                        "TransactionEvent with provided `pspReference` already exists.",
+                        code=TransactionCreateErrorCode.UNIQUE.value,
+                    )
+                }
+            )
 
     @classmethod
     def add_amounts_to_order(cls, order_id: uuid.UUID, transaction_data: dict):
@@ -799,6 +887,7 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
@@ -815,11 +904,13 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
+                reference = transaction_event_data.pop("reference", None)
+                psp_reference = transaction_event_data.get("psp_reference", reference)
                 transaction_event(
                     order=order_or_checkout_instance,
                     user=user,
                     app=app,
-                    reference=transaction_event_data.get("reference", ""),
+                    reference=psp_reference or "",
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
                 )
@@ -932,6 +1023,27 @@ class TransactionUpdate(TransactionCreate):
         )
 
     @classmethod
+    def update_transaction(cls, instance, transaction_data):
+        if instance.order_id:
+            cls.update_amounts_for_order(instance, instance.order_id, transaction_data)
+        transaction_data["psp_reference"] = transaction_data.get(
+            "psp_reference", transaction_data.pop("reference", None)
+        )
+        instance = cls.construct_instance(instance, transaction_data)
+        try:
+            instance.save()
+        except IntegrityError:
+            raise ValidationError(
+                {
+                    "transaction": ValidationError(
+                        "Transaction with provided `pspReference` already exists.",
+                        code=TransactionCreateErrorCode.UNIQUE.value,
+                    )
+                }
+            )
+
+    @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         app = load_app(info.context)
         user = info.context.user
@@ -947,22 +1059,19 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_transaction_input(instance, transaction_data)
             cls.cleanup_money_data(transaction_data)
             cls.cleanup_metadata_data(transaction_data)
-            if instance.order_id:
-                cls.update_amounts_for_order(
-                    instance, instance.order_id, transaction_data
-                )
-            instance = cls.construct_instance(instance, transaction_data)
-            instance.save()
+            cls.update_transaction(instance, transaction_data)
 
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
                 app = load_app(info.context)
+                reference = transaction_event_data.pop("reference", None)
+                psp_reference = transaction_event_data.get("psp_reference", reference)
                 transaction_event(
                     order=instance.order,
                     user=info.context.user,
                     app=app,
-                    reference=transaction_event_data.get("reference", ""),
+                    reference=psp_reference or "",
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
                 )

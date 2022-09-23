@@ -27,6 +27,7 @@ class TransactionCreateErrorCode(Enum):
     NOT_FOUND = "not_found"
     INCORRECT_CURRENCY = "incorrect_currency"
     METADATA_KEY_REQUIRED = "metadata_key_required"
+    UNIQUE = "unique"
 
 
 class TransactionUpdateErrorCode(Enum):
@@ -35,6 +36,7 @@ class TransactionUpdateErrorCode(Enum):
     NOT_FOUND = "not_found"
     INCORRECT_CURRENCY = "incorrect_currency"
     METADATA_KEY_REQUIRED = "metadata_key_required"
+    UNIQUE = "unique"
 
 
 class TransactionRequestActionErrorCode(Enum):

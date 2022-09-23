@@ -105,7 +105,7 @@ def request_charge_action(
     if order_id := transaction.order_id:
         event_transaction_capture_requested(
             order_id=order_id,
-            reference=transaction.reference,
+            reference=transaction.psp_reference or "",
             amount=quantize_price(charge_value, transaction.currency),
             user=user,
             app=app,
@@ -133,7 +133,7 @@ def request_refund_action(
     if order_id := transaction.order_id:
         event_transaction_refund_requested(
             order_id=order_id,
-            reference=transaction.reference,
+            reference=transaction.psp_reference or "",
             amount=quantize_price(refund_value, transaction.currency),
             user=user,
             app=app,
@@ -156,7 +156,10 @@ def request_void_action(
     )
     if order_id := transaction.order_id:
         event_transaction_void_requested(
-            order_id=order_id, reference=transaction.reference, user=user, app=app
+            order_id=order_id,
+            reference=transaction.psp_reference or "",
+            user=user,
+            app=app,
         )
 
 

@@ -63,7 +63,7 @@ def test_fulfillment_refund_products_with_transaction_action_request(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=fulfilled_order.pk,
@@ -98,7 +98,7 @@ def test_fulfillment_refund_products_with_transaction_action_request(
     event = fulfilled_order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == amount_to_refund
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -115,7 +115,7 @@ def test_fulfillment_refund_products_with_missing_payment_action_hook(
     TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=fulfilled_order.pk,

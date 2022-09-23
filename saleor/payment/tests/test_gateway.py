@@ -336,7 +336,7 @@ def test_request_capture_action_missing_active_event(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -366,7 +366,7 @@ def test_request_capture_action_on_order(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -399,7 +399,7 @@ def test_request_capture_action_on_order(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
 
 
@@ -412,7 +412,7 @@ def test_request_capture_action_by_app(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -445,7 +445,7 @@ def test_request_capture_action_by_app(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
     assert event.app == app
 
 
@@ -458,7 +458,7 @@ def test_request_capture_action_on_checkout(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -497,7 +497,7 @@ def test_request_refund_action_missing_active_event(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -527,7 +527,7 @@ def test_request_refund_action_on_order(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -560,7 +560,7 @@ def test_request_refund_action_on_order(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
 
 
@@ -573,7 +573,7 @@ def test_request_refund_action_by_app(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -606,7 +606,7 @@ def test_request_refund_action_by_app(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
     assert event.app == app
     assert not event.user
 
@@ -620,7 +620,7 @@ def test_request_refund_action_on_checkout(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -657,7 +657,7 @@ def test_request_void_action_missing_active_event(mocked_is_active, order, staff
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -685,7 +685,7 @@ def test_request_void_action_on_order(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -715,7 +715,7 @@ def test_request_void_action_on_order(
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
 
 
@@ -728,7 +728,7 @@ def test_request_void_action_by_app(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -758,7 +758,7 @@ def test_request_void_action_by_app(
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
     assert event.app == app
     assert not event.user
 
@@ -772,7 +772,7 @@ def test_request_void_action_on_checkout(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         checkout_id=checkout.pk,

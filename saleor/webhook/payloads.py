@@ -1370,7 +1370,8 @@ def generate_transaction_action_request_payload(
         "transaction": {
             "status": transaction.status,
             "type": transaction.type,
-            "reference": transaction.reference,
+            "reference": transaction.psp_reference,
+            "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
             "currency": transaction.currency,
             "charged_value": quantize_price(

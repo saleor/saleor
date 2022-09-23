@@ -5222,7 +5222,7 @@ def transaction_item_created_by_app(order, app):
     return TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref1",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -5236,7 +5236,7 @@ def transaction_item_created_by_user(order, staff_user):
     return TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref2",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
