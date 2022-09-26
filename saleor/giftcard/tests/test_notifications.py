@@ -34,7 +34,12 @@ def test_send_gift_card_notification(
     )
 
     expected_payload = {
-        "gift_card": get_default_gift_card_payload(gift_card),
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": round(gift_card.current_balance_amount, 2),
+            "currency": gift_card.currency,
+        },
         "user": get_default_user_payload(customer_user) if customer_user else None,
         "requester_user_id": staff_user.id,
         "requester_app_id": None,
