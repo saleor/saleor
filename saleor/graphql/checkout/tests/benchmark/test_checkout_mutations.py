@@ -820,7 +820,7 @@ def test_add_checkout_lines_with_external_shipping(
     checkout_with_single_item.shipping_address = address
     set_external_shipping_id(checkout_with_single_item, external_shipping_method_id)
     checkout_with_single_item.save()
-    checkout_with_single_item.metadata.save()
+    checkout_with_single_item.metadata_storage.save()
 
     variables = {
         "id": Node.to_global_id("Checkout", checkout_with_single_item.pk),

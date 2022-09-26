@@ -383,7 +383,9 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["updateMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
     )
 
 
@@ -413,7 +415,9 @@ def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["updateMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
     )
 
 
@@ -911,8 +915,8 @@ def test_add_public_metadata_for_menu_item(
 
 def test_update_public_metadata_for_item(api_client, checkout):
     # given
-    checkout.metadata.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.metadata.save(update_fields=["metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -923,7 +927,7 @@ def test_update_public_metadata_for_item(api_client, checkout):
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
         value="NewMetaValue",
     )
@@ -971,8 +975,8 @@ def test_update_public_metadata_for_order_line(api_client, order_line):
 
 @pytest.mark.django_db(transaction=True)
 def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
-    checkout.metadata.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.metadata.save(update_fields=["metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.metadata_storage.save(update_fields=["metadata"])
 
     def delete_checkout_object(*args, **kwargs):
         with transaction.atomic():
@@ -1366,8 +1370,8 @@ def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
 
 def test_delete_public_metadata_for_checkout(api_client, checkout):
     # given
-    checkout.metadata.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.metadata.save(update_fields=["metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1377,14 +1381,16 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deleteMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
     )
 
 
 def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
     # given
-    checkout.metadata.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.metadata.save(update_fields=["metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1394,7 +1400,9 @@ def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deleteMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
     )
 
 
@@ -1866,8 +1874,8 @@ def test_delete_public_metadata_for_item_without_meta(api_client, address):
 
 def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
     # given
-    checkout.metadata.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.metadata.save(update_fields=["metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1877,16 +1885,18 @@ def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["deleteMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deleteMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
     )
 
 
 def test_delete_public_metadata_for_one_key(api_client, checkout):
     # given
-    checkout.metadata.store_value_in_metadata(
+    checkout.metadata_storage.store_value_in_metadata(
         {PUBLIC_KEY: PUBLIC_VALUE, "to_clear": PUBLIC_VALUE},
     )
-    checkout.metadata.save(update_fields=["metadata"])
+    checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1896,11 +1906,13 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["deleteMetadata"]["item"], checkout.metadata, checkout_id
+        response["data"]["deleteMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
     )
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
         key="to_clear",
     )
@@ -2219,7 +2231,7 @@ def test_add_private_metadata_for_checkout(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
     )
 
@@ -2257,7 +2269,7 @@ def test_add_private_metadata_for_checkout_by_token(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
     )
 
@@ -2725,8 +2737,10 @@ def test_update_private_metadata_for_item(
     staff_api_client, checkout, permission_manage_checkouts
 ):
     # given
-    checkout.metadata.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_KEY})
-    checkout.metadata.save(update_fields=["private_metadata"])
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_KEY}
+    )
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -2741,7 +2755,7 @@ def test_update_private_metadata_for_item(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
         value="NewMetaValue",
     )
@@ -3215,8 +3229,10 @@ def test_delete_private_metadata_for_checkout(
     staff_api_client, checkout, permission_manage_checkouts
 ):
     # given
-    checkout.metadata.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.metadata.save(update_fields=["private_metadata"])
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -3227,7 +3243,7 @@ def test_delete_private_metadata_for_checkout(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
     )
 
@@ -3236,8 +3252,10 @@ def test_delete_private_metadata_for_checkout_by_token(
     staff_api_client, checkout, permission_manage_checkouts
 ):
     # given
-    checkout.metadata.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.metadata.save(update_fields=["private_metadata"])
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -3248,7 +3266,7 @@ def test_delete_private_metadata_for_checkout_by_token(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
     )
 
@@ -3745,8 +3763,10 @@ def test_delete_private_metadata_for_not_exist_key(
     staff_api_client, checkout, permission_manage_checkouts
 ):
     # given
-    checkout.metadata.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.metadata.save(update_fields=["private_metadata"])
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -3761,7 +3781,7 @@ def test_delete_private_metadata_for_not_exist_key(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
     )
 
@@ -3770,10 +3790,10 @@ def test_delete_private_metadata_for_one_key(
     staff_api_client, checkout, permission_manage_checkouts
 ):
     # given
-    checkout.metadata.store_value_in_private_metadata(
+    checkout.metadata_storage.store_value_in_private_metadata(
         {PRIVATE_KEY: PRIVATE_VALUE, "to_clear": PRIVATE_VALUE},
     )
-    checkout.metadata.save(update_fields=["private_metadata"])
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -3788,12 +3808,12 @@ def test_delete_private_metadata_for_one_key(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
     )
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"],
-        checkout.metadata,
+        checkout.metadata_storage,
         checkout_id,
         key="to_clear",
     )

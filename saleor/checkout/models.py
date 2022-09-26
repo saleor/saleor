@@ -303,5 +303,5 @@ class CheckoutLine(ModelWithMetadata):
 
 class CheckoutMetadata(ModelWithMetadata):
     checkout = models.OneToOneField(
-        Checkout, related_name="metadata", on_delete=models.CASCADE
+        Checkout, related_name="metadata_storage", on_delete=models.CASCADE
     )
