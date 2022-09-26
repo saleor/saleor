@@ -27,7 +27,7 @@ from .permissions import (
     PUBLIC_META_PERMISSION_MAP,
     AccountPermissions,
 )
-from .types import ObjectWithMetadata
+from .types import ObjectWithMetadata, get_valid_metadata_instance
 
 logger = logging.getLogger(__name__)
 
@@ -297,9 +297,7 @@ class UpdateMetadata(BaseMetadataMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            meta_instance = instance
-            if isinstance(instance, Checkout):
-                meta_instance = meta_instance.metadata
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_list = data.pop("input")
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
@@ -334,9 +332,7 @@ class DeleteMetadata(BaseMetadataMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            meta_instance = instance
-            if isinstance(instance, Checkout):
-                meta_instance = meta_instance.metadata
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
                 meta_instance.delete_value_from_metadata(key)
@@ -369,9 +365,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            meta_instance = instance
-            if isinstance(instance, Checkout):
-                meta_instance = meta_instance.metadata
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_list = data.pop("input")
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
@@ -407,9 +401,7 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
 
         if instance:
-            meta_instance = instance
-            if isinstance(instance, Checkout):
-                meta_instance = meta_instance.metadata
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
                 meta_instance.delete_value_from_private_metadata(key)

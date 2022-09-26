@@ -552,11 +552,13 @@ def generate_checkout_payload(
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
             "metadata": (
-                lambda c=checkout: c.metadata.metadata if hasattr(c, "metadata") else {}
+                lambda c=checkout: c.metadata_storage.metadata
+                if hasattr(c, "metadata_storage")
+                else {}
             ),
             "private_metadata": (
-                lambda c=checkout: c.metadata.private_metadata
-                if hasattr(c, "metadata")
+                lambda c=checkout: c.metadata_storage.private_metadata
+                if hasattr(c, "metadata_storage")
                 else {}
             ),
         },
@@ -1250,7 +1252,11 @@ def generate_checkout_payload_for_tax_calculation(
             "shipping_name": shipping_method_name,
             "discounts": discounts,
             "lines": lines_dict_data,
-            "metadata": (lambda c: c.metadata.metadata if c.metadata else {}),
+            "metadata": (
+                lambda c=checkout: c.metadata_storage.metadata
+                if hasattr(c, "metadata_storage")
+                else {}
+            ),
         },
     )
     return checkout_data

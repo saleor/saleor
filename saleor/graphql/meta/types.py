@@ -134,5 +134,5 @@ class ObjectWithMetadata(graphene.Interface):
 
 def get_valid_metadata_instance(instance):
     if isinstance(instance, Checkout):
-        instance = instance.metadata
+        instance = instance.metadata_storage
     return instance

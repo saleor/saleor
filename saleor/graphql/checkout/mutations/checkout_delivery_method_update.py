@@ -220,7 +220,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        checkout.metadata.save()
+        checkout.metadata_storage.save()
         manager.checkout_updated(checkout)
 
     @staticmethod
