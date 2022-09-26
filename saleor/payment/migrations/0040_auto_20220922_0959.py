@@ -13,6 +13,16 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="transactionevent",
+            name="external_url",
+            field=models.URLField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="transactionitem",
+            name="external_url",
+            field=models.URLField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="transactionevent",
             name="psp_reference",
             field=models.CharField(blank=True, max_length=512, null=True, unique=True),
         ),

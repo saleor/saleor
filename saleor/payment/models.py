@@ -75,6 +75,7 @@ class TransactionItem(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
     )
+    external_url = models.URLField(blank=True, null=True)
 
     checkout = models.ForeignKey(
         Checkout,
@@ -121,6 +122,7 @@ class TransactionEvent(models.Model):
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE
     )
+    external_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ("pk",)

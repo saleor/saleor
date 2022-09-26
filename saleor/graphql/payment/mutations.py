@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db.models import F
 from django.db.utils import IntegrityError
 
@@ -610,8 +611,8 @@ class TransactionUpdateInput(graphene.InputObjectType):
         description=(
             "Reference of the transaction. "
             "The reference and PSP reference must be unique across all "
-            "`transactionItem` objects."
-            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview)"
+            "`transactionItem` objects. "
+            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). "
             "Use `pspReference` instead."
         )
     )
@@ -641,7 +642,7 @@ class TransactionUpdateInput(graphene.InputObjectType):
         description="Payment private metadata.",
         required=False,
     )
-    reference_url = graphene.String(
+    external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
             "payment provider page with transaction details." + ADDED_IN_38
@@ -666,8 +667,8 @@ class TransactionEventInput(graphene.InputObjectType):
         description=(
             "Reference of the transaction. "
             "The reference and PSP reference must be unique across all "
-            "`transactionEvent` objects."
-            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview)"
+            "`transactionEvent` objects. "
+            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). "
             "Use `pspReference` instead."
         )
     )
@@ -689,7 +690,7 @@ class TransactionEventInput(graphene.InputObjectType):
     amount = graphene.Field(
         PositiveDecimal, description="The amount related to this event." + ADDED_IN_38
     )
-    reference_url = graphene.String(
+    external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
             "payment provider page with transaction event details." + ADDED_IN_38
@@ -730,12 +731,26 @@ class TransactionCreate(BaseMutation):
             raise ValidationError(
                 {
                     "transaction": ValidationError(
-                        {
-                            field_name: ValidationError(
-                                "Metadata key cannot be empty.",
-                                code=error_code,
-                            )
-                        }
+                        f"{field_name} key cannot be empty.",
+                        code=error_code,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_external_url(
+        cls, external_url: Optional[str], parent_field_name: str, error_code: str
+    ):
+        if external_url is None:
+            return
+        validator = URLValidator()
+        try:
+            validator(external_url)
+        except ValidationError:
+            raise ValidationError(
+                {
+                    parent_field_name: ValidationError(
+                        "Invalid format of `externalUrl`.", code=error_code
                     )
                 }
             )
@@ -823,6 +838,16 @@ class TransactionCreate(BaseMutation):
             field_name="privateMetadata",
             error_code=TransactionCreateErrorCode.METADATA_KEY_REQUIRED.value,
         )
+        cls.validate_external_url(
+            transaction_data.get("external_url"),
+            parent_field_name="transaction",
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
+        cls.validate_external_url(
+            input_data.get("transaction_event", {}).get("external_url"),
+            parent_field_name="transactionEvent",
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
 
     @classmethod
     def create_transaction(
@@ -863,6 +888,7 @@ class TransactionCreate(BaseMutation):
                 psp_reference=psp_reference,
                 name=transaction_event_input.get("name", ""),
                 transaction=transaction,
+                external_url=transaction_event_input.get("external_url"),
             )
         except IntegrityError:
             raise ValidationError(
@@ -994,6 +1020,11 @@ class TransactionUpdate(TransactionCreate):
             field_name="privateMetadata",
             error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
         )
+        cls.validate_external_url(
+            transaction_data.get("external_url"),
+            parent_field_name="transaction",
+            error_code=TransactionUpdateErrorCode.INVALID.value,
+        )
 
     @classmethod
     def update_amounts_for_order(
@@ -1062,6 +1093,11 @@ class TransactionUpdate(TransactionCreate):
             cls.update_transaction(instance, transaction_data)
 
         if transaction_event_data := data.get("transaction_event"):
+            cls.validate_external_url(
+                transaction_event_data.get("external_url"),
+                parent_field_name="transactionEvent",
+                error_code=TransactionUpdateErrorCode.INVALID.value,
+            )
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
                 app = load_app(info.context)

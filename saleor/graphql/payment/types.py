@@ -277,6 +277,14 @@ class TransactionEvent(ModelObjectType):
     )
     name = graphene.String(description="Name of the transaction's event.")
 
+    external_url = graphene.String(
+        description=(
+            "The url that will allow to redirect user to "
+            "payment provider page with transaction details." + ADDED_IN_38
+        ),
+        required=True,
+    )
+
     class Meta:
         description = "Represents transaction's event."
         interfaces = [relay.Node]
@@ -289,6 +297,10 @@ class TransactionEvent(ModelObjectType):
     @staticmethod
     def resolve_psp_reference(root: models.TransactionEvent, info):
         return root.psp_reference or ""
+
+    @staticmethod
+    def resolve_external_url(root: models.TransactionItem, info):
+        return root.external_url or ""
 
 
 class TransactionItem(ModelObjectType):
@@ -354,6 +366,13 @@ class TransactionItem(ModelObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+    )
+    external_url = graphene.String(
+        description=(
+            "The url that will allow to redirect user to "
+            "payment provider page with transaction details." + ADDED_IN_38
+        ),
+        required=True,
     )
 
     class Meta:
@@ -423,3 +442,7 @@ class TransactionItem(ModelObjectType):
     @staticmethod
     def resolve_psp_reference(root: models.TransactionItem, info):
         return root.psp_reference or ""
+
+    @staticmethod
+    def resolve_external_url(root: models.TransactionItem, info):
+        return root.external_url or ""
