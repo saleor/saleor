@@ -847,7 +847,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    checkout.metadata.save()
+    checkout.metadata_storage.save()
 
 
 def is_fully_paid(
@@ -934,7 +934,7 @@ def delete_external_shipping_id(checkout: Checkout):
 
 
 def get_or_create_checkout_metadata(checkout: "Checkout"):
-    if hasattr(checkout, "metadata"):
-        return checkout.metadata
+    if hasattr(checkout, "metadata_storage"):
+        return checkout.metadata_storage
     else:
         return CheckoutMetadata.objects.create(checkout=checkout)

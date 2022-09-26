@@ -352,7 +352,7 @@ def request_data_for_gateway_config(
         country_code = country.code
     else:
         country_code = Country(settings.DEFAULT_COUNTRY).code
-    channel = checkout.metadata.get_value_from_metadata("channel", "web")
+    channel = checkout.metadata_storage.get_value_from_metadata("channel", "web")
     return {
         "merchantAccount": merchant_account,
         "countryCode": country_code,

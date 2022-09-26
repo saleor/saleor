@@ -432,11 +432,13 @@ def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gif
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
-    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
     checkout_with_item.gift_cards.add(gift_card)
     checkout.save()
-    checkout.metadata.save()
+    checkout.metadata_storage.save()
     return checkout
 
 
@@ -515,10 +517,12 @@ def checkout_with_variant_without_inventory_tracking(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.metadata.store_value_in_metadata(items={"accepted": "true"})
-    checkout.metadata.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
     checkout.save()
-    checkout.metadata.save()
+    checkout.metadata_storage.save()
     return checkout
 
 
