@@ -26,6 +26,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -38,6 +39,7 @@ from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import TransactionItem
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.dataloaders import (
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
@@ -134,6 +136,8 @@ class CheckoutLine(ModelObjectType):
 
     @staticmethod
     def resolve_unit_price(root, info):
+        manager = load_plugin_manager(info.context)
+
         def with_checkout(checkout):
             discounts = DiscountsByDateTimeLoader(info.context).load(
                 info.context.request_time
@@ -154,7 +158,7 @@ class CheckoutLine(ModelObjectType):
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_unit_price(
-                            manager=info.context.plugins,
+                            manager=manager,
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
@@ -215,6 +219,8 @@ class CheckoutLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_total_price(root, info):
+        manager = load_plugin_manager(info.context)
+
         def with_checkout(checkout):
             discounts = DiscountsByDateTimeLoader(info.context).load(
                 info.context.request_time
@@ -225,31 +231,25 @@ class CheckoutLine(ModelObjectType):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
+            site = load_site(info.context)
 
             def calculate_line_total_price(data):
-                (
-                    discounts,
-                    checkout_info,
-                    lines,
-                ) = data
+                (discounts, checkout_info, lines, site) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
-                            manager=info.context.plugins,
+                            manager=manager,
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
                             discounts=discounts,
+                            site_settings=site.settings,
                         )
                 return None
 
-            return Promise.all(
-                [
-                    discounts,
-                    checkout_info,
-                    lines,
-                ]
-            ).then(calculate_line_total_price)
+            return Promise.all([discounts, checkout_info, lines, site]).then(
+                calculate_line_total_price
+            )
 
         return (
             CheckoutByTokenLoader(info.context)
@@ -415,6 +415,14 @@ class Checkout(ModelObjectType):
         description="The price of the checkout before shipping, with taxes included.",
         required=True,
     )
+    tax_exemption = graphene.Boolean(
+        description=(
+            "Returns True if checkout has to be exempt from taxes."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
     token = graphene.Field(UUID, description="The checkout's token.", required=True)
     total_price = graphene.Field(
         TaxedMoney,
@@ -528,14 +536,17 @@ class Checkout(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_total_price(root: models.Checkout, info):
+        manager = load_plugin_manager(info.context)
+
         def calculate_total_price(data):
-            address, lines, checkout_info, discounts = data
+            address, lines, checkout_info, discounts, site = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                manager=info.context.plugins,
+                manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
+                site_settings=site.settings,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -548,7 +559,8 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, checkout_info, discounts]).then(
+        site = load_site(info.context)
+        return Promise.all([address, lines, checkout_info, discounts, site]).then(
             calculate_total_price
         )
 
@@ -556,14 +568,17 @@ class Checkout(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_subtotal_price(root: models.Checkout, info):
+        manager = load_plugin_manager(info.context)
+
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, discounts = data
+            address, lines, checkout_info, discounts, site = data
             return calculations.checkout_subtotal(
-                manager=info.context.plugins,
+                manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
+                site_settings=site.settings,
             )
 
         address_id = root.shipping_address_id or root.billing_address_id
@@ -575,7 +590,9 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, checkout_info, discounts]).then(
+        site = load_site(info.context)
+
+        return Promise.all([address, lines, checkout_info, discounts, site]).then(
             calculate_subtotal_price
         )
 
@@ -583,14 +600,17 @@ class Checkout(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_price(root: models.Checkout, info):
+        manager = load_plugin_manager(info.context)
+
         def calculate_shipping_price(data):
-            address, lines, checkout_info, discounts = data
+            address, lines, checkout_info, discounts, site = data
             return calculations.checkout_shipping_price(
-                manager=info.context.plugins,
+                manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
+                site_settings=site.settings,
             )
 
         address = (
@@ -603,7 +623,9 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, checkout_info, discounts]).then(
+        site = load_site(info.context)
+
+        return Promise.all([address, lines, checkout_info, discounts, site]).then(
             calculate_shipping_price
         )
 
@@ -636,7 +658,8 @@ class Checkout(ModelObjectType):
     @staticmethod
     @prevent_sync_event_circular_query
     def resolve_available_payment_gateways(root: models.Checkout, info):
-        return info.context.plugins.list_payment_gateways(
+        manager = load_plugin_manager(info.context)
+        return manager.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
 

@@ -6,6 +6,7 @@ from ....core.permissions import DiscountPermissions
 from ...channel import ChannelContext
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import DiscountError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Voucher
 
 
@@ -29,4 +30,5 @@ class VoucherDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.voucher_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        manager.voucher_deleted(instance)

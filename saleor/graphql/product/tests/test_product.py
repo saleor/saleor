@@ -11570,6 +11570,8 @@ def test_categories_query_with_sort(
         ({"productType": "SHIPPABLE"}, 2),  # is_shipping_required
         ({"kind": "NORMAL"}, 2),
         ({"kind": "GIFT_CARD"}, 1),
+        ({"slugs": ["digital-type", "tools"]}, 2),
+        ({"slugs": []}, 3),
     ],
 )
 def test_product_type_query_with_filter(

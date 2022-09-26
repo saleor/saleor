@@ -236,7 +236,7 @@ def test_grant_refund_update_by_user_missing_input(
 
 
 def test_grant_refund_update_by_app(
-    app_api_client, staff_user, permission_manage_orders, order
+    app_api_client, staff_user, permission_manage_orders, order, permission_manage_users
 ):
     # given
     current_reason = "Granted refund reason."
@@ -249,7 +249,9 @@ def test_grant_refund_update_by_app(
     )
     updated_at = granted_refund.updated_at
     granted_refund_id = to_global_id_or_none(granted_refund)
-    app_api_client.app.permissions.set([permission_manage_orders])
+    app_api_client.app.permissions.set(
+        [permission_manage_orders, permission_manage_users]
+    )
     amount = Decimal("20.00")
     reason = "New reason"
     variables = {

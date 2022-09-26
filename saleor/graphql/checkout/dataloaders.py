@@ -20,6 +20,7 @@ from ..discount.dataloaders import (
     VoucherInfoByVoucherCodeLoader,
     load_discounts,
 )
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -301,8 +302,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             all_shipping_methods=[],
                             voucher=voucher,
                         )
-
-                        manager = self.context.plugins
+                        manager = load_plugin_manager(self.context)
                         discounts = load_discounts(self.context)
                         shipping_method_listings = [
                             listing

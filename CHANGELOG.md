@@ -30,9 +30,17 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `CANCEL` to `TransactionActionEnum`.
   - Deprecate `TransactionActionEnum.VOID` - Will be removed in Saleor3.9, as the API is the preview feature Use `CANCEL` instead.
 
+### GraphQL API
+- Add ability to filter by slug. #10578 by @kadewu
+  - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
+  - Deprecated `slug` in filter for `menus`. Use `slugs` instead
+
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
+### GraphQL API
+
+- Add `taxExemptionManage` mutation - #10344 by @SzymJ
 
 # 3.7.0
 
@@ -59,12 +67,12 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Trigger the `SALE_DELETED` webhook when deleting sales in bulk (#10461) (2052841e9)
+- Add `FULFILLMENT_APPROVED` webhook - #10621 by @IKarbowiak
 
 ### Other changes
 
 - Add support for `bcrypt` password hashes - #10346 by @pkucmus
 - Add the ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
-
 
 # 3.6.0
 
@@ -129,22 +137,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix problem with updating draft order with active Avalara - #10183 by @IKarbowiak
 - Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
 - Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
-- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Add option to calculate taxes via webhooks more info in docs
-  <!-- We should put docs link here before release -->
-- Add `forceNewLine` flag to lines input in `CheckoutLinesAdd`, `CheckoutCreate`, `DraftOrderCreate`, `OrderCreate`, `OrderLinesCreate` mutations to support same variant in multiple lines - #10095 by @SzymJ
-- Support for refund & return for transactions
-
-### GraphQL API
-- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum`
-- Add descriptions for some filters - #10240 by @dekoza
-
-### Plugins
-- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
-  - Add new method to plugin manager:
-    - `get_taxes_for_checkout`
-    - `get_taxes_for_order`
 - Fix assigning an email address that does not belong to an existing user to draft order (#10320) (97129cf0c)
 - Fix gift cards automatic fulfillment (#10325) (6a528259e)
 

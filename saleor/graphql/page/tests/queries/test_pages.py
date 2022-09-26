@@ -76,6 +76,30 @@ def test_pages_query_with_filter_by_page_type(
     assert content["data"]["pages"]["totalCount"] == 2
 
 
+@pytest.mark.parametrize(
+    "filter_by, pages_count",
+    [
+        ({"slugs": ["test-url-1"]}, 1),
+        ({"slugs": ["test-url-1", "test-url-2"]}, 2),
+        ({"slugs": []}, 2),
+    ],
+)
+def test_pages_with_filtering(filter_by, pages_count, staff_api_client, page_list):
+    # given
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_FILTER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(pages_nodes) == pages_count
+
+
 def test_pages_query_with_filter_by_ids(
     staff_api_client, permission_manage_pages, page_list, page_list_unpublished
 ):

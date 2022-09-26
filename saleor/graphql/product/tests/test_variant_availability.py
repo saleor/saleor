@@ -177,6 +177,104 @@ def test_variant_quantity_available_without_country_code_and_no_channel_shipping
     assert variant_data["quantityAvailable"] == 0
 
 
+def test_variant_quantity_available_no_country_warehouse_without_zone(
+    api_client, variant_with_many_stocks, channel_USD, channel_PLN
+):
+    """Ensure the warehouse without shipping zones is not counted in variant available
+    quantity."""
+    # given
+    assert variant_with_many_stocks.stocks.count() == 2
+
+    stock_1, stock_2 = variant_with_many_stocks.stocks.all()
+    # clear shipping zones one of variant warehouses
+    stock_2.warehouse.shipping_zones.clear()
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["quantityAvailable"] == stock_1.quantity
+
+
+def test_variant_quantity_available_no_channel_and_no_country_warehouse_without_zone(
+    staff_api_client,
+    variant_with_many_stocks,
+    channel_USD,
+    channel_PLN,
+    permission_manage_products,
+    permission_manage_discounts,
+    permission_manage_orders,
+):
+    """Ensure the warehouse without shipping zones is not counted in variant available
+    quantity."""
+    # given
+    assert variant_with_many_stocks.stocks.count() == 2
+
+    stock_1, stock_2 = variant_with_many_stocks.stocks.all()
+    # clear shipping zones one of variant warehouses
+    stock_2.warehouse.shipping_zones.clear()
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products,
+        permission_manage_discounts,
+        permission_manage_orders,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk)
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["quantityAvailable"] == stock_1.quantity
+
+
+def test_variant_quantity_available_only_warehouse_without_zone_no_channel_no_country(
+    staff_api_client,
+    variant,
+    stock,
+    channel_USD,
+    channel_PLN,
+    permission_manage_products,
+    permission_manage_discounts,
+    permission_manage_orders,
+):
+    """Ensure the quantity available for variant if equal to 0 when there is only one
+    stock with warehouse without any shipping zone assigned.
+    """
+    # given
+    assert variant.stocks.count() == 1
+    # clear shipping zones for variant warehouses
+    stock.warehouse.shipping_zones.clear()
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products,
+        permission_manage_discounts,
+        permission_manage_orders,
+    )
+
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["quantityAvailable"] == 0
+
+
 QUERY_VARIANT_AVAILABILITY = """
     query variantAvailability(
         $id: ID!, $country: CountryCode, $address: AddressInput, $channel: String

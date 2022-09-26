@@ -19,6 +19,7 @@ from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AppError, NonNullList
 from ..decorators import staff_member_required
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppInstallation, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
@@ -177,7 +178,8 @@ class AppCreate(ModelMutation):
         cls._save_m2m(info, instance, cleaned_input)
         response = cls.success_response(instance)
         response.auth_token = auth_token
-        info.context.plugins.app_installed(instance)
+        manager = load_plugin_manager(info.context)
+        manager.app_installed(instance)
         return response
 
     @classmethod
@@ -223,7 +225,8 @@ class AppUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.app_updated(instance)
+        manager = load_plugin_manager(info.context)
+        manager.app_updated(instance)
 
 
 class AppDelete(ModelDeleteMutation):
@@ -250,7 +253,8 @@ class AppDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.app_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        manager.app_deleted(instance)
 
 
 class AppActivate(ModelMutation):
@@ -270,7 +274,8 @@ class AppActivate(ModelMutation):
         app = cls.get_instance(info, **data)
         app.is_active = True
         cls.save(info, app, cleaned_input=None)
-        info.context.plugins.app_status_changed(app)
+        manager = load_plugin_manager(info.context)
+        manager.app_status_changed(app)
         return cls.success_response(app)
 
 
@@ -291,7 +296,8 @@ class AppDeactivate(ModelMutation):
         app = cls.get_instance(info, **data)
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
-        info.context.plugins.app_status_changed(app)
+        manager = load_plugin_manager(info.context)
+        manager.app_status_changed(app)
         return cls.success_response(app)
 
 

@@ -1,14 +1,18 @@
-from typing import TYPE_CHECKING, Iterable
+from typing import Iterable
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType
-from ....checkout.checkout_cleaner import validate_checkout_email
+from ....checkout.checkout_cleaner import (
+    clean_checkout_shipping,
+    validate_checkout_email,
+)
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
+    CheckoutInfo,
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
@@ -20,24 +24,22 @@ from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
-from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types import CheckoutError
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
+from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
 from ...order.types import Order
+from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
-if TYPE_CHECKING:
-    from ....account.models import Address
 
-
-class CheckoutComplete(BaseMutation, I18nMixin):
+class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
         required=True,
@@ -89,6 +91,13 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 "Client-side generated data required to finalize the payment."
             ),
         )
+        metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the checkout metadata." + ADDED_IN_38
+            ),
+            required=False,
+        )
 
     class Meta:
         description = (
@@ -105,9 +114,8 @@ class CheckoutComplete(BaseMutation, I18nMixin):
     @classmethod
     def validate_checkout_addresses(
         cls,
+        checkout_info: CheckoutInfo,
         lines: Iterable[CheckoutLineInfo],
-        shipping_address: "Address",
-        billing_address: "Address",
     ):
         """Validate checkout addresses.
 
@@ -117,27 +125,23 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         normalization was turned off, we apply it here.
         Raises ValidationError when any address is not correct.
         """
+        shipping_address = checkout_info.shipping_address
+        billing_address = checkout_info.billing_address
+
         if is_shipping_required(lines):
-            if not shipping_address:
-                raise ValidationError(
-                    {
-                        "shipping_address": ValidationError(
-                            "Shipping address is not set",
-                            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
-                        )
-                    }
+            clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
+            if shipping_address:
+                shipping_address_data = shipping_address.as_data()
+                cls.validate_address(
+                    shipping_address_data,
+                    address_type=AddressType.SHIPPING,
+                    format_check=True,
+                    required_check=True,
+                    enable_normalization=True,
+                    instance=shipping_address,
                 )
-            shipping_address_data = shipping_address.as_data()
-            cls.validate_address(
-                shipping_address_data,
-                address_type=AddressType.SHIPPING,
-                format_check=True,
-                required_check=True,
-                enable_normalization=True,
-                instance=shipping_address,
-            )
-            if shipping_address_data != shipping_address.as_data():
-                shipping_address.save()
+                if shipping_address_data != shipping_address.as_data():
+                    shipping_address.save()
 
         if not billing_address:
             raise ValidationError(
@@ -207,9 +211,15 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     )
                 raise e
 
+            cls.validate_metadata(
+                info,
+                id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+                data.get("metadata"),
+            )
+
             validate_checkout_email(checkout)
 
-            manager = info.context.plugins
+            manager = load_plugin_manager(info.context)
             lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
             if unavailable_variant_pks:
                 not_available_variants_ids = {
@@ -237,9 +247,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             discounts = load_discounts(info.context)
             checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
-            cls.validate_checkout_addresses(
-                lines, checkout_info.shipping_address, checkout_info.billing_address
-            )
+            cls.validate_checkout_addresses(checkout_info, lines)
 
             requestor = get_user_or_app_from_context(info.context)
             if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
@@ -262,6 +270,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 site_settings=site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
+                metadata_list=data.get("metadata"),
             )
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data

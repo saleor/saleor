@@ -641,7 +641,11 @@ type Query {
     """Sort menus."""
     sortBy: MenuSortingInput
 
-    """Filtering options for menus."""
+    """
+    Filtering options for menus. 
+    
+    `slug`: This field will be removed in Saleor 4.0. Use `slugs` instead.
+    """
     filter: MenuFilterInput
 
     """Return the elements in the list that come before the specified cursor."""
@@ -1544,6 +1548,9 @@ enum WebhookEventTypeEnum {
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
 
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
   """User notification triggered."""
   NOTIFY_USER
 
@@ -1952,6 +1959,9 @@ enum WebhookEventTypeAsyncEnum {
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
 
+  """A fulfillment is approved."""
+  FULFILLMENT_APPROVED
+
   """User notification triggered."""
   NOTIFY_USER
 
@@ -2248,6 +2258,10 @@ enum PermissionEnum {
   IMPERSONATE_USER
   MANAGE_APPS
   MANAGE_OBSERVABILITY
+  MANAGE_CHECKOUTS
+  HANDLE_CHECKOUTS
+  HANDLE_TAXES
+  MANAGE_TAXES
   MANAGE_CHANNELS
   MANAGE_DISCOUNTS
   MANAGE_PLUGINS
@@ -2262,9 +2276,6 @@ enum PermissionEnum {
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
-  MANAGE_CHECKOUTS
-  HANDLE_CHECKOUTS
-  HANDLE_TAXES
 }
 
 """
@@ -2578,6 +2589,7 @@ enum WebhookSampleEventTypeEnum {
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -5070,6 +5082,7 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6006,6 +6019,7 @@ input ProductFilterInput {
   giftCard: Boolean
   ids: [ID!]
   hasPreorderedVariants: Boolean
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6253,6 +6267,7 @@ input WarehouseFilterInput {
   ids: [ID!]
   isPrivate: Boolean
   channels: [ID!]
+  slugs: [String!]
 }
 
 input WarehouseSortingInput {
@@ -7888,6 +7903,15 @@ type Checkout implements Node & ObjectWithMetadata {
   """The price of the checkout before shipping, with taxes included."""
   subtotalPrice: TaxedMoney!
 
+  """
+  Returns True if checkout has to be exempt from taxes.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxExemption: Boolean!
+
   """The checkout's token."""
   token: UUID!
 
@@ -8545,6 +8569,15 @@ type Order implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   chargeStatus: OrderChargeStatusEnum!
+
+  """
+  Returns True if order has to be exempt from taxes.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxExemption: Boolean!
 
   """
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
@@ -9564,7 +9597,9 @@ type OrderGrantedRefund {
   """Reason of the refund."""
   reason: String
 
-  """User who performed the action."""
+  """
+  User who performed the action. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  """
   user: User
 
   """App that performed the action."""
@@ -9820,6 +9855,7 @@ input CategoryFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 input CategorySortingInput {
@@ -9853,6 +9889,7 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -9918,6 +9955,7 @@ input ProductTypeFilterInput {
   metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
   ids: [ID!]
+  slugs: [String!]
 }
 
 enum ProductTypeConfigurable {
@@ -10049,6 +10087,7 @@ input PageFilterInput {
   metadata: [MetadataFilter!]
   pageTypes: [ID!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 type PageTypeCountableConnection {
@@ -10086,6 +10125,7 @@ enum PageTypeSortField {
 
 input PageTypeFilterInput {
   search: String
+  slugs: [String!]
 }
 
 type OrderEventCountableConnection {
@@ -10223,6 +10263,7 @@ input MenuFilterInput {
   search: String
   slug: [String!]
   metadata: [MetadataFilter!]
+  slugs: [String!]
 }
 
 type MenuItemCountableConnection {
@@ -11081,6 +11122,23 @@ type Mutation {
     """List of shipping zone IDs."""
     shippingZoneIds: [ID!]!
   ): WarehouseShippingZoneUnassign
+
+  """
+  Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxExemptionManage(
+    """ID of the Checkout or Order object."""
+    id: ID!
+
+    """Determines if a taxes should be exempt."""
+    taxExemption: Boolean!
+  ): TaxExemptionManage
 
   """
   Creates a new staff notification recipient. 
@@ -13380,6 +13438,13 @@ type Mutation {
     """
     id: ID
 
+    """
+    Fields required to update the checkout metadata.
+    
+    Added in Saleor 3.8.
+    """
+    metadata: [MetadataInput!]
+
     """Client-side generated data required to finalize the payment."""
     paymentData: JSONString
 
@@ -13787,6 +13852,20 @@ type Mutation {
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
     id: ID!
+
+    """
+    Fields required to update the checkout metadata.
+    
+    Added in Saleor 3.8.
+    """
+    metadata: [MetadataInput!]
+
+    """
+    Fields required to update the checkout private metadata.
+    
+    Added in Saleor 3.8.
+    """
+    privateMetadata: [MetadataInput!]
 
     """
     Determines if checkout should be removed after creating an order. Default true.
@@ -14856,6 +14935,43 @@ type WarehouseShippingZoneUnassign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
+}
+
+"""
+Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxExemptionManage {
+  taxableObject: TaxSourceObject
+  errors: [TaxExemptionManageError!]!
+}
+
+union TaxSourceObject = Checkout | Order
+
+type TaxExemptionManageError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxExemptionManageErrorCode!
+}
+
+"""An enumeration."""
+enum TaxExemptionManageErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  NOT_EDITABLE_ORDER
 }
 
 """
@@ -19930,6 +20046,13 @@ input CheckoutLineInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   forceNewLine: Boolean = false
+
+  """
+  Fields required to update the object's metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
 }
 
 input CheckoutValidationRules {
@@ -23241,6 +23364,33 @@ type FulfillmentCanceled implements Event {
 }
 
 """
+Event sent when fulfillment is approved.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type FulfillmentApproved implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
+}
+
+"""
 Event sent when new customer user is created.
 
 Added in Saleor 3.2.
@@ -24448,8 +24598,6 @@ type TaxableObject {
   lines: [TaxableObjectLine!]!
   channel: Channel!
 }
-
-union TaxSourceObject = Checkout | Order
 
 """Taxable object discount."""
 type TaxableObjectDiscount {
