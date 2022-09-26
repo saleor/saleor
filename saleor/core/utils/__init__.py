@@ -12,6 +12,7 @@ from django.utils.encoding import iri_to_uri
 from django.utils.text import slugify
 from django_prices_openexchangerates import exchange_currency
 from prices import MoneyRange
+from text_unidecode import unidecode
 
 task_logger = get_task_logger(__name__)
 
@@ -114,7 +115,7 @@ def generate_unique_slug(
             with the same slug that passed also additional conditions
 
     """
-    slug = slugify(slugable_value, allow_unicode=True)
+    slug = slugify(unidecode(slugable_value))
     unique_slug: Union["SafeText", str] = slug
 
     ModelClass = instance.__class__
