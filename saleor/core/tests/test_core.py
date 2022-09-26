@@ -242,8 +242,10 @@ def test_delete_sort_order_with_null_value(menu_item):
         ("Shirt", "shirt"),
         ("40.5", "405-2"),
         ("FM1+", "fm1-2"),
-        ("زيوت", "زيوت"),
-        ("わたし-わ にっぽん です", "わたし-わ-にっぽん-です-2"),
+        ("Ładny", "ladny"),
+        ("زيوت", "zywt"),
+        ("わたし-わ にっぽん です", "watasi-wa-nitupon-desu-2"),
+        ("Салеор", "saleor-2"),
     ],
 )
 def test_generate_unique_slug_with_slugable_field(
@@ -253,9 +255,10 @@ def test_generate_unique_slug_with_slugable_field(
         ("Paint", "paint"),
         ("Paint blue", "paint-blue"),
         ("Paint test", "paint-2"),
+        ("Saleor", "saleor"),
         ("405", "405"),
         ("FM1", "fm1"),
-        ("わたし わ にっぽん です", "わたし-わ-にっぽん-です"),
+        ("わたし わ にっぽん です", "watasi-wa-nitupon-desu"),
     ]
     for name, slug in product_names_and_slugs:
         ProductType.objects.create(
