@@ -3,7 +3,8 @@ from collections import defaultdict
 from ...plugins.manager import get_plugins_manager
 from ...plugins.models import EmailTemplate
 from ..account.dataloaders import load_requestor
-from ..app.dataloaders import load_app
+
+# from ..app.dataloaders import load_app
 from ..core.dataloaders import DataLoader
 
 
@@ -39,10 +40,10 @@ class AnonymousPluginManagerLoader(DataLoader):
 
 
 def load_plugin_manager(request):
-    app = load_app(request)
-    user = request.user
-    requestor = app or user
-    # requestor = load_requestor(request)
+    # app = load_app(request)
+    # user = request.user
+    # requestor = app or user
+    requestor = load_requestor(request)
     if requestor is None:
         return AnonymousPluginManagerLoader(request).load("Anonymous").get()
     return PluginManagerByRequestorDataloader(request).load(requestor).get()

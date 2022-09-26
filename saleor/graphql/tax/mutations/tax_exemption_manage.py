@@ -72,8 +72,8 @@ class TaxExemptionManage(BaseMutation):
 
     @classmethod
     def _invalidate_checkout_prices(cls, info, checkout):
-        discounts = load_discounts(info.context)
         manager = load_plugin_manager(info.context)
+        discounts = load_discounts(info.context)
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
         lines_info, _ = fetch_checkout_lines(checkout)

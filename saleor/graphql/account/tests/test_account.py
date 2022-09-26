@@ -4987,6 +4987,11 @@ def test_account_reset_password_user_is_inactive(
     assert "errors" in results["data"]["requestPasswordReset"]
     message = results["data"]["requestPasswordReset"]["errors"][0]["message"]
     assert message == "User with this email is inactive"
+    #     assert "errors" in results
+    #     assert (
+    #         results["errors"][0]["message"]
+    #         == "Invalid token. User does not exist or is inactive."
+    #     )
     assert not mocked_notify.called
 
 
