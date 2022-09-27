@@ -41,7 +41,10 @@ def test_trigger_webhook_sync_with_subscription(
     expected_payment_payload = generate_payment_payload(payment)
     # when
     trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_AUTHORIZE, data, payment_app, payment
+        WebhookEventSyncType.PAYMENT_AUTHORIZE,
+        data,
+        payment_app.webhooks.first(),
+        payment,
     )
     event_delivery = EventDelivery.objects.first()
 
