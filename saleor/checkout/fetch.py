@@ -41,7 +41,7 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ..tax.models import TaxConfiguration
+    from ..tax.models import TaxClass, TaxConfiguration
     from .models import Checkout, CheckoutLine
 
 
@@ -53,6 +53,7 @@ class CheckoutLineInfo:
     product: "Product"
     product_type: "ProductType"
     collections: List["Collection"]
+    tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
 
 
@@ -264,6 +265,7 @@ def fetch_checkout_lines(
                         product=product,
                         product_type=product_type,
                         collections=collections,
+                        tax_class=product.tax_class or product_type.tax_class,
                     )
                 )
             continue
@@ -276,6 +278,7 @@ def fetch_checkout_lines(
                 product=product,
                 product_type=product_type,
                 collections=collections,
+                tax_class=product.tax_class or product_type.tax_class,
             )
         )
 

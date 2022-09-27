@@ -10,6 +10,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
 from ..tax import TaxCalculationStrategy
+from ..tax.calculations import get_flat_rates_tax_data_for_checkout
 from ..tax.utils import (
     get_charge_taxes_for_checkout,
     get_tax_calculation_strategy_for_checkout,
@@ -17,10 +18,8 @@ from ..tax.utils import (
 from .models import Checkout
 
 if TYPE_CHECKING:
-
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
-    from ..site.models import SiteSettings
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
@@ -98,7 +97,6 @@ def calculate_checkout_total_with_gift_cards(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    site_settings: Optional["SiteSettings"] = None,
 ) -> "TaxedMoney":
     total = (
         checkout_total(
@@ -162,7 +160,6 @@ def checkout_line_total(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo] = [],
-    site_settings: Optional["SiteSettings"] = None
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -261,14 +258,6 @@ def fetch_checkout_prices_if_expired(
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
-    print("\nCALCULATE PRICES FOR CHECKOUT")
-    print("prices entered", "WITH TAX" if prices_entered_with_tax else "WITHOUT TAX")
-    print("Strategy: ", str(tax_calculation_strategy))
-    print(
-        f"Should charge: {should_charge_tax} (charge_taxes={charge_taxes}, "
-        f"tax_exemption={checkout.tax_exemption}"
-    )
-
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -278,6 +267,7 @@ def fetch_checkout_prices_if_expired(
             manager,
             checkout_info,
             lines,
+            prices_entered_with_tax,
             address,
             discounts,
         )
@@ -285,7 +275,6 @@ def fetch_checkout_prices_if_expired(
         if not should_charge_tax:
             # If charge_taxes is disabled or checkout is exempt from taxes, remove the
             # tax from the original gross prices.
-            # TODO: Keep the tax rate anyway, so that checkout could display it??
             _remove_tax(checkout, lines)
 
     else:
@@ -299,6 +288,7 @@ def fetch_checkout_prices_if_expired(
                 manager,
                 checkout_info,
                 lines,
+                prices_entered_with_tax,
                 address,
                 discounts,
             )
@@ -339,39 +329,32 @@ def fetch_checkout_prices_if_expired(
 
 
 def _calculate_and_add_tax(
-    tax_calculation_strategy,
-    checkout,
-    manager,
-    checkout_info,
-    lines,
-    address,
-    discounts,
+    tax_calculation_strategy: str,
+    checkout: "Checkout",
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    prices_entered_with_tax: bool,
+    address: Optional["Address"] = None,
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        print("Add tax with APPS/plugins")
-        # call tax plugins
+        # Call the tax plugins.
         _apply_tax_data_from_plugins(
             checkout, manager, checkout_info, lines, address, discounts
         )
-
-        # call tax apps
-        tax_data = manager.get_taxes_for_checkout(
-            checkout_info,
-            lines,
-        )
-        if tax_data:
-            _apply_tax_data_from_app(checkout, lines, tax_data)
+        # Get the taxes calculated with apps and apply to checkout.
+        tax_data = manager.get_taxes_for_checkout(checkout_info, lines)
+        _apply_tax_data(checkout, lines, tax_data)
     elif tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
-        print("Add tax with FLAT RATES")
-        # TODO: Calculate taxes with flat rates.
-        pass
-    elif tax_calculation_strategy is None:
-        # TODO: Handle no strategy
-        pass
+        # Get taxes calculated with flat rates and apply to checkout.
+        tax_data = get_flat_rates_tax_data_for_checkout(
+            checkout_info, lines, prices_entered_with_tax, address, discounts
+        )
+        _apply_tax_data(checkout, lines, tax_data)
 
 
 def _remove_tax(checkout, lines_info):
-    print("REMOVE tax from prices")
     checkout.total_gross_amount = checkout.total_net_amount
     checkout.subtotal_gross_amount = checkout.subtotal_net_amount
     checkout.shipping_price_gross_amount = checkout.shipping_price_net_amount
@@ -400,9 +383,14 @@ def _calculate_checkout_subtotal(lines, currency):
     )
 
 
-def _apply_tax_data_from_app(
-    checkout: "Checkout", lines: Iterable["CheckoutLineInfo"], tax_data: TaxData
+def _apply_tax_data(
+    checkout: "Checkout",
+    lines: Iterable["CheckoutLineInfo"],
+    tax_data: Optional[TaxData],
 ) -> None:
+    if not tax_data:
+        return
+
     currency = checkout.currency
     for (line_info, tax_line_data) in zip(lines, tax_data.lines):
         line = line_info.line
@@ -414,14 +402,9 @@ def _apply_tax_data_from_app(
             ),
             currency,
         )
-        # We use % value in tax app input but on database we store
-        # it as a fractional value.
-        # e.g Tax app sends `10%` as `10` but in database it's stored as `0.1`
-        line.tax_rate = tax_line_data.tax_rate / 100
+        line.tax_rate = _normalize_tax_rate_for_db(tax_line_data.tax_rate)
 
-    # We use % value in tax app input but on database we store it as a fractional value.
-    # e.g Tax app sends `10%` as `10` but in database it's stored as `0.1`
-    checkout.shipping_tax_rate = tax_data.shipping_tax_rate / 100
+    checkout.shipping_tax_rate = _normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
     checkout.shipping_price = quantize_price(
         TaxedMoney(
             net=Money(tax_data.shipping_price_net_amount, currency),
@@ -541,3 +524,10 @@ def _get_checkout_base_prices(
     checkout.total = quantize_price(
         TaxedMoney(net=total_default, gross=total_default), currency
     )
+
+
+def _normalize_tax_rate_for_db(tax_rate: Decimal) -> Decimal:
+    # Percentage values are used to represent tax rates in tax apps and flat rates, but
+    # in the database rates are stored as fractional values. Example: tax app returns
+    # `10%` as `10`, but in the database it's stored as `0.1`.
+    return tax_rate / 100

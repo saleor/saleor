@@ -93,6 +93,8 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
+                                tax_class=line.variant.product.tax_class
+                                or line.variant.product.product_type.tax_class,  # TODO: optimize DB queries # noqa: E501
                             )
                             for line in lines
                         ]
