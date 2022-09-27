@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, Subquery
 from django.utils.text import slugify
+from text_unidecode import unidecode
 
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ...attribute import models as models
@@ -332,7 +333,7 @@ class AttributeMixin:
             cls.validate_swatch_attr_value(value_data)
 
         slug_value = value if not is_numeric_attr else value.replace(".", "_")
-        value_data["slug"] = slugify(slug_value, allow_unicode=True)
+        value_data["slug"] = slugify(unidecode(slug_value))
 
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
         try:
@@ -390,7 +391,7 @@ class AttributeMixin:
         # Check values uniqueness in case of creating new attribute.
         existing_values = attribute.values.values_list("slug", flat=True)
         for value_data in values_input:
-            slug = slugify(value_data["name"], allow_unicode=True)
+            slug = slugify(unidecode(value_data["name"]))
             if slug in existing_values:
                 msg = (
                     "Value %s already exists within this attribute."
@@ -405,8 +406,7 @@ class AttributeMixin:
                 )
 
         new_slugs = [
-            slugify(value_data["name"], allow_unicode=True)
-            for value_data in values_input
+            slugify(unidecode(value_data["name"])) for value_data in values_input
         ]
         if len(set(new_slugs)) != len(new_slugs):
             raise ValidationError(
