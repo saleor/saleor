@@ -600,7 +600,7 @@ def test_create_collection_name_with_unicode(
     data = content["data"]["collectionCreate"]
     assert not data["errors"]
     assert data["collection"]["name"] == name
-    assert data["collection"]["slug"] == "わたし-わ-にっぽん-です"
+    assert data["collection"]["slug"] == "watasi-wa-nitupon-desu"
 
 
 @patch("saleor.plugins.manager.PluginsManager.collection_updated")

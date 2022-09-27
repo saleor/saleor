@@ -13,6 +13,7 @@ from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from django.utils.text import slugify
 from graphql.error import GraphQLError
+from text_unidecode import unidecode
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
@@ -339,7 +340,7 @@ class AttributeAssignmentMixin:
         return tuple(
             get_or_create(
                 attribute=attribute,
-                slug=slugify(value, allow_unicode=True),
+                slug=slugify(unidecode(value)),
                 defaults={"name": value},
             )[0]
             for value in attr_values.values
@@ -404,7 +405,7 @@ class AttributeAssignmentMixin:
         boolean = bool(attr_values.boolean)
         value, _ = get_or_create(
             attribute=attribute,
-            slug=slugify(f"{attribute.id}_{boolean}", allow_unicode=True),
+            slug=slugify(unidecode(f"{attribute.id}_{boolean}")),
             defaults={
                 "name": f"{attribute.name}: {'Yes' if boolean else 'No'}",
                 "boolean": boolean,
@@ -446,7 +447,7 @@ class AttributeAssignmentMixin:
         value_defaults: dict,
     ):
         update_or_create = attribute.values.update_or_create
-        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
+        slug = slugify(unidecode(f"{instance.id}_{attribute.id}"))
         value, _created = update_or_create(
             attribute=attribute,
             slug=slug,
@@ -481,10 +482,7 @@ class AttributeAssignmentMixin:
             reference_list.append(
                 get_or_create(
                     attribute=attribute,
-                    slug=slugify(
-                        f"{instance.id}_{ref.id}",  # type: ignore
-                        allow_unicode=True,
-                    ),
+                    slug=slugify(unidecode(f"{instance.id}_{ref.id}")),  # type: ignore
                     defaults={"name": name},
                     **{attr_value_field: ref},
                 )[0]
