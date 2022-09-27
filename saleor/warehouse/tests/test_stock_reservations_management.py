@@ -155,7 +155,7 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_sorting_order_st
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD,
-        RESERVATION_LENGTH,
+        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
     )
 
     # then
