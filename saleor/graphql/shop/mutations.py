@@ -19,6 +19,7 @@ from ..core.types import (
     ShopError,
     TimePeriodInputType,
 )
+from ..plugins.dataloaders import load_plugin_manager
 from ..site.dataloaders import load_site
 from .enums import GiftCardSettingsExpiryTypeEnum
 from .types import GiftCardSettings, OrderSettings, Shop
@@ -233,7 +234,8 @@ class ShopFetchTaxRates(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info):
-        if not info.context.plugins.fetch_taxes_data():
+        manager = load_plugin_manager(info.context)
+        if not manager.fetch_taxes_data():
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
                 "valid credential for your tax plugin.",

@@ -21,6 +21,7 @@ from ...app.dataloaders import load_app
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..types import Group
 
@@ -75,9 +76,8 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(
-            lambda i=instance: info.context.plugins.permission_group_created(i)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.permission_group_created(i))
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -227,9 +227,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(
-            lambda i=instance: info.context.plugins.permission_group_updated(i)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.permission_group_updated(i))
 
     @classmethod
     def clean_input(
@@ -446,9 +445,8 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(
-            lambda i=instance: info.context.plugins.permission_group_deleted(i)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.permission_group_deleted(i))
 
     @classmethod
     def clean_instance(cls, info, instance):

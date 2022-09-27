@@ -22,6 +22,7 @@ from ..core.types import TranslationError
 from ..core.utils import from_global_id_or_error
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
@@ -120,15 +121,12 @@ class BaseTranslateMutation(ModelMutation):
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
+        manager = load_plugin_manager(info.context)
 
         if created:
-            cls.call_event(
-                lambda t=translation: info.context.plugins.translation_created(t)
-            )
+            cls.call_event(lambda t=translation: manager.translation_created(t))
         else:
-            cls.call_event(
-                lambda t=translation: info.context.plugins.translation_updated(t)
-            )
+            cls.call_event(lambda t=translation: manager.translation_updated(t))
 
         return cls(**{cls._meta.return_field_name: instance})
 
@@ -201,20 +199,16 @@ class ProductTranslate(BaseTranslateMutation):
         node_id = cls.clean_node_id(**data)[0]
         product = cls.get_node_or_error(info, node_id, only_type=Product)
         cls.validate_input(data["input"])
-
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             translation, created = product.translations.update_or_create(
                 language_code=data["language_code"], defaults=data["input"]
             )
             product = ChannelContext(node=product, channel_slug=None)
             if created:
-                cls.call_event(
-                    lambda t=translation: info.context.plugins.translation_created(t)
-                )
+                cls.call_event(lambda t=translation: manager.translation_created(t))
             else:
-                cls.call_event(
-                    lambda t=translation: info.context.plugins.translation_updated(t)
-                )
+                cls.call_event(lambda t=translation: manager.translation_updated(t))
 
         return cls(**{cls._meta.return_field_name: product})
 
@@ -272,23 +266,18 @@ class ProductVariantTranslate(BaseTranslateMutation):
             pk=variant_pk
         )
         cls.validate_input(data["input"])
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             translation, created = variant.translations.update_or_create(
                 language_code=data["language_code"], defaults=data["input"]
             )
             variant = ChannelContext(node=variant, channel_slug=None)
-        cls.call_event(
-            lambda v=variant.node: info.context.plugins.product_variant_updated(v)
-        )
+        cls.call_event(lambda v=variant.node: manager.product_variant_updated(v))
 
         if created:
-            cls.call_event(
-                lambda t=translation: info.context.plugins.translation_created(t)
-            )
+            cls.call_event(lambda t=translation: manager.translation_created(t))
         else:
-            cls.call_event(
-                lambda t=translation: info.context.plugins.translation_updated(t)
-            )
+            cls.call_event(lambda t=translation: manager.translation_updated(t))
 
         return cls(**{cls._meta.return_field_name: variant})
 
@@ -495,18 +484,15 @@ class ShopSettingsTranslate(BaseMutation):
         site = load_site(info.context)
         instance = site.settings
         validate_input_against_model(SiteSettings, data["input"])
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             translation, created = instance.translations.update_or_create(
                 language_code=language_code, defaults=data.get("input")
             )
 
         if created:
-            cls.call_event(
-                lambda t=translation: info.context.plugins.translation_created(t)
-            )
+            cls.call_event(lambda t=translation: manager.translation_created(t))
         else:
-            cls.call_event(
-                lambda t=translation: info.context.plugins.translation_updated(t)
-            )
+            cls.call_event(lambda t=translation: manager.translation_updated(t))
 
         return ShopSettingsTranslate(shop=Shop())

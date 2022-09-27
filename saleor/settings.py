@@ -202,7 +202,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.request_time",
     "saleor.core.middleware.google_analytics",
-    "saleor.core.middleware.plugins",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
@@ -239,6 +238,7 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.app",
+    "saleor.tax",
     "saleor.thumbnail",
     "saleor.schedulers",
     # External apps

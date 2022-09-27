@@ -21,6 +21,7 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
 from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -84,7 +85,7 @@ class CheckoutRemovePromoCode(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 

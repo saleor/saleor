@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Exists, OuterRef, Q
+from django.db import transaction
+from django.db.models import Exists, OuterRef, Q, Subquery
 from django.utils.text import slugify
 
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
@@ -24,6 +25,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AttributeError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
+from ..plugins.dataloaders import load_plugin_manager
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .types import Attribute, AttributeValue
@@ -523,7 +525,8 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.attribute_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.attribute_created(i))
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
@@ -593,7 +596,8 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.attribute_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.attribute_updated(i))
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -610,7 +614,8 @@ class AttributeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.attribute_deleted(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.attribute_deleted(i))
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -702,12 +707,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(
-            lambda i=instance: info.context.plugins.attribute_value_created(i)
-        )
-        cls.call_event(
-            lambda a=instance.attribute: info.context.plugins.attribute_updated(a)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.attribute_value_created(i))
+        cls.call_event(lambda a=instance.attribute: manager.attribute_updated(a))
 
 
 class AttributeValueUpdate(AttributeValueCreate):
@@ -751,21 +753,35 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
-        )
+        with transaction.atomic():
+            variants = product_models.ProductVariant.objects.filter(
+                Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+            )
+            # SELECT … FOR UPDATE needs to lock rows in a consistent order
+            # to avoid deadlocks between updates touching the same rows.
+            qs = (
+                product_models.Product.objects.select_for_update(of=("self",))
+                .filter(
+                    Q(
+                        Exists(
+                            instance.productassignments.filter(
+                                product_id=OuterRef("id")
+                            )
+                        )
+                    )
+                    | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+                )
+                .order_by("pk")
+            )
+            # qs is executed in a subquery to make sure the SELECT statement gets
+            # properly evaluated and locks the rows in the same order every time.
+            product_models.Product.objects.filter(
+                pk__in=Subquery(qs.values("pk"))
+            ).update(search_index_dirty=True)
 
-        product_models.Product.objects.filter(
-            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
-            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
-        ).update(search_index_dirty=True)
-
-        cls.call_event(
-            lambda i=instance: info.context.plugins.attribute_value_updated(i)
-        )
-        cls.call_event(
-            lambda a=instance.attribute: info.context.plugins.attribute_updated(a)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.attribute_value_updated(i))
+        cls.call_event(lambda a=instance.attribute: manager.attribute_updated(a))
 
 
 class AttributeValueDelete(ModelDeleteMutation):
@@ -791,12 +807,9 @@ class AttributeValueDelete(ModelDeleteMutation):
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )
-        cls.call_event(
-            lambda i=instance: info.context.plugins.attribute_value_deleted(i)
-        )
-        cls.call_event(
-            lambda a=instance.attribute: info.context.plugins.attribute_updated(a)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.attribute_value_deleted(i))
+        cls.call_event(lambda a=instance.attribute: manager.attribute_updated(a))
         return response
 
     @classmethod
@@ -881,11 +894,10 @@ class AttributeReorderValues(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
+        manager = load_plugin_manager(info.context)
         events_list = [v for v in values_m2m if v.id in operations.keys()]
         for value in events_list:
-            cls.call_event(
-                lambda v=value: info.context.plugins.attribute_value_updated(v)
-            )
-        cls.call_event(lambda v=attribute: info.context.plugins.attribute_updated(v))
+            cls.call_event(lambda v=value: manager.attribute_value_updated(v))
+        cls.call_event(lambda v=attribute: manager.attribute_updated(v))
 
         return AttributeReorderValues(attribute=attribute)

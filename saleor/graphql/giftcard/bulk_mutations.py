@@ -16,6 +16,7 @@ from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.validators import validate_price_precision
+from ..plugins.dataloaders import load_plugin_manager
 from .mutations import GiftCardCreate
 from .types import GiftCard
 
@@ -71,9 +72,9 @@ class GiftCardBulkCreate(BaseMutation):
         instances = cls.create_instances(input_data, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
-
+        manager = load_plugin_manager(info.context)
         transaction.on_commit(
-            lambda: cls.call_gift_card_created_on_plugins(instances, info)
+            lambda: cls.call_gift_card_created_on_plugins(instances, manager)
         )
         return cls(count=len(instances), gift_cards=instances)
 
@@ -153,9 +154,9 @@ class GiftCardBulkCreate(BaseMutation):
             tag_instance.gift_cards.set(instances)
 
     @staticmethod
-    def call_gift_card_created_on_plugins(instances, info):
+    def call_gift_card_created_on_plugins(instances, manager):
         for instance in instances:
-            info.context.plugins.gift_card_created(instance)
+            manager.gift_card_created(instance)
 
 
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
@@ -175,8 +176,9 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info, queryset):
         instances = [card for card in queryset]
         queryset.delete()
+        manager = load_plugin_manager(info.context)
         for instance in instances:
-            info.context.plugins.gift_card_deleted(instance)
+            manager.gift_card_deleted(instance)
 
 
 class GiftCardBulkActivate(BaseBulkMutation):
@@ -210,8 +212,9 @@ class GiftCardBulkActivate(BaseBulkMutation):
         events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=app
         )
+        manager = load_plugin_manager(info.context)
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            info.context.plugins.gift_card_status_changed(card)
+            manager.gift_card_status_changed(card)
 
 
 class GiftCardBulkDeactivate(BaseBulkMutation):
@@ -239,5 +242,6 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         events.gift_cards_deactivated_event(
             gift_card_ids, user=info.context.user, app=app
         )
+        manager = load_plugin_manager(info.context)
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            info.context.plugins.gift_card_status_changed(card)
+            manager.gift_card_status_changed(card)

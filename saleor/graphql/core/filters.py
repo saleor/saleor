@@ -82,6 +82,10 @@ def filter_metadata(qs, _, value):
     return qs
 
 
+def filter_slug_list(qs, _, values):
+    return qs.filter(slug__in=values)
+
+
 class BaseJobFilter(django_filters.FilterSet):
     created_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_created_at

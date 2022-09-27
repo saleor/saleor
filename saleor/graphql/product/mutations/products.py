@@ -58,6 +58,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductMedia, ProductVariant
 from ..utils import (
@@ -135,7 +136,8 @@ class CategoryCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.category_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.category_created(i))
 
 
 class CategoryUpdate(CategoryCreate):
@@ -163,7 +165,8 @@ class CategoryUpdate(CategoryCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.category_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.category_updated(i))
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -184,8 +187,8 @@ class CategoryDelete(ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=Category)
 
         db_id = instance.id
-
-        delete_categories([db_id], manager=info.context.plugins)
+        manager = load_plugin_manager(info.context)
+        delete_categories([db_id], manager=manager)
 
         instance.id = db_id
         return cls.success_response(instance)
@@ -255,11 +258,12 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.collection_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.collection_created(i))
 
         products = instance.products.prefetched_for_webhook(single_object=False)
         for product in products:
-            cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+            cls.call_event(lambda p=product: manager.product_updated(p))
 
     @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
@@ -297,7 +301,8 @@ class CollectionUpdate(CollectionCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         """Override this method with `pass` to avoid triggering product webhook."""
-        info.context.plugins.collection_updated(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.collection_updated(instance))
 
 
 class CollectionDelete(ModelDeleteMutation):
@@ -320,10 +325,10 @@ class CollectionDelete(ModelDeleteMutation):
         products = list(instance.products.prefetched_for_webhook(single_object=False))
 
         result = super().perform_mutation(_root, info, **kwargs)
-
-        info.context.plugins.collection_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.collection_deleted(instance))
         for product in products:
-            info.context.plugins.product_updated(product)
+            cls.call_event(lambda i=instance: manager.product_updated(product))
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
@@ -445,6 +450,7 @@ class CollectionAddProducts(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         cls.clean_products(products)
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             collection.products.add(*products)
             if collection.sale_set.exists():
@@ -453,9 +459,7 @@ class CollectionAddProducts(BaseMutation):
                     product_ids=[pq.pk for pq in products]
                 )
             for product in products:
-                cls.call_event(
-                    lambda p=product: info.context.plugins.product_updated(p)
-                )
+                cls.call_event(lambda p=product: manager.product_updated(p))
 
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
@@ -508,8 +512,9 @@ class CollectionRemoveProducts(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         collection.products.remove(*products)
+        manager = load_plugin_manager(info.context)
         for product in products:
-            cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+            cls.call_event(lambda p=product: manager.product_updated(p))
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_discounted_prices_of_catalogues_task.delay(
@@ -621,9 +626,8 @@ class ProductCreate(ModelMutation):
             raise ValidationError({"slug": error})
 
         if "tax_code" in cleaned_input:
-            info.context.plugins.assign_tax_code_to_object_meta(
-                instance, cleaned_input["tax_code"]
-            )
+            manager = load_plugin_manager(info.context)
+            manager.assign_tax_code_to_object_meta(instance, cleaned_input["tax_code"])
 
         if attributes and product_type:
             try:
@@ -672,7 +676,8 @@ class ProductCreate(ModelMutation):
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
-        cls.call_event(lambda p=product: info.context.plugins.product_created(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_created(p))
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -725,7 +730,8 @@ class ProductUpdate(ProductCreate):
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
-        cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_updated(p))
 
 
 class ProductDelete(ModelDeleteMutation):
@@ -776,11 +782,10 @@ class ProductDelete(ModelDeleteMutation):
                 )
 
             order_pks = draft_order_lines_data.order_pks
+            manager = load_plugin_manager(info.context)
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
-            cls.call_event(
-                lambda: info.context.plugins.product_deleted(instance, variants_id)
-            )
+            cls.call_event(lambda: manager.product_deleted(instance, variants_id))
 
         return response
 
@@ -1059,11 +1064,12 @@ class ProductVariantCreate(ModelMutation):
             if not instance.name:
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+            manager = load_plugin_manager(info.context)
             update_product_search_vector(instance.product)
             event_to_call = (
-                info.context.plugins.product_variant_created
+                manager.product_variant_created
                 if new_variant
-                else info.context.plugins.product_variant_updated
+                else manager.product_variant_updated
             )
             cls.call_event(lambda i=instance: event_to_call(i))
 
@@ -1195,14 +1201,13 @@ class ProductVariantDelete(ModelDeleteMutation):
                 order_events.order_line_variant_removed_event(
                     order, info.context.user, app, order_lines
                 )
+            manager = load_plugin_manager(info.context)
 
             order_pks = draft_order_lines_data.order_pks
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
 
-            cls.call_event(
-                lambda: info.context.plugins.product_variant_deleted(variant)
-            )
+            cls.call_event(lambda: manager.product_variant_deleted(variant))
 
         return response
 
@@ -1344,8 +1349,8 @@ class ProductMediaCreate(BaseMutation):
                     type=media_type,
                     oembed_data=oembed_data,
                 )
-
-        cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_updated(p))
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)
 
@@ -1380,7 +1385,8 @@ class ProductMediaUpdate(BaseMutation):
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])
-        cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_updated(p))
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaUpdate(product=product, media=media)
 
@@ -1444,8 +1450,8 @@ class ProductMediaReorder(BaseMutation):
             ordered_media.append(media)
 
         update_ordered_media(ordered_media)
-
-        cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_updated(p))
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaReorder(product=product, media=ordered_media)
 
@@ -1496,7 +1502,8 @@ class ProductVariantSetDefault(BaseMutation):
             )
         product.default_variant = variant
         product.save(update_fields=["default_variant", "updated_at"])
-        cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_updated(p))
         product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantSetDefault(product=product)
 
@@ -1561,11 +1568,11 @@ class ProductVariantReorder(BaseMutation):
                     }
                 )
             operations[m2m_info.pk] = move_info.sort_order
-
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
             product.save(update_fields=["updated_at"])
-            cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+            cls.call_event(lambda p=product: manager.product_updated(p))
             product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)
 
@@ -1593,7 +1600,8 @@ class ProductMediaDelete(BaseMutation):
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media_obj.product_id
         )
-        cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda p=product: manager.product_updated(p))
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaDelete(product=product, media=media_obj)
 
@@ -1650,9 +1658,8 @@ class VariantMediaAssign(BaseMutation):
                         }
                     )
             variant = ChannelContext(node=variant, channel_slug=None)
-            cls.call_event(
-                lambda: info.context.plugins.product_variant_updated(variant.node)
-            )
+            manager = load_plugin_manager(info.context)
+            cls.call_event(lambda: manager.product_variant_updated(variant.node))
         return VariantMediaAssign(product_variant=variant, media=media)
 
 
@@ -1700,9 +1707,8 @@ class VariantMediaUnassign(BaseMutation):
             variant_media.delete()
 
         variant = ChannelContext(node=variant, channel_slug=None)
-        cls.call_event(
-            lambda: info.context.plugins.product_variant_updated(variant.node)
-        )
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda: manager.product_variant_updated(variant.node))
         return VariantMediaUnassign(product_variant=variant, media=media)
 
 
@@ -1751,9 +1757,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                     str(error),
                     code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
                 )
-
+            manager = load_plugin_manager(info.context)
             variant = ChannelContext(node=variant, channel_slug=None)
-            cls.call_event(
-                lambda: info.context.plugins.product_variant_updated(variant.node)
-            )
+            cls.call_event(lambda: manager.product_variant_updated(variant.node))
         return ProductVariantPreorderDeactivate(product_variant=variant)

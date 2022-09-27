@@ -21,6 +21,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ...shipping.types import ShippingMethod
 from ..types import Checkout
 from .utils import ERROR_DOES_NOT_SHIP, clean_delivery_method, get_checkout
@@ -85,7 +86,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:

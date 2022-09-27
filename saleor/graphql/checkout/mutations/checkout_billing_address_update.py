@@ -18,6 +18,7 @@ from ...core.descriptions import (
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
@@ -91,6 +92,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 "enable_fields_normalization", True
             ),
         )
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             billing_address.save()
             change_address_updated_fields = change_billing_address_in_checkout(
@@ -98,13 +100,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             )
             lines, _ = fetch_checkout_lines(checkout)
             discounts = load_discounts(info.context)
-            checkout_info = fetch_checkout_info(
-                checkout, lines, discounts, info.context.plugins
-            )
+            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
             invalidate_prices_updated_fields = invalidate_checkout_prices(
                 checkout_info,
                 lines,
-                info.context.plugins,
+                manager,
                 discounts,
                 recalculate_discount=False,
                 save=False,
@@ -114,6 +114,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 + invalidate_prices_updated_fields
             )
 
-            cls.call_event(lambda c=checkout: info.context.plugins.checkout_updated(c))
+            cls.call_event(lambda c=checkout: manager.checkout_updated(c))
 
         return CheckoutBillingAddressUpdate(checkout=checkout)

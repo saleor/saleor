@@ -32,8 +32,16 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
-    mutation checkoutComplete($id: ID, $redirectUrl: String) {
-        checkoutComplete(id: $id, redirectUrl: $redirectUrl) {
+    mutation checkoutComplete(
+            $id: ID,
+            $redirectUrl: String,
+            $metadata: [MetadataInput!],
+        ) {
+        checkoutComplete(
+                id: $id,
+                redirectUrl: $redirectUrl,
+                metadata: $metadata,
+            ) {
             order {
                 id
                 token
@@ -45,6 +53,15 @@ MUTATION_CHECKOUT_COMPLETE = """
                     }
                     ... on ShippingMethod {
                         id
+                    }
+                }
+                total {
+                    currency
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
                     }
                 }
             }
@@ -197,9 +214,11 @@ def test_checkout_complete_with_inactive_channel(
 
 
 @pytest.mark.integration
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     site_settings,
     user_api_client,
     checkout_with_gift_card,
@@ -217,6 +236,7 @@ def test_checkout_complete(
     checkout.billing_address = address
     checkout.store_value_in_metadata(items={"accepted": "true"})
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.tax_exemption = True
     checkout.save()
 
     checkout_line = checkout.lines.first()
@@ -287,6 +307,140 @@ def test_checkout_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
     order_confirmed_mock.assert_called_once_with(order)
+    _recalculate_order_prices_mock.assert_not_called()
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_with_metadata(
+    order_confirmed_mock,
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    metadata_value = "metaValue"
+    metadata_key = "metaKey"
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": redirect_url,
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    # then
+    assert not data["errors"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    assert order.metadata == {**checkout.metadata, **{metadata_key: metadata_value}}
+    assert order.private_metadata == checkout.private_metadata
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_with_metadata_updates_existing_keys(
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    meta_key = "testKey"
+    new_meta_value = "newValue"
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={meta_key: "oldValue"})
+    checkout.save()
+
+    assert checkout.metadata[meta_key] != new_meta_value
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": redirect_url,
+        "metadata": [{"key": meta_key, "value": new_meta_value}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLETE,
+        variables,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    # then
+    assert not data["errors"]
+    order = Order.objects.first()
+    assert order.metadata == {meta_key: new_meta_value}
 
 
 @pytest.mark.integration
@@ -350,6 +504,7 @@ def test_checkout_complete_by_app(
         site_settings=ANY,
         tracking_code=ANY,
         redirect_url=ANY,
+        metadata_list=ANY,
     )
 
 
@@ -414,6 +569,7 @@ def test_checkout_complete_by_app_with_missing_permission(
         site_settings=ANY,
         tracking_code=ANY,
         redirect_url=ANY,
+        metadata_list=ANY,
     )
 
 
@@ -602,9 +758,11 @@ def test_checkout_complete_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     user_api_client,
     site_settings,
     payment_dummy,
@@ -629,6 +787,7 @@ def test_checkout_complete_requires_confirmation(
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
+    _recalculate_order_prices_mock.assert_not_called()
 
 
 @pytest.mark.integration

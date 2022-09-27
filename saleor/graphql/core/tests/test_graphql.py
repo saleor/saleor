@@ -59,7 +59,7 @@ def test_jwt_middleware(client, admin_user):
     response = api_client_post(data={"query": create_token_query})
     repl_data = response.json()
     assert response.status_code == 200
-    assert response.wsgi_request.user == admin_user
+    assert isinstance(response.wsgi_request.user, AnonymousUser)
     token = repl_data["data"]["tokenCreate"]["token"]
     assert token is not None
 

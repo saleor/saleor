@@ -6,6 +6,7 @@ from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -52,5 +53,6 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
 
         checkout.language_code = language_code
         checkout.save(update_fields=["language_code", "last_change"])
-        cls.call_event(lambda c=checkout: info.context.plugins.checkout_updated(c))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
         return CheckoutLanguageCodeUpdate(checkout=checkout)

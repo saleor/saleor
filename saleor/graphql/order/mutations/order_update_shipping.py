@@ -10,6 +10,7 @@ from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ...shipping.types import ShippingMethod
 from ..types import Order
 from .utils import EditableOrderValidationMixin, clean_order_update_shipping
@@ -138,7 +139,8 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             method,
             shipping_channel_listing,
         )
-        clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
+        manager = load_plugin_manager(info.context)
+        clean_order_update_shipping(order, shipping_method_data, manager)
 
         order.shipping_method = method
 
@@ -154,5 +156,5 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             ]
         )
         # Post-process the results
-        cls.call_event(lambda o=order: info.context.plugins.order_updated(o))
+        cls.call_event(lambda o=order: manager.order_updated(o))
         return OrderUpdateShipping(order=order)

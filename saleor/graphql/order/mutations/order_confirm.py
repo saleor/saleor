@@ -13,6 +13,7 @@ from ....payment.gateway import request_charge_action
 from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
 from ..types import Order
 
@@ -62,7 +63,7 @@ class OrderConfirm(ModelMutation):
         order.save(update_fields=["status", "updated_at"])
         order_info = fetch_order_info(order)
         payment = order_info.payment
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         app = load_app(info.context)
         with traced_atomic_transaction():
             if payment_transactions := list(order.payment_transactions.all()):
@@ -84,9 +85,7 @@ class OrderConfirm(ModelMutation):
                         code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
                     )
             elif payment and payment.is_authorized and payment.can_capture():
-                gateway.capture(
-                    payment, info.context.plugins, channel_slug=order.channel.slug
-                )
+                gateway.capture(payment, manager, channel_slug=order.channel.slug)
                 site = load_site(info.context)
                 transaction.on_commit(
                     lambda: order_captured(

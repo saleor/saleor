@@ -12,6 +12,7 @@ from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from ..discount.dataloaders import load_discounts
+from ..plugins.dataloaders import load_plugin_manager
 from .types import Webhook, WebhookEvent
 
 
@@ -48,7 +49,7 @@ def resolve_sample_payload(info, event_name):
 
 
 def resolve_shipping_methods_for_checkout(info, checkout):
-    manager = info.context.plugins
+    manager = load_plugin_manager(info.context)
     discounts = load_discounts(info.context)
     lines, _ = fetch_checkout_lines(checkout)
     shipping_channel_listings = checkout.channel.shipping_method_listings.all()

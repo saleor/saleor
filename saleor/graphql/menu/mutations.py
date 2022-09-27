@@ -17,6 +17,7 @@ from ..core.types import MenuError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection
 from ..site.dataloaders import load_site
 from .dataloaders import MenuItemsByParentMenuLoader
@@ -132,7 +133,8 @@ class MenuCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.menu_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.menu_created(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -162,7 +164,8 @@ class MenuUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.menu_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.menu_updated(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -184,7 +187,8 @@ class MenuDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.menu_deleted(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.menu_deleted(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -232,7 +236,8 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.menu_item_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.menu_item_created(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -293,7 +298,8 @@ class MenuItemUpdate(MenuItemCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.menu_item_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.menu_item_updated(i))
 
 
 class MenuItemDelete(ModelDeleteMutation):
@@ -310,7 +316,8 @@ class MenuItemDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.menu_item_deleted(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.menu_item_deleted(i))
 
     @classmethod
     def success_response(cls, instance):
@@ -465,6 +472,7 @@ class MenuItemMove(BaseMutation):
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
         operations = cls.clean_moves(info, menu, moves)
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             for operation in operations:
                 cls.perform_change_parent_operation(operation)
@@ -478,9 +486,7 @@ class MenuItemMove(BaseMutation):
                     )
 
                 if operation.sort_order or operation.parent_changed:
-                    cls.call_event(
-                        lambda m=menu_item: info.context.plugins.menu_item_updated(m)
-                    )
+                    cls.call_event(lambda m=menu_item: manager.menu_item_updated(m))
 
         menu = qs.get(pk=menu.pk)
         MenuItemsByParentMenuLoader(info.context).clear(menu.id)

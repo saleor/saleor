@@ -12,6 +12,7 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_price_precision
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Voucher
 
 
@@ -195,7 +196,8 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(voucher, cleaned_input)
-        cls.call_event(lambda v=voucher: info.context.plugins.voucher_updated(voucher))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda v=voucher: manager.voucher_updated(voucher))
 
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)

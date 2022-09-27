@@ -176,7 +176,13 @@ QUERY_MENU_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "menu_filter, count", [({"search": "Menu1"}, 1), ({"search": "Menu"}, 2)]
+    "menu_filter, count",
+    [
+        ({"search": "Menu1"}, 1),
+        ({"search": "Menu"}, 2),
+        ({"slugs": ["Menu1", "Menu2"]}, 2),
+        ({"slugs": []}, 4),
+    ],
 )
 def test_menus_query_with_filter(
     menu_filter, count, staff_api_client, permission_manage_menus

@@ -19,6 +19,7 @@ from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..types import Page, PageType
 
@@ -133,7 +134,8 @@ class PageCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        cls.call_event(lambda i=instance: info.context.plugins.page_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.page_created(i))
 
 
 class PageUpdate(PageCreate):
@@ -162,7 +164,8 @@ class PageUpdate(PageCreate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
-        cls.call_event(lambda i=instance: info.context.plugins.page_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.page_updated(i))
 
 
 class PageDelete(ModelDeleteMutation):
@@ -180,10 +183,11 @@ class PageDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         page = cls.get_instance(info, **data)
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(page)
             response = super().perform_mutation(_root, info, **data)
-            cls.call_event(lambda p=page: info.context.plugins.page_deleted(p))
+            cls.call_event(lambda p=page: manager.page_deleted(p))
         return response
 
     @staticmethod
@@ -281,7 +285,8 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.page_type_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.page_type_created(i))
 
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
@@ -341,7 +346,8 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.page_type_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.page_type_updated(i))
 
 
 class PageTypeDelete(ModelDeleteMutation):
@@ -375,4 +381,5 @@ class PageTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.page_type_deleted(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.page_type_deleted(i))

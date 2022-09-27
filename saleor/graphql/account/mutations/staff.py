@@ -3,7 +3,6 @@ from copy import copy
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
@@ -28,6 +27,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.utils import add_hash_to_file_name, validate_image_file
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..utils import (
     CustomerDeleteMixin,
@@ -192,7 +192,8 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.customer_deleted(instance))
 
 
 class StaffCreate(ModelMutation):
@@ -289,10 +290,11 @@ class StaffCreate(ModelMutation):
             )
         user.save()
         if cleaned_input.get("redirect_url") and send_notification:
+            manager = load_plugin_manager(info.context)
             send_set_password_notification(
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
-                manager=info.context.plugins,
+                manager=manager,
                 channel_slug=None,
                 staff=True,
             )
@@ -307,7 +309,8 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.staff_created(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.staff_created(i))
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -481,7 +484,8 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        cls.call_event(lambda i=instance: info.context.plugins.staff_updated(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.staff_updated(i))
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
@@ -511,7 +515,8 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         instance.id = db_id
 
         response = cls.success_response(instance)
-        cls.call_event(lambda i=instance: info.context.plugins.staff_deleted(i))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.staff_deleted(i))
 
         return response
 
@@ -544,9 +549,8 @@ class AddressCreate(ModelMutation):
         with traced_atomic_transaction():
             response = super().perform_mutation(root, info, **data)
             if not response.errors:
-                address = info.context.plugins.change_user_address(
-                    response.address, None, user
-                )
+                manager = load_plugin_manager(info.context)
+                address = manager.change_user_address(response.address, None, user)
                 remove_the_oldest_user_address_if_address_limit_is_reached(user)
                 user.addresses.add(address)
                 response.user = user
@@ -556,7 +560,8 @@ class AddressCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        transaction.on_commit(lambda: info.context.plugins.address_created(instance))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(lambda i=instance: manager.address_created(i))
 
 
 class AddressUpdate(BaseAddressUpdate):
@@ -616,11 +621,9 @@ class AddressSetDefault(BaseMutation):
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
-
-        utils.change_user_default_address(
-            user, address, address_type, info.context.plugins
-        )
-        cls.call_event(lambda u=user: info.context.plugins.customer_updated(u))
+        manager = load_plugin_manager(info.context)
+        utils.change_user_default_address(user, address, address_type, manager)
+        cls.call_event(lambda u=user: manager.customer_updated(u))
         return cls(user=user)
 
 

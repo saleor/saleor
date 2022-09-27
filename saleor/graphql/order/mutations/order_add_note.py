@@ -10,6 +10,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...core.utils import validate_required_string_field
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order, OrderEvent
 from .utils import get_webhook_handler_by_order_status
 
@@ -60,6 +61,7 @@ class OrderAddNote(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             event = events.order_note_added_event(
                 order=order,
@@ -67,6 +69,6 @@ class OrderAddNote(BaseMutation):
                 app=app,
                 message=cleaned_input["message"],
             )
-            func = get_webhook_handler_by_order_status(order.status, info)
+            func = get_webhook_handler_by_order_status(order.status, manager)
             transaction.on_commit(lambda: func(order))
         return OrderAddNote(order=order, event=event)

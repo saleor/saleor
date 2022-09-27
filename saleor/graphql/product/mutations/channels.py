@@ -36,6 +36,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..types.products import Collection, Product, ProductVariant
 
@@ -332,7 +333,8 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
             product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
-            cls.call_event(lambda p=product: info.context.plugins.product_updated(p))
+            manager = load_plugin_manager(info.context)
+            cls.call_event(lambda p=product: manager.product_updated(p))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -505,10 +507,8 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     defaults=defaults,
                 )
             update_product_discounted_price_task.delay(variant.product_id)
-
-            cls.call_event(
-                lambda: info.context.plugins.product_variant_updated(variant)
-            )
+            manager = load_plugin_manager(info.context)
+            cls.call_event(lambda: manager.product_variant_updated(variant))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):

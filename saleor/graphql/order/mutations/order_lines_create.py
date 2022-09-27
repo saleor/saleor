@@ -20,6 +20,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
@@ -153,6 +154,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
         app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         site = load_site(info.context)
         discounts = load_discounts(info.context)
         with traced_atomic_transaction():
@@ -161,7 +163,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 lines_to_add,
                 info.context.user,
                 app,
-                info.context.plugins,
+                manager,
                 site.settings,
                 discounts,
             )
@@ -185,7 +187,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     "updated_at",
                 ]
             )
-            func = get_webhook_handler_by_order_status(order.status, info)
+            func = get_webhook_handler_by_order_status(order.status, manager)
             cls.call_event(lambda o=order: func(o))
 
         return OrderLinesCreate(order=order, order_lines=added_lines)
