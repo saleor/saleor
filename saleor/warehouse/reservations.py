@@ -22,7 +22,7 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 @traced_atomic_transaction()
 def reserve_stocks_and_preorders(
     checkout_lines: Iterable["CheckoutLine"],
-    lines_to_update_reservation_reserved_until: Iterable["CheckoutLine"],
+    lines_to_update_reservation_time: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel: "Channel",
@@ -56,9 +56,11 @@ def reserve_stocks_and_preorders(
             reserved_until,
             replace=replace,
         )
-        if lines_to_update_reservation_reserved_until:
+
+        # Refresh reserved_until for already existing lines
+        if lines_to_update_reservation_time:
             Reservation.objects.filter(
-                checkout_line__in=lines_to_update_reservation_reserved_until
+                checkout_line__in=lines_to_update_reservation_time
             ).update(reserved_until=reserved_until)
 
     if preorder_lines:
@@ -70,9 +72,11 @@ def reserve_stocks_and_preorders(
             reserved_until,
             replace=replace,
         )
-        if lines_to_update_reservation_reserved_until:
+
+        # Refresh reserved_until for already existing lines
+        if lines_to_update_reservation_time:
             PreorderReservation.objects.filter(
-                checkout_line__in=lines_to_update_reservation_reserved_until
+                checkout_line__in=lines_to_update_reservation_time
             ).update(reserved_until=reserved_until)
 
 

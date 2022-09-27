@@ -235,15 +235,17 @@ def add_variants_to_checkout(
 
     if reservation_length and to_reserve:
         updated_lines_ids = [line.pk for line in to_reserve + to_delete]
-        to_update_reserved_until = []
 
+        # Validation for stock reservation should be performed on new and updated lines.
+        # For already existing lines only reserved_until should be updated.
+        lines_to_update_reservation_time = []
         for line in checkout_lines:
             if line.pk not in updated_lines_ids:
-                to_update_reserved_until.append(line)
+                lines_to_update_reservation_time.append(line)
 
         reserve_stocks_and_preorders(
             to_reserve,
-            to_update_reserved_until,
+            lines_to_update_reservation_time,
             variants,
             country_code,
             channel,
