@@ -1611,17 +1611,9 @@ enum WebhookEventTypeEnum {
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
-=======
-  """A fulfillment metadata is updated."""
-<<<<<<< HEAD
-  FULFILLMENT_METADATA_CREATED
->>>>>>> 679c79bb2... Update GraphQL schema
-=======
-=======
+
   """
   A fulfillment metadata is updated.
   
@@ -1629,9 +1621,7 @@ enum WebhookEventTypeEnum {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
->>>>>>> dc920ba19... Update GraphQL schema
   FULFILLMENT_METADATA_UPDATED
->>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2140,17 +2130,9 @@ enum WebhookEventTypeAsyncEnum {
   """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
-=======
-  """A fulfillment metadata is updated."""
-<<<<<<< HEAD
-  FULFILLMENT_METADATA_CREATED
->>>>>>> 679c79bb2... Update GraphQL schema
-=======
-=======
+
   """
   A fulfillment metadata is updated.
   
@@ -2158,9 +2140,7 @@ enum WebhookEventTypeAsyncEnum {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
->>>>>>> dc920ba19... Update GraphQL schema
   FULFILLMENT_METADATA_UPDATED
->>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2832,15 +2812,8 @@ enum WebhookSampleEventTypeEnum {
   CHECKOUT_METADATA_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
-<<<<<<< HEAD
-<<<<<<< HEAD
   FULFILLMENT_APPROVED
-=======
-  FULFILLMENT_METADATA_CREATED
->>>>>>> 679c79bb2... Update GraphQL schema
-=======
   FULFILLMENT_METADATA_UPDATED
->>>>>>> 9b6365833... Fix invalid event names and missing product metadata updated
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -22459,7 +22432,9 @@ type GiftCardMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The gift card the event relates to."""
+  giftCard: GiftCard
 }
 
 """
@@ -22787,7 +22762,9 @@ type OrderMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The order the event relates to."""
+  order: Order
 }
 
 """
@@ -22971,7 +22948,15 @@ type ProductMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The product the event relates to."""
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """The category of the product."""
+  category: Category
 }
 
 """
@@ -23134,7 +23119,12 @@ type ProductVariantMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
 }
 
 """
@@ -23378,7 +23368,6 @@ type FulfillmentCanceled implements Event {
 }
 
 """
-<<<<<<< HEAD
 Event sent when fulfillment is approved.
 
 Added in Saleor 3.7.
@@ -23386,15 +23375,6 @@ Added in Saleor 3.7.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type FulfillmentApproved implements Event {
-=======
-Event sent when fulfillment metadata is updated.
-
-Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type FulfillmentMetadataUpdated implements Event {
->>>>>>> 679c79bb2... Update GraphQL schema
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23406,16 +23386,39 @@ type FulfillmentMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-<<<<<<< HEAD
 
   """The fulfillment the event relates to."""
   fulfillment: Fulfillment
 
   """The order the fulfillment belongs to."""
   order: Order
-=======
-  id: ID!
->>>>>>> 679c79bb2... Update GraphQL schema
+}
+
+"""
+Event sent when fulfillment metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type FulfillmentMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
 }
 
 """
@@ -23485,7 +23488,9 @@ type CustomerMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The user the event relates to."""
+  user: User
 }
 
 """
@@ -23588,7 +23593,12 @@ type CollectionMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The collection the event relates to."""
+  collection(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Collection
 }
 
 """
@@ -23658,7 +23668,9 @@ type CheckoutMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The checkout the event relates to."""
+  checkout: Checkout
 }
 
 """
@@ -24076,7 +24088,12 @@ type ShippingZoneMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The shipping zone the event relates to."""
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 """
@@ -24217,7 +24234,13 @@ type TransactionItemMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """
+  Look up a transaction.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transaction: TransactionItem
 }
 
 """
@@ -24370,7 +24393,12 @@ type VoucherMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The voucher the event relates to."""
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
 }
 
 """
@@ -24464,7 +24492,9 @@ type WarehouseMetadataUpdated implements Event {
 
   """The application receiving the webhook."""
   recipient: App
-  id: ID!
+
+  """The warehouse the event relates to."""
+  warehouse: Warehouse
 }
 
 """
