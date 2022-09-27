@@ -59,6 +59,7 @@ from ..payloads import (
     generate_transaction_action_request_payload,
     generate_translation_payload,
     get_base_price,
+    serialize_refund_data,
 )
 from ..serializers import serialize_checkout_lines
 
@@ -947,9 +948,57 @@ def test_generate_list_gateways_payload(checkout):
 
 
 @freeze_time("1914-06-28 10:50")
-def test_generate_payment_payload(dummy_webhook_app_payment_data):
+def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
+    dummy_webhook_app_payment_data.refund_data = {
+        "order_lines_to_refund": [
+            {
+                "line": order_line,
+                "quantity": 1,
+                "is_digital": "None",
+                "digital_content": "None",
+                "replace": False,
+                "warehouse_pk": "None",
+            }
+        ]
+    }
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
+
+    expected_payload["refund_data"] = serialize_refund_data(
+        dummy_webhook_app_payment_data.refund_data
+    )
+
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
+    expected_payload["payment_method"] = from_payment_app_id(
+        dummy_webhook_app_payment_data.gateway
+    ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+
+    assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+@freeze_time("1914-06-28 10:50")
+def test_generate_payment_payload_fulfillment_return(
+    dummy_webhook_app_payment_data, fulfillment
+):
+    dummy_webhook_app_payment_data.refund_data = {
+        "fulfillment_lines_to_refund": [
+            {
+                "line": fulfillment.lines.first(),
+                "quantity": 1,
+                "replace": False,
+            }
+        ]
+    }
+    payload = generate_payment_payload(dummy_webhook_app_payment_data)
+    expected_payload = asdict(dummy_webhook_app_payment_data)
+
+    expected_payload["refund_data"] = serialize_refund_data(
+        dummy_webhook_app_payment_data.refund_data
+    )
+
     expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
         Decimal("0.01")
     )
