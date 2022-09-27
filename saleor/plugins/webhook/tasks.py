@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -41,9 +41,6 @@ from .utils import (
     create_event_delivery_list_for_webhooks,
     delivery_update,
 )
-
-if TYPE_CHECKING:
-    from ...app.models import App
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
@@ -85,7 +82,7 @@ def _get_webhooks_for_event(event_type, webhooks=None):
         app__is_active=True,
         events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
         **permissions,
-    )
+    ).distinct()
     webhooks = webhooks.select_related("app").prefetch_related(
         "app__permissions__content_type"
     )
@@ -190,11 +187,9 @@ def group_webhooks_by_subscription(webhooks):
 
 
 def trigger_webhook_sync(
-    event_type: str, data: str, app: "App", timeout=None
+    event_type: str, data: str, webhook: "Webhook", timeout=None
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
-    webhook = webhooks.first()
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
     event_payload = EventPayload.objects.create(payload=data)
@@ -207,7 +202,7 @@ def trigger_webhook_sync(
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
-    return send_webhook_request_sync(app.name, delivery, **kwargs)
+    return send_webhook_request_sync(webhook.app.name, delivery, **kwargs)
 
 
 def send_webhook_using_http(

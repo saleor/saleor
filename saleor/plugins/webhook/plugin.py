@@ -673,6 +673,11 @@ class WebhookPlugin(BasePlugin):
         previous_value,
         **kwargs
     ) -> "GatewayResponse":
+        """Trigger payment webhook event.
+
+        Only one app should have defined the webhook for payment event.
+        If more than one app has, the webhook is sent only for the first one.
+        """
         if not self.active:
             return previous_value
 
@@ -698,7 +703,8 @@ class WebhookPlugin(BasePlugin):
             )
 
         webhook_payload = generate_payment_payload(payment_information)
-        response_data = trigger_webhook_sync(event_type, webhook_payload, app)
+        webhook = _get_webhooks_for_event(event_type, app.webhooks.all()).first()
+        response_data = trigger_webhook_sync(event_type, webhook_payload, webhook)
         if response_data is None:
             raise PaymentError(
                 f"Payment method {payment_information.gateway} is not available: "
@@ -720,17 +726,18 @@ class WebhookPlugin(BasePlugin):
         **kwargs
     ) -> List["PaymentGateway"]:
         gateways = []
-        apps = App.objects.for_event_type(
-            WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
-        ).prefetch_related("webhooks")
-        for app in apps:
+        event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
+        webhooks = _get_webhooks_for_event(event_type)
+        for webhook in webhooks:
             response_data = trigger_webhook_sync(
-                event_type=WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
+                event_type=event_type,
                 data=generate_list_gateways_payload(currency, checkout),
-                app=app,
+                webhook=webhook,
             )
             if response_data:
-                app_gateways = parse_list_payment_gateways_response(response_data, app)
+                app_gateways = parse_list_payment_gateways_response(
+                    response_data, webhook.app_id
+                )
                 if currency:
                     app_gateways = [
                         gtw for gtw in app_gateways if currency in gtw.currencies
@@ -808,20 +815,19 @@ class WebhookPlugin(BasePlugin):
         self, checkout: "Checkout", previous_value: Any
     ) -> List["ShippingMethodData"]:
         methods = []
-        apps = App.objects.for_event_type(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-        ).prefetch_related("webhooks")
-        if apps:
+        event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+        webhooks = _get_webhooks_for_event(event_type)
+        if webhooks:
             payload = generate_checkout_payload(checkout, self.requestor)
-            for app in apps:
+            for webhook in webhooks:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                     data=payload,
-                    app=app,
+                    webhook=webhook,
                 )
                 if response_data:
                     shipping_methods = parse_list_shipping_methods_response(
-                        response_data, app
+                        response_data, webhook.app_id
                     )
                     methods.extend(shipping_methods)
         return methods
