@@ -682,6 +682,7 @@ class WebhookPlugin(BasePlugin):
             fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
             trigger_webhooks_async(
                 fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+            )
 
     def fulfillment_metadata_updated(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:

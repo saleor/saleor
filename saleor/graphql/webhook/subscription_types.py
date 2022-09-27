@@ -119,13 +119,6 @@ class Event(graphene.Interface):
         return info.context.requestor
 
 
-class MetadataUpdatedBase(AbstractType):
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.id
-
-
 class AddressBase(AbstractType):
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -422,9 +415,7 @@ class OrderCancelled(ObjectType, OrderBase):
         )
 
 
-class OrderMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=OrderType, required=True)
-
+class OrderMetadataUpdated(ObjectType, OrderBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -504,9 +495,7 @@ class GiftCardStatusChanged(ObjectType, GiftCardBase):
         )
 
 
-class GiftCardMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=GiftCardType, required=True)
-
+class GiftCardMetadataUpdated(ObjectType, GiftCardBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -638,9 +627,7 @@ class ProductDeleted(ObjectType, ProductBase):
         )
 
 
-class ProductMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=ProductType, required=True)
-
+class ProductMetadataUpdated(ObjectType, ProductBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -695,9 +682,7 @@ class ProductVariantDeleted(ObjectType, ProductVariantBase):
         )
 
 
-class ProductVariantMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=ProductVariantType, required=True)
-
+class ProductVariantMetadataUpdated(ObjectType, ProductVariantBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -891,9 +876,7 @@ class FulfillmentApproved(ObjectType, FulfillmentBase):
         )
 
 
-class FulfillmentMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=FulfillmentType, required=True)
-
+class FulfillmentMetadataUpdated(ObjectType, FulfillmentBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -933,9 +916,7 @@ class CustomerUpdated(ObjectType, UserBase):
         )
 
 
-class CustomerMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=UserType, required=True)
-
+class CustomerMetadataUpdated(ObjectType, UserBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -984,9 +965,7 @@ class CollectionDeleted(ObjectType, CollectionBase):
         )
 
 
-class CollectionMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=CollectionType, required=True)
-
+class CollectionMetadataUpdated(ObjectType, CollectionBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -1024,9 +1003,7 @@ class CheckoutUpdated(ObjectType, CheckoutBase):
         )
 
 
-class CheckoutMetadataUpdated(ObjectType):
-    id = graphene.GlobalID(parent_type=CheckoutType, required=True)
-
+class CheckoutMetadataUpdated(ObjectType, CheckoutBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -1034,11 +1011,6 @@ class CheckoutMetadataUpdated(ObjectType):
             + ADDED_IN_38
             + PREVIEW_FEATURE
         )
-
-    @staticmethod
-    def resolve_id(root, info):
-        _, root = root
-        return root.token
 
 
 class PageBase(AbstractType):
@@ -1244,9 +1216,7 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
         )
 
 
-class ShippingZoneMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=ShippingZoneType, required=True)
-
+class ShippingZoneMetadataUpdated(ObjectType, ShippingZoneBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -1329,8 +1299,11 @@ class TransactionActionRequest(ObjectType):
         return transaction_action_data
 
 
-class TransactionItemMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=TransactionItem, required=True)
+class TransactionItemMetadataUpdated(ObjectType):
+    transaction = graphene.Field(
+        TransactionItem,
+        description="Look up a transaction." + PREVIEW_FEATURE,
+    )
 
     class Meta:
         interfaces = (Event,)
@@ -1339,6 +1312,11 @@ class TransactionItemMetadataUpdated(ObjectType, MetadataUpdatedBase):
             + ADDED_IN_38
             + PREVIEW_FEATURE
         )
+
+    @staticmethod
+    def resolve_transaction(root, _info):
+        _, transaction_item = root
+        return transaction_item
 
 
 class TranslationTypes(Union):
@@ -1422,9 +1400,7 @@ class VoucherDeleted(ObjectType, VoucherBase):
         )
 
 
-class VoucherMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=VoucherType, required=True)
-
+class VoucherMetadataUpdated(ObjectType, VoucherBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -1613,9 +1589,7 @@ class WarehouseDeleted(ObjectType, WarehouseBase):
         )
 
 
-class WarehouseMetadataUpdated(ObjectType, MetadataUpdatedBase):
-    id = graphene.GlobalID(parent_type=WarehouseType, required=True)
-
+class WarehouseMetadataUpdated(ObjectType, WarehouseBase):
     class Meta:
         interfaces = (Event,)
         description = (
