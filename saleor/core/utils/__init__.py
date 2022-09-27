@@ -12,6 +12,7 @@ from django.utils.encoding import iri_to_uri
 from django.utils.text import slugify
 from django_prices_openexchangerates import exchange_currency
 from prices import MoneyRange
+from text_unidecode import unidecode
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 task_logger = get_task_logger(__name__)
@@ -132,7 +133,7 @@ def generate_unique_slug(
         slug_field_name: name of slug field in instance model
 
     """
-    slug = slugify(slugable_value, allow_unicode=True)
+    slug = slugify(unidecode(slugable_value))
     unique_slug: Union["SafeText", str] = slug
 
     ModelClass = instance.__class__
