@@ -42,7 +42,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from ...app.models import App
+    from ...webhook.models import Webhook
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
@@ -208,13 +208,11 @@ def group_webhooks_by_subscription(webhooks):
 def trigger_webhook_sync(
     event_type: str,
     data: str,
-    app: "App",
+    webhook: Optional["Webhook"],
     subscribable_object=None,
     timeout=None,
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-    webhooks = get_webhooks_for_event(event_type, app.webhooks.all())
-    webhook = webhooks.first()
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
     if webhook.subscription_query:
@@ -237,7 +235,7 @@ def trigger_webhook_sync(
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
-    return send_webhook_request_sync(app.name, delivery, **kwargs)
+    return send_webhook_request_sync(webhook.app.name, delivery, **kwargs)
 
 
 R = TypeVar("R")
