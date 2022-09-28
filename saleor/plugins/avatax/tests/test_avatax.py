@@ -19,7 +19,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, TaxType, zero_taxed_money
+from ....core.taxes import TaxError, TaxType, zero_money, zero_taxed_money
 from ....discount import DiscountValueType, OrderDiscountType, VoucherType
 from ....order import OrderStatus
 from ....product import ProductTypeKind
@@ -918,6 +918,7 @@ def test_calculate_order_shipping_order_not_valid(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
     order.shipping_address = None
+    order.base_shipping_price = Money("10.00", "USD")
     order.shipping_method = shipping_method
     order.save()
 
@@ -4108,11 +4109,13 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
     order_with_lines.shipping_method_name = method.name
     order_with_lines.shipping_method = method
+    order_with_lines.base_shipping_price = zero_money(order_with_lines.currency)
     order_with_lines.voucher = voucher_free_shipping
     order_with_lines.save(
         update_fields=[
             "status",
             "voucher",
+            "base_shipping_price_amount",
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
@@ -4170,11 +4173,13 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
     order_with_lines.shipping_method_name = method.name
     order_with_lines.shipping_method = method
+    order_with_lines.base_shipping_price = zero_money(order_with_lines.currency)
     order_with_lines.voucher = voucher_free_shipping
     order_with_lines.save(
         update_fields=[
             "status",
             "voucher",
+            "base_shipping_price_amount",
             "shipping_address",
             "shipping_method_name",
             "shipping_method",

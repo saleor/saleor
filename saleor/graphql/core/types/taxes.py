@@ -1,5 +1,4 @@
-from decimal import Decimal
-from typing import List, Union
+from typing import Union
 
 import graphene
 from promise import Promise
@@ -7,10 +6,9 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....core.taxes import include_taxes_in_prices, zero_money
+from ....core.taxes import include_taxes_in_prices
 from ....discount import VoucherType
 from ....order.models import Order, OrderLine
-from ....shipping.models import ShippingMethodChannelListing
 from ...account.dataloaders import AddressByIdLoader
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
@@ -31,7 +29,6 @@ from ...product.dataloaders.products import (
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-from ...shipping.dataloaders import ShippingMethodChannelListingByShippingMethodIdLoader
 from .common import NonNullList
 from .money import Money
 
@@ -312,19 +309,9 @@ class TaxableObject(graphene.ObjectType):
 
             def calculate_shipping_price(data):
                 checkout_info, lines = data
-                is_shipping_voucher = (
-                    checkout_info.voucher.type == VoucherType.SHIPPING
-                    if checkout_info.voucher
-                    else False
-                )
                 price = base_calculations.base_checkout_delivery_price(
                     checkout_info, lines
                 )
-                if is_shipping_voucher:
-                    price.amount = max(
-                        price.amount - checkout_info.checkout.discount_amount,
-                        Decimal("0.0"),
-                    )
 
                 return quantize_price(
                     price,
@@ -344,22 +331,7 @@ class TaxableObject(graphene.ObjectType):
                 ]
             ).then(calculate_shipping_price)
 
-        def calculate_base_shipping_method(
-            channel_listins: List[ShippingMethodChannelListing],
-        ):
-            for listing in channel_listins:
-                if listing.channel_id == root.channel_id:
-                    return listing.price
-            return zero_money(root.currency)
-
-        if not root.shipping_method:
-            return zero_money(root.currency)
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdLoader(info.context)
-            .load(root.shipping_method_id)
-            .then(calculate_base_shipping_method)
-        )
+        return root.base_shipping_price
 
     @staticmethod
     def resolve_discounts(root: Union[Checkout, Order], info):

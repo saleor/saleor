@@ -9,7 +9,6 @@ from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus, calculations
-from ..base_calculations import base_order_shipping
 from ..interface import OrderTaxedPricesData
 
 
@@ -648,7 +647,7 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
 
     subtotal = zero_taxed_money(currency)
     undiscounted_subtotal = zero_taxed_money(currency)
-    shipping_price = base_order_shipping(order_with_lines)
+    shipping_price = order_with_lines.base_shipping_price
     shipping_price = quantize_price(
         TaxedMoney(
             shipping_price,
@@ -720,6 +719,31 @@ def test_fetch_order_prices_if_expired_prefetch_with_lines(
 
     # then
     assert all(line._state.fields_cache for line in order_lines)
+
+
+def test_fetch_order_prices_if_expired_use_base_shipping_price(
+    plugins_manager, fetch_kwargs, order_with_lines
+):
+    # given
+    order = order_with_lines
+    currency = order.currency
+    shipping_channel_listing = order.shipping_method.channel_listings.get(
+        channel=order.channel
+    )
+    expected_price = Money("2.00", currency)
+    order.base_shipping_price = expected_price
+    order.save()
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.base_shipping_price != shipping_channel_listing.price
+    assert order_with_lines.base_shipping_price == expected_price
+    assert order_with_lines.shipping_price == TaxedMoney(
+        net=expected_price, gross=expected_price
+    )
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")

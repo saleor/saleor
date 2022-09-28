@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 from functools import partial
+from unittest.mock import ANY
 
 from freezegun import freeze_time
 from prices import Money, fixed_discount
@@ -133,6 +134,49 @@ def test_checkout_calculate_taxes(
             "shippingPrice": {"amount": 10.0},
             "sourceObject": {
                 "id": to_global_id_or_none(checkout_ready_to_complete),
+                "__typename": "Checkout",
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_checkout_calculate_taxes_with_free_shipping_voucher(
+    checkout_with_voucher_free_shipping,
+    webhook_app,
+    permission_handle_taxes,
+):
+    # given
+    checkout = checkout_with_voucher_free_shipping
+    webhook_app.permissions.add(permission_handle_taxes)
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(
+        event_type, checkout, webhook
+    )
+
+    # then
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": {"id": to_global_id_or_none(checkout.shipping_address)},
+            "currency": "USD",
+            "discounts": [],
+            "channel": {"id": to_global_id_or_none(checkout.channel)},
+            "lines": ANY,
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": 0.0},
+            "sourceObject": {
+                "id": to_global_id_or_none(checkout),
                 "__typename": "Checkout",
             },
         },
@@ -304,6 +348,9 @@ def test_order_calculate_taxes(
 
     # given
     order = order_line.order
+    expected_shipping_price = Money("2.00", order.currency)
+    order.base_shipping_price = expected_shipping_price
+    order.save()
     shipping_method = shipping_zone.shipping_methods.first()
     order.shipping_method = shipping_method
     webhook_app.permissions.add(permission_handle_taxes)
@@ -325,6 +372,7 @@ def test_order_calculate_taxes(
         channel=order.channel
     ).price.amount
     shipping_price_amount = quantize_price(shipping_price_amount, order.currency)
+    assert expected_shipping_price != shipping_price_amount
     assert json.loads(deliveries.payload.payload) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -348,7 +396,7 @@ def test_order_calculate_taxes(
                 }
             ],
             "pricesEnteredWithTax": True,
-            "shippingPrice": {"amount": shipping_price_amount},
+            "shippingPrice": {"amount": expected_shipping_price.amount},
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
