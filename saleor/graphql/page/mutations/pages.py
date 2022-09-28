@@ -20,6 +20,7 @@ from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..types import Page, PageType
 
@@ -134,7 +135,8 @@ class PageCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        info.context.plugins.page_created(instance)
+        manager = load_plugin_manager(info.context)
+        manager.page_created(instance)
 
 
 class PageUpdate(PageCreate):
@@ -163,7 +165,8 @@ class PageUpdate(PageCreate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
-        info.context.plugins.page_updated(instance)
+        manager = load_plugin_manager(info.context)
+        manager.page_updated(instance)
 
 
 class PageDelete(ModelDeleteMutation):
@@ -184,7 +187,8 @@ class PageDelete(ModelDeleteMutation):
         page = cls.get_instance(info, **data)
         cls.delete_assigned_attribute_values(page)
         response = super().perform_mutation(_root, info, **data)
-        transaction.on_commit(lambda: info.context.plugins.page_deleted(page))
+        manager = load_plugin_manager(info.context)
+        transaction.on_commit(lambda: manager.page_deleted(page))
         return response
 
     @staticmethod
@@ -282,7 +286,8 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.page_type_created(instance)
+        manager = load_plugin_manager(info.context)
+        manager.page_type_created(instance)
 
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
@@ -342,7 +347,8 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.page_type_updated(instance)
+        manager = load_plugin_manager(info.context)
+        manager.page_type_updated(instance)
 
 
 class PageTypeDelete(ModelDeleteMutation):
@@ -376,4 +382,5 @@ class PageTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        transaction.on_commit(lambda: info.context.plugins.page_type_deleted(instance))
+        manager = load_plugin_manager(info.context)
+        transaction.on_commit(lambda: manager.page_type_deleted(instance))

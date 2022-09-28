@@ -58,11 +58,14 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-
         order_line_before_update = copy.deepcopy(order_line)
 
         update_discount_for_order_line(
-            order_line, order=order, reason=reason, value_type=value_type, value=value
+            order_line,
+            order=order,
+            reason=reason,
+            value_type=value_type,
+            value=value,
         )
         if (
             order_line_before_update.unit_discount_value != value

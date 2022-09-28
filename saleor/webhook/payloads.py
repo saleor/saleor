@@ -297,6 +297,7 @@ def generate_order_payload(
     extra_dict_data = {
         "id": graphene.Node.to_global_id("Order", order.id),
         "token": str(order.id),
+        "number": order.number,
         "user_email": order.get_customer_email(),
         "created": order.created_at,
         "original": graphene.Node.to_global_id("Order", order.original_id),
@@ -668,6 +669,21 @@ def _get_charge_taxes_for_product(product: "Product") -> bool:
     return charge_taxes
 
 
+def serialize_refund_data(refund_data):
+    if order_lines_to_refund := refund_data.get("order_lines_to_refund"):
+        for line_data in order_lines_to_refund:
+            line = line_data["line"]
+            line_data["line"] = str(line.pk)
+            line_data["variant"] = line.variant.pk
+        refund_data["order_lines_to_refund"] = order_lines_to_refund
+    if fulfillment_lines_to_refund := refund_data.get("fulfillment_lines_to_refund"):
+        for line_data in fulfillment_lines_to_refund:
+            line = line_data["line"]
+            line_data["line"] = line.pk
+        refund_data["fulfillment_lines_to_refund"] = fulfillment_lines_to_refund
+    return refund_data
+
+
 @traced_payload_generator
 def generate_product_payload(
     product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
@@ -975,9 +991,10 @@ def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
     data = asdict(payment_data)
+    if refund_data := data.get("refund_data"):
+        data["refund_data"] = serialize_refund_data(refund_data)
     data["amount"] = quantize_price(data["amount"], data["currency"])
-    payment_app_data = from_payment_app_id(data["gateway"])
-    if payment_app_data:
+    if payment_app_data := from_payment_app_id(data["gateway"]):
         data["payment_method"] = payment_app_data.name
         data["meta"] = generate_meta(requestor_data=generate_requestor(requestor))
     return json.dumps(data, cls=CustomJsonEncoder)

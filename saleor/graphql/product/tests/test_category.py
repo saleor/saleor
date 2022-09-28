@@ -543,7 +543,7 @@ def test_create_category_name_with_unicode(
     data = content["data"]["categoryCreate"]
     assert not data["errors"]
     assert data["category"]["name"] == name
-    assert data["category"]["slug"] == "わたし-わ-にっぽん-です"
+    assert data["category"]["slug"] == "watasi-wa-nitupon-desu"
 
 
 def test_category_create_mutation_without_background_image(

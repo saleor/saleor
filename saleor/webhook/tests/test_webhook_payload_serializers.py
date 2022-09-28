@@ -1,4 +1,4 @@
-from saleor.webhook.payload_serializers import PythonSerializer
+from ..payload_serializers import PythonSerializer
 
 
 def test_python_serializer_extra_model_fields(product_with_single_variant):
