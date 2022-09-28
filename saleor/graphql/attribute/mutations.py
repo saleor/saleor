@@ -360,7 +360,11 @@ class AttributeMixin:
             for field, err in validation_errors.error_dict.items():
                 if field == "attribute":
                     continue
-                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
+                errors = []
+                for error in err:
+                    error.code = AttributeErrorCode.INVALID.value
+                    errors.append(error)
+                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: errors})
 
     @classmethod
     def validate_non_swatch_attr_value(cls, value_data: dict):

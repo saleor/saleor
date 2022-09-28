@@ -378,6 +378,31 @@ def test_update_attribute_with_file_input_type_invalid_settings(
     assert {error["code"] for error in errors} == {AttributeErrorCode.INVALID.name}
 
 
+def test_update_attribute_provide_existing_value_name(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = color_attribute
+    value = color_attribute.values.first()
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {
+        "input": {"addValues": [{"name": value.name}], "removeValues": []},
+        "id": node_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert len(data["errors"]) == 1
+
+
 UPDATE_ATTRIBUTE_SLUG_MUTATION = """
     mutation updateAttribute(
     $id: ID!, $slug: String) {
