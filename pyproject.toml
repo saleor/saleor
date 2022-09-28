@@ -67,6 +67,7 @@ documentation = "https://docs.saleor.io/"
   cryptography = "^36.0.0"
   graphene = "<3.0"
   Authlib = "^1.0.0"
+  protobuf = "<4"
 
     [tool.poetry.dependencies.uvicorn]
     extras = [ "standard" ]
