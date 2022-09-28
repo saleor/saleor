@@ -37,20 +37,11 @@ from ..core.descriptions import (
 )
 from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
-from ..discount.types import Voucher as VoucherType
-from ..giftcard.types import GiftCard as GiftCardType
-from ..order.types import Fulfillment as FulfillmentType
-from ..order.types import Order as OrderType
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
-from ..product.types import Collection as CollectionType
-from ..product.types import Product as ProductType
-from ..product.types import ProductVariant as ProductVariantType
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
-from ..shipping.types import ShippingZone as ShippingZoneType
 from ..translations import types as translation_types
-from ..warehouse.types import Warehouse as WarehouseType
 from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {

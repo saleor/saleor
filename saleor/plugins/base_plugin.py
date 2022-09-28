@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
+    from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
         Collection,
@@ -60,7 +61,6 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
     )
-    from ..payment.models import TransactionItem
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..warehouse.models import Warehouse
