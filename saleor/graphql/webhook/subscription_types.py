@@ -25,7 +25,6 @@ from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
-from ..checkout.types import Checkout as CheckoutType
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
