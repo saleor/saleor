@@ -21,7 +21,7 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
-from ...account.dataloaders import load_requestor
+from ...account.dataloaders import load_requestor, load_user
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
@@ -34,7 +34,6 @@ from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
-from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -249,14 +248,14 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
 
             cls.validate_checkout_addresses(checkout_info, lines)
 
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             # requestor = load_requestor(info.context)
             if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
                 # Allow impersonating user and process a checkout by using user details
                 # assigned to checkout.
                 customer = checkout.user
             else:
-                customer = info.context.user
+                customer = load_user(info.context)
 
             site = load_site(info.context)
             order, action_required, action_data = complete_checkout(

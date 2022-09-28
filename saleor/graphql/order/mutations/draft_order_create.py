@@ -20,6 +20,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ...account.dataloaders import load_user
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import load_app
@@ -280,7 +281,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
-    def _save_lines(info, instance, lines_data, app, site, manager):
+    def _save_lines(info, instance, lines_data, app, site, manager, user):
         if lines_data:
             lines = []
             for line_data in lines_data:
@@ -295,22 +296,20 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             # New event
             events.order_added_products_event(
                 order=instance,
-                user=info.context.user,
+                user=user,
                 app=app,
                 order_lines=lines,
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app):
+    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app, user):
         if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
         if is_new_instance:
-            events.draft_order_created_event(
-                order=instance, user=info.context.user, app=app
-            )
+            events.draft_order_created_event(order=instance, user=user, app=app)
 
         instance.save(
             update_fields=["billing_address", "shipping_address", "updated_at"]
@@ -325,6 +324,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
+        user = load_user(info.context)
         site = load_site(info.context)
         return cls._save_draft_order(
             info,
@@ -334,23 +334,30 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             app=app,
             site=site,
             manager=manager,
+            user=user,
         )
 
     @classmethod
     @traced_atomic_transaction()
     def _save_draft_order(
-        cls, info, instance, cleaned_input, *, is_new_instance, app, site, manager
+        cls, info, instance, cleaned_input, *, is_new_instance, app, site, manager, user
     ):
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
-        cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
+        cls._commit_changes(info, instance, cleaned_input, is_new_instance, app, user)
 
         try:
             # Process any lines to add
             cls._save_lines(
-                info, instance, cleaned_input.get("lines_data"), app, site, manager
+                info,
+                instance,
+                cleaned_input.get("lines_data"),
+                app,
+                site,
+                manager,
+                user,
             )
         except TaxError as tax_error:
             raise ValidationError(

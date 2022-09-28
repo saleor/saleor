@@ -30,6 +30,7 @@ from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.utils import add_hash_to_file_name, validate_image_file
 from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
+from ..dataloaders import load_user
 from ..utils import (
     CustomerDeleteMixin,
     StaffDeleteMixin,
@@ -106,7 +107,7 @@ class CustomerUpdate(CustomerCreate):
         cls, info, old_instance: models.User, new_instance: models.User
     ):
         # Retrieve the event base data
-        staff_user = info.context.user
+        staff_user = load_user(info.context)
         app = load_app(info.context)
         new_email = new_instance.email
         new_fullname = new_instance.get_full_name()
@@ -130,13 +131,13 @@ class CustomerUpdate(CustomerCreate):
             )
         if was_activated:
             account_events.customer_account_activated_event(
-                staff_user=info.context.user,
+                staff_user=staff_user,
                 app=app,
                 account_id=old_instance.id,
             )
         if was_deactivated:
             account_events.customer_account_deactivated_event(
-                staff_user=info.context.user,
+                staff_user=staff_user,
                 app=app,
                 account_id=old_instance.id,
             )
@@ -236,11 +237,11 @@ class StaffCreate(ModelMutation):
                 error.code = AccountErrorCode.INVALID
                 errors["redirect_url"].append(error)
 
-        requestor = info.context.user
+        user = load_user(info.context)
         # set is_staff to True to create a staff user
         cleaned_input["is_staff"] = True
-        cls.clean_groups(requestor, cleaned_input, errors)
-        cls.clean_is_active(cleaned_input, instance, info.context.user, errors)
+        cls.clean_groups(user, cleaned_input, errors)
+        cls.clean_is_active(cleaned_input, instance, user, errors)
 
         if errors:
             raise ValidationError(errors)
@@ -364,9 +365,9 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        requestor = info.context.user
+        user = load_user(info.context)
         # check if requestor can manage this user
-        if not requestor.is_superuser and get_out_of_scope_users(requestor, [instance]):
+        if not user.is_superuser and get_out_of_scope_users(user, [instance]):
             msg = "You can't manage this user."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
@@ -649,7 +650,7 @@ class UserAvatarUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, image):
-        user = info.context.user
+        user = load_user(info.context)
         image_data = info.context.FILES.get(image)
         validate_image_file(image_data, "image", AccountErrorCode)
         add_hash_to_file_name(image_data)
@@ -673,7 +674,7 @@ class UserAvatarDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info):
-        user = info.context.user
+        user = load_user(info.context)
         user.avatar.delete()
         thumbnail_models.Thumbnail.objects.filter(user_id=user.id).delete()
         return UserAvatarDelete(user=user)

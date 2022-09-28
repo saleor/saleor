@@ -6,6 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -62,10 +63,11 @@ class OrderAddNote(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         app = load_app(info.context)
+        user = load_user(info.context)
         manager = load_plugin_manager(info.context)
         event = events.order_note_added_event(
             order=order,
-            user=info.context.user,
+            user=user,
             app=app,
             message=cleaned_input["message"],
         )

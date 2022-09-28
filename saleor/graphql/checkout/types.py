@@ -17,7 +17,7 @@ from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
-from ..account.dataloaders import AddressByIdLoader
+from ..account.dataloaders import AddressByIdLoader, load_requestor
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
@@ -47,7 +47,6 @@ from ..product.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import load_site
-from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
 from .dataloaders import (
@@ -475,7 +474,7 @@ class Checkout(ModelObjectType):
     def resolve_user(root: models.Checkout, info):
         if not root.user_id:
             return None
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_USERS
         )

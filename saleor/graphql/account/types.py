@@ -41,10 +41,12 @@ from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_n
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
-from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..utils import format_permissions_for_display
 from .dataloaders import (
     CustomerEventsByUserLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
+    load_requestor,
+    load_user,
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
@@ -174,7 +176,7 @@ class CustomerEvent(ModelObjectType):
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info):
-        user = info.context.user
+        user = load_user(info.context)
         if (
             user == root.user
             or user.has_perm(AccountPermissions.MANAGE_USERS)
@@ -191,7 +193,7 @@ class CustomerEvent(ModelObjectType):
 
     @staticmethod
     def resolve_app(root: models.CustomerEvent, info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
         )
@@ -421,10 +423,11 @@ class User(ModelObjectType):
         from ..order.types import OrderCountableConnection
 
         def _resolve_orders(orders):
-            requester = get_user_or_app_from_context(info.context)
-            if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+            requestor = load_requestor(info.context)
+            if not requestor.has_perm(OrderPermissions.MANAGE_ORDERS):
                 # allow fetch requestor orders (except drafts)
-                if root == info.context.user:
+                user = load_user(info.context)
+                if root == user:
                     orders = [
                         order for order in orders if order.status != OrderStatus.DRAFT
                     ]
@@ -467,7 +470,8 @@ class User(ModelObjectType):
     def resolve_stored_payment_sources(root: models.User, info, channel=None):
         from .resolvers import resolve_payment_sources
 
-        if root == info.context.user:
+        user = load_user(info.context)
+        if root == user:
             return resolve_payment_sources(info, root, channel_slug=channel)
         raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
@@ -564,7 +568,7 @@ class StaffNotificationRecipient(graphene.ObjectType):
 
     @staticmethod
     def resolve_user(root: models.StaffNotificationRecipient, info):
-        user = info.context.user
+        user = load_user(info.context)
         if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
             return root.user
         raise PermissionDenied(
@@ -613,14 +617,14 @@ class Group(ModelObjectType):
 
     @staticmethod
     def resolve_user_can_manage(root: auth_models.Group, info):
-        user = info.context.user
+        user = load_user(info.context)
         return can_user_manage_group(user, root)
 
     @staticmethod
     def __resolve_references(roots: List["Group"], info):
         from .resolvers import resolve_permission_groups
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor or not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
             qs = auth_models.Group.objects.none()
         else:

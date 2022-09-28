@@ -7,10 +7,10 @@ from ...order import OrderStatus
 from ...order.models import Order
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ..account.dataloaders import load_requestor
 from ..channel import ChannelQsContext
 from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
-from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 
 
@@ -46,7 +46,7 @@ def resolve_collection_by_slug(_info, slug, channel_slug, requestor):
 
 
 def resolve_collections(info, channel_slug):
-    requestor = get_user_or_app_from_context(info.context)
+    requestor = load_requestor(info.context)
     qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)

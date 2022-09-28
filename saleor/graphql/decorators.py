@@ -17,7 +17,8 @@ from ..core.permissions import (
     one_of_permissions_or_auth_filter_required,
 )
 from ..core.permissions import permission_required as core_permission_required
-from .utils import get_user_or_app_from_context
+from .account.dataloaders import load_requestor, load_user
+from .app.dataloaders import load_app
 
 
 def context(f):
@@ -69,7 +70,7 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
         else:
             perms = perm
 
-        requestor = get_user_or_app_from_context(context)
+        requestor = load_requestor(context)
         if not core_permission_required(requestor, perms):
             raise PermissionDenied(permissions=perms)
 
@@ -97,7 +98,9 @@ staff_member_required = account_passes_test(_check_staff_member)
 
 
 def _check_staff_member_or_app(context):
-    if not (is_app(context) or is_staff_user(context)):
+    app = load_app(context)
+    user = load_user(context)
+    if not (is_app(app) or is_staff_user(user)):
         raise PermissionDenied(
             message=(
                 "You need to be authenticated as a staff member or an app to perform "
@@ -117,7 +120,7 @@ def check_attribute_required_permissions():
     """
 
     def check_perms(context, attribute):
-        requestor = get_user_or_app_from_context(context)
+        requestor = load_requestor(context)
         if attribute.type == AttributeType.PAGE_TYPE:
             permissions = (
                 PagePermissions.MANAGE_PAGES,

@@ -10,6 +10,7 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case as str_to_camel_case
 from graphql import get_operation_ast
 
+from ...graphql.app.dataloaders import load_app
 from .. import traced_payload_generator
 from ..event_types import WebhookEventSyncType
 from .exceptions import ApiCallTruncationError, EventDeliveryAttemptTruncationError
@@ -167,7 +168,7 @@ def generate_api_call_payload(
         app=None,
         gql_operations=[],
     )
-    if app := getattr(request, "app", None):
+    if app := load_app(request):
         payload["app"] = App(
             id=graphene.Node.to_global_id("App", app.id),
             name=app.name,

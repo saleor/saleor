@@ -6,6 +6,7 @@ from ....order.actions import order_voided
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_void_action
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -44,6 +45,7 @@ class OrderVoid(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         app = load_app(info.context)
+        user = load_user(info.context)
         manager = load_plugin_manager(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
@@ -53,7 +55,7 @@ class OrderVoid(BaseMutation):
                     payment_transactions[-1],
                     manager,
                     channel_slug=order.channel.slug,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                 )
             except PaymentError as e:
@@ -66,7 +68,7 @@ class OrderVoid(BaseMutation):
             clean_void_payment(payment)
             transaction = try_payment_action(
                 order,
-                info.context.user,
+                user,
                 app,
                 payment,
                 gateway.void,
@@ -79,7 +81,7 @@ class OrderVoid(BaseMutation):
             if transaction.kind == TransactionKind.VOID:
                 order_voided(
                     order,
-                    info.context.user,
+                    user,
                     app,
                     payment,
                     manager,

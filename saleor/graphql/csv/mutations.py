@@ -7,6 +7,7 @@ from ...core.permissions import GiftcardPermissions, ProductPermissions
 from ...csv import models as csv_models
 from ...csv.events import export_started_event
 from ...csv.tasks import export_gift_cards_task, export_products_task
+from ..account.dataloaders import load_user
 from ..app.dataloaders import load_app
 from ..attribute.types import Attribute
 from ..channel.types import Channel
@@ -131,7 +132,8 @@ class ExportProducts(BaseExportMutation):
         file_type = input["file_type"]
 
         app = load_app(info.context)
-        kwargs = {"app": app} if app else {"user": info.context.user}
+        user = load_user(info.context)
+        kwargs = {"app": app} if app else {"user": user}
 
         export_file = csv_models.ExportFile.objects.create(**kwargs)
         export_started_event(export_file=export_file, **kwargs)
@@ -200,7 +202,8 @@ class ExportGiftCards(BaseExportMutation):
         file_type = input["file_type"]
 
         app = load_app(info.context)
-        kwargs = {"app": app} if app else {"user": info.context.user}
+        user = load_user(info.context)
+        kwargs = {"app": app} if app else {"user": user}
 
         export_file = csv_models.ExportFile.objects.create(**kwargs)
         export_started_event(export_file=export_file, **kwargs)

@@ -13,6 +13,7 @@ from ...app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ...app.tasks import install_app_task
 from ...core import JobStatus
 from ...core.permissions import AppPermission, get_permissions
+from ..account.dataloaders import load_requestor
 from ..account.utils import can_manage_app
 from ..core import types as grapqhl_types
 from ..core.enums import PermissionEnum
@@ -20,7 +21,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AppError, NonNullList
 from ..decorators import staff_member_required
 from ..plugins.dataloaders import load_plugin_manager
-from ..utils import get_user_or_app_from_context, requestor_is_superuser
+from ..utils import requestor_is_superuser
 from .types import App, AppInstallation, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
 
@@ -77,7 +78,7 @@ class AppTokenCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         app = cleaned_input.get("app")
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
             msg = "You can't manage this app."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
@@ -100,7 +101,7 @@ class AppTokenDelete(ModelDeleteMutation):
     @classmethod
     def clean_instance(cls, info, instance):
         app = instance.app
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
             msg = "You can't delete this app token."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
@@ -160,7 +161,7 @@ class AppCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data, input_cls)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
@@ -208,7 +209,7 @@ class AppUpdate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data, input_cls)
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, instance
         ):
@@ -243,7 +244,7 @@ class AppDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, instance
         ):
@@ -405,7 +406,7 @@ class AppInstall(ModelMutation):
 
         # clean and prepare permissions
         if "permissions" in cleaned_input:
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)

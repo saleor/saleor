@@ -2,6 +2,8 @@ from typing import Optional
 
 from ...channel import models
 from ...core.permissions import is_app, is_staff_user
+from ..account.dataloaders import load_user
+from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from .types import Channel
@@ -17,7 +19,9 @@ def resolve_channel(info, id: Optional[str], slug: Optional[str]):
 
     if channel and channel.is_active:
         return channel
-    if is_staff_user(info.context) or is_app(info.context):
+    app = load_app(info.context)
+    user = load_user(info.context)
+    if is_staff_user(user) or is_app(app):
         return channel
 
     return None

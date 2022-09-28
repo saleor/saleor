@@ -2,13 +2,13 @@ import graphene
 
 from ...core.permissions import AccountPermissions, AppPermission, AuthorizationFilters
 from ...csv import models
+from ..account.dataloaders import load_requestor
 from ..account.types import User
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core.connection import CountableConnection
 from ..core.types import Job, ModelObjectType, NonNullList
-from ..utils import get_user_or_app_from_context
 from .enums import ExportEventEnum
 
 
@@ -48,7 +48,7 @@ class ExportEvent(ModelObjectType):
 
     @staticmethod
     def resolve_user(root: models.ExportEvent, info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_STAFF
         )
@@ -56,7 +56,7 @@ class ExportEvent(ModelObjectType):
 
     @staticmethod
     def resolve_app(root: models.ExportEvent, info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
         )
@@ -91,7 +91,7 @@ class ExportFile(ModelObjectType):
 
     @staticmethod
     def resolve_user(root: models.ExportFile, info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_STAFF
         )
@@ -99,7 +99,7 @@ class ExportFile(ModelObjectType):
 
     @staticmethod
     def resolve_app(root: models.ExportFile, info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
         )

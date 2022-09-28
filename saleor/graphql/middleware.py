@@ -1,6 +1,8 @@
 from django.conf import settings
 
 from ..core.exceptions import ReadOnlyException
+from .account.dataloaders import load_user
+from .app.dataloaders import load_app
 from .views import GraphQLView
 
 
@@ -35,7 +37,7 @@ class ReadOnlyMiddleware:
 
         # Bypass users authenticated with ROOT_EMAIL
         request = info.context
-        user = getattr(request, "user", None)
+        user = load_user(request)
         if user and not user.is_anonymous:
             user_email = user.email
             root_email = getattr(settings, "ROOT_EMAIL", None)
@@ -43,7 +45,7 @@ class ReadOnlyMiddleware:
                 return next_(root, info, **kwargs)
 
         # Bypass authenticated app as to create an app, root user is required
-        if request.app:
+        if load_app(request):
             return next_(root, info, **kwargs)
 
         for selection in info.operation.selection_set.selections:

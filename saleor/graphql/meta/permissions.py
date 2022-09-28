@@ -25,6 +25,7 @@ from ...core.permissions import (
     ShippingPermissions,
 )
 from ...payment.utils import payment_owned_by_user
+from ..account.dataloaders import load_user
 from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 
@@ -41,6 +42,7 @@ def public_user_permissions(info, user_pk: int) -> List[BasePermissionEnum]:
     Staff user with `MANAGE_STAFF` have access to staff users public metadata.
     """
     user = account_models.User.objects.filter(pk=user_pk).first()
+    context_user = load_user(info.context)
     if not user:
         raise ValidationError(
             {
@@ -49,7 +51,7 @@ def public_user_permissions(info, user_pk: int) -> List[BasePermissionEnum]:
                 )
             }
         )
-    if info.context.user and info.context.user.pk == user.pk:
+    if context_user and context_user.pk == user.pk:
         return []
     if user.is_staff:
         return [AccountPermissions.MANAGE_STAFF]
@@ -133,7 +135,7 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
-    context_user = info.context.user
+    context_user = load_user(info.context)
     app = load_app(info.context)
     if app or (context_user and context_user.is_staff):
         return [PaymentPermissions.HANDLE_PAYMENTS]
@@ -144,7 +146,8 @@ def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum
 
 def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
     app = load_app(info.context)
-    if app is not None or info.context.user.is_staff:
+    user = load_user(info.context)
+    if app is not None or user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
     raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
 

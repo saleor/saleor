@@ -33,6 +33,7 @@ from ....product.utils import delete_categories, get_products_ids_without_varian
 from ....product.utils.variants import generate_and_set_variant_name
 from ....thumbnail import models as thumbnail_models
 from ....warehouse.management import deactivate_preorder_for_variant
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
@@ -772,11 +773,10 @@ class ProductDelete(ModelDeleteMutation):
         ).delete()
 
         app = load_app(info.context)
+        user = load_user(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_product_removed_event(
-                order, info.context.user, app, order_lines
-            )
+            order_events.order_line_product_removed_event(order, user, app, order_lines)
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
@@ -1192,10 +1192,9 @@ class ProductVariantDelete(ModelDeleteMutation):
 
         # run order event for deleted lines
         app = load_app(info.context)
+        user = load_user(info.context)
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_variant_removed_event(
-                order, info.context.user, app, order_lines
-            )
+            order_events.order_line_variant_removed_event(order, user, app, order_lines)
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:

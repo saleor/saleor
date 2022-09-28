@@ -9,6 +9,7 @@ from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..account.dataloaders import load_user
 from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from ..discount.dataloaders import load_discounts
@@ -21,7 +22,7 @@ def resolve_webhook(info, id):
     _, id = from_global_id_or_error(id, Webhook)
     if app:
         return app.webhooks.filter(id=id).first()
-    user = info.context.user
+    user = load_user(info.context)
     if user.has_perm(AppPermission.MANAGE_APPS):
         return models.Webhook.objects.filter(pk=id).first()
     raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
@@ -37,7 +38,7 @@ def resolve_webhook_events():
 @traced_resolver
 def resolve_sample_payload(info, event_name):
     app = load_app(info.context)
-    user = info.context.user
+    user = load_user(info.context)
     required_permission = WebhookEventAsyncType.PERMISSIONS.get(
         event_name, WebhookEventSyncType.PERMISSIONS.get(event_name)
     )

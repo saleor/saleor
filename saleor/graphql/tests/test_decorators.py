@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.auth.models import Permission
 
+from ...core.jwt import create_access_token
 from ...core.permissions import (
     AppPermission,
     CheckoutPermissions,
@@ -8,7 +9,7 @@ from ...core.permissions import (
     get_permissions_from_names,
 )
 from ...core.permissions import permission_required as core_permission_required
-from ..utils import get_user_or_app_from_context
+from ..account.dataloaders import load_requestor
 
 
 @pytest.mark.parametrize(
@@ -45,9 +46,9 @@ def test_permission_required_with_limited_permissions(
     )
     staff_user.effective_permissions = get_permissions_from_names(effective_permissions)
     request = rf.request()
-    request.user = staff_user
-    request.app = None
-    requestor = get_user_or_app_from_context(request)
+    token = create_access_token(staff_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {token}"
+    requestor = load_requestor(request)
     has_perms = core_permission_required(requestor, permissions_required)
     assert has_perms == access_granted
 
@@ -81,8 +82,8 @@ def test_permission_required(
         Permission.objects.filter(codename__in=user_permissions)
     )
     request = rf.request()
-    request.user = staff_user
-    request.app = None
-    requestor = get_user_or_app_from_context(request)
+    token = create_access_token(staff_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {token}"
+    requestor = load_requestor(request)
     has_perms = core_permission_required(requestor, permissions_required)
     assert has_perms == access_granted

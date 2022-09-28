@@ -6,6 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
@@ -80,9 +81,10 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         ):
             # Create event only when we change type or value of the discount
             app = load_app(info.context)
+            user = load_user(info.context)
             events.order_line_discount_updated_event(
                 order=order,
-                user=info.context.user,
+                user=user,
                 app=app,
                 line=order_line,
                 line_before_update=order_line_before_update,

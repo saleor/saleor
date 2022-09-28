@@ -91,10 +91,9 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
     # TODO: move this function from graphql to core
     # from ...graphql.account.dataloaders import load_requestor
     # requestor = load_requestor(context)
-    from ...graphql.utils import get_user_or_app_from_context
+    from ...graphql.account.dataloaders import load_requestor
 
-    requestor = get_user_or_app_from_context(context)
-
+    requestor = load_requestor(context)
     if requestor and permissions:
         perm_checks_results = []
         for permission in permissions:
@@ -106,7 +105,7 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
         for p in authorization_filters:
             perm_fn = resolve_authorization_filter_fn(p)
             if perm_fn:
-                res = perm_fn(context)
+                res = perm_fn(requestor)
                 auth_filters_results.append(bool(res))
         granted_by_authorization_filters = any(auth_filters_results)
 

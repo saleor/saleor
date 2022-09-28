@@ -6,6 +6,7 @@ from graphql import GraphQLError
 from ...core.permissions import ProductPermissions, has_one_of_permissions
 from ...core.tracing import traced_resolver
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ..account.dataloaders import load_requestor
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -20,7 +21,6 @@ from ..translations.mutations import (
     ProductTranslate,
     ProductVariantTranslate,
 )
-from ..utils import get_user_or_app_from_context
 from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
@@ -319,7 +319,7 @@ class ProductQueries(graphene.ObjectType):
         _root, info: graphene.ResolveInfo, *, id=None, slug=None, channel=None
     ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
 
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -343,7 +343,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collections(
         _root, info: graphene.ResolveInfo, *, channel=None, **kwargs
     ):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
@@ -372,7 +372,7 @@ class ProductQueries(graphene.ObjectType):
         _root, info: graphene.ResolveInfo, *, id=None, slug=None, channel=None
     ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
 
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -408,7 +408,7 @@ class ProductQueries(graphene.ObjectType):
                 {"direction": "-", "field": ["search_rank", "id"]}
             )
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
@@ -441,7 +441,7 @@ class ProductQueries(graphene.ObjectType):
         channel=None,
     ):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
@@ -471,7 +471,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variants(
         _root, info: graphene.ResolveInfo, *, ids=None, channel=None, **kwargs
     ):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )

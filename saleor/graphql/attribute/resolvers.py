@@ -1,9 +1,9 @@
 from ...attribute import models
-from ..utils import get_user_or_app_from_context
+from ..account.dataloaders import load_requestor
 
 
 def resolve_attributes(info, qs=None):
-    requestor = get_user_or_app_from_context(info.context)
+    requestor = load_requestor(info.context)
     qs = qs or models.Attribute.objects.get_visible_to_user(requestor)
     return qs.distinct()
 

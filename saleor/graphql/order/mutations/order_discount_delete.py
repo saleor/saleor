@@ -5,6 +5,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.search import update_order_search_vector
 from ....order.utils import invalidate_order_prices, remove_order_discount_from_order
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ..types import Order
@@ -33,13 +34,14 @@ class OrderDiscountDelete(OrderDiscountCommon):
         )
         order = order_discount.order
         app = load_app(info.context)
+        user = load_user(info.context)
 
         cls.validate_order(info, order)
 
         remove_order_discount_from_order(order, order_discount)
         events.order_discount_deleted_event(
             order=order,
-            user=info.context.user,
+            user=user,
             app=app,
             order_discount=order_discount,
         )

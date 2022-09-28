@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import PagePermissions, has_one_of_permissions
 from ...menu import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ..account.dataloaders import load_requestor
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import (
     ChannelContext,
@@ -23,7 +24,6 @@ from ..product.dataloaders import (
 from ..product.types import Category, Collection
 from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
-from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     MenuByIdLoader,
     MenuItemByIdLoader,
@@ -124,7 +124,7 @@ class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
         if not root.node.collection_id:
             return None
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
 
         has_required_permission = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -199,7 +199,7 @@ class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
     @staticmethod
     def resolve_page(root: ChannelContext[models.MenuItem], info):
         if root.node.page_id:
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             requestor_has_access_to_all = (
                 requestor
                 and requestor.is_active

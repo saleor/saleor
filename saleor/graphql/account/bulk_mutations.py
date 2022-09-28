@@ -9,6 +9,7 @@ from ...core.permissions import AccountPermissions
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import AccountError, NonNullList, StaffError
 from ..plugins.dataloaders import load_plugin_manager
+from .dataloaders import load_user
 from .types import User
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 
@@ -75,11 +76,11 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     def clean_instances(cls, info, users):
         errors = defaultdict(list)
 
-        requestor = info.context.user
+        user = load_user(info.context)
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
-        cls.check_if_requestor_can_manage_users(requestor, users, "ids", errors)
+        cls.check_if_requestor_can_manage_users(user, users, "ids", errors)
         cls.check_if_removing_left_not_manageable_permissions(
-            requestor, users, "ids", errors
+            user, users, "ids", errors
         )
         return ValidationError(errors) if errors else {}
 
@@ -111,7 +112,8 @@ class UserBulkSetActive(BaseBulkMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        if info.context.user == instance:
+        user = load_user(info.context)
+        if user == instance:
             raise ValidationError(
                 {
                     "is_active": ValidationError(

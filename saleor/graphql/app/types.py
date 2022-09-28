@@ -11,6 +11,7 @@ from ...core.permissions import (
     AuthorizationFilters,
     message_one_of_permissions_required,
 )
+from ..account.dataloaders import load_requestor
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -23,7 +24,7 @@ from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
-from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..utils import format_permissions_for_display
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader, load_app
@@ -36,8 +37,8 @@ from .resolvers import (
 
 
 def has_required_permission(app: models.App, context):
-    requester = get_user_or_app_from_context(context)
-    if not is_owner_or_has_one_of_perms(requester, app, AppPermission.MANAGE_APPS):
+    requestor = load_requestor(context)
+    if not is_owner_or_has_one_of_perms(requestor, app, AppPermission.MANAGE_APPS):
         raise PermissionDenied(
             permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
         )
@@ -60,8 +61,8 @@ def has_access_to_app_public_meta(root, info) -> bool:
         app_id = app.id if app else None
     if app_id is not None and int(app_id) == root.id:
         return True
-    requester = get_user_or_app_from_context(info.context)
-    return requester.has_perm(AppPermission.MANAGE_APPS)
+    requestor = load_requestor(info.context)
+    return requestor.has_perm(AppPermission.MANAGE_APPS)
 
 
 class AppManifestExtension(graphene.ObjectType):
@@ -130,7 +131,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         if app and app.id == root.app_id:
             app_id = root.app_id
         else:
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if requestor and requestor.has_perm(AppPermission.MANAGE_APPS):
                 app_id = root.app_id
 
@@ -343,7 +344,7 @@ class App(ModelObjectType):
     def __resolve_references(roots: List["App"], info):
         from .resolvers import resolve_apps
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor or not requestor.has_perm(AppPermission.MANAGE_APPS):
             qs = models.App.objects.none()
         else:

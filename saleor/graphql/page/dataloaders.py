@@ -9,9 +9,9 @@ from ...attribute.models import (
 )
 from ...core.permissions import PagePermissions
 from ...page.models import Page, PageType
+from ..account.dataloaders import load_requestor
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader
-from ..utils import get_user_or_app_from_context
 
 
 class PageByIdLoader(DataLoader):
@@ -53,7 +53,7 @@ class PageAttributesByPageTypeIdLoader(DataLoader):
     context_key = "page_attributes_by_pagetype"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active
@@ -96,7 +96,7 @@ class AttributePagesByPageTypeIdLoader(DataLoader):
     context_key = "attributepages_by_pagetype"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active
@@ -120,7 +120,7 @@ class AssignedPageAttributesByPageIdLoader(DataLoader):
     context_key = "assignedpageattributes_by_page"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active

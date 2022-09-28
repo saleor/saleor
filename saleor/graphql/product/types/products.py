@@ -28,6 +28,7 @@ from ....product.utils.variants import get_variant_selection_attributes
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
+from ...account.dataloaders import load_requestor
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
@@ -91,7 +92,6 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
@@ -711,7 +711,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductVariant"], info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
@@ -1032,7 +1032,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         channel_slug = str(root.channel_slug)
         country_code = address.country if address is not None else None
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
 
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1103,7 +1103,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
@@ -1133,7 +1133,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_collections(root: ChannelContext[models.Product], info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
 
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1246,7 +1246,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Product"], info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         channels = defaultdict(set)
         roots_ids = []
         for root in roots:
@@ -1413,7 +1413,7 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = root.products.visible_to_user(requestor, channel)  # type: ignore
@@ -1525,7 +1525,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore
             requestor, root.channel_slug
         )
@@ -1674,7 +1674,7 @@ class Category(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )

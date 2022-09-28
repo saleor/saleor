@@ -13,7 +13,7 @@ from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...plugins.manager import PluginsManager
+from ...core.jwt import create_access_token
 from ...settings import get_host
 from ...webhook.error_codes import WebhookErrorCode
 from ..utils import format_error
@@ -71,7 +71,9 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
     return len(subscriptions) == 1
 
 
-def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
+def initialize_request(
+    requestor=None, requestor_type=None, sync_event=False
+) -> HttpRequest:
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object.
@@ -91,7 +93,13 @@ def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
         request.META["SERVER_PORT"] = "443"
 
     request.sync_event = sync_event  # type: ignore
-    request.requestor = requestor  # type: ignore
+    if requestor_type == "user":
+        token = create_access_token(requestor)
+        request.META["HTTP_AUTHORIZATION"] = f"JWT {token}"
+    elif requestor_type == "app":
+        _, app_token = requestor.tokens.create(name="Default")
+        request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
+
     request.request_time = request_time  # type: ignore
 
     return request
@@ -139,7 +147,8 @@ def generate_payload_from_subscription(
     )
     app_id = app.pk if app else None
 
-    request.app = app  # type: ignore
+    _, app_token = app.tokens.create(name="Default")  # type: ignore
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
 
     results = document.execute(
         allow_subscriptions=True,

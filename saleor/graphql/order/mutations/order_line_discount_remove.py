@@ -4,6 +4,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, remove_discount_from_order_line
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
@@ -51,9 +52,10 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
             order_line, order, manager=manager, tax_included=tax_included
         )
         app = load_app(info.context)
+        user = load_user(info.context)
         events.order_line_discount_removed_event(
             order=order,
-            user=info.context.user,
+            user=user,
             app=app,
             line=order_line,
         )

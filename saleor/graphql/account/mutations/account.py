@@ -23,6 +23,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
+from ..dataloaders import load_user
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User
@@ -185,7 +186,7 @@ class AccountUpdate(BaseCustomerCreate):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         data["id"] = graphene.Node.to_global_id("User", user.id)
         return super().perform_mutation(root, info, **data)
 
@@ -216,7 +217,7 @@ class AccountRequestDeletion(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         redirect_url = data["redirect_url"]
         try:
             validate_storefront_url(redirect_url)
@@ -263,7 +264,7 @@ class AccountDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         cls.clean_instance(info, user)
 
         token = data.pop("token")
@@ -311,7 +312,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         address_type = data.get("type", None)
-        user = info.context.user
+        user = load_user(info.context)
         cleaned_input = cls.clean_input(
             info=info, instance=Address(), data=data.get("input")
         )
@@ -327,7 +328,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        user = info.context.user
+        user = load_user(info.context)
         remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
         user.search_document = search.prepare_user_search_document_value(user)
@@ -389,7 +390,7 @@ class AccountSetDefaultAddress(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         address = cls.get_node_or_error(info, data.get("id"), Address)
-        user = info.context.user
+        user = load_user(info.context)
 
         if not user.addresses.filter(pk=address.pk).exists():
             raise ValidationError(
@@ -439,7 +440,7 @@ class RequestEmailChange(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         password = data["password"]
         new_email = data["new_email"]
         redirect_url = data["redirect_url"]
@@ -527,7 +528,7 @@ class ConfirmEmailChange(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         token = data["token"]
 
         payload = cls.get_token_payload(token)

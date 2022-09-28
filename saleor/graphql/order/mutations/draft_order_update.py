@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import OrderPermissions
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
@@ -59,6 +60,7 @@ class DraftOrderUpdate(DraftOrderCreate):
     def save(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
+        user = load_user(info.context)
         site = load_site(info.context)
         return cls._save_draft_order(
             info,
@@ -68,4 +70,5 @@ class DraftOrderUpdate(DraftOrderCreate):
             app=app,
             site=site,
             manager=manager,
+            user=user,
         )

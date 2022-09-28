@@ -6,6 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
@@ -70,9 +71,10 @@ class OrderDiscountUpdate(OrderDiscountCommon):
             fetch_order_prices_if_expired(order, manager, force_update=True)
             order_discount.refresh_from_db()
             app = load_app(info.context)
+            user = load_user(info.context)
             events.order_discount_updated_event(
                 order=order,
-                user=info.context.user,
+                user=user,
                 app=app,
                 order_discount=order_discount,
                 old_order_discount=order_discount_before_update,

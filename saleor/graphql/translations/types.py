@@ -14,6 +14,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
+from ..account.dataloaders import load_user
 from ..channel import ChannelContext
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
@@ -430,11 +431,8 @@ class PageTranslatableContent(ModelObjectType):
 
     @staticmethod
     def resolve_page(root: page_models.Page, info):
-        return (
-            page_models.Page.objects.visible_to_user(info.context.user)
-            .filter(pk=root.id)
-            .first()
-        )
+        user = load_user(info.context)
+        return page_models.Page.objects.visible_to_user(user).filter(pk=root.id).first()
 
     @staticmethod
     def resolve_content_json(root: page_models.Page, _info):

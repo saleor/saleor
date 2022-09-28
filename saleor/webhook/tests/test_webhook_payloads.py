@@ -18,11 +18,12 @@ from prices import Money
 from ... import __version__
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...core.jwt import create_access_token
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...discount.utils import fetch_active_discounts
-from ...graphql.utils import get_user_or_app_from_context
+from ...graphql.account.dataloaders import load_requestor
 from ...order import OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
@@ -1694,9 +1695,9 @@ def test_generate_excluded_shipping_methods_for_checkout(checkout):
 
 def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
     request = rf.request()
-    request.user = staff_user
-    request.app = None
-    requestor = get_user_or_app_from_context(request)
+    token = create_access_token(staff_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {token}"
+    requestor = load_requestor(request)
 
     assert generate_requestor(requestor) == {
         "id": graphene.Node.to_global_id("User", staff_user.id),
@@ -1706,9 +1707,9 @@ def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, 
 
 def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
     request = rf.request()
-    request.user = None
-    request.app = app
-    requestor = get_user_or_app_from_context(request)
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
+    requestor = load_requestor(request)
 
     assert generate_requestor(requestor) == {"id": app.name, "type": "app"}
 
@@ -1716,9 +1717,9 @@ def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
 @freeze_time("1914-06-28 10:50")
 def test_generate_meta(app, rf):
     request = rf.request()
-    request.app = app
-    request.user = None
-    requestor = get_user_or_app_from_context(request)
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
+    requestor = load_requestor(request)
 
     timestamp = timezone.make_aware(
         datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
@@ -1758,9 +1759,9 @@ def test_generate_transaction_action_request_payload_for_order(
 ):
     # given
     request = rf.request()
-    request.app = app
-    request.user = None
-    requestor = get_user_or_app_from_context(request)
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
+    requestor = load_requestor(request)
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -1834,9 +1835,9 @@ def test_generate_transaction_action_request_payload_for_checkout(
 ):
     # given
     request = rf.request()
-    request.app = app
-    request.user = None
-    requestor = get_user_or_app_from_context(request)
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
+    requestor = load_requestor(request)
 
     transaction = TransactionItem.objects.create(
         status="Authorized",

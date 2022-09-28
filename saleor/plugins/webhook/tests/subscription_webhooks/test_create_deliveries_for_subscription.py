@@ -62,7 +62,7 @@ def test_subscription_query_with_meta(
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, voucher, webhooks, requestor
+        event_type, voucher, webhooks, requestor, requestor_type
     )
 
     # then

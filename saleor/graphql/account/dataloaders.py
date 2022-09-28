@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 import jwt
-from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.auth.models import Permission
 
 from ...account.models import Address, CustomerEvent, User
 from ...core.auth import get_token_from_request
@@ -140,10 +140,13 @@ class RequestorByTokenDataloader(DataLoader):
                 results.append(app)
                 continue
             user = load_user_from_token(self.context, key)
-            if not user:
-                user = AnonymousUser()
             results.append(user)
         return results
+
+
+def load_user(request):
+    token = get_token_from_request(request) or "empty"
+    return load_user_from_token(request, token)
 
 
 def promise_requestor(request):

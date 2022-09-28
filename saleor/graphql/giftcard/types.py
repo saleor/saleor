@@ -14,7 +14,7 @@ from ...core.permissions import (
 )
 from ...core.tracing import traced_resolver
 from ...giftcard import GiftCardEvents, models
-from ..account.dataloaders import UserByUserIdLoader
+from ..account.dataloaders import UserByUserIdLoader, load_requestor
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,
     is_owner_or_has_one_of_perms,
@@ -30,7 +30,6 @@ from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
-from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     GiftCardEventsByGiftCardIdLoader,
     GiftCardTagsByGiftCardIdLoader,
@@ -117,9 +116,9 @@ class GiftCardEvent(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.GiftCardEvent, info):
         def _resolve_user(event_user):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             check_is_owner_or_has_one_of_perms(
-                requester,
+                requestor,
                 event_user,
                 AccountPermissions.MANAGE_USERS,
                 AccountPermissions.MANAGE_STAFF,
@@ -134,9 +133,9 @@ class GiftCardEvent(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.GiftCardEvent, info):
         def _resolve_app(app):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             check_is_owner_or_has_one_of_perms(
-                requester, app, AppPermission.MANAGE_APPS
+                requestor, app, AppPermission.MANAGE_APPS
             )
             return app
 
@@ -360,7 +359,7 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_code(root: models.GiftCard, info):
         def _resolve_code(user):
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             # Gift card code can be fetched by the staff user and app
             # with manage gift card permission and by the card owner.
             if requestor:
@@ -389,7 +388,7 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_created_by(root: models.GiftCard, info):
         def _resolve_created_by(user):
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             check_is_owner_or_has_one_of_perms(
                 requestor, user, AccountPermissions.MANAGE_USERS
             )
@@ -403,7 +402,7 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_used_by(root: models.GiftCard, info):
         def _resolve_used_by(user):
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if is_owner_or_has_one_of_perms(
                 requestor, user, AccountPermissions.MANAGE_USERS
             ):
@@ -421,9 +420,9 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_created_by_email(root: models.GiftCard, info):
         def _resolve_created_by_email(user):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if is_owner_or_has_one_of_perms(
-                requester, user, GiftcardPermissions.MANAGE_GIFT_CARD
+                requestor, user, GiftcardPermissions.MANAGE_GIFT_CARD
             ):
                 return user.email if user else root.created_by_email
             return obfuscate_email(user.email if user else root.created_by_email)
@@ -440,9 +439,9 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_used_by_email(root: models.GiftCard, info):
         def _resolve_used_by_email(user):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if is_owner_or_has_one_of_perms(
-                requester, user, GiftcardPermissions.MANAGE_GIFT_CARD
+                requestor, user, GiftcardPermissions.MANAGE_GIFT_CARD
             ):
                 return user.email if user else root.used_by_email
             return obfuscate_email(user.email if user else root.used_by_email)
@@ -459,9 +458,9 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.GiftCard, info):
         def _resolve_app(app):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             check_is_owner_or_has_one_of_perms(
-                requester, app, AppPermission.MANAGE_APPS
+                requestor, app, AppPermission.MANAGE_APPS
             )
             return app
 
@@ -541,7 +540,7 @@ class GiftCard(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.GiftCard, info):
         def _resolve_user(user):
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if is_owner_or_has_one_of_perms(
                 requestor, user, AccountPermissions.MANAGE_USERS
             ):

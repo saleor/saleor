@@ -1,9 +1,9 @@
 from ...checkout import models
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.tracing import traced_resolver
+from ..account.dataloaders import load_requestor, load_user
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
-from ..utils import get_user_or_app_from_context
 
 
 def resolve_checkout_lines():
@@ -36,12 +36,12 @@ def resolve_checkout(info, token, id):
             return checkout
 
         # resolve checkout for logged-in customer
-        user = info.context.user
+        user = load_user(info.context)
         if user and checkout.user == user:
             return checkout
 
     # resolve checkout for staff user
-    requester = get_user_or_app_from_context(info.context)
+    requester = load_requestor(info.context)
 
     if not requester:
         return None

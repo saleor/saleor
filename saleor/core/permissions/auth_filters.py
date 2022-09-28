@@ -1,17 +1,16 @@
 from .enums import BasePermissionEnum
 
 
-def is_app(context):
-    return bool(context.app)
+def is_app(maybeapp) -> bool:
+    return bool(maybeapp)
 
 
-def is_user(context):
-    user = context.user
-    return user and user.is_active
+def is_user(maybeuser) -> bool:
+    return bool(maybeuser) and maybeuser.is_active
 
 
-def is_staff_user(context):
-    return is_user(context) and context.user.is_staff
+def is_staff_user(maybeuser) -> bool:
+    return is_user(maybeuser) and maybeuser.is_staff
 
 
 class AuthorizationFilters(BasePermissionEnum):

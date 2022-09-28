@@ -10,6 +10,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
@@ -142,6 +143,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         if variants and checkout_lines_data:
             site = load_site(info.context)
+            user = load_user(info.context)
             checkout = add_variants_to_checkout(
                 checkout,
                 variants,
@@ -149,9 +151,7 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout_info.channel,
                 replace=replace,
                 replace_reservations=True,
-                reservation_length=get_reservation_length(
-                    site=site, user=info.context.user
-                ),
+                reservation_length=get_reservation_length(site=site, user=user),
             )
 
         lines, _ = fetch_checkout_lines(checkout)

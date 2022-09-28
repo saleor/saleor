@@ -10,6 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
@@ -245,8 +246,7 @@ class OrderFulfill(BaseMutation):
         site = load_site(info.context)
         cleaned_input = cls.clean_input(info, order, data, site=site)
 
-        context = info.context
-        user = context.user
+        user = load_user(info.context)
         app = load_app(info.context)
         manager = load_plugin_manager(info.context)
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]

@@ -5,8 +5,7 @@ import opentracing.tags
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
-from . import SaleorContext
-from .context import get_database_connection_name
+from .context import SaleorContext, get_database_connection_name
 
 K = TypeVar("K")
 R = TypeVar("R")

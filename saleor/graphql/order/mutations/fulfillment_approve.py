@@ -6,6 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order.actions import approve_fulfillment
 from ....order.error_codes import OrderErrorCode
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
@@ -64,11 +65,12 @@ class FulfillmentApprove(BaseMutation):
         order = fulfillment.order
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
+        user = load_user(info.context)
         site = load_site(info.context)
         try:
             fulfillment = approve_fulfillment(
                 fulfillment,
-                info.context.user,
+                user,
                 app,
                 manager,
                 site.settings,

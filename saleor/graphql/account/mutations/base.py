@@ -17,7 +17,6 @@ from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
-from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
@@ -33,6 +32,7 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError
 from ...plugins.dataloaders import load_plugin_manager
+from ..dataloaders import load_requestor, load_user
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -48,12 +48,13 @@ def check_can_edit_address(context, address):
     - staff with manage users permission
     - customers associated to the given address.
     """
-    requester = get_user_or_app_from_context(context)
-    if requester and requester.has_perm(AccountPermissions.MANAGE_USERS):
+    requestor = load_requestor(context)
+    if requestor and requestor.has_perm(AccountPermissions.MANAGE_USERS):
         return True
     app = load_app(context)
-    if not app and context.user:
-        is_owner = requester.addresses.filter(pk=address.pk).exists()
+    user = load_user(context)
+    if not app and user:
+        is_owner = requestor.addresses.filter(pk=address.pk).exists()
         if is_owner:
             return True
     raise PermissionDenied(
@@ -271,7 +272,7 @@ class PasswordChange(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         old_password = data["old_password"]
         new_password = data["new_password"]
 

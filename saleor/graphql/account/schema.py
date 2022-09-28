@@ -7,6 +7,7 @@ from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
+from .dataloaders import load_user
 from .enums import CountryCodeEnum
 from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
 from .mutations.account import (
@@ -193,7 +194,7 @@ class AccountQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_me(_root, info):
-        user = info.context.user
+        user = load_user(info.context)
         return user if bool(user) else None
 
     @staticmethod

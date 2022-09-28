@@ -175,7 +175,8 @@ def test_api_call_report(
     api_call,
     test_request,
 ):
-    test_request.app = app
+    _, app_token = app.tokens.create(name="Default")
+    test_request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
     api_call.report(), api_call.report()
 
     mock_put_event.assert_called_once()

@@ -5,6 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
+from ..account.dataloaders import load_requestor
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
@@ -14,7 +15,6 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
-from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     TransactionByPaymentIdLoader,
     TransactionEventByTransactionIdLoader,
@@ -216,8 +216,8 @@ class Payment(ModelObjectType):
     @staticmethod
     def resolve_metadata(root: models.Payment, info):
         permissions = public_payment_permissions(info, root.pk)
-        requester = get_user_or_app_from_context(info.context)
-        if not requester.has_perms(permissions):
+        requestor = load_requestor(info.context)
+        if not requestor.has_perms(permissions):
             raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 

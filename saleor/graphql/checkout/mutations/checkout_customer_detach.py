@@ -3,12 +3,12 @@ import graphene
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
+from ...account.dataloaders import load_requestor, load_user
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...plugins.dataloaders import load_plugin_manager
-from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -51,10 +51,11 @@ class CheckoutCustomerDetach(BaseMutation):
             id=id,
             error_class=CheckoutErrorCode,
         )
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if not requestor or not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
             # Raise error if the current user doesn't own the checkout of the given ID.
-            if checkout.user and checkout.user != info.context.user:
+            user = load_user(info.context)
+            if checkout.user and checkout.user != user:
                 raise PermissionDenied(
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )

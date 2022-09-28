@@ -16,7 +16,7 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
-from ..utils import get_user_or_app_from_context
+from ..account.dataloaders import load_requestor
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
 
@@ -100,7 +100,7 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
     if not isinstance(required_permissions, list):
         raise PermissionDenied()
 
-    requester = get_user_or_app_from_context(info.context)
+    requester = load_requestor(info.context)
     if not requester or not requester.has_perms(required_permissions):
         raise PermissionDenied()
 

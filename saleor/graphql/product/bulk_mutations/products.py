@@ -28,6 +28,7 @@ from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...channel import ChannelContext
 from ...channel.types import Channel
@@ -167,11 +168,10 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         ).delete()
 
         app = load_app(info.context)
+        user = load_user(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_product_removed_event(
-                order, info.context.user, app, order_lines
-            )
+            order_events.order_line_product_removed_event(order, user, app, order_lines)
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
@@ -630,11 +630,10 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         ).delete()
 
         app = load_app(info.context)
+        user = load_user(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_variant_removed_event(
-                order, info.context.user, app, order_lines
-            )
+            order_events.order_line_variant_removed_event(order, user, app, order_lines)
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:

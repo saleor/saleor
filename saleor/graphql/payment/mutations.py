@@ -33,6 +33,7 @@ from ...payment.gateway import (
     request_void_action,
 )
 from ...payment.utils import create_payment, is_currency_supported
+from ..account.dataloaders import load_requestor, load_user
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import load_app
 from ..channel.utils import validate_channel
@@ -51,7 +52,6 @@ from ..core.types import common as common_types
 from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..plugins.dataloaders import load_plugin_manager
-from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
@@ -816,9 +816,10 @@ class TransactionCreate(BaseMutation):
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
                 app = load_app(info.context)
+                user = load_user(info.context)
                 transaction_event(
                     order=order_or_checkout_instance,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
@@ -928,9 +929,10 @@ class TransactionUpdate(TransactionCreate):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
                 app = load_app(info.context)
+                user = load_user(info.context)
                 transaction_event(
                     order=instance.order,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
@@ -972,7 +974,7 @@ class TransactionRequestAction(BaseMutation):
     @classmethod
     def check_permissions(cls, context, permissions=None):
         required_permissions = permissions or cls._meta.permissions
-        requestor = get_user_or_app_from_context(context)
+        requestor = load_requestor(context)
         for required_permission in required_permissions:
             # We want to allow to call this mutation for requestor with one of following
             # permission: manage_orders, handle_payments
@@ -1009,10 +1011,11 @@ class TransactionRequestAction(BaseMutation):
             else transaction.checkout.channel.slug
         )
         app = load_app(info.context)
+        user = load_user(info.context)
         manager = load_plugin_manager(info.context)
         action_kwargs = {
             "channel_slug": channel_slug,
-            "user": info.context.user,
+            "user": user,
             "app": app,
             "transaction": transaction,
             "manager": manager,

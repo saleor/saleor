@@ -3,6 +3,7 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseBulkMutation
 from ...core.types import NonNullList, OrderError
@@ -32,10 +33,11 @@ class OrderBulkCancel(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, info, queryset):
         manager = load_plugin_manager(info.context)
+        user = load_user(info.context)
         for order in queryset:
             cancel_order(
                 order=order,
-                user=info.context.user,
+                user=user,
                 app=load_app(info.context),
                 manager=manager,
             )

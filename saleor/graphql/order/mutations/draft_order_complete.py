@@ -17,6 +17,7 @@ from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -129,10 +130,11 @@ class DraftOrderComplete(BaseMutation):
             lines_data=order_lines_info,
         )
         app = load_app(info.context)
+        user = load_user(info.context)
         transaction.on_commit(
             lambda: order_created(
                 order_info=order_info,
-                user=info.context.user,
+                user=user,
                 app=app,
                 manager=manager,
                 from_draft=True,

@@ -8,6 +8,7 @@ from ....order.actions import order_refunded
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_refund_action
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -72,6 +73,7 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
         app = load_app(info.context)
+        user = load_user(info.context)
         manager = load_plugin_manager(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
@@ -82,7 +84,7 @@ class OrderRefund(BaseMutation):
                     manager,
                     refund_value=amount,
                     channel_slug=order.channel.slug,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                 )
             except PaymentError as e:
@@ -96,7 +98,7 @@ class OrderRefund(BaseMutation):
             clean_refund_payment(payment)
             transaction = try_payment_action(
                 order,
-                info.context.user,
+                user,
                 app,
                 payment,
                 gateway.refund,
@@ -110,7 +112,7 @@ class OrderRefund(BaseMutation):
             if transaction.kind == TransactionKind.REFUND:
                 order_refunded(
                     order,
-                    info.context.user,
+                    user,
                     app,
                     amount,
                     payment,

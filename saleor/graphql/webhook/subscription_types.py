@@ -20,7 +20,9 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..account.dataloaders import load_requestor
 from ..account.types import User as UserType
+from ..app.dataloaders import load_app
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
@@ -98,13 +100,11 @@ class Event(graphene.Interface):
 
     @staticmethod
     def resolve_recipient(_root, info):
-        return info.context.app
+        return load_app(info.context)
 
     @staticmethod
     def resolve_issuing_principal(_root, info):
-        if not info.context.requestor:
-            return None
-        return info.context.requestor
+        return load_requestor(info.context)
 
 
 class AddressBase(AbstractType):

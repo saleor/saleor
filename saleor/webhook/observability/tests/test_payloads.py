@@ -234,7 +234,8 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
-    request.app = app
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
     response = JsonResponse({"response": "data"})
     query_a = "query FirstQuery { shop { name } }"
     query_b = "query SecondQuery { shop { name } }"
@@ -261,6 +262,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
                 ("Cookie", "***"),
                 ("Content-Length", "19"),
                 ("Content-Type", "application/json"),
+                ("Authorization", "***"),
             ],
         ),
         app=App(
@@ -296,7 +298,6 @@ def test_generate_api_call_payload_request_not_from_app(rf):
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
-    request.app = None
     response = JsonResponse({"response": "data"})
     payload = generate_api_call_payload(request, response, [], 1024)
 
@@ -310,7 +311,8 @@ def test_generate_api_call_payload_skip_operations_when_size_limit_too_low(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
-    request.app = app
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
     response = JsonResponse({"response": "data"})
     query = "query FirstQuery { shop { name } } query SecondQuery { shop { name } }"
     result = {"data": "result A"}
@@ -341,7 +343,8 @@ def test_generate_api_call_payload_when_too_low_bytes_limit(app, rf):
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
-    request.app = app
+    _, app_token = app.tokens.create(name="Default")
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {app_token}"
     response = JsonResponse({"response": "data"})
     payload = generate_api_call_payload(request, response, [], 1024)
 

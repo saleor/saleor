@@ -7,6 +7,7 @@ from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
@@ -66,6 +67,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
             order, reason, value_type, value
         )
         app = load_app(info.context)
+        user = load_user(info.context)
 
         # Calling refreshing prices because it's set proper discount amount
         # on OrderDiscount.
@@ -74,7 +76,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
         events.order_discount_added_event(
             order=order,
-            user=info.context.user,
+            user=user,
             app=app,
             order_discount=order_discount,
         )

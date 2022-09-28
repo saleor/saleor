@@ -11,9 +11,9 @@ from ....attribute.models import (
     AttributeVariant,
 )
 from ....core.permissions import ProductPermissions
+from ...account.dataloaders import load_requestor
 from ...attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ...core.dataloaders import DataLoader
-from ...utils import get_user_or_app_from_context
 from .products import ProductByIdLoader, ProductVariantByIdLoader
 
 
@@ -29,7 +29,7 @@ class BaseProductAttributesByProductTypeIdLoader(DataLoader):
         if not self.extra_fields:
             self.extra_fields = []
 
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active
@@ -95,7 +95,7 @@ class AttributeProductsByProductTypeIdLoader(DataLoader):
     context_key = "attributeproducts_by_producttype"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active
@@ -119,7 +119,7 @@ class AttributeVariantsByProductTypeIdLoader(DataLoader):
     context_key = "attributevariants_by_producttype"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active
@@ -143,7 +143,7 @@ class AssignedProductAttributesByProductIdLoader(DataLoader):
     context_key = "assignedproductattributes_by_product"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active
@@ -169,7 +169,7 @@ class AssignedVariantAttributesByProductVariantId(DataLoader):
     context_key = "assignedvariantattributes_by_productvariant"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
+        requestor = load_requestor(self.context)
         if (
             requestor
             and requestor.is_active

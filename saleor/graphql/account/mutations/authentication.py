@@ -28,6 +28,7 @@ from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
 from ...plugins.dataloaders import load_plugin_manager
+from ..dataloaders import load_user
 from ..types import User
 
 
@@ -143,8 +144,6 @@ class CreateToken(BaseMutation):
         csrf_token = _get_new_csrf_token()
         refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
         info.context.refresh_token = refresh_token
-        info.context.user = user
-        info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login", "updated_at"])
         return cls(
@@ -318,7 +317,7 @@ class DeactivateAllUserTokens(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        user = info.context.user
+        user = load_user(info.context)
         user.jwt_token_key = get_random_string(length=12)
         user.save(update_fields=["jwt_token_key", "updated_at"])
         return cls()

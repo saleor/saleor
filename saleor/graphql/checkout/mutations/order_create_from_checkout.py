@@ -8,6 +8,7 @@ from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
 from ...core.types import Error, NonNullList
@@ -122,13 +123,14 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
             manager=manager,
         )
         app = load_app(info.context)
+        user = load_user(info.context)
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines=checkout_lines,
                 discounts=discounts,
                 manager=manager,
-                user=info.context.user,
+                user=user,
                 app=app,
                 tracking_code=tracking_code,
                 delete_checkout=data["remove_checkout"],

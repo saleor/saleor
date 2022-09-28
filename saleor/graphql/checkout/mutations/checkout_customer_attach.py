@@ -4,12 +4,12 @@ from django.forms import ValidationError
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
+from ...account.dataloaders import load_requestor, load_user
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...plugins.dataloaders import load_plugin_manager
-from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -61,7 +61,7 @@ class CheckoutCustomerAttach(BaseMutation):
             id=id,
             error_class=CheckoutErrorCode,
         )
-
+        user = load_user(info.context)
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
         if checkout.user_id:
@@ -73,7 +73,7 @@ class CheckoutCustomerAttach(BaseMutation):
             )
 
         if customer_id:
-            requestor = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if not requestor or not requestor.has_perm(
                 AccountPermissions.IMPERSONATE_USER
             ):
@@ -81,7 +81,7 @@ class CheckoutCustomerAttach(BaseMutation):
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
-        elif not info.context.user:
+        elif not user:
             raise ValidationError(
                 {
                     "customer_id": ValidationError(
@@ -92,7 +92,7 @@ class CheckoutCustomerAttach(BaseMutation):
                 }
             )
         else:
-            customer = info.context.user
+            customer = user
 
         checkout.user = customer
         checkout.email = customer.email

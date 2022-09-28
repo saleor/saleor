@@ -20,7 +20,8 @@ from ..app.dataloaders import load_app
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
 from ..plugins.dataloaders import load_plugin_manager
-from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..utils import format_permissions_for_display
+from .dataloaders import load_requestor, load_user
 from .types import Address, AddressValidationData, ChoiceValue, User
 from .utils import (
     get_allowed_fields_camel_case,
@@ -58,21 +59,21 @@ def resolve_staff_users(_info):
 
 @traced_resolver
 def resolve_user(info, id=None, email=None):
-    requester = get_user_or_app_from_context(info.context)
-    if requester:
+    requestor = load_requestor(info.context)
+    if requestor:
         filter_kwargs = {}
         if id:
             _model, filter_kwargs["pk"] = from_global_id_or_error(id, User)
         if email:
             filter_kwargs["email"] = email
-        if requester.has_perms(
+        if requestor.has_perms(
             [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
         ):
             return models.User.objects.filter(**filter_kwargs).first()
-        if requester.has_perm(AccountPermissions.MANAGE_STAFF):
+        if requestor.has_perm(AccountPermissions.MANAGE_STAFF):
             return models.User.objects.staff().filter(**filter_kwargs).first()
         if has_one_of_permissions(
-            requester, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
+            requestor, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
         ):
             return models.User.objects.customers().filter(**filter_kwargs).first()
     return PermissionDenied(
@@ -86,22 +87,22 @@ def resolve_user(info, id=None, email=None):
 
 @traced_resolver
 def resolve_users(info, ids=None, emails=None):
-    requester = get_user_or_app_from_context(info.context)
-    if not requester:
+    requestor = load_requestor(info.context)
+    if not requestor:
         return models.User.objects.none()
 
-    if requester.has_perms(
+    if requestor.has_perms(
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
     ):
         qs = models.User.objects
-    elif requester.has_perm(AccountPermissions.MANAGE_STAFF):
+    elif requestor.has_perm(AccountPermissions.MANAGE_STAFF):
         qs = models.User.objects.staff()
-    elif requester.has_perm(AccountPermissions.MANAGE_USERS):
+    elif requestor.has_perm(AccountPermissions.MANAGE_USERS):
         qs = models.User.objects.customers()
-    elif requester.id:
+    elif requestor.id:
         # If user has no access to all users, we can only return themselves, but
         # only if they are authenticated and one of requested users
-        qs = models.User.objects.filter(id=requester.id)
+        qs = models.User.objects.filter(id=requestor.id)
     else:
         qs = models.User.objects.none()
 
@@ -202,7 +203,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
 
 @traced_resolver
 def resolve_address(info, id):
-    user = info.context.user
+    user = load_user(info.context)
     app = load_app(info.context)
     _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
@@ -215,7 +216,7 @@ def resolve_address(info, id):
 
 
 def resolve_addresses(info, ids):
-    user = info.context.user
+    user = load_user(info.context)
     app = load_app(info.context)
     ids = [
         from_global_id_or_error(address_id, Address, raise_error=True)[1]

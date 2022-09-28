@@ -25,7 +25,6 @@ from ...core.prices import quantize_price
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
-from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderStatus, calculations, models
 from ...order.models import FulfillmentStatus
@@ -47,7 +46,12 @@ from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
-from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
+from ..account.dataloaders import (
+    AddressByIdLoader,
+    UserByUserIdLoader,
+    load_requestor,
+    load_user,
+)
 from ..account.types import User
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,
@@ -274,11 +278,11 @@ class OrderEvent(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.OrderEvent, info):
         def _resolve_user(event_user):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if (
-                requester == event_user
-                or requester.has_perm(AccountPermissions.MANAGE_USERS)
-                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+                requestor == event_user
+                or requestor.has_perm(AccountPermissions.MANAGE_USERS)
+                or requestor.has_perm(AccountPermissions.MANAGE_STAFF)
             ):
                 return event_user
             return None
@@ -290,7 +294,7 @@ class OrderEvent(ModelObjectType):
 
     @staticmethod
     def resolve_app(root: models.OrderEvent, info):
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor,
             root.user,
@@ -753,9 +757,9 @@ class OrderLine(ModelObjectType):
         def requestor_has_access_to_variant(data):
             variant, channel = data
 
-            requester = get_user_or_app_from_context(context)
+            requestor = load_requestor(context)
             has_required_permission = has_one_of_permissions(
-                requester, ALL_PRODUCTS_PERMISSIONS
+                requestor, ALL_PRODUCTS_PERMISSIONS
             )
             if has_required_permission:
                 return ChannelContext(node=variant, channel_slug=channel.slug)
@@ -1114,9 +1118,9 @@ class Order(ModelObjectType):
             else:
                 user, address = data
 
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if root.use_old_id is False or is_owner_or_has_one_of_perms(
-                requester, user, OrderPermissions.MANAGE_ORDERS
+                requestor, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
             return obfuscate_address(address)
@@ -1143,9 +1147,9 @@ class Order(ModelObjectType):
                 address = data
             else:
                 user, address = data
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if root.use_old_id is False or is_owner_or_has_one_of_perms(
-                requester, user, OrderPermissions.MANAGE_ORDERS
+                requestor, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
             return obfuscate_address(address)
@@ -1300,7 +1304,7 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_fulfillments(root: models.Order, info):
         def _resolve_fulfillments(fulfillments):
-            user = info.context.user
+            user = load_user(info.context)
             if user and user.is_staff:
                 return fulfillments
             return filter(
@@ -1449,9 +1453,9 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_user_email(root: models.Order, info):
         def _resolve_user_email(user):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             if root.use_old_id is False or is_owner_or_has_one_of_perms(
-                requester, user, OrderPermissions.MANAGE_ORDERS
+                requestor, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return user.email if user else root.user_email
             return obfuscate_email(user.email if user else root.user_email)
@@ -1468,9 +1472,9 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
-            requester = get_user_or_app_from_context(info.context)
+            requestor = load_requestor(info.context)
             check_is_owner_or_has_one_of_perms(
-                requester,
+                requestor,
                 user,
                 AccountPermissions.MANAGE_USERS,
                 OrderPermissions.MANAGE_ORDERS,
@@ -1572,10 +1576,10 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
-        requester = get_user_or_app_from_context(info.context)
+        requestor = load_requestor(info.context)
         if root.use_old_id is True:
             check_is_owner_or_has_one_of_perms(
-                requester, root.user, OrderPermissions.MANAGE_ORDERS
+                requestor, root.user, OrderPermissions.MANAGE_ORDERS
             )
         return InvoicesByOrderIdLoader(info.context).load(root.id)
 

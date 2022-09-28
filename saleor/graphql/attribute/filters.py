@@ -6,6 +6,7 @@ from ...attribute.models import Attribute, AttributeValue
 from ...core.permissions import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
+from ..account.dataloaders import load_requestor
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
@@ -18,7 +19,6 @@ from ..core.filters import (
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
-from ..utils import get_user_or_app_from_context
 
 
 def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
@@ -102,14 +102,14 @@ class AttributeFilter(MetadataFilterBase):
         return qs.filter(Q(slug__ilike=value) | Q(name__ilike=value))
 
     def filter_in_collection(self, qs, name, value):
-        requestor = get_user_or_app_from_context(self.request)
+        requestor = load_requestor(self.request)
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_attributes_by_product_types(
             qs, name, value, requestor, channel_slug
         )
 
     def filter_in_category(self, qs, name, value):
-        requestor = get_user_or_app_from_context(self.request)
+        requestor = load_requestor(self.request)
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_attributes_by_product_types(
             qs, name, value, requestor, channel_slug

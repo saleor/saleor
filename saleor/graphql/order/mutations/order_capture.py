@@ -7,6 +7,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_charge_action
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -60,6 +61,7 @@ class OrderCapture(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
         app = load_app(info.context)
+        user = load_user(info.context)
         manager = load_plugin_manager(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             try:
@@ -71,7 +73,7 @@ class OrderCapture(BaseMutation):
                     manager=manager,
                     charge_value=amount,
                     channel_slug=order.channel.slug,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                 )
             except PaymentError as e:
@@ -85,7 +87,7 @@ class OrderCapture(BaseMutation):
             clean_order_capture(payment)
             transaction = try_payment_action(
                 order,
-                info.context.user,
+                user,
                 app,
                 payment,
                 gateway.capture,
@@ -101,7 +103,7 @@ class OrderCapture(BaseMutation):
                 site = load_site(info.context)
                 order_captured(
                     order_info,
-                    info.context.user,
+                    user,
                     app,
                     amount,
                     payment,

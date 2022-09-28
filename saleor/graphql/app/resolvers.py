@@ -6,6 +6,7 @@ from ...core.jwt import (
     create_access_token_for_app,
     create_access_token_for_app_extension,
 )
+from ..account.dataloaders import load_user
 from ..core.utils import from_global_id_or_error
 from .enums import AppTypeEnum
 
@@ -22,14 +23,14 @@ def resolve_access_token_for_app(info, root):
     if root.type != AppTypeEnum.THIRDPARTY.value:
         return None
 
-    user = info.context.user
+    user = load_user(info.context)
     if user.is_anonymous or not user.is_staff:
         return None
     return create_access_token_for_app(root, user)
 
 
 def resolve_access_token_for_app_extension(info, root):
-    user = info.context.user
+    user = load_user(info.context)
     if not user:
         return None
     extension_permissions = root.permissions.all()

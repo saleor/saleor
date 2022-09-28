@@ -1,13 +1,14 @@
 from django.core.handlers.base import BaseHandler
 
 from ...graphql.plugins.dataloaders import load_plugin_manager
+from ..jwt import create_access_token
 
 
 def test_plugins_manager_loader_loads_requestor_in_plugin(rf, customer_user, settings):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
     request = rf.request()
-    request.user = customer_user
-    request.app = None
+    token = create_access_token(customer_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {token}"
 
     handler = BaseHandler()
     handler.load_middleware()
@@ -24,8 +25,6 @@ def test_plugins_manager_loader_requestor_in_plugin_when_no_app_and_user_in_req_
 ):
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
     request = rf.request()
-    request.user = None
-    request.app = None
 
     handler = BaseHandler()
     handler.load_middleware()

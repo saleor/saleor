@@ -66,7 +66,7 @@ class WebhookResponse:
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, requestor=None
+    event_type, subscribable_object, webhooks, requestor=None, requestor_type=None
 ) -> List[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
@@ -92,7 +92,9 @@ def create_deliveries_for_subscriptions(
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=initialize_request(
-                requestor, event_type in WebhookEventSyncType.ALL
+                requestor=requestor,
+                requestor_type=requestor_type,
+                sync_event=event_type in WebhookEventSyncType.ALL,
             ),
             app=webhook.app,
         )
@@ -118,7 +120,12 @@ def create_deliveries_for_subscriptions(
 
 
 def create_delivery_for_subscription_sync_event(
-    event_type, subscribable_object, webhook, requestor=None, request=None
+    event_type,
+    subscribable_object,
+    webhook,
+    requestor=None,
+    request=None,
+    requestor_type=None,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -139,7 +146,11 @@ def create_delivery_for_subscription_sync_event(
         return None
 
     if not request:
-        request = initialize_request(requestor, event_type in WebhookEventSyncType.ALL)
+        request = initialize_request(
+            requestor=requestor,
+            requestor_type=requestor_type,
+            sync_event=event_type in WebhookEventSyncType.ALL,
+        )
 
     data = generate_payload_from_subscription(
         event_type=event_type,
@@ -252,6 +263,7 @@ def trigger_all_webhooks_sync(
     parse_response: Callable[[Any], Optional[R]],
     subscribable_object=None,
     requestor=None,
+    requestor_type=None,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -268,14 +280,17 @@ def trigger_all_webhooks_sync(
         if webhook.subscription_query:
             if request_context is None:
                 request_context = initialize_request(
-                    requestor, event_type in WebhookEventSyncType.ALL
+                    requestor=requestor,
+                    requestor_type=requestor_type,
+                    sync_event=event_type in WebhookEventSyncType.ALL,
                 )
             delivery = create_delivery_for_subscription_sync_event(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 webhook=webhook,
-                request=request_context,
                 requestor=requestor,
+                request=request_context,
+                requestor_type=requestor_type,
             )
             if not delivery:
                 return None

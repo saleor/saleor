@@ -18,6 +18,7 @@ from ...core.permissions import (
     has_one_of_permissions,
 )
 from ..app.dataloaders import load_app
+from .dataloaders import load_user
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -32,7 +33,7 @@ class UserDeleteMixin:
 
     @classmethod
     def clean_instance(cls, info, instance):
-        user = info.context.user
+        user = load_user(info.context)
         if instance == user:
             raise ValidationError(
                 {
@@ -73,8 +74,9 @@ class CustomerDeleteMixin(UserDeleteMixin):
     @classmethod
     def post_process(cls, info, deleted_count=1):
         app = load_app(info.context)
+        user = load_user(info.context)
         account_events.customer_deleted_event(
-            staff_user=info.context.user,
+            staff_user=user,
             app=app,
             deleted_count=deleted_count,
         )
@@ -96,12 +98,12 @@ class StaffDeleteMixin(UserDeleteMixin):
     def clean_instance(cls, info, instance):
         errors = defaultdict(list)
 
-        requestor = info.context.user
+        user = load_user(info.context)
 
         cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
-        cls.check_if_requestor_can_manage_users(requestor, [instance], "id", errors)
+        cls.check_if_requestor_can_manage_users(user, [instance], "id", errors)
         cls.check_if_removing_left_not_manageable_permissions(
-            requestor, [instance], "id", errors
+            user, [instance], "id", errors
         )
         if errors:
             raise ValidationError(errors)

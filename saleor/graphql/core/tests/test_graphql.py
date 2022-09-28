@@ -51,7 +51,6 @@ def test_jwt_middleware(client, admin_user):
     response = api_client_post(data={"query": user_details_query})
     repl_data = response.json()
     assert response.status_code == 200
-    assert response.wsgi_request.user == None  # noqa: E711
     assert repl_data["data"]["me"] is None
 
     # test creating a token for admin user
@@ -67,7 +66,6 @@ def test_jwt_middleware(client, admin_user):
     )
     repl_data = response.json()
     assert response.status_code == 200
-    assert response.wsgi_request.user == admin_user
     assert "errors" not in repl_data
     assert repl_data["data"]["me"] == {"email": admin_user.email}
 

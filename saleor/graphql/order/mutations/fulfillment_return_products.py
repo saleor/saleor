@@ -5,6 +5,7 @@ from ....order import FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import create_fulfillments_for_returned_products
 from ....payment import PaymentError
+from ...account.dataloaders import load_user
 from ...app.dataloaders import load_app
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
@@ -156,11 +157,13 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+        app = load_app(info.context)
+        user = load_user(info.context)
         manager = load_plugin_manager(info.context)
+
         try:
-            app = load_app(info.context)
             response = create_fulfillments_for_returned_products(
-                info.context.user,
+                user,
                 app,
                 order,
                 cleaned_input.get("payment"),

@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from ...context import set_app_on_context
+from ...app.dataloaders import load_app
 
 
 def test_app_middleware_accepts_app_requests(app, rf):
@@ -11,10 +11,10 @@ def test_app_middleware_accepts_app_requests(app, rf):
     request.META = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
 
     # when
-    set_app_on_context(request)
+    request_app = load_app(request)
 
     # then
-    assert request.app == app
+    assert request_app == app
 
 
 def test_app_middleware_accepts_saleors_header(app, rf):
@@ -24,10 +24,10 @@ def test_app_middleware_accepts_saleors_header(app, rf):
     request.META = {"HTTP_AUTHORIZATION_BEARER": f"{token}"}
 
     # when
-    set_app_on_context(request)
+    request_app = load_app(request)
 
     # then
-    assert request.app == app
+    assert request_app == app
 
 
 def test_app_middleware_skips_when_token_length_is_different_than_30(
@@ -38,7 +38,7 @@ def test_app_middleware_skips_when_token_length_is_different_than_30(
     request.META = {"HTTP_AUTHORIZATION_BEARER": "a" * 31}
 
     # when
-    set_app_on_context(request)
+    request_app = load_app(request)
 
     # then
-    assert not request.app
+    assert not request_app

@@ -9,6 +9,7 @@ from ....checkout.utils import add_variants_to_checkout
 from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+from ...account.dataloaders import load_user
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import load_app
@@ -255,7 +256,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
-        user = info.context.user
+        user = load_user(info.context)
         channel = data.pop("channel")
         cleaned_input = super().clean_input(info, instance, data)
 
@@ -311,15 +312,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         checkout_lines_data = cleaned_input.get("lines_data")
         if variants and checkout_lines_data:
             site = load_site(info.context)
+            user = load_user(info.context)
             add_variants_to_checkout(
                 instance,
                 variants,
                 checkout_lines_data,
                 channel,
                 site.settings.limit_quantity_per_checkout,
-                reservation_length=get_reservation_length(
-                    site=site, user=info.context.user
-                ),
+                reservation_length=get_reservation_length(site=site, user=user),
             )
 
         # Save addresses
@@ -338,7 +338,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        user = info.context.user
+        user = load_user(info.context)
         if user:
             instance.user = user
         return instance
