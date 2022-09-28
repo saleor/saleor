@@ -25,7 +25,7 @@ def test_reserve_stocks(checkout_line, channel_USD):
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD.slug,
-        RESERVATION_LENGTH,
+        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
     )
 
     stock.refresh_from_db()
@@ -44,7 +44,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            RESERVATION_LENGTH,
+            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
             replace=False,
         )
 
@@ -54,7 +54,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            RESERVATION_LENGTH,
+            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -87,7 +87,7 @@ def test_multiple_stocks_are_reserved_if_single_stock_is_not_enough(
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD.slug,
-        RESERVATION_LENGTH,
+        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
     )
 
     stock.refresh_from_db()
@@ -126,7 +126,7 @@ def test_stocks_reservation_removes_previous_reservations_for_checkout(
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD.slug,
-        RESERVATION_LENGTH,
+        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
     )
 
     with pytest.raises(Reservation.DoesNotExist):
@@ -149,7 +149,7 @@ def test_stock_reservation_fails_if_there_is_not_enough_stock_available(
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            RESERVATION_LENGTH,
+            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -186,7 +186,7 @@ def test_stock_reservation_accounts_for_order_allocations(
             [variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            RESERVATION_LENGTH,
+            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -223,5 +223,5 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
             [variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            RESERVATION_LENGTH,
+            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
         )
