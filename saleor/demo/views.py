@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render
 
-from ..graphql.views import API_PATH, GraphQLView
+from ..graphql.views import GraphQLView
 
 EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 #
@@ -29,8 +29,9 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 
 class DemoGraphQLView(GraphQLView):
     def render_playground(self, request):
+        pwa_origin = settings.PWA_ORIGINS[0]
         ctx = {
             "query": EXAMPLE_QUERY,
-            "api_url": request.build_absolute_uri(str(API_PATH)),
+            "api_url": f"https://{pwa_origin}/graphql/",
         }
         return render(request, "graphql/playground.html", ctx)
