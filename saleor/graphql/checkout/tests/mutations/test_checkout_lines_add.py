@@ -272,6 +272,7 @@ def test_checkout_lines_add_new_variant_updates_other_lines_reservations_expirat
     checkout = checkout_line_with_one_reservation.checkout
     line = checkout_line_with_one_reservation
     reservation = line.reservations.get()
+
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 2
 
@@ -295,6 +296,8 @@ def test_checkout_lines_add_new_variant_updates_other_lines_reservations_expirat
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
+    reservation.refresh_from_db()
+
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
@@ -306,20 +309,10 @@ def test_checkout_lines_add_new_variant_updates_other_lines_reservations_expirat
     assert new_line.quantity == 3
     assert calculate_checkout_quantity(lines) == 5
 
-    updated_reservation = Reservation.objects.get(checkout_line__variant=variant)
-    assert updated_reservation.checkout_line == line
-    assert updated_reservation.quantity_reserved == line.quantity
-    assert updated_reservation.reserved_until > reservation.reserved_until
-
     other_reservation = Reservation.objects.get(checkout_line__variant=variant_other)
     assert other_reservation.checkout_line == new_line
     assert other_reservation.quantity_reserved == new_line.quantity
-    assert other_reservation.reserved_until > reservation.reserved_until
-
-    assert updated_reservation.reserved_until == other_reservation.reserved_until
-
-    with pytest.raises(Reservation.DoesNotExist):
-        reservation.refresh_from_db()
+    assert reservation.reserved_until == other_reservation.reserved_until
 
 
 def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item):

@@ -20,6 +20,7 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 @traced_atomic_transaction()
 def reserve_stocks_and_preorders(
     checkout_lines: Iterable["CheckoutLine"],
+    lines_to_update_reservation_time: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel_slug: str,
@@ -42,15 +43,23 @@ def reserve_stocks_and_preorders(
         else:
             stock_lines.append(line)
 
+    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
+
     if stock_lines:
         reserve_stocks(
             stock_lines,
             stock_variants,
             country_code,
             channel_slug,
-            length_in_minutes,
+            reserved_until,
             replace=replace,
         )
+
+        # Refresh reserved_until for already existing lines
+        if lines_to_update_reservation_time:
+            Reservation.objects.filter(
+                checkout_line__in=lines_to_update_reservation_time
+            ).update(reserved_until=reserved_until)
 
     if preorder_lines:
         reserve_preorders(
@@ -58,9 +67,15 @@ def reserve_stocks_and_preorders(
             preorder_variants,
             country_code,
             channel_slug,
-            length_in_minutes,
+            reserved_until,
             replace=replace,
         )
+
+        # Refresh reserved_until for already existing lines
+        if lines_to_update_reservation_time:
+            PreorderReservation.objects.filter(
+                checkout_line__in=lines_to_update_reservation_time
+            ).update(reserved_until=reserved_until)
 
 
 def reserve_stocks(
@@ -68,7 +83,7 @@ def reserve_stocks(
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel_slug: str,
-    length_in_minutes: int,
+    reserved_until: datetime,
     *,
     replace: bool = True,
 ):
@@ -82,8 +97,6 @@ def reserve_stocks(
     checkout_lines = get_checkout_lines_to_reserve(checkout_lines, variants_map)
     if not checkout_lines:
         return
-
-    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
@@ -213,7 +226,7 @@ def reserve_preorders(
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel_slug: str,
-    length_in_minutes: int,
+    reserved_until: datetime,
     *,
     replace: bool = True,
 ):
@@ -221,8 +234,6 @@ def reserve_preorders(
     variants_ids = [line.variant_id for line in checkout_lines]
     variants = [variant for variant in variants if variant.pk in variants_ids]
     variants_map = {variant.id: variant for variant in variants}
-
-    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
 
     all_variants_channel_listings = (
         ProductVariantChannelListing.objects.filter(variant__in=variants)
