@@ -470,6 +470,15 @@ def _filter_products_is_available(qs, _, value, channel_slug):
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
+def _filter_products_visible_in_listing(qs, _, value, channel_slug):
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))), visible_in_listings=value
+    ).values("product_id")
+
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+
+
 def _filter_variant_price(qs, _, value, channel_slug):
     qs = filter_products_by_variant_price(
         qs, channel_slug, price_lte=value.get("lte"), price_gte=value.get("gte")
@@ -617,6 +626,10 @@ class ProductFilter(MetadataFilterBase):
         method="filter_is_available",
         help_text=f"Filter by available for purchase. {ADDED_IN_38}",
     )
+    listed = django_filters.BooleanFilter(
+        method="filter_listed",
+        help_text=f"Filter by visible in listings. {ADDED_IN_38}",
+    )
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
@@ -690,6 +703,15 @@ class ProductFilter(MetadataFilterBase):
     def filter_is_available(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return _filter_products_is_available(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
+
+    def filter_listed(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_visible_in_listing(
             queryset,
             name,
             value,

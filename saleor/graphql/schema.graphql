@@ -6013,6 +6013,13 @@ input ProductFilterInput {
   Added in Saleor 3.8.
   """
   isAvailable: Boolean
+
+  """
+  Filter by visible in listings. 
+  
+  Added in Saleor 3.8.
+  """
+  listed: Boolean
   price: PriceRangeInput
 
   """Filter by the lowest variant price after discounts."""
