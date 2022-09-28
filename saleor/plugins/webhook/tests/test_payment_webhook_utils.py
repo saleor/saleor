@@ -15,14 +15,21 @@ from ..utils import (
 
 def test_to_payment_app_id(app):
     gateway_id = "example-gateway"
-    payment_app_id = to_payment_app_id(app.id, gateway_id)
-    assert payment_app_id == f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
+    payment_app_id = to_payment_app_id(app.identifier, gateway_id)
+    assert payment_app_id == f"{APP_ID_PREFIX}:{app.identifier}:{gateway_id}"
 
 
-def test_from_payment_app_id():
+def test_from_payment_app_id_from_pk():
     app_id = "app:1:credit-card"
     payment_app_data = from_payment_app_id(app_id)
     assert payment_app_data.app_pk == 1
+    assert payment_app_data.name == "credit-card"
+
+
+def test_from_payment_app_id_from_identifier(app):
+    app_id = f"app:{app.identifier}:credit-card"
+    payment_app_data = from_payment_app_id(app_id)
+    assert payment_app_data.app_identifier == app.identifier
     assert payment_app_data.name == "credit-card"
 
 
@@ -36,7 +43,6 @@ def test_from_payment_app_id():
         "1:1:name",
         f"{APP_ID_PREFIX}:1",
         f"{APP_ID_PREFIX}:1:",
-        f"{APP_ID_PREFIX}:1a:name",
     ],
 )
 def test_from_payment_app_id_invalid(app_id):
@@ -53,8 +59,8 @@ def test_parse_list_payment_gateways_response(app):
             "config": [{"field": "example-key", "value": "example-value"}],
         },
     ]
-    gateways = parse_list_payment_gateways_response(response_data, app.id)
-    assert gateways[0].id == to_payment_app_id(app.id, response_data[0]["id"])
+    gateways = parse_list_payment_gateways_response(response_data, app.identifier)
+    assert gateways[0].id == to_payment_app_id(app.identifier, response_data[0]["id"])
     assert gateways[0].name == response_data[0]["name"]
     assert gateways[0].currencies == response_data[0]["currencies"]
     assert gateways[0].config == response_data[0]["config"]
