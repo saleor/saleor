@@ -631,7 +631,6 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.shipping_price_created(instance)
         cls.call_event(lambda i=instance: manager.shipping_price_created(i))
 
     @classmethod
