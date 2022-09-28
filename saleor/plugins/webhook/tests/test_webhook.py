@@ -1015,7 +1015,6 @@ def test_invoice_sent(
     )
 
 
-
 @freeze_time("2020-03-18 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
