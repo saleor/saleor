@@ -15,7 +15,7 @@ from ..utils import (
 
 def test_to_payment_app_id(app):
     gateway_id = "example-gateway"
-    payment_app_id = to_payment_app_id(app, gateway_id)
+    payment_app_id = to_payment_app_id(app.id, gateway_id)
     assert payment_app_id == f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
 
 
@@ -53,8 +53,8 @@ def test_parse_list_payment_gateways_response(app):
             "config": [{"field": "example-key", "value": "example-value"}],
         },
     ]
-    gateways = parse_list_payment_gateways_response(response_data, app)
-    assert gateways[0].id == to_payment_app_id(app, response_data[0]["id"])
+    gateways = parse_list_payment_gateways_response(response_data, app.id)
+    assert gateways[0].id == to_payment_app_id(app.id, response_data[0]["id"])
     assert gateways[0].name == response_data[0]["name"]
     assert gateways[0].currencies == response_data[0]["currencies"]
     assert gateways[0].config == response_data[0]["config"]
@@ -67,7 +67,7 @@ def test_parse_list_payment_gateways_response_no_id(app):
             "currencies": ["USD", "EUR"],
         },
     ]
-    gateways = parse_list_payment_gateways_response(response_data, app)
+    gateways = parse_list_payment_gateways_response(response_data, app.id)
     assert gateways == []
 
 
@@ -80,7 +80,7 @@ def test_parse_list_payment_gateways_response_dict_response(app):
         "currencies": ["USD", "EUR"],
         "config": [{"field": "example-key", "value": "example-value"}],
     }
-    gateways = parse_list_payment_gateways_response(response_data, app)
+    gateways = parse_list_payment_gateways_response(response_data, app.id)
     assert gateways == []
 
 
