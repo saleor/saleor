@@ -29,7 +29,7 @@ from ....account.search import (
     prepare_user_search_document_value,
 )
 from ....checkout import AddressType
-from ....core.jwt import create_token
+from ....core.jwt import create_access_token, create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
 from ....core.tokens import account_delete_token_generator
@@ -3864,15 +3864,18 @@ def test_staff_delete_all_permissions_manageable(
     assert not User.objects.filter(pk=staff_user1.id).exists()
 
 
-def test_user_delete_errors(staff_user, admin_user):
-    info = Mock(context=Mock(user=staff_user))
+def test_user_delete_errors(staff_user, admin_user, rf):
+    request = rf.request()
+    staff_token = create_access_token(staff_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {staff_token}"
+    info = Mock(context=request)
     with pytest.raises(ValidationError) as e:
         UserDelete.clean_instance(info, staff_user)
 
     msg = "You cannot delete your own account."
     assert e.value.error_dict["id"][0].message == msg
 
-    info = Mock(context=Mock(user=staff_user))
+    info = Mock(context=request)
     with pytest.raises(ValidationError) as e:
         UserDelete.clean_instance(info, admin_user)
 
@@ -3880,15 +3883,21 @@ def test_user_delete_errors(staff_user, admin_user):
     assert e.value.error_dict["id"][0].message == msg
 
 
-def test_staff_delete_errors(staff_user, customer_user, admin_user):
-    info = Mock(context=Mock(user=staff_user, app=None))
+def test_staff_delete_errors(staff_user, customer_user, admin_user, rf):
+    request = rf.request()
+    staff_token = create_access_token(staff_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {staff_token}"
+
+    info = Mock(context=request)
     with pytest.raises(ValidationError) as e:
         StaffDelete.clean_instance(info, customer_user)
     msg = "Cannot delete a non-staff users."
     assert e.value.error_dict["id"][0].message == msg
 
+    admin_token = create_access_token(admin_user)
+    request.META["HTTP_AUTHORIZATION"] = f"JWT {admin_token}"
     # should not raise any errors
-    info = Mock(context=Mock(user=admin_user, app=None))
+    info = Mock(context=request)
     StaffDelete.clean_instance(info, staff_user)
 
 

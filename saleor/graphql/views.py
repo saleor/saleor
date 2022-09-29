@@ -24,6 +24,7 @@ from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
+from .app.dataloaders import load_app
 from .context import get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
@@ -337,13 +338,13 @@ class GraphQLView(View):
                         if should_use_cache_for_scheme:
                             cache.set(key, response)
 
-                    if app := getattr(request, "app", None):
+                    if app := load_app(request):
                         span.set_tag("app.name", app.name)
 
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
-                if app := getattr(request, "app", None):
+                if app := load_app(request):
                     span.set_tag("app.name", app.name)
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.

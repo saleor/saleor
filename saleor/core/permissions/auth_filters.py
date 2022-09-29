@@ -2,11 +2,11 @@ from .enums import BasePermissionEnum
 
 
 def is_app(maybeapp) -> bool:
-    return bool(maybeapp)
+    return "App" in maybeapp.__class__.__name__
 
 
 def is_user(maybeuser) -> bool:
-    return bool(maybeuser) and maybeuser.is_active
+    return bool(maybeuser) and not is_app(maybeuser) and maybeuser.is_active
 
 
 def is_staff_user(maybeuser) -> bool:

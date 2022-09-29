@@ -86,7 +86,8 @@ def one_of_permissions_required(perms: Iterable[Enum]):
 
 
 def _check_staff_member(context):
-    if not is_staff_user(context):
+    user = load_user(context)
+    if not is_staff_user(user):
         raise PermissionDenied(
             message=(
                 "You need to be authenticated as a staff member to perform this action"

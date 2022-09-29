@@ -89,8 +89,6 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
     granted_by_authorization_filters = False
 
     # TODO: move this function from graphql to core
-    # from ...graphql.account.dataloaders import load_requestor
-    # requestor = load_requestor(context)
     from ...graphql.account.dataloaders import load_requestor
 
     requestor = load_requestor(context)

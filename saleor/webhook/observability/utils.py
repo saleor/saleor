@@ -15,6 +15,7 @@ from django.utils import timezone
 from graphql import GraphQLDocument
 from pytimeparse import parse
 
+from ...graphql.app.dataloaders import load_app
 from ..event_types import WebhookEventAsyncType
 from ..utils import get_webhooks_for_event
 from .buffers import get_buffer
@@ -134,7 +135,8 @@ class ApiCall:
         if self._reported or not settings.OBSERVABILITY_ACTIVE:
             return
         only_app_api_call = not settings.OBSERVABILITY_REPORT_ALL_API_CALLS
-        if only_app_api_call and getattr(self.request, "app", None) is None:
+        app = load_app(self.request)
+        if only_app_api_call and app is None:
             return
         if self.response is None:
             logger.error("HttpResponse not provided, observability event dropped.")
