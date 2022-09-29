@@ -56,11 +56,10 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             fetch_catalogue_info(instance)
         )
         cls.call_event(
-            lambda: manager.sale_updated(
-                instance,
-                convert_catalogue_info_to_global_ids(previous_catalogue),
-                current_catalogue,
-            )
+            manager.sale_updated,
+            instance,
+            convert_catalogue_info_to_global_ids(previous_catalogue),
+            current_catalogue,
         )
 
         cls.send_sale_toggle_notification(

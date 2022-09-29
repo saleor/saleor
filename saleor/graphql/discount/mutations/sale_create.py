@@ -103,13 +103,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             fetch_catalogue_info(instance)
         )
 
-        cls.call_event(
-            lambda: manager.sale_created(
-                instance,
-                current_catalogue,
-            )
-        )
-
+        cls.call_event(manager.sale_created, instance, current_catalogue)
         cls.send_sale_toggle_notification(manager, instance, current_catalogue)
 
     @staticmethod
