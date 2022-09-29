@@ -349,8 +349,10 @@ def test_parse_excluded_shipping_methods_response(app):
             },
         ]
     }
+
     # when
     excluded_methods = get_excluded_shipping_methods_from_response(response)
+
     # then
     assert len(excluded_methods) == 2
     assert excluded_methods[0]["id"] == "2"
