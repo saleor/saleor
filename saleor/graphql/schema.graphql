@@ -6008,11 +6008,25 @@ input ProductFilterInput {
   metadata: [MetadataFilter!]
 
   """
+  Filter by published from date. 
+  
+  Added in Saleor 3.8.
+  """
+  publishedFrom: DateTime
+
+  """
   Filter by available for purchase. 
   
   Added in Saleor 3.8.
   """
   isAvailable: Boolean
+
+  """
+  Filter by available for purchase from date. 
+  
+  Added in Saleor 3.8.
+  """
+  availableFrom: DateTime
 
   """
   Filter by visible in listings. 

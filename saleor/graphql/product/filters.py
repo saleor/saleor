@@ -470,6 +470,19 @@ def _filter_products_is_available(qs, _, value, channel_slug):
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
+def _filter_products_channel_field_from_date(qs, _, value, channel_slug, field):
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
+    lookup = {
+        f"{field}__lte": value,
+    }
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))),
+        **lookup,
+    ).values("product_id")
+
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+
+
 def _filter_products_visible_in_listing(qs, _, value, channel_slug):
     channel = Channel.objects.filter(slug=channel_slug).values("pk")
     product_channel_listings = ProductChannelListing.objects.filter(
@@ -622,9 +635,19 @@ class ProductStockFilterInput(graphene.InputObjectType):
 
 class ProductFilter(MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
+    published_from = ObjectTypeFilter(
+        input_class=graphene.DateTime,
+        method="filter_published_from",
+        help_text=f"Filter by published from date. {ADDED_IN_38}",
+    )
     is_available = django_filters.BooleanFilter(
         method="filter_is_available",
         help_text=f"Filter by available for purchase. {ADDED_IN_38}",
+    )
+    available_from = ObjectTypeFilter(
+        input_class=graphene.DateTime,
+        method="filter_available_from",
+        help_text=f"Filter by available for purchase from date. {ADDED_IN_38}",
     )
     listed = django_filters.BooleanFilter(
         method="filter_listed",
@@ -700,6 +723,16 @@ class ProductFilter(MetadataFilterBase):
             channel_slug,
         )
 
+    def filter_published_from(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_channel_field_from_date(
+            queryset,
+            name,
+            value,
+            channel_slug,
+            "published_at",
+        )
+
     def filter_is_available(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return _filter_products_is_available(
@@ -707,6 +740,16 @@ class ProductFilter(MetadataFilterBase):
             name,
             value,
             channel_slug,
+        )
+
+    def filter_available_from(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_channel_field_from_date(
+            queryset,
+            name,
+            value,
+            channel_slug,
+            "available_for_purchase_at",
         )
 
     def filter_listed(self, queryset, name, value):
