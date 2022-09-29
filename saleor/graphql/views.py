@@ -190,7 +190,7 @@ class GraphQLView(View):
                 break
             for additional_ip_header in additional_ip_headers:
                 if request_ips := request.META.get(additional_ip_header):
-                    span.set_tag(f"ip_{additional_ip_header}", request_ips)
+                    span.set_tag(f"ip_{additional_ip_header}", request_ips[:100])
 
             response = self._handle_query(request)
             span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
