@@ -5,14 +5,24 @@ from django.db import migrations
 from ...core.tasks import delete_files_from_storage_task
 
 
+def iter_media_to_delete(qs):
+    for media in qs.iterator():
+        yield media.image.name
+        for thumbnail in media.thumbnails.all():
+            yield thumbnail.image.name
+
+
 def drop_media_to_remove(apps, _schema_editor):
     ProductMedia = apps.get_model("product", "ProductMedia")
-    # delete all related images
     image_paths_to_delete = []
-    for media in ProductMedia.objects.filter(to_remove=True).iterator():
-        image_paths_to_delete.append(media.image.name)
-        for thumbnail in media.thumbnails.all():
-            image_paths_to_delete.append(thumbnail.image.name)
+    item_per_task = 100
+
+    # delete all related images
+    for path in iter_media_to_delete(ProductMedia.objects.filter(to_remove=True)):
+        image_paths_to_delete.append(path)
+        if len(image_paths_to_delete) == item_per_task:
+            delete_files_from_storage_task.delay(image_paths_to_delete)
+            image_paths_to_delete.clear()
 
     if image_paths_to_delete:
         delete_files_from_storage_task.delay(image_paths_to_delete)
