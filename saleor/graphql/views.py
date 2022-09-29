@@ -176,13 +176,11 @@ class GraphQLView(View):
             span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
             span.set_tag("span.type", "web")
 
-            request_ips = []
-            for header in settings.REAL_IP_ENVIRON:
-                ips = request.META.get(header)
-                if ips:
-                    request_ips.extend(ips.split(","))
+            ip_headers = settings.REAL_IP_ENVIRON
+            main_ip_header = ip_headers.pop(0)
 
-            for ip in request_ips:
+            request_ips = request.META.get(main_ip_header.pop(0), "")
+            for ip in request_ips.split(","):
                 if is_valid_ipv4(ip):
                     span.set_tag(opentracing.tags.PEER_HOST_IPV4, ip)
                 elif is_valid_ipv6(ip):
@@ -190,6 +188,9 @@ class GraphQLView(View):
                 else:
                     continue
                 break
+            for additional_ip_header in ip_headers:
+                if request_ips := request.META.get(additional_ip_header):
+                    span.set_tag(f"ip_{additional_ip_header}", request_ips)
 
             response = self._handle_query(request)
             span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
