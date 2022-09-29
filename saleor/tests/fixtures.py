@@ -4560,9 +4560,7 @@ def dummy_address_data(address):
 
 @pytest.fixture
 def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
-    dummy_payment_data.gateway = to_payment_app_id(
-        payment_app.identifier, "credit-card"
-    )
+    dummy_payment_data.gateway = to_payment_app_id(payment_app, "credit-card")
     return dummy_payment_data
 
 
@@ -5150,7 +5148,7 @@ def payment_dummy(db, order_with_lines):
 @pytest.fixture
 def payment(payment_dummy, payment_app):
     gateway_id = "credit-card"
-    gateway = to_payment_app_id(payment_app.identifier, gateway_id)
+    gateway = to_payment_app_id(payment_app, gateway_id)
     payment_dummy.gateway = gateway
     payment_dummy.save()
     return payment_dummy
