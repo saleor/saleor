@@ -64,6 +64,6 @@ class CheckoutLineDelete(BaseMutation):
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
-        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLineDelete(checkout=checkout)

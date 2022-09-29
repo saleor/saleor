@@ -227,7 +227,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
+        cls.call_event(manager.checkout_updated, checkout)
 
     @staticmethod
     def _resolve_delivery_method_type(id_) -> Optional[str]:

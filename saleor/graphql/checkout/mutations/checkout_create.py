@@ -351,6 +351,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             data["input"]["channel"] = channel
         response = super().perform_mutation(_root, info, **data)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda c=response.checkout: manager.checkout_created(c))
+        cls.call_event(manager.checkout_created, response.checkout)
         response.created = True
         return response

@@ -197,7 +197,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
         cls.save(voucher, cleaned_input)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda v=voucher: manager.voucher_updated(voucher))
+        cls.call_event(manager.voucher_updated, voucher)
 
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)

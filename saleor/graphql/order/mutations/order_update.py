@@ -86,4 +86,4 @@ class OrderUpdate(DraftOrderCreate):
                 invalidate_order_prices(instance)
 
             instance.save()
-            cls.call_event(lambda i=instance: manager.order_updated(i))
+            cls.call_event(manager.order_updated, instance)

@@ -41,5 +41,5 @@ class DraftOrderDelete(ModelDeleteMutation):
         manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
-            cls.call_event(lambda o=order: manager.draft_order_deleted(o))
+            cls.call_event(manager.draft_order_deleted, order)
         return response

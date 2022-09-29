@@ -243,7 +243,7 @@ class GiftCardCreate(ModelMutation):
                 channel_slug=cleaned_input["channel"],
                 resending=False,
             )
-        cls.call_event(lambda i=instance: manager.gift_card_created(i))
+        cls.call_event(manager.gift_card_created, instance)
 
     @staticmethod
     def assign_gift_card_tags(instance: models.GiftCard, tags_values: Iterable[str]):
@@ -342,7 +342,7 @@ class GiftCardUpdate(GiftCardCreate):
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.gift_card_updated(i))
+        cls.call_event(manager.gift_card_updated, instance)
         return cls.success_response(instance)
 
     @classmethod
@@ -381,7 +381,7 @@ class GiftCardDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.gift_card_deleted(i))
+        cls.call_event(manager.gift_card_deleted, instance)
 
 
 class GiftCardDeactivate(BaseMutation):
@@ -413,7 +413,7 @@ class GiftCardDeactivate(BaseMutation):
                 app=app,
             )
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda g=gift_card: manager.gift_card_status_changed(g))
+        cls.call_event(manager.gift_card_status_changed, gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
 
@@ -447,7 +447,7 @@ class GiftCardActivate(BaseMutation):
                 app=app,
             )
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda g=gift_card: manager.gift_card_status_changed(g))
+        cls.call_event(manager.gift_card_status_changed, gift_card)
         return GiftCardActivate(gift_card=gift_card)
 
 
@@ -580,5 +580,5 @@ class GiftCardAddNote(BaseMutation):
             message=cleaned_input["message"],
         )
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda g=gift_card: manager.gift_card_updated(g))
+        cls.call_event(manager.gift_card_updated, gift_card)
         return GiftCardAddNote(gift_card=gift_card, event=event)

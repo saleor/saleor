@@ -77,7 +77,7 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.permission_group_created(i))
+        cls.call_event(manager.permission_group_created, instance)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -228,7 +228,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.permission_group_updated(i))
+        cls.call_event(manager.permission_group_updated, instance)
 
     @classmethod
     def clean_input(
@@ -446,7 +446,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.permission_group_deleted(i))
+        cls.call_event(manager.permission_group_deleted, instance)
 
     @classmethod
     def clean_instance(cls, info, instance):

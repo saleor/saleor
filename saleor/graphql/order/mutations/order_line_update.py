@@ -92,7 +92,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             instance.order.save(update_fields=["should_refresh_prices", "weight"])
 
             func = get_webhook_handler_by_order_status(instance.order.status, manager)
-            cls.call_event(lambda o=instance.order: func(o))
+            cls.call_event(func, instance.order)
 
     @classmethod
     def success_response(cls, instance):

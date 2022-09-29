@@ -109,7 +109,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.warehouse_created(i))
+        cls.call_event(manager.warehouse_created, instance)
 
 
 class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
@@ -270,7 +270,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.warehouse_updated(i))
+        cls.call_event(manager.warehouse_updated, instance)
 
 
 class WarehouseDelete(ModelDeleteMutation):
@@ -318,10 +318,10 @@ class WarehouseDelete(ModelDeleteMutation):
 
             cls.post_save_action(info, instance, None)
             for stock in stocks:
-                cls.call_event(lambda s=stock: manager.product_variant_out_of_stock(s))
+                cls.call_event(manager.product_variant_out_of_stock, stock)
         return cls.success_response(instance)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.warehouse_deleted(i))
+        cls.call_event(manager.warehouse_deleted, instance)

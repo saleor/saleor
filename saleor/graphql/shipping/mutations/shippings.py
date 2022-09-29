@@ -366,7 +366,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.shipping_zone_created(i))
+        cls.call_event(manager.shipping_zone_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -394,7 +394,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.shipping_zone_updated(i))
+        cls.call_event(manager.shipping_zone_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -419,7 +419,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.shipping_zone_deleted(i))
+        cls.call_event(manager.shipping_zone_deleted, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -631,7 +631,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.shipping_price_created(i))
+        cls.call_event(manager.shipping_price_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -670,7 +670,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.shipping_price_updated(i))
+        cls.call_event(manager.shipping_price_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -711,7 +711,7 @@ class ShippingPriceDelete(BaseMutation):
         shipping_method.delete()
         shipping_method.id = shipping_method_id
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda: manager.shipping_price_deleted(shipping_method))
+        cls.call_event(manager.shipping_price_deleted, shipping_method)
 
         return ShippingPriceDelete(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
@@ -767,7 +767,7 @@ class ShippingPriceExcludeProducts(BaseMutation):
             (current_excluded_products | product_to_exclude).distinct()
         )
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda: manager.shipping_price_updated(shipping_method))
+        cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
@@ -809,7 +809,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)
             )
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda: manager.shipping_price_updated(shipping_method))
+        cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)

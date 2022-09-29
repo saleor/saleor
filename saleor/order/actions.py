@@ -91,7 +91,7 @@ def order_created(
 ):
     order = order_info.order
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
-    call_event(lambda o=order: manager.order_created(o))
+    call_event(manager.order_created, order)
     payment = order_info.payment
     if payment:
         if order.is_captured():
@@ -130,7 +130,7 @@ def order_confirmed(
     Trigger event, plugin hooks and optionally confirmation email.
     """
     events.order_confirmed_event(order=order, user=user, app=app)
-    call_event(lambda o=order: manager.order_confirmed(o))
+    call_event(manager.order_confirmed, order)
     if send_confirmation_email:
         send_order_confirmed(order, user, app, manager)
 
@@ -165,8 +165,8 @@ def handle_fully_paid_order(
             order, order_lines, site_settings, user, app, manager
         )
 
-    call_event(lambda o=order: manager.order_fully_paid(o))
-    call_event(lambda o=order: manager.order_updated(o))
+    call_event(manager.order_fully_paid, order)
+    call_event(manager.order_updated, order)
 
 
 def cancel_order(
@@ -186,8 +186,8 @@ def cancel_order(
         order.status = OrderStatus.CANCELED
         order.save(update_fields=["status", "updated_at"])
 
-        call_event(lambda o=order: manager.order_cancelled(o))
-        call_event(lambda o=order: manager.order_updated(o))
+        call_event(manager.order_cancelled, order)
+        call_event(manager.order_updated, order)
 
         transaction.on_commit(
             lambda: send_order_canceled_confirmation(order, user, app, manager)
@@ -205,7 +205,7 @@ def order_refunded(
     events.payment_refunded_event(
         order=order, user=user, app=app, amount=amount, payment=payment
     )
-    call_event(lambda o=order: manager.order_updated(o))
+    call_event(manager.order_updated, order)
 
     send_order_refunded_confirmation(
         order, user, app, amount, payment.currency, manager
@@ -220,7 +220,7 @@ def order_voided(
     manager: "PluginsManager",
 ):
     events.payment_voided_event(order=order, user=user, app=app, payment=payment)
-    call_event(lambda o=order: manager.order_updated(o))
+    call_event(manager.order_updated, order)
 
 
 def order_returned(
@@ -261,15 +261,15 @@ def order_fulfilled(
         events.fulfillment_fulfilled_items_event(
             order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
         )
-        call_event(lambda o=order: manager.order_updated(o))
+        call_event(manager.order_updated, order)
 
         for fulfillment in fulfillments:
-            call_event(lambda f=fulfillment: manager.fulfillment_created(f))
+            call_event(manager.fulfillment_created, fulfillment)
 
         if order.status == OrderStatus.FULFILLED:
-            call_event(lambda o=order: manager.order_fulfilled(o))
+            call_event(manager.order_fulfilled, order)
             for fulfillment in fulfillments:
-                call_event(lambda f=fulfillment: manager.fulfillment_approved(f))
+                call_event(manager.fulfillment_approved, fulfillment)
 
     if notify_customer:
         for fulfillment in fulfillments:
@@ -293,7 +293,7 @@ def order_awaits_fulfillment_approval(
     events.fulfillment_awaits_approval_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
-    call_event(lambda o=order: manager.order_updated(o))
+    call_event(manager.order_updated, order)
 
 
 def order_authorized(
@@ -307,7 +307,7 @@ def order_authorized(
     events.payment_authorized_event(
         order=order, user=user, app=app, amount=amount, payment=payment
     )
-    call_event(lambda o=order: manager.order_updated(o))
+    call_event(manager.order_updated, order)
 
 
 def order_captured(
@@ -323,7 +323,7 @@ def order_captured(
     events.payment_captured_event(
         order=order, user=user, app=app, amount=amount, payment=payment
     )
-    call_event(lambda o=order: manager.order_updated(o))
+    call_event(manager.order_updated, order)
     if order.is_fully_paid():
         handle_fully_paid_order(manager, order_info, user, app, site_settings)
 
@@ -342,8 +342,8 @@ def fulfillment_tracking_updated(
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )
-    call_event(lambda f=fulfillment: manager.tracking_number_updated(f))
-    call_event(lambda o=fulfillment.order: manager.order_updated(o))
+    call_event(manager.tracking_number_updated, fulfillment)
+    call_event(manager.order_updated, fulfillment.order)
 
 
 def cancel_fulfillment(
@@ -374,8 +374,8 @@ def cancel_fulfillment(
         fulfillment.status = FulfillmentStatus.CANCELED
         fulfillment.save(update_fields=["status"])
         update_order_status(fulfillment.order)
-        call_event(lambda f=fulfillment: manager.fulfillment_canceled(f))
-        call_event(lambda o=fulfillment.order: manager.order_updated(o))
+        call_event(manager.fulfillment_canceled, fulfillment)
+        call_event(manager.order_updated, fulfillment.order)
     return fulfillment
 
 
@@ -403,8 +403,8 @@ def cancel_waiting_fulfillment(
 
         fulfillment.delete()
         update_order_status(fulfillment.order)
-        call_event(lambda f=fulfillment: manager.fulfillment_canceled(f))
-        call_event(lambda o=fulfillment.order: manager.order_updated(o))
+        call_event(manager.fulfillment_canceled, fulfillment)
+        call_event(manager.order_updated, fulfillment.order)
 
 
 def approve_fulfillment(
@@ -480,9 +480,9 @@ def approve_fulfillment(
         order.refresh_from_db()
         update_order_status(order)
 
-        call_event(lambda o=order: manager.order_updated(o))
+        call_event(manager.order_updated, order)
         if order.status == OrderStatus.FULFILLED:
-            call_event(lambda o=order: manager.order_fulfilled(o))
+            call_event(manager.order_fulfilled, order)
             transaction.on_commit(lambda f=fulfillment: manager.fulfillment_approved(f))
 
         if gift_card_lines_info:
@@ -543,8 +543,8 @@ def mark_order_as_paid(
             transaction_reference=external_reference,
         )
 
-        call_event(lambda o=order: manager.order_fully_paid(o))
-        call_event(lambda o=order: manager.order_updated(o))
+        call_event(manager.order_fully_paid, order)
+        call_event(manager.order_updated, order)
 
         update_order_charge_data(
             order,
@@ -843,7 +843,7 @@ def create_fulfillments(
                 )
             )
             if tracking_number:
-                call_event(lambda f=fulfillment: manager.tracking_number_updated(f))
+                call_event(manager.tracking_number_updated, fulfillment)
 
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
         order.refresh_from_db()
@@ -1089,7 +1089,7 @@ def create_refund_fulfillment(
                 FulfillmentStatus.WAITING_FOR_APPROVAL,
             ],
         ).delete()
-        call_event(lambda o=order: manager.order_updated(o))
+        call_event(manager.order_updated, order)
 
     return refunded_fulfillment
 
@@ -1455,7 +1455,7 @@ def create_fulfillments_for_returned_products(
             ],
         ).delete()
 
-        call_event(lambda o=order: manager.order_updated(o))
+        call_event(manager.order_updated, order)
     return return_fulfillment, replace_fulfillment, new_order
 
 

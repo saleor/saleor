@@ -193,7 +193,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.customer_deleted(instance))
+        cls.call_event(manager.customer_deleted, instance)
 
 
 class StaffCreate(ModelMutation):
@@ -310,7 +310,7 @@ class StaffCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.staff_created(i))
+        cls.call_event(manager.staff_created, instance)
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -485,7 +485,7 @@ class StaffUpdate(StaffCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.staff_updated(i))
+        cls.call_event(manager.staff_updated, instance)
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
@@ -516,7 +516,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
 
         response = cls.success_response(instance)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.staff_deleted(i))
+        cls.call_event(manager.staff_deleted, instance)
 
         return response
 
@@ -561,7 +561,7 @@ class AddressCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.address_created(i))
+        cls.call_event(manager.address_created, instance)
 
 
 class AddressUpdate(BaseAddressUpdate):
@@ -623,7 +623,7 @@ class AddressSetDefault(BaseMutation):
             address_type = AddressType.SHIPPING
         manager = load_plugin_manager(info.context)
         utils.change_user_default_address(user, address, address_type, manager)
-        cls.call_event(lambda u=user: manager.customer_updated(u))
+        cls.call_event(manager.customer_updated, user)
         return cls(user=user)
 
 

@@ -120,4 +120,4 @@ class VoucherCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.voucher_created(instance))
+        cls.call_event(manager.voucher_created, instance)

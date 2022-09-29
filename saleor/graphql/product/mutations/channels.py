@@ -334,7 +334,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
             product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
             manager = load_plugin_manager(info.context)
-            cls.call_event(lambda p=product: manager.product_updated(p))
+            cls.call_event(manager.product_updated, product)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -508,7 +508,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 )
             update_product_discounted_price_task.delay(variant.product_id)
             manager = load_plugin_manager(info.context)
-            cls.call_event(lambda: manager.product_variant_updated(variant))
+            cls.call_event(manager.product_variant_updated, variant)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):

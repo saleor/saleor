@@ -134,7 +134,7 @@ class MenuCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.menu_created(i))
+        cls.call_event(manager.menu_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -165,7 +165,7 @@ class MenuUpdate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.menu_updated(i))
+        cls.call_event(manager.menu_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -188,7 +188,7 @@ class MenuDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.menu_deleted(i))
+        cls.call_event(manager.menu_deleted, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -237,7 +237,7 @@ class MenuItemCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.menu_item_created(i))
+        cls.call_event(manager.menu_item_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -299,7 +299,7 @@ class MenuItemUpdate(MenuItemCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.menu_item_updated(i))
+        cls.call_event(manager.menu_item_updated, instance)
 
 
 class MenuItemDelete(ModelDeleteMutation):
@@ -317,7 +317,7 @@ class MenuItemDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.menu_item_deleted(i))
+        cls.call_event(manager.menu_item_deleted, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -486,7 +486,7 @@ class MenuItemMove(BaseMutation):
                     )
 
                 if operation.sort_order or operation.parent_changed:
-                    cls.call_event(lambda m=menu_item: manager.menu_item_updated(m))
+                    cls.call_event(manager.menu_item_updated, menu_item)
 
         menu = qs.get(pk=menu.pk)
         MenuItemsByParentMenuLoader(info.context).clear(menu.id)

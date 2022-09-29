@@ -121,7 +121,7 @@ class ChannelCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.channel_created(i))
+        cls.call_event(manager.channel_created, instance)
 
 
 class ChannelUpdateInput(ChannelInput):
@@ -243,7 +243,7 @@ class ChannelUpdate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.channel_updated(i))
+        cls.call_event(manager.channel_updated, instance)
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
@@ -334,7 +334,7 @@ class ChannelDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.channel_deleted(i))
+        cls.call_event(manager.channel_deleted, instance)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -503,7 +503,7 @@ class ChannelActivate(BaseMutation):
         channel.is_active = True
         channel.save(update_fields=["is_active"])
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda c=channel: manager.channel_status_changed(c))
+        cls.call_event(manager.channel_status_changed, channel)
         return ChannelActivate(channel=channel)
 
 
@@ -538,7 +538,7 @@ class ChannelDeactivate(BaseMutation):
         channel.is_active = False
         channel.save(update_fields=["is_active"])
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda c=channel: manager.channel_status_changed(c))
+        cls.call_event(manager.channel_status_changed, channel)
         return ChannelDeactivate(channel=channel)
 
 

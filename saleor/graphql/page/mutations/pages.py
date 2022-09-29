@@ -135,7 +135,7 @@ class PageCreate(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.page_created(i))
+        cls.call_event(manager.page_created, instance)
 
 
 class PageUpdate(PageCreate):
@@ -165,7 +165,7 @@ class PageUpdate(PageCreate):
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.page_updated(i))
+        cls.call_event(manager.page_updated, instance)
 
 
 class PageDelete(ModelDeleteMutation):
@@ -187,7 +187,7 @@ class PageDelete(ModelDeleteMutation):
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(page)
             response = super().perform_mutation(_root, info, **data)
-            cls.call_event(lambda p=page: manager.page_deleted(p))
+            cls.call_event(manager.page_deleted, page)
         return response
 
     @staticmethod
@@ -286,7 +286,7 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.page_type_created(i))
+        cls.call_event(manager.page_type_created, instance)
 
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
@@ -347,7 +347,7 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.page_type_updated(i))
+        cls.call_event(manager.page_type_updated, instance)
 
 
 class PageTypeDelete(ModelDeleteMutation):
@@ -382,4 +382,4 @@ class PageTypeDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda i=instance: manager.page_type_deleted(i))
+        cls.call_event(manager.page_type_deleted, instance)

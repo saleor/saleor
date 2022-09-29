@@ -70,6 +70,6 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
 
         if input_data:
             manager = load_plugin_manager(info.context)
-            cls.call_event(lambda v=voucher: manager.voucher_updated(v))
+            cls.call_event(manager.voucher_updated, voucher)
 
         return VoucherAddCatalogues(voucher=voucher)

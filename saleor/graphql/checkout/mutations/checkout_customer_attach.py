@@ -96,5 +96,5 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda c=checkout: manager.checkout_updated(c))
+        cls.call_event(manager.checkout_updated, checkout)
         return CheckoutCustomerAttach(checkout=checkout)

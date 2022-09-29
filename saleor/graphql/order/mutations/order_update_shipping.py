@@ -156,5 +156,5 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             ]
         )
         # Post-process the results
-        cls.call_event(lambda o=order: manager.order_updated(o))
+        cls.call_event(manager.order_updated, order)
         return OrderUpdateShipping(order=order)

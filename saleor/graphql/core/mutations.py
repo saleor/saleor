@@ -406,6 +406,7 @@ class BaseMutation(graphene.Mutation):
 
     @staticmethod
     def call_event(func_obj, *func_args):
+        """"""
         connection = transaction.get_connection()
         if connection.in_atomic_block:
             transaction.on_commit(lambda: func_obj(*func_args))

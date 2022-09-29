@@ -188,7 +188,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 ]
             )
             func = get_webhook_handler_by_order_status(order.status, manager)
-            cls.call_event(lambda o=order: func(o))
+            cls.call_event(func, order)
 
         return OrderLinesCreate(order=order, order_lines=added_lines)
 

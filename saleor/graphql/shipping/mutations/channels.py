@@ -253,7 +253,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
         cls.save(info, shipping_method, cleaned_input)
         manager = load_plugin_manager(info.context)
-        cls.call_event(lambda: manager.shipping_price_updated(shipping_method))
+        cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingMethodChannelListingUpdate(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)

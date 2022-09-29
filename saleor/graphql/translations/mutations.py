@@ -124,9 +124,9 @@ class BaseTranslateMutation(ModelMutation):
         manager = load_plugin_manager(info.context)
 
         if created:
-            cls.call_event(lambda t=translation: manager.translation_created(t))
+            cls.call_event(manager.translation_created, translation)
         else:
-            cls.call_event(lambda t=translation: manager.translation_updated(t))
+            cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: instance})
 
@@ -206,9 +206,9 @@ class ProductTranslate(BaseTranslateMutation):
             )
             product = ChannelContext(node=product, channel_slug=None)
             if created:
-                cls.call_event(lambda t=translation: manager.translation_created(t))
+                cls.call_event(manager.translation_created, translation)
             else:
-                cls.call_event(lambda t=translation: manager.translation_updated(t))
+                cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: product})
 
@@ -272,12 +272,12 @@ class ProductVariantTranslate(BaseTranslateMutation):
                 language_code=data["language_code"], defaults=data["input"]
             )
             variant = ChannelContext(node=variant, channel_slug=None)
-        cls.call_event(lambda v=variant.node: manager.product_variant_updated(v))
+        cls.call_event(manager.product_variant_updated, variant.node)
 
         if created:
-            cls.call_event(lambda t=translation: manager.translation_created(t))
+            cls.call_event(manager.translation_created, translation)
         else:
-            cls.call_event(lambda t=translation: manager.translation_updated(t))
+            cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: variant})
 
@@ -491,8 +491,8 @@ class ShopSettingsTranslate(BaseMutation):
             )
 
         if created:
-            cls.call_event(lambda t=translation: manager.translation_created(t))
+            cls.call_event(manager.translation_created, translation)
         else:
-            cls.call_event(lambda t=translation: manager.translation_updated(t))
+            cls.call_event(manager.translation_updated, translation)
 
         return ShopSettingsTranslate(shop=Shop())
