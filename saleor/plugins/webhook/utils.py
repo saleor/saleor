@@ -37,7 +37,8 @@ class PaymentAppData:
     name: str
 
 
-def to_payment_app_id(app_identifier: str, gateway_id: str) -> "str":
+def to_payment_app_id(app: "App", gateway_id: str) -> "str":
+    app_identifier = app.identifier or app.id
     return f"{APP_ID_PREFIX}:{app_identifier}:{gateway_id}"
 
 
@@ -58,7 +59,7 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
 
 
 def parse_list_payment_gateways_response(
-    response_data: Any, app_identifier: str
+    response_data: Any, app: "App"
 ) -> List["PaymentGateway"]:
     gateways: List[PaymentGateway] = []
     if not isinstance(response_data, list):
@@ -73,7 +74,7 @@ def parse_list_payment_gateways_response(
         if gateway_id:
             gateways.append(
                 PaymentGateway(
-                    id=to_payment_app_id(app_identifier, gateway_id),
+                    id=to_payment_app_id(app, gateway_id),
                     name=gateway_name,
                     currencies=gateway_currencies,
                     config=gateway_config,

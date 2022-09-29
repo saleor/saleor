@@ -1269,7 +1269,7 @@ class WebhookPlugin(BasePlugin):
             )
             if response_data:
                 app_gateways = parse_list_payment_gateways_response(
-                    response_data, webhook.app.identifier  # type: ignore
+                    response_data, webhook.app
                 )
                 if currency:
                     app_gateways = [
