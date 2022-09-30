@@ -216,14 +216,15 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        remove_users = cleaned_data.get("remove_users")
         with traced_atomic_transaction():
-            if remove_users:
-                instance.user_set.remove(*remove_users)
-            remove_permissions = cleaned_data.get("remove_permissions")
-            if remove_permissions:
-                instance.permissions.remove(*remove_permissions)
+            super()._save_m2m(info, instance, cleaned_data)
+            remove_users = cleaned_data.get("remove_users")
+            with traced_atomic_transaction():
+                if remove_users:
+                    instance.user_set.remove(*remove_users)
+                remove_permissions = cleaned_data.get("remove_permissions")
+                if remove_permissions:
+                    instance.permissions.remove(*remove_permissions)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):

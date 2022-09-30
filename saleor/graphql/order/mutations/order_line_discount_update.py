@@ -63,6 +63,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         site = load_site(info.context)
         order_line_before_update = copy.deepcopy(order_line)
         tax_included = site.settings.include_taxes_in_prices
+        app = load_app(info.context)
         with traced_atomic_transaction():
             update_discount_for_order_line(
                 order_line,
@@ -78,7 +79,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
                 or order_line_before_update.unit_discount_type != value_type
             ):
                 # Create event only when we change type or value of the discount
-                app = load_app(info.context)
                 events.order_line_discount_updated_event(
                     order=order,
                     user=info.context.user,

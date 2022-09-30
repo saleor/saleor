@@ -462,8 +462,8 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
         with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
             add_groups = cleaned_data.get("add_groups")
             if add_groups:
                 instance.groups.add(*add_groups)
