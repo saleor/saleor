@@ -469,14 +469,15 @@ class ProductVariantBulkCreate(BaseMutation):
         sku_list = []
         used_attribute_values = get_used_variants_attribute_values(product)
         for index, variant_data in enumerate(variants):
-            try:
-                cls.validate_duplicated_attribute_values(
-                    variant_data.attributes, used_attribute_values
-                )
-            except ValidationError as exc:
-                errors["attributes"].append(
-                    ValidationError(exc.message, exc.code, params={"index": index})
-                )
+            if variant_data.attributes:
+                try:
+                    cls.validate_duplicated_attribute_values(
+                        variant_data.attributes, used_attribute_values
+                    )
+                except ValidationError as exc:
+                    errors["attributes"].append(
+                        ValidationError(exc.message, exc.code, params={"index": index})
+                    )
 
             variant_data["product_type"] = product.product_type
             variant_data["product"] = product
