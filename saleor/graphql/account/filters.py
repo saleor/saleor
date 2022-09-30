@@ -53,7 +53,7 @@ def filter_search(qs, _, value):
 
 class CustomerFilter(MetadataFilterBase):
     ids = GlobalIDMultipleChoiceFilter(
-        field_name="id", help_text=f"Filter by ids {ADDED_IN_38}"
+        field_name="id", help_text=f"Filter by ids. {ADDED_IN_38}"
     )
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined

@@ -10795,7 +10795,7 @@ input CustomerFilterInput {
   metadata: [MetadataFilter!]
 
   """
-  Filter by ids 
+  Filter by ids. 
   
   Added in Saleor 3.8.
   """
