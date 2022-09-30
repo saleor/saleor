@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
+- Add base shipping price to `Order` - #10771 by @fowczarek
+
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ

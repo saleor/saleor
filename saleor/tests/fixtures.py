@@ -638,6 +638,19 @@ def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
 
 
 @pytest.fixture
+def checkout_with_voucher_free_shipping(
+    checkout_with_items_and_shipping, voucher_free_shipping
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_items_and_shipping)
+    checkout_info = fetch_checkout_info(
+        checkout_with_items_and_shipping, lines, [], manager
+    )
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping, [])
+    return checkout_with_items_and_shipping
+
+
+@pytest.fixture
 def checkout_with_gift_card(checkout_with_item, gift_card):
     checkout_with_item.gift_cards.add(gift_card)
     checkout_with_item.save()
@@ -3896,6 +3909,7 @@ def order_with_lines(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.base_shipping_price = net
     order.save()
 
     recalculate_order(order)
@@ -4168,6 +4182,7 @@ def order_with_lines_channel_PLN(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.base_shipping_price = net
     order.save()
 
     recalculate_order(order)
@@ -4279,6 +4294,7 @@ def order_with_preorder_lines(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.base_shipping_price = net
     order.save()
 
     recalculate_order(order)
