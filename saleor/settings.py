@@ -445,8 +445,10 @@ AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
 AWS_S3_FILE_OVERWRITE = get_bool_from_env("AWS_S3_FILE_OVERWRITE", True)
 
 # Google Cloud Storage configuration
+# See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_LOCATION = os.environ.get("GS_LOCATION", "")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
