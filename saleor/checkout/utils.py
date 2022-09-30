@@ -400,7 +400,7 @@ def _get_shipping_voucher_discount_for_checkout(
             msg = "This offer is not valid in your country."
             raise NotApplicable(msg)
 
-    shipping_price = base_calculations.base_checkout_delivery_price(
+    shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines
     )
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)

@@ -183,7 +183,7 @@ class Order(ModelWithMetadata):
     shipping_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
         editable=False,
     )
     shipping_price_net = MoneyField(
@@ -193,7 +193,7 @@ class Order(ModelWithMetadata):
     shipping_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
         editable=False,
     )
     shipping_price_gross = MoneyField(
@@ -205,6 +205,14 @@ class Order(ModelWithMetadata):
         gross_amount_field="shipping_price_gross_amount",
         currency_field="currency",
     )
+    base_shipping_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0.0"),
+    )
+    base_shipping_price = MoneyField(
+        amount_field="base_shipping_price_amount", currency_field="currency"
+    )
     shipping_tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
@@ -215,12 +223,12 @@ class Order(ModelWithMetadata):
     total_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_total_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
 
     total_net = MoneyField(amount_field="total_net_amount", currency_field="currency")
@@ -231,12 +239,12 @@ class Order(ModelWithMetadata):
     total_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_total_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
 
     total_gross = MoneyField(
@@ -260,12 +268,12 @@ class Order(ModelWithMetadata):
     total_charged_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     total_authorized_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     total_authorized = MoneyField(
         amount_field="total_authorized_amount", currency_field="currency"
@@ -489,7 +497,7 @@ class OrderLine(ModelWithMetadata):
     unit_discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     unit_discount = MoneyField(
         amount_field="unit_discount_amount", currency_field="currency"
@@ -556,12 +564,12 @@ class OrderLine(ModelWithMetadata):
     undiscounted_unit_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_unit_price = TaxedMoneyField(
         net_amount_field="undiscounted_unit_price_net_amount",
@@ -572,12 +580,12 @@ class OrderLine(ModelWithMetadata):
     undiscounted_total_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_total_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_total_price = TaxedMoneyField(
         net_amount_field="undiscounted_total_price_net_amount",
@@ -588,7 +596,7 @@ class OrderLine(ModelWithMetadata):
     base_unit_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     base_unit_price = MoneyField(
         amount_field="base_unit_price_amount", currency_field="currency"
@@ -597,7 +605,7 @@ class OrderLine(ModelWithMetadata):
     undiscounted_base_unit_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     undiscounted_base_unit_price = MoneyField(
         amount_field="undiscounted_base_unit_price_amount", currency_field="currency"

@@ -12,15 +12,9 @@ if TYPE_CHECKING:
     from .models import Order, OrderLine
 
 
+# We need this function to don't break Avalara Excise.
 def base_order_shipping(order: "Order") -> Money:
-    if not order.shipping_method:
-        return zero_money(order.currency)
-    channel_listing = order.shipping_method.channel_listings.filter(
-        channel_id=order.channel_id
-    ).first()
-    if not channel_listing:
-        return zero_money(order.currency)
-    return channel_listing.price
+    return order.base_shipping_price
 
 
 def _base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
@@ -46,7 +40,7 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     """
     currency = order.currency
     subtotal = _base_order_subtotal(order, lines)
-    shipping_price = base_order_shipping(order)
+    shipping_price = order.base_shipping_price
     order_discounts = order.discounts.all()
     order_discounts_to_update = []
     for order_discount in order_discounts:
