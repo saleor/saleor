@@ -8,6 +8,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter by slug. #10578 by @kadewu
   - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
+- Add new `products` filters. #10784 by @kadewu
+  - isAvailable
+  - publishedFrom
+  - availableFrom
+  - listed
 
 ### Other changes
 
