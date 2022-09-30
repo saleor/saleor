@@ -80,6 +80,7 @@ from ...core.types import (
     Weight,
 )
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_one_of_args_is_in_query
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
@@ -1311,8 +1312,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
-        if id is not None and sku is not None:
-            return None
+        validate_one_of_args_is_in_query("id", id, "sku", sku)
 
         def get_product_variant(
             product_variants,

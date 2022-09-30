@@ -2015,15 +2015,9 @@ def test_product_variant_field_filtering(
     assert content["data"]["product"]["variant"]["sku"] == result
 
 
-@pytest.mark.parametrize(
-    "variant_id, sku",
-    ((False, None), (True, "123"), (False, "not_existing")),
-)
 def test_product_variant_field_filtering_null_response(
     staff_api_client,
     product,
-    variant_id,
-    sku,
     channel_USD,
 ):
     # given
@@ -2037,14 +2031,12 @@ def test_product_variant_field_filtering_null_response(
         }
     }
     """
-    variant = product.variants.first()
+    sku = "not_existing"
+    variant_id = None
+
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "variant_id": (
-            graphene.Node.to_global_id("ProductVariant", variant.pk)
-            if variant_id
-            else None
-        ),
+        "variant_id": variant_id,
         "sku": sku,
         "channel": channel_USD.slug,
     }
@@ -2055,6 +2047,77 @@ def test_product_variant_field_filtering_null_response(
     # then
     content = get_graphql_content(response)
     assert content["data"]["product"]["variant"] is None
+
+
+def test_product_variant_field_filtering_argument_required_error(
+    staff_api_client,
+    product,
+    channel_USD,
+):
+    # given
+    query = """
+    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
+        product(id: $id, channel: $channel){
+           variant(id: $variant_id, sku: $sku){
+            id
+            sku
+           }
+        }
+    }
+    """
+    sku = None
+    variant_id = None
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": variant_id,
+        "sku": sku,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    error_message = "At least one of arguments is required"
+    assert error_message in content["errors"][0]["message"]
+
+
+def test_product_variant_field_filtering_argument_cannot_be_combined_error(
+    staff_api_client,
+    product,
+    channel_USD,
+):
+    # given
+    query = """
+    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
+        product(id: $id, channel: $channel){
+           variant(id: $variant_id, sku: $sku){
+            id
+            sku
+           }
+        }
+    }
+    """
+    sku = "123"
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": variant_id,
+        "sku": sku,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    error_message = "Argument 'id' cannot be combined"
+    assert error_message in content["errors"][0]["message"]
 
 
 def test_query_product_media_sorting_asc(
