@@ -354,6 +354,7 @@ class PluginsManager(PaymentInterface):
             lines,
             order,
             lines,
+            channel_slug=order.channel.slug,
         )
         return lines
 
@@ -1489,6 +1490,7 @@ class PluginsManager(PaymentInterface):
             [],
             order,
             available_shipping_methods,
+            channel_slug=order.channel.slug,
         )
 
     def excluded_shipping_methods_for_checkout(
@@ -1501,6 +1503,7 @@ class PluginsManager(PaymentInterface):
             [],
             checkout,
             available_shipping_methods,
+            channel_slug=checkout.channel.slug,
         )
 
     def perform_mutation(
