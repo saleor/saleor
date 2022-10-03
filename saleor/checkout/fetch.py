@@ -222,10 +222,11 @@ def fetch_checkout_lines(
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
-    select_related_fields = ["variant__product__product_type"]
+    select_related_fields = ["variant__product__product_type__tax_class"]
     prefetch_related_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
+        "variant__product__tax_class",
         "variant__channel_listings__channel",
     ]
     if prefetch_variant_attributes:
