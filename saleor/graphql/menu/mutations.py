@@ -508,7 +508,7 @@ class AssignNavigation(BaseMutation):
     def perform_mutation(cls, _root, info, navigation_type, menu=None):
         site_settings = info.context.site.settings
         if menu is not None:
-            menu = cls.get_node_or_error(info, menu, field="menu")
+            menu = cls.get_node_or_error(info, menu, field="menu", only_type=Menu)
 
         if navigation_type == NavigationType.MAIN:
             site_settings.top_menu = menu

@@ -365,7 +365,7 @@ class BaseAddressDelete(ModelDeleteMutation):
             raise PermissionDenied()
 
         node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, Address)
+        instance = cls.get_node_or_error(info, node_id, only_type=Address)
         if instance:
             cls.clean_instance(info, instance)
 
