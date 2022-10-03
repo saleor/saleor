@@ -59,7 +59,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...meta.mutations import MetadataInput, MutationWithMetadataMixin
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductMedia, ProductVariant
@@ -94,7 +94,7 @@ class CategoryInput(graphene.InputObjectType):
     )
 
 
-class CategoryCreate(MutationWithMetadataMixin, ModelMutation):
+class CategoryCreate(ModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description="Fields required to create a category."
@@ -114,6 +114,8 @@ class CategoryCreate(MutationWithMetadataMixin, ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -140,11 +142,6 @@ class CategoryCreate(MutationWithMetadataMixin, ModelMutation):
             validate_image_file(image_data, "background_image", ProductErrorCode)
             add_hash_to_file_name(image_data)
         clean_seo_fields(cleaned_input)
-
-        cls.validate_metadata(
-            cleaned_input.get("metadata"), cleaned_input.get("private_metadata")
-        )
-
         return cleaned_input
 
     @classmethod
@@ -173,6 +170,8 @@ class CategoryUpdate(CategoryCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -265,6 +264,8 @@ class CollectionCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -320,6 +321,8 @@ class CollectionUpdate(CollectionCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -623,6 +626,8 @@ class ProductCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -752,6 +757,8 @@ class ProductUpdate(ProductCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -925,6 +932,8 @@ class ProductVariantCreate(ModelMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -1164,6 +1173,8 @@ class ProductVariantUpdate(ProductVariantCreate):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(

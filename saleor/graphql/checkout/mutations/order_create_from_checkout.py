@@ -13,7 +13,7 @@ from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...discount.dataloaders import load_discounts
-from ...meta.mutations import MetadataInput, MutationWithMetadataMixin
+from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
 from ..enums import OrderCreateFromCheckoutErrorCode
@@ -37,7 +37,7 @@ class OrderCreateFromCheckoutError(Error):
     )
 
 
-class OrderCreateFromCheckout(MutationWithMetadataMixin, BaseMutation):
+class OrderCreateFromCheckout(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
 
     class Arguments:
@@ -78,6 +78,8 @@ class OrderCreateFromCheckout(MutationWithMetadataMixin, BaseMutation):
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
@@ -101,12 +103,12 @@ class OrderCreateFromCheckout(MutationWithMetadataMixin, BaseMutation):
         metadata = data.get("metadata")
         private_metadata = data.get("private_metadata")
 
-        if metadata:
+        if cls._meta.support_meta_field and metadata is not None:
             cls.check_metadata_permissions(info, checkout_id)
-        if private_metadata:
+            cls.validate_metadata_keys(metadata)
+        if cls._meta.support_private_meta_field and private_metadata is not None:
             cls.check_metadata_permissions(info, checkout_id, private=True)
-
-        cls.validate_metadata(metadata, private_metadata)
+            cls.validate_metadata_keys(private_metadata)
 
         tracking_code = analytics.get_client_id(info.context)
 

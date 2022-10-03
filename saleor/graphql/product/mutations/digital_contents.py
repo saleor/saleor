@@ -10,7 +10,7 @@ from ...core.context import set_mutation_flag_in_context
 from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import NonNullList, ProductError, Upload
-from ...meta.mutations import MetadataInput, MutationWithMetadataMixin
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
@@ -61,7 +61,7 @@ class DigitalContentUploadInput(DigitalContentInput):
     )
 
 
-class DigitalContentCreate(MutationWithMetadataMixin, BaseMutation):
+class DigitalContentCreate(BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -83,6 +83,8 @@ class DigitalContentCreate(MutationWithMetadataMixin, BaseMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, data, instance):
@@ -131,9 +133,9 @@ class DigitalContentCreate(MutationWithMetadataMixin, BaseMutation):
         metadata_list = clean_input.pop("metadata", None)
         private_metadata_list = clean_input.pop("private_metadata", None)
 
-        if metadata_list or private_metadata_list:
-            cls.validate_metadata(metadata_list, private_metadata_list)
-            cls.update_metadata(digital_content, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            digital_content, metadata_list, private_metadata_list
+        )
 
         variant.digital_content = digital_content
         variant.digital_content.save()
@@ -180,7 +182,7 @@ class DigitalContentDelete(BaseMutation):
         return DigitalContentDelete(variant=variant)
 
 
-class DigitalContentUpdate(MutationWithMetadataMixin, BaseMutation):
+class DigitalContentUpdate(BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -198,6 +200,8 @@ class DigitalContentUpdate(MutationWithMetadataMixin, BaseMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, data):
@@ -254,9 +258,9 @@ class DigitalContentUpdate(MutationWithMetadataMixin, BaseMutation):
         metadata_list = clean_input.pop("metadata", None)
         private_metadata_list = clean_input.pop("private_metadata", None)
 
-        if metadata_list or private_metadata_list:
-            cls.validate_metadata(metadata_list, private_metadata_list)
-            cls.update_metadata(digital_content, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            digital_content, metadata_list, private_metadata_list
+        )
 
         variant.digital_content = digital_content
         variant.digital_content.save()

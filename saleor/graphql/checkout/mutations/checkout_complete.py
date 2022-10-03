@@ -30,7 +30,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
-from ...meta.mutations import MetadataInput, MutationWithMetadataMixin
+from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
@@ -39,7 +39,7 @@ from ..types import Checkout
 from .utils import get_checkout
 
 
-class CheckoutComplete(MutationWithMetadataMixin, BaseMutation, I18nMixin):
+class CheckoutComplete(BaseMutation, I18nMixin):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
         required=True,
@@ -211,13 +211,13 @@ class CheckoutComplete(MutationWithMetadataMixin, BaseMutation, I18nMixin):
                     )
                 raise e
 
-            cls.check_metadata_permissions(
-                info,
-                id or checkout_id or graphene.Node.to_global_id("Checkout", token),
-            )
-            cls.validate_metadata(
-                data.get("metadata"),
-            )
+            metadata = data.get("metadata")
+            if metadata is not None:
+                cls.check_metadata_permissions(
+                    info,
+                    id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+                )
+                cls.validate_metadata_keys(metadata)
 
             validate_checkout_email(checkout)
 

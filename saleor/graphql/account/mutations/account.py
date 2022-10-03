@@ -85,6 +85,7 @@ class AccountRegister(ModelMutation):
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
 
     @classmethod
     def mutate(cls, root, info, **data):
