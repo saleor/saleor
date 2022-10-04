@@ -9879,6 +9879,12 @@ type PaymentCountableEdge {
 }
 
 input PaymentFilterInput {
+  """
+  Filter by ids. 
+  
+  Added in Saleor 3.8.
+  """
+  ids: [ID!]
   checkouts: [ID!]
 }
 
