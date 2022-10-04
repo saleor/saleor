@@ -268,7 +268,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             raise ValidationError({"redirect_url": error})
 
     @staticmethod
-    def _save_addresses(info, instance: models.Order, cleaned_input):
+    def _save_addresses(instance: models.Order, cleaned_input):
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address:
             shipping_address.save()
@@ -277,6 +277,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
+
+    @staticmethod
+    def _parse_shipping_method_name(instance: models.Order, cleaned_input):
+        shipping_method = cleaned_input.get("shipping_method")
+        if shipping_method:
+            instance.shipping_method_name = shipping_method.name
 
     @staticmethod
     def _save_lines(info, instance, lines_data, app, site, manager):
@@ -341,7 +347,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     ):
         with traced_atomic_transaction():
             # Process addresses
-            cls._save_addresses(info, instance, cleaned_input)
+            cls._save_addresses(instance, cleaned_input)
+
+            # Parse shipping name
+            cls._parse_shipping_method_name(instance, cleaned_input)
 
             # Save any changes create/update the draft
             cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
