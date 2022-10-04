@@ -664,7 +664,7 @@ class TransactionCreate(BaseMutation):
     def check_permissions(cls, context, permissions=None):
         """Determine whether app has rights to perform this mutation."""
         permissions = permissions or cls._meta.permissions
-        if app := getattr(context, "app", None):
+        if app := load_app(context):
             return app.has_perms(permissions)
         return False
 

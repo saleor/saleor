@@ -15,6 +15,7 @@ from ...menu import models as menu_models
 from ...order import models as order_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ..app.dataloaders import load_app
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types import MetadataError, NonNullList
@@ -177,7 +178,7 @@ class BaseMetadataMutation(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        is_app = bool(getattr(context, "app", None))
+        is_app = bool(load_app(context))
         if is_app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."

@@ -151,12 +151,7 @@ def api_client():
 
 @pytest.fixture
 def schema_context():
-    params = {
-        # "user": SimpleLazyObject(lambda: None),
-        # "app": SimpleLazyObject(lambda: None),
-        # "plugins": get_plugins_manager(),
-        "auth_token": "",
-    }
+    params = {"auth_token": "", "META": {}}
     return graphene.types.Context(**params)
 
 

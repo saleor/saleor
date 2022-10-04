@@ -365,7 +365,7 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
 
     # When permission is not missing, the execution of the plugin should happen
     staff_user.user_permissions.set([permission_manage_products])
-    del staff_user._perm_cache  # force django to re-fetch permissions
+    # del staff_user._perm_cache  # force django to re-fetch permissions
     result = schema.execute(
         mutation_query, variables=variables, context_value=schema_context
     )
