@@ -42,7 +42,10 @@ def convert_to_app_id_with_identifier(shipping_app_id: str):
     splitted_id = decoded_id.split(":")
     if len(splitted_id) != 3:
         return
-    app_id = splitted_id[1]
+    try:
+        app_id = int(splitted_id[1])
+    except (TypeError, ValueError):
+        return None
     app = App.objects.filter(id=app_id).first()
     if app is None:
         return None
