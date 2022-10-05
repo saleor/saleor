@@ -10,10 +10,12 @@ from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
 from ..tax import TaxCalculationStrategy
-from ..tax.calculations import get_flat_rates_tax_data_for_checkout
+from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
+    calculate_tax_rate,
     get_charge_taxes_for_checkout,
     get_tax_calculation_strategy_for_checkout,
+    normalize_tax_rate_for_db,
 )
 from .models import Checkout
 
@@ -348,10 +350,9 @@ def _calculate_and_add_tax(
         _apply_tax_data(checkout, lines, tax_data)
     elif tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
         # Get taxes calculated with flat rates and apply to checkout.
-        tax_data = get_flat_rates_tax_data_for_checkout(
-            checkout_info, lines, prices_entered_with_tax, address, discounts
+        update_checkout_prices_with_flat_rates(
+            checkout, checkout_info, lines, prices_entered_with_tax, address, discounts
         )
-        _apply_tax_data(checkout, lines, tax_data)
 
 
 def _remove_tax(checkout, lines_info):
@@ -402,9 +403,9 @@ def _apply_tax_data(
             ),
             currency,
         )
-        line.tax_rate = _normalize_tax_rate_for_db(tax_line_data.tax_rate)
+        line.tax_rate = normalize_tax_rate_for_db(tax_line_data.tax_rate)
 
-    checkout.shipping_tax_rate = _normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
+    checkout.shipping_tax_rate = normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
     checkout.shipping_price = quantize_price(
         TaxedMoney(
             net=Money(tax_data.shipping_price_net_amount, currency),
@@ -499,8 +500,7 @@ def _get_checkout_base_prices(
         unit_price = quantize_price(
             TaxedMoney(net=unit_price_default, gross=unit_price_default), currency
         )
-
-        line.tax_rate = base_calculations.base_tax_rate(unit_price)
+        line.tax_rate = calculate_tax_rate(unit_price)
 
     shipping_price_default = base_calculations.base_checkout_delivery_price(
         checkout_info, lines
@@ -508,10 +508,7 @@ def _get_checkout_base_prices(
     checkout.shipping_price = quantize_price(
         TaxedMoney(shipping_price_default, shipping_price_default), currency
     )
-
-    checkout.shipping_tax_rate = base_calculations.base_tax_rate(
-        checkout.shipping_price
-    )
+    checkout.shipping_tax_rate = calculate_tax_rate(checkout.shipping_price)
 
     subtotal_default = sum(
         [line_info.line.total_price for line_info in lines], zero_taxed_money(currency)
@@ -524,10 +521,3 @@ def _get_checkout_base_prices(
     checkout.total = quantize_price(
         TaxedMoney(net=total_default, gross=total_default), currency
     )
-
-
-def _normalize_tax_rate_for_db(tax_rate: Decimal) -> Decimal:
-    # Percentage values are used to represent tax rates in tax apps and flat rates, but
-    # in the database rates are stored as fractional values. Example: tax app returns
-    # `10%` as `10`, but in the database it's stored as `0.1`.
-    return tax_rate / 100

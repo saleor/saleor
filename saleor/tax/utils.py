@@ -1,4 +1,7 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+
+from prices import TaxedMoney
 
 if TYPE_CHECKING:
     from ..account.models import Address
@@ -104,6 +107,27 @@ def get_charge_taxes_for_order(order: "Order") -> bool:
     return get_charge_taxes(tax_configuration, country_tax_configuration)
 
 
+def get_tax_calculation_strategy_for_order(order: "Order"):
+    """Get tax_calculation_strategy value for order."""
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    country_code = get_tax_country(
+        channel,
+        order.is_shipping_required(),
+        order.shipping_address,
+        order.billing_address,
+    )
+    country_tax_configuration = next(
+        (
+            tc
+            for tc in tax_configuration.country_exceptions.all()
+            if tc.country.code == country_code
+        ),
+        None,
+    )
+    return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
+
+
 def _get_tax_configuration_for_checkout(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
 ) -> Tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
@@ -140,7 +164,27 @@ def get_charge_taxes_for_checkout(
 def get_tax_calculation_strategy_for_checkout(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
 ):
+    """Get tax_calculation_strategy value for checkout."""
     tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
         checkout_info, lines
     )
     return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
+
+
+def normalize_tax_rate_for_db(tax_rate: Decimal) -> Decimal:
+    # Percentage values are used to represent tax rates in tax apps and flat rates, but
+    # in the database rates are stored as fractional values. Example: tax app returns
+    # `10%` as `10`, but in the database it's stored as `0.1`.
+    return tax_rate / 100
+
+
+def calculate_tax_rate(price: TaxedMoney) -> Decimal:
+    """Calculate the tax rate as percentage value from given price.
+
+    Requires a TaxedMoney instance with net and gross amounts set.
+    """
+    tax_rate = Decimal("0.0")
+    # The condition will return False when unit_price.gross or unit_price.net is 0.0
+    if not isinstance(price, Decimal) and all((price.gross, price.net)):
+        tax_rate = price.tax / price.net
+    return tax_rate

@@ -33,6 +33,7 @@ from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
+from ..tax.utils import calculate_tax_rate
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
 
@@ -343,7 +344,7 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
         shipping_price: TaxedMoney,
     ):
-        default_value = base_calculations.base_tax_rate(shipping_price)
+        default_value = calculate_tax_rate(shipping_price)
         return self.__run_method_on_plugins(
             "get_checkout_shipping_tax_rate",
             default_value,
@@ -355,7 +356,7 @@ class PluginsManager(PaymentInterface):
         ).quantize(Decimal(".0001"))
 
     def get_order_shipping_tax_rate(self, order: "Order", shipping_price: TaxedMoney):
-        default_value = base_calculations.base_tax_rate(shipping_price)
+        default_value = calculate_tax_rate(shipping_price)
         return self.__run_method_on_plugins(
             "get_order_shipping_tax_rate",
             default_value,
@@ -500,7 +501,7 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
     ) -> Decimal:
-        default_value = base_calculations.base_tax_rate(unit_price)
+        default_value = calculate_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_checkout_line_tax_rate",
             default_value,
@@ -520,7 +521,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         unit_price: TaxedMoney,
     ) -> Decimal:
-        default_value = base_calculations.base_tax_rate(unit_price)
+        default_value = calculate_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_order_line_tax_rate",
             default_value,

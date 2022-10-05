@@ -3,7 +3,6 @@ from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
-from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -62,7 +61,7 @@ def get_order_country(order: Order) -> str:
     if order.is_shipping_required():
         address = order.shipping_address
     if address is None:
-        return settings.DEFAULT_COUNTRY
+        return order.channel.default_country.code
     return address.country.code
 
 
