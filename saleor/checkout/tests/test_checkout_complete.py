@@ -1,8 +1,10 @@
+from decimal import Decimal
 from unittest import mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
+from prices import TaxedMoney
 
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
@@ -1417,9 +1419,12 @@ def test_process_shipping_data_for_order_store_customer_shipping_address(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     shipping_price = zero_taxed_money(checkout.currency)
+    base_shipping_price = zero_money(checkout.currency)
 
     # when
-    _ = _process_shipping_data_for_order(checkout_info, shipping_price, manager, lines)
+    _ = _process_shipping_data_for_order(
+        checkout_info, base_shipping_price, shipping_price, manager, lines
+    )
 
     # then
     new_user_address_count = customer_user.addresses.count()
@@ -1449,12 +1454,120 @@ def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_a
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     shipping_price = zero_taxed_money(checkout.currency)
+    base_shipping_price = zero_money(checkout.currency)
 
     # when
-    _ = _process_shipping_data_for_order(checkout_info, shipping_price, manager, lines)
+    _ = _process_shipping_data_for_order(
+        checkout_info, base_shipping_price, shipping_price, manager, lines
+    )
 
     # then
     new_user_address_count = customer_user.addresses.count()
     new_address_data = warehouse_for_cc.address.as_data()
     assert new_user_address_count == user_address_count
     assert not customer_user.addresses.filter(**new_address_data).exists()
+
+
+def test_create_order_store_shipping_prices(
+    checkout_with_items_and_shipping, shipping_method, customer_user
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+
+    expected_base_shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
+    expected_shipping_price = TaxedMoney(
+        net=expected_base_shipping_price * Decimal("0.9"),
+        gross=expected_base_shipping_price,
+    )
+    expected_shipping_tax_rate = Decimal("0.1")
+
+    manager = get_plugins_manager()
+    manager.get_checkout_shipping_tax_rate = mock.Mock(
+        return_value=expected_shipping_tax_rate
+    )
+    manager.calculate_checkout_shipping = mock.Mock(
+        return_value=expected_shipping_price
+    )
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+            taxes_included_in_prices=True,
+        ),
+        user=customer_user,
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    assert order.base_shipping_price == expected_base_shipping_price
+    assert order.shipping_price == expected_shipping_price
+    manager.calculate_checkout_shipping.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, []
+    )
+    assert order.shipping_tax_rate == expected_shipping_tax_rate
+    manager.get_checkout_shipping_tax_rate.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
+    )
+
+
+def test_create_order_store_shipping_prices_with_free_shipping_voucher(
+    checkout_with_voucher_free_shipping,
+    shipping_method,
+    customer_user,
+):
+    # given
+    checkout = checkout_with_voucher_free_shipping
+    manager = get_plugins_manager()
+
+    expected_base_shipping_price = zero_money(checkout.currency)
+    expected_shipping_price = zero_taxed_money(checkout.currency)
+    expected_shipping_tax_rate = Decimal("0.0")
+
+    manager.get_checkout_shipping_tax_rate = mock.Mock(
+        return_value=expected_shipping_tax_rate
+    )
+    manager.calculate_checkout_shipping = mock.Mock(
+        return_value=expected_shipping_price
+    )
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+            taxes_included_in_prices=True,
+        ),
+        user=customer_user,
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    assert order.base_shipping_price == expected_base_shipping_price
+    assert order.shipping_price == expected_shipping_price
+    manager.calculate_checkout_shipping.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, []
+    )
+    assert order.shipping_tax_rate == expected_shipping_tax_rate
+    manager.get_checkout_shipping_tax_rate.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
+    )

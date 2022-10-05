@@ -42,8 +42,8 @@ class ShippingAppData:
     shipping_method_id: str
 
 
-def to_payment_app_id(app: App, gateway_id: str) -> "str":
-    return f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
+def to_payment_app_id(app_id: int, gateway_id: str) -> "str":
+    return f"{APP_ID_PREFIX}:{app_id}:{gateway_id}"
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
@@ -59,7 +59,7 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
 
 
 def parse_list_payment_gateways_response(
-    response_data: Any, app: App
+    response_data: Any, app_id: int
 ) -> List["PaymentGateway"]:
     gateways: List[PaymentGateway] = []
     if not isinstance(response_data, list):
@@ -74,7 +74,7 @@ def parse_list_payment_gateways_response(
         if gateway_id:
             gateways.append(
                 PaymentGateway(
-                    id=to_payment_app_id(app, gateway_id),
+                    id=to_payment_app_id(app_id, gateway_id),
                     name=gateway_name,
                     currencies=gateway_currencies,
                     config=gateway_config,

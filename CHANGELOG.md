@@ -13,10 +13,13 @@ All notable, unreleased changes to this project will be documented in this file.
   - publishedFrom
   - availableFrom
   - listed
+- Add ability to filter customers by ids. #10694 by @kadewu
 
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
+- Add base shipping price to `Order` - #10771 by @fowczarek
+
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ
