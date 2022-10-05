@@ -13322,7 +13322,7 @@ type Mutation {
     checkoutId: ID
 
     """
-    ID of customer to attach to checkout. Can be used to attach customer to checkout by staff or app. Requires IMPERSONATE_USER permission.
+    ID of customer to attach to checkout. Requires IMPERSONATE_USER permission when customerId is different than the logged-in user.
     """
     customerId: ID
 
