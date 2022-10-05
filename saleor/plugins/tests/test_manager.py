@@ -1035,6 +1035,43 @@ def test_run_method_on_plugins_only_on_active_ones(
     assert called_plugins_id == expected_active_plugins_id
 
 
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_single_plugin"
+)
+def test_run_method_on_plugins_only_for_given_channel(
+    mocked_run_on_single_plugin, plugins_manager, channel_USD, channel_PLN
+):
+    # given
+    default_value = "default"
+
+    usd_plugin_1 = ActiveDummyPaymentGateway(
+        active=True, channel=channel_USD, configuration=[]
+    )
+    usd_plugin_2 = ActivePaymentGateway(
+        active=True, channel=channel_USD, configuration=[]
+    )
+    pln_plugin = ChannelPluginSample(active=True, channel=channel_PLN, configuration=[])
+
+    plugins_manager.plugins = [usd_plugin_1, usd_plugin_2, pln_plugin]
+
+    plugins_manager.plugins_per_channel[channel_USD.slug] = [usd_plugin_1, usd_plugin_2]
+    plugins_manager.plugins_per_channel[channel_PLN.slug] = [pln_plugin]
+
+    # when
+    plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method",
+        default_value=default_value,
+        channel_slug=channel_USD.slug,
+    )
+
+    # then
+    assert mocked_run_on_single_plugin.call_count == 2
+    called_plugins_id = {
+        arg.args[0].PLUGIN_ID for arg in mocked_run_on_single_plugin.call_args_list
+    }
+    assert called_plugins_id == {usd_plugin_1.PLUGIN_ID, usd_plugin_2.PLUGIN_ID}
+
+
 def test_run_method_on_single_plugin_method_does_not_exist(plugins_manager):
     default_value = "default_value"
     method_name = "method_does_not_exist"

@@ -29,7 +29,7 @@ from .utils import generate_request_headers
 def payment_invalid_app(payment_dummy):
     app = App.objects.create(name="Dummy app", is_active=True)
     gateway_id = "credit-card"
-    gateway = to_payment_app_id(app.id, gateway_id)
+    gateway = to_payment_app_id(app, gateway_id)
     payment_dummy.gateway = gateway
     payment_dummy.save()
     return payment_dummy
@@ -296,10 +296,10 @@ def test_get_payment_gateways(
     mock_send_request.return_value = mock_json_response
     response_data = plugin.get_payment_gateways("USD", None, None)
     expected_response_1 = parse_list_payment_gateways_response(
-        mock_json_response, payment_app.id
+        mock_json_response, payment_app
     )
     expected_response_2 = parse_list_payment_gateways_response(
-        mock_json_response, app_2.id
+        mock_json_response, app_2
     )
     assert len(response_data) == 2
     assert response_data[0] == expected_response_1[0]
@@ -340,10 +340,10 @@ def test_get_payment_gateways_multiple_webhooks_in_the_same_app(
 
     # then
     expected_response_1 = parse_list_payment_gateways_response(
-        mock_json_response, payment_app.id
+        mock_json_response, payment_app
     )
     expected_response_2 = parse_list_payment_gateways_response(
-        mock_json_response, payment_app.id
+        mock_json_response, payment_app
     )
     assert len(response_data) == 2
     assert response_data[0] == expected_response_1[0]
@@ -495,7 +495,7 @@ def test_run_payment_webhook_empty_response(mock_send_request, payment, webhook_
 def test_check_plugin_id(payment_app, webhook_plugin):
     plugin = webhook_plugin()
     assert not plugin.check_plugin_id("dummy")
-    valid_id = to_payment_app_id(payment_app.id, "credit-card")
+    valid_id = to_payment_app_id(payment_app, "credit-card")
     assert plugin.check_plugin_id(valid_id)
 
 

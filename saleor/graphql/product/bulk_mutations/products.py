@@ -469,14 +469,15 @@ class ProductVariantBulkCreate(BaseMutation):
         sku_list = []
         used_attribute_values = get_used_variants_attribute_values(product)
         for index, variant_data in enumerate(variants):
-            try:
-                cls.validate_duplicated_attribute_values(
-                    variant_data.attributes, used_attribute_values
-                )
-            except ValidationError as exc:
-                errors["attributes"].append(
-                    ValidationError(exc.message, exc.code, params={"index": index})
-                )
+            if variant_data.attributes:
+                try:
+                    cls.validate_duplicated_attribute_values(
+                        variant_data.attributes, used_attribute_values
+                    )
+                except ValidationError as exc:
+                    errors["attributes"].append(
+                        ValidationError(exc.message, exc.code, params={"index": index})
+                    )
 
             variant_data["product_type"] = product.product_type
             variant_data["product"] = product
@@ -546,7 +547,7 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        product = cls.get_node_or_error(info, data["product_id"], models.Product)
+        product = cls.get_node_or_error(info, data["product_id"], only_type="Product")
         errors = defaultdict(list)
 
         cleaned_inputs = cls.clean_variants(info, data["variants"], product, errors)

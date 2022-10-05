@@ -818,6 +818,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
             "shipping_method": shipping_method,
             "shipping_method_name": shipping_method.name,
             "shipping_price": shipping_price,
+            "base_shipping_price": shipping_method_channel_listing.price,
         }
     )
     if will_be_unconfirmed:

@@ -4916,8 +4916,12 @@ def test_product_variant_bulk_create_only_not_variant_selection_attributes(
 
 
 def test_product_variant_bulk_create_empty_attribute(
-    staff_api_client, product, size_attribute, permission_manage_products
+    staff_api_client,
+    product_with_single_variant,
+    size_attribute,
+    permission_manage_products,
 ):
+    product = product_with_single_variant
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     variants = [{"sku": str(uuid4())[:12], "attributes": []}]

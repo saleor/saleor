@@ -46,7 +46,6 @@ from .serializers import (
     serialize_checkout_lines_for_tax_calculation,
     serialize_product_or_variant_attributes,
 )
-from .utils import get_base_price
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -1328,8 +1327,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
     # Prepare shipping data
     shipping_method_name = order.shipping_method_name
     shipping_method_amount = quantize_price(
-        get_base_price(order.shipping_price, included_taxes_in_prices),
-        order.currency,
+        order.base_shipping_price_amount, order.currency
     )
 
     order_data = serializer.serialize(
