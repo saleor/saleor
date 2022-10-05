@@ -1,5 +1,4 @@
 import graphene
-from django.db import transaction
 
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
@@ -92,5 +91,5 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             )
             order.save(update_fields=updated_fields)
             func = get_webhook_handler_by_order_status(order.status, manager)
-            transaction.on_commit(lambda: func(order))
+            cls.call_event(func, order)
         return OrderLineDelete(order=order, order_line=line)

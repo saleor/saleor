@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -70,5 +69,5 @@ class OrderAddNote(BaseMutation):
                 message=cleaned_input["message"],
             )
             func = get_webhook_handler_by_order_status(order.status, manager)
-            transaction.on_commit(lambda: func(order))
+            cls.call_event(func, order)
         return OrderAddNote(order=order, event=event)

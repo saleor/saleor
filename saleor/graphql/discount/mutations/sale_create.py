@@ -92,9 +92,9 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
-        instance = getattr(response, cls._meta.return_field_name).node
-        manager = load_plugin_manager(info.context)
-        cls.send_sale_notifications(manager, instance)
+            instance = getattr(response, cls._meta.return_field_name).node
+            manager = load_plugin_manager(info.context)
+            cls.send_sale_notifications(manager, instance)
         return response
 
     @classmethod

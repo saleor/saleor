@@ -13,8 +13,8 @@ from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
+from ..core.utils.events import call_event
 from ..giftcard import GiftCardLineData
-from ..graphql.core.mutations import BaseMutation
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -77,8 +77,6 @@ logger = logging.getLogger(__name__)
 
 OrderLineIDType = UUID
 QuantityType = int
-
-call_event = BaseMutation.call_event
 
 
 def order_created(
@@ -595,7 +593,6 @@ def fulfill_order_lines(
         _increase_order_line_quantity(order_lines_info)
 
 
-@traced_atomic_transaction()
 def automatically_fulfill_digital_lines(
     order_info: "OrderInfo", manager: "PluginsManager"
 ):

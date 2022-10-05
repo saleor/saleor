@@ -12,7 +12,6 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.core.files.storage import default_storage
-from django.db import transaction
 from django.db.models import Q
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
@@ -25,6 +24,7 @@ from ...core.permissions import (
     message_one_of_permissions_required,
     one_of_permissions_or_auth_filter_required,
 )
+from ...core.utils.events import call_event
 from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .context import set_mutation_flag_in_context
@@ -406,12 +406,7 @@ class BaseMutation(graphene.Mutation):
 
     @staticmethod
     def call_event(func_obj, *func_args):
-        """"""
-        connection = transaction.get_connection()
-        if connection.in_atomic_block:
-            transaction.on_commit(lambda: func_obj(*func_args))
-        else:
-            func_obj(*func_args)
+        return call_event(func_obj, *func_args)
 
 
 class ModelMutation(BaseMutation):
