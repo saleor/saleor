@@ -36,7 +36,7 @@ class CheckoutCustomerAttach(BaseMutation):
             required=False,
             description=(
                 "ID of customer to attach to checkout. "
-                "Requires IMPERSONATE_USER permission when customerID is different "
+                "Requires IMPERSONATE_USER permission when customerId is different "
                 "than the logged-in user."
             ),
         )
