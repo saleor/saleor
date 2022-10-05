@@ -651,7 +651,7 @@ class ProductFilter(MetadataFilterBase):
     )
     listed = django_filters.BooleanFilter(
         method="filter_listed",
-        help_text=f"Filter by visible in listings. {ADDED_IN_38}",
+        help_text=f"Filter by visible in product listings. {ADDED_IN_38}",
     )
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)

@@ -6029,7 +6029,7 @@ input ProductFilterInput {
   availableFrom: DateTime
 
   """
-  Filter by visible in listings. 
+  Filter by visible in product listings. 
   
   Added in Saleor 3.8.
   """

@@ -9,10 +9,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
 - Add new `products` filters. #10784 by @kadewu
-  - isAvailable
-  - publishedFrom
-  - availableFrom
-  - listed
+  - `isAvailable`
+  - `publishedFrom`
+  - `availableFrom`
+  - `listed`
 - Add ability to filter customers by ids. #10694 by @kadewu
 
 ### Other changes
