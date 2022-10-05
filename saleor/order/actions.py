@@ -187,9 +187,7 @@ def cancel_order(
         call_event(manager.order_cancelled, order)
         call_event(manager.order_updated, order)
 
-        transaction.on_commit(
-            lambda: send_order_canceled_confirmation(order, user, app, manager)
-        )
+        call_event(send_order_canceled_confirmation, order, user, app, manager)
 
 
 def order_refunded(
