@@ -5803,6 +5803,111 @@ def test_query_customer_members_with_filter_search(
     assert len(users) == count
 
 
+def test_query_customers_with_filter_by_one_id(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    search_user = customer_users[0]
+
+    variables = {
+        "filter": {
+            "ids": [graphene.Node.to_global_id("User", search_user.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_user = content["data"]["customers"]["edges"][0]
+    _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+    assert id == str(search_user.pk)
+
+
+def test_query_customers_with_filter_by_multiple_ids(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    search_users = [customer_users[0], customer_users[1]]
+    search_users_ids = [
+        graphene.Node.to_global_id("User", user.pk) for user in search_users
+    ]
+
+    variables = {"filter": {"ids": search_users_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_users = content["data"]["customers"]["edges"]
+    expected_ids = [str(user.pk) for user in customer_users]
+
+    assert len(result_users) == len(search_users)
+    for result_user in result_users:
+        _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+        assert id in expected_ids
+
+
+def test_query_customers_with_filter_by_empty_list(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    variables = {"filter": {"ids": []}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_users = content["data"]["customers"]["edges"]
+    expected_ids = [str(user.pk) for user in customer_users]
+
+    assert len(result_users) == len(customer_users)
+    for result_user in result_users:
+        _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+        assert id in expected_ids
+
+
+def test_query_customers_with_filter_by_not_existing_id(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    search_pk = max([user.pk for user in customer_users]) + 1
+    search_id = graphene.Node.to_global_id("User", search_pk)
+    variables = {"filter": {"ids": [search_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_users = content["data"]["customers"]["edges"]
+
+    assert len(result_users) == 0
+
+
 @pytest.mark.parametrize(
     "staff_member_filter, count",
     [({"status": "DEACTIVATED"}, 1), ({"status": "ACTIVE"}, 2)],
