@@ -162,36 +162,39 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                         )
                     )
 
-            min_price = channel_input.pop("minimum_order_price", None)
-            max_price = channel_input.pop("maximum_order_price", None)
-
-            if min_price is not None:
+            min_price = None
+            max_price = None
+            if "minimum_order_price" in channel_input:
+                min_price = channel_input.pop("minimum_order_price")
                 channel_input["minimum_order_price_amount"] = min_price
-                try:
-                    validate_price_precision(
-                        min_price, channel_input["channel"].currency_code
-                    )
-                    validate_decimal_max_value(min_price)
-                except ValidationError as error:
-                    error.code = ShippingErrorCode.INVALID.value
-                    error.params = {
-                        "channels": [channel_id],
-                    }
-                    errors["minimum_order_price"].append(error)
+                if min_price is not None:
+                    try:
+                        validate_price_precision(
+                            min_price, channel_input["channel"].currency_code
+                        )
+                        validate_decimal_max_value(min_price)
+                    except ValidationError as error:
+                        error.code = ShippingErrorCode.INVALID.value
+                        error.params = {
+                            "channels": [channel_id],
+                        }
+                        errors["minimum_order_price"].append(error)
 
-            if max_price is not None:
+            if "maximum_order_price" in channel_input:
+                max_price = channel_input.pop("maximum_order_price")
                 channel_input["maximum_order_price_amount"] = max_price
-                try:
-                    validate_price_precision(
-                        max_price, channel_input["channel"].currency_code
-                    )
-                    validate_decimal_max_value(max_price)
-                except ValidationError as error:
-                    error.code = ShippingErrorCode.INVALID.value
-                    error.params = {
-                        "channels": [channel_id],
-                    }
-                    errors["maximum_order_price"].append(error)
+                if max_price is not None:
+                    try:
+                        validate_price_precision(
+                            max_price, channel_input["channel"].currency_code
+                        )
+                        validate_decimal_max_value(max_price)
+                    except ValidationError as error:
+                        error.code = ShippingErrorCode.INVALID.value
+                        error.params = {
+                            "channels": [channel_id],
+                        }
+                        errors["maximum_order_price"].append(error)
 
             if (
                 min_price is not None
