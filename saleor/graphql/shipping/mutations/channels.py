@@ -164,7 +164,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
             min_price = None
             max_price = None
-            if "minimum_order_price" in channel_input.keys():
+            if "minimum_order_price" in channel_input:
                 min_price = channel_input.pop("minimum_order_price")
                 channel_input["minimum_order_price_amount"] = min_price
                 if min_price is not None:
@@ -180,7 +180,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                         }
                         errors["minimum_order_price"].append(error)
 
-            if "maximum_order_price" in channel_input.keys():
+            if "maximum_order_price" in channel_input:
                 max_price = channel_input.pop("maximum_order_price")
                 channel_input["maximum_order_price_amount"] = max_price
                 if max_price is not None:
