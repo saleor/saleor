@@ -844,6 +844,23 @@ def customer_user2(address):
 
 
 @pytest.fixture
+def customer_users(address, customer_user, customer_user2):
+    default_address = address.get_copy()
+    customer_user3 = User.objects.create_user(
+        "test3@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Chris",
+        last_name="Duck",
+    )
+    customer_user3.addresses.add(default_address)
+    customer_user3._password = "password"
+
+    return [customer_user, customer_user2, customer_user3]
+
+
+@pytest.fixture
 def user_checkout(customer_user, channel_USD):
     checkout = Checkout.objects.create(
         user=customer_user,
