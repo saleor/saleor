@@ -134,13 +134,13 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def save(cls, info, user, cleaned_input):
+        password = cleaned_input["password"]
+        user.set_password(password)
+        user.search_document = search.prepare_user_search_document_value(
+            user, attach_addresses_data=False
+        )
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
-            password = cleaned_input["password"]
-            user.set_password(password)
-            user.search_document = search.prepare_user_search_document_value(
-                user, attach_addresses_data=False
-            )
-            manager = load_plugin_manager(info.context)
             if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
                 user.is_active = False
                 user.save()
@@ -152,9 +152,8 @@ class AccountRegister(ModelMutation):
                 )
             else:
                 user.save()
-
-            account_events.customer_account_created_event(user=user)
             cls.call_event(manager.customer_created, user)
+        account_events.customer_account_created_event(user=user)
 
 
 class AccountInput(AccountBaseInput):
