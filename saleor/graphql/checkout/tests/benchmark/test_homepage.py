@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 
 from .....checkout.utils import set_external_shipping_id
+from .....plugins.webhook.shipping import to_shipping_app_id
 from ....tests.utils import get_graphql_content
 
 
@@ -148,6 +149,7 @@ def test_user_checkout_details(user_api_client, customer_checkout, count_queries
 @patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_user_checkout_details_with_external_shipping_method(
     mock_send_request,
+    app,
     user_api_client,
     customer_checkout,
     shipping_app,
@@ -155,7 +157,7 @@ def test_user_checkout_details_with_external_shipping_method(
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    external_id = "abcd"
+    external_id = to_shipping_app_id(app, "abcd")
     mock_json_response = [
         {
             "id": external_id,
