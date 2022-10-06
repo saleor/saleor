@@ -143,14 +143,14 @@ class AttributeAssignmentMixin:
     def _pre_save_values(
         cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
-        """Lazy-retrieve or create the database objects from the supplied raw values."""
-        get_or_create = attribute.values.get_or_create
+        """Lazy-update or create the database objects from the supplied raw values."""
+        update_or_create = attribute.values.update_or_create
 
         if not attr_values.values:
             return tuple()
 
         return tuple(
-            get_or_create(
+            update_or_create(
                 attribute=attribute,
                 slug=slugify(value, allow_unicode=True),
                 defaults={"name": value},
