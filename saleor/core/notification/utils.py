@@ -3,7 +3,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 
 from ..utils import build_absolute_uri
 
-LOGO_URL = "images/saleor-logo.png"
+LOGO_URL = "images/saleor-logo-sign.png"
 
 
 def get_site_context():
