@@ -12,8 +12,8 @@ from ...order.utils import (
     get_total_order_discount_excluding_shipping,
 )
 from ..models import TaxClassCountryRate
-from ..utils import normalize_tax_rate_for_db
-from . import calculate_flat_rate_tax, get_tax_rate_for_tax_class
+from ..utils import get_tax_rate_for_tax_class, normalize_tax_rate_for_db
+from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
     from ...order.models import Order, OrderLine

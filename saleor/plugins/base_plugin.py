@@ -187,13 +187,6 @@ class BasePlugin:
     #  status is changed.
     app_status_changed: Callable[["App", None], None]
 
-    #  Apply taxes to the product price based on the customer country.
-    #
-    #  Overwrite this method if you want to show products with taxes.
-    apply_taxes_to_product: Callable[
-        ["Product", Money, Country, TaxedMoney], TaxedMoney
-    ]
-
     #  Assign tax code dedicated to plugin.
     assign_tax_code_to_object_meta: Callable[
         ["TaxClass", Union[str, NoneType], Any], Any

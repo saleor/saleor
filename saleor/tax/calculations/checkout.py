@@ -8,8 +8,8 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...discount import DiscountInfo, VoucherType
 from ..models import TaxClassCountryRate
-from ..utils import normalize_tax_rate_for_db
-from . import calculate_flat_rate_tax, get_tax_rate_for_tax_class
+from ..utils import get_tax_rate_for_tax_class, normalize_tax_rate_for_db
+from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
     from ...account.models import Address

@@ -553,24 +553,6 @@ class PluginsManager(PaymentInterface):
             "get_taxes_for_order", order, channel_slug=order.channel.slug
         )
 
-    def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, channel_slug: str
-    ):
-        default_value = quantize_price(
-            TaxedMoney(net=price, gross=price), price.currency
-        )
-        return quantize_price(
-            self.__run_method_on_plugins(
-                "apply_taxes_to_product",
-                default_value,
-                product,
-                price,
-                country,
-                channel_slug=channel_slug,
-            ),
-            price.currency,
-        )
-
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
