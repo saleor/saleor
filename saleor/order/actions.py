@@ -353,8 +353,8 @@ def cancel_fulfillment(
 
     Return products to corresponding stocks if warehouse was defined.
     """
-    fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
     with traced_atomic_transaction():
+        fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
         events.fulfillment_canceled_event(
             order=fulfillment.order, user=user, app=app, fulfillment=fulfillment
         )
