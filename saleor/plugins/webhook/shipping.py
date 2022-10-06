@@ -9,6 +9,7 @@ from django.db.models import QuerySet
 from graphql import GraphQLError
 from prices import Money
 
+from ...app.models import App
 from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
@@ -23,14 +24,36 @@ from .utils import APP_ID_PREFIX
 logger = logging.getLogger(__name__)
 
 
-def to_shipping_app_id(app_id: int, shipping_method_id: str) -> "str":
+def to_shipping_app_id(app: "App", shipping_method_id: str) -> "str":
+    app_identifier = app.identifier or app.id
     return base64.b64encode(
-        str.encode(f"{APP_ID_PREFIX}:{app_id}:{shipping_method_id}")
+        str.encode(f"{APP_ID_PREFIX}:{app_identifier}:{shipping_method_id}")
     ).decode("utf-8")
 
 
+def convert_to_app_id_with_identifier(shipping_app_id: str):
+    """Prepare the shipping_app_id in format `app:<app-identifier>/method_id>`.
+
+    The format of shipping_app_id has been changes so we need to support both of them.
+    This method is preparing the new shipping_app_id format based on assumptions
+    that right now the old one is used which is `app:<app-pk>:method_id>`
+    """
+    decoded_id = base64.b64decode(shipping_app_id).decode()
+    splitted_id = decoded_id.split(":")
+    if len(splitted_id) != 3:
+        return
+    try:
+        app_id = int(splitted_id[1])
+    except (TypeError, ValueError):
+        return None
+    app = App.objects.filter(id=app_id).first()
+    if app is None:
+        return None
+    return to_shipping_app_id(app, splitted_id[2])
+
+
 def parse_list_shipping_methods_response(
-    response_data: Any, app_id: int
+    response_data: Any, app: "App"
 ) -> List["ShippingMethodData"]:
     shipping_methods = []
     for shipping_method_data in response_data:
@@ -42,7 +65,7 @@ def parse_list_shipping_methods_response(
 
         shipping_methods.append(
             ShippingMethodData(
-                id=to_shipping_app_id(app_id, method_id),
+                id=to_shipping_app_id(app, method_id),
                 name=method_name,
                 price=Money(method_amount, method_currency),
                 maximum_delivery_days=method_maximum_delivery_days,
