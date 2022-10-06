@@ -11,6 +11,7 @@ from ...account.models import CustomerEvent
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
+from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
@@ -41,6 +42,7 @@ def test_create_order_captured_payment_creates_expected_events(
     shipping_method,
     payment_txn_captured,
     channel_USD,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -127,8 +129,7 @@ def test_create_order_captured_payment_creates_expected_events(
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
         "recipient_email": order.get_customer_email(),
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     expected_payment_payload = {
@@ -142,8 +143,7 @@ def test_create_order_captured_payment_creates_expected_events(
             "captured_amount": payment_txn_captured.captured_amount,
             "currency": payment_txn_captured.currency,
         },
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
@@ -190,6 +190,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     shipping_method,
     payment_txn_captured,
     channel_USD,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -277,8 +278,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
         "recipient_email": order.get_customer_email(),
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     expected_payment_payload = {
@@ -292,8 +292,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
             "captured_amount": payment_txn_captured.captured_amount,
             "currency": payment_txn_captured.currency,
         },
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     # Ensure the correct order confirmed event was created
@@ -336,6 +335,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     shipping_method,
     payment_txn_preauth,
     channel_USD,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -409,8 +409,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     expected_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
         "recipient_email": order.get_customer_email(),
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     # Ensure the correct order confirmed event was created
@@ -448,6 +447,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     shipping_method,
     payment_txn_preauth,
     channel_USD,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -522,8 +522,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     expected_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
         "recipient_email": order.get_customer_email(),
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
@@ -1191,7 +1190,12 @@ def test_create_order_use_translations(
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_complete_checkout_0_total_captured_payment_creates_expected_events(
-    mock_notify, checkout_with_item_total_0, customer_user, channel_USD, app
+    mock_notify,
+    checkout_with_item_total_0,
+    customer_user,
+    channel_USD,
+    app,
+    site_settings,
 ):
     checkout = checkout_with_item_total_0
     checkout_user = customer_user
@@ -1255,8 +1259,7 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
         "recipient_email": order.get_customer_email(),
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     # Ensure the correct order confirmed event was created
