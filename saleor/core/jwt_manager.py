@@ -9,9 +9,12 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.color import color_style
+from django.urls import reverse
 from django.utils.module_loading import import_string
 from jwt import api_jws
 from jwt.algorithms import RSAAlgorithm
+
+from .utils import build_absolute_uri
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +51,10 @@ class JWTManagerBase:
 
     @classmethod
     def get_jwks(cls) -> dict:
+        return NotImplemented
+
+    @classmethod
+    def get_issuer(cls) -> str:
         return NotImplemented
 
 
@@ -173,6 +180,10 @@ class JWTManager(JWTManagerBase):
             cls.get_private_key()
         except Exception as e:
             raise ImproperlyConfigured(f"Unable to load provided PEM private key. {e}")
+
+    @classmethod
+    def get_issuer(cls) -> str:
+        return build_absolute_uri(reverse("api"))
 
 
 def get_jwt_manager() -> JWTManagerBase:

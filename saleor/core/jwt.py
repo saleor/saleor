@@ -30,7 +30,12 @@ def jwt_base_payload(
     exp_delta: Optional[timedelta], token_owner: str
 ) -> Dict[str, Any]:
     utc_now = datetime.utcnow()
-    payload = {"iat": utc_now, JWT_OWNER_FIELD: token_owner}
+
+    payload = {
+        "iat": utc_now,
+        JWT_OWNER_FIELD: token_owner,
+        "iss": get_jwt_manager().get_issuer(),
+    }
     if exp_delta:
         payload["exp"] = utc_now + exp_delta
     return payload

@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
 from ....core.units import WeightUnits
@@ -96,6 +97,7 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     query = SHIPPING_ZONE_QUERY
     ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
