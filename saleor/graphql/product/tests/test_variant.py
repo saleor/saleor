@@ -2312,8 +2312,8 @@ def test_update_product_variant_with_current_attribute(
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": color_attribute_id, "values": ["red"]},
-            {"id": size_attribute_id, "values": ["small"]},
+            {"id": color_attribute_id, "values": ["Red"]},
+            {"id": size_attribute_id, "values": ["Small"]},
         ],
     }
 
@@ -2657,8 +2657,8 @@ def test_update_product_variant_with_new_attribute(
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": color_attribute_id, "values": ["red"]},
-            {"id": size_attribute_id, "values": ["big"]},
+            {"id": color_attribute_id, "values": ["Red"]},
+            {"id": size_attribute_id, "values": ["Big"]},
         ],
     }
 
