@@ -8,6 +8,7 @@ import before_after
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import transaction
@@ -937,6 +938,7 @@ def test_product_query_by_id_weight_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.LB
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -4531,6 +4533,7 @@ def test_product_type_query_by_id_weight_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.OZ
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 

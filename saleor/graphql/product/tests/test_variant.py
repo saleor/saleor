@@ -6,6 +6,7 @@ from uuid import uuid4
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.utils.text import slugify
 from freezegun import freeze_time
 from measurement.measures import Weight
@@ -98,6 +99,7 @@ def test_fetch_variant(
     product,
     permission_manage_products,
     site_settings,
+    settings,
     channel_USD,
 ):
     # given
@@ -108,6 +110,7 @@ def test_fetch_variant(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "countryCode": "EU", "channel": channel_USD.slug}
@@ -154,6 +157,7 @@ def test_fetch_variant_no_stocks(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     warehouse = variant.stocks.first().warehouse
     # remove the warehouse channels
