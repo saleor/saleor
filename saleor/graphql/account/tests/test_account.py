@@ -204,6 +204,13 @@ FULL_USER_QUERY = """
                     }
                 }
             }
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
         }
     }
 """
@@ -303,8 +310,10 @@ def test_query_customer_user(
     assert data["giftCards"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_used.pk
     )
-
     assert data["checkoutIds"] == [to_global_id_or_none(checkout)]
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
 
 
 def test_query_customer_user_with_orders(
@@ -1044,6 +1053,14 @@ ME_QUERY = """
                 code
                 name
             }
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+                totalCount
+            }
         }
     }
 """
@@ -1111,6 +1128,9 @@ def test_me_query_checkout(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
 
 
 def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
@@ -1125,6 +1145,43 @@ def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert not data["checkout"]
+    assert not data["checkouts"]["edges"]
+
+
+def test_me_query_checkouts_with_channel(
+        user_api_client, checkout, checkout_JPY
+):
+    query = """
+        query Me($channel: String) {
+            me {
+                checkouts(first: 10, channel: $channel) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                    totalCount
+                }
+            }
+        }
+    """
+
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+
+    response = user_api_client.post_graphql(
+        query, {"channel": checkout.channel.slug}
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
+    assert data["checkouts"]["totalCount"] == 1
+
 
 
 QUERY_ME_CHECKOUT_TOKENS = """

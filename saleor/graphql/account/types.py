@@ -22,7 +22,7 @@ from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
-from ..checkout.types import Checkout
+from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
@@ -271,6 +271,13 @@ class User(ModelObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
     )
+    checkouts = ConnectionField(
+        CheckoutCountableConnection,
+        description="Returns checkouts assigned to this user.",
+        channel = graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+    )
     gift_cards = ConnectionField(
         "saleor.graphql.giftcard.types.GiftCardCountableConnection",
         description="List of the user gift cards.",
@@ -379,6 +386,23 @@ class User(ModelObjectType):
             CheckoutByUserAndChannelLoader(info.context)
             .load((root.id, channel))
             .then(return_checkout_ids)
+        )
+
+    @staticmethod
+    def resolve_checkouts(root: models.User, info, **kwargs):
+        def _resolve_checkouts(checkouts):
+            return create_connection_slice(
+                checkouts, info, kwargs, CheckoutCountableConnection
+            )
+
+        if channel := kwargs.get('channel'):
+            return (
+                CheckoutByUserAndChannelLoader(info.context)
+                .load((root.id, channel))
+                .then(_resolve_checkouts)
+            )
+        return (
+            CheckoutByUserLoader(info.context).load(root.id).then(_resolve_checkouts)
         )
 
     @staticmethod
