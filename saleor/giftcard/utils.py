@@ -89,8 +89,6 @@ def fulfill_non_shippable_gift_cards(
     app: Optional["App"],
     manager: "PluginsManager",
 ):
-    if not requestor_user:
-        requestor_user = None
     gift_card_lines = get_non_shippable_gift_card_lines(order_lines)
     if not gift_card_lines:
         return

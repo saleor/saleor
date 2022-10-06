@@ -327,10 +327,11 @@ def order_created_event(
         event_type = OrderEvents.PLACED_FROM_DRAFT
     else:
         event_type = OrderEvents.PLACED
-        account_events.customer_placed_order_event(
-            user=user,  # type: ignore
-            order=order,
-        )
+        if user:
+            account_events.customer_placed_order_event(
+                user=user,  # type: ignore
+                order=order,
+            )
 
     return OrderEvent.objects.create(order=order, type=event_type, user=user, app=app)
 
