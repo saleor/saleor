@@ -114,6 +114,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 + invalidate_prices_updated_fields
             )
 
-            manager.checkout_updated(checkout)
+            cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutBillingAddressUpdate(checkout=checkout)

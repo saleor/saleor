@@ -262,39 +262,42 @@ class ShippingZoneMixin:
         return data
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
 
-        add_warehouses = cleaned_data.get("add_warehouses")
-        if add_warehouses:
-            instance.warehouses.add(*add_warehouses)
+            add_warehouses = cleaned_data.get("add_warehouses")
+            if add_warehouses:
+                instance.warehouses.add(*add_warehouses)
 
-        remove_warehouses = cleaned_data.get("remove_warehouses")
-        if remove_warehouses:
-            instance.warehouses.remove(*remove_warehouses)
+            remove_warehouses = cleaned_data.get("remove_warehouses")
+            if remove_warehouses:
+                instance.warehouses.remove(*remove_warehouses)
 
-        add_channels = cleaned_data.get("add_channels")
-        if add_channels:
-            instance.channels.add(*add_channels)
+            add_channels = cleaned_data.get("add_channels")
+            if add_channels:
+                instance.channels.add(*add_channels)
 
-        remove_channels = cleaned_data.get("remove_channels")
-        if remove_channels:
-            instance.channels.remove(*remove_channels)
-            shipping_channel_listings = (
-                models.ShippingMethodChannelListing.objects.filter(
-                    shipping_method__shipping_zone=instance, channel__in=remove_channels
+            remove_channels = cleaned_data.get("remove_channels")
+            if remove_channels:
+                instance.channels.remove(*remove_channels)
+                shipping_channel_listings = (
+                    models.ShippingMethodChannelListing.objects.filter(
+                        shipping_method__shipping_zone=instance,
+                        channel__in=remove_channels,
+                    )
                 )
-            )
-            shipping_method_ids = list(
-                shipping_channel_listings.values_list("shipping_method_id", flat=True)
-            )
-            shipping_channel_listings.delete()
-            channel_ids = [channel.id for channel in remove_channels]
-            cls.delete_invalid_shipping_zone_to_warehouse_relation(instance)
-            drop_invalid_shipping_methods_relations_for_given_channels.delay(
-                shipping_method_ids, channel_ids
-            )
+                shipping_method_ids = list(
+                    shipping_channel_listings.values_list(
+                        "shipping_method_id", flat=True
+                    )
+                )
+                shipping_channel_listings.delete()
+                channel_ids = [channel.id for channel in remove_channels]
+                cls.delete_invalid_shipping_zone_to_warehouse_relation(instance)
+                drop_invalid_shipping_methods_relations_for_given_channels.delay(
+                    shipping_method_ids, channel_ids
+                )
 
     @classmethod
     def delete_invalid_shipping_zone_to_warehouse_relation(cls, shipping_zone):
@@ -363,7 +366,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.shipping_zone_created(instance)
+        cls.call_event(manager.shipping_zone_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -391,7 +394,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.shipping_zone_updated(instance)
+        cls.call_event(manager.shipping_zone_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -416,7 +419,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.shipping_zone_deleted(instance)
+        cls.call_event(manager.shipping_zone_deleted, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -572,32 +575,34 @@ class ShippingPriceMixin:
             )
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
+        with traced_atomic_transaction():
+            super().save(info, instance, cleaned_input)
 
-        delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
-        if delete_postal_code_rules:
-            instance.postal_code_rules.filter(id__in=delete_postal_code_rules).delete()
+            delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
+            if delete_postal_code_rules:
+                instance.postal_code_rules.filter(
+                    id__in=delete_postal_code_rules
+                ).delete()
 
-        if cleaned_input.get("add_postal_code_rules"):
-            inclusion_type = cleaned_input["inclusion_type"]
-            for postal_code_rule in cleaned_input["add_postal_code_rules"]:
-                start = postal_code_rule["start"]
-                end = postal_code_rule.get("end")
-                try:
-                    instance.postal_code_rules.create(
-                        start=start, end=end, inclusion_type=inclusion_type
-                    )
-                except IntegrityError:
-                    raise ValidationError(
-                        {
-                            "addPostalCodeRules": ValidationError(
-                                f"Entry start: {start}, end: {end} already exists.",
-                                code=ShippingErrorCode.ALREADY_EXISTS.value,
-                            )
-                        }
-                    )
+            if cleaned_input.get("add_postal_code_rules"):
+                inclusion_type = cleaned_input["inclusion_type"]
+                for postal_code_rule in cleaned_input["add_postal_code_rules"]:
+                    start = postal_code_rule["start"]
+                    end = postal_code_rule.get("end")
+                    try:
+                        instance.postal_code_rules.create(
+                            start=start, end=end, inclusion_type=inclusion_type
+                        )
+                    except IntegrityError:
+                        raise ValidationError(
+                            {
+                                "addPostalCodeRules": ValidationError(
+                                    f"Entry start: {start}, end: {end} already exists.",
+                                    code=ShippingErrorCode.ALREADY_EXISTS.value,
+                                )
+                            }
+                        )
 
 
 class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
@@ -626,7 +631,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.shipping_price_created(instance)
+        cls.call_event(manager.shipping_price_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -665,7 +670,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.shipping_price_updated(instance)
+        cls.call_event(manager.shipping_price_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -706,7 +711,7 @@ class ShippingPriceDelete(BaseMutation):
         shipping_method.delete()
         shipping_method.id = shipping_method_id
         manager = load_plugin_manager(info.context)
-        manager.shipping_price_deleted(shipping_method)
+        cls.call_event(manager.shipping_price_deleted, shipping_method)
 
         return ShippingPriceDelete(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
@@ -762,7 +767,7 @@ class ShippingPriceExcludeProducts(BaseMutation):
             (current_excluded_products | product_to_exclude).distinct()
         )
         manager = load_plugin_manager(info.context)
-        manager.shipping_price_updated(shipping_method)
+        cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
@@ -804,7 +809,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)
             )
         manager = load_plugin_manager(info.context)
-        manager.shipping_price_updated(shipping_method)
+        cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
