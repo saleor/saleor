@@ -3,7 +3,6 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
@@ -146,7 +145,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return added_lines
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cls.validate_order(order)
@@ -159,37 +157,38 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         manager = load_plugin_manager(info.context)
         site = load_site(info.context)
         discounts = load_discounts(info.context)
-        added_lines = cls.add_lines_to_order(
-            order,
-            lines_to_add,
-            info.context.user,
-            app,
-            manager,
-            site.settings,
-            discounts,
-        )
+        with traced_atomic_transaction():
+            added_lines = cls.add_lines_to_order(
+                order,
+                lines_to_add,
+                info.context.user,
+                app,
+                manager,
+                site.settings,
+                discounts,
+            )
 
-        # Create the products added event
-        events.order_added_products_event(
-            order=order,
-            user=info.context.user,
-            app=app,
-            order_lines=added_lines,
-        )
+            # Create the products added event
+            events.order_added_products_event(
+                order=order,
+                user=info.context.user,
+                app=app,
+                order_lines=added_lines,
+            )
 
-        invalidate_order_prices(order)
-        recalculate_order_weight(order)
-        update_order_search_vector(order, save=False)
-        order.save(
-            update_fields=[
-                "should_refresh_prices",
-                "weight",
-                "search_vector",
-                "updated_at",
-            ]
-        )
-        func = get_webhook_handler_by_order_status(order.status, manager)
-        transaction.on_commit(lambda: func(order))
+            invalidate_order_prices(order)
+            recalculate_order_weight(order)
+            update_order_search_vector(order, save=False)
+            order.save(
+                update_fields=[
+                    "should_refresh_prices",
+                    "weight",
+                    "search_vector",
+                    "updated_at",
+                ]
+            )
+            func = get_webhook_handler_by_order_status(order.status, manager)
+            cls.call_event(func, order)
 
         return OrderLinesCreate(order=order, order_lines=added_lines)
 

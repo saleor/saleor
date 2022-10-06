@@ -108,20 +108,20 @@ class ChannelCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        shipping_zones = cleaned_data.get("add_shipping_zones")
-        if shipping_zones:
-            instance.shipping_zones.add(*shipping_zones)
-        warehouses = cleaned_data.get("add_warehouses")
-        if warehouses:
-            instance.warehouses.add(*warehouses)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            shipping_zones = cleaned_data.get("add_shipping_zones")
+            if shipping_zones:
+                instance.shipping_zones.add(*shipping_zones)
+            warehouses = cleaned_data.get("add_warehouses")
+            if warehouses:
+                instance.warehouses.add(*warehouses)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.channel_created(instance)
+        cls.call_event(manager.channel_created, instance)
 
 
 class ChannelUpdateInput(ChannelInput):
@@ -191,25 +191,26 @@ class ChannelUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        cls._update_shipping_zones(instance, cleaned_data)
-        cls._update_warehouses(instance, cleaned_data)
-        if (
-            "remove_shipping_zones" in cleaned_data
-            or "remove_warehouses" in cleaned_data
-        ):
-            warehouse_ids = [
-                warehouse.id for warehouse in cleaned_data.get("remove_warehouses", [])
-            ]
-            shipping_zone_ids = [
-                warehouse.id
-                for warehouse in cleaned_data.get("remove_shipping_zones", [])
-            ]
-            delete_invalid_warehouse_to_shipping_zone_relations(
-                instance, warehouse_ids, shipping_zone_ids
-            )
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            cls._update_shipping_zones(instance, cleaned_data)
+            cls._update_warehouses(instance, cleaned_data)
+            if (
+                "remove_shipping_zones" in cleaned_data
+                or "remove_warehouses" in cleaned_data
+            ):
+                warehouse_ids = [
+                    warehouse.id
+                    for warehouse in cleaned_data.get("remove_warehouses", [])
+                ]
+                shipping_zone_ids = [
+                    warehouse.id
+                    for warehouse in cleaned_data.get("remove_shipping_zones", [])
+                ]
+                delete_invalid_warehouse_to_shipping_zone_relations(
+                    instance, warehouse_ids, shipping_zone_ids
+                )
 
     @classmethod
     def _update_shipping_zones(cls, instance, cleaned_data):
@@ -242,7 +243,7 @@ class ChannelUpdate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.channel_updated(instance)
+        cls.call_event(manager.channel_updated, instance)
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
@@ -327,15 +328,15 @@ class ChannelDelete(ModelDeleteMutation):
                     )
                 }
             )
-        cls.delete_checkouts(origin_channel.id)
+        with traced_atomic_transaction():
+            cls.delete_checkouts(origin_channel.id)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.channel_deleted(instance)
+        cls.call_event(manager.channel_deleted, instance)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
         target_channel_global_id = data.get("input", {}).get("channel_id")
@@ -346,11 +347,12 @@ class ChannelDelete(ModelDeleteMutation):
             cls.perform_delete_with_order_migration(origin_channel, target_channel)
         else:
             cls.perform_delete_channel_without_order(origin_channel)
-        delete_invalid_warehouse_to_shipping_zone_relations(
-            origin_channel,
-            origin_channel.warehouses.values("id"),
-            channel_deletion=True,
-        )
+        with traced_atomic_transaction():
+            delete_invalid_warehouse_to_shipping_zone_relations(
+                origin_channel,
+                origin_channel.warehouses.values("id"),
+                channel_deletion=True,
+            )
         return super().perform_mutation(_root, info, **data)
 
 
@@ -501,7 +503,7 @@ class ChannelActivate(BaseMutation):
         channel.is_active = True
         channel.save(update_fields=["is_active"])
         manager = load_plugin_manager(info.context)
-        manager.channel_status_changed(channel)
+        cls.call_event(manager.channel_status_changed, channel)
         return ChannelActivate(channel=channel)
 
 
@@ -536,7 +538,7 @@ class ChannelDeactivate(BaseMutation):
         channel.is_active = False
         channel.save(update_fields=["is_active"])
         manager = load_plugin_manager(info.context)
-        manager.channel_status_changed(channel)
+        cls.call_event(manager.channel_status_changed, channel)
         return ChannelDeactivate(channel=channel)
 
 

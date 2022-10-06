@@ -51,7 +51,6 @@ class OrderDiscountAdd(OrderDiscountCommon):
         cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         manager = load_plugin_manager(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
@@ -61,21 +60,20 @@ class OrderDiscountAdd(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-
-        order_discount = create_order_discount_for_order(
-            order, reason, value_type, value
-        )
         app = load_app(info.context)
+        with traced_atomic_transaction():
+            order_discount = create_order_discount_for_order(
+                order, reason, value_type, value
+            )
+            # Calling refreshing prices because it's set proper discount amount
+            # on OrderDiscount.
+            order, _ = fetch_order_prices_if_expired(order, manager, force_update=True)
+            order_discount.refresh_from_db()
 
-        # Calling refreshing prices because it's set proper discount amount
-        # on OrderDiscount.
-        order, _ = fetch_order_prices_if_expired(order, manager, force_update=True)
-        order_discount.refresh_from_db()
-
-        events.order_discount_added_event(
-            order=order,
-            user=info.context.user,
-            app=app,
-            order_discount=order_discount,
-        )
+            events.order_discount_added_event(
+                order=order,
+                user=info.context.user,
+                app=app,
+                order_discount=order_discount,
+            )
         return OrderDiscountAdd(order=order)

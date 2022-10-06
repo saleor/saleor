@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_money, zero_taxed_money
 from ....order import models
-from ....order.actions import order_shipping_updated
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....shipping import models as shipping_models
@@ -161,5 +160,5 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             ]
         )
         # Post-process the results
-        order_shipping_updated(order, manager)
+        cls.call_event(manager.order_updated, order)
         return OrderUpdateShipping(order=order)

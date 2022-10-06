@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Model
 from graphql import GraphQLError
 
@@ -124,13 +123,11 @@ class BaseTranslateMutation(ModelMutation):
         )
         manager = load_plugin_manager(info.context)
 
-        def on_commit():
-            if created:
-                manager.translation_created(translation)
-            else:
-                manager.translation_updated(translation)
+        if created:
+            cls.call_event(manager.translation_created, translation)
+        else:
+            cls.call_event(manager.translation_updated, translation)
 
-        transaction.on_commit(on_commit)
         return cls(**{cls._meta.return_field_name: instance})
 
 
@@ -198,25 +195,20 @@ class ProductTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
         product = cls.get_node_or_error(info, node_id, only_type=Product)
         cls.validate_input(data["input"])
-
-        translation, created = product.translations.update_or_create(
-            language_code=data["language_code"], defaults=data["input"]
-        )
-        product = ChannelContext(node=product, channel_slug=None)
         manager = load_plugin_manager(info.context)
-
-        def on_commit():
+        with traced_atomic_transaction():
+            translation, created = product.translations.update_or_create(
+                language_code=data["language_code"], defaults=data["input"]
+            )
+            product = ChannelContext(node=product, channel_slug=None)
             if created:
-                manager.translation_created(translation)
+                cls.call_event(manager.translation_created, translation)
             else:
-                manager.translation_updated(translation)
-
-        transaction.on_commit(on_commit)
+                cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: product})
 
@@ -267,7 +259,6 @@ class ProductVariantTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
         variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
@@ -275,21 +266,18 @@ class ProductVariantTranslate(BaseTranslateMutation):
             pk=variant_pk
         )
         cls.validate_input(data["input"])
-        translation, created = variant.translations.update_or_create(
-            language_code=data["language_code"], defaults=data["input"]
-        )
-        variant = ChannelContext(node=variant, channel_slug=None)
         manager = load_plugin_manager(info.context)
+        with traced_atomic_transaction():
+            translation, created = variant.translations.update_or_create(
+                language_code=data["language_code"], defaults=data["input"]
+            )
+            variant = ChannelContext(node=variant, channel_slug=None)
+        cls.call_event(manager.product_variant_updated, variant.node)
 
-        def on_commit():
-            manager.product_variant_updated(variant.node)
-
-            if created:
-                manager.translation_created(translation)
-            else:
-                manager.translation_updated(translation)
-
-        transaction.on_commit(on_commit)
+        if created:
+            cls.call_event(manager.translation_created, translation)
+        else:
+            cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: variant})
 
@@ -492,22 +480,19 @@ class ShopSettingsTranslate(BaseMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         site = load_site(info.context)
         instance = site.settings
         validate_input_against_model(SiteSettings, data["input"])
-        translation, created = instance.translations.update_or_create(
-            language_code=language_code, defaults=data.get("input")
-        )
         manager = load_plugin_manager(info.context)
+        with traced_atomic_transaction():
+            translation, created = instance.translations.update_or_create(
+                language_code=language_code, defaults=data.get("input")
+            )
 
-        def on_commit():
-            if created:
-                manager.translation_created(translation)
-            else:
-                manager.translation_updated(translation)
-
-        transaction.on_commit(on_commit)
+        if created:
+            cls.call_event(manager.translation_created, translation)
+        else:
+            cls.call_event(manager.translation_updated, translation)
 
         return ShopSettingsTranslate(shop=Shop())
