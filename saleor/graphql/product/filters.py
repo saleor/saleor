@@ -649,7 +649,7 @@ class ProductFilter(MetadataFilterBase):
         method="filter_available_from",
         help_text=f"Filter by available for purchase from date. {ADDED_IN_38}",
     )
-    listed = django_filters.BooleanFilter(
+    is_visilbe_in_listing = django_filters.BooleanFilter(
         method="filter_listed",
         help_text=f"Filter by visible in product listings. {ADDED_IN_38}",
     )
