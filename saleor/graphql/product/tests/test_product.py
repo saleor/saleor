@@ -4685,6 +4685,7 @@ def test_create_product(
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
     color_value_slug = color_attr.values.first().slug
+    color_value_name = color_attr.values.first().name
     color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
     # Add second attribute
@@ -4703,7 +4704,7 @@ def test_create_product(
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
-                {"id": color_attr_id, "values": [color_value_slug]},
+                {"id": color_attr_id, "values": [color_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         }
