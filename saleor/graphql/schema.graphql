@@ -6033,7 +6033,7 @@ input ProductFilterInput {
   
   Added in Saleor 3.8.
   """
-  isVisilbeInListing: Boolean
+  isVisibleInListing: Boolean
   price: PriceRangeInput
 
   """Filter by the lowest variant price after discounts."""

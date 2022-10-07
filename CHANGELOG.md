@@ -12,7 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `isAvailable`
   - `publishedFrom`
   - `availableFrom`
-  - `listed`
+  - `isVisibleInListing`
 - Add ability to filter payments by list of ids. #10821 by @kadewu
 - Add ability to filter customers by ids. #10694 by @kadewu
 
