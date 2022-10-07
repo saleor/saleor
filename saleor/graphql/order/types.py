@@ -93,7 +93,7 @@ from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.dataloaders import TransactionByPaymentIdLoader
-from ..payment.enums import OrderAction, TransactionStatusEnum
+from ..payment.enums import OrderAction, TransactionEventStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..plugins.dataloaders import load_plugin_manager
 from ..product.dataloaders import (
@@ -310,7 +310,7 @@ class OrderEvent(ModelObjectType):
         OrderEventDiscountObject, description="The discount applied to the order."
     )
     status = graphene.Field(
-        TransactionStatusEnum, description="The status of payment's transaction."
+        TransactionEventStatusEnum, description="The status of payment's transaction."
     )
     reference = graphene.String(description="The reference of payment's transaction.")
 

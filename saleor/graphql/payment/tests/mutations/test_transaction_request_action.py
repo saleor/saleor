@@ -27,6 +27,7 @@ mutation TransactionRequestAction(
                 id
                 actions
                 reference
+                pspReference
                 type
                 status
                 modifiedAt
@@ -83,7 +84,7 @@ def test_transaction_request_charge_action_for_order(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
@@ -119,7 +120,7 @@ def test_transaction_request_charge_action_for_order(
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @pytest.mark.parametrize(
@@ -147,7 +148,7 @@ def test_transaction_request_refund_action_for_order(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order_with_lines.pk,
@@ -183,7 +184,7 @@ def test_transaction_request_refund_action_for_order(
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_refund_amount
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -201,7 +202,7 @@ def test_transaction_request_void_action_for_order(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
@@ -234,7 +235,7 @@ def test_transaction_request_void_action_for_order(
 
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -252,7 +253,7 @@ def test_transaction_request_void_action_for_checkout(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -309,7 +310,7 @@ def test_transaction_request_charge_action_for_checkout(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -368,7 +369,7 @@ def test_transaction_request_refund_action_for_checkout(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -417,7 +418,7 @@ def test_transaction_request_uses_handle_payment_permission(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
@@ -466,7 +467,7 @@ def test_transaction_request_uses_manage_orders_permission(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -508,7 +509,7 @@ def test_transaction_request_action_missing_permission(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
@@ -537,7 +538,7 @@ def test_transaction_request_action_missing_event(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         order_id=order.pk,

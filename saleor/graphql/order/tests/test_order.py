@@ -41,7 +41,12 @@ from ....order.search import (
     update_order_search_vector,
 )
 from ....order.utils import update_order_authorize_data, update_order_charge_data
-from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
+from ....payment import (
+    ChargeStatus,
+    PaymentError,
+    TransactionAction,
+    TransactionEventStatus,
+)
 from ....payment.interface import TransactionActionData
 from ....payment.models import Payment, TransactionEvent, TransactionItem
 from ....plugins.base_plugin import ExcludedShippingMethod
@@ -54,7 +59,7 @@ from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehous
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...core.enums import ThumbnailFormatEnum
 from ...core.utils import to_global_id_or_none
-from ...payment.enums import TransactionStatusEnum
+from ...payment.enums import TransactionEventStatusEnum
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
     assert_no_permission,
@@ -373,7 +378,8 @@ query OrdersQuery {
                     }
                 }
                 transactions{
-                    reference
+                    id
+                    pspReference
                     type
                     status
                     modifiedAt
@@ -396,7 +402,7 @@ query OrdersQuery {
                     }
                     events{
                        status
-                       reference
+                       pspReference
                        name
                        createdAt
                     }
@@ -793,7 +799,7 @@ def test_order_query_with_transactions_details(
                 order_id=order.id,
                 status="Authorized",
                 type="Credit card",
-                reference="123",
+                psp_reference="123",
                 currency="USD",
                 authorized_value=Decimal("15"),
                 available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -802,7 +808,7 @@ def test_order_query_with_transactions_details(
                 order_id=order.id,
                 status="Authorized second credit card",
                 type="Credit card",
-                reference="321",
+                psp_reference="321",
                 currency="USD",
                 authorized_value=Decimal("10"),
                 available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -811,7 +817,7 @@ def test_order_query_with_transactions_details(
                 order_id=order.id,
                 status="Captured",
                 type="Credit card",
-                reference="321",
+                psp_reference="111",
                 currency="USD",
                 charged_value=Decimal("15"),
                 available_actions=[TransactionAction.REFUND],
@@ -820,7 +826,7 @@ def test_order_query_with_transactions_details(
     )
     update_order_authorize_data(order)
     update_order_charge_data(order)
-    event_status = TransactionStatus.FAILURE
+    event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     TransactionEvent.objects.bulk_create(
@@ -828,7 +834,7 @@ def test_order_query_with_transactions_details(
             TransactionEvent(
                 name=event_name,
                 status=event_status,
-                reference=event_reference,
+                psp_reference=f"{event_reference}{to_global_id_or_none(transaction)}",
                 transaction=transaction,
             )
             for transaction in transactions
@@ -863,8 +869,8 @@ def test_order_query_with_transactions_details(
         assert len(transaction["events"]) == 1
         event = transaction["events"][0]
         assert event["name"] == event_name
-        assert event["status"] == TransactionStatusEnum.FAILURE.name
-        assert event["reference"] == event_reference
+        assert event["status"] == TransactionEventStatusEnum.FAILURE.name
+        assert event["pspReference"] == f"{event_reference}{transaction.get('id')}"
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
@@ -1494,6 +1500,7 @@ query OrdersQuery {
                 }
                 transactions{
                     reference
+                    pspReference
                     type
                     status
                     modifiedAt
@@ -1516,6 +1523,7 @@ query OrdersQuery {
                     }
                     events{
                        status
+                       pspReference
                        reference
                        name
                        createdAt
@@ -7463,7 +7471,7 @@ def test_order_charge_with_transaction_action_request(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge", "void"],
         currency="USD",
         order_id=order.pk,
@@ -7498,7 +7506,7 @@ def test_order_charge_with_transaction_action_request(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == charge_value
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -7510,7 +7518,7 @@ def test_order_capture_with_transaction_action_request_missing_event(
     TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -7765,7 +7773,7 @@ def test_order_void_with_transaction_action_request(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -7800,7 +7808,7 @@ def test_order_void_with_transaction_action_request(
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -7811,7 +7819,7 @@ def test_order_void_with_transaction_action_request_missing_event(
     TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
@@ -7922,7 +7930,7 @@ def test_order_refund_with_transaction_action_request(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -7957,7 +7965,7 @@ def test_order_refund_with_transaction_action_request(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == refund_value
-    assert event.parameters["reference"] == transaction.reference
+    assert event.parameters["reference"] == transaction.psp_reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -7969,7 +7977,7 @@ def test_order_refund_with_transaction_action_request_missing_event(
     TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,

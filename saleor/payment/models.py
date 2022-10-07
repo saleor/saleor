@@ -20,8 +20,8 @@ from . import (
     CustomPaymentChoices,
     StorePaymentMethod,
     TransactionAction,
+    TransactionEventStatus,
     TransactionKind,
-    TransactionStatus,
 )
 
 
@@ -30,7 +30,7 @@ class TransactionItem(ModelWithMetadata):
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, default="")
     type = models.CharField(max_length=512, blank=True, default="")
-    reference = models.CharField(max_length=512, blank=True, default="")
+    psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
     available_actions = ArrayField(
         models.CharField(max_length=128, choices=TransactionAction.CHOICES),
         default=list,
@@ -75,6 +75,7 @@ class TransactionItem(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
     )
+    external_url = models.URLField(blank=True, null=True)
 
     checkout = models.ForeignKey(
         Checkout,
@@ -112,15 +113,16 @@ class TransactionEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=128,
-        choices=TransactionStatus.CHOICES,
-        default=TransactionStatus.SUCCESS,
+        choices=TransactionEventStatus.CHOICES,
+        default=TransactionEventStatus.SUCCESS,
     )
-    reference = models.CharField(max_length=512, blank=True, default="")
+    psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
     name = models.CharField(max_length=512, blank=True, default="")
 
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE
     )
+    external_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ("pk",)

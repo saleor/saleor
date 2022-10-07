@@ -8365,7 +8365,14 @@ type TransactionItem implements Node & ObjectWithMetadata {
   type: String!
 
   """Reference of transaction."""
-  reference: String!
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
+
+  """
+  PSP reference of transaction.
+  
+  Added in Saleor 3.8.
+  """
+  pspReference: String!
 
   """
   The related order.
@@ -8398,6 +8405,13 @@ type TransactionItem implements Node & ObjectWithMetadata {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   app: App
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction details.
+  
+  Added in Saleor 3.8.
+  """
+  externalUrl: String!
 }
 
 """
@@ -8406,12 +8420,15 @@ Represents possible actions on payment transaction.
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action.
+    VOID - Represents a void action. DEPRECATED: this enum value will be removed
+    in Saleor 3.9 (Feature Preview). Use `CANCEL` instead.
+    CANCEL - Represents a cancel action.
 """
 enum TransactionActionEnum {
   CHARGE
   REFUND
   VOID
+  CANCEL
 }
 
 """Represents an order in the shop."""
@@ -9338,7 +9355,7 @@ type OrderEvent implements Node {
   discount: OrderEventDiscountObject
 
   """The status of payment's transaction."""
-  status: TransactionStatus
+  status: TransactionEventStatus
 
   """The reference of payment's transaction."""
   reference: String
@@ -9444,11 +9461,21 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
-"""An enumeration."""
-enum TransactionStatus {
+"""
+Represents a status of payment transaction.
+
+    The following statuses are possible:
+    SUCCESS - Represents a sucess action.
+    FAILURE - Represents a failure action.
+    PENDING - Represents a pending action. DEPRECATED: this enum value will be removed
+    in Saleor 3.9 (Feature Preview). Saleor automatically marks transaction as pending.
+    REQUEST - Represents a request that was send for the payment transaction.
+"""
+enum TransactionEventStatus {
   PENDING
   SUCCESS
   FAILURE
+  REQUEST
 }
 
 """Contains all details related to the applied discount to the order."""
@@ -9586,13 +9613,27 @@ type TransactionEvent implements Node {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionStatus!
+  status: TransactionEventStatus!
 
   """Reference of transaction's event."""
-  reference: String!
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
+
+  """
+  PSP reference of transaction.
+  
+  Added in Saleor 3.8.
+  """
+  pspReference: String!
 
   """Name of the transaction's event."""
   name: String
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction details.
+  
+  Added in Saleor 3.8.
+  """
+  externalUrl: String!
 }
 
 type GiftCardCountableConnection {
@@ -17215,6 +17256,7 @@ enum TransactionCreateErrorCode {
   NOT_FOUND
   INCORRECT_CURRENCY
   METADATA_KEY_REQUIRED
+  UNIQUE
 }
 
 input TransactionCreateInput {
@@ -17224,8 +17266,17 @@ input TransactionCreateInput {
   """Payment type used for this transaction."""
   type: String!
 
-  """Reference of the transaction."""
+  """
+  Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  """
   reference: String
+
+  """
+  PSP Reference of the transaction. The PSP reference must be unique across all `transactionItem` objects.
+  
+  Added in Saleor 3.8.
+  """
+  pspReference: String
 
   """List of all possible actions for the transaction"""
   availableActions: [TransactionActionEnum!]
@@ -17247,6 +17298,13 @@ input TransactionCreateInput {
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction details.
+  
+  Added in Saleor 3.8.
+  """
+  externalUrl: String
 }
 
 input MetadataInput {
@@ -17259,13 +17317,43 @@ input MetadataInput {
 
 input TransactionEventInput {
   """Current status of the payment transaction."""
-  status: TransactionStatus!
+  status: TransactionEventStatus!
 
-  """Reference of the transaction."""
+  """
+  Reference of the transaction. The reference and PSP reference must be unique across all `transactionEvent` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  """
   reference: String
+
+  """
+  PSP Reference related to this action. The PSP reference must be unique across all `transactionEvent` objects.
+  
+  Added in Saleor 3.8.
+  """
+  pspReference: String
 
   """Name of the transaction."""
   name: String
+
+  """
+  The transaction action that is related to this event.
+  
+  Added in Saleor 3.8.
+  """
+  type: TransactionActionEnum
+
+  """
+  The amount related to this event.
+  
+  Added in Saleor 3.8.
+  """
+  amount: PositiveDecimal
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction event details.
+  
+  Added in Saleor 3.8.
+  """
+  externalUrl: String
 }
 
 """
@@ -17300,6 +17388,7 @@ enum TransactionUpdateErrorCode {
   NOT_FOUND
   INCORRECT_CURRENCY
   METADATA_KEY_REQUIRED
+  UNIQUE
 }
 
 input TransactionUpdateInput {
@@ -17309,8 +17398,17 @@ input TransactionUpdateInput {
   """Payment type used for this transaction."""
   type: String
 
-  """Reference of the transaction."""
+  """
+  Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  """
   reference: String
+
+  """
+  PSP Reference of the transaction. The PSP reference must be unique across all `transactionItem` objects.
+  
+  Added in Saleor 3.8.
+  """
+  pspReference: String
 
   """List of all possible actions for the transaction"""
   availableActions: [TransactionActionEnum!]
@@ -17332,6 +17430,13 @@ input TransactionUpdateInput {
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction details.
+  
+  Added in Saleor 3.8.
+  """
+  externalUrl: String
 }
 
 """

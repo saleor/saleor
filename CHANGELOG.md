@@ -10,14 +10,25 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new mutation `orderGrantRefundCreate` and `orderGrantRefundUpdate` responsible for managing the granted refunds attached to the order.
   - Add new fields to Order type:
     - `grantedRefunds` list of `GrantedRefund` assigned to the order.
-    - `totalGrantedRefund` total amount of all granted refunds
-		- `totalRefunded` total amount of refund
-    - `totalPendingRefund` total amount of pending refund
+    - `totalGrantedRefund` total amount of all granted refunds.
+		- `totalRefunded` total amount of refund.
+    - `totalPendingRefund` total amount of pending refund.
     - `totalRemainingGrant` the difference amount between granted refund and the amounts that are pending and refunded.
-  - Added fields: `user` and `app` to `transactionItem` type
+  - Added fields: `user` and `app` to `transactionItem` type.
   - `transactionCreate` and `transactionUpdate` can be used by staff user with `HANDLE_PAYMENTS` permission.
   - `transactionCreate` will store app/user who perform creation action.
   - [FEATURE PREVIEW BREAKING CHANGE] - for all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
+  - Add new fields `pspReference`, `type`, `amount`, `referenceUrl` to `TransactionEventInput`, `TransactionEvent`.
+  - Depreceate `reference` field in `TransactionEventInput`, `TransactionEvent`. Use `pspReference` instead.
+  - [FEATURE PREVIEW BREAKING CHANGE] - `pspReference` and deprecated `reference` input can accept only unique values across `TransactionEvent` objects. Saleor will raise an exception if the `TransactionEvent` with provided `pspReference` already exists(error code: `UNIQUE`). Saleor can also accept `pspReference`/`reference` as Null value.
+  - Add new fields `pspReference`, `referenceUrl` to `TransactionCreateInput`, `TransactionUpdateInput`, and `TransactionItem`.
+  - Depreceate `reference` field in `TransactionCreateInput`, `TransactionUpdateInput`, and `TransactionItem`. Use `pspReference` instead. The field will be removed in Saleor 3.9, as the API is a preview feature.
+  - [FEATURE PREVIEW BREAKING CHANGE] - `pspReference` and deprecated `reference` can accept only unique values across `TransactionItem` objects. Saleor will raise an exception if the transaction with provided `pspReference` already exists(error code: `UNIQUE`). Saleor can also accept `pspReference`/`reference` as Null value.
+  - Rename `TransactionStatus` to `TransactionEventStatus`.
+  - Add `REQUEST` to `TransactionEventStatus`.
+  - Deprecate `TransactionEventStatus.PENDING` - Will be removed in Saleor3.9, as the API is the preview feature.
+  - Add `CANCEL` to `TransactionActionEnum`.
+  - Deprecate `TransactionActionEnum.VOID` - Will be removed in Saleor3.9, as the API is the preview feature Use `CANCEL` instead.
 
 ### GraphQL API
 - Add ability to filter by slug. #10578 by @kadewu

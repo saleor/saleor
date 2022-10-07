@@ -1133,7 +1133,7 @@ def test_transaction_action_request(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,

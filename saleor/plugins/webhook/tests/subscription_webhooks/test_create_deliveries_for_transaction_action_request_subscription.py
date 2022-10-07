@@ -41,6 +41,7 @@ subscription{
         }
         status
         type
+        pspReference
         reference
         order {
           id
@@ -66,7 +67,7 @@ def test_transaction_refund_action_request(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
@@ -110,6 +111,7 @@ def test_transaction_refund_action_request(
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
@@ -129,7 +131,7 @@ def test_transaction_charge_action_request(
     transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["charge"],
         currency="USD",
         order_id=order.pk,
@@ -173,6 +175,7 @@ def test_transaction_charge_action_request(
             "status": "Authorized",
             "type": "Credit card",
             "reference": "PSP ref",
+            "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
@@ -192,7 +195,7 @@ def test_transaction_void_action_request(
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
-        reference="PSP ref",
+        psp_reference="PSP ref",
         available_actions=["void"],
         currency="USD",
         order_id=order.pk,
@@ -235,6 +238,7 @@ def test_transaction_void_action_request(
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {"actionType": "VOID", "amount": None},
