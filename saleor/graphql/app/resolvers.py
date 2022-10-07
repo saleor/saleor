@@ -23,7 +23,7 @@ def resolve_access_token_for_app(info, root):
         return None
 
     user = info.context.user
-    if user.is_anonymous or not user.is_staff:
+    if not user or not user.is_staff:
         return None
     return create_access_token_for_app(root, user)
 

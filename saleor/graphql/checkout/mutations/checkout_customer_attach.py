@@ -74,10 +74,8 @@ class CheckoutCustomerAttach(BaseMutation):
             )
 
         user_id_from_request = None
-        if not info.context.user.is_anonymous:
-            user_id_from_request = graphene.Node.to_global_id(
-                "User", info.context.user.id
-            )
+        if user := info.context.user:
+            user_id_from_request = graphene.Node.to_global_id("User", user.id)
 
         if customer_id and customer_id != user_id_from_request:
             requestor = get_user_or_app_from_context(info.context)
