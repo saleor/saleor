@@ -1,7 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
@@ -58,8 +57,6 @@ class CheckoutAddPromoCode(BaseMutation):
             id=id,
             error_class=CheckoutErrorCode,
         )
-
-        validate_checkout_email(checkout)
 
         manager = info.context.plugins
         discounts = info.context.discounts

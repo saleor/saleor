@@ -866,9 +866,10 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
 
 
-def test_checkout_add_promo_code_no_checkout_email(
+def test_checkout_add_promo_code_without_checkout_email(
     api_client, checkout_with_item, voucher
 ):
+    # given
     checkout_with_item.email = None
     checkout_with_item.save(update_fields=["email"])
 
@@ -876,10 +877,13 @@ def test_checkout_add_promo_code_no_checkout_email(
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
+
+    # when
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
-    assert data["errors"]
-    assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
 
 
 @pytest.mark.parametrize("shipping_price", [12, 10, 5])
