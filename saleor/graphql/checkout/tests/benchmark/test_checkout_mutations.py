@@ -596,7 +596,6 @@ def test_update_checkout_lines(
             },
         ],
     }
-
     response = get_graphql_content(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
     )

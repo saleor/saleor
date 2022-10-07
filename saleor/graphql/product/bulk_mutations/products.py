@@ -541,7 +541,7 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        product = cls.get_node_or_error(info, data["product_id"], models.Product)
+        product = cls.get_node_or_error(info, data["product_id"], only_type="Product")
         errors = defaultdict(list)
 
         cleaned_inputs = cls.clean_variants(info, data["variants"], product, errors)

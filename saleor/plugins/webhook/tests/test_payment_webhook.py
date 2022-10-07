@@ -50,7 +50,9 @@ def webhook_data():
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = '{"key": "value"}'
-    trigger_webhook_sync(WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app)
+    trigger_webhook_sync(
+        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first()
+    )
     event_delivery = EventDelivery.objects.first()
     mock_request.assert_called_once_with(payment_app.name, event_delivery)
 
@@ -68,38 +70,21 @@ def test_trigger_webhook_sync_with_subscription(
     fake_delivery = "fake_delivery"
     mock_delivery_create.return_value = fake_delivery
     trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app, payment
+        WebhookEventSyncType.PAYMENT_CAPTURE,
+        data,
+        payment_app.webhooks.first(),
+        payment,
     )
     mock_request.assert_called_once_with(payment_app.name, fake_delivery)
-
-
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
-    webhook_1 = payment_app.webhooks.first()
-
-    # create additional webhook for the same event; check that always the first one will
-    # be used if there are multiple webhooks for the same event.
-    webhook_2 = Webhook.objects.create(
-        app=payment_app,
-        name="payment-webhook-2",
-        target_url="https://dont-use-this-gateway.com/api/",
-    )
-    webhook_2.events.create(event_type=WebhookEventSyncType.PAYMENT_CAPTURE)
-
-    data = '{"key": "value"}'
-    trigger_webhook_sync(WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app)
-    event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(payment_app.name, event_delivery)
-
-    assert event_delivery.webhook.target_url == webhook_1.target_url
-    assert event_delivery.webhook.secret_key == webhook_1.secret_key
 
 
 def test_trigger_webhook_sync_no_webhook_available():
     app = App.objects.create(name="Dummy app", is_active=True)
     # should raise an error for app with no payment webhooks
     with pytest.raises(PaymentError):
-        trigger_webhook_sync(WebhookEventSyncType.PAYMENT_REFUND, {}, app)
+        trigger_webhook_sync(
+            WebhookEventSyncType.PAYMENT_REFUND, {}, app.webhooks.first()
+        )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
@@ -315,6 +300,50 @@ def test_get_payment_gateways(
     )
     expected_response_2 = parse_list_payment_gateways_response(
         mock_json_response, app_2
+    )
+    assert len(response_data) == 2
+    assert response_data[0] == expected_response_1[0]
+    assert response_data[1] == expected_response_2[0]
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_payment_gateways_multiple_webhooks_in_the_same_app(
+    mock_send_request, payment_app, permission_manage_payments, webhook_plugin
+):
+    # given
+    # create the second webhook with the same event
+    webhook = Webhook.objects.create(
+        name="payment-webhook-2",
+        app=payment_app,
+        target_url="https://payment-gateway-2.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
+        ]
+    )
+
+    plugin = webhook_plugin()
+    mock_json_response = [
+        {
+            "id": "credit-card",
+            "name": "Credit Card",
+            "currencies": ["USD", "EUR"],
+            "config": [],
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    # when
+    response_data = plugin.get_payment_gateways("USD", None, None)
+
+    # then
+    expected_response_1 = parse_list_payment_gateways_response(
+        mock_json_response, payment_app
+    )
+    expected_response_2 = parse_list_payment_gateways_response(
+        mock_json_response, payment_app
     )
     assert len(response_data) == 2
     assert response_data[0] == expected_response_1[0]

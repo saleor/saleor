@@ -145,6 +145,7 @@ def test_generate_order_payload(
         "id": graphene.Node.to_global_id("Order", order.id),
         "type": "Order",
         "token": str(order.id),
+        "number": order.number,
         "created": parse_django_datetime(order.created_at),
         "status": order.status,
         "origin": order.origin,
