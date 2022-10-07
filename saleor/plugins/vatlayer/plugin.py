@@ -277,24 +277,7 @@ class VatlayerPlugin(BasePlugin):
         if not order.shipping_method:
             return previous_value
 
-        shipping_price = order.shipping_method.channel_listings.get(
-            channel_id=order.channel_id
-        ).price
-
-        if (
-            order.voucher_id
-            and order.voucher.type == VoucherType.SHIPPING  # type: ignore
-        ):
-            shipping_discount = get_voucher_discount_assigned_to_order(order)
-            if shipping_discount:
-                shipping_price = Money(
-                    max(
-                        shipping_price.amount - shipping_discount.amount_value,
-                        Decimal("0"),
-                    ),
-                    shipping_price.currency,
-                )
-        return get_taxed_shipping_price(shipping_price, taxes)
+        return get_taxed_shipping_price(order.base_shipping_price, taxes)
 
     def update_taxes_for_order_lines(
         self,

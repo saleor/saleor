@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY, Mock, patch, sentinel
+from unittest.mock import ANY, patch, sentinel
 
 import graphene
 import pytest
@@ -58,7 +58,7 @@ from ..payloads import (
     generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
-    get_base_price,
+    serialize_refund_data,
 )
 from ..serializers import serialize_checkout_lines
 
@@ -145,6 +145,7 @@ def test_generate_order_payload(
         "id": graphene.Node.to_global_id("Order", order.id),
         "type": "Order",
         "token": str(order.id),
+        "number": order.number,
         "created": parse_django_datetime(order.created_at),
         "status": order.status,
         "origin": order.origin,
@@ -347,9 +348,7 @@ def test_generate_order_payload_for_tax_calculation(
         "currency": order.currency,
         "shipping_name": order.shipping_method.name,
         "shipping_amount": str(
-            quantize_price(
-                get_base_price(order.shipping_price, taxes_included), currency
-            )
+            quantize_price(order.base_shipping_price_amount, currency)
         ),
         "metadata": order.metadata,
         "discounts": [
@@ -946,9 +945,57 @@ def test_generate_list_gateways_payload(checkout):
 
 
 @freeze_time("1914-06-28 10:50")
-def test_generate_payment_payload(dummy_webhook_app_payment_data):
+def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
+    dummy_webhook_app_payment_data.refund_data = {
+        "order_lines_to_refund": [
+            {
+                "line": order_line,
+                "quantity": 1,
+                "is_digital": "None",
+                "digital_content": "None",
+                "replace": False,
+                "warehouse_pk": "None",
+            }
+        ]
+    }
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
+
+    expected_payload["refund_data"] = serialize_refund_data(
+        dummy_webhook_app_payment_data.refund_data
+    )
+
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
+    expected_payload["payment_method"] = from_payment_app_id(
+        dummy_webhook_app_payment_data.gateway
+    ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+
+    assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+@freeze_time("1914-06-28 10:50")
+def test_generate_payment_payload_fulfillment_return(
+    dummy_webhook_app_payment_data, fulfillment
+):
+    dummy_webhook_app_payment_data.refund_data = {
+        "fulfillment_lines_to_refund": [
+            {
+                "line": fulfillment.lines.first(),
+                "quantity": 1,
+                "replace": False,
+            }
+        ]
+    }
+    payload = generate_payment_payload(dummy_webhook_app_payment_data)
+    expected_payload = asdict(dummy_webhook_app_payment_data)
+
+    expected_payload["refund_data"] = serialize_refund_data(
+        dummy_webhook_app_payment_data.refund_data
+    )
+
     expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
         Decimal("0.01")
     )
@@ -1732,15 +1779,6 @@ def test_generate_meta(app, rf):
 
 NET_AMOUNT = sentinel.NET_AMOUNT
 GROSS_AMOUNT = sentinel.GROSS_AMOUNT
-
-
-@pytest.mark.parametrize(
-    "taxes_included, amount", [(True, GROSS_AMOUNT), (False, NET_AMOUNT)]
-)
-def test_get_base_price(taxes_included, amount):
-    # given
-    price = Mock(net=Mock(amount=NET_AMOUNT), gross=Mock(amount=GROSS_AMOUNT))
-    assert amount == get_base_price(price, taxes_included)
 
 
 @pytest.mark.parametrize(

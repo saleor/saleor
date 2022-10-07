@@ -57,7 +57,6 @@ class OrderConfirm(ModelMutation):
         return instance
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
@@ -66,46 +65,46 @@ class OrderConfirm(ModelMutation):
         payment = order_info.payment
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
-
-        if payment_transactions := list(order.payment_transactions.all()):
-            try:
-                # We use the last transaction as we don't have a possibility to
-                # provide way of handling multiple transaction here
-                payment_transaction = payment_transactions[-1]
-                request_charge_action(
-                    transaction=payment_transaction,
-                    manager=manager,
-                    charge_value=payment_transaction.authorized_value,
-                    channel_slug=order.channel.slug,
-                    user=info.context.user,
-                    app=app,
+        with traced_atomic_transaction():
+            if payment_transactions := list(order.payment_transactions.all()):
+                try:
+                    # We use the last transaction as we don't have a possibility to
+                    # provide way of handling multiple transaction here
+                    payment_transaction = payment_transactions[-1]
+                    request_charge_action(
+                        transaction=payment_transaction,
+                        manager=manager,
+                        charge_value=payment_transaction.authorized_value,
+                        channel_slug=order.channel.slug,
+                        user=info.context.user,
+                        app=app,
+                    )
+                except PaymentError as e:
+                    raise ValidationError(
+                        str(e),
+                        code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                    )
+            elif payment and payment.is_authorized and payment.can_capture():
+                gateway.capture(payment, manager, channel_slug=order.channel.slug)
+                site = load_site(info.context)
+                transaction.on_commit(
+                    lambda: order_captured(
+                        order_info,
+                        info.context.user,
+                        app,
+                        payment.total,
+                        payment,
+                        manager,
+                        site.settings,
+                    )
                 )
-            except PaymentError as e:
-                raise ValidationError(
-                    str(e),
-                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
-                )
-        elif payment and payment.is_authorized and payment.can_capture():
-            gateway.capture(payment, manager, channel_slug=order.channel.slug)
-            site = load_site(info.context)
             transaction.on_commit(
-                lambda: order_captured(
-                    order_info,
+                lambda: order_confirmed(
+                    order,
                     info.context.user,
                     app,
-                    payment.total,
-                    payment,
                     manager,
-                    site.settings,
+                    send_confirmation_email=True,
                 )
             )
-        transaction.on_commit(
-            lambda: order_confirmed(
-                order,
-                info.context.user,
-                app,
-                manager,
-                send_confirmation_email=True,
-            )
-        )
         return OrderConfirm(order=order)

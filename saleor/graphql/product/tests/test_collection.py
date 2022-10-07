@@ -508,7 +508,6 @@ def test_create_collection(
     assert file_name.startswith(f"collection-backgrounds/{img_name}")
     assert file_name.endswith(format)
     assert data["backgroundImage"]["alt"] == image_alt
-
     created_webhook_mock.assert_called_once()
     updated_webhook_mock.assert_not_called()
 
@@ -600,7 +599,7 @@ def test_create_collection_name_with_unicode(
     data = content["data"]["collectionCreate"]
     assert not data["errors"]
     assert data["collection"]["name"] == name
-    assert data["collection"]["slug"] == "わたし-わ-にっぽん-です"
+    assert data["collection"]["slug"] == "watasi-wa-nitupon-desu"
 
 
 @patch("saleor.plugins.manager.PluginsManager.collection_updated")

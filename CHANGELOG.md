@@ -34,10 +34,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter by slug. #10578 by @kadewu
   - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
+- Add ability to filter payments by list of ids. #10821 by @kadewu
+- Add ability to filter customers by ids. #10694 by @kadewu
 
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
+- Add base shipping price to `Order` - #10771 by @fowczarek
+
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ

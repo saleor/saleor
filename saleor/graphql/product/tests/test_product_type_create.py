@@ -468,7 +468,7 @@ def test_create_product_type_with_unicode_in_name(
     data = content["data"]["productTypeCreate"]
     assert not data["errors"]
     assert data["productType"]["name"] == name
-    assert data["productType"]["slug"] == "わたし-わ-にっぽん-です"
+    assert data["productType"]["slug"] == "watasi-wa-nitupon-desu"
     assert data["productType"]["kind"] == kind
 
 

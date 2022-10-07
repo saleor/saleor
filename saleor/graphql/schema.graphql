@@ -10026,6 +10026,12 @@ type PaymentCountableEdge {
 }
 
 input PaymentFilterInput {
+  """
+  Filter by ids. 
+  
+  Added in Saleor 3.8.
+  """
+  ids: [ID!]
   checkouts: [ID!]
 }
 
@@ -10940,6 +10946,13 @@ input CustomerFilterInput {
   placedOrders: DateRangeInput
   search: String
   metadata: [MetadataFilter!]
+
+  """
+  Filter by ids. 
+  
+  Added in Saleor 3.8.
+  """
+  ids: [ID!]
   updatedAt: DateTimeRangeInput
 }
 
@@ -13488,7 +13501,7 @@ type Mutation {
     checkoutId: ID
 
     """
-    ID of customer to attach to checkout. Can be used to attach customer to checkout by staff or app. Requires IMPERSONATE_USER permission.
+    ID of customer to attach to checkout. Requires IMPERSONATE_USER permission when customerId is different than the logged-in user.
     """
     customerId: ID
 
@@ -20615,11 +20628,15 @@ input AttributeValueCreateInput {
   Represents the text of the attribute value, includes formatting.
   
   Rich text format. For reference see https://editorjs.io/
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The rich text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   richText: JSONString
 
   """
   Represents the text of the attribute value, plain text without formating.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The plain text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   plainText: String
 
@@ -20705,11 +20722,15 @@ input AttributeValueUpdateInput {
   Represents the text of the attribute value, includes formatting.
   
   Rich text format. For reference see https://editorjs.io/
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The rich text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   richText: JSONString
 
   """
   Represents the text of the attribute value, plain text without formating.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The plain text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   plainText: String
 

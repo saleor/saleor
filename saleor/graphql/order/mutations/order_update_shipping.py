@@ -2,9 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import zero_money, zero_taxed_money
 from ....order import models
-from ....order.actions import order_shipping_updated
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....shipping import models as shipping_models
@@ -96,6 +95,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 )
 
             order.shipping_method = None
+            order.base_shipping_price = zero_money(order.currency)
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
             invalidate_order_prices(order)
@@ -105,6 +105,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_method",
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
+                    "base_shipping_price_amount",
                     "shipping_method_name",
                     "should_refresh_prices",
                     "updated_at",
@@ -146,16 +147,18 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         order.shipping_method = method
 
         order.shipping_method_name = method.name
+        order.base_shipping_price = shipping_method_data.price
         invalidate_order_prices(order)
         order.save(
             update_fields=[
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
+                "base_shipping_price_amount",
                 "should_refresh_prices",
                 "updated_at",
             ]
         )
         # Post-process the results
-        order_shipping_updated(order, manager)
+        cls.call_event(manager.order_updated, order)
         return OrderUpdateShipping(order=order)
