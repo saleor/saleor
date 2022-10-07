@@ -1199,17 +1199,20 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        app = None
+        apps = None
         payment_app_data = from_payment_app_id(payment_information.gateway)
 
         if payment_app_data is not None:
-            app = (
-                App.objects.for_event_type(event_type)
-                .filter(pk=payment_app_data.app_pk)
-                .first()
-            )
+            if payment_app_data.app_identifier:
+                apps = App.objects.for_event_type(event_type).filter(
+                    identifier=payment_app_data.app_identifier
+                )
+            else:
+                apps = App.objects.for_event_type(event_type).filter(
+                    pk=payment_app_data.app_pk
+                )
 
-        if not app:
+        if not apps:
             logger.warning(
                 "Payment webhook for event %r failed - no active app found: %r",
                 event_type,
@@ -1226,18 +1229,22 @@ class WebhookPlugin(BasePlugin):
             raise PaymentError(
                 f"Payment with id: {payment_information.payment_id} not found."
             )
-        webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
-        response_data = trigger_webhook_sync(
-            event_type, webhook_payload, webhook, subscribable_object=payment
-        )
-        if response_data is None:
-            raise PaymentError(
-                f"Payment method {payment_information.gateway} is not available: "
-                "no response from the app."
+
+        for app in apps:
+            webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
+            response_data = trigger_webhook_sync(
+                event_type, webhook_payload, webhook, subscribable_object=payment
+            )
+            if response_data is None:
+                continue
+
+            return parse_payment_action_response(
+                payment_information, response_data, transaction_kind
             )
 
-        return parse_payment_action_response(
-            payment_information, response_data, transaction_kind
+        raise PaymentError(
+            f"Payment method {payment_information.gateway} is not available: "
+            "no response from the app."
         )
 
     def token_is_required_as_payment_input(self, previous_value):
@@ -1262,7 +1269,7 @@ class WebhookPlugin(BasePlugin):
             )
             if response_data:
                 app_gateways = parse_list_payment_gateways_response(
-                    response_data, webhook.app_id
+                    response_data, webhook.app
                 )
                 if currency:
                     app_gateways = [
@@ -1379,7 +1386,7 @@ class WebhookPlugin(BasePlugin):
                 )
                 if response_data:
                     shipping_methods = parse_list_shipping_methods_response(
-                        response_data, webhook.app_id
+                        response_data, webhook.app
                     )
                     methods.extend(shipping_methods)
         return methods

@@ -4627,7 +4627,7 @@ def dummy_address_data(address):
 
 @pytest.fixture
 def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
-    dummy_payment_data.gateway = to_payment_app_id(payment_app.id, "credit-card")
+    dummy_payment_data.gateway = to_payment_app_id(payment_app, "credit-card")
     return dummy_payment_data
 
 
@@ -5213,9 +5213,40 @@ def payment_dummy(db, order_with_lines):
 
 
 @pytest.fixture
+def payments_dummy(order_with_lines):
+    return Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy",
+                order=order_with_lines,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="visa",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order_with_lines.total.gross.amount,
+                currency=order_with_lines.currency,
+                billing_first_name=order_with_lines.billing_address.first_name,
+                billing_last_name=order_with_lines.billing_address.last_name,
+                billing_company_name=order_with_lines.billing_address.company_name,
+                billing_address_1=order_with_lines.billing_address.street_address_1,
+                billing_address_2=order_with_lines.billing_address.street_address_2,
+                billing_city=order_with_lines.billing_address.city,
+                billing_postal_code=order_with_lines.billing_address.postal_code,
+                billing_country_code=order_with_lines.billing_address.country.code,
+                billing_country_area=order_with_lines.billing_address.country_area,
+                billing_email=order_with_lines.user_email,
+            )
+            for _ in range(3)
+        ]
+    )
+
+
+@pytest.fixture
 def payment(payment_dummy, payment_app):
     gateway_id = "credit-card"
-    gateway = to_payment_app_id(payment_app.id, gateway_id)
+    gateway = to_payment_app_id(payment_app, gateway_id)
     payment_dummy.gateway = gateway
     payment_dummy.save()
     return payment_dummy
@@ -5455,6 +5486,7 @@ def app(db):
     app = App.objects.create(
         name="Sample app objects",
         is_active=True,
+        identifier="saleor.app.test",
     )
     return app
 
@@ -5513,7 +5545,9 @@ def app_with_extensions(app_with_token, permission_manage_products):
 
 @pytest.fixture
 def payment_app(db, permission_manage_payments):
-    app = App.objects.create(name="Payment App", is_active=True)
+    app = App.objects.create(
+        name="Payment App", is_active=True, identifier="saleor.payment.test.app"
+    )
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_payments)
 
@@ -5533,7 +5567,9 @@ def payment_app(db, permission_manage_payments):
 
 @pytest.fixture
 def payment_app_with_subscription_webhooks(db, permission_manage_payments):
-    app = App.objects.create(name="Payment App", is_active=True)
+    app = App.objects.create(
+        name="Payment App", is_active=True, identifier="saleor.payment.test.app"
+    )
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_payments)
 

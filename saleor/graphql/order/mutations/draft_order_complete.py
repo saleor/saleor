@@ -65,7 +65,6 @@ class DraftOrderComplete(BaseMutation):
             )
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
         manager = load_plugin_manager(info.context)
         order = cls.get_node_or_error(
@@ -79,63 +78,68 @@ class DraftOrderComplete(BaseMutation):
 
         country = get_order_country(order)
         validate_draft_order(order, country, manager)
-        cls.update_user_fields(order)
-        order.status = OrderStatus.UNFULFILLED
+        with traced_atomic_transaction():
+            cls.update_user_fields(order)
+            order.status = OrderStatus.UNFULFILLED
 
-        if not order.is_shipping_required():
-            order.shipping_method_name = None
-            order.shipping_price = zero_taxed_money(order.currency)
-            if order.shipping_address:
-                order.shipping_address.delete()
-                order.shipping_address = None
+            if not order.is_shipping_required():
+                order.shipping_method_name = None
+                order.shipping_price = zero_taxed_money(order.currency)
+                if order.shipping_address:
+                    order.shipping_address.delete()
+                    order.shipping_address = None
 
-        order.search_vector = FlatConcatSearchVector(
-            *prepare_order_search_vector_value(order)
-        )
-        order.save()
-
-        channel = order.channel
-        order_lines_info = []
-        for line in order.lines.all():
-            if line.variant.track_inventory or line.variant.is_preorder_active():
-                line_data = OrderLineInfo(
-                    line=line, quantity=line.quantity, variant=line.variant
-                )
-                order_lines_info.append(line_data)
-                site = load_site(info.context)
-                try:
-                    with traced_atomic_transaction():
-                        allocate_stocks(
-                            [line_data],
-                            country,
-                            channel,
-                            manager,
-                            check_reservations=is_reservation_enabled(site.settings),
-                        )
-                        allocate_preorders(
-                            [line_data],
-                            channel.slug,
-                            check_reservations=is_reservation_enabled(site.settings),
-                        )
-                except InsufficientStock as exc:
-                    errors = prepare_insufficient_stock_order_validation_errors(exc)
-                    raise ValidationError({"lines": errors})
-
-        order_info = OrderInfo(
-            order=order,
-            customer_email=order.get_customer_email(),
-            channel=channel,
-            payment=order.get_last_payment(),
-            lines_data=order_lines_info,
-        )
-        app = load_app(info.context)
-        transaction.on_commit(
-            lambda: order_created(
-                order_info=order_info,
-                user=info.context.user,
-                app=app,
-                manager=manager,
-                from_draft=True,
+            order.search_vector = FlatConcatSearchVector(
+                *prepare_order_search_vector_value(order)
             )
-        )
+            order.save()
+
+            channel = order.channel
+            order_lines_info = []
+            for line in order.lines.all():
+                if line.variant.track_inventory or line.variant.is_preorder_active():
+                    line_data = OrderLineInfo(
+                        line=line, quantity=line.quantity, variant=line.variant
+                    )
+                    order_lines_info.append(line_data)
+                    site = load_site(info.context)
+                    try:
+                        with traced_atomic_transaction():
+                            allocate_stocks(
+                                [line_data],
+                                country,
+                                channel,
+                                manager,
+                                check_reservations=is_reservation_enabled(
+                                    site.settings
+                                ),
+                            )
+                            allocate_preorders(
+                                [line_data],
+                                channel.slug,
+                                check_reservations=is_reservation_enabled(
+                                    site.settings
+                                ),
+                            )
+                    except InsufficientStock as exc:
+                        errors = prepare_insufficient_stock_order_validation_errors(exc)
+                        raise ValidationError({"lines": errors})
+
+            order_info = OrderInfo(
+                order=order,
+                customer_email=order.get_customer_email(),
+                channel=channel,
+                payment=order.get_last_payment(),
+                lines_data=order_lines_info,
+            )
+            app = load_app(info.context)
+            transaction.on_commit(
+                lambda: order_created(
+                    order_info=order_info,
+                    user=info.context.user,
+                    app=app,
+                    manager=manager,
+                    from_draft=True,
+                )
+            )
         return DraftOrderComplete(order=order)

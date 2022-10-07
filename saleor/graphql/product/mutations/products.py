@@ -7,7 +7,6 @@ import pytz
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
-from django.db import transaction
 from django.db.models import Exists, OuterRef
 from django.utils.text import slugify
 
@@ -138,7 +137,7 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.category_created(instance)
+        cls.call_event(manager.category_created, instance)
 
 
 class CategoryUpdate(CategoryCreate):
@@ -167,7 +166,7 @@ class CategoryUpdate(CategoryCreate):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.category_updated(instance)
+        cls.call_event(manager.category_updated, instance)
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -260,11 +259,11 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.collection_created(instance)
+        cls.call_event(manager.collection_created, instance)
 
         products = instance.products.prefetched_for_webhook(single_object=False)
         for product in products:
-            manager.product_updated(product)
+            cls.call_event(manager.product_updated, product)
 
     @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
@@ -303,7 +302,7 @@ class CollectionUpdate(CollectionCreate):
     def post_save_action(cls, info, instance, cleaned_input):
         """Override this method with `pass` to avoid triggering product webhook."""
         manager = load_plugin_manager(info.context)
-        manager.collection_updated(instance)
+        cls.call_event(manager.collection_updated, instance)
 
 
 class CollectionDelete(ModelDeleteMutation):
@@ -327,9 +326,9 @@ class CollectionDelete(ModelDeleteMutation):
 
         result = super().perform_mutation(_root, info, **kwargs)
         manager = load_plugin_manager(info.context)
-        manager.collection_deleted(instance)
+        cls.call_event(manager.collection_deleted, instance)
         for product in products:
-            manager.product_updated(product)
+            cls.call_event(manager.product_updated, product)
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
@@ -440,7 +439,6 @@ class CollectionAddProducts(BaseMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
@@ -452,16 +450,17 @@ class CollectionAddProducts(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         cls.clean_products(products)
-        collection.products.add(*products)
-        if collection.sale_set.exists():
-            # Updated the db entries, recalculating discounts of affected products
-            update_products_discounted_prices_of_catalogues_task.delay(
-                product_ids=[pq.pk for pq in products]
-            )
         manager = load_plugin_manager(info.context)
-        transaction.on_commit(
-            lambda: [manager.product_updated(product) for product in products]
-        )
+        with traced_atomic_transaction():
+            collection.products.add(*products)
+            if collection.sale_set.exists():
+                # Updated the db entries, recalculating discounts of affected products
+                update_products_discounted_prices_of_catalogues_task.delay(
+                    product_ids=[pq.pk for pq in products]
+                )
+            for product in products:
+                cls.call_event(manager.product_updated, product)
+
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
@@ -515,7 +514,7 @@ class CollectionRemoveProducts(BaseMutation):
         collection.products.remove(*products)
         manager = load_plugin_manager(info.context)
         for product in products:
-            manager.product_updated(product)
+            cls.call_event(manager.product_updated, product)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_discounted_prices_of_catalogues_task.delay(
@@ -660,12 +659,12 @@ class ProductCreate(ModelMutation):
         return super().get_instance(info, **data)
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        instance.save()
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            AttributeAssignmentMixin.save(instance, attributes)
+        with traced_atomic_transaction():
+            instance.save()
+            attributes = cleaned_input.get("attributes")
+            if attributes:
+                AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -678,7 +677,7 @@ class ProductCreate(ModelMutation):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
         manager = load_plugin_manager(info.context)
-        manager.product_created(product)
+        cls.call_event(manager.product_created, product)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -720,19 +719,19 @@ class ProductUpdate(ProductCreate):
         return attributes
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        instance.save()
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            AttributeAssignmentMixin.save(instance, attributes)
+        with traced_atomic_transaction():
+            instance.save()
+            attributes = cleaned_input.get("attributes")
+            if attributes:
+                AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
         manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
+        cls.call_event(manager.product_updated, product)
 
 
 class ProductDelete(ModelDeleteMutation):
@@ -753,36 +752,40 @@ class ProductDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
 
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
+        with traced_atomic_transaction():
+            cls.delete_assigned_attribute_values(instance)
 
-        cls.delete_assigned_attribute_values(instance)
-
-        draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_id)
-
-        response = super().perform_mutation(_root, info, **data)
-
-        # delete order lines for deleted variant
-        order_models.OrderLine.objects.filter(
-            pk__in=draft_order_lines_data.line_pks
-        ).delete()
-
-        app = load_app(info.context)
-        # run order event for deleted lines
-        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_product_removed_event(
-                order, info.context.user, app, order_lines
+            draft_order_lines_data = get_draft_order_lines_data_for_variants(
+                variants_id
             )
 
-        order_pks = draft_order_lines_data.order_pks
-        if order_pks:
-            recalculate_orders_task.delay(list(order_pks))
-        manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_deleted(instance, variants_id))
+            response = super().perform_mutation(_root, info, **data)
+
+            # delete order lines for deleted variant
+            order_models.OrderLine.objects.filter(
+                pk__in=draft_order_lines_data.line_pks
+            ).delete()
+
+            app = load_app(info.context)
+            # run order event for deleted lines
+            for (
+                order,
+                order_lines,
+            ) in draft_order_lines_data.order_to_lines_mapping.items():
+                order_events.order_line_product_removed_event(
+                    order, info.context.user, app, order_lines
+                )
+
+            order_pks = draft_order_lines_data.order_pks
+            manager = load_plugin_manager(info.context)
+            if order_pks:
+                recalculate_orders_task.delay(list(order_pks))
+            cls.call_event(manager.product_deleted, instance, variants_id)
 
         return response
 
@@ -1041,34 +1044,34 @@ class ProductVariantCreate(ModelMutation):
         return super().get_instance(info, **data)
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_variant = instance.pk is None
-        instance.save()
-        if not instance.product.default_variant:
-            instance.product.default_variant = instance
-            instance.product.save(update_fields=["default_variant", "updated_at"])
-        # Recalculate the "discounted price" for the parent product
-        update_product_discounted_price_task.delay(instance.product_id)
-        stocks = cleaned_input.get("stocks")
-        if stocks:
-            cls.create_variant_stocks(instance, stocks)
+        with traced_atomic_transaction():
+            instance.save()
+            if not instance.product.default_variant:
+                instance.product.default_variant = instance
+                instance.product.save(update_fields=["default_variant", "updated_at"])
+            # Recalculate the "discounted price" for the parent product
+            update_product_discounted_price_task.delay(instance.product_id)
+            stocks = cleaned_input.get("stocks")
+            if stocks:
+                cls.create_variant_stocks(instance, stocks)
 
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            AttributeAssignmentMixin.save(instance, attributes)
+            attributes = cleaned_input.get("attributes")
+            if attributes:
+                AttributeAssignmentMixin.save(instance, attributes)
 
-        if not instance.name:
-            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+            if not instance.name:
+                generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
-        update_product_search_vector(instance.product)
-        manager = load_plugin_manager(info.context)
-        event_to_call = (
-            manager.product_variant_created
-            if new_variant
-            else manager.product_variant_updated
-        )
-        transaction.on_commit(lambda: event_to_call(instance))
+            manager = load_plugin_manager(info.context)
+            update_product_search_vector(instance.product)
+            event_to_call = (
+                manager.product_variant_created
+                if new_variant
+                else manager.product_variant_updated
+            )
+            cls.call_event(event_to_call, instance)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
@@ -1167,7 +1170,6 @@ class ProductVariantDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
@@ -1180,28 +1182,32 @@ class ProductVariantDelete(ModelDeleteMutation):
                 "channel_listings", "attributes__values", "variant_media"
             )
         ).get(id=instance.id)
+        with traced_atomic_transaction():
+            cls.delete_assigned_attribute_values(variant)
+            cls.delete_product_channel_listings_without_available_variants(variant)
+            response = super().perform_mutation(_root, info, **data)
 
-        cls.delete_assigned_attribute_values(variant)
-        cls.delete_product_channel_listings_without_available_variants(variant)
-        response = super().perform_mutation(_root, info, **data)
+            # delete order lines for deleted variant
+            order_models.OrderLine.objects.filter(
+                pk__in=draft_order_lines_data.line_pks
+            ).delete()
 
-        # delete order lines for deleted variant
-        order_models.OrderLine.objects.filter(
-            pk__in=draft_order_lines_data.line_pks
-        ).delete()
+            # run order event for deleted lines
+            app = load_app(info.context)
+            for (
+                order,
+                order_lines,
+            ) in draft_order_lines_data.order_to_lines_mapping.items():
+                order_events.order_line_variant_removed_event(
+                    order, info.context.user, app, order_lines
+                )
+            manager = load_plugin_manager(info.context)
 
-        # run order event for deleted lines
-        app = load_app(info.context)
-        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_variant_removed_event(
-                order, info.context.user, app, order_lines
-            )
+            order_pks = draft_order_lines_data.order_pks
+            if order_pks:
+                recalculate_orders_task.delay(list(order_pks))
 
-        order_pks = draft_order_lines_data.order_pks
-        if order_pks:
-            recalculate_orders_task.delay(list(order_pks))
-        manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_variant_deleted(variant))
+            cls.call_event(manager.product_variant_deleted, variant)
 
         return response
 
@@ -1344,7 +1350,7 @@ class ProductMediaCreate(BaseMutation):
                     oembed_data=oembed_data,
                 )
         manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
+        cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)
 
@@ -1380,7 +1386,7 @@ class ProductMediaUpdate(BaseMutation):
             media.alt = alt
             media.save(update_fields=["alt"])
         manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
+        cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaUpdate(product=product, media=media)
 
@@ -1445,7 +1451,7 @@ class ProductMediaReorder(BaseMutation):
 
         update_ordered_media(ordered_media)
         manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
+        cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaReorder(product=product, media=ordered_media)
 
@@ -1497,7 +1503,7 @@ class ProductVariantSetDefault(BaseMutation):
         product.default_variant = variant
         product.save(update_fields=["default_variant", "updated_at"])
         manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
+        cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantSetDefault(product=product)
 
@@ -1562,14 +1568,12 @@ class ProductVariantReorder(BaseMutation):
                     }
                 )
             operations[m2m_info.pk] = move_info.sort_order
-
+        manager = load_plugin_manager(info.context)
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
-
-        product.save(update_fields=["updated_at"])
-        manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
-        product = ChannelContext(node=product, channel_slug=None)
+            product.save(update_fields=["updated_at"])
+            cls.call_event(manager.product_updated, product)
+            product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)
 
 
@@ -1597,7 +1601,7 @@ class ProductMediaDelete(BaseMutation):
             pk=media_obj.product_id
         )
         manager = load_plugin_manager(info.context)
-        manager.product_updated(product)
+        cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaDelete(product=product, media=media_obj)
 
@@ -1619,7 +1623,6 @@ class VariantMediaAssign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
@@ -1628,32 +1631,35 @@ class VariantMediaAssign(BaseMutation):
         variant = cls.get_node_or_error(
             info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
-        if media and variant:
-            # check if the given image and variant can be matched together
-            media_belongs_to_product = variant.product.media.filter(pk=media.pk).first()
-            if media_belongs_to_product:
-                _, created = media.variant_media.get_or_create(variant=variant)
-                if not created:
+        with traced_atomic_transaction():
+            if media and variant:
+                # check if the given image and variant can be matched together
+                media_belongs_to_product = variant.product.media.filter(
+                    pk=media.pk
+                ).first()
+                if media_belongs_to_product:
+                    _, created = media.variant_media.get_or_create(variant=variant)
+                    if not created:
+                        raise ValidationError(
+                            {
+                                "media_id": ValidationError(
+                                    "This media is already assigned",
+                                    code=ProductErrorCode.MEDIA_ALREADY_ASSIGNED,
+                                )
+                            }
+                        )
+                else:
                     raise ValidationError(
                         {
                             "media_id": ValidationError(
-                                "This media is already assigned",
-                                code=ProductErrorCode.MEDIA_ALREADY_ASSIGNED,
+                                "This media doesn't belong to that product.",
+                                code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
                             )
                         }
                     )
-            else:
-                raise ValidationError(
-                    {
-                        "media_id": ValidationError(
-                            "This media doesn't belong to that product.",
-                            code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
-                        )
-                    }
-                )
-        variant = ChannelContext(node=variant, channel_slug=None)
-        manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_variant_updated(variant.node))
+            variant = ChannelContext(node=variant, channel_slug=None)
+            manager = load_plugin_manager(info.context)
+            cls.call_event(manager.product_variant_updated, variant.node)
         return VariantMediaAssign(product_variant=variant, media=media)
 
 
@@ -1675,7 +1681,6 @@ class VariantMediaUnassign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia
@@ -1703,7 +1708,7 @@ class VariantMediaUnassign(BaseMutation):
 
         variant = ChannelContext(node=variant, channel_slug=None)
         manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_variant_updated(variant.node))
+        cls.call_event(manager.product_variant_updated, variant.node)
         return VariantMediaUnassign(product_variant=variant, media=media)
 
 
@@ -1729,7 +1734,6 @@ class ProductVariantPreorderDeactivate(BaseMutation):
         error_type_class = ProductError
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
         qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
@@ -1744,16 +1748,16 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                     )
                 }
             )
-
-        try:
-            deactivate_preorder_for_variant(variant)
-        except PreorderAllocationError as error:
-            raise ValidationError(
-                str(error),
-                code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
-            )
-
-        variant = ChannelContext(node=variant, channel_slug=None)
-        manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_variant_updated(variant.node))
+        # transaction ensures triggering event on commit
+        with traced_atomic_transaction():
+            try:
+                deactivate_preorder_for_variant(variant)
+            except PreorderAllocationError as error:
+                raise ValidationError(
+                    str(error),
+                    code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
+                )
+            manager = load_plugin_manager(info.context)
+            variant = ChannelContext(node=variant, channel_slug=None)
+            cls.call_event(manager.product_variant_updated, variant.node)
         return ProductVariantPreorderDeactivate(product_variant=variant)

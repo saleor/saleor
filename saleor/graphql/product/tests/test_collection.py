@@ -508,7 +508,6 @@ def test_create_collection(
     assert file_name.startswith(f"collection-backgrounds/{img_name}")
     assert file_name.endswith(format)
     assert data["backgroundImage"]["alt"] == image_alt
-
     created_webhook_mock.assert_called_once()
     updated_webhook_mock.assert_not_called()
 

@@ -6,7 +6,6 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.tracing import traced_atomic_transaction
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
@@ -232,7 +231,6 @@ class OrderFulfill(BaseMutation):
         return data
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(
             info,

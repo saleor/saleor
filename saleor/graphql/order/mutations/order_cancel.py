@@ -38,18 +38,18 @@ class OrderCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
         user = info.context.user
         app = load_app(info.context)
         manager = load_plugin_manager(info.context)
-        cancel_order(
-            order=order,
-            user=user,
-            app=app,
-            manager=manager,
-        )
-        deactivate_order_gift_cards(order.id, user, app)
+        with traced_atomic_transaction():
+            cancel_order(
+                order=order,
+                user=user,
+                app=app,
+                manager=manager,
+            )
+            deactivate_order_gift_cards(order.id, user, app)
         return OrderCancel(order=order)
