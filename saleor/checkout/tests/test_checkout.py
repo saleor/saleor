@@ -137,8 +137,11 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     mock_send_request.return_value = mock_json_response
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
+    checkout.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: method_id
+    }
     checkout.save()
+    checkout.metadata_storage.save()
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -174,8 +177,11 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     mock_send_request.return_value = mock_json_response
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
+    checkout.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: method_id
+    }
     checkout.save()
+    checkout.metadata_storage.save()
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
