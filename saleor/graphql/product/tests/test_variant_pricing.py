@@ -1,11 +1,11 @@
+from decimal import Decimal
 from unittest.mock import Mock
 
-from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant
 from ....product.utils.availability import get_variant_availability
+from ....tax import TaxCalculationStrategy
 from ...tests.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """
@@ -109,16 +109,23 @@ def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
 def test_variant_pricing(
     variant: ProductVariant, monkeypatch, settings, stock, channel_USD
 ):
-    taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
-    monkeypatch.setattr(
-        PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
-    )
-
     product = variant.product
+    tax_class = product.tax_class or product.product_type.tax_class
+
+    tc = channel_USD.tax_configuration
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.charge_taxes = True
+    tc.prices_entered_with_tax = False
+    tc.save()
+
+    tax_rate = Decimal(23)
+    country = "PL"
+    tax_class.country_rates.update_or_create(rate=tax_rate, country=country)
+
+    taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     product_channel_listing = product.channel_listings.get()
     variant_channel_listing = variant.channel_listings.get()
 
-    manager = get_plugins_manager()
     pricing = get_variant_availability(
         variant=variant,
         variant_channel_listing=variant_channel_listing,
@@ -127,8 +134,9 @@ def test_variant_pricing(
         collections=[],
         discounts=[],
         channel=channel_USD,
-        plugins=manager,
-        country=Country("US"),
+        tax_rate=tax_rate,
+        tax_calculation_strategy=tc.tax_calculation_strategy,
+        prices_entered_with_tax=tc.prices_entered_with_tax,
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -148,9 +156,10 @@ def test_variant_pricing(
         collections=[],
         discounts=[],
         channel=channel_USD,
-        plugins=manager,
         local_currency="PLN",
-        country=Country("US"),
+        tax_rate=tax_rate,
+        tax_calculation_strategy=tc.tax_calculation_strategy,
+        prices_entered_with_tax=tc.prices_entered_with_tax,
     )
     assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
@@ -162,8 +171,9 @@ def test_variant_pricing(
         collections=[],
         discounts=[],
         channel=channel_USD,
-        plugins=manager,
-        country=Country("PL"),
+        tax_rate=tax_rate,
+        tax_calculation_strategy=tc.tax_calculation_strategy,
+        prices_entered_with_tax=tc.prices_entered_with_tax,
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount

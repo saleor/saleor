@@ -63,7 +63,9 @@ class TaxClassDefaultRateByCountryLoader(DataLoader):
     context_key = "tax_class_default_rate_by_country"
 
     def batch_load(self, keys):
-        tax_rates = TaxClassCountryRate.objects.filter(tax_class=None, country__in=keys)
+        tax_rates = TaxClassCountryRate.objects.using(
+            self.database_connection_name
+        ).filter(tax_class=None, country__in=keys)
         tax_rates_map = {rate.country: rate for rate in tax_rates}
         return [tax_rates_map.get(key) for key in keys]
 

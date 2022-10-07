@@ -611,7 +611,7 @@ def test_fetch_order_prices_when_tax_exemption_and_include_taxes_in_prices(
 
 
 def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
-    plugins_manager, fetch_kwargs, order_with_lines, tax_data, site_settings
+    plugins_manager, fetch_kwargs, order_with_lines, tax_data
 ):
     """Test tax exemption when taxes are not included in prices.
 
@@ -619,6 +619,12 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
     tax plugins should be ignored and only net prices should be calculated and returned.
     """
     # given
+
+    tc = order_with_lines.channel.tax_configuration
+    tc.prices_entered_with_tax = False
+    tc.save(update_fields=["prices_entered_with_tax"])
+    tc.country_exceptions.all().delete()
+
     currency = order_with_lines.currency
     discount_amount = Decimal("3.00")
     discount_as_money = Money(discount_amount, currency)
@@ -633,9 +639,6 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
     order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
     order_with_lines.tax_exemption = True
     order_with_lines.save()
-
-    site_settings.include_taxes_in_prices = False
-    site_settings.save(update_fields=["include_taxes_in_prices"])
 
     plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 

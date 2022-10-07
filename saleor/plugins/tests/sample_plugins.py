@@ -187,10 +187,6 @@ class PluginSample(BasePlugin):
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         return True
 
-    def apply_taxes_to_product(self, product, price, country, previous_value, **kwargs):
-        price = Money("1.0", price.currency)
-        return TaxedMoney(price, price)
-
     def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:

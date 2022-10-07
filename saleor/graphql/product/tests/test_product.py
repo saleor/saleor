@@ -11028,11 +11028,11 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
 
 
 @patch(
-    "saleor.graphql.product.types.products.get_variant_availability",
+    "saleor.graphql.product.types.products.get_tax_rate_for_tax_class",
     wraps=get_variant_availability,
 )
 def test_product_variant_price_no_address(
-    mock_get_variant_availability, user_api_client, variant, stock, channel_USD
+    mock_get_tax_rate_for_tax_class, user_api_client, variant, stock, channel_USD
 ):
     channel_USD.default_country = "FR"
     channel_USD.save()
@@ -11042,8 +11042,7 @@ def test_product_variant_price_no_address(
         QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS, variables
     )
     assert (
-        mock_get_variant_availability.call_args[1]["country"]
-        == channel_USD.default_country
+        mock_get_tax_rate_for_tax_class.call_args[0][2] == channel_USD.default_country
     )
 
 
