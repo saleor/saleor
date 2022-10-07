@@ -10,7 +10,11 @@ from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
 from .....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum, TransactionEventStatusEnum
+from ...enums import (
+    TransactionActionEnum,
+    TransactionEventActionTypeEnum,
+    TransactionEventStatusEnum,
+)
 
 MUTATION_TRANSACTION_CREATE = """
 mutation TransactionCreate(
@@ -54,6 +58,11 @@ mutation TransactionCreate(
                     name
                     createdAt
                     externalUrl
+                    amount{
+                        amount
+                        currency
+                    }
+                    type
                 }
         }
         errors{
@@ -748,6 +757,8 @@ def test_creates_transaction_event_for_order_by_app(
             "pspReference": event_psp_reference,
             "name": event_name,
             "externalUrl": external_url,
+            "amount": authorized_value,
+            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -768,6 +779,9 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["externalUrl"] == external_url
+    assert event_data["amount"]["currency"] == transaction.currency
+    assert event_data["amount"]["amount"] == authorized_value
+    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -775,6 +789,9 @@ def test_creates_transaction_event_for_order_by_app(
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
     assert event.external_url == external_url
+    assert event.amount_value == authorized_value
+    assert event.currency == transaction.currency
+    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_creates_transaction_event_for_checkout_by_app(
@@ -816,6 +833,8 @@ def test_creates_transaction_event_for_checkout_by_app(
             "pspReference": event_psp_reference,
             "name": event_name,
             "externalUrl": external_url,
+            "amount": authorized_value,
+            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -836,6 +855,9 @@ def test_creates_transaction_event_for_checkout_by_app(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["externalUrl"] == external_url
+    assert event_data["amount"]["currency"] == transaction.currency
+    assert event_data["amount"]["amount"] == authorized_value
+    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -843,6 +865,9 @@ def test_creates_transaction_event_for_checkout_by_app(
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
     assert event.external_url == external_url
+    assert event.amount_value == authorized_value
+    assert event.currency == transaction.currency
+    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_creates_transaction_error_when_psp_reference_already_exists_by_app(
@@ -1794,6 +1819,8 @@ def test_creates_transaction_event_for_order_by_staff(
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
+            "amount": authorized_value,
+            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -1813,12 +1840,18 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
+    assert event_data["amount"]["currency"] == transaction.currency
+    assert event_data["amount"]["amount"] == authorized_value
+    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.name == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+    assert event.amount_value == authorized_value
+    assert event.currency == transaction.currency
+    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_creates_transaction_event_for_checkout_by_staff(
@@ -1858,6 +1891,8 @@ def test_creates_transaction_event_for_checkout_by_staff(
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
+            "amount": authorized_value,
+            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -1877,9 +1912,15 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
+    assert event_data["amount"]["currency"] == transaction.currency
+    assert event_data["amount"]["amount"] == authorized_value
+    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.name == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+    assert event.amount_value == authorized_value
+    assert event.currency == transaction.currency
+    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value

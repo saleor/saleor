@@ -1,4 +1,8 @@
+from decimal import Decimal
+
+from .....payment import TransactionEventActionType, TransactionEventStatus
 from .....payment.models import TransactionEvent
+from .....tests.consts import TEST_SERVER_DOMAIN
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -26,6 +30,16 @@ TRANSACTION_QUERY = """
             }
             events{
                 id
+                createdAt
+                status
+                pspReference
+                name
+                externalUrl
+                amount{
+                    currency
+                    amount
+                }
+                type
             }
             status
             type
@@ -251,3 +265,89 @@ def test_transaction_create_by_user_query_no_permission(
 
     # then
     assert_no_permission(response)
+
+
+def test_transaction_event_by_user(
+    transaction_item_created_by_user,
+    permission_manage_payments,
+    permission_manage_staff,
+    staff_api_client,
+):
+    # given
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item_created_by_user,
+        status=TransactionEventStatus.SUCCESS,
+        psp_reference="psp-ref-123",
+        name="Sucesfull charge",
+        currency="USD",
+        type=TransactionEventActionType.CHARGE,
+        amount_value=Decimal("10.00"),
+        external_url=f"http://`{TEST_SERVER_DOMAIN}.com/test",
+    )
+
+    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["transaction"]["events"]
+    assert len(events) == 1
+    event_data = events[0]
+    assert event_data["id"] == to_global_id_or_none(event)
+    assert event_data["createdAt"] == event.created_at.isoformat()
+    assert event_data["status"] == event.status.upper()
+    assert event_data["pspReference"] == event.psp_reference
+    assert event_data["name"] == event.name
+    assert event_data["externalUrl"] == event.external_url
+    assert event_data["amount"]["amount"] == event.amount_value
+    assert event_data["amount"]["currency"] == event.currency
+    assert event_data["type"] == event.type.upper()
+
+
+def test_transaction_event_by_app(
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    permission_manage_staff,
+    app_api_client,
+):
+    # given
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item_created_by_app,
+        status=TransactionEventStatus.SUCCESS,
+        psp_reference="psp-ref-123",
+        name="Sucesfull charge",
+        currency="USD",
+        type=TransactionEventActionType.CHARGE,
+        amount_value=Decimal("10.00"),
+        external_url=f"http://`{TEST_SERVER_DOMAIN}.com/test",
+    )
+
+    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["transaction"]["events"]
+    assert len(events) == 1
+    event_data = events[0]
+    assert event_data["id"] == to_global_id_or_none(event)
+    assert event_data["createdAt"] == event.created_at.isoformat()
+    assert event_data["status"] == event.status.upper()
+    assert event_data["pspReference"] == event.psp_reference
+    assert event_data["name"] == event.name
+    assert event_data["externalUrl"] == event.external_url
+    assert event_data["amount"]["amount"] == event.amount_value
+    assert event_data["amount"]["currency"] == event.currency
+    assert event_data["type"] == event.type.upper()

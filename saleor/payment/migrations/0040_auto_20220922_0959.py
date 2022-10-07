@@ -27,6 +27,11 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, max_length=512, null=True, unique=True),
         ),
         migrations.AddField(
+            model_name="transactionevent",
+            name="currency",
+            field=models.CharField(blank=True, max_length=3),
+        ),
+        migrations.AddField(
             model_name="transactionitem",
             name="psp_reference",
             field=models.CharField(blank=True, max_length=512, null=True, unique=True),

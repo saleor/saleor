@@ -167,6 +167,29 @@ class TransactionAction:
     ]
 
 
+class TransactionEventActionType:
+    """Represents possible event actions.
+
+    The following actions are possible:
+    AUTHORIZE - Represents a authorize event.
+    CHARGE - Represents a charge event.
+    REFUND - Represents a refund event.
+    CANCEL - Represents a cancel event.
+    """
+
+    AUTHORIZE = "authorize"
+    CHARGE = "charge"
+    REFUND = "refund"
+    CANCEL = "cancel"
+
+    CHOICES = [
+        (AUTHORIZE, "Authorize event"),
+        (CHARGE, "Charge event"),
+        (REFUND, "Refund event"),
+        (CANCEL, "Cancel event"),
+    ]
+
+
 class TransactionEventStatus:
     """Represents a status of payment transaction.
 

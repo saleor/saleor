@@ -10,7 +10,11 @@ from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
 from .....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum, TransactionEventStatusEnum
+from ...enums import (
+    TransactionActionEnum,
+    TransactionEventActionTypeEnum,
+    TransactionEventStatusEnum,
+)
 
 MUTATION_TRANSACTION_UPDATE = """
 mutation TransactionUpdate(
@@ -57,11 +61,16 @@ mutation TransactionUpdate(
                     value
                 }
                 events{
-                   status
-                   pspReference
-                   name
-                   createdAt
-                   externalUrl
+                    status
+                    pspReference
+                    name
+                    createdAt
+                    externalUrl
+                    amount{
+                        amount
+                        currency
+                    }
+                    type
                 }
         }
         errors{
@@ -900,6 +909,7 @@ def test_creates_transaction_event_for_order_by_app(
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    amount_value = Decimal("10")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
@@ -907,6 +917,8 @@ def test_creates_transaction_event_for_order_by_app(
             "pspReference": event_reference,
             "name": event_name,
             "externalUrl": external_url,
+            "amount": amount_value,
+            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -926,6 +938,9 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
     assert event_data["externalUrl"] == external_url
+    assert event_data["amount"]["currency"] == transaction.currency
+    assert event_data["amount"]["amount"] == amount_value
+    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -933,6 +948,9 @@ def test_creates_transaction_event_for_order_by_app(
     assert event.status == event_status
     assert event.psp_reference == event_reference
     assert event.external_url == external_url
+    assert event.amount_value == amount_value
+    assert event.currency == transaction.currency
+    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_only_owner_can_update_its_transaction_by_staff(
@@ -1758,6 +1776,7 @@ def test_creates_transaction_event_for_order_by_staff(
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    amount_value = Decimal("10")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
@@ -1765,6 +1784,8 @@ def test_creates_transaction_event_for_order_by_staff(
             "pspReference": event_reference,
             "name": event_name,
             "externalUrl": external_url,
+            "amount": amount_value,
+            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -1784,6 +1805,9 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
     assert event_data["externalUrl"] == external_url
+    assert event_data["amount"]["currency"] == transaction.currency
+    assert event_data["amount"]["amount"] == amount_value
+    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -1791,6 +1815,9 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event.status == event_status
     assert event.psp_reference == event_reference
     assert event.external_url == external_url
+    assert event.amount_value == amount_value
+    assert event.currency == transaction.currency
+    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
