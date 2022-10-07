@@ -744,7 +744,7 @@ tests = ["coverage", "mock-django"]
 
 [[package]]
 name = "django-phonenumber-field"
-version = "6.4.0"
+version = "7.0.0"
 description = "An international phone number field for django models."
 category = "main"
 optional = false
@@ -2965,7 +2965,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "959281fbf88314180fdc19f21edbfde9b8d4aa70320361acf51efe12ef8d5a2f"
+content-hash = "7f0f08d22852b6217b61cbedb403535d8860353f786fdb9625b401ebdfc4cd6e"
 
 [metadata.files]
 Adyen = [
@@ -3455,8 +3455,8 @@ django-mptt = [
     {file = "django_mptt-0.13.4-py3-none-any.whl", hash = "sha256:75745b621ae31d97957ed924155a750dfa8cacd9543799ada2d713fd6bc3f5c7"},
 ]
 django-phonenumber-field = [
-    {file = "django-phonenumber-field-6.4.0.tar.gz", hash = "sha256:72a3e7a3e7493bf2a12c07a3bc77ce89813acc16592bf04d0eee3b5a452097ed"},
-    {file = "django_phonenumber_field-6.4.0-py3-none-any.whl", hash = "sha256:a31b4f05ac0ff898661516c84940f83adb5cdcf0ae4b9b1d31bb8ad3ff345b58"},
+    {file = "django-phonenumber-field-7.0.0.tar.gz", hash = "sha256:f1aaee276b18a8f0bf503d52eda183965ca164a6379c1e70f73718bcc8a91345"},
+    {file = "django_phonenumber_field-7.0.0-py3-none-any.whl", hash = "sha256:dab78094e83f4b1276effca9903e6728e940d055b00cc8589ad5b8a22cb6a03b"},
 ]
 django-prices = [
     {file = "django-prices-2.3.0.tar.gz", hash = "sha256:dc2ba039fcdeeffbcb8ba41e46821d509af4d50cca36f527990ed319ff83fed9"},
