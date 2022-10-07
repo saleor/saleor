@@ -14,7 +14,7 @@ documentation = "https://docs.saleor.io/"
   babel = ">=2.8,<2.11"
   boto3 = "^1.22"
   braintree = ">=4.2,<4.17"
-  dj-database-url = "^0"
+  dj-database-url = "^1"
   dj-email-url = "^1"
   django = {version = "^4.0.7", extras = ["bcrypt"]}
   django-countries = "^7.2"
