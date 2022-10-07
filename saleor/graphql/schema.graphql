@@ -11737,7 +11737,14 @@ type Mutation {
   """
   productVariantDelete(
     """ID of a product variant to delete."""
-    id: ID!
+    id: ID
+
+    """
+    ID of a product variant to delete.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantDelete
 
   """
@@ -11760,7 +11767,14 @@ type Mutation {
   """
   productVariantBulkDelete(
     """List of product variant IDs to delete."""
-    ids: [ID!]!
+    ids: [ID!]
+
+    """
+    List of product variant SKUs to delete.
+    
+    Added in Saleor 3.8.
+    """
+    skus: [String!]
   ): ProductVariantBulkDelete
 
   """
@@ -11807,10 +11821,17 @@ type Mutation {
   """
   productVariantUpdate(
     """ID of a product variant to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a product variant."""
     input: ProductVariantInput!
+
+    """
+    ID of a product variant to update.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantUpdate
 
   """

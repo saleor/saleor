@@ -31,6 +31,7 @@ from ....warehouse.error_codes import StockErrorCode
 from ...app.dataloaders import load_app
 from ...channel import ChannelContext
 from ...channel.types import Channel
+from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
 from ...core.types import (
     BulkProductError,
@@ -41,7 +42,10 @@ from ...core.types import (
     StockError,
 )
 from ...core.utils import get_duplicated_values
-from ...core.validators import validate_price_precision
+from ...core.validators import (
+    validate_one_of_args_is_in_mutation,
+    validate_price_precision,
+)
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
@@ -580,8 +584,13 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
             graphene.ID,
-            required=True,
+            required=False,
             description="List of product variant IDs to delete.",
+        )
+        skus = NonNullList(
+            graphene.String,
+            required=False,
+            description="List of product variant SKUs to delete." + ADDED_IN_38,
         )
 
     class Meta:
@@ -594,11 +603,19 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
-        try:
-            pks = cls.get_global_ids_or_error(ids, ProductVariant)
-        except ValidationError as error:
-            return 0, error
+    def perform_mutation(cls, _root, info, ids=None, skus=None, **data):
+        validate_one_of_args_is_in_mutation(ProductErrorCode, "skus", skus, "ids", ids)
+
+        if ids:
+            try:
+                pks = cls.get_global_ids_or_error(ids, ProductVariant)
+            except ValidationError as error:
+                return 0, error
+        if skus:
+            pks = models.ProductVariant.objects.filter(sku__in=skus).values_list(
+                "pk", flat=True
+            )
+            ids = [graphene.Node.to_global_id("ProductVariant", pk) for pk in pks]
 
         draft_order_lines_data = get_draft_order_lines_data_for_variants(pks)
 
