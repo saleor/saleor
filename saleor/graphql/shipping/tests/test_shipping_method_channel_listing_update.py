@@ -144,6 +144,7 @@ def test_shipping_method_channel_listing_update_allow_to_set_null_for_limit_fiel
     )
     content = get_graphql_content(response)
     channel_listing.refresh_from_db()
+
     # then
     data = content["data"]["shippingMethodChannelListingUpdate"]
     shipping_method_data = data["shippingMethod"]
@@ -152,9 +153,7 @@ def test_shipping_method_channel_listing_update_allow_to_set_null_for_limit_fiel
     assert channel_listing.maximum_order_price_amount is None
     assert channel_listing.minimum_order_price_amount is None
     assert shipping_method_data["channelListings"][0]["maximumOrderPrice"] is None
-    assert (
-        shipping_method_data["channelListings"][0]["minimumOrderPrice"]["amount"] == 0
-    )
+    assert shipping_method_data["channelListings"][0]["minimumOrderPrice"] is None
 
 
 def test_shipping_method_channel_listing_update_as_staff_user(
