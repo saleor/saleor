@@ -9,12 +9,13 @@ All notable, unreleased changes to this project will be documented in this file.
   - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
 - Add ability to filter customers by ids. #10694 by @kadewu
+- Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
 
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
 - Add base shipping price to `Order` - #10771 by @fowczarek
-
+- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ
