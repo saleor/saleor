@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `isVisibleInListing`
 - Add ability to filter payments by list of ids. #10821 by @kadewu
 - Add ability to filter customers by ids. #10694 by @kadewu
+- Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multiselect attributes. - #10881 by @jakubkuc
 
 ### Other changes
 
