@@ -7,6 +7,7 @@ import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.color import color_style
 from django.urls import reverse
@@ -23,6 +24,10 @@ KID = "1"
 
 
 class JWTManagerBase:
+    @classmethod
+    def get_domain(cls) -> str:
+        return NotImplemented
+
     @classmethod
     def get_private_key(cls) -> rsa.RSAPrivateKey:
         return NotImplemented
@@ -60,6 +65,10 @@ class JWTManagerBase:
 
 class JWTManager(JWTManagerBase):
     KEY_FILE_FOR_DEBUG = ".jwt_key.pem"
+
+    @classmethod
+    def get_domain(cls) -> str:
+        return Site.objects.get_current().domain
 
     @classmethod
     def get_private_key(cls) -> rsa.RSAPrivateKey:
@@ -183,7 +192,7 @@ class JWTManager(JWTManagerBase):
 
     @classmethod
     def get_issuer(cls) -> str:
-        return build_absolute_uri(reverse("api"))
+        return build_absolute_uri(reverse("api"), domain=cls.get_domain())
 
 
 def get_jwt_manager() -> JWTManagerBase:
