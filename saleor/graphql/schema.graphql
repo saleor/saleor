@@ -6179,6 +6179,13 @@ enum ProductOrderField {
 
   """Sort products by rating."""
   RATING
+
+  """
+  Sort products by creation date.
+  
+  Added in Saleor 3.8.
+  """
+  CREATED
 }
 
 type CollectionTranslation implements Node {
