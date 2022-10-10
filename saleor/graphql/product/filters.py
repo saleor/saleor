@@ -638,20 +638,20 @@ class ProductFilter(MetadataFilterBase):
     published_from = ObjectTypeFilter(
         input_class=graphene.DateTime,
         method="filter_published_from",
-        help_text=f"Filter by published from date. {ADDED_IN_38}",
+        help_text=f"Filter by the publication date. {ADDED_IN_38}",
     )
     is_available = django_filters.BooleanFilter(
         method="filter_is_available",
-        help_text=f"Filter by available for purchase. {ADDED_IN_38}",
+        help_text=f"Filter by availability for purchase. {ADDED_IN_38}",
     )
     available_from = ObjectTypeFilter(
         input_class=graphene.DateTime,
         method="filter_available_from",
-        help_text=f"Filter by available for purchase from date. {ADDED_IN_38}",
+        help_text=f"Filter by the date of availability for purchase. {ADDED_IN_38}",
     )
     is_visible_in_listing = django_filters.BooleanFilter(
         method="filter_listed",
-        help_text=f"Filter by visible in product listings. {ADDED_IN_38}",
+        help_text=f"Filter by visibility in product listings. {ADDED_IN_38}",
     )
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
