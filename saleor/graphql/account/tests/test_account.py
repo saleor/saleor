@@ -1148,9 +1148,7 @@ def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
     assert not data["checkouts"]["edges"]
 
 
-def test_me_query_checkouts_with_channel(
-        user_api_client, checkout, checkout_JPY
-):
+def test_me_query_checkouts_with_channel(user_api_client, checkout, checkout_JPY):
     query = """
         query Me($channel: String) {
             me {
@@ -1158,6 +1156,9 @@ def test_me_query_checkouts_with_channel(
                     edges {
                         node {
                             id
+                            channel {
+                                slug
+                            }
                         }
                     }
                     totalCount
@@ -1171,17 +1172,15 @@ def test_me_query_checkouts_with_channel(
     checkout.save()
     checkout_JPY.save()
 
-    response = user_api_client.post_graphql(
-        query, {"channel": checkout.channel.slug}
-    )
+    response = user_api_client.post_graphql(query, {"channel": checkout.channel.slug})
 
     content = get_graphql_content(response)
-    data = content["data"]["me"]
-    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+    data = content["data"]["me"]["checkouts"]
+    assert data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "Checkout", checkout.pk
     )
-    assert data["checkouts"]["totalCount"] == 1
-
+    assert data["totalCount"] == 1
+    assert data["edges"][0]["node"]["channel"]["slug"] == checkout.channel.slug
 
 
 QUERY_ME_CHECKOUT_TOKENS = """

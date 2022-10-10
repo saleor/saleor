@@ -24,7 +24,7 @@ from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
@@ -273,8 +273,8 @@ class User(ModelObjectType):
     )
     checkouts = ConnectionField(
         CheckoutCountableConnection,
-        description="Returns checkouts assigned to this user.",
-        channel = graphene.String(
+        description="Returns checkouts assigned to this user." + ADDED_IN_38,
+        channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
     )
@@ -395,15 +395,13 @@ class User(ModelObjectType):
                 checkouts, info, kwargs, CheckoutCountableConnection
             )
 
-        if channel := kwargs.get('channel'):
+        if channel := kwargs.get("channel"):
             return (
                 CheckoutByUserAndChannelLoader(info.context)
                 .load((root.id, channel))
                 .then(_resolve_checkouts)
             )
-        return (
-            CheckoutByUserLoader(info.context).load(root.id).then(_resolve_checkouts)
-        )
+        return CheckoutByUserLoader(info.context).load(root.id).then(_resolve_checkouts)
 
     @staticmethod
     def resolve_gift_cards(root: models.User, info, **kwargs):
