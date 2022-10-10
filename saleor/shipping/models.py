@@ -44,6 +44,7 @@ def _applicable_price_based_methods(price: Money, qs, channel_id):
 
     price_based = Q(shipping_method_id__in=qs_shipping_method)
     channel_filter = Q(channel_id=channel_id)
+    min_price_is_null = Q(minimum_order_price_amount__isnull=True)
     min_price_matched = Q(minimum_order_price_amount__lte=price.amount)
     no_price_limit = Q(maximum_order_price_amount__isnull=True)
     max_price_matched = Q(maximum_order_price_amount__gte=price.amount)
@@ -51,7 +52,7 @@ def _applicable_price_based_methods(price: Money, qs, channel_id):
     applicable_price_based_methods = ShippingMethodChannelListing.objects.filter(
         channel_filter
         & price_based
-        & min_price_matched
+        & (min_price_is_null | min_price_matched)
         & (no_price_limit | max_price_matched)
     ).values_list("shipping_method__id", flat=True)
     return qs_shipping_method.filter(id__in=applicable_price_based_methods)
