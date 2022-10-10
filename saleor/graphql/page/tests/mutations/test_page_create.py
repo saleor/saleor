@@ -71,6 +71,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     tag_attr = page_type.page_attributes.get(name="tag")
     tag_value_slug = tag_attr.values.first().slug
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
+    tag_value_name = tag_attr.values.first().name
 
     # Add second attribute
     size_attr = page_type.page_attributes.get(name="Page size")
@@ -86,7 +87,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
             "slug": page_slug,
             "pageType": page_type_id,
             "attributes": [
-                {"id": tag_attr_id, "values": [tag_value_slug]},
+                {"id": tag_attr_id, "values": [tag_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         }
@@ -126,6 +127,7 @@ def test_page_create_mutation_with_published_at_date(
     # Default attributes defined in product_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
     tag_value_slug = tag_attr.values.first().slug
+    tag_value_name = tag_attr.values.first().name
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
 
     # Add second attribute
@@ -143,7 +145,7 @@ def test_page_create_mutation_with_published_at_date(
             "slug": page_slug,
             "pageType": page_type_id,
             "attributes": [
-                {"id": tag_attr_id, "values": [tag_value_slug]},
+                {"id": tag_attr_id, "values": [tag_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         }
