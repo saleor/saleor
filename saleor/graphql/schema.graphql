@@ -9643,7 +9643,7 @@ type TransactionEvent implements Node {
   amount: Money!
 
   """
-  The type of action realted to this event.
+  The type of action related to this event.
   
   Added in Saleor 3.8.
   """
