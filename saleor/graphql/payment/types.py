@@ -292,7 +292,7 @@ class TransactionEvent(ModelObjectType):
     )
     type = graphene.Field(
         TransactionEventActionTypeEnum,
-        description="The type of action realted to this event." + ADDED_IN_38,
+        description="The type of action related to this event." + ADDED_IN_38,
     )
 
     class Meta:
