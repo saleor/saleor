@@ -1,7 +1,7 @@
-from urllib.parse import urljoin
+from urllib.parse import urlparse
 
 import graphene
-from django.conf import settings
+from django.core.files.storage import default_storage
 
 from ....core.tracing import traced_resolver
 from ...account.enums import AddressTypeEnum
@@ -424,7 +424,9 @@ class Image(graphene.ObjectType):
 
     @staticmethod
     def resolve_url(root, info):
-        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+        if urlparse(root.url).netloc:
+            return root.url
+        return info.context.build_absolute_uri(default_storage.url(root.url))
 
 
 class File(graphene.ObjectType):
@@ -435,7 +437,10 @@ class File(graphene.ObjectType):
 
     @staticmethod
     def resolve_url(root, info):
-        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+        # check if URL is absolute:
+        if urlparse(root.url).netloc:
+            return root.url
+        return info.context.build_absolute_uri(default_storage.url(root.url))
 
 
 class PriceInput(graphene.InputObjectType):
