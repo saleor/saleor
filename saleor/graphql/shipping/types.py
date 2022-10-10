@@ -65,6 +65,13 @@ class ShippingMethodChannelListing(ModelObjectType):
     def resolve_channel(root: models.ShippingMethodChannelListing, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
+    @staticmethod
+    def resolve_minimum_order_price(root: models.ShippingMethodChannelListing, info):
+        if root.minimum_order_price_amount is None:
+            return None
+        else:
+            return root.minimum_order_price
+
 
 class ShippingMethodPostalCodeRule(ModelObjectType):
     start = graphene.String(description="Start address range.")
