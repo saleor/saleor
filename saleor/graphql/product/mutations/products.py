@@ -1101,20 +1101,30 @@ class ProductVariantCreate(ModelMutation):
 
         object_id = data.get("id")
         object_sku = data.get("sku")
-        if (object_id or object_sku) and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product__product_type__variant_attributes__values",
-                "product__product_type__attributevariant",
-            )
+        attributes = data.get("attributes")
+        qs = data.get("qs")
+
+        if object_id or object_sku:
+            if attributes:
+                # Prefetches needed by AttributeAssignmentMixin and
+                # associate_attribute_values_to_instance
+                qs = cls.Meta.model.objects.prefetch_related(
+                    "product__product_type__variant_attributes__values",
+                    "product__product_type__attributevariant",
+                )
 
             if object_id:
                 return cls.get_node_or_error(
                     info, object_id, only_type="ProductVariant", qs=qs
                 )
-            if object_sku:
-                instance = qs.filter(sku=object_sku).first()
+            elif object_sku:
+                if attributes:
+                    instance = qs.filter(sku=object_sku).first()
+                else:
+                    instance = models.ProductVariant.objects.filter(
+                        sku=object_sku
+                    ).first()
+
                 if not instance:
                     raise ValidationError(
                         {
@@ -1125,27 +1135,8 @@ class ProductVariantCreate(ModelMutation):
                         }
                     )
                 return instance
-
-        qs = data.get("qs")
-        if object_id:
-            instance = cls.get_node_or_error(
-                info, object_id, only_type="ProductVariant", qs=qs
-            )
-        elif object_sku:
-            instance = models.ProductVariant.objects.filter(sku=object_sku).first()
-            if not instance:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % object_sku,
-                            code="not_found",
-                        )
-                    }
-                )
         else:
-            instance = cls._meta.model()
-
-        return instance
+            return cls._meta.model()
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -1266,7 +1257,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         )
         sku = graphene.String(
             required=False,
-            description="ID of a product variant to delete." + ADDED_IN_38,
+            description="SKU of a product variant to delete." + ADDED_IN_38,
         )
 
     class Meta:

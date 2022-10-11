@@ -11740,7 +11740,7 @@ type Mutation {
     id: ID
 
     """
-    ID of a product variant to delete.
+    SKU of a product variant to delete.
     
     Added in Saleor 3.8.
     """
