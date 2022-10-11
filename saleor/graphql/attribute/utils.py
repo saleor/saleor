@@ -3,7 +3,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
-from urllib.parse import urlparse
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -260,16 +259,14 @@ class AttributeAssignmentMixin:
     @staticmethod
     def _clean_file_url(file_url: Optional[str], error_class):
         # extract storage path from file URL
-        storage_root_url = build_absolute_uri(default_storage.url("/"))
+        storage_root_url = build_absolute_uri(default_storage.url(""))
         if file_url and not file_url.startswith(storage_root_url):  # type: ignore
             raise ValidationError(
                 "The file_url must be the path to the default storage.",
                 code=error_class.INVALID.value,
             )
         return (
-            re.sub(f"^{default_storage.base_url}", "", urlparse(file_url).path)
-            if file_url is not None
-            else file_url
+            re.sub(storage_root_url, "", file_url) if file_url is not None else file_url
         )
 
     @classmethod
