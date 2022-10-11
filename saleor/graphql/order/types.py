@@ -36,11 +36,7 @@ from ...order.utils import (
 )
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import (
-    get_last_payment,
-    get_subtotal,
-    get_total_authorized,
-)
+from ...payment.model_helpers import get_last_payment, get_total_authorized
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
@@ -1213,8 +1209,10 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_subtotal(root: models.Order, info):
+        manager = load_plugin_manager(info.context)
+
         def _resolve_subtotal(order_lines):
-            return get_subtotal(order_lines, root.currency)
+            return calculations.order_subtotal(root, manager, order_lines)
 
         return (
             OrderLinesByOrderIdLoader(info.context)

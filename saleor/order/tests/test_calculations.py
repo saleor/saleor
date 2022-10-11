@@ -863,6 +863,34 @@ def test_order_total(mocked_fetch_order_prices_if_expired):
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_order_subtotal(mocked_fetch_order_prices_if_expired):
+    # given
+    currency = "USD"
+    manager = Mock()
+    expected_line_totals = [
+        TaxedMoney(Money(Decimal("1.00"), currency), Money(Decimal("1.00"), currency)),
+        TaxedMoney(Money(Decimal("2.00"), currency), Money(Decimal("2.00"), currency)),
+        TaxedMoney(Money(Decimal("4.00"), currency), Money(Decimal("4.00"), currency)),
+    ]
+    order = Mock(currency=currency)
+    lines = []
+    for expected_line_total in expected_line_totals:
+        line = Mock(total_price=expected_line_total, currency=currency)
+        lines.append(line)
+    mocked_fetch_order_prices_if_expired.return_value = (order, lines)
+
+    # when
+    subtotal = calculations.order_subtotal(order, manager, lines)
+
+    # then
+    expected_subtotal = quantize_price(
+        TaxedMoney(Money(Decimal("7.00"), currency), Money(Decimal("7.00"), currency)),
+        currency,
+    )
+    assert subtotal == expected_subtotal
+
+
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     # given
     expected_undiscounted_total = Decimal("1234.0000")
