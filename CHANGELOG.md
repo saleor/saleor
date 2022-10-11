@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
 - Add base shipping price to `Order` - #10771 by @fowczarek
+- GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
 
 ### GraphQL API
 
