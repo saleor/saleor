@@ -112,7 +112,7 @@ def _get_order_base_prices(order, lines):
                 pass
 
     try:
-        shipping_price = base_order_calculations.base_order_shipping(order)
+        shipping_price = order.base_shipping_price
         order.shipping_price = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,

@@ -2,7 +2,6 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ...channel import models as channel_models
 from ...core.permissions import ProductPermissions
@@ -110,7 +109,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.warehouse_created(instance)
+        cls.call_event(manager.warehouse_created, instance)
 
 
 class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
@@ -271,7 +270,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.warehouse_updated(instance)
+        cls.call_event(manager.warehouse_updated, instance)
 
 
 class WarehouseDelete(ModelDeleteMutation):
@@ -287,7 +286,6 @@ class WarehouseDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of a warehouse to delete.", required=True)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         manager = load_plugin_manager(info.context)
         node_id = data.get("id")
@@ -302,27 +300,28 @@ class WarehouseDelete(ModelDeleteMutation):
         address = instance.address
 
         db_id = instance.id
-        instance.delete()
+        with traced_atomic_transaction():
+            instance.delete()
 
-        # After the instance is deleted, set its ID to the original database's
-        # ID so that the success response contains ID of the deleted object.
-        # Additionally, assign copy of deleted Address object to allow fetching address
-        # data on success response or in subscription webhook query.
-        instance.id = db_id
-        address.id = address_id
-        instance.address = address
+            # After the instance is deleted, set its ID to the original database's
+            # ID so that the success response contains ID of the deleted object.
+            # Additionally, assign copy of deleted Address object to allow fetching
+            # address data on success response or in subscription webhook query.
+            instance.id = db_id
+            address.id = address_id
+            instance.address = address
 
-        # Set `is_object_deleted` attribute to use it in Warehouse object type
-        # resolvers and for example decide if we should use Dataloader to resolve
-        # address or return object directly.
-        instance.is_object_deleted = True
+            # Set `is_object_deleted` attribute to use it in Warehouse object type
+            # resolvers and for example decide if we should use Dataloader to resolve
+            # address or return object directly.
+            instance.is_object_deleted = True
 
-        cls.post_save_action(info, instance, None)
-        for stock in stocks:
-            transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
+            cls.post_save_action(info, instance, None)
+            for stock in stocks:
+                cls.call_event(manager.product_variant_out_of_stock, stock)
         return cls.success_response(instance)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.warehouse_deleted(instance))
+        cls.call_event(manager.warehouse_deleted, instance)

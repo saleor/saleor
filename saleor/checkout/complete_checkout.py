@@ -54,6 +54,7 @@ from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .base_calculations import (
+    base_checkout_delivery_price,
     calculate_base_line_unit_price,
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
@@ -68,7 +69,6 @@ from .fetch import CheckoutInfo, CheckoutLineInfo
 from .utils import get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
-    from ..account.models import Address
     from ..app.models import App
     from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
@@ -106,6 +106,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
 
 def _process_shipping_data_for_order(
     checkout_info: "CheckoutInfo",
+    base_shipping_price: Money,
     shipping_price: TaxedMoney,
     manager: "PluginsManager",
     lines: Iterable["CheckoutLineInfo"],
@@ -127,6 +128,7 @@ def _process_shipping_data_for_order(
 
     result: Dict[str, Any] = {
         "shipping_address": shipping_address,
+        "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }
@@ -397,6 +399,7 @@ def _prepare_order_data(
     )
     undiscounted_total = taxed_total + checkout.discount
 
+    base_shipping_price = base_checkout_delivery_price(checkout_info, lines)
     shipping_total = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
@@ -412,7 +415,9 @@ def _prepare_order_data(
         discounts=discounts,
     )
     order_data.update(
-        _process_shipping_data_for_order(checkout_info, shipping_total, manager, lines)
+        _process_shipping_data_for_order(
+            checkout_info, base_shipping_price, shipping_total, manager, lines
+        )
     )
     order_data.update(_process_user_data_for_order(checkout_info, manager))
     order_data.update(
@@ -860,28 +865,6 @@ def _is_refund_ongoing(payment):
     )
 
 
-def _get_order_total(
-    checkout_info: CheckoutInfo,
-    lines: List[CheckoutLineInfo],
-    discounts: List["DiscountInfo"],
-    manager: "PluginsManager",
-    address: Optional["Address"],
-) -> TaxedMoney:
-    """Calculate a taxed total for order."""
-    taxed_total = calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-        discounts=discounts,
-    )
-    cards_total = checkout_info.checkout.get_total_gift_cards_balance()
-    taxed_total.gross -= cards_total
-    taxed_total.net -= cards_total
-    taxed_total = max(taxed_total, zero_taxed_money(checkout_info.checkout.currency))
-    return taxed_total
-
-
 def _increase_voucher_usage(checkout_info: "CheckoutInfo"):
     """Increase a voucher usage applied to the checkout."""
     voucher = get_voucher_for_checkout_info(checkout_info, with_lock=True)
@@ -1034,12 +1017,12 @@ def _create_order_from_checkout(
     taxes_included_in_prices = site_settings.include_taxes_in_prices
 
     # total
-    taxed_total = _get_order_total(
-        checkout_info,
-        checkout_lines_info,
-        discounts,
-        manager,
-        address,
+    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+        discounts=discounts,
     )
     undiscounted_total = taxed_total + checkout_info.checkout.discount
 
@@ -1047,11 +1030,22 @@ def _create_order_from_checkout(
     voucher = checkout_info.voucher
 
     # shipping
-    shipping_total = manager.calculate_checkout_shipping(
-        checkout_info, checkout_lines_info, address, discounts
+    base_shipping_price = base_checkout_delivery_price(
+        checkout_info, checkout_lines_info
     )
-    shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_info, checkout_lines_info, address, discounts, shipping_total
+    shipping_total = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+        discounts=discounts,
+    )
+    shipping_tax_rate = calculations.checkout_shipping_tax_rate(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+        discounts=discounts,
     )
 
     # status
@@ -1089,7 +1083,11 @@ def _create_order_from_checkout(
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,
         **_process_shipping_data_for_order(
-            checkout_info, shipping_total, manager, checkout_lines_info
+            checkout_info,
+            base_shipping_price,
+            shipping_total,
+            manager,
+            checkout_lines_info,
         ),
         **_process_user_data_for_order(checkout_info, manager),
     )

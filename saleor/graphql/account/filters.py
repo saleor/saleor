@@ -3,6 +3,7 @@ from django.db.models import Count
 
 from ...account.models import User
 from ...account.search import search_users
+from ..core.descriptions import ADDED_IN_38
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
@@ -51,6 +52,9 @@ def filter_search(qs, _, value):
 
 
 class CustomerFilter(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(
+        field_name="id", help_text=f"Filter by ids. {ADDED_IN_38}"
+    )
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
     )

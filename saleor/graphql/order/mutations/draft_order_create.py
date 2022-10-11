@@ -3,7 +3,6 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -338,12 +337,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         )
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_draft_order(
         cls, info, instance, cleaned_input, *, is_new_instance, app, site, manager, user
     ):
-        # Process addresses
-        cls._save_addresses(info, instance, cleaned_input)
+        with traced_atomic_transaction():
+            # Process addresses
+            cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
         cls._commit_changes(info, instance, cleaned_input, is_new_instance, app, user)
@@ -365,18 +364,18 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 code=OrderErrorCode.TAX_ERROR.value,
             )
 
-        if is_new_instance:
-            transaction.on_commit(lambda: manager.draft_order_created(instance))
+            if is_new_instance:
+                cls.call_event(manager.draft_order_created, instance)
 
-        else:
-            transaction.on_commit(lambda: manager.draft_order_updated(instance))
+            else:
+                cls.call_event(manager.draft_order_updated, instance)
 
-        # Post-process the results
-        updated_fields = ["weight", "search_vector", "updated_at"]
-        if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
-            invalidate_order_prices(instance)
-            updated_fields.append("should_refresh_prices")
-        recalculate_order_weight(instance)
-        update_order_search_vector(instance, save=False)
+            # Post-process the results
+            updated_fields = ["weight", "search_vector", "updated_at"]
+            if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
+                invalidate_order_prices(instance)
+                updated_fields.append("should_refresh_prices")
+            recalculate_order_weight(instance)
+            update_order_search_vector(instance, save=False)
 
-        instance.save(update_fields=updated_fields)
+            instance.save(update_fields=updated_fields)

@@ -49,7 +49,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         )
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
 
         order_line = cls.get_node_or_error(
@@ -66,28 +65,29 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         order_line_before_update = copy.deepcopy(order_line)
         tax_included = site.settings.include_taxes_in_prices
 
-        update_discount_for_order_line(
-            order_line,
-            order=order,
-            reason=reason,
-            value_type=value_type,
-            value=value,
-            manager=manager,
-            tax_included=tax_included,
-        )
-        if (
-            order_line_before_update.unit_discount_value != value
-            or order_line_before_update.unit_discount_type != value_type
-        ):
-            # Create event only when we change type or value of the discount
-            app = load_app(info.context)
-            user = load_user(info.context)
-            events.order_line_discount_updated_event(
+        app = load_app(info.context)
+        user = load_user(info.context)
+        with traced_atomic_transaction():
+            update_discount_for_order_line(
+                order_line,
                 order=order,
-                user=user,
-                app=app,
-                line=order_line,
-                line_before_update=order_line_before_update,
+                reason=reason,
+                value_type=value_type,
+                value=value,
+                manager=manager,
+                tax_included=tax_included,
             )
-            invalidate_order_prices(order, save=True)
+            if (
+                order_line_before_update.unit_discount_value != value
+                or order_line_before_update.unit_discount_type != value_type
+            ):
+                # Create event only when we change type or value of the discount
+                events.order_line_discount_updated_event(
+                    order=order,
+                    user=user,
+                    app=app,
+                    line=order_line,
+                    line_before_update=order_line_before_update,
+                )
+                invalidate_order_prices(order, save=True)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)

@@ -114,6 +114,6 @@ class CheckoutAddPromoCode(BaseMutation):
             recalculate_discount=False,
             save=True,
         )
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutAddPromoCode(checkout=checkout)

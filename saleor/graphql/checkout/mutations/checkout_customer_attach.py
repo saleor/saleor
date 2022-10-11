@@ -35,8 +35,9 @@ class CheckoutCustomerAttach(BaseMutation):
         customer_id = graphene.ID(
             required=False,
             description=(
-                "ID of customer to attach to checkout. Can be used to attach customer "
-                "to checkout by staff or app. Requires IMPERSONATE_USER permission."
+                "ID of customer to attach to checkout. "
+                "Requires IMPERSONATE_USER permission when customerId is different "
+                "than the logged-in user."
             ),
         )
 
@@ -72,11 +73,15 @@ class CheckoutCustomerAttach(BaseMutation):
                 )
             )
 
-        if customer_id:
+        user_id_from_request = None
+        if not info.context.user.is_anonymous:
+            user_id_from_request = graphene.Node.to_global_id(
+                "User", info.context.user.id
+            )
+
+        if customer_id and customer_id != user_id_from_request:
             requestor = load_requestor(info.context)
-            if not requestor or not requestor.has_perm(
-                AccountPermissions.IMPERSONATE_USER
-            ):
+            if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
                 raise PermissionDenied(
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
@@ -98,5 +103,5 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
         manager = load_plugin_manager(info.context)
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
         return CheckoutCustomerAttach(checkout=checkout)

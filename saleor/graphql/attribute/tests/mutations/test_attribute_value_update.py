@@ -435,3 +435,29 @@ def test_update_attribute_value_invalid_input_data(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == AttributeErrorCode.INVALID.name
     assert data["errors"][0]["field"] == field
+
+
+def test_update_attribute_value_swatch_attr_value(
+    staff_api_client,
+    swatch_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = swatch_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    new_value = "#FFFFF"
+    variables = {"input": {"value": new_value}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert data["attributeValue"]["name"] == value.name
+    assert data["attributeValue"]["slug"] == value.slug
+    assert data["attributeValue"]["value"] == new_value

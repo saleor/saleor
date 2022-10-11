@@ -27,7 +27,6 @@ class OrderDiscountDelete(OrderDiscountCommon):
         error_type_field = "order_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
@@ -37,20 +36,20 @@ class OrderDiscountDelete(OrderDiscountCommon):
         user = load_user(info.context)
 
         cls.validate_order(info, order)
+        with traced_atomic_transaction():
+            remove_order_discount_from_order(order, order_discount)
+            events.order_discount_deleted_event(
+                order=order,
+                user=user,
+                app=app,
+                order_discount=order_discount,
+            )
 
-        remove_order_discount_from_order(order, order_discount)
-        events.order_discount_deleted_event(
-            order=order,
-            user=user,
-            app=app,
-            order_discount=order_discount,
-        )
+            order.refresh_from_db()
 
-        order.refresh_from_db()
-
-        update_order_search_vector(order, save=False)
-        invalidate_order_prices(order)
-        order.save(
-            update_fields=["should_refresh_prices", "search_vector", "updated_at"]
-        )
+            update_order_search_vector(order, save=False)
+            invalidate_order_prices(order)
+            order.save(
+                update_fields=["should_refresh_prices", "search_vector", "updated_at"]
+            )
         return OrderDiscountDelete(order=order)

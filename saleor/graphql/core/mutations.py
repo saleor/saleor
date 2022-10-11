@@ -24,6 +24,7 @@ from ...core.permissions import (
     message_one_of_permissions_required,
     one_of_permissions_or_auth_filter_required,
 )
+from ...core.utils.events import call_event
 from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .context import set_mutation_flag_in_context
@@ -402,6 +403,10 @@ class BaseMutation(graphene.Mutation):
         if cls._meta.error_type_field is not None:
             extra.update({cls._meta.error_type_field: errors})
         return cls(errors=errors, **extra)
+
+    @staticmethod
+    def call_event(func_obj, *func_args):
+        return call_event(func_obj, *func_args)
 
 
 class ModelMutation(BaseMutation):

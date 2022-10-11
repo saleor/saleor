@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, List
 import graphene
 import pytz
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.utils import IntegrityError
 
 from ....checkout.models import CheckoutLine
@@ -329,13 +328,13 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         cls.perform_checkout_lines_delete(variant_ids, remove_channels)
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
-        cls.update_channels(product, cleaned_input.get("update_channels", []))
-        cls.remove_channels(product, cleaned_input.get("remove_channels", []))
-        product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
-        manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_updated(product))
+        with traced_atomic_transaction():
+            cls.update_channels(product, cleaned_input.get("update_channels", []))
+            cls.remove_channels(product, cleaned_input.get("remove_channels", []))
+            product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
+            manager = load_plugin_manager(info.context)
+            cls.call_event(manager.product_updated, product)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -487,29 +486,29 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, variant: "ProductVariantModel", cleaned_input: List):
-        for channel_listing_data in cleaned_input:
-            channel = channel_listing_data["channel"]
-            defaults = {"currency": channel.currency_code}
-            if "price" in channel_listing_data.keys():
-                defaults["price_amount"] = channel_listing_data.get("price", None)
-            if "cost_price" in channel_listing_data.keys():
-                defaults["cost_price_amount"] = channel_listing_data.get(
-                    "cost_price", None
+        with traced_atomic_transaction():
+            for channel_listing_data in cleaned_input:
+                channel = channel_listing_data["channel"]
+                defaults = {"currency": channel.currency_code}
+                if "price" in channel_listing_data.keys():
+                    defaults["price_amount"] = channel_listing_data.get("price", None)
+                if "cost_price" in channel_listing_data.keys():
+                    defaults["cost_price_amount"] = channel_listing_data.get(
+                        "cost_price", None
+                    )
+                if "preorder_threshold" in channel_listing_data.keys():
+                    defaults["preorder_quantity_threshold"] = channel_listing_data.get(
+                        "preorder_threshold", None
+                    )
+                ProductVariantChannelListing.objects.update_or_create(
+                    variant=variant,
+                    channel=channel,
+                    defaults=defaults,
                 )
-            if "preorder_threshold" in channel_listing_data.keys():
-                defaults["preorder_quantity_threshold"] = channel_listing_data.get(
-                    "preorder_threshold", None
-                )
-            ProductVariantChannelListing.objects.update_or_create(
-                variant=variant,
-                channel=channel,
-                defaults=defaults,
-            )
-        update_product_discounted_price_task.delay(variant.product_id)
-        manager = load_plugin_manager(info.context)
-        transaction.on_commit(lambda: manager.product_variant_updated(variant))
+            update_product_discounted_price_task.delay(variant.product_id)
+            manager = load_plugin_manager(info.context)
+            cls.call_event(manager.product_variant_updated, variant)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -584,10 +583,10 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
         ).delete()
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, collection: "CollectionModel", cleaned_input: Dict):
-        cls.add_channels(collection, cleaned_input.get("add_channels", []))
-        cls.remove_channels(collection, cleaned_input.get("remove_channels", []))
+        with traced_atomic_transaction():
+            cls.add_channels(collection, cleaned_input.get("add_channels", []))
+            cls.remove_channels(collection, cleaned_input.get("remove_channels", []))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
