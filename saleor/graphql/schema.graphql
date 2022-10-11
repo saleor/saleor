@@ -9634,6 +9634,36 @@ type TransactionEvent implements Node {
   Added in Saleor 3.8.
   """
   externalUrl: String!
+
+  """
+  The amount related to this event.
+  
+  Added in Saleor 3.8.
+  """
+  amount: Money!
+
+  """
+  The type of action related to this event.
+  
+  Added in Saleor 3.8.
+  """
+  type: TransactionEventActionTypeEnum
+}
+
+"""
+Represents possible event actions.
+
+    The following actions are possible:
+    AUTHORIZE - Represents a authorize event.
+    CHARGE - Represents a charge event.
+    REFUND - Represents a refund event.
+    CANCEL - Represents a cancel event.
+"""
+enum TransactionEventActionTypeEnum {
+  AUTHORIZE
+  CHARGE
+  REFUND
+  CANCEL
 }
 
 type GiftCardCountableConnection {
@@ -17352,14 +17382,14 @@ input TransactionEventInput {
   
   Added in Saleor 3.8.
   """
-  type: TransactionActionEnum
+  type: TransactionEventActionTypeEnum
 
   """
   The amount related to this event.
   
   Added in Saleor 3.8.
   """
-  amount: PositiveDecimal
+  amount: Decimal
 
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
@@ -17368,6 +17398,14 @@ input TransactionEventInput {
   """
   externalUrl: String
 }
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
 
 """
 Create transaction for checkout or order. Requires the following permissions: OWNER and HANDLE_PAYMENTS.
@@ -18267,14 +18305,6 @@ input OrderGrantRefundCreateInput {
   """Reason of the granted refund."""
   reason: String
 }
-
-"""
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
 
 """
 Updates granted refund. 

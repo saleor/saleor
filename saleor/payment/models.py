@@ -20,6 +20,7 @@ from . import (
     CustomPaymentChoices,
     StorePaymentMethod,
     TransactionAction,
+    TransactionEventActionType,
     TransactionEventStatus,
     TransactionKind,
 )
@@ -123,6 +124,19 @@ class TransactionEvent(models.Model):
         TransactionItem, related_name="events", on_delete=models.CASCADE
     )
     external_url = models.URLField(blank=True, null=True)
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    type = models.CharField(
+        max_length=128,
+        choices=TransactionEventActionType.CHOICES,
+        blank=True,
+        null=True,
+    )
+    amount = MoneyField(amount_field="amount_value", currency_field="currency")
+    amount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
 
     class Meta:
         ordering = ("pk",)
@@ -341,7 +355,9 @@ class Transaction(models.Model):
     action_required_data = JSONField(
         blank=True, default=dict, encoder=DjangoJSONEncoder
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

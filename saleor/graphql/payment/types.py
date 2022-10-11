@@ -35,6 +35,7 @@ from .enums import (
     OrderAction,
     PaymentChargeStatusEnum,
     TransactionActionEnum,
+    TransactionEventActionTypeEnum,
     TransactionEventStatusEnum,
     TransactionKindEnum,
 )
@@ -283,6 +284,15 @@ class TransactionEvent(ModelObjectType):
             "payment provider page with transaction details." + ADDED_IN_38
         ),
         required=True,
+    )
+    amount = graphene.Field(
+        Money,
+        required=True,
+        description="The amount related to this event." + ADDED_IN_38,
+    )
+    type = graphene.Field(
+        TransactionEventActionTypeEnum,
+        description="The type of action related to this event." + ADDED_IN_38,
     )
 
     class Meta:

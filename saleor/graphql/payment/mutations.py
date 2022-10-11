@@ -46,6 +46,7 @@ from ..app.dataloaders import load_app
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
+from ..core import scalars
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
@@ -64,6 +65,7 @@ from ..utils import get_user_or_app_from_context
 from .enums import (
     StorePaymentMethodEnum,
     TransactionActionEnum,
+    TransactionEventActionTypeEnum,
     TransactionEventStatusEnum,
 )
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -686,13 +688,13 @@ class TransactionEventInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Name of the transaction.")
     type = graphene.Field(
-        TransactionActionEnum,
+        TransactionEventActionTypeEnum,
         description=(
             "The transaction action that is related to this event." + ADDED_IN_38
         ),
     )
-    amount = graphene.Field(
-        PositiveDecimal, description="The amount related to this event." + ADDED_IN_38
+    amount = scalars.Decimal(
+        description=("The amount related to this event." + ADDED_IN_38)
     )
     external_url = graphene.String(
         description=(
@@ -893,6 +895,9 @@ class TransactionCreate(BaseMutation):
                 name=transaction_event_input.get("name", ""),
                 transaction=transaction,
                 external_url=transaction_event_input.get("external_url"),
+                type=transaction_event_input.get("type"),
+                currency=transaction.currency,
+                amount_value=transaction_event_input.get("amount", 0),
             )
         except IntegrityError:
             raise ValidationError(
