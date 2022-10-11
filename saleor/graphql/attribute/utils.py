@@ -238,10 +238,8 @@ class AttributeAssignmentMixin:
     @staticmethod
     def _clean_file_url(file_url: Optional[str], error_class):
         # extract storage path from file URL
-        storage_root_url = build_absolute_uri(default_storage.base_url)
-        if file_url is not None and not file_url.startswith(
-            storage_root_url  # type: ignore
-        ):
+        storage_root_url = build_absolute_uri(default_storage.url("/"))
+        if file_url and not file_url.startswith(storage_root_url):  # type: ignore
             raise ValidationError(
                 "The file_url must be the path to the default storage.",
                 code=error_class.INVALID.value,

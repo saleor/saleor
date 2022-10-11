@@ -1317,7 +1317,6 @@ def test_clean_file_url_in_attribute_assignment_mixin(site_settings):
         "http://localhost:8000/media/Test.jpg",
         "/media/Test.jpg",
         "Test.jpg",
-        "",
         "/ab/cd.jpg",
     ],
 )
