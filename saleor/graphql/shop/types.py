@@ -11,6 +11,7 @@ from ...account import models as account_models
 from ...channel import models as channel_models
 from ...core.permissions import AuthorizationFilters, SitePermissions, get_permissions
 from ...core.tracing import traced_resolver
+from ...core.utils import build_absolute_uri
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
@@ -336,7 +337,7 @@ class Shop(graphene.ObjectType):
         return Domain(
             host=site.domain,
             ssl_enabled=settings.ENABLE_SSL,
-            url=info.context.build_absolute_uri("/"),
+            url=build_absolute_uri("/"),
         )
 
     @staticmethod

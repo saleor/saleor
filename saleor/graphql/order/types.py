@@ -598,7 +598,7 @@ class OrderLine(ModelObjectType):
         def _get_image_from_media(image):
             url = get_product_image_thumbnail(image, size, method="thumbnail")
             alt = image.alt
-            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+            return Image(alt=alt, url=url)
 
         def _get_first_variant_image(all_medias):
             if image := next(
