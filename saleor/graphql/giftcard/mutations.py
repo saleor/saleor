@@ -243,7 +243,7 @@ class GiftCardCreate(ModelMutation):
                 channel_slug=cleaned_input["channel"],
                 resending=False,
             )
-        manager.gift_card_created(instance)
+        cls.call_event(manager.gift_card_created, instance)
 
     @staticmethod
     def assign_gift_card_tags(instance: models.GiftCard, tags_values: Iterable[str]):
@@ -258,12 +258,12 @@ class GiftCardCreate(ModelMutation):
         instance.tags.add(*add_tags_instances)
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        tags = cleaned_data.get("add_tags")
-        if tags:
-            cls.assign_gift_card_tags(instance, tags)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            tags = cleaned_data.get("add_tags")
+            if tags:
+                cls.assign_gift_card_tags(instance, tags)
 
 
 class GiftCardUpdate(GiftCardCreate):
@@ -342,7 +342,7 @@ class GiftCardUpdate(GiftCardCreate):
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
         manager = load_plugin_manager(info.context)
-        manager.gift_card_updated(instance)
+        cls.call_event(manager.gift_card_updated, instance)
         return cls.success_response(instance)
 
     @classmethod
@@ -352,18 +352,18 @@ class GiftCardUpdate(GiftCardCreate):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        remove_tags = cleaned_data.get("remove_tags")
-        if remove_tags:
-            remove_tags = {tag.lower() for tag in remove_tags}
-            remove_tags_instances = models.GiftCardTag.objects.filter(
-                name__in=remove_tags
-            )
-            instance.tags.remove(*remove_tags_instances)
-            # delete tags without gift card assigned
-            remove_tags_instances.filter(gift_cards__isnull=True).delete()
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            remove_tags = cleaned_data.get("remove_tags")
+            if remove_tags:
+                remove_tags = {tag.lower() for tag in remove_tags}
+                remove_tags_instances = models.GiftCardTag.objects.filter(
+                    name__in=remove_tags
+                )
+                instance.tags.remove(*remove_tags_instances)
+                # delete tags without gift card assigned
+                remove_tags_instances.filter(gift_cards__isnull=True).delete()
 
 
 class GiftCardDelete(ModelDeleteMutation):
@@ -381,7 +381,7 @@ class GiftCardDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.gift_card_deleted(instance)
+        cls.call_event(manager.gift_card_deleted, instance)
 
 
 class GiftCardDeactivate(BaseMutation):
@@ -413,7 +413,7 @@ class GiftCardDeactivate(BaseMutation):
                 app=app,
             )
         manager = load_plugin_manager(info.context)
-        manager.gift_card_status_changed(gift_card)
+        cls.call_event(manager.gift_card_status_changed, gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
 
@@ -447,7 +447,7 @@ class GiftCardActivate(BaseMutation):
                 app=app,
             )
         manager = load_plugin_manager(info.context)
-        manager.gift_card_status_changed(gift_card)
+        cls.call_event(manager.gift_card_status_changed, gift_card)
         return GiftCardActivate(gift_card=gift_card)
 
 
@@ -580,5 +580,5 @@ class GiftCardAddNote(BaseMutation):
             message=cleaned_input["message"],
         )
         manager = load_plugin_manager(info.context)
-        manager.gift_card_updated(gift_card)
+        cls.call_event(manager.gift_card_updated, gift_card)
         return GiftCardAddNote(gift_card=gift_card, event=event)

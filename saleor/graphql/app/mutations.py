@@ -179,7 +179,7 @@ class AppCreate(ModelMutation):
         response = cls.success_response(instance)
         response.auth_token = auth_token
         manager = load_plugin_manager(info.context)
-        manager.app_installed(instance)
+        cls.call_event(manager.app_installed, instance)
         return response
 
     @classmethod
@@ -226,7 +226,7 @@ class AppUpdate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.app_updated(instance)
+        cls.call_event(manager.app_updated, instance)
 
 
 class AppDelete(ModelDeleteMutation):
@@ -254,7 +254,7 @@ class AppDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.app_deleted(instance)
+        cls.call_event(manager.app_deleted, instance)
 
 
 class AppActivate(ModelMutation):
@@ -275,7 +275,7 @@ class AppActivate(ModelMutation):
         app.is_active = True
         cls.save(info, app, cleaned_input=None)
         manager = load_plugin_manager(info.context)
-        manager.app_status_changed(app)
+        cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)
 
 
@@ -297,7 +297,7 @@ class AppDeactivate(ModelMutation):
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
         manager = load_plugin_manager(info.context)
-        manager.app_status_changed(app)
+        cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)
 
 

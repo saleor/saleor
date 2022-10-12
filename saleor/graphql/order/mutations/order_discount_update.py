@@ -40,7 +40,6 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         manager = load_plugin_manager(info.context)
         order_discount = cls.get_node_or_error(
@@ -55,26 +54,27 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         value = input.get("value", order_discount.value)
 
         order_discount_before_update = copy.deepcopy(order_discount)
-
-        order_discount.reason = reason
-        order_discount.value = value
-        order_discount.value_type = value_type
-        order_discount.save()
-        if (
-            order_discount_before_update.value_type != value_type
-            or order_discount_before_update.value != value
-        ):
-            # call update event only when we changed the type or value of the discount
-            # Calling refreshing prices because it's set proper discount amount
-            # on OrderDiscount.
-            fetch_order_prices_if_expired(order, manager, force_update=True)
-            order_discount.refresh_from_db()
-            app = load_app(info.context)
-            events.order_discount_updated_event(
-                order=order,
-                user=info.context.user,
-                app=app,
-                order_discount=order_discount,
-                old_order_discount=order_discount_before_update,
-            )
+        with traced_atomic_transaction():
+            order_discount.reason = reason
+            order_discount.value = value
+            order_discount.value_type = value_type
+            order_discount.save()
+            if (
+                order_discount_before_update.value_type != value_type
+                or order_discount_before_update.value != value
+            ):
+                # call update event only when we changed the type or value of the
+                # discount.
+                # Calling refreshing prices because it's set proper discount amount
+                # on OrderDiscount.
+                fetch_order_prices_if_expired(order, manager, force_update=True)
+                order_discount.refresh_from_db()
+                app = load_app(info.context)
+                events.order_discount_updated_event(
+                    order=order,
+                    user=info.context.user,
+                    app=app,
+                    order_discount=order_discount,
+                    old_order_discount=order_discount_before_update,
+                )
         return OrderDiscountUpdate(order=order)

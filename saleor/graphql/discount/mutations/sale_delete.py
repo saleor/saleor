@@ -1,5 +1,4 @@
 import graphene
-from django.db import transaction
 
 from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -26,16 +25,16 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Sale)
         previous_catalogue = fetch_catalogue_info(instance)
-        response = super().perform_mutation(_root, info, **data)
         manager = load_plugin_manager(info.context)
-        transaction.on_commit(
-            lambda: manager.sale_deleted(
-                instance, convert_catalogue_info_to_global_ids(previous_catalogue)
+        with traced_atomic_transaction():
+            response = super().perform_mutation(_root, info, **data)
+            cls.call_event(
+                lambda: manager.sale_deleted(
+                    instance, convert_catalogue_info_to_global_ids(previous_catalogue)
+                )
             )
-        )
         return response

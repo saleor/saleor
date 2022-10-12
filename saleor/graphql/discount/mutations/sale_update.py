@@ -2,7 +2,6 @@ from datetime import datetime
 
 import graphene
 import pytz
-from django.db import transaction
 
 from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -32,7 +31,6 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         previous_catalogue = fetch_catalogue_info(instance)
@@ -40,13 +38,14 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         data = data.get("input")
         manager = load_plugin_manager(info.context)
         cleaned_input = cls.clean_input(info, instance, data)
-        instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(info, instance)
-        cls.save(info, instance, cleaned_input)
-        cls._save_m2m(info, instance, cleaned_input)
-        cls.send_sale_notifications(
-            manager, instance, cleaned_input, previous_catalogue, previous_end_date
-        )
+        with traced_atomic_transaction():
+            instance = cls.construct_instance(instance, cleaned_input)
+            cls.clean_instance(info, instance)
+            cls.save(info, instance, cleaned_input)
+            cls._save_m2m(info, instance, cleaned_input)
+            cls.send_sale_notifications(
+                manager, instance, cleaned_input, previous_catalogue, previous_end_date
+            )
         return cls.success_response(instance)
 
     @classmethod
@@ -56,12 +55,11 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         current_catalogue = convert_catalogue_info_to_global_ids(
             fetch_catalogue_info(instance)
         )
-        transaction.on_commit(
-            lambda: manager.sale_updated(
-                instance,
-                convert_catalogue_info_to_global_ids(previous_catalogue),
-                current_catalogue,
-            )
+        cls.call_event(
+            manager.sale_updated,
+            instance,
+            convert_catalogue_info_to_global_ids(previous_catalogue),
+            current_catalogue,
         )
 
         cls.send_sale_toggle_notification(
@@ -75,7 +73,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         """Send the notification about starting or ending sale if it wasn't sent yet.
 
         Send notification if the notification when the start or end date already passed
-        ans the notification_date is not set or the last notification was sent
+        and the notification_date is not set or the last notification was sent
         before start or end date.
         """
         now = datetime.now(pytz.utc)

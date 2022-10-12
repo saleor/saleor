@@ -648,6 +648,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_unit_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -667,6 +668,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_unit_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -707,6 +709,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_total_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -722,6 +725,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_total_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -1165,6 +1169,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1179,6 +1184,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_tax_rate(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1224,6 +1230,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_total(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1236,6 +1243,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_total(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 

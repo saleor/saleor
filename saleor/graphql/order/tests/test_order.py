@@ -49,6 +49,7 @@ from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....tests.consts import TEST_SERVER_DOMAIN
+from ....tests.utils import flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
@@ -5672,7 +5673,7 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
 
     variables = {"lineId": first_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
-
+    flush_post_commit_hooks()
     variables = {"lineId": second_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
 

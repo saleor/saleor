@@ -531,7 +531,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_created(instance)
+        cls.call_event(manager.attribute_created, instance)
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
@@ -602,7 +602,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_updated(instance)
+        cls.call_event(manager.attribute_updated, instance)
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -620,7 +620,7 @@ class AttributeDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_deleted(instance)
+        cls.call_event(manager.attribute_deleted, instance)
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -713,8 +713,8 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_value_created(instance)
-        manager.attribute_updated(instance.attribute)
+        cls.call_event(manager.attribute_value_created, instance)
+        cls.call_event(manager.attribute_updated, instance.attribute)
 
 
 class AttributeValueUpdate(AttributeValueCreate):
@@ -785,8 +785,8 @@ class AttributeValueUpdate(AttributeValueCreate):
             ).update(search_index_dirty=True)
 
         manager = load_plugin_manager(info.context)
-        manager.attribute_value_updated(instance)
-        manager.attribute_updated(instance.attribute)
+        cls.call_event(manager.attribute_value_updated, instance)
+        cls.call_event(manager.attribute_updated, instance.attribute)
 
 
 class AttributeValueDelete(ModelDeleteMutation):
@@ -813,8 +813,8 @@ class AttributeValueDelete(ModelDeleteMutation):
             search_index_dirty=True
         )
         manager = load_plugin_manager(info.context)
-        manager.attribute_value_deleted(instance)
-        manager.attribute_updated(instance.attribute)
+        cls.call_event(manager.attribute_value_deleted, instance)
+        cls.call_event(manager.attribute_updated, instance.attribute)
         return response
 
     @classmethod
@@ -900,8 +900,9 @@ class AttributeReorderValues(BaseMutation):
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
         manager = load_plugin_manager(info.context)
-        for value in [v for v in values_m2m if v.id in operations.keys()]:
-            manager.attribute_value_updated(value)
-        manager.attribute_updated(attribute)
+        events_list = [v for v in values_m2m if v.id in operations.keys()]
+        for value in events_list:
+            cls.call_event(manager.attribute_value_updated, value)
+        cls.call_event(manager.attribute_updated, attribute)
 
         return AttributeReorderValues(attribute=attribute)
