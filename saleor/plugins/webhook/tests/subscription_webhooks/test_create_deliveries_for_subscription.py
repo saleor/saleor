@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from freezegun import freeze_time
 
 from .....channel.models import Channel
@@ -41,7 +40,7 @@ from .payloads import (
 
 
 @freeze_time("2022-05-12 12:00:00")
-@pytest.mark.parametrize("requestor_type", ["user", "app", None, "anonymous"])
+@pytest.mark.parametrize("requestor_type", ["user", "app", "anonymous"])
 def test_subscription_query_with_meta(
     requestor_type, voucher, staff_user, app, subscription_voucher_webhook_with_meta
 ):
@@ -49,8 +48,7 @@ def test_subscription_query_with_meta(
     requestor_map = {
         "user": staff_user,
         "app": app,
-        None: None,
-        "anonymous": AnonymousUser(),
+        "anonymous": None,
     }
     webhooks = [subscription_voucher_webhook_with_meta]
     event_type = WebhookEventAsyncType.VOUCHER_CREATED

@@ -969,7 +969,7 @@ class TransactionRequestAction(BaseMutation):
         for required_permission in required_permissions:
             # We want to allow to call this mutation for requestor with one of following
             # permission: manage_orders, handle_payments
-            if requestor.has_perm(required_permission):
+            if requestor and requestor.has_perm(required_permission):
                 return True
         return False
 

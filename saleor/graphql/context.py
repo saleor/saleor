@@ -2,7 +2,6 @@ from typing import Optional, Protocol, Union, cast
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import AnonymousUser
 from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 
@@ -20,7 +19,7 @@ def get_context_value(request):
     return request
 
 
-UserType = Union[User, AnonymousUser]
+UserType = Optional[User]
 
 
 class RequestWithUser(Protocol):
@@ -63,10 +62,10 @@ def get_user(request: RequestWithUser) -> Optional[UserType]:
 
 def set_auth_on_context(request: RequestWithUser):
     if hasattr(request, "app") and request.app:
-        request.user = AnonymousUser()
+        request.user = SimpleLazyObject(lambda: None)  # type: ignore
         return request
 
     def user():
-        return get_user(request) or AnonymousUser()
+        return get_user(request) or None
 
     request.user = SimpleLazyObject(user)

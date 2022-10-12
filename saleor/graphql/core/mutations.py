@@ -18,7 +18,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
-from ...core.db.utils import set_mutation_flag_in_context
+from ...core.db.utils import set_mutation_flag_in_context, setup_context_user
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AuthorizationFilters,
@@ -364,6 +364,7 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
+        setup_context_user(info.context)
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
@@ -707,6 +708,8 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
+        setup_context_user(info.context)
+
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
 

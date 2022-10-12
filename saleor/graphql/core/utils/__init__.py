@@ -236,7 +236,7 @@ def from_global_id_or_none(
 
 def to_global_id_or_none(instance):
     class_name = instance.__class__.__name__
-    if instance.pk is None:
+    if instance is None or instance.pk is None:
         return None
     return graphene.Node.to_global_id(class_name, instance.pk)
 

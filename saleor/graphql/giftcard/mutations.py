@@ -9,7 +9,7 @@ from ...account.models import User
 from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code
-from ...core.utils.validators import is_date_in_future, user_is_valid
+from ...core.utils.validators import is_date_in_future
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.notifications import send_gift_card_notification
@@ -164,7 +164,7 @@ class GiftCardCreate(ModelMutation):
     @staticmethod
     def set_created_by_user(cleaned_input, info):
         user = info.context.user
-        if user_is_valid(user):
+        if user:
             cleaned_input["created_by"] = user
             cleaned_input["created_by_email"] = user.email
         cleaned_input["app"] = info.context.app
@@ -502,7 +502,7 @@ class GiftCardResend(BaseMutation):
         target_email = cls.get_target_email(data, gift_card)
         customer_user = cls.get_customer_user(target_email)
         user = info.context.user
-        if not user_is_valid(user):
+        if not user:
             user = None
         send_gift_card_notification(
             user,

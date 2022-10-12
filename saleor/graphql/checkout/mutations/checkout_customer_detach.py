@@ -51,7 +51,7 @@ class CheckoutCustomerDetach(BaseMutation):
             error_class=CheckoutErrorCode,
         )
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+        if not requestor or not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
             # Raise error if the current user doesn't own the checkout of the given ID.
             if checkout.user and checkout.user != info.context.user:
                 raise PermissionDenied(
