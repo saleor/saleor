@@ -10013,6 +10013,9 @@ enum PageSortField {
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   PUBLISHED_AT
+
+  """Sort pages by creation date."""
+  CREATED_AT
 }
 
 input PageFilterInput {
@@ -10251,6 +10254,9 @@ enum GiftCardSortField {
 
   """Sort orders by current balance."""
   CURRENT_BALANCE
+
+  """Sort orders by created at."""
+  CREATED_AT
 }
 
 input GiftCardFilterInput {
@@ -10543,6 +10549,9 @@ enum VoucherSortField {
   This option requires a channel filter to work as the values can vary between channels.
   """
   MINIMUM_SPENT_AMOUNT
+
+  """Sort vouchers by created at."""
+  CREATED_AT
 }
 
 """Represents a job data of exported file."""

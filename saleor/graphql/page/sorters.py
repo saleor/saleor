@@ -11,6 +11,7 @@ class PageSortField(graphene.Enum):
     CREATION_DATE = ["created_at", "title", "slug"]
     PUBLICATION_DATE = ["published_at", "title", "slug"]
     PUBLISHED_AT = ["published_at", "title", "slug"]
+    CREATED_AT = ["created_at", "title", "slug"]
 
     @property
     def description(self):

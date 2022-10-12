@@ -49,6 +49,7 @@ class VoucherSortField(graphene.Enum):
     TYPE = ["type", "name", "code"]
     USAGE_LIMIT = ["usage_limit", "name", "code"]
     MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "code"]
+    CREATED_AT = ["created_at", "name", "code"]
 
     @property
     def description(self):

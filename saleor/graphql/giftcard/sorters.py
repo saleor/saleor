@@ -7,6 +7,7 @@ class GiftCardSortField(graphene.Enum):
     PRODUCT = ["product__name", "product__slug"]
     USED_BY = ["used_by__first_name", "used_by__last_name", "created_at"]
     CURRENT_BALANCE = ["current_balance_amount", "created_at"]
+    CREATED_AT = ["created_at", "id"]
 
     @property
     def description(self):
