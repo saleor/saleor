@@ -1,6 +1,6 @@
 import graphene
 
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ..core.types import SortInputObjectType
 
 
@@ -20,6 +20,10 @@ class PageSortField(graphene.Enum):
             description = f"Sort pages by {sort_name}."
             if self.name == "PUBLICATION_DATE":
                 description += DEPRECATED_IN_3X_INPUT
+            if self.name == "CREATION_DATE":
+                description += DEPRECATED_IN_3X_INPUT
+            if self.name == "CREATED_AT":
+                description += ADDED_IN_38
             return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 

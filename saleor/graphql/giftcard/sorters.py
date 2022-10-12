@@ -1,5 +1,6 @@
 import graphene
 
+from ..core.descriptions import ADDED_IN_38
 from ..core.types import SortInputObjectType
 
 
@@ -13,7 +14,10 @@ class GiftCardSortField(graphene.Enum):
     def description(self):
         if self.name in GiftCardSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            return f"Sort orders by {sort_name}."
+            description = f"Sort gift cards by {sort_name}."
+            if self.name == "CREATED_AT":
+                description += ADDED_IN_38
+            return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 
