@@ -3,6 +3,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLError
 from graphql.execution import ExecutionResult
 
@@ -348,7 +349,7 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
     ]
 
     schema_context = request.getfixturevalue("schema_context")
-    schema_context.user = staff_user
+    schema_context.user = SimpleLazyObject(lambda: staff_user)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     variables = {"productId": product_id, "channel": channel_USD.slug}

@@ -200,12 +200,12 @@ def get_user_permissions(user: "User") -> "QuerySet":
 
 
 def get_out_of_scope_permissions(
-    requestor: Union["User", "App"], permissions: List[str]
+    requestor: Union["User", "App", None], permissions: List[str]
 ) -> List[str]:
     """Return permissions that the requestor hasn't got."""
     missing_permissions = []
     for perm in permissions:
-        if not requestor.has_perm(perm):
+        if not requestor or not requestor.has_perm(perm):
             missing_permissions.append(perm)
     return missing_permissions
 
@@ -229,7 +229,7 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
 def can_manage_app(requestor: Union["User", "App"], app: "App") -> bool:
     """Requestor can't manage app with wider scope of permissions."""
     permissions = app.get_permissions()
-    return requestor.has_perms(permissions)
+    return bool(requestor) and requestor.has_perms(permissions)
 
 
 def get_group_permission_codes(group: Group) -> "QuerySet":

@@ -162,6 +162,7 @@ class CreateToken(BaseMutation):
             user, additional_payload=refresh_additional_payload
         )
         info.context.refresh_token = refresh_token
+        info.context.user = user
         info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login", "updated_at"])

@@ -2,7 +2,6 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
 from prices import TaxedMoney
 
@@ -223,7 +222,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
             discounts=None,
             taxes_included_in_prices=True,
         ),
-        user=AnonymousUser(),
+        user=None,
         app=None,
         manager=manager,
     )
@@ -481,7 +480,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
             discounts=[],
             taxes_included_in_prices=True,
         ),
-        user=AnonymousUser(),
+        user=None,
         app=None,
         manager=manager,
     )
@@ -661,7 +660,7 @@ def test_create_order_with_gift_card(
             discounts=None,
             taxes_included_in_prices=True,
         ),
-        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        user=customer_user if not is_anonymous_user else None,
         app=None,
         manager=manager,
     )
@@ -867,7 +866,7 @@ def test_create_order_gift_card_bought(
             discounts=None,
             taxes_included_in_prices=True,
         ),
-        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        user=customer_user if not is_anonymous_user else None,
         app=None,
         manager=manager,
     )
@@ -948,7 +947,7 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
             discounts=None,
             taxes_included_in_prices=True,
         ),
-        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        user=customer_user if not is_anonymous_user else None,
         app=None,
         manager=manager,
     )
@@ -1012,7 +1011,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
             discounts=None,
             taxes_included_in_prices=True,
         ),
-        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        user=customer_user if not is_anonymous_user else None,
         app=None,
         manager=manager,
     )
@@ -1072,7 +1071,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
             discounts=None,
             taxes_included_in_prices=True,
         ),
-        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        user=customer_user if not is_anonymous_user else None,
         app=None,
         manager=manager,
     )

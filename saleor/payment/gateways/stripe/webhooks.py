@@ -1,7 +1,6 @@
 import logging
 from typing import List, Optional
 
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Prefetch
@@ -202,7 +201,7 @@ def _finalize_checkout(
             payment_data={},
             store_source=False,
             discounts=discounts,
-            user=checkout.user or AnonymousUser(),  # type: ignore
+            user=checkout.user or None,  # type: ignore
             app=None,
         )
     except ValidationError as e:
