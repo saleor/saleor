@@ -210,7 +210,7 @@ class InvoiceRequestDelete(ModelMutation):
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
         manager = load_plugin_manager(info.context)
-        manager.invoice_delete(invoice)
+        cls.call_event(manager.invoice_delete, invoice)
         app = load_app(info.context)
         events.invoice_requested_deletion_event(
             user=info.context.user, app=app, invoice=invoice

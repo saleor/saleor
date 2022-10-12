@@ -18,11 +18,8 @@ from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
 from ...discount import OrderDiscountType, VoucherType
 from ...order import base_calculations as base_order_calculations
-from ...order.utils import (
-    get_total_order_discount_excluding_shipping,
-    get_voucher_discount_assigned_to_order,
-)
-from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ...order.utils import get_total_order_discount_excluding_shipping
+from ...shipping.models import ShippingMethod
 from ...tax.utils import get_charge_taxes_for_checkout
 from ...warehouse.models import Warehouse
 
@@ -416,26 +413,10 @@ def get_order_lines_data(
             amount=price_with_discounts_amount,
         )
 
-    shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
-        shipping_method=order.shipping_method_id, channel=order.channel_id
-    ).first()
-    if shipping_method_channel_listing:
-        shipping_discount_amount = Decimal("0")
-        if (
-            order.voucher_id
-            and order.voucher.type == VoucherType.SHIPPING  # type: ignore
-        ):
-            shipping_discount = get_voucher_discount_assigned_to_order(order)
-            if shipping_discount:
-                shipping_discount_amount = shipping_discount.amount_value
-        shipping_price = max(
-            shipping_method_channel_listing.price.amount - shipping_discount_amount,
-            Decimal("0"),
-        )
+    if shipping_price := order.base_shipping_price_amount:
         shipping_discounted = order.discounts.filter(
             type=OrderDiscountType.MANUAL
         ).exists()
-
         tax_class = getattr(order.shipping_method, "tax_class", None)
         if tax_class:
             append_shipping_to_data(

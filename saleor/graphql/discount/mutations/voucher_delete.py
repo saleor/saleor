@@ -31,4 +31,4 @@ class VoucherDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.voucher_deleted(instance)
+        cls.call_event(manager.voucher_deleted, instance)

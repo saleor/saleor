@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY, Mock, patch, sentinel
+from unittest.mock import ANY, patch, sentinel
 
 import graphene
 import pytest
@@ -59,7 +59,6 @@ from ..payloads import (
     generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
-    get_base_price,
     serialize_refund_data,
 )
 from ..serializers import serialize_checkout_lines
@@ -352,9 +351,7 @@ def test_generate_order_payload_for_tax_calculation(
         "currency": order.currency,
         "shipping_name": order.shipping_method.name,
         "shipping_amount": str(
-            quantize_price(
-                get_base_price(order.shipping_price, prices_entered_with_tax), currency
-            )
+            quantize_price(order.base_shipping_price_amount, currency)
         ),
         "metadata": order.metadata,
         "discounts": [
@@ -1817,15 +1814,6 @@ def test_generate_meta(app, rf):
 
 NET_AMOUNT = sentinel.NET_AMOUNT
 GROSS_AMOUNT = sentinel.GROSS_AMOUNT
-
-
-@pytest.mark.parametrize(
-    "taxes_included, amount", [(True, GROSS_AMOUNT), (False, NET_AMOUNT)]
-)
-def test_get_base_price(taxes_included, amount):
-    # given
-    price = Mock(net=Mock(amount=NET_AMOUNT), gross=Mock(amount=GROSS_AMOUNT))
-    assert amount == get_base_price(price, taxes_included)
 
 
 @pytest.mark.parametrize(

@@ -199,7 +199,6 @@ def test_sort_values_trigger_webhook(
     content = get_graphql_content(
         staff_api_client.post_graphql(ATTRIBUTE_VALUES_REORDER_MUTATION, variables)
     )["data"]["attributeReorderValues"]
-
     meta = generate_meta(
         requestor_data=generate_requestor(
             SimpleLazyObject(lambda: staff_api_client.user)
@@ -242,7 +241,6 @@ def test_sort_values_trigger_webhook(
 
     attribute_value_1_updated_call = generate_attribute_value_update_call(values[0])
     attribute_value_2_updated_call = generate_attribute_value_update_call(values[2])
-
     # then
     assert not content["errors"]
     assert content["attribute"]["id"] == attribute_id

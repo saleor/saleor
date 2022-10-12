@@ -333,9 +333,9 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         user.search_document = prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
         manager = load_plugin_manager(info.context)
-        manager.customer_updated(user)
+        cls.call_event(manager.customer_updated, user)
         address = manager.change_user_address(address, None, user)
-        manager.address_updated(address)
+        cls.call_event(manager.address_updated, address)
 
         success_response = cls.success_response(address)
         success_response.user = user
@@ -369,7 +369,7 @@ class BaseAddressDelete(ModelDeleteMutation):
             raise PermissionDenied()
 
         node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, Address)
+        instance = cls.get_node_or_error(info, node_id, only_type=Address)
         if instance:
             cls.clean_instance(info, instance)
 
@@ -396,8 +396,8 @@ class BaseAddressDelete(ModelDeleteMutation):
 
         response.user = user
         manager = load_plugin_manager(info.context)
-        manager.customer_updated(user)
-        manager.address_deleted(instance)
+        cls.call_event(manager.customer_updated, user)
+        cls.call_event(manager.address_deleted, instance)
         return response
 
 

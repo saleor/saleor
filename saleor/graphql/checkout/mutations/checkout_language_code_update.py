@@ -54,5 +54,5 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout.language_code = language_code
         checkout.save(update_fields=["language_code", "last_change"])
         manager = load_plugin_manager(info.context)
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
         return CheckoutLanguageCodeUpdate(checkout=checkout)

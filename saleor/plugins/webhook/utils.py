@@ -32,18 +32,14 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PaymentAppData:
-    app_pk: int
+    app_pk: Optional[int]
+    app_identifier: Optional[str]
     name: str
 
 
-@dataclass
-class ShippingAppData:
-    app_pk: int
-    shipping_method_id: str
-
-
-def to_payment_app_id(app: App, gateway_id: str) -> "str":
-    return f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
+def to_payment_app_id(app: "App", gateway_id: str) -> "str":
+    app_identifier = app.identifier or app.id
+    return f"{APP_ID_PREFIX}:{app_identifier}:{gateway_id}"
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
@@ -52,14 +48,18 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
         try:
             app_pk = int(splitted_id[1])
         except (TypeError, ValueError):
-            return None
+            return PaymentAppData(
+                app_identifier=splitted_id[1], app_pk=None, name=splitted_id[2]
+            )
         else:
-            return PaymentAppData(app_pk, name=splitted_id[2])
+            return PaymentAppData(
+                app_pk=app_pk, app_identifier=None, name=splitted_id[2]
+            )
     return None
 
 
 def parse_list_payment_gateways_response(
-    response_data: Any, app: App
+    response_data: Any, app: "App"
 ) -> List["PaymentGateway"]:
     gateways: List[PaymentGateway] = []
     if not isinstance(response_data, list):

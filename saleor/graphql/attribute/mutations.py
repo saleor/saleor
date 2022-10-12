@@ -19,6 +19,7 @@ from ...core.permissions import (
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import generate_unique_slug
 from ...product import models as product_models
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
@@ -193,8 +194,18 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
 class AttributeValueInput(graphene.InputObjectType):
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
-    rich_text = JSONString(description=AttributeValueDescriptions.RICH_TEXT)
-    plain_text = graphene.String(description=AttributeValueDescriptions.PLAIN_TEXT)
+    rich_text = JSONString(
+        description=AttributeValueDescriptions.RICH_TEXT
+        + DEPRECATED_IN_3X_INPUT
+        + "The rich text attribute hasn't got predefined value, so can be specified "
+        "only from instance that supports the given attribute."
+    )
+    plain_text = graphene.String(
+        description=AttributeValueDescriptions.PLAIN_TEXT
+        + DEPRECATED_IN_3X_INPUT
+        + "The plain text attribute hasn't got predefined value, so can be specified "
+        "only from instance that supports the given attribute."
+    )
     file_url = graphene.String(
         required=False,
         description="URL of the file attribute. Every time, a new value is created.",
@@ -279,6 +290,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
 class AttributeMixin:
     # must be redefined by inheriting classes
     ATTRIBUTE_VALUES_FIELD: str
+    ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 
     @classmethod
     def clean_values(cls, cleaned_input, attribute):
@@ -295,9 +307,8 @@ class AttributeMixin:
             return
 
         if (
-            attribute_input_type
-            in [AttributeInputType.FILE, AttributeInputType.REFERENCE]
-            and values_input
+            values_input
+            and attribute_input_type not in AttributeInputType.TYPES_WITH_CHOICES
         ):
             raise ValidationError(
                 {
@@ -309,30 +320,37 @@ class AttributeMixin:
                 }
             )
 
-        is_numeric_attr = attribute_input_type == AttributeInputType.NUMERIC
         is_swatch_attr = attribute_input_type == AttributeInputType.SWATCH
         for value_data in values_input:
-            cls.validate_value(attribute, value_data, is_numeric_attr, is_swatch_attr)
+            cls._validate_value(attribute, value_data, is_swatch_attr)
 
         cls.check_values_are_unique(values_input, attribute)
 
     @classmethod
-    def validate_value(
+    def _validate_value(
         cls,
         attribute: models.Attribute,
         value_data: dict,
-        is_numeric_attr: bool,
         is_swatch_attr: bool,
     ):
-        value = value_data["name"]
-        cls.clean_value_input_data(value_data, is_swatch_attr)
+        """Validate the new attribute value."""
+        value = value_data.get("name")
+        if value is None:
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "The name field is required.",
+                        code=AttributeErrorCode.REQUIRED.value,
+                    )
+                }
+            )
 
-        if is_numeric_attr:
-            cls.validate_numeric_value(value)
-        elif is_swatch_attr:
+        if is_swatch_attr:
             cls.validate_swatch_attr_value(value_data)
+        else:
+            cls.validate_non_swatch_attr_value(value_data)
 
-        slug_value = value if not is_numeric_attr else value.replace(".", "_")
+        slug_value = value
         value_data["slug"] = slugify(unidecode(slug_value))
 
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
@@ -342,33 +360,20 @@ class AttributeMixin:
             for field, err in validation_errors.error_dict.items():
                 if field == "attribute":
                     continue
-                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
+                errors = []
+                for error in err:
+                    error.code = AttributeErrorCode.INVALID.value
+                    errors.append(error)
+                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: errors})
 
     @classmethod
-    def clean_value_input_data(cls, value_data: dict, is_swatch_attr: bool):
-        swatch_fields = ["file_url", "content_type", "value"]
-        if not is_swatch_attr and any(
-            [value_data.get(field) for field in swatch_fields]
-        ):
+    def validate_non_swatch_attr_value(cls, value_data: dict):
+        if any([value_data.get(field) for field in cls.ONLY_SWATCH_FIELDS]):
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
                         "Cannot define value, file and contentType fields "
                         "for not swatch attribute.",
-                        code=AttributeErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def validate_numeric_value(cls, value):
-        try:
-            float(value)
-        except ValueError:
-            raise ValidationError(
-                {
-                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                        "Value of numeric attribute must be numeric.",
                         code=AttributeErrorCode.INVALID.value,
                     )
                 }
@@ -526,7 +531,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_created(instance)
+        cls.call_event(manager.attribute_created, instance)
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
@@ -597,7 +602,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_updated(instance)
+        cls.call_event(manager.attribute_updated, instance)
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -615,7 +620,7 @@ class AttributeDelete(ModelDeleteMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_deleted(instance)
+        cls.call_event(manager.attribute_deleted, instance)
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -667,10 +672,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
-        only_swatch_fields = ["file_url", "content_type"]
         errors = {}
         if not is_swatch_attr:
-            for field in only_swatch_fields:
+            for field in cls.ONLY_SWATCH_FIELDS:
                 if cleaned_input.get(field):
                     errors[field] = ValidationError(
                         f"The field {field} can be defined only for swatch attributes.",
@@ -682,6 +686,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
             except ValidationError as error:
                 errors["value"] = error.error_dict[cls.ATTRIBUTE_VALUES_FIELD]
                 errors["fileUrl"] = error.error_dict[cls.ATTRIBUTE_VALUES_FIELD]
+
         if errors:
             raise ValidationError(errors)
 
@@ -708,8 +713,8 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
-        manager.attribute_value_created(instance)
-        manager.attribute_updated(instance.attribute)
+        cls.call_event(manager.attribute_value_created, instance)
+        cls.call_event(manager.attribute_updated, instance.attribute)
 
 
 class AttributeValueUpdate(AttributeValueCreate):
@@ -780,8 +785,8 @@ class AttributeValueUpdate(AttributeValueCreate):
             ).update(search_index_dirty=True)
 
         manager = load_plugin_manager(info.context)
-        manager.attribute_value_updated(instance)
-        manager.attribute_updated(instance.attribute)
+        cls.call_event(manager.attribute_value_updated, instance)
+        cls.call_event(manager.attribute_updated, instance.attribute)
 
 
 class AttributeValueDelete(ModelDeleteMutation):
@@ -808,8 +813,8 @@ class AttributeValueDelete(ModelDeleteMutation):
             search_index_dirty=True
         )
         manager = load_plugin_manager(info.context)
-        manager.attribute_value_deleted(instance)
-        manager.attribute_updated(instance.attribute)
+        cls.call_event(manager.attribute_value_deleted, instance)
+        cls.call_event(manager.attribute_updated, instance.attribute)
         return response
 
     @classmethod
@@ -895,8 +900,9 @@ class AttributeReorderValues(BaseMutation):
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
         manager = load_plugin_manager(info.context)
-        for value in [v for v in values_m2m if v.id in operations.keys()]:
-            manager.attribute_value_updated(value)
-        manager.attribute_updated(attribute)
+        events_list = [v for v in values_m2m if v.id in operations.keys()]
+        for value in events_list:
+            cls.call_event(manager.attribute_value_updated, value)
+        cls.call_event(manager.attribute_updated, attribute)
 
         return AttributeReorderValues(attribute=attribute)
