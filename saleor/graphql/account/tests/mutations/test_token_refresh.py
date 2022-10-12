@@ -28,6 +28,37 @@ MUTATION_TOKEN_REFRESH = """
 
 
 @freeze_time("2020-03-18 12:00:00")
+def test_refresh_token_with_audience(api_client, customer_user, settings):
+    csrf_token = _get_new_csrf_token()
+    token_audience = "custom:dashboard"
+    refresh_token = create_refresh_token(
+        customer_user, {"csrfToken": csrf_token, "aud": token_audience}
+    )
+    variables = {"token": None, "csrf_token": csrf_token}
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["tokenRefresh"]
+    errors = data["errors"]
+
+    assert not errors
+    token = data.get("token")
+    assert token
+    payload = jwt_decode(token)
+    assert payload["email"] == customer_user.email
+    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    assert (
+        datetime.fromtimestamp(payload["exp"])
+        == datetime.utcnow() + settings.JWT_TTL_ACCESS
+    )
+    assert payload["type"] == JWT_ACCESS_TYPE
+    assert payload["token"] == customer_user.jwt_token_key
+    assert payload["aud"] == token_audience
+
+
+@freeze_time("2020-03-18 12:00:00")
 def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings):
     csrf_token = _get_new_csrf_token()
     refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
