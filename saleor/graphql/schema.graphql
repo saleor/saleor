@@ -11801,6 +11801,8 @@ type Mutation {
 
     """ID of product variant for which stocks will be deleted."""
     variantId: ID
+
+    """Input list of warehouse IDs."""
     warehouseIds: [ID!]
   ): ProductVariantStocksDelete
 
@@ -11810,13 +11812,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantStocksUpdate(
-    """SKU of product variant for which stocks will be deleted."""
+    """SKU of product variant for which stocks will be updated."""
     sku: String
 
-    """Input list of stocks to create."""
+    """Input list of stocks to create or update."""
     stocks: [StockInput!]!
 
-    """ID of a product variant for which stocks will be created."""
+    """ID of a product variant for which stocks will be updated."""
     variantId: ID
   ): ProductVariantStocksUpdate
 
@@ -11833,7 +11835,7 @@ type Mutation {
     input: ProductVariantInput!
 
     """
-    ID of a product variant to update.
+    SKU of a product variant to update.
     
     Added in Saleor 3.8.
     """

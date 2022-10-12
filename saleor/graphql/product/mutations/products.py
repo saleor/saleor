@@ -1189,7 +1189,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         )
         sku = graphene.String(
             required=False,
-            description="ID of a product variant to update." + ADDED_IN_38,
+            description="SKU of a product variant to update." + ADDED_IN_38,
         )
         input = ProductVariantInput(
             required=True, description="Fields required to update a product variant."

@@ -819,16 +819,16 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     class Arguments:
         variant_id = graphene.ID(
             required=False,
-            description="ID of a product variant for which stocks will be created.",
+            description="ID of a product variant for which stocks will be updated.",
         )
         sku = graphene.String(
             required=False,
-            description="SKU of product variant for which stocks will be deleted.",
+            description="SKU of product variant for which stocks will be updated.",
         )
         stocks = NonNullList(
             StockInput,
             required=True,
-            description="Input list of stocks to create.",
+            description="Input list of stocks to create or update.",
         )
 
     @classmethod
@@ -844,7 +844,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
-        else:
+        if sku:
             variant = models.ProductVariant.objects.filter(sku=sku).first()
             if not variant:
                 raise ValidationError(
@@ -914,7 +914,9 @@ class ProductVariantStocksDelete(BaseMutation):
             required=False,
             description="SKU of product variant for which stocks will be deleted.",
         )
-        warehouse_ids = NonNullList(graphene.ID)
+        warehouse_ids = NonNullList(
+            graphene.ID, description="Input list of warehouse IDs."
+        )
 
     class Meta:
         description = "Delete stocks from product variant."
@@ -935,7 +937,7 @@ class ProductVariantStocksDelete(BaseMutation):
 
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
-        else:
+        if sku:
             variant = models.ProductVariant.objects.filter(sku=sku).first()
             if not variant:
                 raise ValidationError(
