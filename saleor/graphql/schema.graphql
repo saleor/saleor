@@ -6185,7 +6185,7 @@ enum ProductOrderField {
   
   Added in Saleor 3.8.
   """
-  CREATED
+  CREATED_AT
 }
 
 type CollectionTranslation implements Node {

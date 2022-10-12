@@ -207,7 +207,7 @@ def test_sort_products_by_created_at(direction, api_client, product_list, channe
     variables = {
         "sortBy": {
             "direction": direction,
-            "field": "CREATED",
+            "field": "CREATED_AT",
         },
         "channel": channel_USD.slug,
     }

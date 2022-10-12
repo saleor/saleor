@@ -145,7 +145,7 @@ class ProductOrderField(graphene.Enum):
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
     COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
-    CREATED = ["created_at", "name", "slug"]
+    CREATED_AT = ["created_at", "name", "slug"]
 
     @property
     def description(self):
@@ -180,7 +180,7 @@ class ProductOrderField(graphene.Enum):
             ),
             ProductOrderField.LAST_MODIFIED_AT.name: "update date.",
             ProductOrderField.RATING.name: "rating.",
-            ProductOrderField.CREATED.name: "creation date." + ADDED_IN_38,
+            ProductOrderField.CREATED_AT.name: "creation date." + ADDED_IN_38,
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"
