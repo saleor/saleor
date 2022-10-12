@@ -38,6 +38,7 @@ def update_checkout_prices_with_flat_rates(
     default_tax_rate = (
         default_country_rate_obj.rate if default_country_rate_obj else Decimal(0)
     )
+    currency = checkout.currency
 
     # Calculate checkout line totals.
     for line_info in lines:
@@ -45,7 +46,7 @@ def update_checkout_prices_with_flat_rates(
         tax_rate = get_tax_rate_for_tax_class(
             line_info.tax_class, default_tax_rate, country_code
         )
-        total_price = calculate_checkout_line_total(
+        line_total_price = calculate_checkout_line_total(
             checkout_info,
             lines,
             line_info,
@@ -53,7 +54,7 @@ def update_checkout_prices_with_flat_rates(
             tax_rate,
             prices_entered_with_tax,
         )
-        line.total_price = total_price
+        line.total_price = line_total_price
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
     # Calculate shipping price.
@@ -69,7 +70,6 @@ def update_checkout_prices_with_flat_rates(
     checkout.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate subtotal and total.
-    currency = checkout.currency
     subtotal = sum(
         [line_info.line.total_price for line_info in lines], zero_taxed_money(currency)
     )
@@ -93,7 +93,10 @@ def calculate_checkout_shipping(
             zero_money(shipping_price.currency),
         )
 
-    return calculate_flat_rate_tax(shipping_price, tax_rate, prices_entered_with_tax)
+    shipping_price = calculate_flat_rate_tax(
+        shipping_price, tax_rate, prices_entered_with_tax
+    )
+    return quantize_price(shipping_price, shipping_price.currency)
 
 
 def calculate_checkout_line_total(
@@ -104,7 +107,7 @@ def calculate_checkout_line_total(
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ) -> TaxedMoney:
-    unit_taxed_price = __calculate_checkout_line_unit_price(
+    unit_taxed_price = _calculate_checkout_line_unit_price(
         checkout_info,
         lines,
         checkout_line_info,
@@ -114,10 +117,10 @@ def calculate_checkout_line_total(
         prices_entered_with_tax,
     )
     quantity = checkout_line_info.line.quantity
-    return unit_taxed_price * quantity
+    return quantize_price(unit_taxed_price * quantity, unit_taxed_price.currency)
 
 
-def __calculate_checkout_line_unit_price(
+def _calculate_checkout_line_unit_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
@@ -198,14 +201,9 @@ def apply_checkout_discount_on_checkout_line(
             lines_total_prices, total_price, total_discount_amount, currency
         )
     else:
-        discount_amount = quantize_price(
-            line_total_price.amount / total_price * total_discount_amount, currency
-        )
+        discount_amount = line_total_price.amount / total_price * total_discount_amount
     return max(
-        quantize_price(
-            (line_total_price - Money(discount_amount, currency)) / line_quantity,
-            currency,
-        ),
+        (line_total_price - Money(discount_amount, currency)) / line_quantity,
         zero_money(currency),
     )
 
@@ -221,10 +219,7 @@ def _calculate_discount_for_last_element(
     """
     sum_of_discounts_other_elements = sum(
         [
-            quantize_price(
-                line_total_price / total_price * total_discount_amount,
-                currency,
-            )
+            line_total_price / total_price * total_discount_amount
             for line_total_price in lines_total_prices
         ]
     )

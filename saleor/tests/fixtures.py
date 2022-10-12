@@ -2881,7 +2881,9 @@ def product_without_category(product):
 
 
 @pytest.fixture
-def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
+def product_list(
+    product_type, category, warehouse, channel_USD, channel_PLN, default_tax_class
+):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
 
@@ -2894,6 +2896,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     description_plaintext="big blue product",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 2",
@@ -2901,6 +2904,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     description_plaintext="big orange product",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 3",
@@ -2908,6 +2912,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     description_plaintext="small red",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
             ]
         )
@@ -3013,7 +3018,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
 @pytest.fixture
 def product_list_with_variants_many_channel(
-    product_type, category, channel_USD, channel_PLN
+    product_type, category, channel_USD, channel_PLN, default_tax_class
 ):
     products = list(
         Product.objects.bulk_create(
@@ -3023,18 +3028,21 @@ def product_list_with_variants_many_channel(
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 2",
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 3",
                     slug="test-product-c",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
             ]
         )
@@ -3182,12 +3190,13 @@ def product_with_image(product, image, media_root):
 
 
 @pytest.fixture
-def unavailable_product(product_type, category, channel_USD):
+def unavailable_product(product_type, category, channel_USD, default_tax_class):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-5",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -3199,12 +3208,15 @@ def unavailable_product(product_type, category, channel_USD):
 
 
 @pytest.fixture
-def unavailable_product_with_variant(product_type, category, warehouse, channel_USD):
+def unavailable_product_with_variant(
+    product_type, category, warehouse, channel_USD, default_tax_class
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -3234,12 +3246,15 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
 
 
 @pytest.fixture
-def product_with_images(product_type, category, media_root, channel_USD):
+def product_with_images(
+    product_type, category, media_root, channel_USD, default_tax_class
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-7",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
