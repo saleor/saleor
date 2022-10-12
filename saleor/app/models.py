@@ -56,7 +56,7 @@ class App(ModelWithMetadata):
     app_url = models.URLField(blank=True, null=True)
     manifest_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
-
+    audience = models.CharField(blank=True, null=True, max_length=256)
     objects = models.Manager.from_queryset(AppQueryset)()
 
     class Meta(ModelWithMetadata.Meta):

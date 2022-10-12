@@ -10,12 +10,14 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
 - Add ability to filter payments by list of ids. #10821 by @kadewu
 - Add ability to filter customers by ids. #10694 by @kadewu
+- Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
 - Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multiselect attributes. - #10881 by @jakubkuc
 
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
 - Add base shipping price to `Order` - #10771 by @fowczarek
+- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
 - GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
 
 ### GraphQL API
