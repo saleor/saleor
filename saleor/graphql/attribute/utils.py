@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
 from django.utils import timezone
@@ -17,8 +16,9 @@ from text_unidecode import unidecode
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
-from ...core.utils import build_absolute_uri, generate_unique_slug
+from ...core.utils import generate_unique_slug
 from ...core.utils.editorjs import clean_editor_js
+from ...core.utils.url import get_default_storage_root_url
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
@@ -237,7 +237,7 @@ class AttributeAssignmentMixin:
     @staticmethod
     def _clean_file_url(file_url: Optional[str], error_class):
         # extract storage path from file URL
-        storage_root_url = build_absolute_uri(default_storage.url(""))
+        storage_root_url = get_default_storage_root_url()
         if file_url and not file_url.startswith(storage_root_url):  # type: ignore
             raise ValidationError(
                 "The file_url must be the path to the default storage.",
