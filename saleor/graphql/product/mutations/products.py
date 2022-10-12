@@ -1291,15 +1291,16 @@ class ProductVariantDelete(ModelDeleteMutation):
 
         if node_sku := data.get("sku"):
             instance = models.ProductVariant.objects.filter(sku=node_sku).first()
-            data["id"] = graphene.Node.to_global_id("ProductVariant", instance.id)
             if not instance:
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id, code="not_found"
+                            "Couldn't resolve to a node: %s" % node_sku,
+                            code="not_found",
                         )
                     }
                 )
+            data["id"] = graphene.Node.to_global_id("ProductVariant", instance.id)
 
         draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 

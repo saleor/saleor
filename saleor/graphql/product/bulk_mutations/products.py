@@ -816,13 +816,45 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"
 
+    class Arguments:
+        variant_id = graphene.ID(
+            required=False,
+            description="ID of a product variant for which stocks will be created.",
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of product variant for which stocks will be deleted.",
+        )
+        stocks = NonNullList(
+            StockInput,
+            required=True,
+            description="Input list of stocks to create.",
+        )
+
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         errors = defaultdict(list)
         stocks = data["stocks"]
-        variant = cls.get_node_or_error(
-            info, data["variant_id"], only_type=ProductVariant
+        sku = data.get("sku")
+        variant_id = data.get("variant_id")
+
+        validate_one_of_args_is_in_mutation(
+            ProductErrorCode, "sku", sku, "variant_id", variant_id
         )
+
+        if variant_id:
+            variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
+        else:
+            variant = models.ProductVariant.objects.filter(sku=sku).first()
+            if not variant:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                        )
+                    }
+                )
+
         if stocks:
             warehouse_ids = [stock["warehouse"] for stock in stocks]
             cls.check_for_duplicates(warehouse_ids, errors)
@@ -875,8 +907,12 @@ class ProductVariantStocksDelete(BaseMutation):
 
     class Arguments:
         variant_id = graphene.ID(
-            required=True,
+            required=False,
             description="ID of product variant for which stocks will be deleted.",
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of product variant for which stocks will be deleted.",
         )
         warehouse_ids = NonNullList(graphene.ID)
 
@@ -889,10 +925,27 @@ class ProductVariantStocksDelete(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
-        variant = cls.get_node_or_error(
-            info, data["variant_id"], only_type=ProductVariant
+        sku = data.get("sku")
+        variant_id = data.get("variant_id")
+        validate_one_of_args_is_in_mutation(
+            ProductErrorCode, "sku", sku, "variant_id", variant_id
         )
+
+        manager = load_plugin_manager(info.context)
+
+        if variant_id:
+            variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
+        else:
+            variant = models.ProductVariant.objects.filter(sku=sku).first()
+            if not variant:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                        )
+                    }
+                )
+
         warehouses_pks = cls.get_global_ids_or_error(
             data["warehouse_ids"], Warehouse, field="warehouse_ids"
         )

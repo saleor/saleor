@@ -24,6 +24,7 @@ from ...channel.types import Channel
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_33,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -35,7 +36,10 @@ from ...core.types import (
     ProductChannelListingError,
 )
 from ...core.utils import get_duplicated_values
-from ...core.validators import validate_price_precision
+from ...core.validators import (
+    validate_one_of_args_is_in_mutation,
+    validate_price_precision,
+)
 from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..types.products import Collection, Product, ProductVariant
@@ -386,7 +390,11 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of a product variant to update."
+            required=False, description="ID of a product variant to update."
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of a product variant to update." + ADDED_IN_38,
         )
         input = NonNullList(
             ProductVariantChannelListingAddInput,
@@ -511,11 +519,25 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             cls.call_event(manager.product_variant_updated, variant)
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
+    def perform_mutation(cls, _root, info, input, id=None, sku=None):
+        validate_one_of_args_is_in_mutation(ProductErrorCode, "sku", sku, "id", id)
+
         qs = ProductVariantModel.objects.prefetched_for_webhook()
-        variant: "ProductVariantModel" = cls.get_node_or_error(  # type: ignore
-            info, id, only_type=ProductVariant, field="id", qs=qs
-        )
+        if id:
+            variant: "ProductVariantModel" = cls.get_node_or_error(  # type: ignore
+                info, id, only_type=ProductVariant, field="id", qs=qs
+            )
+        else:
+            variant = qs.filter(sku=sku).first()
+            if not variant:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                        )
+                    }
+                )
+
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(info, input, errors)
