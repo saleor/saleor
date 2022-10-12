@@ -2591,7 +2591,7 @@ def test_customer_delete_by_app(
     assert mocked_deletion_event.call_count == 1
     args, kwargs = mocked_deletion_event.call_args
     assert kwargs["deleted_count"] == 1
-    assert kwargs["staff_user"].is_anonymous
+    assert kwargs["staff_user"] is None
     assert kwargs["app"] == app
     delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 

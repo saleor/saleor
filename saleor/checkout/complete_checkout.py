@@ -791,7 +791,7 @@ def complete_checkout(
         raise exc
 
     customer_id = None
-    if payment and user.is_authenticated:
+    if payment and user:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     action_required = False
@@ -807,7 +807,7 @@ def complete_checkout(
             channel_slug=channel_slug,
         )
 
-        if txn.customer_id and user.is_authenticated:
+        if txn.customer_id and user:
             store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
         action_required = txn.action_required

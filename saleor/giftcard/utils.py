@@ -11,7 +11,6 @@ from ..checkout.models import Checkout
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
-from ..core.utils.validators import user_is_valid
 from ..order.actions import create_fulfillments
 from ..order.models import OrderLine
 from ..site import GiftCardSettingsExpiryType
@@ -90,8 +89,6 @@ def fulfill_non_shippable_gift_cards(
     app: Optional["App"],
     manager: "PluginsManager",
 ):
-    if not user_is_valid(requestor_user):
-        requestor_user = None
     gift_card_lines = get_non_shippable_gift_card_lines(order_lines)
     if not gift_card_lines:
         return

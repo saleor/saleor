@@ -1,7 +1,6 @@
-from typing import Optional, Union, cast
+from typing import Optional, cast
 
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 from django.utils.functional import SimpleLazyObject
 
@@ -24,7 +23,7 @@ def get_context_value(request: HttpRequest) -> SaleorContext:
     return request
 
 
-UserType = Union[User, AnonymousUser]
+UserType = Optional[User]
 
 
 class RequestWithUser(HttpRequest):
@@ -45,7 +44,7 @@ def set_app_on_context(request: SaleorContext):
         request.app = load_app(request)
 
 
-def get_user(request: SaleorContext) -> Optional[UserType]:
+def get_user(request: SaleorContext) -> UserType:
     if not hasattr(request, "_cached_user"):
         request._cached_user = cast(UserType, authenticate(request=request))
     return request._cached_user
@@ -53,10 +52,10 @@ def get_user(request: SaleorContext) -> Optional[UserType]:
 
 def set_auth_on_context(request: SaleorContext):
     if hasattr(request, "app") and request.app:
-        request.user = AnonymousUser()
+        request.user = SimpleLazyObject(lambda: None)  # type: ignore
         return request
 
     def user():
-        return get_user(request) or AnonymousUser()
+        return get_user(request) or None
 
     request.user = SimpleLazyObject(user)  # type: ignore

@@ -363,11 +363,14 @@ class GiftCard(ModelObjectType):
             requestor = get_user_or_app_from_context(info.context)
             # Gift card code can be fetched by the staff user and app
             # with manage gift card permission and by the card owner.
-            if (
-                not root.used_by_email
-                and requestor.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD)
-            ) or (user and requestor == user):
-                return root.code
+            if requestor:
+                requestor_is_an_owner = user and requestor == user
+                card_already_used = bool(root.used_by_email)
+                if requestor_is_an_owner or (
+                    not card_already_used
+                    and requestor.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD)
+                ):
+                    return root.code
 
             return PermissionDenied(
                 permissions=[
