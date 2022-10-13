@@ -13,6 +13,7 @@ from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from django.utils.text import slugify
 from graphql.error import GraphQLError
+from text_unidecode import unidecode
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
@@ -355,19 +356,22 @@ class AttributeAssignmentMixin:
         cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
-        get_or_create = attribute.values.get_or_create
-
+        result = []
         if not attr_values.values:
             return tuple()
-
-        return tuple(
-            get_or_create(
-                attribute=attribute,
-                slug=slugify(value, allow_unicode=True),
-                defaults={"name": value},
-            )[0]
-            for value in attr_values.values
-        )
+        for value in attr_values.values:
+            value_obj = attribute.values.filter(name=value).first()
+            if value_obj:
+                result.append(value_obj)
+            else:
+                instance = attribute_models.AttributeValue(
+                    attribute=attribute, name=value
+                )
+                slug = generate_unique_slug(instance, value)  # type: ignore
+                instance.slug = slug
+                instance.save()
+                result.append(instance)
+        return tuple(result)
 
     @classmethod
     def _pre_save_numeric_values(
@@ -428,7 +432,7 @@ class AttributeAssignmentMixin:
         boolean = bool(attr_values.boolean)
         value, _ = get_or_create(
             attribute=attribute,
-            slug=slugify(f"{attribute.id}_{boolean}", allow_unicode=True),
+            slug=slugify(unidecode(f"{attribute.id}_{boolean}")),
             defaults={
                 "name": f"{attribute.name}: {'Yes' if boolean else 'No'}",
                 "boolean": boolean,
@@ -470,7 +474,7 @@ class AttributeAssignmentMixin:
         value_defaults: dict,
     ):
         update_or_create = attribute.values.update_or_create
-        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
+        slug = slugify(unidecode(f"{instance.id}_{attribute.id}"))
         value, _created = update_or_create(
             attribute=attribute,
             slug=slug,
@@ -512,10 +516,7 @@ class AttributeAssignmentMixin:
                     attribute=attribute,
                     reference_product=reference_product,
                     reference_page=reference_page,
-                    slug=slugify(
-                        f"{instance.id}_{ref.id}",  # type: ignore
-                        allow_unicode=True,
-                    ),
+                    slug=slugify(unidecode(f"{instance.id}_{ref.id}")),  # type: ignore
                     defaults={"name": getattr(ref, field_name)},
                 )[0]
             )
@@ -747,12 +748,13 @@ def validate_standard_attributes_input(
             attribute_id
         )
 
-    validate_values(
-        attribute_id,
-        attribute,
-        attr_values.values,
-        attribute_errors,
-    )
+    if attr_values.values is not None:
+        validate_values(
+            attribute_id,
+            attribute,
+            attr_values.values,
+            attribute_errors,
+        )
 
 
 def validate_date_time_input(

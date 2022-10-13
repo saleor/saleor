@@ -313,6 +313,7 @@ class PluginsManager(PaymentInterface):
                 default_value,
                 order,
                 lines,
+                channel_slug=order.channel.slug,
             ),
             currency,
         )
@@ -371,6 +372,7 @@ class PluginsManager(PaymentInterface):
             lines,
             order,
             lines,
+            channel_slug=order.channel.slug,
         )
         return lines
 
@@ -537,12 +539,15 @@ class PluginsManager(PaymentInterface):
 
     def get_taxes_for_checkout(self, checkout_info, lines) -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
-            "get_taxes_for_checkout", checkout_info, lines
+            "get_taxes_for_checkout",
+            checkout_info,
+            lines,
+            channel_slug=checkout_info.channel.slug,
         )
 
     def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
-            "get_taxes_for_order", order
+            "get_taxes_for_order", order, channel_slug=order.channel.slug
         )
 
     def apply_taxes_to_product(
@@ -786,6 +791,15 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_canceled",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+        )
+
+    def fulfillment_approved(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "fulfillment_approved",
             default_value,
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
@@ -1327,8 +1341,9 @@ class PluginsManager(PaymentInterface):
         self,
         method_name: str,
         *args,
+        channel_slug: Optional[str] = None,
     ):
-        plugins = self.get_plugins()
+        plugins = self.get_plugins(channel_slug=channel_slug)
         for plugin in plugins:
             result = self.__run_method_on_single_plugin(
                 plugin, method_name, None, *args
@@ -1550,6 +1565,7 @@ class PluginsManager(PaymentInterface):
             [],
             order,
             available_shipping_methods,
+            channel_slug=order.channel.slug,
         )
 
     def excluded_shipping_methods_for_checkout(
@@ -1562,6 +1578,7 @@ class PluginsManager(PaymentInterface):
             [],
             checkout,
             available_shipping_methods,
+            channel_slug=checkout.channel.slug,
         )
 
     def perform_mutation(

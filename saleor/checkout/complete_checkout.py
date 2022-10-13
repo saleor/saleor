@@ -114,7 +114,11 @@ def _process_shipping_data_for_order(
     delivery_method_info = checkout_info.delivery_method_info
     shipping_address = delivery_method_info.shipping_address
 
-    if checkout_info.user and shipping_address:
+    if (
+        delivery_method_info.store_as_customer_address
+        and checkout_info.user
+        and shipping_address
+    ):
         store_user_address(
             checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
         )
@@ -502,6 +506,7 @@ def _create_order(
         status=status,
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
+        should_refresh_prices=False,
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
@@ -1052,6 +1057,7 @@ def _create_order_from_checkout(
         metadata=checkout_info.checkout.metadata,
         private_metadata=checkout_info.checkout.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
+        should_refresh_prices=False,
         **_process_shipping_data_for_order(
             checkout_info, shipping_total, manager, checkout_lines_info
         ),

@@ -24,7 +24,6 @@ from ....order.utils import match_orders_with_new_user
 from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
-from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.utils import add_hash_to_file_name, validate_image_file
@@ -106,7 +105,7 @@ class CustomerUpdate(CustomerCreate):
     ):
         # Retrieve the event base data
         staff_user = info.context.user
-        app = load_app(info.context)
+        app = info.context.app
         new_email = new_instance.email
         new_fullname = new_instance.get_full_name()
 
@@ -130,13 +129,13 @@ class CustomerUpdate(CustomerCreate):
         if was_activated:
             account_events.customer_account_activated_event(
                 staff_user=info.context.user,
-                app=app,
+                app=info.context.app,
                 account_id=old_instance.id,
             )
         if was_deactivated:
             account_events.customer_account_deactivated_event(
                 staff_user=info.context.user,
-                app=app,
+                app=info.context.app,
                 account_id=old_instance.id,
             )
 
@@ -215,8 +214,7 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        app = load_app(context)
-        if app:
+        if context.app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

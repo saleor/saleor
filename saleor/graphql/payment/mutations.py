@@ -34,7 +34,6 @@ from ...payment.gateway import (
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
-from ..app.dataloaders import load_app
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
@@ -811,11 +810,10 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
-                app = load_app(info.context)
                 transaction_event(
                     order=order_or_checkout_instance,
                     user=info.context.user,
-                    app=app,
+                    app=info.context.app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
@@ -923,11 +921,10 @@ class TransactionUpdate(TransactionCreate):
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
-                app = load_app(info.context)
                 transaction_event(
                     order=instance.order,
                     user=info.context.user,
-                    app=app,
+                    app=info.context.app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
@@ -1004,11 +1001,10 @@ class TransactionRequestAction(BaseMutation):
             if transaction.order_id
             else transaction.checkout.channel.slug
         )
-        app = load_app(info.context)
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": info.context.user,
-            "app": app,
+            "app": info.context.app,
             "transaction": transaction,
             "manager": info.context.plugins,
         }

@@ -97,6 +97,7 @@ class CheckoutInfo:
 class DeliveryMethodBase:
     delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]] = None
     shipping_address: Optional["Address"] = None
+    store_as_customer_address: bool = False
 
     @property
     def warehouse_pk(self) -> Optional[str]:
@@ -128,6 +129,7 @@ class DeliveryMethodBase:
 class ShippingMethodInfo(DeliveryMethodBase):
     delivery_method: "ShippingMethodData"
     shipping_address: Optional["Address"]
+    store_as_customer_address: bool = True
 
     @property
     def delivery_method_name(self) -> Dict[str, Optional[str]]:
@@ -196,7 +198,7 @@ class CollectionPointInfo(DeliveryMethodBase):
 @singledispatch
 def get_delivery_method_info(
     delivery_method: Optional[Union["ShippingMethodData", "Warehouse", Callable]],
-    address=Optional["Address"],
+    address: Optional["Address"] = None,
 ) -> DeliveryMethodBase:
     if callable(delivery_method):
         delivery_method = delivery_method()
@@ -435,6 +437,7 @@ def update_checkout_info_delivery_method_info(
 
     The attribute is lazy-evaluated avoid external API calls unless accessed.
     """
+    from ..plugins.webhook.shipping import convert_to_app_id_with_identifier
     from .utils import get_external_shipping_id
 
     delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
@@ -458,7 +461,12 @@ def update_checkout_info_delivery_method_info(
             methods = {
                 method.id: method for method in checkout_info.all_shipping_methods
             }
-            return methods.get(external_shipping_method_id)
+            if method := methods.get(external_shipping_method_id):
+                return method
+            new_shipping_method_id = convert_to_app_id_with_identifier(
+                external_shipping_method_id
+            )
+            return methods.get(new_shipping_method_id)
 
         delivery_method = _resolve_external_method
 

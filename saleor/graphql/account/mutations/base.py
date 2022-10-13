@@ -22,7 +22,6 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
-from ...app.dataloaders import load_app
 from ...channel.utils import clean_channel, validate_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
@@ -50,8 +49,7 @@ def check_can_edit_address(context, address):
     requester = get_user_or_app_from_context(context)
     if requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
-    app = load_app(context)
-    if not app and not context.user.is_anonymous:
+    if not context.app and not context.user.is_anonymous:
         is_owner = requester.addresses.filter(pk=address.pk).exists()
         if is_owner:
             return True
@@ -367,7 +365,7 @@ class BaseAddressDelete(ModelDeleteMutation):
             raise PermissionDenied()
 
         node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, Address)
+        instance = cls.get_node_or_error(info, node_id, only_type=Address)
         if instance:
             cls.clean_instance(info, instance)
 

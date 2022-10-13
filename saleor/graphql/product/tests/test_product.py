@@ -4634,6 +4634,7 @@ def test_create_product(
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
     color_value_slug = color_attr.values.first().slug
+    color_value_name = color_attr.values.first().name
     color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
     # Add second attribute
@@ -4652,7 +4653,7 @@ def test_create_product(
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
-                {"id": color_attr_id, "values": [color_value_slug]},
+                {"id": color_attr_id, "values": [color_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         }
@@ -7676,6 +7677,51 @@ def test_update_product_clean_file_attribute_value(
     }
     assert expected_att_data in attributes
     assert product_attr.values.count() == 0
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_none_as_attribute_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    product_attr = product.attributes.first()
+    attribute = product_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": None}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert not attributes[0]["values"]
+    with pytest.raises(product_attr._meta.model.DoesNotExist):
+        product_attr.refresh_from_db()
+
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -11909,6 +11955,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     settings,
     variant,
     warehouses,
+    info,
 ):
 
     Stock.objects.bulk_create(
@@ -11919,14 +11966,14 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     )
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    plugins = get_plugins_manager()
+    info.context.plugins = get_plugins_manager()
     stocks_data = [
         {"quantity": 10, "warehouse": "123"},
     ]
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, plugins
+        variant, stocks_data, warehouses, info.context.plugins
     )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
@@ -11946,6 +11993,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     settings,
     variant,
     warehouses,
+    info,
 ):
 
     Stock.objects.bulk_create(
@@ -11956,14 +12004,14 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     )
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    plugins = get_plugins_manager()
+    info.context.plugins = get_plugins_manager()
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
     ]
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, plugins
+        variant, stocks_data, warehouses, info.context.plugins
     )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
@@ -11983,6 +12031,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     settings,
     variant,
     warehouses,
+    info,
 ):
 
     Stock.objects.bulk_create(
@@ -11994,7 +12043,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    plugins = get_plugins_manager()
+    info.context.plugins = get_plugins_manager()
 
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
@@ -12004,7 +12053,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, plugins
+        variant, stocks_data, warehouses, info.context.plugins
     )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2

@@ -28,10 +28,19 @@ MUTATION_ORDER_CREATE_FROM_CHECKOUT = """
 mutation orderCreateFromCheckout($id: ID!){
     orderCreateFromCheckout(id: $id){
         order{
-            id,
+            id
             token
             original
             origin
+            total {
+                currency
+                net {
+                    amount
+                }
+                gross {
+                    amount
+                }
+            }
         }
         errors{
             field
@@ -82,9 +91,11 @@ def test_order_from_checkout_with_inactive_channel(
 
 
 @pytest.mark.integration
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     app_api_client,
     permission_handle_checkouts,
     site_settings,
@@ -167,6 +178,7 @@ def test_order_from_checkout(
     )
 
     order_confirmed_mock.assert_called_once_with(order)
+    _recalculate_order_prices_mock.assert_not_called()
 
 
 def test_order_from_checkout_by_app_with_missing_permission(
@@ -396,9 +408,11 @@ def test_order_from_checkout_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout_requires_confirmation(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     app_api_client,
     permission_handle_checkouts,
     site_settings,
@@ -423,6 +437,7 @@ def test_order_from_checkout_requires_confirmation(
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
+    _recalculate_order_prices_mock.assert_not_called()
 
 
 @pytest.mark.integration
@@ -855,6 +870,7 @@ def test_order_from_checkout_for_click_and_collect(
     checkout = checkout_with_item_for_cc
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
+    checkout.shipping_address = None
     checkout.billing_address = address
     checkout.collection_point = warehouse_for_cc
 

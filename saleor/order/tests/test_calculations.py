@@ -7,6 +7,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
+from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus, calculations
 from ..interface import OrderTaxedPricesData
 
@@ -122,6 +123,22 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
         assert line.total_price == line_total.price_with_discounts
         assert line.undiscounted_total_price == line_total.undiscounted_price
         assert tax_rate == line.tax_rate
+
+
+@patch("saleor.plugins.manager.PluginsManager.update_taxes_for_order_lines")
+def test_recalculate_order_prices_calls_update_taxes_for_order_lines(
+    mocked_update_taxes_for_order_lines, order_with_lines, order_lines
+):
+    # given
+    order = order_with_lines
+    manager = get_plugins_manager()
+    lines = list(order_lines)
+
+    # when
+    calculations._recalculate_order_prices(manager, order, lines)
+
+    # then
+    mocked_update_taxes_for_order_lines.assert_called_once_with(order, lines)
 
 
 @pytest.mark.parametrize(

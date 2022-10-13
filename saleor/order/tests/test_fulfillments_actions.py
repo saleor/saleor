@@ -11,9 +11,11 @@ from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_user,
     order_with_lines,
     warehouse,
@@ -71,14 +73,18 @@ def test_create_fulfillments(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
 
+    flush_post_commit_hooks()
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
+    mock_fulfillment_approved.assert_called_once_with(fulfillment)
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_require_approval(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_user,
     order_with_lines,
     warehouse,
@@ -140,7 +146,9 @@ def test_create_fulfillments_require_approval(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
 
+    flush_post_commit_hooks()
     mock_email_fulfillment.assert_not_called()
+    mock_fulfillment_approved.assert_not_called()
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)

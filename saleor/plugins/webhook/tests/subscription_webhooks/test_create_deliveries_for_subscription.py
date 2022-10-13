@@ -43,16 +43,12 @@ from .payloads import (
 @freeze_time("2022-05-12 12:00:00")
 @pytest.mark.parametrize("requestor_type", ["user", "app", None, "anonymous"])
 def test_subscription_query_with_meta(
-    requestor_type,
-    voucher,
-    staff_user,
-    app_with_token,
-    subscription_voucher_webhook_with_meta,
+    requestor_type, voucher, staff_user, app, subscription_voucher_webhook_with_meta
 ):
     # given
     requestor_map = {
         "user": staff_user,
-        "app": app_with_token,
+        "app": app,
         None: None,
         "anonymous": AnonymousUser(),
     }
@@ -1204,6 +1200,21 @@ def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_web
     # given
     webhooks = [subscription_fulfillment_canceled_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_CANCELED
+    expected_payload = generate_fulfillment_payload(fulfillment)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_fulfillment_approved(fulfillment, subscription_fulfillment_approved_webhook):
+    # given
+    webhooks = [subscription_fulfillment_approved_webhook]
+    event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
     expected_payload = generate_fulfillment_payload(fulfillment)
 
     # when

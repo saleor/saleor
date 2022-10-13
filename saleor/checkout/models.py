@@ -143,7 +143,7 @@ class Checkout(ModelWithMetadata):
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     discount = MoneyField(amount_field="discount_amount", currency_field="currency")
     discount_name = models.CharField(max_length=255, blank=True, null=True)

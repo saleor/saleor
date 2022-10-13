@@ -62,8 +62,11 @@ class WebhookEventAsyncType:
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
-    FULFILLMENT_CANCELED = "fulfillment_canceled"
     ORDER_FULFILLED = "order_fulfilled"
+
+    FULFILLMENT_CREATED = "fulfillment_created"
+    FULFILLMENT_CANCELED = "fulfillment_canceled"
+    FULFILLMENT_APPROVED = "fulfillment_approved"
 
     DRAFT_ORDER_CREATED = "draft_order_created"
     DRAFT_ORDER_UPDATED = "draft_order_updated"
@@ -77,8 +80,6 @@ class WebhookEventAsyncType:
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
-
-    FULFILLMENT_CREATED = "fulfillment_created"
 
     CUSTOMER_CREATED = "customer_created"
     CUSTOMER_UPDATED = "customer_updated"
@@ -209,6 +210,7 @@ class WebhookEventAsyncType:
         CHECKOUT_UPDATED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment created",
         FULFILLMENT_CANCELED: "Fulfillment cancelled",
+        FULFILLMENT_APPROVED: "Fulfillment approved",
         NOTIFY_USER: "Notify user",
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
@@ -306,6 +308,7 @@ class WebhookEventAsyncType:
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
         (FULFILLMENT_CANCELED, DISPLAY_LABELS[FULFILLMENT_CANCELED]),
+        (FULFILLMENT_APPROVED, DISPLAY_LABELS[FULFILLMENT_APPROVED]),
         (NOTIFY_USER, DISPLAY_LABELS[NOTIFY_USER]),
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
@@ -404,6 +407,7 @@ class WebhookEventAsyncType:
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
         FULFILLMENT_CANCELED: OrderPermissions.MANAGE_ORDERS,
+        FULFILLMENT_APPROVED: OrderPermissions.MANAGE_ORDERS,
         NOTIFY_USER: AccountPermissions.MANAGE_USERS,
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,

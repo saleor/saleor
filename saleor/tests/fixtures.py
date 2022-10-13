@@ -28,7 +28,7 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppExtension, AppInstallation, AppToken
+from ..app.models import App, AppExtension, AppInstallation
 from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
@@ -2483,6 +2483,7 @@ def product_with_variant_with_file_attribute(
 
 @pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
+
     attribute = Attribute.objects.create(
         slug="modes",
         name="Available Modes",
@@ -4384,8 +4385,7 @@ def draft_order_with_fixed_discount_order(draft_order):
         value_type=DiscountValueType.FIXED,
         value=value,
         reason="Discount reason",
-        amount=(draft_order.undiscounted_total - draft_order.total).gross,
-        # type: ignore
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
     )
     draft_order.save()
     return draft_order
@@ -5388,6 +5388,7 @@ def app(db):
     app = App.objects.create(
         name="Sample app objects",
         is_active=True,
+        identifier="saleor.app.test",
     )
     return app
 
@@ -5446,7 +5447,9 @@ def app_with_extensions(app_with_token, permission_manage_products):
 
 @pytest.fixture
 def payment_app(db, permission_manage_payments):
-    app = App.objects.create(name="Payment App", is_active=True)
+    app = App.objects.create(
+        name="Payment App", is_active=True, identifier="saleor.payment.test.app"
+    )
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_payments)
 
@@ -5466,7 +5469,9 @@ def payment_app(db, permission_manage_payments):
 
 @pytest.fixture
 def payment_app_with_subscription_webhooks(db, permission_manage_payments):
-    app = App.objects.create(name="Payment App", is_active=True)
+    app = App.objects.create(
+        name="Payment App", is_active=True, identifier="saleor.payment.test.app"
+    )
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_payments)
 

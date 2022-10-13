@@ -27,11 +27,13 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Trigger the `SALE_DELETED` webhook when deleting sales in bulk (#10461) (2052841e9)
+- Add `FULFILLMENT_APPROVED` webhook - #10621 by @IKarbowiak
 
 ### Other changes
 
 - Add support for `bcrypt` password hashes - #10346 by @pkucmus
 - Add the ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
+
 
 # 3.6.0
 

@@ -47,6 +47,15 @@ MUTATION_CHECKOUT_COMPLETE = """
                         id
                     }
                 }
+                total {
+                    currency
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
+                }
             }
             errors {
                 field,
@@ -197,9 +206,11 @@ def test_checkout_complete_with_inactive_channel(
 
 
 @pytest.mark.integration
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     site_settings,
     user_api_client,
     checkout_with_gift_card,
@@ -287,6 +298,7 @@ def test_checkout_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
     order_confirmed_mock.assert_called_once_with(order)
+    _recalculate_order_prices_mock.assert_not_called()
 
 
 @pytest.mark.integration
@@ -602,9 +614,11 @@ def test_checkout_complete_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
+@patch("saleor.order.calculations._recalculate_order_prices")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
     order_confirmed_mock,
+    _recalculate_order_prices_mock,
     user_api_client,
     site_settings,
     payment_dummy,
@@ -629,6 +643,7 @@ def test_checkout_complete_requires_confirmation(
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
+    _recalculate_order_prices_mock.assert_not_called()
 
 
 @pytest.mark.integration
@@ -1780,7 +1795,8 @@ def test_complete_checkout_for_local_click_and_collect(
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
-    checkout.save(update_fields=["collection_point"])
+    checkout.shipping_address = None
+    checkout.save(update_fields=["collection_point", "shipping_address"])
 
     variables = {
         "id": to_global_id_or_none(checkout),

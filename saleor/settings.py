@@ -1,4 +1,5 @@
 import ast
+import logging
 import os.path
 import warnings
 from datetime import timedelta
@@ -88,6 +89,8 @@ DATABASES = {
     #     conn_max_age=600,
     # ),
 }
+
+DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -282,6 +285,10 @@ if ENABLE_DEBUG_TOOLBAR:
         ]
         DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
 
+# Make the `logging` Python module capture `warnings.warn()` calls
+# This is needed in order to log them as JSON when DEBUG=False
+logging.captureWarnings(True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -440,8 +447,11 @@ AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
 AWS_S3_FILE_OVERWRITE = get_bool_from_env("AWS_S3_FILE_OVERWRITE", True)
 
 # Google Cloud Storage configuration
+# See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_LOCATION = os.environ.get("GS_LOCATION", "")
+GS_CUSTOM_ENDPOINT = os.environ.get("GS_CUSTOM_ENDPOINT")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
@@ -613,7 +623,7 @@ if OBSERVABILITY_ACTIVE:
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
-REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
+REAL_IP_ENVIRON = get_list(os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR"))
 
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
@@ -777,16 +787,3 @@ executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type:
 UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
     "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
 )
-
-VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    "products": [
-        ("product_gallery", "thumbnail__540x540"),
-        ("product_gallery_2x", "thumbnail__1080x1080"),
-        ("product_small", "thumbnail__60x60"),
-        ("product_small_2x", "thumbnail__120x120"),
-        ("product_list", "thumbnail__255x255"),
-        ("product_list_2x", "thumbnail__510x510"),
-    ],
-    "background_images": [("header_image", "thumbnail__1080x440")],
-    "user_avatars": [("default", "thumbnail__445x445")],
-}

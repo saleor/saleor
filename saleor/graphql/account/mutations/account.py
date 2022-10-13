@@ -385,7 +385,7 @@ class AccountSetDefaultAddress(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        address = cls.get_node_or_error(info, data.get("id"), Address)
+        address = cls.get_node_or_error(info, data.get("id"), only_type=Address)
         user = info.context.user
 
         if not user.addresses.filter(pk=address.pk).exists():

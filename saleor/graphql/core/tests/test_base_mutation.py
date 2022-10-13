@@ -31,7 +31,7 @@ class Mutation(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, product_id, channel):
         # Need to mock `app_middleware`
-        info.context.auth_token = None
+        info.context.app = None
 
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=product_types.Product
@@ -73,7 +73,7 @@ class OrderMutation(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id, channel):
         # Need to mock `app_middleware`
-        info.context.auth_token = None
+        info.context.app = None
 
         order = cls.get_node_or_error(info, id, only_type=order_types.Order)
         return OrderMutation(number=order.number)
@@ -371,24 +371,29 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
     assert result.errors[0].message == "My Custom Error"
 
 
-def test_base_mutation_get_node_by_pk_with_order_qs_and_old_int_id(order):
+def test_base_mutation_get_node_by_pk_with_order_qs_and_old_int_id(staff_user, order):
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
     # when
     node = BaseMutation._get_node_by_pk(
-        None, order_types.Order, order.number, qs=Order.objects.all()
+        info, order_types.Order, order.number, qs=Order.objects.all()
     )
 
     # then
     assert node.id == order.id
 
 
-def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(order):
+def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(staff_user, order):
+    # given
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
     # when
     node = BaseMutation._get_node_by_pk(
-        None, order_types.Order, order.pk, qs=Order.objects.all()
+        info, order_types.Order, order.pk, qs=Order.objects.all()
     )
 
     # then
@@ -396,25 +401,30 @@ def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(order):
 
 
 def test_base_mutation_get_node_by_pk_with_order_qs_and_int_id_use_old_id_set_to_false(
-    order,
+    staff_user, order
 ):
     # given
     order.use_old_id = False
     order.save(update_fields=["use_old_id"])
 
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
     # when
     node = BaseMutation._get_node_by_pk(
-        None, order_types.Order, order.number, qs=Order.objects.all()
+        info, order_types.Order, order.number, qs=Order.objects.all()
     )
 
     # then
     assert node is None
 
 
-def test_base_mutation_get_node_by_pk_with_qs_for_product(product):
+def test_base_mutation_get_node_by_pk_with_qs_for_product(staff_user, product):
+    # given
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
     # when
     node = BaseMutation._get_node_by_pk(
-        None, product_types.Product, product.pk, qs=Product.objects.all()
+        info, product_types.Product, product.pk, qs=Product.objects.all()
     )
 
     # then
