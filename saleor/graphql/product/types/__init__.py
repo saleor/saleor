@@ -1,11 +1,19 @@
 # flake8: noqa
-from .attributes import Attribute, AttributeValue, SelectedAttribute
-from .digital_contents import DigitalContent, DigitalContentUrl
+from .digital_contents import (
+    DigitalContent,
+    DigitalContentCountableConnection,
+    DigitalContentUrl,
+)
 from .products import (
     Category,
+    CategoryCountableConnection,
     Collection,
+    CollectionCountableConnection,
     Product,
-    ProductImage,
+    ProductCountableConnection,
+    ProductMedia,
     ProductType,
+    ProductTypeCountableConnection,
     ProductVariant,
+    ProductVariantCountableConnection,
 )

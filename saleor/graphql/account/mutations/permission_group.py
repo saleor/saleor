@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account.error_codes import PermissionGroupErrorCode
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, get_permissions
+from ....core.tracing import traced_atomic_transaction
 from ...account.utils import (
     can_user_manage_group,
     get_not_manageable_permissions_after_group_deleting,
@@ -16,23 +17,25 @@ from ...account.utils import (
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
+from ...app.dataloaders import load_app
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import PermissionGroupError
-from ...core.utils import get_duplicates_ids
+from ...core.types import NonNullList, PermissionGroupError
+from ...utils.validators import check_for_duplicates
+from ..types import Group
 
 if TYPE_CHECKING:
     from ....account.models import User
 
 
 class PermissionGroupInput(graphene.InputObjectType):
-    add_permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    add_permissions = NonNullList(
+        PermissionEnum,
         description="List of permission code names to assign to this group.",
         required=False,
     )
-    add_users = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_users = NonNullList(
+        graphene.ID,
         description="List of users to assign to this group.",
         required=False,
     )
@@ -49,14 +52,18 @@ class PermissionGroupCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Create new permission group."
+        description = (
+            "Create new permission group. "
+            "Apps are not allowed to perform this mutation."
+        )
         model = auth_models.Group
+        object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         add_permissions = cleaned_data.get("add_permissions")
         if add_permissions:
@@ -67,9 +74,11 @@ class PermissionGroupCreate(ModelMutation):
             instance.user_set.add(*users)
 
     @classmethod
-    def clean_input(
-        cls, info, instance, data,
-    ):
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.permission_group_created(instance)
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
         requestor = info.context.user
@@ -98,6 +107,15 @@ class PermissionGroupCreate(ModelMutation):
                 cls.ensure_can_manage_permissions(
                     requestor, errors, field, permission_items
                 )
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        app = load_app(context)
+        if app:
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def ensure_can_manage_permissions(
@@ -165,13 +183,13 @@ class PermissionGroupCreate(ModelMutation):
 
 class PermissionGroupUpdateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=False)
-    remove_permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    remove_permissions = NonNullList(
+        PermissionEnum,
         description="List of permission code names to unassign from this group.",
         required=False,
     )
-    remove_users = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_users = NonNullList(
+        graphene.ID,
         description="List of users to unassign from this group.",
         required=False,
     )
@@ -185,14 +203,17 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         )
 
     class Meta:
-        description = "Update permission group."
+        description = (
+            "Update permission group. Apps are not allowed to perform this mutation."
+        )
         model = auth_models.Group
+        object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         remove_users = cleaned_data.get("remove_users")
@@ -203,8 +224,15 @@ class PermissionGroupUpdate(PermissionGroupCreate):
             instance.permissions.remove(*remove_permissions)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.permission_group_updated(instance)
+
+    @classmethod
     def clean_input(
-        cls, info, instance, data,
+        cls,
+        info,
+        instance,
+        data,
     ):
         requestor = info.context.user
         cls.ensure_requestor_can_manage_group(requestor, instance)
@@ -213,8 +241,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
 
-        cls.check_for_duplicates(errors, data, permission_fields)
-        cls.check_for_duplicates(errors, data, user_fields)
+        cls.check_duplicates(errors, data, permission_fields)
+        cls.check_duplicates(errors, data, user_fields)
 
         if errors:
             raise ValidationError(errors)
@@ -257,7 +285,10 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def ensure_permissions_can_be_removed(
-        cls, errors: dict, group: auth_models.Group, permissions: List["str"],
+        cls,
+        errors: dict,
+        group: auth_models.Group,
+        permissions: List["str"],
     ):
         missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
             group, permissions
@@ -378,26 +409,21 @@ class PermissionGroupUpdate(PermissionGroupCreate):
             cls.update_errors(errors, msg, "remove_users", code, params)
 
     @classmethod
-    def check_for_duplicates(
-        cls, errors: dict, input_data: dict, fields: Tuple[str, str, str],
+    def check_duplicates(
+        cls,
+        errors: dict,
+        input_data: dict,
+        fields: Tuple[str, str, str],
     ):
         """Check if any items are on both input field.
 
         Raise error if some of items are duplicated.
         """
-        add_field, remove_field, error_class_field = fields
-        duplicated_ids = get_duplicates_ids(
-            input_data.get(add_field), input_data.get(remove_field)
-        )
-        if duplicated_ids:
-            # add error
-            error_msg = (
-                "The same object cannot be in both list"
-                "for adding and removing items."
-            )
-            code = PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.value
-            params = {error_class_field: list(duplicated_ids)}
-            cls.update_errors(errors, error_msg, None, code, params)
+        error = check_for_duplicates(input_data, *fields)
+        if error:
+            error.code = PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.value
+            error_field = fields[2]
+            errors[error_field].append(error)
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
@@ -405,11 +431,18 @@ class PermissionGroupDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of the group to delete.", required=True)
 
     class Meta:
-        description = "Delete permission group."
+        description = (
+            "Delete permission group. Apps are not allowed to perform this mutation."
+        )
         model = auth_models.Group
+        object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.permission_group_deleted(instance)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -422,6 +455,15 @@ class PermissionGroupDelete(ModelDeleteMutation):
             raise ValidationError(error_msg, code)
 
         cls.check_if_group_can_be_removed(requestor, instance)
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        app = load_app(context)
+        if app:
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def check_if_group_can_be_removed(cls, requestor, group):

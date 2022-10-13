@@ -1,187 +1,312 @@
 import pytest
-from django.test import override_settings
 
+from ...checkout.fetch import fetch_checkout_lines
 from ...core.exceptions import InsufficientStock
 from ..availability import (
-    are_all_product_variants_in_stock,
+    _get_available_quantity,
     check_stock_quantity,
+    check_stock_quantity_bulk,
     get_available_quantity,
-    get_available_quantity_for_customer,
-    get_quantity_allocated,
 )
-from ..models import Allocation, Stock
+from ..models import Allocation
 
 COUNTRY_CODE = "US"
 
 
-def test_check_stock_quantity(variant_with_many_stocks):
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 7) is None
+def test_check_stock_quantity(variant_with_many_stocks, channel_USD):
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 7
+        )
+        is None
+    )
 
 
-def test_check_stock_quantity_out_of_stock(variant_with_many_stocks):
+def test_check_stock_quantity_out_of_stock(variant_with_many_stocks, channel_USD):
     with pytest.raises(InsufficientStock):
-        check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 8)
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 8
+        )
 
 
 def test_check_stock_quantity_with_allocations(
     variant_with_many_stocks,
     order_line_with_allocation_in_many_stocks,
     order_line_with_one_allocation,
+    channel_USD,
 ):
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 3) is None
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 3
+        )
+        is None
+    )
 
 
 def test_check_stock_quantity_with_allocations_out_of_stock(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
+    variant_with_many_stocks, order_line_with_allocation_in_many_stocks, channel_USD
 ):
     with pytest.raises(InsufficientStock):
-        check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 5)
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 5
+        )
 
 
-def test_check_stock_quantity_without_stocks(variant_with_many_stocks):
+def test_check_stock_quantity_with_reservations(
+    variant_with_many_stocks,
+    checkout_line_with_reservation_in_many_stocks,
+    checkout_line_with_one_reservation,
+    channel_USD,
+):
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            2,
+            check_reservations=True,
+        )
+        is None
+    )
+
+
+def test_check_stock_quantity_with_reservations_excluding_given_checkout_lines(
+    variant_with_many_stocks,
+    checkout_line_with_reservation_in_many_stocks,
+    checkout_line_with_one_reservation,
+    channel_USD,
+):
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            7,
+            [
+                checkout_line_with_reservation_in_many_stocks,
+                checkout_line_with_one_reservation,
+            ],
+            check_reservations=True,
+        )
+        is None
+    )
+
+
+def test_check_stock_quantity_without_stocks(variant_with_many_stocks, channel_USD):
     variant_with_many_stocks.stocks.all().delete()
     with pytest.raises(InsufficientStock):
-        check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 1)
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+        )
 
 
-def test_check_stock_quantity_without_one_stock(variant_with_many_stocks):
+def test_check_stock_quantity_without_one_stock(variant_with_many_stocks, channel_USD):
     variant_with_many_stocks.stocks.get(quantity=3).delete()
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 4) is None
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 4
+        )
+        is None
+    )
 
 
-def test_get_available_quantity_without_allocation(order_line, stock):
-    assert not Allocation.objects.filter(order_line=order_line, stock=stock).exists()
-    available_quantity = get_available_quantity(order_line.variant, COUNTRY_CODE)
-    assert available_quantity == stock.quantity
-
-
-def test_get_available_quantity(variant_with_many_stocks):
-    available_quantity = get_available_quantity(variant_with_many_stocks, COUNTRY_CODE)
+def test_get_available_quantity(variant_with_many_stocks, channel_USD):
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+    )
     assert available_quantity == 7
+
+
+def test_get_available_quantity_without_allocation(order_line, stock, channel_USD):
+    assert not Allocation.objects.filter(order_line=order_line, stock=stock).exists()
+    available_quantity = get_available_quantity(
+        order_line.variant, COUNTRY_CODE, channel_USD.slug
+    )
+    assert available_quantity == stock.quantity
 
 
 def test_get_available_quantity_with_allocations(
     variant_with_many_stocks,
     order_line_with_allocation_in_many_stocks,
     order_line_with_one_allocation,
+    channel_USD,
 ):
-    available_quantity = get_available_quantity(variant_with_many_stocks, COUNTRY_CODE)
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+    )
     assert available_quantity == 3
 
 
-def test_get_available_quantity_without_stocks(variant_with_many_stocks):
-    variant_with_many_stocks.stocks.all().delete()
-    available_quantity = get_available_quantity(variant_with_many_stocks, COUNTRY_CODE)
-    assert available_quantity == 0
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
-def test_get_available_quantity_for_customer(variant_with_many_stocks, settings):
-    stock = variant_with_many_stocks.stocks.first()
-    stock.quantity = 16
-    stock.save(update_fields=["quantity"])
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_get_available_quantity_for_customer_without_stocks(variant_with_many_stocks):
-    variant_with_many_stocks.stocks.all().delete()
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == 0
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=2)
-def test_get_available_quantity_for_customer_with_max(
-    variant_with_many_stocks, settings
-):
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_get_available_quantity_for_customer_with_allocations(
+def test_get_available_quantity_with_reservations(
     variant_with_many_stocks,
-    order_line_with_allocation_in_many_stocks,
+    checkout_line_with_reservation_in_many_stocks,
+    checkout_line_with_one_reservation,
+    channel_USD,
+):
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        check_reservations=True,
+    )
+    assert available_quantity == 2
+
+
+def test_get_available_quantity_with_allocations_and_reservations(
+    variant_with_many_stocks,
     order_line_with_one_allocation,
+    checkout_line_with_one_reservation,
+    channel_USD,
 ):
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        check_reservations=True,
     )
-    assert available_quantity == 3
+    assert available_quantity == 4
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
-def test_get_available_quantity_for_customer_without_inventory_tracking(
-    variant_with_many_stocks, settings
-):
-    variant_with_many_stocks.track_inventory = False
-    variant_with_many_stocks.save(update_fields=["track_inventory"])
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_get_available_quantity_for_customer_without_country(
+def test_get_available_quantity_with_reservations_excluding_given_checkout_lines(
     variant_with_many_stocks,
-    warehouse_no_shipping_zone,
-    shipping_zone_without_countries,
+    checkout_line_with_reservation_in_many_stocks,
+    checkout_line_with_one_reservation,
+    channel_USD,
 ):
-    warehouse_no_shipping_zone.shipping_zones.add(shipping_zone_without_countries)
-    Stock.objects.create(
-        warehouse=warehouse_no_shipping_zone,
-        product_variant=variant_with_many_stocks,
-        quantity=12,
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        [
+            checkout_line_with_reservation_in_many_stocks,
+            checkout_line_with_one_reservation,
+        ],
+        check_reservations=True,
     )
-
-    available_quantity = get_available_quantity_for_customer(variant_with_many_stocks)
-    assert available_quantity == 12
+    assert available_quantity == 7
 
 
-def test_get_quantity_allocated(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
-):
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 3
-
-
-def test_get_quantity_allocated_without_allocation(variant_with_many_stocks):
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 0
-
-
-def test_get_quantity_allocated_without_stock(variant_with_many_stocks):
+def test_get_available_quantity_without_stocks(variant_with_many_stocks, channel_USD):
     variant_with_many_stocks.stocks.all().delete()
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 0
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+    )
+    assert available_quantity == 0
 
 
-def test_are_all_product_variants_in_stock_all_in_stock(stock):
-    assert are_all_product_variants_in_stock(
-        stock.product_variant.product, COUNTRY_CODE
+def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
+    variant = variant_with_many_stocks
+    country_code = "US"
+    available_quantity = _get_available_quantity(variant.stocks.all())
+    global_quantity_limit = 50
+
+    # test that it doesn't raise error for available quantity
+    assert (
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity],
+            channel_USD.slug,
+            global_quantity_limit,
+        )
+        is None
     )
 
+    # test that it raises an error for exceeded quantity
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity + 1],
+            channel_USD,
+            global_quantity_limit,
+        )
 
-def test_are_all_product_variants_in_stock_stock_empty(allocation, variant):
-    allocation.quantity_allocated = allocation.stock.quantity
-    allocation.save(update_fields=["quantity_allocated"])
+    # test that it raises an error if no stocks are found
+    variant.stocks.all().delete()
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity],
+            channel_USD.slug,
+            global_quantity_limit,
+        )
 
-    assert not are_all_product_variants_in_stock(variant.product, COUNTRY_CODE)
 
-
-def test_are_all_product_variants_in_stock_lack_of_stocks(variant):
-    assert not are_all_product_variants_in_stock(variant.product, COUNTRY_CODE)
-
-
-def test_are_all_product_variants_in_stock_warehouse_without_stock(
-    variant_with_many_stocks,
+def test_check_stock_quantity_bulk_no_channel_shipping_zones(
+    variant_with_many_stocks, channel_USD
 ):
-    variant_with_many_stocks.stocks.first().delete()
-    assert are_all_product_variants_in_stock(
-        variant_with_many_stocks.product, COUNTRY_CODE
+    variant = variant_with_many_stocks
+    country_code = "US"
+    available_quantity = _get_available_quantity(variant.stocks.all())
+    global_quantity_limit = 50
+
+    channel_USD.shipping_zones.clear()
+
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity],
+            channel_USD.slug,
+            global_quantity_limit,
+        )
+
+
+def test_check_stock_quantity_bulk_with_reservations(
+    variant_with_many_stocks,
+    checkout_line_with_reservation_in_many_stocks,
+    checkout_line_with_one_reservation,
+    channel_USD,
+):
+    variant = variant_with_many_stocks
+    country_code = "US"
+    available_quantity = get_available_quantity(
+        variant,
+        country_code,
+        channel_USD.slug,
+        check_reservations=True,
+    )
+    global_quantity_limit = 50
+
+    # test that it doesn't raise error for available quantity
+    assert (
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity],
+            channel_USD.slug,
+            global_quantity_limit,
+            check_reservations=True,
+        )
+        is None
+    )
+
+    # test that it raises an error for exceeded quantity
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity + 1],
+            channel_USD.slug,
+            global_quantity_limit,
+            check_reservations=True,
+        )
+
+    # test that it passes if checkout lines are excluded
+    checkout_lines, _ = fetch_checkout_lines(
+        checkout_line_with_one_reservation.checkout
+    )
+    assert (
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity + 1],
+            channel_USD.slug,
+            global_quantity_limit,
+            existing_lines=checkout_lines,
+            check_reservations=True,
+        )
+        is None
     )

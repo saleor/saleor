@@ -1,9 +1,15 @@
-from graphene_federation import build_schema
+from django.urls import reverse
+from django.utils.functional import SimpleLazyObject
 
+from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
+from .attribute.schema import AttributeMutations, AttributeQueries
+from .channel.schema import ChannelMutations, ChannelQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
-from .core.schema import CoreQueries
+from .core.enums import unit_enums
+from .core.federation.schema import build_federated_schema
+from .core.schema import CoreMutations, CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
@@ -20,11 +26,16 @@ from .shop.schema import ShopMutations, ShopQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
+from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
+
+API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 
 class Query(
     AccountQueries,
     AppQueries,
+    AttributeQueries,
+    ChannelQueries,
     CheckoutQueries,
     CoreQueries,
     CsvQueries,
@@ -49,9 +60,13 @@ class Query(
 class Mutation(
     AccountMutations,
     AppMutations,
+    AttributeMutations,
+    ChannelMutations,
     CheckoutMutations,
+    CoreMutations,
     CsvMutations,
     DiscountMutations,
+    ExternalNotificationMutations,
     PluginsMutations,
     GiftCardMutations,
     InvoiceMutations,
@@ -69,4 +84,9 @@ class Mutation(
     pass
 
 
-schema = build_schema(Query, mutation=Mutation)
+schema = build_federated_schema(
+    Query,
+    mutation=Mutation,
+    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
+    subscription=Subscription,
+)

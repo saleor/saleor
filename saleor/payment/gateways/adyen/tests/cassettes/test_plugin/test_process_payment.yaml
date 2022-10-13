@@ -1,0 +1,50 @@
+interactions:
+- request:
+    body: '{"amount": {"value": "8000", "currency": "USD"}, "reference": "UGF5bWVudDoxMTM3",
+      "paymentMethod": {"type": "scheme", "encryptedCardNumber": "test_4646464646464644",
+      "encryptedExpiryMonth": "test_03", "encryptedExpiryYear": "test_2030", "encryptedSecurityCode":
+      "test_737"}, "returnUrl": "http://mirumee.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDoxMTM3&checkout=dd45b15c-e50f-4734-9166-cb19b7da75d3",
+      "merchantAccount": "SaleorECOM", "channel": "web", "shopperEmail": "", "applicationInfo":
+      {"adyenLibrary": {"name": "adyen-python-api-library", "version": "4.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '596'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/4.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://checkout-test.adyen.com/v64/payments
+  response:
+    body:
+      string: '{"additionalData":{"paymentMethod":"visa"},"pspReference":"882609854544793A","resultCode":"Authorised","amount":{"currency":"USD","value":8000},"merchantReference":"UGF5bWVudDoxMTM3"}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Tue, 05 Jan 2021 13:49:04 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=61CCDC10C5283298648628594A8C50EE.test3e; Path=/checkout; Secure;
+        HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 851609854544380B
+    status:
+      code: 200
+      message: OK
+version: 1

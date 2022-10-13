@@ -1,0 +1,60 @@
+interactions:
+- request:
+    body: <?xml version="1.0" encoding="utf-8"?><createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><merchantAuthentication><name>public</name><transactionKey>secret</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><transactionRequest><transactionType>voidTransaction</transactionType><refTransId>60157165182</refTransId></transactionRequest></createTransactionRequest>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '426'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.24.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode\
+        \ /><avsResultCode>P</avsResultCode><cvvResultCode /><cavvResultCode /><transId>0</transId><refTransID>60157165182</refTransID><transHash\
+        \ /><testRequest>0</testRequest><accountNumber /><accountType>Visa</accountType><messages><message><code>310</code><description>This\
+        \ transaction has already been voided.</description></message></messages><transHashSha2\
+        \ /></transactionResponse></createTransactionResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '791'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Mon, 30 Nov 2020 18:40:19 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_c9f35a24-6245-4c60-b286-cafec65de713-17248-27154982
+    status:
+      code: 200
+      message: OK
+version: 1

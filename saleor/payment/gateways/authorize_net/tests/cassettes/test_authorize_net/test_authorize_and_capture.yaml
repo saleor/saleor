@@ -1,0 +1,117 @@
+interactions:
+- request:
+    body: <?xml version="1.0" encoding="utf-8"?><createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><merchantAuthentication><name>a</name><transactionKey>test</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><refId>42</refId><transactionRequest><transactionType>authOnlyTransaction</transactionType><amount>10.0</amount><payment><opaqueData><dataDescriptor>COMMON.ACCEPT.INAPP.PAYMENT</dataDescriptor><dataValue>eyJjb2RlIjoiNTBfMl8wNjAwMDUzMDc0QjVBOTUxQjQxRTA2NTFGRDk5RjJFNjU5MTVCODNEMTM4MDczNjAxOTg3NDA5MzM4QUNBQzkxNzk2RDVCMjk5OUZENENEQkQwRjUzRTQxMDhDOUZDOUI1MEZFMzk3IiwidG9rZW4iOiI5NjA2NzUwNjg3MzY1NzgwNDA0NjAxIiwidiI6IjEuMSJ9</dataValue></opaqueData></payment><order><description></description></order><customer><type>individual</type><email>example@test.com</email></customer></transactionRequest></createTransactionRequest>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '892'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.24.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><refId>42</refId><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>434GW8</authCode><avsResultCode>Y</avsResultCode><cvvResultCode>P</cvvResultCode><cavvResultCode>2</cavvResultCode><transId>60157160930</transId><refTransID\
+        \ /><transHash /><testRequest>0</testRequest><accountNumber>XXXX1111</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This\
+        \ transaction has been approved.</description></message></messages><transHashSha2\
+        \ /><networkTransId>UKYPLGTXHYKGCE2VTHCM41Y</networkTransId></transactionResponse></createTransactionResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '912'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Mon, 30 Nov 2020 15:38:34 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_c9f35a24-6245-4c60-b286-cafec65de713-17248-26985594
+    status:
+      code: 200
+      message: OK
+- request:
+    body: <?xml version="1.0" encoding="utf-8"?><createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><merchantAuthentication><name>test</name><transactionKey>test</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><transactionRequest><transactionType>priorAuthCaptureTransaction</transactionType><amount>10.0</amount><refTransId>60157160930</refTransId></transactionRequest></createTransactionRequest>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '459'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.24.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>434GW8</authCode><avsResultCode>P</avsResultCode><cvvResultCode\
+        \ /><cavvResultCode /><transId>60157160930</transId><refTransID>60157160930</refTransID><transHash\
+        \ /><testRequest>0</testRequest><accountNumber>XXXX1111</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This\
+        \ transaction has been approved.</description></message></messages><transHashSha2\
+        \ /></transactionResponse></createTransactionResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '830'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Mon, 30 Nov 2020 15:38:34 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_fcd54fbe-2b11-4415-adab-ba5b7df2b869-17340-26993432
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -54,12 +54,19 @@ QUERY_APP_PAGINATION = """
     ],
 )
 def test_apps_pagination_with_sorting(
-    sort_by, apps_order, staff_api_client, apps_for_pagination, permission_manage_apps,
+    sort_by,
+    apps_order,
+    staff_api_client,
+    apps_for_pagination,
+    permission_manage_apps,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     page_size = 3
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_APP_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     nodes = content["data"]["apps"]["edges"]
     assert apps_order[0] == nodes[0]["node"]["name"]
@@ -87,7 +94,10 @@ def test_apps_pagination_with_filtering(
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_APP_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
 
     nodes = content["data"]["apps"]["edges"]

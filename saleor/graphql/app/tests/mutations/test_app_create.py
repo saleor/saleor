@@ -1,13 +1,23 @@
+import json
+from unittest import mock
+
+import graphene
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
+
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
+from .....core.utils.json_serializer import CustomJsonEncoder
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import PermissionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_CREATE_MUTATION = """
     mutation AppCreate(
-        $name: String, $is_active: Boolean $permissions: [PermissionEnum]){
+        $name: String, $permissions: [PermissionEnum!]){
         appCreate(input:
-            {name: $name, isActive: $is_active, permissions: $permissions})
+            {name: $name, permissions: $permissions})
         {
             authToken
             app{
@@ -22,7 +32,7 @@ APP_CREATE_MUTATION = """
                     authToken
                 }
             }
-            appErrors{
+            errors{
                 field
                 message
                 code
@@ -34,14 +44,16 @@ APP_CREATE_MUTATION = """
 
 
 def test_app_create_mutation(
-    permission_manage_apps, permission_manage_products, staff_api_client, staff_user,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
 ):
     query = APP_CREATE_MUTATION
     staff_user.user_permissions.add(permission_manage_products)
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = staff_api_client.post_graphql(
@@ -55,34 +67,92 @@ def test_app_create_mutation(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
 
 
-def test_app_create_mutation_for_app(
-    permission_manage_apps, permission_manage_products, app_api_client, staff_user,
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_app_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
+    settings,
 ):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user.user_permissions.add(permission_manage_products)
+
+    variables = {
+        "name": "Trigger Test",
+        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+    app = App.objects.get(name=variables["name"])
+
+    # then
+    assert content["data"]["appCreate"]["app"]
+    mocked_webhook_trigger.assert_called_once_with(
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("App", app.id),
+                "is_active": app.is_active,
+                "name": app.name,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.APP_INSTALLED,
+        [any_webhook],
+        app,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
+def test_app_is_not_allowed_to_call_create_mutation_for_app(
+    permission_manage_apps,
+    permission_manage_products,
+    app_api_client,
+    staff_user,
+):
+    # given
     query = APP_CREATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(permission_manage_apps, permission_manage_products)
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
+
+    # when
     response = app_api_client.post_graphql(query, variables=variables)
-    content = get_graphql_content(response)
-    app_data = content["data"]["appCreate"]["app"]
-    default_token = content["data"]["appCreate"]["authToken"]
-    app = App.objects.exclude(pk=requestor.pk).get()
-    assert app_data["isActive"] == app.is_active
-    assert app_data["name"] == app.name
-    assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+
+    # then
+    assert_no_permission(response)
 
 
 def test_app_create_mutation_out_of_scope_permissions(
-    permission_manage_apps, permission_manage_products, staff_api_client, staff_user,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
 ):
     """Ensure user can't create app with permissions out of user's scope.
 
@@ -93,7 +163,6 @@ def test_app_create_mutation_out_of_scope_permissions(
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
@@ -101,7 +170,7 @@ def test_app_create_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appCreate"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -111,14 +180,15 @@ def test_app_create_mutation_out_of_scope_permissions(
 
 
 def test_app_create_mutation_superuser_can_create_app_with_any_perms(
-    permission_manage_apps, permission_manage_products, superuser_api_client,
+    permission_manage_apps,
+    permission_manage_products,
+    superuser_api_client,
 ):
     """Ensure superuser can create app with any permissions."""
     query = APP_CREATE_MUTATION
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
@@ -130,41 +200,19 @@ def test_app_create_mutation_superuser_can_create_app_with_any_perms(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
-
-
-def test_app_create_mutation_for_app_out_of_scope_permissions(
-    permission_manage_apps, permission_manage_products, app_api_client, staff_user,
-):
-    query = APP_CREATE_MUTATION
-
-    variables = {
-        "name": "New integration",
-        "is_active": True,
-        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
-    }
-    response = app_api_client.post_graphql(
-        query, variables=variables, permissions=(permission_manage_apps,)
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["appCreate"]
-
-    errors = data["appErrors"]
-    assert not data["app"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["field"] == "permissions"
-    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
 
 
 def test_app_create_mutation_no_permissions(
-    permission_manage_apps, permission_manage_products, staff_api_client, staff_user,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
 ):
     query = APP_CREATE_MUTATION
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = staff_api_client.post_graphql(query, variables=variables)

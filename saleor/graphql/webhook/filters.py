@@ -1,25 +1,27 @@
 import django_filters
 
-from ...webhook.models import Webhook
+from ..core.filters import EnumFilter
 from ..core.types import FilterInputObjectType
-from ..utils.filters import filter_by_query_param
+from .enums import EventDeliveryStatusEnum, WebhookEventTypeEnum
 
 
-def filter_webhook_search(qs, _, value):
-    page_fields = ["name", "target_url"]
-    qs = filter_by_query_param(qs, value, page_fields)
+def filter_status(qs, _, value):
+    if value:
+        qs = qs.filter(status=value)
     return qs
 
 
-class WebhookFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method=filter_webhook_search)
-    is_active = django_filters.BooleanFilter()
+def filter_event_type(qs, _, value):
+    if value:
+        qs = qs.filter(event_type=value)
+    return qs
 
+
+class EventDeliveryFilter(django_filters.FilterSet):
+    status = EnumFilter(input_class=EventDeliveryStatusEnum, method=filter_status)
+    event_type = EnumFilter(input_class=WebhookEventTypeEnum, method=filter_event_type)
+
+
+class EventDeliveryFilterInput(FilterInputObjectType):
     class Meta:
-        model = Webhook
-        fields = ["search", "is_active"]
-
-
-class WebhookFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = WebhookFilter
+        filterset_class = EventDeliveryFilter

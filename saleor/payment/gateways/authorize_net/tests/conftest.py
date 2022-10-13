@@ -33,7 +33,7 @@ def authorize_net_payment(payment_dummy):
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin"
     ".validate_plugin_configuration"
 )
-def authorize_net_plugin(_, settings, authorize_net_gateway_config):
+def authorize_net_plugin(_, settings, channel_USD, authorize_net_gateway_config):
     settings.PLUGINS = [
         "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin"
     ]
@@ -43,6 +43,7 @@ def authorize_net_plugin(_, settings, authorize_net_gateway_config):
 
     manager.save_plugin_configuration(
         AuthorizeNetGatewayPlugin.PLUGIN_ID,
+        channel_USD.slug,
         {
             "active": True,
             "configuration": [
@@ -70,4 +71,4 @@ def authorize_net_plugin(_, settings, authorize_net_gateway_config):
     )
 
     manager = get_plugins_manager()
-    return manager.plugins[0]
+    return manager.plugins_per_channel[channel_USD.slug][0]

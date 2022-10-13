@@ -1,0 +1,50 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Connection:
+      - close
+      Host:
+      - www.youtube.com
+      User-Agent:
+      - python-micawber
+    method: GET
+    uri: https://www.youtube.com/oembed?scheme=https&format=json&maxheight=1080&maxwidth=1920&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdQw4w9WgXcQ%26ab_channel%3DTestingChannel
+  response:
+    body:
+      string: '{"title":"Rick Astley - Never Gonna Give You Up (Video)","author_name":"RickAstleyVEVO","author_url":"https://www.youtube.com/user/RickAstleyVEVO","type":"video","height":1080,"width":1920,"version":"1.0","provider_name":"YouTube","provider_url":"https://www.youtube.com/","thumbnail_height":360,"thumbnail_width":480,"thumbnail_url":"https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg","html":"\u003ciframe
+        width=\u00221920\u0022 height=\u00221080\u0022 src=\u0022https://www.youtube.com/embed/dQw4w9WgXcQ?feature=oembed\u0022
+        frameborder=\u00220\u0022 allow=\u0022accelerometer; autoplay; clipboard-write;
+        encrypted-media; gyroscope; picture-in-picture\u0022 allowfullscreen\u003e\u003c/iframe\u003e"}'
+    headers:
+      Accept-Ranges:
+      - none
+      Alt-Svc:
+      - h3-29=":443"; ma=2592000,h3-T051=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q046=":443";
+        ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+      Cache-Control:
+      - private
+      Connection:
+      - close
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 18 Mar 2021 09:22:45 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - X-Origin
+      - Referer
+      - Origin,Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,74 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: GET
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/customers/595109854
+  response:
+    body:
+      string: !!binary |
+        H4sIALIJGl0AA6RUTW/jOAy991cEvqv+aBI4hePOALsNsMC2h207214GtEXH2ujDleQ06a8f2Y5j
+        p2kPi7mJ7z1SFEUyudkJPtmiNkzJpRdeBt4EZa4ok+ul9/hwS2LvJr1I8tpYJVCnF5NJwmg6W8zC
+        YBHPponvrAZ0ZF6CtMTZCzF/LYudeX0XV/n6/S3xx2yjLpg2lkgQOJGMLz2ra/T8luLwFZMrUYHc
+        n+EogPHUorHfcAei4njppInf4Y2iKpU8j1fA7gx7w8ww+8ndGsEiJWAndl/h0qPOtEygl0ZBuCDB
+        nETzh3B6PYuvo8VL4g8OrX9d0f/nPzh097cfQAqGnJoupTVXGfCmos9XT+90tbAv//5V3D1swr8f
+        vs/u/3gMEn/QHB5BmSU5aGoOaYDWsPca9pTvEIdlTKbTIIziOPGbc483ItLESJ+YAffeoz1WlIpT
+        1J9+Z6dRomkNBjx9lBup3qSLNGCDrJZW74kqCDOmBpnjWH9OHh1/79u6GIfeJ6d9P4bPpFzlYN1I
+        pY//jJRHtNdTzJgdXtKZA1lAzfvEM6U4gvTSpoKNtCUHca3d7xCN65o3DxgF/cj0LrirmG7zIUJJ
+        W6Zh5GbmI/iJeo+gXfmi4ETeoidqpB9zL4AbPHiNMhm6NF/dzrIfTzVdhZyuyu3L7eK/5zAO7ld3
+        4k7++aGhW+cSgdvSNduoJUZYL2MC1khqzdPS2spc+z4Yg9ZcZhqY6x/EtavOG+yb3eFXsBco7U+B
+        tlT0J1dr5W9dn19Wcn2Dcsu0ko1gaUDSTO3cGjzGP97omtGtUZKB3AypnaC9tN150zSM4zDxD0bP
+        uVS04qP56IGjQGMFriB3ynGH88ApWuft2h38B6yXmTozuWZV85Gnm2EYVas26FZBnBfz18TvrJ6r
+        JXutkchaZO1AuMowt6p0SoNsFuVxkM2nMWCMMwinSGkORTSlUTNGX7oeY//e5mxjbFEKRQzdfNGQ
+        R37koV0a3bh+WpF2VYy35QlgWgQo1ei67CzAsBPSi18AAAD//wMAbbQ9a4MHAAA=
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Mon, 01 Jul 2019 13:25:06 GMT
+      ETag:
+      - W/"fa7463946d8a584cba7f76b35320371b"
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 01-1561987505.981-79.110.196.19-688015
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 01-1561987505.981-79.110.196.19-688015
+      X-Runtime:
+      - '0.148342'
+      X-User:
+      - wgs3tg8h39pyypyc
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

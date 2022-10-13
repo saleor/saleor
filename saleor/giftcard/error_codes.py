@@ -8,3 +8,5 @@ class GiftCardErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
+    EXPIRED_GIFT_CARD = "expired_gift_card"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"

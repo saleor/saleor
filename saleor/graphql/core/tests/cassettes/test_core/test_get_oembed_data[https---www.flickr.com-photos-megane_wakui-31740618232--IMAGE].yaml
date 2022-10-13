@@ -1,0 +1,110 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Connection:
+      - close
+      Host:
+      - www.flickr.com
+      User-Agent:
+      - python-micawber
+    method: GET
+    uri: https://www.flickr.com/services/oembed/?format=json&maxheight=1080&maxwidth=1920&url=https%3A%2F%2Fwww.flickr.com%2Fphotos%2Fmegane_wakui%2F31740618232%2F
+  response:
+    body:
+      string: '{"type":"photo","flickr_type":"photo","title":"","author_name":"Masashi
+        Wakui","author_url":"https:\/\/www.flickr.com\/photos\/megane_wakui\/","width":1024,"height":681,"url":"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_b.jpg","web_page":"https:\/\/www.flickr.com\/photos\/megane_wakui\/31740618232\/","thumbnail_url":"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_q.jpg","thumbnail_width":150,"thumbnail_height":150,"web_page_short_url":"https:\/\/flic.kr\/p\/QmNXYu","license":"All
+        Rights Reserved","license_id":0,"html":"<a data-flickr-embed=\"true\" href=\"https:\/\/www.flickr.com\/photos\/megane_wakui\/31740618232\/\"
+        title=\"Untitled by Masashi Wakui, on Flickr\"><img src=\"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_b.jpg\"
+        width=\"1024\" height=\"681\" alt=\"Untitled\"><\/a><script async src=\"https:\/\/embedr.flickr.com\/assets\/client-code.js\"
+        charset=\"utf-8\"><\/script>","version":"1.0","cache_age":3600,"provider_name":"Flickr","provider_url":"https:\/\/www.flickr.com\/"}
+
+        '
+    headers:
+      Connection:
+      - close
+      Content-Length:
+      - '1043'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 18 Mar 2021 09:22:47 GMT
+      Vary:
+      - Accept-Encoding
+      Via:
+      - 1.1 4cb16ea6a84fa64395352e03f53b5e8f.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - GIeXPFey2CCOo4qmsNwyZkLqMXKEcyJyZF-rJ7en4e9kfuLf2YGa4w==
+      X-Amz-Cf-Pop:
+      - WAW50-C1
+      X-Cache:
+      - Miss from cloudfront
+      content-security-policy:
+      - 'default-src ''unsafe-inline'' https://*.flickr.com https://*.staticflickr.com
+        https://*.flickr.net https://*.braintreegateway.com https://*.kaptcha.com
+        https://*.paypal.com http://api.flickr.com https://*.pinterest.com https://connect.facebook.net
+        https://*.facebook.com https://*.maps.api.here.com https://*.maps.cit.api.here.com
+        https://cdn.siftscience.com https://tpc.googlesyndication.com https://securepubads.g.doubleclick.net
+        https://adservice.google.com https://cdn.ampproject.org https://trustarc.mgr.consensu.org/
+        https://*.trustarc.com; img-src data: blob: https://*.flickr.com https://*.flickr.net
+        http://*.flickr.net https://*.staticflickr.com http://*.staticflickr.com https://*.yimg.com
+        https://*.yahoo.com https://image.maps.api.here.com https://*.paypal.com https://*.pinterest.com
+        http://*.static-alpha.flickr.com https://connect.facebook.net https://*.facebook.com
+        https://*.maps.api.here.com https://*.maps.cit.api.here.com https://creativecommons.org
+        https://hexagon-analytics.com https://*.2o7.net https://tagmanager.google.com
+        https://www.googletagmanager.com https://*.google.com https://*.google-analytics.com
+        https://*.googleadservices.com https://*.googlesyndication.com https://*.doubleclick.com
+        https://*.doubleclick.de https://*.doubleclick.net https://*.googletagservices.com
+        https://*.googleadservices.com https://*.googlesyndication.com https://*.googleapis.com
+        https://api.mapbox.com https://*.trustarc.com; script-src ''unsafe-eval''
+        ''unsafe-inline'' https://*.flickr.com http://*.flickr.net https://*.flickr.net
+        https://*.staticflickr.com https://*.analytics.yahoo.com https://yep.video.yahoo.com
+        https://video.media.yql.yahoo.com https://*.yahooapis.com https://*.braintreegateway.com
+        https://*.paypalobjects.com https://connect.facebook.net https://*.facebook.com
+        https://*.maps.api.here.com https://*.maps.cit.api.here.com https://cdn.siftscience.com
+        https://assets.adobedtm.com https://securepubads.g.doubleclick.net https://adservice.google.com
+        https://cdn.ampproject.org https://*.google.com https://*.google-analytics.com
+        https://*.googleadservices.com https://*.googlesyndication.com https://*.doubleclick.com
+        https://*.doubleclick.de https://*.doubleclick.net https://*.googletagservices.com
+        https://*.googleadservices.com https://*.googlesyndication.com https://*.googleapis.com
+        https://consent.trustarc.com https://trustarc.mgr.consensu.org; connect-src
+        https://*.flickr.com https://*.flickr.net http://*.flickr.net https://*.staticflickr.com
+        https://geo.query.yahoo.com https://*.yahooapis.com http://api.flickr.com
+        https://*.pinterest.com http://*.yahoo.com https://*.maps.api.here.com https://*.maps.cit.api.here.com
+        https://cdn.siftscience.com https://*.demdex.net https://securepubads.g.doubleclick.net
+        https://*.trustarc.com; report-uri https://csp.flickr.com/beacon/csp?src=adsecflickr;'
+      server:
+      - Apache/2.4.46 (Ubuntu)
+      set-cookie:
+      - xb=155751; expires=Sun, 16-Mar-2031 09:22:47 GMT; Max-Age=315360000; path=/;
+        domain=.flickr.com
+      - localization=en-us%3Bpl%3Bpl; expires=Thu, 16-Mar-2023 09:22:47 GMT; Max-Age=62899200;
+        path=/; domain=.flickr.com
+      - flrbp=1616059367-dcb1f8826c20722a7f25c4fedb3ef05ec06b488c; expires=Tue, 14-Sep-2021
+        09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbs=1616059367-64a31658cbd8ffacc3b8ef717aafdb6950ca0771; expires=Tue, 14-Sep-2021
+        09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbgrp=1616059367-da72a7a1906fa99538f6d198c01273e1bbe43329; expires=Tue,
+        14-Sep-2021 09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbgdrp=1616059367-74a58e6d6b59827183922aa0a5080be2c3e5c893; expires=Tue,
+        14-Sep-2021 09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbgmrp=1616059367-1eeba700dcf9080506867547889c28fd7a81ec32; expires=Tue,
+        14-Sep-2021 09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbrst=1616059367-c3f79e11fa3406f3d031882174d831a183deb5d0; expires=Tue,
+        14-Sep-2021 09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrtags=1616059367-e00edec7f689127419c849acee351e6727750be3; expires=Tue,
+        14-Sep-2021 09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbrp=1616059367-2817d64ff5431e308c3e66138a4ae0be87f64e8b; expires=Tue, 14-Sep-2021
+        09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrbrgs=1616059367-f4c26a08c44ac612c854d15490b5beeb08f0b961; expires=Tue,
+        14-Sep-2021 09:22:47 GMT; Max-Age=15552000; path=/; domain=.flickr.com; HttpOnly
+      - flrb=53; expires=Thu, 18-Mar-2021 10:22:47 GMT; Max-Age=3600; path=/; domain=.flickr.com;
+        HttpOnly
+      - ccc=%7B%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A1%7D%7D%7D;
+        expires=Sat, 17-Apr-2021 09:22:47 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      x-frame-options:
+      - SAMEORIGIN
+    status:
+      code: 200
+      message: OK
+version: 1

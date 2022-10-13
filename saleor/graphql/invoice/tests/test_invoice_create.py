@@ -1,4 +1,7 @@
+import uuid
+
 import graphene
+import pytest
 
 from ....core import JobStatus
 from ....graphql.tests.utils import get_graphql_content
@@ -20,7 +23,7 @@ INVOICE_CREATE_MUTATION = """
                 number
                 url
             }
-            invoiceErrors {
+            errors {
                 field
                 code
             }
@@ -80,16 +83,17 @@ def test_create_invoice_no_billing_address(
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
-    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
     assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
 
 
-def test_create_invoice_for_draft_order(
-    staff_api_client, permission_manage_orders, order
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_create_invoice_invalid_order_status(
+    status, staff_api_client, permission_manage_orders, order
 ):
-    order.status = OrderStatus.DRAFT
+    order.status = status
     order.save()
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -103,7 +107,7 @@ def test_create_invoice_for_draft_order(
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
-    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
     assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
@@ -111,7 +115,7 @@ def test_create_invoice_for_draft_order(
 
 def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", 1337),
+        "orderId": graphene.Node.to_global_id("Order", uuid.uuid4()),
         "number": "01/12/2020/TEST",
         "url": "http://www.example.com",
     }
@@ -119,7 +123,7 @@ def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
         INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "orderId"
 
@@ -134,7 +138,7 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
         INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["invoiceCreate"]["invoiceErrors"]
+    errors = content["data"]["invoiceCreate"]["errors"]
     assert errors[0] == {
         "field": "url",
         "code": InvoiceErrorCode.REQUIRED.name,

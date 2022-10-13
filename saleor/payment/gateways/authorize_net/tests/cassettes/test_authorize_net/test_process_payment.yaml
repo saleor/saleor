@@ -1,0 +1,59 @@
+interactions:
+- request:
+    body: <?xml version="1.0" encoding="utf-8"?><createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><merchantAuthentication><name>public</name><transactionKey>secret</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><refId>37</refId><transactionRequest><transactionType>authCaptureTransaction</transactionType><amount>10.0</amount><payment><opaqueData><dataDescriptor>COMMON.ACCEPT.INAPP.PAYMENT</dataDescriptor><dataValue>Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE=</dataValue></opaqueData></payment><order><description></description></order><customer><type>individual</type><email>example@test.com</email></customer></transactionRequest></createTransactionRequest>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '895'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.24.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><refId>37</refId><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>RFR4FT</authCode><avsResultCode>Y</avsResultCode><cvvResultCode>P</cvvResultCode><cavvResultCode>2</cavvResultCode><transId>60156217587</transId><refTransID\
+        \ /><transHash /><testRequest>0</testRequest><accountNumber>XXXX1111</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This\
+        \ transaction has been approved.</description></message></messages><transHashSha2\
+        \ /><networkTransId>3HCLCGEXAZNFG4JR6JMEF3Q</networkTransId></transactionResponse></createTransactionResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '912'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Tue, 17 Nov 2020 15:00:09 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_c9f35a24-6245-4c60-b286-cafec65de713-17248-1239206
+    status:
+      code: 200
+      message: OK
+version: 1

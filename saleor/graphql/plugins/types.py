@@ -1,37 +1,14 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import graphene
 
-from ...plugins import manager, models
-from ...plugins.base_plugin import ConfigurationTypeField
-from ..core.connection import CountableDjangoObjectType
+from ..channel.types import Channel
+from ..core.connection import CountableConnection
+from ..core.types import NonNullList
 from .enums import ConfigurationTypeFieldEnum
 
 if TYPE_CHECKING:
-    # flake8: noqa
-    from ...plugins.base_plugin import PluginConfigurationType
-
-
-def hide_private_configuration_fields(configuration, config_structure):
-    for field in configuration:
-        name = field["name"]
-        value = field["value"]
-        if value is None:
-            continue
-        field_type = config_structure.get(name, {}).get("type")
-        if field_type == ConfigurationTypeField.PASSWORD:
-            field["value"] = "" if value else None
-
-        if field_type in [
-            ConfigurationTypeField.SECRET,
-            ConfigurationTypeField.SECRET_MULTILINE,
-        ]:
-            if not value:
-                field["value"] = None
-            elif len(value) > 4:
-                field["value"] = value[-4:]
-            else:
-                field["value"] = value[-1:]
+    from ...plugins.base_plugin import BasePlugin
 
 
 class ConfigurationItem(graphene.ObjectType):
@@ -45,27 +22,62 @@ class ConfigurationItem(graphene.ObjectType):
         description = "Stores information about a single configuration field."
 
 
-class Plugin(CountableDjangoObjectType):
-    id = graphene.Field(type=graphene.ID, required=True)
-    configuration = graphene.List(ConfigurationItem)
+class PluginConfiguration(graphene.ObjectType):
+    active = graphene.Boolean(
+        required=True, description="Determines if plugin is active or not."
+    )
+    channel = graphene.Field(
+        Channel,
+        description="The channel to which the plugin configuration is assigned to.",
+    )
+    configuration = NonNullList(
+        ConfigurationItem, description="Configuration of the plugin."
+    )
+
+    class Meta:
+        description = "Stores information about a configuration of plugin."
+
+    @staticmethod
+    def resolve_configuration(root: "BasePlugin", info):
+        return root.resolve_plugin_configuration(info.context)
+
+
+class Plugin(graphene.ObjectType):
+    id = graphene.ID(required=True, description="Identifier of the plugin.")
+    name = graphene.String(description="Name of the plugin.", required=True)
+    description = graphene.String(
+        description="Description of the plugin.", required=True
+    )
+    global_configuration = graphene.Field(
+        PluginConfiguration,
+        description="Global configuration of the plugin (not channel-specific).",
+    )
+    channel_configurations = NonNullList(
+        PluginConfiguration,
+        description="Channel-specific plugin configuration.",
+        required=True,
+    )
 
     class Meta:
         description = "Plugin."
-        model = models.PluginConfiguration
-        interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name", "description", "active", "configuration"]
-
-    def resolve_id(self: models.PluginConfiguration, _info):
-        return self.identifier
 
     @staticmethod
-    def resolve_configuration(
-        root: models.PluginConfiguration, _info
-    ) -> Optional["PluginConfigurationType"]:
-        plugin = manager.get_plugins_manager().get_plugin(root.identifier)
-        if not plugin:
-            return None
-        configuration = plugin.configuration
-        if plugin.CONFIG_STRUCTURE and configuration:
-            hide_private_configuration_fields(configuration, plugin.CONFIG_STRUCTURE)
-        return configuration
+    def resolve_name(root: "Plugin", _info):
+        return root.name
+
+    @staticmethod
+    def resolve_description(root: "Plugin", _info):
+        return root.description
+
+    @staticmethod
+    def resolve_global_configuration(root: "Plugin", _info):
+        return root.global_configuration
+
+    @staticmethod
+    def resolve_channel_configurations(root: "Plugin", _info):
+        return root.channel_configurations or []
+
+
+class PluginCountableConnection(CountableConnection):
+    class Meta:
+        node = Plugin

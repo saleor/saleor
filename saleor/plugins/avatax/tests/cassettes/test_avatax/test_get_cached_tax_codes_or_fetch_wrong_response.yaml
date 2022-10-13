@@ -1,0 +1,41 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.27.1
+    method: GET
+    uri: https://sandbox-rest.avatax.com/api/v2/definitions/taxcodes
+  response:
+    body:
+      string: '{"error": {"code": "AuthenticationException","message": "Authentication
+        failed.","details": [{"code": "AuthenticationException","message": "Authentication
+        failed.","description": "Missing authentication or unable to authenticate
+        the user or the account.","faultCode": "Client","helpLink": "http://developer.avalara.com/avatax/errors/AuthenticationException"}]}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '361'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 10 Jun 2022 10:43:56 GMT
+      X-Content-Type-Options:
+      - nosniff
+      x-avalara-uid:
+      - fe1d9b8d-8c27-424c-b9a0-2801d1e4bf73
+      x-correlation-id:
+      - fe1d9b8d-8c27-424c-b9a0-2801d1e4bf73
+    status:
+      code: 401
+      message: Unauthorized
+version: 1

@@ -1,0 +1,46 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.23.0
+    method: GET
+    uri: http://localhost:3000/manifest-doesnt-exist
+  response:
+    body:
+      string: '{}'
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 26 May 2020 11:44:12 GMT
+      ETag:
+      - W/"2-vyGp6PvFo4RvsFtPoIWeCReyIC8"
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 404
+      message: Not Found
+version: 1

@@ -3,20 +3,23 @@ import graphene
 from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseBulkMutation
-from ...core.types.common import OrderError
-from ..mutations.orders import clean_order_cancel
+from ...core.types import NonNullList, OrderError
+from ..mutations.order_cancel import clean_order_cancel
+from ..types import Order
 
 
 class OrderBulkCancel(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of orders IDs to cancel."
         )
 
     class Meta:
         description = "Cancels orders."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -26,11 +29,11 @@ class OrderBulkCancel(BaseBulkMutation):
         clean_order_cancel(instance)
 
     @classmethod
-    def perform_mutation(cls, root, info, ids, **data):
-        data["user"] = info.context.user
-        return super().perform_mutation(root, info, ids, **data)
-
-    @classmethod
-    def bulk_action(cls, queryset, user):
+    def bulk_action(cls, info, queryset):
         for order in queryset:
-            cancel_order(order=order, user=user)
+            cancel_order(
+                order=order,
+                user=info.context.user,
+                app=load_app(info.context),
+                manager=info.context.plugins,
+            )

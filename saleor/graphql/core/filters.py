@@ -1,10 +1,13 @@
 import django_filters
+import graphene
 from django.core.exceptions import ValidationError
-from django_filters.fields import MultipleChoiceField
+from django.forms import CharField, Field, MultipleChoiceField
+from django_filters import Filter, MultipleChoiceFilter
+from graphql_relay import from_global_id
 
 from ..utils.filters import filter_range_field
 from .enums import JobStatusEnum
-from .types.common import DateTimeRangeInput
+from .types import DateTimeRangeInput
 
 
 class DefaultMultipleChoiceField(MultipleChoiceField):
@@ -70,6 +73,15 @@ def filter_status(qs, _, value):
     return qs.filter(status=value)
 
 
+def filter_metadata(qs, _, value):
+    for metadata_item in value:
+        if metadata_item.value:
+            qs = qs.filter(metadata__contains={metadata_item.key: metadata_item.value})
+        else:
+            qs = qs.filter(metadata__has_key=metadata_item.key)
+    return qs
+
+
 class BaseJobFilter(django_filters.FilterSet):
     created_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_created_at
@@ -78,3 +90,70 @@ class BaseJobFilter(django_filters.FilterSet):
         input_class=DateTimeRangeInput, method=filter_updated_at
     )
     status = EnumFilter(input_class=JobStatusEnum, method=filter_status)
+
+
+class MetadataFilter(graphene.InputObjectType):
+    key = graphene.String(required=True, description="Key of a metadata item.")
+    value = graphene.String(required=False, description="Value of a metadata item.")
+
+
+class MetadataFilterBase(django_filters.FilterSet):
+    metadata = ListObjectTypeFilter(input_class=MetadataFilter, method=filter_metadata)
+
+    class Meta:
+        abstract = True
+
+
+class GlobalIDFormField(Field):
+    default_error_messages = {"invalid": "Invalid ID specified."}
+
+    def clean(self, value):
+        if not value and not self.required:
+            return None
+
+        try:
+            _type, _id = from_global_id(value)
+        except (TypeError, ValueError):
+            raise ValidationError(self.error_messages["invalid"])
+
+        try:
+            CharField().clean(_id)
+            CharField().clean(_type)
+        except ValidationError:
+            raise ValidationError(self.error_messages["invalid"])
+
+        return value
+
+
+class GlobalIDFilter(Filter):
+    field_class = GlobalIDFormField
+
+    def filter(self, qs, value):
+        """Convert the filter value to a primary key before filtering."""
+        _id = None
+        if value is not None:
+            _, _id = from_global_id(value)
+        return super(GlobalIDFilter, self).filter(qs, _id)
+
+
+class GlobalIDMultipleChoiceField(MultipleChoiceField):
+    default_error_messages = {
+        "invalid_choice": "One of the specified IDs was invalid (%(value)s).",
+        "invalid_list": "Enter a list of values.",
+    }
+
+    def to_python(self, value):
+        return super().to_python(value)
+
+    def valid_value(self, value):
+        # Clean will raise a validation error if there is a problem
+        GlobalIDFormField().clean(value)
+        return True
+
+
+class GlobalIDMultipleChoiceFilter(MultipleChoiceFilter):
+    field_class = GlobalIDMultipleChoiceField
+
+    def filter(self, qs, value):
+        gids = [from_global_id(v)[1] for v in value]
+        return super(GlobalIDMultipleChoiceFilter, self).filter(qs, gids)

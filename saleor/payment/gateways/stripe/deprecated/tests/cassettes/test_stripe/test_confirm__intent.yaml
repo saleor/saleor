@@ -1,0 +1,124 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 90e66f61-6641-4975-8039-c185eb6befcd
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_fpe1Lbawiulevi", "request_duration_ms":
+        6}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents/pi_1F6bslIUmJaD6Oqv1MNDaBSv/confirm
+  response:
+    body:
+      string: "{\n  \"id\": \"pi_1F6bslIUmJaD6Oqv1MNDaBSv\",\n  \"object\": \"payment_intent\"\
+        ,\n  \"amount\": 4500,\n  \"amount_capturable\": 0,\n  \"amount_received\"\
+        : 4500,\n  \"application\": null,\n  \"application_fee_amount\": null,\n \
+        \ \"canceled_at\": null,\n  \"cancellation_reason\": null,\n  \"capture_method\"\
+        : \"automatic\",\n  \"charges\": {\n    \"object\": \"list\",\n    \"data\"\
+        : [\n      {\n        \"id\": \"ch_1F6cKFIUmJaD6Oqvlj3NIJXD\",\n        \"\
+        object\": \"charge\",\n        \"amount\": 4500,\n        \"amount_refunded\"\
+        : 0,\n        \"application\": null,\n        \"application_fee\": null,\n\
+        \        \"application_fee_amount\": null,\n        \"balance_transaction\"\
+        : \"txn_1F6cKGIUmJaD6OqvUWnb5Kn4\",\n        \"billing_details\": {\n    \
+        \      \"address\": {\n            \"city\": null,\n            \"country\"\
+        : null,\n            \"line1\": null,\n            \"line2\": null,\n    \
+        \        \"postal_code\": null,\n            \"state\": null\n          },\n\
+        \          \"email\": null,\n          \"name\": null,\n          \"phone\"\
+        : null\n        },\n        \"captured\": true,\n        \"created\": 1565611715,\n\
+        \        \"currency\": \"usd\",\n        \"customer\": null,\n        \"description\"\
+        : null,\n        \"destination\": null,\n        \"dispute\": null,\n    \
+        \    \"failure_code\": null,\n        \"failure_message\": null,\n       \
+        \ \"fraud_details\": {\n        },\n        \"invoice\": null,\n        \"\
+        livemode\": false,\n        \"metadata\": {\n        },\n        \"on_behalf_of\"\
+        : null,\n        \"order\": null,\n        \"outcome\": {\n          \"network_status\"\
+        : \"approved_by_network\",\n          \"reason\": null,\n          \"risk_level\"\
+        : \"normal\",\n          \"risk_score\": 57,\n          \"seller_message\"\
+        : \"Payment complete.\",\n          \"type\": \"authorized\"\n        },\n\
+        \        \"paid\": true,\n        \"payment_intent\": \"pi_1F6bslIUmJaD6Oqv1MNDaBSv\"\
+        ,\n        \"payment_method\": \"pm_1F6bslIUmJaD6OqvcjuBzexd\",\n        \"\
+        payment_method_details\": {\n          \"card\": {\n            \"brand\"\
+        : \"visa\",\n            \"checks\": {\n              \"address_line1_check\"\
+        : null,\n              \"address_postal_code_check\": null,\n            \
+        \  \"cvc_check\": null\n            },\n            \"country\": \"US\",\n\
+        \            \"exp_month\": 8,\n            \"exp_year\": 2020,\n        \
+        \    \"fingerprint\": \"TtkCcsbSxUHACPLM\",\n            \"funding\": \"credit\"\
+        ,\n            \"last4\": \"4242\",\n            \"three_d_secure\": null,\n\
+        \            \"wallet\": null\n          },\n          \"type\": \"card\"\n\
+        \        },\n        \"receipt_email\": null,\n        \"receipt_number\"\
+        : null,\n        \"receipt_url\": \"https://pay.stripe.com/receipts/acct_1EzlmjIUmJaD6Oqv/ch_1F6cKFIUmJaD6Oqvlj3NIJXD/rcpt_Fbq097y9S9bnd5cHgH6oa87TlAT0ta6\"\
+        ,\n        \"refunded\": false,\n        \"refunds\": {\n          \"object\"\
+        : \"list\",\n          \"data\": [\n\n          ],\n          \"has_more\"\
+        : false,\n          \"total_count\": 0,\n          \"url\": \"/v1/charges/ch_1F6cKFIUmJaD6Oqvlj3NIJXD/refunds\"\
+        \n        },\n        \"review\": null,\n        \"shipping\": null,\n   \
+        \     \"source\": null,\n        \"source_transfer\": null,\n        \"statement_descriptor\"\
+        : null,\n        \"statement_descriptor_suffix\": null,\n        \"status\"\
+        : \"succeeded\",\n        \"transfer_data\": null,\n        \"transfer_group\"\
+        : null\n      }\n    ],\n    \"has_more\": false,\n    \"total_count\": 1,\n\
+        \    \"url\": \"/v1/charges?payment_intent=pi_1F6bslIUmJaD6Oqv1MNDaBSv\"\n\
+        \  },\n  \"client_secret\": \"pi_1F6bslIUmJaD6Oqv1MNDaBSv_secret_vQUIoOL8zbTh0ZVXEdzKwnU7O\"\
+        ,\n  \"confirmation_method\": \"automatic\",\n  \"created\": 1565610011,\n\
+        \  \"currency\": \"usd\",\n  \"customer\": null,\n  \"description\": null,\n\
+        \  \"invoice\": null,\n  \"last_payment_error\": null,\n  \"livemode\": false,\n\
+        \  \"metadata\": {\n  },\n  \"next_action\": null,\n  \"on_behalf_of\": null,\n\
+        \  \"payment_method\": \"pm_1F6bslIUmJaD6OqvcjuBzexd\",\n  \"payment_method_options\"\
+        : {\n    \"card\": {\n      \"request_three_d_secure\": \"automatic\"\n  \
+        \  }\n  },\n  \"payment_method_types\": [\n    \"card\"\n  ],\n  \"receipt_email\"\
+        : null,\n  \"review\": null,\n  \"setup_future_usage\": null,\n  \"shipping\"\
+        : null,\n  \"source\": null,\n  \"statement_descriptor\": null,\n  \"statement_descriptor_suffix\"\
+        : null,\n  \"status\": \"succeeded\",\n  \"transfer_data\": null,\n  \"transfer_group\"\
+        : null\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3999'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 12:08:36 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 90e66f61-6641-4975-8039-c185eb6befcd
+      original-request:
+      - req_sAaLx3X78HhJGo
+      request-id:
+      - req_sAaLx3X78HhJGo
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 200
+      message: OK
+version: 1

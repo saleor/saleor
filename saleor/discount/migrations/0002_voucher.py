@@ -3,9 +3,9 @@
 from __future__ import unicode_literals
 
 import datetime
+import os
 
 import django.db.models.deletion
-from django.conf import settings
 from django.db import migrations, models
 
 
@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
                     "discount_value_type",
                     models.CharField(
                         choices=[
-                            ("fixed", settings.DEFAULT_CURRENCY),
+                            ("fixed", os.environ.get("DEFAULT_CURRENCY", "USD")),
                             ("percentage", "%"),
                         ],
                         default="fixed",

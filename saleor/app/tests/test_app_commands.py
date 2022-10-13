@@ -11,7 +11,7 @@ from ..models import App, AppInstallation
 
 @pytest.mark.vcr
 def test_creates_app_from_manifest():
-    manifest_url = "http://localhost:3000/manifest"
+    manifest_url = "http://otherapp:3000/manifest"
     call_command("install_app", manifest_url)
 
     app = App.objects.get()
@@ -23,7 +23,7 @@ def test_creates_app_from_manifest():
 
 @pytest.mark.vcr
 def test_creates_app_from_manifest_activate_app():
-    manifest_url = "http://localhost:3000/manifest"
+    manifest_url = "http://otherapp:3000/manifest"
     call_command("install_app", manifest_url, activate=True)
 
     app = App.objects.get()
@@ -55,12 +55,15 @@ def test_creates_app_from_manifest_sends_token(monkeypatch):
 
     call_command("install_app", manifest_url)
 
-    app = App.objects.get()
-    token = app.tokens.all()[0].auth_token
     mocked_post.assert_called_once_with(
         "http://localhost:3000/register",
-        headers={"Content-Type": "application/json", "x-saleor-domain": "mirumee.com"},
-        json={"auth_token": token},
+        headers={
+            "Content-Type": "application/json",
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "x-saleor-domain": "mirumee.com",
+            "saleor-domain": "mirumee.com",
+        },
+        json={"auth_token": ANY},
         timeout=ANY,
     )
 
@@ -115,11 +118,13 @@ def test_sends_data_to_target_url(monkeypatch):
 
     call_command("create_app", name, permission=permissions, target_url=target_url)
 
-    app = App.objects.filter(name=name)[0]
-    token = app.tokens.all()[0].auth_token
     mocked_post.assert_called_once_with(
         target_url,
-        headers={"x-saleor-domain": "mirumee.com"},
-        json={"auth_token": token},
+        headers={
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "x-saleor-domain": "mirumee.com",
+            "saleor-domain": "mirumee.com",
+        },
+        json={"auth_token": ANY},
         timeout=ANY,
     )

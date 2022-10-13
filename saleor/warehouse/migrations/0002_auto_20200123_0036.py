@@ -21,6 +21,8 @@ class Migration(migrations.Migration):
             field=models.EmailField(blank=True, default="", max_length=254),
         ),
         migrations.AlterField(
-            model_name="warehouse", name="name", field=models.CharField(max_length=255),
+            model_name="warehouse",
+            name="name",
+            field=models.CharField(max_length=255),
         ),
     ]

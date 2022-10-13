@@ -72,12 +72,20 @@ def test_order_query_invoices_customer_user_by_token(api_client, fulfilled_order
     query OrderByToken($token: UUID!) {
         orderByToken(token: $token) {
             invoices {
-                id
+                status
                 number
                 externalUrl
             }
         }
     }
     """
-    response = api_client.post_graphql(query, {"token": fulfilled_order.token})
-    assert_no_permission(response)
+    response = api_client.post_graphql(query, {"token": fulfilled_order.id})
+    content = get_graphql_content(response)
+    data = content["data"]["orderByToken"]
+    assert data["invoices"] == [
+        {
+            "status": JobStatus.SUCCESS.upper(),
+            "externalUrl": "http://www.example.com/invoice.pdf",
+            "number": "01/12/2020/TEST",
+        }
+    ]

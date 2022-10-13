@@ -2,22 +2,29 @@ import graphene
 import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
-from ....account import emails, events as account_events, models, utils
+from ....account import events as account_events
+from ....account import models, notifications, search, utils
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import remove_the_oldest_user_address_if_address_limit_is_reached
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
+from ....core.permissions import AuthorizationFilters
+from ....core.tokens import account_delete_token_generator
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
-from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
-from ...account.enums import AddressTypeEnum
-from ...account.types import Address, AddressInput, User
+from ....giftcard.utils import assign_user_gift_cards
+from ....order.utils import match_orders_with_new_user
+from ...channel.utils import clean_channel
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError
-from ...meta.deprecated.mutations import UpdateMetaBaseMutation
-from ...meta.deprecated.types import MetaInput
+from ...core.types import AccountError, NonNullList
+from ...meta.mutations import MetadataInput
+from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
+from ..types import Address, AddressInput, User
 from .base import (
     INVALID_TOKEN,
     BaseAddressDelete,
@@ -26,14 +33,38 @@ from .base import (
 )
 
 
-class AccountRegisterInput(graphene.InputObjectType):
+class AccountBaseInput(graphene.InputObjectType):
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
+
+
+class AccountRegisterInput(AccountBaseInput):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
     redirect_url = graphene.String(
         description=(
             "Base of frontend URL that will be needed to create confirmation URL."
         ),
         required=False,
+    )
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description="User public metadata.",
+        required=False,
+    )
+    channel = graphene.String(
+        description=(
+            "Slug of a channel which will be used to notify users. Optional when "
+            "only one channel exists."
+        )
     )
 
 
@@ -51,6 +82,7 @@ class AccountRegister(ModelMutation):
         description = "Register a new user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -62,6 +94,9 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
+        data["metadata"] = {
+            item["key"]: item["value"] for item in data.get("metadata") or []
+        }
         if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             return super().clean_input(info, instance, data, input_cls=None)
         elif not data.get("redirect_url"):
@@ -84,31 +119,44 @@ class AccountRegister(ModelMutation):
                 }
             )
 
+        data["channel"] = clean_channel(
+            data.get("channel"), error_class=AccountErrorCode
+        ).slug
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
         except ValidationError as error:
             raise ValidationError({"password": error})
 
+        data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod
+    @traced_atomic_transaction()
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
+        user.search_document = search.prepare_user_search_document_value(
+            user, attach_addresses_data=False
+        )
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
-            emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+            notifications.send_account_confirmation(
+                user,
+                cleaned_input["redirect_url"],
+                info.context.plugins,
+                channel_slug=cleaned_input["channel"],
+            )
         else:
             user.save()
+
         account_events.customer_account_created_event(user=user)
         info.context.plugins.customer_created(customer=user)
 
 
-class AccountInput(graphene.InputObjectType):
-    first_name = graphene.String(description="Given name.")
-    last_name = graphene.String(description="Family name.")
+class AccountInput(AccountBaseInput):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
@@ -128,12 +176,10 @@ class AccountUpdate(BaseCustomerCreate):
         description = "Updates the account of the logged-in user."
         exclude = ["password"]
         model = models.User
+        object_type = User
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -151,20 +197,23 @@ class AccountRequestDeletion(BaseMutation):
                 "delete their account. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used to notify users. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         redirect_url = data["redirect_url"]
         try:
@@ -173,7 +222,12 @@ class AccountRequestDeletion(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
-        emails.send_account_delete_confirmation_email_with_url(redirect_url, user)
+        channel_slug = clean_channel(
+            data.get("channel"), error_class=AccountErrorCode
+        ).slug
+        notifications.send_account_delete_confirmation_notification(
+            redirect_url, user, info.context.plugins, channel_slug=channel_slug
+        )
         return AccountRequestDeletion()
 
 
@@ -190,12 +244,10 @@ class AccountDelete(ModelDeleteMutation):
     class Meta:
         description = "Remove user account."
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -212,7 +264,7 @@ class AccountDelete(ModelDeleteMutation):
         cls.clean_instance(info, user)
 
         token = data.pop("token")
-        if not default_token_generator.check_token(user, token):
+        if not account_delete_token_generator.check_token(user, token):
             raise ValidationError(
                 {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
             )
@@ -247,47 +299,71 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     class Meta:
         description = "Create a new address for the customer."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
         address_type = data.get("type", None)
         user = info.context.user
         cleaned_input = cls.clean_input(
             info=info, instance=Address(), data=data.get("input")
         )
-        address = cls.validate_address(cleaned_input)
+        address = cls.validate_address(cleaned_input, address_type=address_type)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
         if address_type:
-            utils.change_user_default_address(user, address, address_type)
+            utils.change_user_default_address(
+                user, address, address_type, info.context.plugins
+            )
         return AccountAddressCreate(user=user, address=address)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         user = info.context.user
+        remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
+        user.search_document = search.prepare_user_search_document_value(user)
+        user.save(update_fields=["search_document", "updated_at"])
+        transaction.on_commit(
+            lambda: cls.trigger_post_account_address_create_webhooks(
+                info, instance, user
+            )
+        )
+
+    @classmethod
+    def trigger_post_account_address_create_webhooks(cls, info, address, user):
+        info.context.plugins.customer_updated(user)
+        info.context.plugins.address_created(address)
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
-        description = "Updates an address of the logged-in user."
-        model = models.Address
+        auto_permission_message = False
+        description = (
+            "Updates an address of the logged-in user. Requires one of the following "
+            "permissions: MANAGE_USERS, IS_OWNER."
+        )
         error_type_class = AccountError
         error_type_field = "account_errors"
+        model = models.Address
+        object_type = Address
 
 
 class AccountAddressDelete(BaseAddressDelete):
     class Meta:
-        description = "Delete an address of the logged-in user."
+        auto_permission_message = False
+        description = (
+            "Delete an address of the logged-in user. Requires one of the following "
+            "permissions: MANAGE_USERS, IS_OWNER."
+        )
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -305,10 +381,7 @@ class AccountSetDefaultAddress(BaseMutation):
         description = "Sets a default address for the authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -330,31 +403,11 @@ class AccountSetDefaultAddress(BaseMutation):
         else:
             address_type = AddressType.SHIPPING
 
-        utils.change_user_default_address(user, address, address_type)
-        return cls(user=user)
-
-
-class AccountUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata of the logged-in user."
-        model = models.User
-        public = True
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-    class Arguments:
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
+        utils.change_user_default_address(
+            user, address, address_type, info.context.plugins
         )
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        return info.context.user
+        info.context.plugins.customer_updated(user)
+        return cls(user=user)
 
 
 class RequestEmailChange(BaseMutation):
@@ -370,15 +423,18 @@ class RequestEmailChange(BaseMutation):
                 "update the email address. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used to notify users. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = "Request email change of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -410,13 +466,25 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
+        channel_slug = clean_channel(
+            data.get("channel"),
+            error_class=AccountErrorCode,
+        ).slug
+
         token_payload = {
             "old_email": user.email,
             "new_email": new_email,
             "user_pk": user.pk,
         }
-        token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
-        emails.send_user_change_email_url(redirect_url, user, new_email, token)
+        token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
+        notifications.send_request_user_change_email_notification(
+            redirect_url,
+            user,
+            new_email,
+            token,
+            info.context.plugins,
+            channel_slug=channel_slug,
+        )
         return RequestEmailChange(user=user)
 
 
@@ -427,15 +495,18 @@ class ConfirmEmailChange(BaseMutation):
         token = graphene.String(
             description="A one-time token required to change the email.", required=True
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used to notify users. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = "Confirm the email change of the logged-in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def get_token_payload(cls, token):
@@ -471,11 +542,18 @@ class ConfirmEmailChange(BaseMutation):
             )
 
         user.email = new_email
-        user.save(update_fields=["email"])
-        emails.send_user_change_email_notification(old_email)
-        event_parameters = {"old_email": old_email, "new_email": new_email}
+        user.search_document = search.prepare_user_search_document_value(user)
+        user.save(update_fields=["email", "search_document", "updated_at"])
 
-        account_events.customer_email_changed_event(
-            user=user, parameters=event_parameters
+        channel_slug = clean_channel(
+            data.get("channel"), error_class=AccountErrorCode
+        ).slug
+
+        assign_user_gift_cards(user)
+        match_orders_with_new_user(user)
+
+        notifications.send_user_change_email_notification(
+            old_email, user, info.context.plugins, channel_slug=channel_slug
         )
+        info.context.plugins.customer_updated(user)
         return ConfirmEmailChange(user=user)

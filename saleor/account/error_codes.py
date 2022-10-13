@@ -12,12 +12,12 @@ class AccountErrorCode(Enum):
     DELETE_STAFF_ACCOUNT = "delete_staff_account"
     DELETE_SUPERUSER_ACCOUNT = "delete_superuser_account"
     GRAPHQL_ERROR = "graphql_error"
+    INACTIVE = "inactive"
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
     LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
     INVALID_CREDENTIALS = "invalid_credentials"
     NOT_FOUND = "not_found"
-    OUT_OF_SCOPE_SERVICE_ACCOUNT = "out_of_scope_service_account"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
     OUT_OF_SCOPE_GROUP = "out_of_scope_group"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
@@ -32,6 +32,9 @@ class AccountErrorCode(Enum):
     JWT_DECODE_ERROR = "decode_error"
     JWT_MISSING_TOKEN = "missing_token"
     JWT_INVALID_CSRF_TOKEN = "invalid_csrf_token"
+    CHANNEL_INACTIVE = "channel_inactive"
+    MISSING_CHANNEL_SLUG = "missing_channel_slug"
+    ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
 
 
 class PermissionGroupErrorCode(Enum):

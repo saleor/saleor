@@ -1,5 +1,8 @@
-class AuthenticationBackends:
-    GOOGLE = "google-oauth2"
-    FACEBOOK = "facebook"
+class GiftCardSettingsExpiryType:
+    NEVER_EXPIRE = "never_expire"
+    EXPIRY_PERIOD = "expiry_period"
 
-    BACKENDS = ((FACEBOOK, "Facebook-Oauth2"), (GOOGLE, "Google-Oauth2"))
+    CHOICES = [
+        (NEVER_EXPIRE, "Never expire"),
+        (EXPIRY_PERIOD, "Expiry period"),
+    ]

@@ -2,19 +2,112 @@ from decimal import Decimal
 from operator import attrgetter
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
+from django_prices.models import MoneyField
 from prices import Money
 
 from ..checkout.models import Checkout
+from ..core.models import ModelWithMetadata
+from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
-from ..order.models import Order
-from . import ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind
+from . import (
+    ChargeStatus,
+    CustomPaymentChoices,
+    StorePaymentMethod,
+    TransactionAction,
+    TransactionKind,
+    TransactionStatus,
+)
 
 
-class Payment(models.Model):
+class TransactionItem(ModelWithMetadata):
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=512, blank=True, default="")
+    type = models.CharField(max_length=512, blank=True, default="")
+    reference = models.CharField(max_length=512, blank=True, default="")
+    available_actions = ArrayField(
+        models.CharField(max_length=128, choices=TransactionAction.CHOICES),
+        default=list,
+    )
+
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+
+    amount_charged = MoneyField(amount_field="charged_value", currency_field="currency")
+    charged_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_authorized = MoneyField(
+        amount_field="authorized_value", currency_field="currency"
+    )
+    authorized_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_refunded = MoneyField(
+        amount_field="refunded_value", currency_field="currency"
+    )
+    refunded_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_voided = MoneyField(amount_field="voided_value", currency_field="currency")
+    voided_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
+    checkout = models.ForeignKey(
+        Checkout,
+        null=True,
+        related_name="payment_transactions",
+        on_delete=models.SET_NULL,
+    )
+    order = models.ForeignKey(
+        "order.Order",
+        related_name="payment_transactions",
+        null=True,
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        ordering = ("pk",)
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            # Orders filtering by status index
+            GinIndex(fields=["order_id", "status"]),
+        ]
+
+
+class TransactionEvent(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=128,
+        choices=TransactionStatus.CHOICES,
+        default=TransactionStatus.SUCCESS,
+    )
+    reference = models.CharField(max_length=512, blank=True, default="")
+    name = models.CharField(max_length=512, blank=True, default="")
+
+    transaction = models.ForeignKey(
+        TransactionItem, related_name="events", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ("pk",)
+
+
+class Payment(ModelWithMetadata):
     """A model that represents a single payment.
 
     This might be a transactable payment information such as credit card
@@ -32,8 +125,9 @@ class Payment(models.Model):
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    partial = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
         max_length=20, choices=ChargeStatus.CHOICES, default=ChargeStatus.NOT_CHARGED
     )
@@ -56,7 +150,15 @@ class Payment(models.Model):
         Checkout, null=True, related_name="payments", on_delete=models.SET_NULL
     )
     order = models.ForeignKey(
-        Order, null=True, related_name="payments", on_delete=models.PROTECT
+        "order.Order",
+        related_name="payments",
+        null=True,
+        on_delete=models.PROTECT,
+    )
+    store_payment_method = models.CharField(
+        max_length=11,
+        choices=StorePaymentMethod.CHOICES,
+        default=StorePaymentMethod.NONE,
     )
 
     billing_email = models.EmailField(blank=True)
@@ -86,15 +188,29 @@ class Payment(models.Model):
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     extra_data = models.TextField(blank=True, default="")
     return_url = models.URLField(blank=True, null=True)
+    psp_reference = models.CharField(
+        max_length=512, null=True, blank=True, db_index=True
+    )
 
     class Meta:
         ordering = ("pk",)
+        permissions = (
+            (
+                PaymentPermissions.HANDLE_PAYMENTS.codename,
+                "Handle payments",
+            ),
+        )
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            # Orders filtering by status index
+            GinIndex(fields=["order_id", "is_active", "charge_status"]),
+        ]
 
     def __repr__(self):
         return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (
             self.gateway,
             self.is_active,
-            self.created,
+            self.created_at,
             self.charge_status,
         )
 
@@ -102,10 +218,10 @@ class Payment(models.Model):
         return max(self.transactions.all(), default=None, key=attrgetter("pk"))
 
     def get_total(self):
-        return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
+        return Money(self.total, self.currency)
 
     def get_authorized_amount(self):
-        money = zero_money()
+        money = zero_money(self.currency)
 
         # Query all the transactions which should be prefetched
         # to optimize db queries
@@ -132,14 +248,14 @@ class Payment(models.Model):
 
         # Calculate authorized amount from all succeeded auth transactions
         for txn in authorized_txns:
-            money += Money(txn.amount, self.currency or settings.DEFAULT_CURRENCY)
+            money += Money(txn.amount, self.currency)
 
         # If multiple partial capture is supported later though it's unlikely,
         # the authorized amount should exclude the already captured amount here
         return money
 
     def get_captured_amount(self):
-        return Money(self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
+        return Money(self.captured_amount, self.currency)
 
     def get_charge_amount(self):
         """Retrieve the maximum capture possible."""
@@ -169,7 +285,7 @@ class Payment(models.Model):
         return True
 
     def can_void(self):
-        return self.is_active and self.not_charged and self.is_authorized
+        return self.not_charged and self.is_authorized
 
     def can_refund(self):
         can_refund_charge_status = (
@@ -177,14 +293,13 @@ class Payment(models.Model):
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
         )
-        return (
-            self.is_active
-            and self.charge_status in can_refund_charge_status
-            and self.gateway != CustomPaymentChoices.MANUAL
-        )
+        return self.charge_status in can_refund_charge_status
 
     def can_confirm(self):
         return self.is_active and self.not_charged
+
+    def is_manual(self):
+        return self.gateway == CustomPaymentChoices.MANUAL
 
 
 class Transaction(models.Model):
@@ -194,7 +309,7 @@ class Transaction(models.Model):
     and your customers, with a chosen payment method.
     """
 
-    created = models.DateTimeField(auto_now_add=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
     payment = models.ForeignKey(
         Payment, related_name="transactions", on_delete=models.PROTECT
     )
@@ -211,15 +326,10 @@ class Transaction(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
-    error = models.CharField(
-        choices=[(tag, tag.value) for tag in TransactionError],
-        max_length=256,
-        null=True,
-    )
+    error = models.TextField(null=True)
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
-    searchable_key = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)
@@ -228,8 +338,8 @@ class Transaction(models.Model):
         return "Transaction(type=%s, is_success=%s, created=%s)" % (
             self.kind,
             self.is_success,
-            self.created,
+            self.created_at,
         )
 
     def get_amount(self):
-        return Money(self.amount, self.currency or settings.DEFAULT_CURRENCY)
+        return Money(self.amount, self.currency)

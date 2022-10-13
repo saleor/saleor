@@ -9,11 +9,31 @@ from ...tests.utils import get_graphql_content
 def warehouses_for_pagination(db, address):
     return Warehouse.objects.bulk_create(
         [
-            Warehouse(name="Warehouse1", address=address, slug="w1",),
-            Warehouse(name="WarehouseWarehouse1", address=address, slug="ww1",),
-            Warehouse(name="WarehouseWarehouse2", address=address, slug="ww2",),
-            Warehouse(name="Warehouse2", address=address, slug="w2",),
-            Warehouse(name="Warehouse3", address=address, slug="w3",),
+            Warehouse(
+                name="Warehouse1",
+                address=address,
+                slug="w1",
+            ),
+            Warehouse(
+                name="WarehouseWarehouse1",
+                address=address,
+                slug="ww1",
+            ),
+            Warehouse(
+                name="WarehouseWarehouse2",
+                address=address,
+                slug="ww2",
+            ),
+            Warehouse(
+                name="Warehouse2",
+                address=address,
+                slug="w2",
+            ),
+            Warehouse(
+                name="Warehouse3",
+                address=address,
+                slug="w3",
+            ),
         ]
     )
 
@@ -108,7 +128,9 @@ def test_warehouses_pagination_with_filtering(
 
 
 def test_warehouses_pagination_with_filtering_by_id(
-    staff_api_client, permission_manage_products, warehouses_for_pagination,
+    staff_api_client,
+    permission_manage_products,
+    warehouses_for_pagination,
 ):
     page_size = 2
     warehouses_order = ["WarehouseWarehouse2", "WarehouseWarehouse1"]

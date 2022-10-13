@@ -18,11 +18,36 @@ def test_get_order_payloads(order_with_lines):
     assert Decimal(transaction["tt"]) == order.total.tax.amount
     assert Decimal(transaction["ts"]) == order.shipping_price.net.amount
 
-    for i, line in enumerate(order):
+    for i, line in enumerate(order.lines.all()):
         item = data[i + 1]
         assert item["ti"] == order.pk
         assert item["in"] == line.variant.display_product()
         assert item["ic"] == line.product_sku
+        assert item["iq"] == str(int(line.quantity))
+        assert item["cu"] == line.unit_price.currency
+        assert Decimal(item["ip"]) == line.unit_price.gross.amount
+
+
+def test_get_order_without_sku_payloads(order_with_lines):
+    order = order_with_lines
+    order.lines.update(product_sku=None, product_variant_id="TEST_ID")
+
+    generator = get_order_payloads(order)
+    data = list(generator)
+    assert len(data) == order.lines.count() + 1
+
+    transaction = data[0]
+    assert transaction["ti"] == order.pk
+    assert transaction["cu"] == order.total.currency
+    assert Decimal(transaction["tr"]) == order.total.gross.amount
+    assert Decimal(transaction["tt"]) == order.total.tax.amount
+    assert Decimal(transaction["ts"]) == order.shipping_price.net.amount
+
+    for i, line in enumerate(order.lines.all()):
+        item = data[i + 1]
+        assert item["ti"] == order.pk
+        assert item["in"] == line.variant.display_product()
+        assert item["ic"] == line.product_variant_id
         assert item["iq"] == str(int(line.quantity))
         assert item["cu"] == line.unit_price.currency
         assert Decimal(item["ip"]) == line.unit_price.gross.amount

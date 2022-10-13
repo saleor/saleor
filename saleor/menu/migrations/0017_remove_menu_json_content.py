@@ -10,5 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="menu", name="json_content",),
+        migrations.RemoveField(
+            model_name="menu",
+            name="json_content",
+        ),
     ]

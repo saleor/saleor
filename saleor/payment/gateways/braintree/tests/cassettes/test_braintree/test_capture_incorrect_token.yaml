@@ -1,0 +1,59 @@
+interactions:
+- request:
+    body: <transaction><amount>80.00</amount></transaction>
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '49'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: PUT
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions/12345/submit_for_settlement
+  response:
+    body:
+      string: !!binary |
+        H4sIAMmsFF0AAwAAAP//AwAAAAAAAAAAAA==
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Thu, 27 Jun 2019 11:47:21 GMT
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 02-1561636040.719-79.110.196.19-2068338
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 02-1561636040.719-79.110.196.19-2068338
+      X-Runtime:
+      - '0.079389'
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 404
+      message: Not Found
+version: 1

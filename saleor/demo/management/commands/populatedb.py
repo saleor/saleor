@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from ....channel.models import Channel
 from ....core.management.commands.populatedb import Command as PopulateDBCommand
 from ....payment.gateways.braintree.plugin import BraintreeGatewayPlugin
 from ....plugins.manager import get_plugins_manager
@@ -13,19 +14,22 @@ def configure_braintree():
     if not (braintree_api_key and braintree_merchant_id and braintree_secret):
         return False
 
+    channels = Channel.objects.all()
     manager = get_plugins_manager()
-    manager.save_plugin_configuration(
-        BraintreeGatewayPlugin.PLUGIN_ID,
-        {
-            "active": True,
-            "configuration": [
-                {"name": "Public API key", "value": braintree_api_key},
-                {"name": "Merchant ID", "value": braintree_merchant_id},
-                {"name": "Secret API key", "value": braintree_secret},
-                {"name": "Use sandbox", "value": True},
-            ],
-        },
-    )
+    for channel in channels:
+        manager.save_plugin_configuration(
+            BraintreeGatewayPlugin.PLUGIN_ID,
+            channel.slug,
+            {
+                "active": True,
+                "configuration": [
+                    {"name": "Public API key", "value": braintree_api_key},
+                    {"name": "Merchant ID", "value": braintree_merchant_id},
+                    {"name": "Secret API key", "value": braintree_secret},
+                    {"name": "Use sandbox", "value": True},
+                ],
+            },
+        )
     return True
 
 

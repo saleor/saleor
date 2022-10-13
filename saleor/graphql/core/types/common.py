@@ -1,19 +1,30 @@
-import graphene
+from urllib.parse import urljoin
 
-from ....product.templatetags.product_images import get_thumbnail
-from ...translations.enums import LanguageCodeEnum
+import graphene
+from django.conf import settings
+
+from ....core.tracing import traced_resolver
+from ...account.enums import AddressTypeEnum
+from ..descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
+    AttributeErrorCode,
+    ChannelErrorCode,
     CheckoutErrorCode,
+    CollectionErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
+    ExternalNotificationTriggerErrorCode,
     GiftCardErrorCode,
+    GiftCardSettingsErrorCode,
     InvoiceErrorCode,
     JobStatusEnum,
+    LanguageCodeEnum,
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
+    OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
     PermissionEnum,
@@ -23,13 +34,31 @@ from ..enums import (
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    ThumbnailFormatEnum,
+    TimePeriodTypeEnum,
+    TransactionCreateErrorCode,
+    TransactionRequestActionErrorCode,
+    TransactionUpdateErrorCode,
     TranslationErrorCode,
+    UploadErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WeightUnitsEnum,
-    WishlistErrorCode,
 )
+from ..scalars import PositiveDecimal
 from .money import VAT
+
+# deprecated - this is temporary constant that contains the graphql types
+# which has double id available - uuid and old int id
+TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine", "OrderDiscount", "CheckoutLine"]
+
+
+class NonNullList(graphene.List):
+    """A list type that automatically adds non-null constraint on contained items."""
+
+    def __init__(self, of_type, *args, **kwargs):
+        of_type = graphene.NonNull(of_type)
+        super(NonNullList, self).__init__(of_type, *args, **kwargs)
 
 
 class CountryDisplay(graphene.ObjectType):
@@ -71,54 +100,109 @@ class Error(graphene.ObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
+    address_type = AddressTypeEnum(
+        description="A type of address that causes the error.", required=False
+    )
 
 
 class AppError(Error):
     code = AppErrorCode(description="The error code.", required=True)
-    permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    permissions = NonNullList(
+        PermissionEnum,
         description="List of permissions which causes the error.",
         required=False,
     )
+
+
+class AttributeError(Error):
+    code = AttributeErrorCode(description="The error code.", required=True)
 
 
 class StaffError(AccountError):
-    permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    permissions = NonNullList(
+        PermissionEnum,
         description="List of permissions which causes the error.",
         required=False,
     )
-    groups = graphene.List(
-        graphene.NonNull(graphene.ID),
+    groups = NonNullList(
+        graphene.ID,
         description="List of permission group IDs which cause the error.",
         required=False,
     )
-    users = graphene.List(
-        graphene.NonNull(graphene.ID),
+    users = NonNullList(
+        graphene.ID,
         description="List of user IDs which causes the error.",
+        required=False,
+    )
+
+
+class ChannelError(Error):
+    code = ChannelErrorCode(description="The error code.", required=True)
+    shipping_zones = NonNullList(
+        graphene.ID,
+        description="List of shipping zone IDs which causes the error.",
+        required=False,
+    )
+    warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouses IDs which causes the error.",
         required=False,
     )
 
 
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
-    variants = graphene.List(
-        graphene.NonNull(graphene.ID),
+    variants = NonNullList(
+        graphene.ID,
         description="List of varint IDs which causes the error.",
         required=False,
     )
+    lines = NonNullList(
+        graphene.ID,
+        description="List of line Ids which cause the error.",
+        required=False,
+    )
+    address_type = AddressTypeEnum(
+        description="A type of address that causes the error.", required=False
+    )
 
 
-class DiscountError(Error):
+class ProductWithoutVariantError(Error):
+    products = NonNullList(
+        graphene.ID,
+        description="List of products IDs which causes the error.",
+    )
+
+
+class DiscountError(ProductWithoutVariantError):
     code = DiscountErrorCode(description="The error code.", required=True)
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
 
 
 class ExportError(Error):
     code = ExportErrorCode(description="The error code.", required=True)
 
 
+class ExternalNotificationError(Error):
+    code = ExternalNotificationTriggerErrorCode(
+        description="The error code.", required=True
+    )
+
+
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
+
+
+class OrderSettingsError(Error):
+    code = OrderSettingsErrorCode(description="The error code.", required=True)
+
+
+class GiftCardSettingsError(Error):
+    code = GiftCardSettingsErrorCode(description="The error code.", required=True)
 
 
 class MetadataError(Error):
@@ -128,10 +212,21 @@ class MetadataError(Error):
 class OrderError(Error):
     code = OrderErrorCode(description="The error code.", required=True)
     warehouse = graphene.ID(
-        description="Warehouse ID which causes the error.", required=False,
+        description="Warehouse ID which causes the error.",
+        required=False,
     )
-    order_line = graphene.ID(
-        description="Order line ID which causes the error.", required=False,
+    order_lines = NonNullList(
+        graphene.ID,
+        description="List of order line IDs that cause the error.",
+        required=False,
+    )
+    variants = NonNullList(
+        graphene.ID,
+        description="List of product variants that are associated with the error",
+        required=False,
+    )
+    address_type = AddressTypeEnum(
+        description="A type of address that causes the error.", required=False
     )
 
 
@@ -141,13 +236,13 @@ class InvoiceError(Error):
 
 class PermissionGroupError(Error):
     code = PermissionGroupErrorCode(description="The error code.", required=True)
-    permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    permissions = NonNullList(
+        PermissionEnum,
         description="List of permissions which causes the error.",
         required=False,
     )
-    users = graphene.List(
-        graphene.NonNull(graphene.ID),
+    users = NonNullList(
+        graphene.ID,
         description="List of user IDs which causes the error.",
         required=False,
     )
@@ -155,9 +250,39 @@ class PermissionGroupError(Error):
 
 class ProductError(Error):
     code = ProductErrorCode(description="The error code.", required=True)
-    attributes = graphene.List(
-        graphene.NonNull(graphene.ID),
+    attributes = NonNullList(
+        graphene.ID,
         description="List of attributes IDs which causes the error.",
+        required=False,
+    )
+    values = NonNullList(
+        graphene.ID,
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
+
+
+class CollectionError(ProductWithoutVariantError):
+    code = CollectionErrorCode(description="The error code.", required=True)
+
+
+class ProductChannelListingError(ProductError):
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+    variants = NonNullList(
+        graphene.ID,
+        description="List of variants IDs which causes the error.",
+        required=False,
+    )
+
+
+class CollectionChannelListingError(ProductError):
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channels IDs which causes the error.",
         required=False,
     )
 
@@ -166,9 +291,14 @@ class BulkProductError(ProductError):
     index = graphene.Int(
         description="Index of an input list item that caused the error."
     )
-    warehouses = graphene.List(
-        graphene.NonNull(graphene.ID),
+    warehouses = NonNullList(
+        graphene.ID,
         description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channel IDs which causes the error.",
         required=False,
     )
 
@@ -179,23 +309,62 @@ class ShopError(Error):
 
 class ShippingError(Error):
     code = ShippingErrorCode(description="The error code.", required=True)
-    warehouses = graphene.List(
-        graphene.NonNull(graphene.ID),
+    warehouses = NonNullList(
+        graphene.ID,
         description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channels IDs which causes the error.",
         required=False,
     )
 
 
 class PageError(Error):
     code = PageErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
+    values = NonNullList(
+        graphene.ID,
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
 
 
 class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)
+    variants = NonNullList(
+        graphene.ID,
+        description="List of variant IDs which causes the error.",
+        required=False,
+    )
+
+
+class TransactionCreateError(Error):
+    code = TransactionCreateErrorCode(description="The error code.", required=True)
+
+
+class TransactionUpdateError(Error):
+    code = TransactionUpdateErrorCode(description="The error code.", required=True)
+
+
+class TransactionRequestActionError(Error):
+    code = TransactionRequestActionErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
+    tags = NonNullList(
+        graphene.String,
+        description="List of tag values that cause the error.",
+        required=False,
+    )
 
 
 class PluginError(Error):
@@ -212,16 +381,21 @@ class BulkStockError(ProductError):
     )
 
 
+class UploadError(Error):
+    code = UploadErrorCode(description="The error code.", required=True)
+
+
 class WarehouseError(Error):
     code = WarehouseErrorCode(description="The error code.", required=True)
+    shipping_zones = NonNullList(
+        graphene.ID,
+        description="List of shipping zones IDs which causes the error.",
+        required=False,
+    )
 
 
 class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.", required=True)
-
-
-class WishlistError(Error):
-    code = WishlistErrorCode(description="The error code.", required=True)
 
 
 class TranslationError(Error):
@@ -249,19 +423,24 @@ class Image(graphene.ObjectType):
         description = "Represents an image."
 
     @staticmethod
-    def get_adjusted(image, alt, size, rendition_key_set, info):
-        """Return Image adjusted with given size."""
-        if size:
-            url = get_thumbnail(
-                image_file=image,
-                size=size,
-                method="thumbnail",
-                rendition_key_set=rendition_key_set,
-            )
-        else:
-            url = image.url
-        url = info.context.build_absolute_uri(url)
-        return Image(url, alt)
+    def resolve_url(root, info):
+        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+
+
+class File(graphene.ObjectType):
+    url = graphene.String(required=True, description="The URL of the file.")
+    content_type = graphene.String(
+        required=False, description="Content type of the file."
+    )
+
+    @staticmethod
+    def resolve_url(root, info):
+        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+
+
+class PriceInput(graphene.InputObjectType):
+    currency = graphene.String(description="Currency code.", required=True)
+    amount = PositiveDecimal(description="Amount of money.", required=True)
 
 
 class PriceRangeInput(graphene.InputObjectType):
@@ -284,6 +463,11 @@ class IntRangeInput(graphene.InputObjectType):
     lte = graphene.Int(description="Value less than or equal to.", required=False)
 
 
+class TimePeriodInputType(graphene.InputObjectType):
+    amount = graphene.Int(description="The length of the period.", required=True)
+    type = TimePeriodTypeEnum(description="The type of the period.", required=True)
+
+
 class TaxType(graphene.ObjectType):
     """Representation of tax types fetched from tax gateway."""
 
@@ -304,9 +488,36 @@ class Job(graphene.Interface):
     message = graphene.String(description="Job message.")
 
     @classmethod
+    @traced_resolver
     def resolve_type(cls, instance, _info):
         """Map a data object to a Graphene type."""
         MODEL_TO_TYPE_MAP = {
             # <DjangoModel>: <GrapheneType>
         }
         return MODEL_TO_TYPE_MAP.get(type(instance))
+
+
+class TimePeriod(graphene.ObjectType):
+    amount = graphene.Int(description="The length of the period.", required=True)
+    type = TimePeriodTypeEnum(description="The type of the period.", required=True)
+
+
+class ThumbnailField(graphene.Field):
+    size = graphene.Int(
+        description=(
+            "Size of the image. If not provided, the original image "
+            "will be returned."
+        )
+    )
+    format = ThumbnailFormatEnum(
+        description=(
+            "The format of the image. When not provided, format of the original "
+            "image will be used. Must be provided together with the size value, "
+            "otherwise original image will be returned." + ADDED_IN_36 + PREVIEW_FEATURE
+        )
+    )
+
+    def __init__(self, of_type=Image, *args, **kwargs):
+        kwargs["size"] = self.size
+        kwargs["format"] = self.format
+        super().__init__(of_type, *args, **kwargs)

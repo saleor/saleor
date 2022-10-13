@@ -16,20 +16,6 @@ from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
 
-class WeightUnits:
-    KILOGRAM = "kg"
-    POUND = "lb"
-    OUNCE = "oz"
-    GRAM = "g"
-
-    CHOICES = [
-        (KILOGRAM, "kg"),
-        (POUND, "lb"),
-        (OUNCE, "oz"),
-        (GRAM, "g"),
-    ]
-
-
 def zero_weight():
     """Represent the zero weight value."""
     return Weight(kg=0)
@@ -37,7 +23,7 @@ def zero_weight():
 
 def convert_weight(weight: Weight, unit: str) -> Weight:
     """Covert weight to given unit and round it to 3 digits after decimal point."""
-    # Weight amount from the Weight instance can be retrived in serveral units
+    # Weight amount from the Weight instance can be retrieved in several units
     # via its properties. eg. Weight(lb=10).kg
     converted_weight = getattr(weight, unit)
     weight = Weight(**{unit: converted_weight})

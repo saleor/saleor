@@ -1,27 +1,43 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
 
-from django.db import transaction
+from django.contrib.auth.models import AnonymousUser
 
-from ..payment.interface import TokenConfig
-from ..plugins.manager import get_plugins_manager
-from . import GatewayError, PaymentError, TransactionKind
-from .models import Payment, Transaction
+from ..account.models import User
+from ..app.models import App
+from ..core.prices import quantize_price
+from ..core.tracing import traced_atomic_transaction
+from ..order.events import (
+    event_transaction_capture_requested,
+    event_transaction_refund_requested,
+    event_transaction_void_requested,
+)
+from ..payment.interface import (
+    CustomerSource,
+    PaymentGateway,
+    RefundData,
+    TransactionActionData,
+)
+from . import GatewayError, PaymentError, TransactionAction, TransactionKind
+from .models import Payment, Transaction, TransactionItem
 from .utils import (
     clean_authorize,
     clean_capture,
     create_payment_information,
+    create_transaction,
     gateway_postprocess,
     get_already_processed_transaction_or_create_new_transaction,
-    update_payment_method_details,
+    update_payment,
     validate_gateway_response,
 )
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..payment.interface import CustomerSource, PaymentGateway
+    from ..plugins.manager import PluginsManager
 
+UserType = Optional[User]
+AppType = Optional[App]
 
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
@@ -60,11 +76,108 @@ def with_locked_payment(fn: Callable) -> Callable:
     """Lock payment to protect from asynchronous modification."""
 
     def wrapped(payment: Payment, *args, **kwargs):
-        with transaction.atomic():
+        with traced_atomic_transaction():
             payment = Payment.objects.select_for_update().get(id=payment.id)
             return fn(payment, *args, **kwargs)
 
     return wrapped
+
+
+def request_charge_action(
+    transaction: TransactionItem,
+    manager: "PluginsManager",
+    charge_value: Optional[Decimal],
+    channel_slug: str,
+    user: UserType,
+    app: AppType,
+):
+
+    if charge_value is None:
+        charge_value = transaction.authorized_value
+
+    _request_payment_action(
+        transaction=transaction,
+        manager=manager,
+        action_type=TransactionAction.CHARGE,
+        action_value=charge_value,
+        channel_slug=channel_slug,
+    )
+    if order_id := transaction.order_id:
+        event_transaction_capture_requested(
+            order_id=order_id,
+            reference=transaction.reference,
+            amount=quantize_price(charge_value, transaction.currency),
+            user=user,
+            app=app,
+        )
+
+
+def request_refund_action(
+    transaction: TransactionItem,
+    manager: "PluginsManager",
+    refund_value: Optional[Decimal],
+    channel_slug: str,
+    user: UserType,
+    app: AppType,
+):
+    if refund_value is None:
+        refund_value = transaction.charged_value
+
+    _request_payment_action(
+        transaction=transaction,
+        manager=manager,
+        action_type=TransactionAction.REFUND,
+        action_value=refund_value,
+        channel_slug=channel_slug,
+    )
+    if order_id := transaction.order_id:
+        event_transaction_refund_requested(
+            order_id=order_id,
+            reference=transaction.reference,
+            amount=quantize_price(refund_value, transaction.currency),
+            user=user,
+            app=app,
+        )
+
+
+def request_void_action(
+    transaction: TransactionItem,
+    manager: "PluginsManager",
+    channel_slug: str,
+    user: UserType,
+    app: AppType,
+):
+    _request_payment_action(
+        transaction=transaction,
+        manager=manager,
+        action_type=TransactionAction.VOID,
+        action_value=None,
+        channel_slug=channel_slug,
+    )
+    if order_id := transaction.order_id:
+        event_transaction_void_requested(
+            order_id=order_id, reference=transaction.reference, user=user, app=app
+        )
+
+
+def _request_payment_action(
+    transaction: TransactionItem,
+    manager: "PluginsManager",
+    action_type: str,
+    action_value: Optional[Decimal],
+    channel_slug: str,
+):
+    payment_data = TransactionActionData(
+        transaction=transaction, action_type=action_type, action_value=action_value
+    )
+    event_active = manager.is_event_active_for_any_plugin(
+        "transaction_action_request", channel_slug=channel_slug
+    )
+    if not event_active:
+        raise PaymentError(
+            "No app or plugin is configured to handle payment action requests."
+        )
+    manager.transaction_action_request(payment_data, channel_slug=channel_slug)
 
 
 @raise_payment_error
@@ -74,23 +187,30 @@ def with_locked_payment(fn: Callable) -> Callable:
 def process_payment(
     payment: Payment,
     token: str,
+    manager: "PluginsManager",
+    channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
 ) -> Transaction:
-    plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
         payment=payment,
+        manager=manager,
         payment_token=token,
+        customer_id=customer_id,
         store_source=store_source,
         additional_data=additional_data,
     )
 
     response, error = _fetch_gateway_response(
-        plugin_manager.process_payment, payment.gateway, payment_data
+        manager.process_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
     action_required = response is not None and response.action_required
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -105,17 +225,30 @@ def process_payment(
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def authorize(
+    payment: Payment,
+    token: str,
+    manager: "PluginsManager",
+    channel_slug: str,
+    customer_id: str = None,
+    store_source: bool = False,
+) -> Transaction:
     clean_authorize(payment)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, store_source=store_source
+        payment=payment,
+        manager=manager,
+        payment_token=token,
+        customer_id=customer_id,
+        store_source=store_source,
     )
     response, error = _fetch_gateway_response(
-        plugin_manager.authorize_payment, payment.gateway, payment_data
+        manager.authorize_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.AUTH,
@@ -131,21 +264,33 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
 @with_locked_payment
 @payment_postprocess
 def capture(
-    payment: Payment, amount: Decimal = None, store_source: bool = False
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+    amount: Decimal = None,
+    customer_id: str = None,
+    store_source: bool = False,
 ) -> Transaction:
-    plugin_manager = get_plugins_manager()
     if amount is None:
         amount = payment.get_charge_amount()
     clean_capture(payment, Decimal(amount))
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, amount=amount, store_source=store_source
+        payment=payment,
+        manager=manager,
+        payment_token=token,
+        amount=amount,
+        customer_id=customer_id,
+        store_source=store_source,
     )
     response, error = _fetch_gateway_response(
-        plugin_manager.capture_payment, payment.gateway, payment_data
+        manager.capture_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -156,22 +301,42 @@ def capture(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
-def refund(payment: Payment, amount: Decimal = None) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def refund(
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+    amount: Decimal = None,
+    refund_data: Optional["RefundData"] = None,
+) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
     _validate_refund_amount(payment, amount)
     if not payment.can_refund():
         raise PaymentError("This payment cannot be refunded.")
-    token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
+
+    kind = TransactionKind.EXTERNAL if payment.is_manual() else TransactionKind.CAPTURE
+
+    token = _get_past_transaction_token(payment, kind)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, amount=amount
+        payment=payment,
+        manager=manager,
+        payment_token=token,
+        amount=amount,
+        refund_data=refund_data,
     )
+    if payment.is_manual():
+        # for manual payment we just need to mark payment as a refunded
+        return create_transaction(
+            payment,
+            TransactionKind.REFUND,
+            payment_information=payment_data,
+            is_success=True,
+        )
+
     response, error = _fetch_gateway_response(
-        plugin_manager.refund_payment, payment.gateway, payment_data
+        manager.refund_payment, payment.gateway, payment_data, channel_slug=channel_slug
     )
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
@@ -183,15 +348,19 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
-def void(payment: Payment) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def void(
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+) -> Transaction:
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
-    payment_data = create_payment_information(payment=payment, payment_token=token)
+    payment_data = create_payment_information(
+        payment=payment, manager=manager, payment_token=token
+    )
     response, error = _fetch_gateway_response(
-        plugin_manager.void_payment, payment.gateway, payment_data
+        manager.void_payment, payment.gateway, payment_data, channel_slug=channel_slug
     )
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
@@ -206,21 +375,31 @@ def void(payment: Payment) -> Transaction:
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def confirm(
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+    additional_data: Optional[dict] = None,
+) -> Transaction:
     txn = payment.transactions.filter(
         kind=TransactionKind.ACTION_TO_CONFIRM, is_success=True
     ).last()
     token = txn.token if txn else ""
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, additional_data=additional_data
+        payment=payment,
+        manager=manager,
+        payment_token=token,
+        additional_data=additional_data,
     )
     response, error = _fetch_gateway_response(
-        plugin_manager.confirm_payment, payment.gateway, payment_data
+        manager.confirm_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
     action_required = response is not None and response.action_required
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CONFIRM,
@@ -231,19 +410,19 @@ def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transac
     )
 
 
-def list_payment_sources(gateway: str, customer_id: str) -> List["CustomerSource"]:
-    plugin_manager = get_plugins_manager()
-    return plugin_manager.list_payment_sources(gateway, customer_id)
+def list_payment_sources(
+    gateway: str,
+    customer_id: str,
+    manager: "PluginsManager",
+    channel_slug: str,
+) -> List["CustomerSource"]:
+    return manager.list_payment_sources(gateway, customer_id, channel_slug=channel_slug)
 
 
-def get_client_token(gateway: str, customer_id: str = None) -> str:
-    plugin_manager = get_plugins_manager()
-    token_config = TokenConfig(customer_id=customer_id)
-    return plugin_manager.get_client_token(gateway, token_config)
-
-
-def list_gateways() -> List["PaymentGateway"]:
-    return get_plugins_manager().list_payment_gateways()
+def list_gateways(
+    manager: "PluginsManager", channel_slug: Optional[str] = None
+) -> List["PaymentGateway"]:
+    return manager.list_payment_gateways(channel_slug=channel_slug)
 
 
 def _fetch_gateway_response(fn, *args, **kwargs):
@@ -278,10 +457,48 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
         raise PaymentError("Cannot refund more than captured.")
 
 
-def payment_refund_or_void(payment: Optional[Payment]):
+def payment_refund_or_void(
+    payment: Optional[Payment],
+    manager: "PluginsManager",
+    channel_slug: Optional[str],
+    transaction_id: Optional[str] = None,
+):
     if payment is None:
         return
     if payment.can_refund():
-        refund(payment)
+        refund_transaction = _get_success_transaction(
+            TransactionKind.REFUND_ONGOING, payment, transaction_id
+        )
+        # The refund should be called only if the refund process is not already started
+        # with amount equal payment captured amount.
+        # There is no need for summing the amount of all refund transactions,
+        # because we always called refund with the full amount that was captured.
+        # So if the refund wasn't called with current captured amount we should
+        # call refund again.
+        if (
+            not refund_transaction
+            or refund_transaction.amount < payment.captured_amount
+        ):
+            refund(payment, manager, channel_slug=channel_slug)
     elif payment.can_void():
-        void(payment)
+        void_transaction = _get_success_transaction(
+            TransactionKind.VOID, payment, transaction_id
+        )
+        if not void_transaction:
+            void(payment, manager, channel_slug=channel_slug)
+
+
+def _get_success_transaction(
+    kind: str, payment: Payment, transaction_id: Optional[str]
+):
+    if not transaction_id:
+        try:
+            transaction_id = _get_past_transaction_token(payment, kind)
+        except PaymentError:
+            return
+    return payment.transactions.filter(
+        token=transaction_id,
+        action_required=False,
+        is_success=True,
+        kind=kind,
+    ).last()

@@ -21,8 +21,8 @@ from ..utils import (
     get_out_of_scope_users,
     get_user_permissions,
     get_users_and_look_for_permissions_in_groups_with_manage_staff,
+    is_owner_or_has_one_of_perms,
     look_for_permission_in_users_with_manage_staff,
-    requestor_has_access,
 )
 
 
@@ -95,7 +95,8 @@ def test_get_out_of_scope_permissions_app_has_all_permissions(
 ):
     app.permissions.add(permission_manage_orders, permission_manage_users)
     missing_perms = get_out_of_scope_permissions(
-        app, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+        app,
+        [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
     )
     assert missing_perms == []
 
@@ -105,7 +106,8 @@ def test_get_out_of_scope_permissions_app_does_not_have_all_permissions(
 ):
     app.permissions.add(permission_manage_orders)
     missing_perms = get_out_of_scope_permissions(
-        app, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+        app,
+        [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
     )
     assert missing_perms == [AccountPermissions.MANAGE_USERS]
 
@@ -231,7 +233,8 @@ def test_get_groups_which_user_can_manage_admin_user(
 
 
 def test_get_groups_which_user_can_manage_customer_user(
-    customer_user, permission_group_manage_users,
+    customer_user,
+    permission_group_manage_users,
 ):
     Group.objects.create(name="empty group")
 
@@ -571,7 +574,7 @@ def test_get_not_manageable_perms_removing_users_from_group_user_from_group_can_
 def test_get_notmanageable_perms_removing_users_from_group_user_out_of_group_can_manage(
     staff_users, permission_manage_users, permission_manage_staff
 ):
-    """Ensure not returning permission for group, when managable of all permissions are
+    """Ensure not returning permission for group, when manageable of all permissions are
     ensure by other groups.
     """
     groups = Group.objects.bulk_create(
@@ -599,7 +602,7 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure returning permission for group, when managable of all permissions are not
+    """Ensure returning permission for group, when manageable of all permissions are not
     ensure by other groups.
     """
     groups = Group.objects.bulk_create(
@@ -633,7 +636,7 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permis
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure user can be deactivated or removed when managable of all permissions are
+    """Ensure user can be deactivated or removed when manageable of all permissions are
     ensure by other users."""
     groups = Group.objects.bulk_create(
         [
@@ -666,7 +669,7 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_users_some_per
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure user cannot be deactivated or removed when managable of all permissions
+    """Ensure user cannot be deactivated or removed when manageable of all permissions
     are not ensure by other users."""
     groups = Group.objects.bulk_create(
         [
@@ -801,7 +804,10 @@ def test_get_not_manageable_permissions_after_removing_perms_from_group_some_can
 
 
 def test_can_manage_app_no_permission(
-    app, staff_user, permission_manage_products, permission_manage_apps,
+    app,
+    staff_user,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     app.permissions.add(permission_manage_products)
     staff_user.user_permissions.add(permission_manage_apps)
@@ -811,7 +817,10 @@ def test_can_manage_app_no_permission(
 
 
 def test_can_manage_app_account(
-    app, staff_user, permission_manage_products, permission_manage_apps,
+    app,
+    staff_user,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     app.permissions.add(permission_manage_products)
     staff_user.user_permissions.add(permission_manage_apps, permission_manage_products)
@@ -821,7 +830,8 @@ def test_can_manage_app_account(
 
 
 def test_can_manage_app_for_app_no_permission(
-    permission_manage_products, permission_manage_apps,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     apps = App.objects.bulk_create([App(name="sa1"), App(name="sa2")])
     apps[1].permissions.add(permission_manage_products)
@@ -832,7 +842,8 @@ def test_can_manage_app_for_app_no_permission(
 
 
 def test_can_manage_app_for_app(
-    permission_manage_products, permission_manage_apps,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     apps = App.objects.bulk_create([App(name="sa1"), App(name="sa2")])
     apps[1].permissions.add(permission_manage_products)
@@ -844,7 +855,7 @@ def test_can_manage_app_for_app(
 
 def test_requestor_has_access_no_access_by_customer(staff_user, customer_user):
     # when
-    result = requestor_has_access(
+    result = is_owner_or_has_one_of_perms(
         customer_user, staff_user, OrderPermissions.MANAGE_ORDERS
     )
 
@@ -854,7 +865,7 @@ def test_requestor_has_access_no_access_by_customer(staff_user, customer_user):
 
 def test_requestor_has_access_access_by_customer(customer_user):
     # when
-    result = requestor_has_access(
+    result = is_owner_or_has_one_of_perms(
         customer_user, customer_user, OrderPermissions.MANAGE_ORDERS
     )
 
@@ -870,7 +881,7 @@ def test_requestor_has_access_access_by_staff(
     staff_user.save()
 
     # when
-    result = requestor_has_access(
+    result = is_owner_or_has_one_of_perms(
         staff_user, customer_user, OrderPermissions.MANAGE_ORDERS
     )
 
@@ -886,7 +897,7 @@ def test_requestor_has_access_no_access_by_staff(
     staff_user.save()
 
     # when
-    result = requestor_has_access(
+    result = is_owner_or_has_one_of_perms(
         staff_user, customer_user, OrderPermissions.MANAGE_ORDERS
     )
 

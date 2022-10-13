@@ -1,7 +1,7 @@
 import importlib
 from typing import List
 
-from .checks import check_plugins  # NOQA: F401
+default_app_config = "saleor.plugins.apps.PluginConfig"
 
 
 def discover_plugins_modules(plugins: List[str]):

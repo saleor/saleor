@@ -46,5 +46,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(change_webhook_permission_to_app_permission),
-        migrations.AlterModelOptions(name="webhook", options={},),
+        migrations.AlterModelOptions(
+            name="webhook",
+            options={},
+        ),
     ]

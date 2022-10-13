@@ -4,13 +4,11 @@ import i18naddress
 import pytest
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
-from django.template import Context, Template
 from django_countries.fields import Country
 
+from ...order.models import Order
 from .. import forms, i18n
 from ..models import User
-from ..templatetags.i18n_address_tags import format_address
-from ..utils import remove_staff_member
 from ..validators import validate_possible_number
 
 
@@ -165,34 +163,6 @@ def test_validate_possible_number(input_data, is_valid):
         validate_possible_number(**input_data)
 
 
-def test_format_address(address):
-    formatted_address = format_address(address)
-    address_html = "<br>".join(map(str, formatted_address["address_lines"]))
-    context = Context({"address": address})
-    tpl = Template("{% load i18n_address_tags %}" "{% format_address address %}")
-    rendered_html = tpl.render(context)
-    assert address_html in rendered_html
-    assert "inline-address" not in rendered_html
-    assert str(address.phone) in rendered_html
-
-
-def test_format_address_all_options(address):
-    formatted_address = format_address(
-        address, include_phone=False, inline=True, latin=True
-    )
-    address_html = ", ".join(map(str, formatted_address["address_lines"]))
-    context = Context({"address": address})
-    tpl = Template(
-        r"{% load i18n_address_tags %}"
-        r"{% format_address address include_phone=False inline=True"
-        r" latin=True %}"
-    )
-    rendered_html = tpl.render(context)
-    assert address_html in rendered_html
-    assert "inline-address" in rendered_html
-    assert str(address.phone) not in rendered_html
-
-
 def test_address_as_data(address):
     data = address.as_data()
     assert data == {
@@ -290,17 +260,26 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
     assert user.get_full_name() == full_name
 
 
-def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
-    order.user = staff_user
-    order.save()
-    staff_user.user_permissions.add(permission_manage_products)
+def test_customers_doesnt_return_duplicates(customer_user, channel_USD):
+    Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                channel=channel_USD,
+            ),
+            Order(
+                user=customer_user,
+                channel=channel_USD,
+            ),
+        ]
+    )
+    assert User.objects.customers().count() == 1
 
-    remove_staff_member(staff_user)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert not staff_user.is_staff
-    assert not staff_user.user_permissions.exists()
 
-
-def test_remove_staff_member(staff_user):
-    remove_staff_member(staff_user)
-    assert not User.objects.filter(pk=staff_user.pk).exists()
+def test_customers_show_staff_with_order(admin_user, channel_USD):
+    assert User.objects.customers().count() == 0
+    Order.objects.create(
+        user=admin_user,
+        channel=channel_USD,
+    )
+    assert User.objects.customers().count() == 1

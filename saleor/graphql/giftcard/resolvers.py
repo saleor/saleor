@@ -1,12 +1,13 @@
-import graphene
-
 from ...giftcard import models
-from .types import GiftCard
 
 
-def resolve_gift_card(info, gift_card_global_id):
-    return graphene.Node.get_node_from_global_id(info, gift_card_global_id, GiftCard)
+def resolve_gift_card(id):
+    return models.GiftCard.objects.filter(pk=id).first()
 
 
 def resolve_gift_cards():
     return models.GiftCard.objects.all()
+
+
+def resolve_gift_card_tags():
+    return models.GiftCardTag.objects.all()

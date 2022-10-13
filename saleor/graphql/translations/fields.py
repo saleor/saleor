@@ -1,7 +1,7 @@
 import graphene
 
+from ..core.enums import LanguageCodeEnum
 from .descriptions import TranslationDescriptions
-from .enums import LanguageCodeEnum
 from .resolvers import resolve_translation
 
 

@@ -1,0 +1,61 @@
+interactions:
+- request:
+    body: "<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionRequest xmlns=\"\
+      AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><merchantAuthentication><name>public</name><transactionKey>secret</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><refId>200</refId><transactionRequest><transactionType>authCaptureTransaction</transactionType><amount>10.0</amount><currencyCode>USD</currencyCode><payment><opaqueData><dataDescriptor>COMMON.ACCEPT.INAPP.PAYMENT</dataDescriptor><dataValue>eyJjb2RlIjoiNTBfMl8wNjAwMDUzNTkwQTBCNEMwRDg3RkY2RTdBQ0YxNUMzRTg4ODRDOEI1ODIwODA5NUExQ0U2ODM3MUJCNzIwMTZGQ0E5NDdGNjY5ODAyMTU2NTkxQjI4MDM0OTBGRDRCODcxMDgwNTQxIiwidG9rZW4iOiI5NjA4MDUxMDYzMDAxMDYxNTA0NjAxIiwidiI6IjEuMSJ9</dataValue></opaqueData></payment><order><description></description></order><customer><type>individual</type><id>123</id><email>example@test.com</email></customer><billTo><firstName>John</firstName><lastName>Doe</lastName><company>Mirumee\
+      \ Software</company><address>T\u0119czowa 7</address><city>WROC\u0141AW</city><state></state><zip>53-601</zip><country>PL</country></billTo></transactionRequest></createTransactionRequest>"
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1146'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.25.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><refId>200</refId><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>CYC2CI</authCode><avsResultCode>Y</avsResultCode><cvvResultCode>P</cvvResultCode><cavvResultCode>2</cavvResultCode><transId>60158219030</transId><refTransID\
+        \ /><transHash /><testRequest>0</testRequest><accountNumber>XXXX1111</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This\
+        \ transaction has been approved.</description></message></messages><transHashSha2\
+        \ /><networkTransId>YUB9211Y3WQH5BO8WVGTPK2</networkTransId></transactionResponse></createTransactionResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '913'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Tue, 15 Dec 2020 16:51:39 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_0ac565cf-65dd-471f-87e8-1ccb37ba4dc7-21900-12262522
+    status:
+      code: 200
+      message: OK
+version: 1

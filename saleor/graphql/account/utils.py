@@ -11,10 +11,17 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
-from ...core.permissions import AccountPermissions
+from ...core.exceptions import PermissionDenied
+from ...core.permissions import (
+    AccountPermissions,
+    AuthorizationFilters,
+    has_one_of_permissions,
+)
+from ..app.dataloaders import load_app
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+
     from ...account.models import User
     from ...app.models import App
 
@@ -65,8 +72,11 @@ class CustomerDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def post_process(cls, info, deleted_count=1):
-        account_events.staff_user_deleted_a_customer_event(
-            staff_user=info.context.user, deleted_count=deleted_count
+        app = load_app(info.context)
+        account_events.customer_deleted_event(
+            staff_user=info.context.user,
+            app=app,
+            deleted_count=deleted_count,
         )
 
 
@@ -75,9 +85,19 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
+    def check_permissions(cls, context, permissions=None):
+        if load_app(context):
+            raise PermissionDenied(
+                message="Apps are not allowed to perform this mutation."
+            )
+        return super().check_permissions(context, permissions)
+
+    @classmethod
     def clean_instance(cls, info, instance):
         errors = defaultdict(list)
+
         requestor = info.context.user
+
         cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
         cls.check_if_requestor_can_manage_users(requestor, [instance], "id", errors)
         cls.check_if_removing_left_not_manageable_permissions(
@@ -151,6 +171,11 @@ class StaffDeleteMixin(UserDeleteMixin):
 def get_required_fields_camel_case(required_fields: set) -> set:
     """Return set of AddressValidationRules required fields in camel case."""
     return {validation_field_to_camel_case(field) for field in required_fields}
+
+
+def get_upper_fields_camel_case(upper_fields: set) -> set:
+    """Return set of AddressValidationRules upper fields in camel case."""
+    return {validation_field_to_camel_case(field) for field in upper_fields}
 
 
 def validation_field_to_camel_case(name: str) -> str:
@@ -337,7 +362,8 @@ def get_not_manageable_permissions_after_group_deleting(group):
 
 
 def get_not_manageable_permissions(
-    groups_data: dict, not_manageable_permissions: Set[str],
+    groups_data: dict,
+    not_manageable_permissions: Set[str],
 ):
     # get users from groups with manage staff and look for not_manageable_permissions
     # if any of not_manageable_permissions is found it is removed from set
@@ -402,7 +428,8 @@ def get_group_to_permissions_and_users_mapping():
 
 
 def get_users_and_look_for_permissions_in_groups_with_manage_staff(
-    groups_data: dict, permissions_to_find: Set[str],
+    groups_data: dict,
+    permissions_to_find: Set[str],
 ):
     """Search for permissions in groups with manage staff and return their users.
 
@@ -429,7 +456,9 @@ def get_users_and_look_for_permissions_in_groups_with_manage_staff(
 
 
 def look_for_permission_in_users_with_manage_staff(
-    groups_data: dict, users_to_check: Set[int], permissions_to_find: Set[str],
+    groups_data: dict,
+    users_to_check: Set[int],
+    permissions_to_find: Set[str],
 ):
     """Search for permissions in user with manage staff groups.
 
@@ -450,15 +479,34 @@ def look_for_permission_in_users_with_manage_staff(
             permissions_to_find.difference_update(common_permissions)
 
 
-def requestor_has_access(
-    requestor: Union["User", "App"], owner: Optional["User"], perm
-):
+def is_owner_or_has_one_of_perms(
+    requestor: Union["User", "App"], owner: Optional[Union["User", "App"]], *perms
+) -> bool:
     """Check if requestor can access data.
 
-    Args:
-        requestor: requestor user or app
-        owner: data owner
-        perm: permission which give the access to the data
-
+    :param requestor: Requestor user or app.
+    :param owner: Data owner.
+    :param perms:
+        Permissions which can give the access to the data.
+        Requestor needs to have at least one of given permissions
+        to get access to protected resource.
     """
-    return requestor == owner or requestor.has_perm(perm)
+    return requestor == owner or has_one_of_permissions(requestor, perms)
+
+
+def check_is_owner_or_has_one_of_perms(
+    requestor: Union["User", "App"], owner: Optional["User"], *perms
+) -> None:
+    """Confirm that requestor can access data, raise `PermissionDenied` otherwise.
+
+    :param requestor: Requestor user or app.
+    :param owner: Data owner.
+    :param perms:
+        Permissions which can give the access to the data.
+        Requestor needs to have at least one of given permissions
+        to get access to protected resource.
+
+    :raises PermissionDenied: if requestor cannot access data
+    """
+    if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
+        raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])

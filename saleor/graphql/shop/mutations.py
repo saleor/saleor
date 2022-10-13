@@ -3,16 +3,24 @@ from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
-from ...core.permissions import SitePermissions
+from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
-from ...site import models as site_models
+from ...site import GiftCardSettingsExpiryType
+from ...site.error_codes import GiftCardSettingsErrorCode
+from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput
+from ..account.types import AddressInput, StaffNotificationRecipient
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import ShopError
-from ..product.types import Collection
-from .types import AuthorizationKey, AuthorizationKeyType, Shop
+from ..core.types import (
+    GiftCardSettingsError,
+    OrderSettingsError,
+    ShopError,
+    TimePeriodInputType,
+)
+from .enums import GiftCardSettingsExpiryTypeEnum
+from .types import GiftCardSettings, OrderSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -30,6 +38,14 @@ class ShopSettingsInput(graphene.InputObjectType):
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
     )
+    fulfillment_auto_approve = graphene.Boolean(
+        description="Enable automatic approval of all new fulfillments." + ADDED_IN_31
+    )
+    fulfillment_allow_unpaid = graphene.Boolean(
+        description=(
+            "Enable ability to approve fulfillments which are unpaid." + ADDED_IN_31
+        )
+    )
     default_digital_max_downloads = graphene.Int(
         description="Default number of max downloads per digital content URL."
     )
@@ -44,6 +60,27 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     customer_set_password_url = graphene.String(
         description="URL of a view where customers can set their password."
+    )
+    reserve_stock_duration_anonymous_user = graphene.Int(
+        description=(
+            "Default number of minutes stock will be reserved for "
+            "anonymous checkout. Enter 0 or null to disable." + ADDED_IN_31
+        )
+    )
+    reserve_stock_duration_authenticated_user = graphene.Int(
+        description=(
+            "Default number of minutes stock will be reserved for "
+            "authenticated checkout. Enter 0 or null to disable." + ADDED_IN_31
+        )
+    )
+    limit_quantity_per_checkout = graphene.Int(
+        description=(
+            "Default number of maximum line quantity "
+            "in single checkout. Minimum possible value is 1, default "
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
+        )
     )
 
 
@@ -75,6 +112,29 @@ class ShopSettingsUpdate(BaseMutation):
                 raise ValidationError(
                     {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
                 )
+
+        if "reserve_stock_duration_anonymous_user" in data:
+            new_value = data["reserve_stock_duration_anonymous_user"]
+            if not new_value or new_value < 1:
+                data["reserve_stock_duration_anonymous_user"] = None
+        if "reserve_stock_duration_authenticated_user" in data:
+            new_value = data["reserve_stock_duration_authenticated_user"]
+            if not new_value or new_value < 1:
+                data["reserve_stock_duration_authenticated_user"] = None
+        if "limit_quantity_per_checkout" in data:
+            new_value = data["limit_quantity_per_checkout"]
+            if new_value is not None and new_value < 1:
+                raise ValidationError(
+                    {
+                        "limit_quantity_per_checkout": ValidationError(
+                            "Quantity limit cannot be lower than 1.",
+                            code=ShopErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            if not new_value:
+                data["limit_quantity_per_checkout"] = None
+
         return data
 
     @classmethod
@@ -121,7 +181,9 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
                 company_address = account_models.Address()
             else:
                 company_address = site_settings.company_address
-            company_address = cls.validate_address(data, company_address, info=info)
+            company_address = cls.validate_address(
+                data, instance=company_address, info=info
+            )
             company_address.save()
             site_settings.company_address = company_address
             site_settings.save(update_fields=["company_address"])
@@ -178,116 +240,6 @@ class ShopFetchTaxRates(BaseMutation):
         return ShopFetchTaxRates(shop=Shop())
 
 
-class HomepageCollectionUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated shop.")
-
-    class Arguments:
-        collection = graphene.ID(description="Collection displayed on homepage.")
-
-    class Meta:
-        description = "Updates homepage collection of the shop."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, collection=None):
-        new_collection = cls.get_node_or_error(
-            info, collection, field="collection", only_type=Collection
-        )
-        site_settings = info.context.site.settings
-        site_settings.homepage_collection = new_collection
-        cls.clean_instance(info, site_settings)
-        site_settings.save(update_fields=["homepage_collection"])
-        return HomepageCollectionUpdate(shop=Shop())
-
-
-class AuthorizationKeyInput(graphene.InputObjectType):
-    key = graphene.String(
-        required=True, description="Client authorization key (client ID)."
-    )
-    password = graphene.String(required=True, description="Client secret.")
-
-
-class AuthorizationKeyAdd(BaseMutation):
-    authorization_key = graphene.Field(
-        AuthorizationKey, description="Newly added authorization key."
-    )
-    shop = graphene.Field(Shop, description="Updated shop.")
-
-    class Meta:
-        description = "Adds an authorization key."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
-
-    class Arguments:
-        key_type = AuthorizationKeyType(
-            required=True, description="Type of an authorization key to add."
-        )
-        input = AuthorizationKeyInput(
-            required=True, description="Fields required to create an authorization key."
-        )
-
-    @classmethod
-    def perform_mutation(cls, _root, info, key_type, **data):
-        if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
-            raise ValidationError(
-                {
-                    "key_type": ValidationError(
-                        "Authorization key already exists.",
-                        code=ShopErrorCode.ALREADY_EXISTS,
-                    )
-                }
-            )
-
-        site_settings = info.context.site.settings
-        instance = site_models.AuthorizationKey(
-            name=key_type, site_settings=site_settings, **data.get("input")
-        )
-        cls.clean_instance(info, instance)
-        instance.save()
-        return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
-
-
-class AuthorizationKeyDelete(BaseMutation):
-    authorization_key = graphene.Field(
-        AuthorizationKey, description="Authorization key that was deleted."
-    )
-    shop = graphene.Field(Shop, description="Updated shop.")
-
-    class Arguments:
-        key_type = AuthorizationKeyType(
-            required=True, description="Type of a key to delete."
-        )
-
-    class Meta:
-        description = "Deletes an authorization key."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, key_type):
-        try:
-            site_settings = info.context.site.settings
-            instance = site_models.AuthorizationKey.objects.get(
-                name=key_type, site_settings=site_settings
-            )
-        except site_models.AuthorizationKey.DoesNotExist:
-            raise ValidationError(
-                {
-                    "key_type": ValidationError(
-                        "Couldn't resolve authorization key",
-                        code=ShopErrorCode.NOT_FOUND,
-                    )
-                }
-            )
-
-        instance.delete()
-        return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())
-
-
 class StaffNotificationRecipientInput(graphene.InputObjectType):
     user = graphene.ID(
         required=False,
@@ -312,6 +264,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
     class Meta:
         description = "Creates a new staff notification recipient."
         model = account_models.StaffNotificationRecipient
+        object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -374,6 +327,7 @@ class StaffNotificationRecipientUpdate(StaffNotificationRecipientCreate):
     class Meta:
         description = "Updates a staff notification recipient."
         model = account_models.StaffNotificationRecipient
+        object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -388,6 +342,119 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
     class Meta:
         description = "Delete staff notification recipient."
         model = account_models.StaffNotificationRecipient
+        object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
+
+
+class OrderSettingsUpdateInput(graphene.InputObjectType):
+    automatically_confirm_all_new_orders = graphene.Boolean(
+        required=False,
+        description="When disabled, all new orders from checkout "
+        "will be marked as unconfirmed. When enabled orders from checkout will "
+        "become unfulfilled immediately.",
+    )
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
+        required=False,
+        description="When enabled, all non-shippable gift card orders "
+        "will be fulfilled automatically.",
+    )
+
+
+class OrderSettingsUpdate(BaseMutation):
+    order_settings = graphene.Field(OrderSettings, description="Order settings.")
+
+    class Arguments:
+        input = OrderSettingsUpdateInput(
+            required=True, description="Fields required to update shop order settings."
+        )
+
+    class Meta:
+        description = "Update shop order settings."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderSettingsError
+        error_type_field = "order_settings_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        FIELDS = [
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
+
+        instance = info.context.site.settings
+        update_fields = []
+        for field in FIELDS:
+            value = data["input"].get(field)
+            if value is not None:
+                setattr(instance, field, value)
+                update_fields.append(field)
+
+        if update_fields:
+            instance.save(update_fields=update_fields)
+        return OrderSettingsUpdate(order_settings=instance)
+
+
+class GiftCardSettingsUpdateInput(graphene.InputObjectType):
+    expiry_type = GiftCardSettingsExpiryTypeEnum(
+        description="Defines gift card default expiry settings."
+    )
+    expiry_period = TimePeriodInputType(description="Defines gift card expiry period.")
+
+
+class GiftCardSettingsUpdate(BaseMutation):
+    gift_card_settings = graphene.Field(
+        GiftCardSettings, description="Gift card settings."
+    )
+
+    class Arguments:
+        input = GiftCardSettingsUpdateInput(
+            required=True, description="Fields required to update gift card settings."
+        )
+
+    class Meta:
+        description = "Update gift card settings."
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardSettingsError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = info.context.site.settings
+        input = data["input"]
+        cls.clean_input(input, instance)
+
+        expiry_period = input.get("expiry_period")
+        instance.gift_card_expiry_period_type = (
+            expiry_period["type"] if expiry_period else None
+        )
+        instance.gift_card_expiry_period = (
+            expiry_period["amount"] if expiry_period else None
+        )
+        update_fields = ["gift_card_expiry_period", "gift_card_expiry_period_type"]
+
+        if expiry_type := input.get("expiry_type"):
+            instance.gift_card_expiry_type = expiry_type
+            update_fields.append("gift_card_expiry_type")
+
+        instance.save(update_fields=update_fields)
+        return GiftCardSettingsUpdate(gift_card_settings=instance)
+
+    @staticmethod
+    def clean_input(input, instance):
+        expiry_type = input.get("expiry_type") or instance.gift_card_expiry_type
+        if (
+            expiry_type == GiftCardSettingsExpiryType.EXPIRY_PERIOD
+            and input.get("expiry_period") is None
+        ):
+            raise ValidationError(
+                {
+                    "expiry_period": ValidationError(
+                        "Expiry period settings are required for expiry period "
+                        "gift card settings.",
+                        code=GiftCardSettingsErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        elif expiry_type == GiftCardSettingsExpiryType.NEVER_EXPIRE:
+            input["expiry_period"] = None

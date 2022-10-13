@@ -1,0 +1,53 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "O9999999", "taxIncluded":
+      true, "itemCode": "123", "discounted": false, "description": "Test product",
+      "ref1": "123"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded":
+      true, "itemCode": "Shipping", "discounted": false, "description": null}], "code":
+      "75071540-ceff-4abd-9bd3-f317858d5071", "date": "2022-06-10", "customerCode":
+      0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
+      null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
+      "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
+      "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
+      "USD", "email": "user@email.com"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '845'
+      User-Agent:
+      - python-requests/2.27.1
+    method: POST
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: '{"error": {"code": "AuthenticationException","message": "Authentication
+        failed.","details": [{"code": "AuthenticationException","message": "Authentication
+        failed.","description": "Missing authentication or unable to authenticate
+        the user or the account.","faultCode": "Client","helpLink": "http://developer.avalara.com/avatax/errors/AuthenticationException"}]}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '361'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 10 Jun 2022 12:09:21 GMT
+      X-Content-Type-Options:
+      - nosniff
+      x-avalara-uid:
+      - ba50d016-7003-411c-b2ec-75466f242d47
+      x-correlation-id:
+      - ba50d016-7003-411c-b2ec-75466f242d47
+    status:
+      code: 401
+      message: Unauthorized
+version: 1
