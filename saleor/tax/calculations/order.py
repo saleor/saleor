@@ -43,22 +43,25 @@ def update_order_prices_with_flat_rates(
     shipping_tax_rate = get_tax_rate_for_tax_class(
         tax_class, default_tax_rate, country_code
     )
-    order.shipping_price = calculate_order_shipping(
+    order.shipping_price = _calculate_order_shipping(
         order, shipping_tax_rate, prices_entered_with_tax
     )
     order.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate order total.
-    undiscounted_subtotal = zero_taxed_money(order.currency)
-    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
-    order.total = calculate_order_total(order, lines)
+    order.total = _calculate_order_total(order, lines)
 
 
-def calculate_order_total(
+def _calculate_order_total(
     order: "Order",
     lines: Iterable["OrderLine"],
 ) -> TaxedMoney:
     currency = order.currency
+
+    default_value = base_calculations.base_order_total(order, lines)
+    default_value = TaxedMoney(default_value, default_value)
+    if default_value <= zero_taxed_money(currency):
+        return quantize_price(default_value, currency)
 
     total = zero_taxed_money(currency)
     undiscounted_subtotal = zero_taxed_money(currency)
@@ -73,14 +76,17 @@ def calculate_order_total(
     if order_discount and order_discount.amount > undiscounted_subtotal.gross:
         remaining_amount = order_discount.amount - undiscounted_subtotal.gross
         total -= remaining_amount
-    return max(total, zero_taxed_money(currency))
+    return quantize_price(max(total, zero_taxed_money(currency)), currency)
 
 
-def calculate_order_shipping(
+def _calculate_order_shipping(
     order: "Order", tax_rate: Decimal, prices_entered_with_tax: bool
 ) -> TaxedMoney:
-    shipping_price = base_calculations.base_order_shipping(order)
-    return calculate_flat_rate_tax(shipping_price, tax_rate, prices_entered_with_tax)
+    shipping_price = order.base_shipping_price
+    taxed_shipping_price = calculate_flat_rate_tax(
+        shipping_price, tax_rate, prices_entered_with_tax
+    )
+    return quantize_price(taxed_shipping_price, taxed_shipping_price.currency)
 
 
 def update_taxes_for_order_lines(
@@ -138,14 +144,20 @@ def update_taxes_for_order_lines(
             # sum already applied discounts
             total_line_discounts += discount_amount
 
-        line.unit_price = calculate_flat_rate_tax(
+        unit_price = calculate_flat_rate_tax(
             price_with_discounts, tax_rate, prices_entered_with_tax
         )
-        line.undiscounted_unit_price = calculate_flat_rate_tax(
+        undiscounted_unit_price = calculate_flat_rate_tax(
             line.undiscounted_base_unit_price, tax_rate, prices_entered_with_tax
         )
-        line.total_price = line.unit_price * line.quantity
-        line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
+
+        line.unit_price = quantize_price(unit_price, currency)
+        line.undiscounted_unit_price = quantize_price(undiscounted_unit_price, currency)
+
+        line.total_price = quantize_price(unit_price * line.quantity, currency)
+        line.undiscounted_total_price = quantize_price(
+            undiscounted_unit_price * line.quantity, currency
+        )
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
     return lines
