@@ -777,3 +777,16 @@ executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type:
 UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
     "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
 )
+
+VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
+    "products": [
+        ("product_gallery", "thumbnail__540x540"),
+        ("product_gallery_2x", "thumbnail__1080x1080"),
+        ("product_small", "thumbnail__60x60"),
+        ("product_small_2x", "thumbnail__120x120"),
+        ("product_list", "thumbnail__255x255"),
+        ("product_list_2x", "thumbnail__510x510"),
+    ],
+    "background_images": [("header_image", "thumbnail__1080x440")],
+    "user_avatars": [("default", "thumbnail__445x445")],
+}
