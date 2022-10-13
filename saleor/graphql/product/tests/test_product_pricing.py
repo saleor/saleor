@@ -1,146 +1,9 @@
-from unittest import mock
-
 import graphene
 import pytest
 
 from ....tax import TaxCalculationStrategy
 from ....tax.models import TaxClassCountryRate, TaxConfigurationPerCountry
-from ....tax.utils import get_display_gross_prices
-from ....warehouse.models import Warehouse
 from ...tests.utils import get_graphql_content
-
-QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING = """
-fragment Pricing on ProductPricingInfo {
-  priceRangeUndiscounted {
-    start {
-      gross {
-        amount
-        currency
-      }
-    }
-  }
-  displayGrossPrices
-}
-query FetchProduct($id: ID, $channel: String, $address: AddressInput) {
-  product(id: $id, channel: $channel) {
-    id
-    pricing(address: $address) {
-      ...Pricing
-    }
-    channelListings {
-      channel {
-        slug
-      }
-      pricing(address: $address) {
-        ...Pricing
-      }
-    }
-  }
-}
-"""
-
-
-def test_product_channel_listing_pricing_field(
-    address_usa,
-    staff_api_client,
-    permission_manage_products,
-    channel_USD,
-    product,
-):
-    # given
-
-    # Changing the address of a warehouse used by the product to address_usa, so that
-    # we can query pricing in two countries: US and PL.
-    warehouse = Warehouse.objects.first()
-    warehouse.address = address_usa
-    warehouse.save()
-
-    country = "PL"
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "channel": channel_USD.slug,
-        "address": {"country": country},
-    }
-    product.channel_listings.exclude(channel__slug=channel_USD.slug).delete()
-
-    tax_config = channel_USD.tax_configuration
-    tax_config_country = tax_config.country_exceptions.get(country=country)
-
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING,
-        variables=variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
-
-    # then
-    content = get_graphql_content(response)
-    product_data = content["data"]["product"]
-    product_channel_listing_data = product_data["channelListings"][0]
-    assert product_data["pricing"] == product_channel_listing_data["pricing"]
-    assert product_data["pricing"]["displayGrossPrices"] == get_display_gross_prices(
-        tax_config, tax_config_country
-    )
-
-
-QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING_NO_ADDRESS = """
-fragment Pricing on ProductPricingInfo {
-  priceRangeUndiscounted {
-    start {
-      gross {
-        amount
-        currency
-      }
-    }
-  }
-}
-query FetchProduct($id: ID, $channel: String) {
-  product(id: $id, channel: $channel) {
-    id
-    pricing {
-      ...Pricing
-    }
-    channelListings {
-      pricing {
-        ...Pricing
-      }
-    }
-  }
-}
-"""
-
-
-@mock.patch("saleor.graphql.product.types.products.get_tax_rate_for_tax_class")
-def test_product_channel_listing_pricing_field_no_address(
-    mock_get_tax_rate_for_tax_class,
-    staff_api_client,
-    permission_manage_products,
-    channel_USD,
-    product,
-):
-    # given
-    channel_USD.default_country = "FR"
-    channel_USD.save()
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "channel": channel_USD.slug,
-    }
-    product.channel_listings.exclude(channel__slug=channel_USD.slug).delete()
-
-    # when
-    staff_api_client.post_graphql(
-        QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING_NO_ADDRESS,
-        variables=variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
-
-    # then
-    assert (
-        mock_get_tax_rate_for_tax_class.call_args[0][2] == channel_USD.default_country
-    )
-
 
 FRAGMENT_PRICE = """
   fragment Price on TaxedMoney {
@@ -186,19 +49,14 @@ QUERY_PRODUCT_PRICING = (
     """
   query Product($id: ID!, $channel: String!) {
     product(id: $id, channel: $channel) {
-      channelListings {
-        channel {
-          slug
-        }
-        pricingPL: pricing(address: { country: PL }) {
+      pricingPL: pricing(address: { country: PL }) {
         ...Pricing
-        }
-        pricingDE: pricing(address: { country: DE }) {
+      }
+      pricingDE: pricing(address: { country: DE }) {
         ...Pricing
-        }
-        pricing: pricing {
+      }
+      pricing: pricing {
         ...Pricing
-        }
       }
     }
   }
@@ -242,13 +100,12 @@ def _configure_tax_rates(product):
 def test_product_pricing(
     product_available_in_many_channels,
     channel_PLN,
-    staff_api_client,
+    user_api_client,
     net_PL,
     gross_PL,
     net_DE,
     gross_DE,
     prices_entered_with_tax,
-    permission_manage_products,
 ):
     # given
     product = product_available_in_many_channels
@@ -260,20 +117,11 @@ def test_product_pricing(
         "id": graphene.Node.to_global_id("Product", product.id),
         "channel": channel_PLN.slug,
     }
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_PRICING,
-        variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
+    response = user_api_client.post_graphql(QUERY_PRODUCT_PRICING, variables)
     content = get_graphql_content(response)
+    data = content["data"]["product"]
 
     # then
-    data = None
-    for channel_data in content["data"]["product"]["channelListings"]:
-        if channel_data["channel"]["slug"] == channel_PLN.slug:
-            data = channel_data
-
     price_range_PL = data["pricingPL"]["priceRange"]
     price_range_undiscounted_PL = data["pricingPL"]["priceRangeUndiscounted"]
     assert price_range_PL["start"]["net"]["amount"] == net_PL
@@ -300,8 +148,7 @@ def test_product_pricing(
 def test_product_pricing_default_country_default_rate(
     product_available_in_many_channels,
     channel_PLN,
-    staff_api_client,
-    permission_manage_products,
+    user_api_client,
 ):
     # given
     product = product_available_in_many_channels
@@ -314,20 +161,11 @@ def test_product_pricing_default_country_default_rate(
         "id": graphene.Node.to_global_id("Product", product.id),
         "channel": channel_PLN.slug,
     }
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_PRICING,
-        variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
+    response = user_api_client.post_graphql(QUERY_PRODUCT_PRICING, variables)
     content = get_graphql_content(response)
+    data = content["data"]["product"]
 
     # then
-    data = None
-    for channel_data in content["data"]["product"]["channelListings"]:
-        if channel_data["channel"]["slug"] == channel_PLN.slug:
-            data = channel_data
-
     price_range = data["pricing"]["priceRange"]
     price_range_undiscounted = data["pricing"]["priceRangeUndiscounted"]
     assert price_range["start"]["net"]["amount"] == 40.65
@@ -343,8 +181,7 @@ def test_product_pricing_default_country_default_rate(
 def test_product_pricing_use_tax_class_from_product_type(
     product_available_in_many_channels,
     channel_PLN,
-    staff_api_client,
-    permission_manage_products,
+    user_api_client,
 ):
     # given
     product = product_available_in_many_channels
@@ -361,20 +198,11 @@ def test_product_pricing_use_tax_class_from_product_type(
         "id": graphene.Node.to_global_id("Product", product.id),
         "channel": channel_PLN.slug,
     }
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_PRICING,
-        variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
+    response = user_api_client.post_graphql(QUERY_PRODUCT_PRICING, variables)
     content = get_graphql_content(response)
+    data = content["data"]["product"]
 
     # then
-    data = None
-    for channel_data in content["data"]["product"]["channelListings"]:
-        if channel_data["channel"]["slug"] == channel_PLN.slug:
-            data = channel_data
-
     price_range_PL = data["pricingPL"]["priceRange"]
     price_range_undiscounted_PL = data["pricingPL"]["priceRangeUndiscounted"]
     assert price_range_PL["start"]["net"]["amount"] == 40.65
@@ -390,8 +218,7 @@ def test_product_pricing_use_tax_class_from_product_type(
 def test_product_pricing_no_flat_rates_in_one_country(
     product_available_in_many_channels,
     channel_PLN,
-    staff_api_client,
-    permission_manage_products,
+    user_api_client,
 ):
     # given
     product = product_available_in_many_channels
@@ -406,20 +233,11 @@ def test_product_pricing_no_flat_rates_in_one_country(
         "id": graphene.Node.to_global_id("Product", product.id),
         "channel": channel_PLN.slug,
     }
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_PRICING,
-        variables,
-        permissions=(permission_manage_products,),
-        check_no_permissions=False,
-    )
+    response = user_api_client.post_graphql(QUERY_PRODUCT_PRICING, variables)
     content = get_graphql_content(response)
+    data = content["data"]["product"]
 
     # then
-    data = None
-    for channel_data in content["data"]["product"]["channelListings"]:
-        if channel_data["channel"]["slug"] == channel_PLN.slug:
-            data = channel_data
-
     price_range_PL = data["pricingPL"]["priceRange"]
     price_range_undiscounted_PL = data["pricingPL"]["priceRangeUndiscounted"]
     assert price_range_PL["start"]["net"]["amount"] == 50.00

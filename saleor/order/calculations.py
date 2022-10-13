@@ -121,7 +121,7 @@ def _get_order_base_prices(order, lines):
         TaxedMoney(net=shipping_price, gross=shipping_price),
         shipping_price.currency,
     )
-    order.shipping_tax_rate = base_calculations.base_tax_rate(order.shipping_price)
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
 
     # Calculate order total.
     order.undiscounted_total = undiscounted_subtotal + order.shipping_price

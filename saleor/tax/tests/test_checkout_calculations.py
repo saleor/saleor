@@ -8,6 +8,7 @@ from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...plugins.manager import get_plugins_manager
+from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
 from ..calculations.checkout import (
     _calculate_checkout_line_unit_price,
@@ -75,6 +76,71 @@ def test_calculate_checkout_total(
     # then
     assert checkout.total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+def test_calculate_checkout_total_no_tax_rates(
+    checkout_with_item,
+    address,
+    shipping_zone,
+):
+    # given
+    checkout = checkout_with_item
+    prices_entered_with_tax = False
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    checkout.shipping_address = address
+    shipping_method = shipping_zone.shipping_methods.get()
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    TaxClassCountryRate.objects.all().delete()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+    )
+
+    # then
+    assert checkout.total == TaxedMoney(
+        net=Money("40.00", "USD"), gross=Money("40.00", "USD")
+    )
+
+
+def test_calculate_checkout_total_default_tax_rate_for_country(
+    checkout_with_item,
+    address,
+    shipping_zone,
+):
+    # given
+    checkout = checkout_with_item
+    prices_entered_with_tax = False
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    checkout.shipping_address = address
+    shipping_method = shipping_zone.shipping_methods.get()
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    TaxClassCountryRate.objects.all().delete()
+    TaxClassCountryRate.objects.create(country=address.country, rate=23)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+    )
+
+    # then
+    assert checkout.total == TaxedMoney(
+        net=Money("40.00", "USD"), gross=Money("49.20", "USD")
     )
 
 
