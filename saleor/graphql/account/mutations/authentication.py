@@ -128,6 +128,7 @@ class CreateToken(BaseMutation):
         csrf_token = _get_new_csrf_token()
         refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
         info.context.refresh_token = refresh_token
+        info.context.user = user
         info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login", "updated_at"])

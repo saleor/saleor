@@ -1,7 +1,6 @@
 from typing import Iterable
 
 import graphene
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType
@@ -234,10 +233,10 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             cls.validate_checkout_addresses(checkout_info, lines)
 
             requestor = get_user_or_app_from_context(info.context)
-            if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
                 # Allow impersonating user and process a checkout by using user details
                 # assigned to checkout.
-                customer = checkout.user or AnonymousUser()
+                customer = checkout.user
             else:
                 customer = info.context.user
 

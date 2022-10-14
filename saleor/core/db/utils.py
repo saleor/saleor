@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.utils.functional import empty
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -35,3 +36,9 @@ def get_database_connection_name(context: "HttpRequest"):
     if not is_mutation:
         return settings.DATABASE_CONNECTION_REPLICA_NAME
     return settings.DATABASE_CONNECTION_DEFAULT_NAME
+
+
+def setup_context_user(context: "HttpRequest") -> None:
+    if getattr(context.user, "_wrapped", None) is empty:
+        context.user._setup()  # type: ignore
+        context.user = context.user._wrapped  # type: ignore

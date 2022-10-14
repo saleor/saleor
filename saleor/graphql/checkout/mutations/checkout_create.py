@@ -271,7 +271,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             )
 
         # Use authenticated user's email as default email
-        if user.is_authenticated:
+        if user:
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
 
@@ -323,7 +323,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
         user = info.context.user
-        if user.is_authenticated:
+        if user:
             instance.user = user
         return instance
 

@@ -5,7 +5,6 @@ from unittest.mock import Mock
 
 import graphene
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
@@ -28,14 +27,14 @@ class ApiClient(Client):
     """GraphQL API client."""
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", AnonymousUser())
+        user = kwargs.pop("user", None)
         app = kwargs.pop("app", None)
         self._user = None
         self.token = None
         self.user = user
         self.app_token = None
         self.app = app
-        if not user.is_anonymous:
+        if user:
             self.token = create_access_token(user)
         elif app:
             _, auth_token = app.tokens.create(name="Default")
@@ -44,7 +43,7 @@ class ApiClient(Client):
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
-        if not self.user.is_anonymous:
+        if self.user:
             environ["HTTP_AUTHORIZATION"] = f"JWT {self.token}"
         elif self.app_token:
             environ["HTTP_AUTHORIZATION"] = f"Bearer {self.app_token}"
@@ -57,7 +56,7 @@ class ApiClient(Client):
     @user.setter
     def user(self, user):
         self._user = user
-        if not user.is_anonymous:
+        if user:
             self.token = create_access_token(user)
 
     def post(self, data=None, **kwargs):
@@ -147,12 +146,12 @@ def user2_api_client(customer_user2):
 
 @pytest.fixture
 def api_client():
-    return ApiClient(user=AnonymousUser())
+    return ApiClient(user=None)
 
 
 @pytest.fixture
 def schema_context():
-    params = {"user": AnonymousUser(), "app": None, "plugins": get_plugins_manager()}
+    params = {"user": None, "app": None, "plugins": get_plugins_manager()}
     return graphene.types.Context(**params)
 
 
