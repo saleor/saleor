@@ -154,7 +154,7 @@ class AppExtension(models.Model):
     )
 
 
-class AppInstallation(Job):
+class AppInstallation(Job, ModelWithMetadata):
     app_name = models.CharField(max_length=60)
     manifest_url = models.URLField()
     permissions = models.ManyToManyField(
