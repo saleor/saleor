@@ -38,6 +38,7 @@ from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
     RICH_CONTENT,
@@ -58,6 +59,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductMedia, ProductVariant
@@ -78,6 +80,18 @@ class CategoryInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a product media.")
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the category metadata." + ADDED_IN_38),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the category private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class CategoryCreate(ModelMutation):
@@ -100,6 +114,8 @@ class CategoryCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -154,6 +170,8 @@ class CategoryUpdate(CategoryCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -209,6 +227,20 @@ class CollectionInput(graphene.InputObjectType):
     publication_date = graphene.Date(
         description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the collection metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the collection private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class CollectionCreateInput(CollectionInput):
@@ -232,6 +264,8 @@ class CollectionCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -287,6 +321,8 @@ class CollectionUpdate(CollectionCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -543,6 +579,18 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     rating = graphene.Float(description="Defines the product rating value.")
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the product metadata." + ADDED_IN_38),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -578,6 +626,8 @@ class ProductCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -707,6 +757,8 @@ class ProductUpdate(ProductCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -831,6 +883,21 @@ class ProductVariantInput(graphene.InputObjectType):
             "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product variant metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product variant private metadata."
+            + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -865,6 +932,8 @@ class ProductVariantCreate(ModelMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -1104,6 +1173,8 @@ class ProductVariantUpdate(ProductVariantCreate):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
