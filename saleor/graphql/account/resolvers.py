@@ -207,7 +207,7 @@ def resolve_address(info, id):
     _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
-    if user and not user.is_anonymous:
+    if user:
         return user.addresses.filter(id=address_pk).first()
     raise PermissionDenied(
         permissions=[AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
@@ -223,7 +223,7 @@ def resolve_addresses(info, ids):
     ]
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(id__in=ids)
-    if user and not user.is_anonymous:
+    if user:
         return user.addresses.filter(id__in=ids)
     return models.Address.objects.none()
 

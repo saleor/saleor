@@ -621,7 +621,7 @@ class Group(ModelObjectType):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
+        if not requestor or not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
             qs = auth_models.Group.objects.none()
         else:
             qs = resolve_permission_groups(info)

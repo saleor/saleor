@@ -42,7 +42,7 @@ def test_create_order_insufficient_stock(
             checkout_lines=checkout_lines,
             discounts=[],
             manager=manager,
-            user=AnonymousUser(),
+            user=None,
             app=app,
             tracking_code="tracking_code",
         )
@@ -88,7 +88,7 @@ def test_create_order_with_gift_card(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -137,7 +137,7 @@ def test_create_order_with_gift_card_partial_use(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -200,7 +200,7 @@ def test_create_order_with_many_gift_cards(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser,
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -275,7 +275,7 @@ def test_create_order_gift_card_bought(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -352,7 +352,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -408,7 +408,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -437,7 +437,7 @@ def test_note_in_created_order(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -483,7 +483,7 @@ def test_create_order_use_translations(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -519,7 +519,7 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -558,7 +558,7 @@ def test_create_order_from_checkout_updates_total_charged_amount(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -630,7 +630,7 @@ def test_create_order_from_checkout_store_shipping_prices(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -678,7 +678,7 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )

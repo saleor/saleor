@@ -24,6 +24,7 @@ from ....core.jwt import (
     jwt_decode,
 )
 from ....core.permissions import AuthorizationFilters, get_permissions_from_names
+from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
@@ -81,6 +82,13 @@ class CreateToken(BaseMutation):
     class Arguments:
         email = graphene.String(required=True, description="Email of a user.")
         password = graphene.String(required=True, description="Password of a user.")
+        audience = graphene.String(
+            required=False,
+            description=(
+                "The audience that will be included to JWT tokens with "
+                "prefix `custom:`." + ADDED_IN_38 + PREVIEW_FEATURE
+            ),
+        )
 
     class Meta:
         description = "Create JWT token."
@@ -139,10 +147,22 @@ class CreateToken(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = cls.get_user(info, data)
-        access_token = create_access_token(user)
+        additional_paylod = {}
+
         csrf_token = _get_new_csrf_token()
-        refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
+        refresh_additional_payload = {
+            "csrfToken": csrf_token,
+        }
+        if audience := data.get("audience"):
+            additional_paylod["aud"] = f"custom:{audience}"
+            refresh_additional_payload["aud"] = f"custom:{audience}"
+
+        access_token = create_access_token(user, additional_payload=additional_paylod)
+        refresh_token = create_refresh_token(
+            user, additional_payload=refresh_additional_payload
+        )
         info.context.refresh_token = refresh_token
+        info.context.user = user
         info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login", "updated_at"])
@@ -261,7 +281,10 @@ class RefreshToken(BaseMutation):
             cls.clean_csrf_token(csrf_token, payload)
 
         user = get_user(payload)
-        token = create_access_token(user)
+        additional_payload = {}
+        if audience := payload.get("aud"):
+            additional_payload["aud"] = audience
+        token = create_access_token(user, additional_payload=additional_payload)
         return cls(errors=[], user=user, token=token)
 
 

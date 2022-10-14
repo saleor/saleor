@@ -141,6 +141,7 @@ class CheckoutLine(ModelObjectType):
         )
 
     @staticmethod
+    @prevent_sync_event_circular_query
     def resolve_unit_price(root, info):
         manager = load_plugin_manager(info.context)
 
@@ -224,6 +225,7 @@ class CheckoutLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_total_price(root, info):
         manager = load_plugin_manager(info.context)
 
@@ -544,7 +546,7 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
+    @prevent_sync_event_circular_query
     def resolve_total_price(root: models.Checkout, info):
         manager = load_plugin_manager(info.context)
 
@@ -576,7 +578,7 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
+    @prevent_sync_event_circular_query
     def resolve_subtotal_price(root: models.Checkout, info):
         manager = load_plugin_manager(info.context)
 
@@ -608,7 +610,7 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
+    @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Checkout, info):
         manager = load_plugin_manager(info.context)
 

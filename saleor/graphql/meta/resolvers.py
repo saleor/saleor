@@ -18,6 +18,7 @@ from ...shipping import models as shipping_models
 from ...shipping.interface import ShippingMethodData
 from ...tax import models as tax_models
 from ...warehouse import models as warehouse_models
+from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
 
@@ -104,7 +105,8 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
     if not isinstance(required_permissions, list):
         raise PermissionDenied()
 
-    if not one_of_permissions_or_auth_filter_required(
+    requester = get_user_or_app_from_context(info.context)
+    if not requester or not one_of_permissions_or_auth_filter_required(
         info.context, required_permissions
     ):
         raise PermissionDenied()

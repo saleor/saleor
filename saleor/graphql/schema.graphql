@@ -14532,6 +14532,15 @@ type Mutation {
 
   """Create JWT token."""
   tokenCreate(
+    """
+    The audience that will be included to JWT tokens with prefix `custom:`.
+    
+    Added in Saleor 3.8.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    audience: String
+
     """Email of a user."""
     email: String!
 
@@ -21584,6 +21593,15 @@ type Manifest {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   webhooks: [AppManifestWebhook!]!
+
+  """
+  The audience that will be included in all JWT tokens for the app.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  audience: String
 }
 
 type AppManifestExtension {

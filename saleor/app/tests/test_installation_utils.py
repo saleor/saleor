@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...tests.consts import TEST_SERVER_DOMAIN
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
 from ..installation_utils import (
@@ -59,6 +60,25 @@ def test_install_app_created_app(
     # then
     assert App.objects.get().id == app.id
     assert list(app.permissions.all()) == [permission_manage_products]
+
+
+def test_install_app_created_app_with_audience(
+    app_manifest, app_installation, monkeypatch
+):
+    # given
+    audience = f"https://{TEST_SERVER_DOMAIN}.com/app-123"
+    app_manifest["audience"] = audience
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.audience == audience
 
 
 @freeze_time("2022-05-12 12:00:00")
