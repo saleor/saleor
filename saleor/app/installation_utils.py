@@ -68,6 +68,8 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         manifest_url=app_installation.manifest_url,
         type=AppType.THIRDPARTY,
         audience=manifest_data.get("audience"),
+        private_metadata=app_installation.private_metadata,
+        metadata=app_installation.metadata,
     )
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
@@ -109,3 +111,17 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     return app, token
+
+
+def reinstall_app(app: App) -> AppInstallation:
+    if not app.manifest_url:
+        raise ValueError("App with manifest_url not set can't be reinstalled.")
+    app_installation = AppInstallation.objects.create(
+        app_name=app.name,
+        manifest_url=app.manifest_url,
+        private_metadata=app.private_metadata,
+        metadata=app.metadata,
+    )
+    app_installation.permissions.set(app.permissions.all())
+    app.delete()
+    return app_installation

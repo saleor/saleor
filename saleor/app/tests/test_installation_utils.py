@@ -14,6 +14,7 @@ from ...webhook.payloads import generate_meta, generate_requestor
 from ..installation_utils import (
     AppInstallationError,
     install_app,
+    reinstall_app,
     validate_app_install_response,
 )
 from ..models import App
@@ -395,3 +396,52 @@ def test_install_app_webhook_incorrect_query(
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
     assert error_dict["webhooks"][0].message == "Subscription query is not valid."
+
+
+def test_install_app_created_app_with_metadata(
+    app_manifest, app_installation, monkeypatch
+):
+    private_metadata, metadata = {"private": "val"}, {"key": "val"}
+    app_installation.private_metadata = private_metadata
+    app_installation.metadata = metadata
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    app, _ = install_app(app_installation, activate=True)
+
+    assert app.private_metadata == private_metadata
+    assert app.metadata == metadata
+
+
+def test_reinstall_app(permission_manage_products, permission_manage_orders):
+    app_name, manifest_url = "Test app", "http://localhost/manifest"
+    private_metadata, metadata = {"private": "val"}, {"key": "val"}
+    app = App.objects.create(
+        name=app_name,
+        is_active=True,
+        manifest_url=manifest_url,
+        private_metadata=private_metadata,
+        metadata=metadata,
+    )
+    app.permissions.set([permission_manage_products, permission_manage_orders])
+
+    app_installation = reinstall_app(app)
+
+    assert app_installation.app_name == app_name
+    assert app_installation.manifest_url == manifest_url
+    assert app_installation.private_metadata == private_metadata
+    assert app_installation.metadata == metadata
+    assert set(app_installation.permissions.all()) == {
+        permission_manage_products,
+        permission_manage_orders,
+    }
+    assert not App.objects.filter(id=app.id).exists()
+
+
+def test_reinstall_app_without_manifest_url():
+    app = App.objects.create(name="Test app", is_active=True)
+
+    with pytest.raises(ValueError):
+        reinstall_app(app)
