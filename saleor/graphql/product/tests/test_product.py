@@ -4569,6 +4569,14 @@ CREATE_PRODUCT_MUTATION = """
                             productType {
                                 name
                             }
+                            metadata {
+                                key
+                                value
+                            }
+                            privateMetadata {
+                                key
+                                value
+                            }
                             attributes {
                                 attribute {
                                     slug
@@ -4613,10 +4621,11 @@ def test_create_product(
     permission_manage_products,
     monkeypatch,
 ):
-    query = CREATE_PRODUCT_MUTATION
+    # given
 
     description_json = json.dumps(description_json)
-
+    metadata_key = "md key"
+    metadata_value = "md value"
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
@@ -4656,14 +4665,19 @@ def test_create_product(
                 {"id": color_attr_id, "values": [color_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
+
+    # then
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
@@ -4680,6 +4694,9 @@ def test_create_product(
     assert color_value_slug in values
 
     product = Product.objects.first()
+    assert product.metadata == {metadata_key: metadata_value}
+    assert product.private_metadata == {metadata_key: metadata_value}
+
     created_webhook_mock.assert_called_once_with(product)
     updated_webhook_mock.assert_not_called()
 
@@ -7133,6 +7150,14 @@ MUTATION_UPDATE_PRODUCT = """
                     productType {
                         name
                     }
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
+                    }
                     attributes {
                         attribute {
                             id
@@ -7176,7 +7201,8 @@ def test_update_product(
     monkeypatch,
     color_attribute,
 ):
-    query = MUTATION_UPDATE_PRODUCT
+    # given
+
     expected_other_description_json = other_description_json
     text = expected_other_description_json["blocks"][0]["data"]["text"]
     expected_other_description_json["blocks"][0]["data"]["text"] = strip_tags(text)
@@ -7188,6 +7214,14 @@ def test_update_product(
     product_slug = "updated-product"
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
+
+    old_meta = {"old": "meta"}
+    product.store_value_in_metadata(items=old_meta)
+    product.store_value_in_private_metadata(items=old_meta)
+    product.save(update_fields=["metadata", "private_metadata"])
+
+    metadata_key = "md key"
+    metadata_value = "md value"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -7209,14 +7243,20 @@ def test_update_product(
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [{"id": attribute_id, "values": [attr_value]}],
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        MUTATION_UPDATE_PRODUCT, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
+    product.refresh_from_db()
+
+    # then
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
@@ -7224,6 +7264,8 @@ def test_update_product(
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
+    assert product.metadata == {metadata_key: metadata_value, **old_meta}
+    assert product.private_metadata == {metadata_key: metadata_value, **old_meta}
 
     attributes = data["product"]["attributes"]
 
