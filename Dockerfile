@@ -45,6 +45,12 @@ COPY --from=build-python /usr/local/bin/ /usr/local/bin/
 COPY . /app
 WORKDIR /app
 
+# Build argument is converted to an ENV which is passed into the build-script that
+# creates the file on the container. The build argument is passed in the Github Action
+ARG GS_JSON_ARG
+ENV GS_JSON=$GS_JSON_ARG
+RUN python3 manage.py shell < ./build-scripts/gs_credentials_create.py
+
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
 RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
