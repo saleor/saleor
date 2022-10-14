@@ -49,7 +49,7 @@ WORKDIR /app
 # creates the file on the container. The build argument is passed in the Github Action
 ARG GS_JSON_ARG
 ENV GS_JSON=$GS_JSON_ARG
-RUN python3 manage.py shell < ./build-scripts/gs_credentials_create.py
+RUN SECRET_KEY=dummy python3 manage.py shell < ./build-scripts/gs_credentials_create.py
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
