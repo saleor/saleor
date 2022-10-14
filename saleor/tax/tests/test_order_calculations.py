@@ -39,6 +39,30 @@ def test_calculations_calculate_order_total(order_with_lines):
     )
 
 
+def test_calculations_calculate_order_total_use_product_type_tax_class(
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    lines = order.lines.all()
+    for line in lines:
+        line.variant.product.tax_class = None
+        line.variant.product.save()
+
+    country = get_order_country(order)
+    TaxClassCountryRate.objects.filter(tax_class=None, country=country).delete()
+
+    # when
+    update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
+
+    # then
+    assert order.total == TaxedMoney(
+        net=Money("65.04", "USD"), gross=Money("80.00", "USD")
+    )
+
+
 def test_calculations_calculate_order_total_no_rates(order_with_lines):
     # given
     order = order_with_lines
