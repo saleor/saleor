@@ -653,7 +653,7 @@ def test_calculate_checkout_shipping(
 
     # when
     shipping_price = calculate_checkout_shipping(
-        checkout_info, rate, prices_entered_with_tax
+        checkout_info, lines, rate, prices_entered_with_tax
     )
 
     # then
@@ -685,7 +685,7 @@ def test_calculate_checkout_shipping_no_shipping_price(
 
     # when
     shipping_price = calculate_checkout_shipping(
-        checkout_info, rate, prices_entered_with_tax
+        checkout_info, lines, rate, prices_entered_with_tax
     )
 
     # then
@@ -727,7 +727,7 @@ def test_calculate_checkout_shipping_voucher_on_shipping(
 
     # when
     shipping_price = calculate_checkout_shipping(
-        checkout_info, rate, prices_entered_with_tax
+        checkout_info, lines, rate, prices_entered_with_tax
     )
 
     # then
@@ -771,7 +771,7 @@ def test_calculate_checkout_shipping_free_shipping_voucher(
 
     # when
     shipping_price = calculate_checkout_shipping(
-        checkout_info, rate, prices_entered_with_tax
+        checkout_info, lines, rate, prices_entered_with_tax
     )
 
     # then
@@ -810,7 +810,7 @@ def test_calculate_checkout_shipping_free_entire_order_voucher(
 
     # when
     shipping_price = calculate_checkout_shipping(
-        checkout_info, rate, prices_entered_with_tax
+        checkout_info, lines, rate, prices_entered_with_tax
     )
 
     # then

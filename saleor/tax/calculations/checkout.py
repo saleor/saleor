@@ -64,7 +64,7 @@ def update_checkout_prices_with_flat_rates(
         tax_class, default_tax_rate, country_code
     )
     shipping_price = calculate_checkout_shipping(
-        checkout_info, shipping_tax_rate, prices_entered_with_tax
+        checkout_info, lines, shipping_tax_rate, prices_entered_with_tax
     )
     checkout.shipping_price = shipping_price
     checkout.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
@@ -78,12 +78,16 @@ def update_checkout_prices_with_flat_rates(
 
 
 def calculate_checkout_shipping(
-    checkout_info: "CheckoutInfo", tax_rate: Decimal, prices_entered_with_tax: bool
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    tax_rate: Decimal,
+    prices_entered_with_tax: bool,
 ) -> TaxedMoney:
+    default_price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
     shipping_price = getattr(
         checkout_info.delivery_method_info.delivery_method,
         "price",
-        zero_money(currency=checkout_info.checkout.currency),
+        default_price,
     )
     voucher = checkout_info.voucher
     is_shipping_discount = voucher.type == VoucherType.SHIPPING if voucher else False
