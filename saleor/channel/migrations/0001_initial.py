@@ -62,7 +62,7 @@ def create_default_channel(apps, schema_editor):
             slug=settings.DEFAULT_CHANNEL_SLUG,
             currency_code=default_currency,
             is_active=True,
-            # default_country=default_country, 
+            # default_country=default_country,
         )
 
 
