@@ -195,6 +195,7 @@ def create_order(payment, checkout, manager):
         discounts = fetch_active_discounts()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
+            payment_refund_or_void(payment, manager, checkout.channel.slug)
             raise ValidationError(
                 "Some of the checkout lines variants are unavailable."
             )
