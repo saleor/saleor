@@ -465,6 +465,9 @@ GS_FILE_OVERWRITE = get_bool_from_env("GS_FILE_OVERWRITE", True)
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
     GS_CREDENTIALS = os.environ.get("GS_CREDENTIALS")
 
+# Yebo Fresh - GS_JSON for build scripts
+GS_JSON = os.environ.get('GS_JSON', '{"type": "service_account"}')
+
 # Azure Storage configuration
 # See https://django-storages.readthedocs.io/en/latest/backends/azure.html
 AZURE_ACCOUNT_NAME = os.environ.get("AZURE_ACCOUNT_NAME")
