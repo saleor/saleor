@@ -7,9 +7,12 @@ is triggered by a Github action when a PR is merged.
 
 def create_google_credentials_file():
     import json
+    import os
     from django.conf import settings
+
     json_dict = json.loads(settings.GS_JSON)
-    file_name = settings.GOOGLE_APPLICATION_CREDENTIALS
+    file_name = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+
     with open(file_name, 'w') as f:
         json.dump(json_dict, f)
 
