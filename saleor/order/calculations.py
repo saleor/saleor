@@ -7,8 +7,8 @@ from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
-from ..payment.model_helpers import get_subtotal
 from ..order import base_calculations
+from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.order import update_order_prices_with_flat_rates
