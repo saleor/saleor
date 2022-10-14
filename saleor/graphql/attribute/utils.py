@@ -148,7 +148,7 @@ class AttributeAssignmentMixin:
         if not attr_values.values:
             return tuple()
         for value in attr_values.values:
-            value_obj = attribute.values.filter(name=value).first()
+            value_obj = attribute.values.filter(Q(slug=value) | Q(name=value)).first()
             if value_obj:
                 result.append(value_obj)
             else:

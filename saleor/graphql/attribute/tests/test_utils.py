@@ -1310,3 +1310,26 @@ def test_clean_file_url_in_attribute_assignment_mixin(file_url, expected_value):
     result = AttributeAssignmentMixin._clean_file_url(file_url)
 
     assert result == expected_value
+
+
+def test_pre_save_values(color_attribute):
+    # given
+    existing_value = color_attribute.values.first()
+    attr_values_count = color_attribute.values.count()
+    new_value = existing_value.name.upper()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        # we should get the new value only for the last element
+        values=[existing_value.name, existing_value.slug, new_value],
+        file_url=None,
+        content_type=None,
+        references=[],
+    )
+
+    # when
+    AttributeAssignmentMixin._pre_save_values(color_attribute, values)
+
+    # then
+    color_attribute.refresh_from_db()
+    assert color_attribute.values.count() == attr_values_count + 1
+    assert color_attribute.values.last().name == new_value
