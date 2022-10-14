@@ -17,6 +17,7 @@ from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
     change_order_line_quantity,
+    get_order_country,
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
@@ -516,3 +517,15 @@ def test_get_total_order_discount_excluding_shipping_no_discounts(order):
 
     # then
     assert discount_amount == Money("0", order.currency)
+
+
+def test_get_order_country_use_channel_country(order):
+    # given
+    order.shipping_address = order.billing_address = None
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    # when
+    country = get_order_country(order)
+
+    # then
+    assert country == order.channel.default_country
