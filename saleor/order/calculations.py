@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple, cast
 
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -9,6 +9,7 @@ from ..checkout import base_calculations
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..order import base_calculations as base_order_calculations
+from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..site.models import Site
 from . import ORDER_EDITABLE_STATUS
@@ -360,6 +361,26 @@ def order_shipping_tax_rate(
     """
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return order.shipping_tax_rate
+
+
+def order_subtotal(
+    order: Order,
+    manager: PluginsManager,
+    lines: Iterable[OrderLine],
+    force_update: bool = False,
+):
+    """Return the total price of the order.
+
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
+    """
+    currency = order.currency
+    order, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    # Lines aren't returned only if
+    # we don't pass them to `fetch_order_prices_if_expired`.
+    lines = cast(Iterable[OrderLine], lines)
+    return quantize_price(get_subtotal(lines, currency), currency)
 
 
 def order_total(
