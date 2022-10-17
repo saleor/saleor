@@ -7697,6 +7697,28 @@ type User implements Node & ObjectWithMetadata {
     channel: String
   ): [ID!]
 
+  """
+  Returns checkouts assigned to this user.
+  
+  Added in Saleor 3.8.
+  """
+  checkouts(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): CheckoutCountableConnection
+
   """List of the user gift cards."""
   giftCards(
     """Return the elements in the list that come before the specified cursor."""
@@ -9489,6 +9511,23 @@ type TransactionEvent implements Node {
   name: String
 }
 
+type CheckoutCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CheckoutCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CheckoutCountableEdge {
+  """The item at the end of the edge."""
+  node: Checkout!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
 type GiftCardCountableConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -10569,23 +10608,6 @@ enum ExportFileSortField {
   CREATED_AT
   UPDATED_AT
   LAST_MODIFIED_AT
-}
-
-type CheckoutCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [CheckoutCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type CheckoutCountableEdge {
-  """The item at the end of the edge."""
-  node: Checkout!
-
-  """A cursor for use in pagination."""
-  cursor: String!
 }
 
 input CheckoutSortingInput {
