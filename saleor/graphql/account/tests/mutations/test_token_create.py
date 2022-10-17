@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import graphene
+from django.urls import reverse
 from freezegun import freeze_time
 
 from .....account.error_codes import AccountErrorCode
@@ -10,6 +11,7 @@ from .....core.jwt import (
     create_refresh_token,
     jwt_decode,
 )
+from .....core.utils import build_absolute_uri
 from ....tests.utils import get_graphql_content
 from ...mutations.authentication import _get_new_csrf_token
 
@@ -66,6 +68,7 @@ def test_create_token(api_client, customer_user, settings):
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
+    assert payload["iss"] == build_absolute_uri(reverse("api"))
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -217,3 +220,4 @@ def test_create_token_active_user_logged_before(api_client, customer_user, setti
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
+    assert payload["iss"] == build_absolute_uri(reverse("api"))
