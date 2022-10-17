@@ -200,8 +200,10 @@ class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
     def resolve_page(root: ChannelContext[models.MenuItem], info):
         if root.node.page_id:
             requestor = get_user_or_app_from_context(info.context)
-            requestor_has_access_to_all = requestor.is_active and requestor.has_perm(
-                PagePermissions.MANAGE_PAGES
+            requestor_has_access_to_all = (
+                requestor
+                and requestor.is_active
+                and requestor.has_perm(PagePermissions.MANAGE_PAGES)
             )
             return (
                 PageByIdLoader(info.context)

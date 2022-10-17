@@ -31,6 +31,7 @@ from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
+from ....core.tests.utils import get_site_context_payload
 from ....core.tokens import account_delete_token_generator
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
@@ -1344,6 +1345,7 @@ def test_customer_register(
     api_client,
     channel_PLN,
     order,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
@@ -1375,9 +1377,8 @@ def test_customer_register(
         "token": "token",
         "confirm_url": confirm_url,
         "recipient_email": new_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
@@ -1482,6 +1483,7 @@ def test_customer_create(
     address,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1539,9 +1541,8 @@ def test_customer_create(
         "token": "token",
         "password_set_url": password_set_url,
         "recipient_email": new_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
@@ -1563,6 +1564,7 @@ def test_customer_create_send_password_with_url(
     staff_api_client,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1589,9 +1591,8 @@ def test_customer_create_send_password_with_url(
         "password_set_url": password_set_url,
         "token": "token",
         "recipient_email": new_customer.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
@@ -2176,7 +2177,7 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 @patch("saleor.account.notifications.account_delete_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion(
-    mocked_notify, mocked_token, user_api_client, channel_PLN
+    mocked_notify, mocked_token, user_api_client, channel_PLN, site_settings
 ):
     mocked_token.return_value = "token"
     user = user_api_client.user
@@ -2195,9 +2196,8 @@ def test_account_request_deletion(
         "delete_url": delete_url,
         "token": "token",
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2210,7 +2210,7 @@ def test_account_request_deletion(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_token_validation(
-    mocked_notify, user_api_client, channel_PLN
+    mocked_notify, user_api_client, channel_PLN, site_settings
 ):
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
@@ -2229,9 +2229,8 @@ def test_account_request_deletion_token_validation(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2271,7 +2270,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, settings, channel_PLN
+    mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
     user = user_api_client.user
     user.last_login = timezone.now()
@@ -2295,9 +2294,8 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2310,7 +2308,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_subdomain(
-    mocked_notify, user_api_client, settings, channel_PLN
+    mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
@@ -2330,9 +2328,8 @@ def test_account_request_deletion_subdomain(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2591,7 +2588,7 @@ def test_customer_delete_by_app(
     assert mocked_deletion_event.call_count == 1
     args, kwargs = mocked_deletion_event.call_args
     assert kwargs["deleted_count"] == 1
-    assert kwargs["staff_user"].is_anonymous
+    assert kwargs["staff_user"] is None
     assert kwargs["app"] == app
     delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
@@ -2656,6 +2653,7 @@ def test_staff_create(
     permission_manage_staff,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     group = permission_group_manage_users
     group.permissions.add(permission_manage_products)
@@ -2702,9 +2700,8 @@ def test_staff_create(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2867,6 +2864,7 @@ def test_staff_create_out_of_scope_group(
     permission_manage_users,
     permission_group_manage_users,
     channel_PLN,
+    site_settings,
 ):
     """Ensure user can't create staff with groups which are out of user scope.
     Ensure superuser pass restrictions.
@@ -2947,9 +2945,8 @@ def test_staff_create_out_of_scope_group(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2962,10 +2959,7 @@ def test_staff_create_out_of_scope_group(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create_send_password_with_url(
-    mocked_notify,
-    staff_api_client,
-    media_root,
-    permission_manage_staff,
+    mocked_notify, staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
@@ -2989,9 +2983,8 @@ def test_staff_create_send_password_with_url(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4806,7 +4799,12 @@ CONFIRM_ACCOUNT_MUTATION = """
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password(
-    mocked_notify, user_api_client, customer_user, channel_PLN, channel_USD
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
 ):
     redirect_url = "https://www.example.com"
     variables = {
@@ -4826,9 +4824,8 @@ def test_account_reset_password(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4920,7 +4917,7 @@ def test_account_confirmation_invalid_token(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_request_password_reset_email_for_staff(
-    mocked_notify, staff_api_client, channel_USD
+    mocked_notify, staff_api_client, channel_USD, site_settings
 ):
     redirect_url = "https://www.example.com"
     variables = {"email": staff_api_client.user.email, "redirectUrl": redirect_url}
@@ -4936,9 +4933,8 @@ def test_request_password_reset_email_for_staff(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": staff_api_client.user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -5007,7 +5003,13 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, customer_user, settings, channel_PLN, channel_USD
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    settings,
+    channel_PLN,
+    channel_USD,
+    site_settings,
 ):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
@@ -5029,9 +5031,8 @@ def test_account_reset_password_all_storefront_hosts_allowed(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -5044,7 +5045,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_subdomain(
-    mocked_notify, user_api_client, customer_user, settings, channel_PLN
+    mocked_notify, user_api_client, customer_user, settings, channel_PLN, site_settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
@@ -5066,9 +5067,8 @@ def test_account_reset_password_subdomain(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(

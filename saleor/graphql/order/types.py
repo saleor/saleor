@@ -36,11 +36,7 @@ from ...order.utils import (
 )
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import (
-    get_last_payment,
-    get_subtotal,
-    get_total_authorized,
-)
+from ...payment.model_helpers import get_last_payment, get_total_authorized
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
@@ -648,6 +644,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_unit_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -667,6 +664,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_unit_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -707,6 +705,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_total_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -722,6 +721,7 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_total_price(root: models.OrderLine, info):
         manager = load_plugin_manager(info.context)
 
@@ -1165,6 +1165,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1179,6 +1180,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_tax_rate(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1213,8 +1215,10 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_subtotal(root: models.Order, info):
+        manager = load_plugin_manager(info.context)
+
         def _resolve_subtotal(order_lines):
-            return get_subtotal(order_lines, root.currency)
+            return calculations.order_subtotal(root, manager, order_lines)
 
         return (
             OrderLinesByOrderIdLoader(info.context)
@@ -1224,6 +1228,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_total(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1236,6 +1241,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_total(root: models.Order, info):
         manager = load_plugin_manager(info.context)
 
@@ -1301,7 +1307,7 @@ class Order(ModelObjectType):
     def resolve_fulfillments(root: models.Order, info):
         def _resolve_fulfillments(fulfillments):
             user = info.context.user
-            if user.is_staff:
+            if user and user.is_staff:
                 return fulfillments
             return filter(
                 lambda fulfillment: fulfillment.status != FulfillmentStatus.CANCELED,

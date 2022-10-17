@@ -669,7 +669,9 @@ class TransactionCreate(BaseMutation):
         return False
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict], field_name, error_code):
+    def validate_metadata_keys(  # type: ignore
+        cls, metadata_list: List[dict], field_name, error_code
+    ):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
@@ -976,7 +978,7 @@ class TransactionRequestAction(BaseMutation):
         for required_permission in required_permissions:
             # We want to allow to call this mutation for requestor with one of following
             # permission: manage_orders, handle_payments
-            if requestor.has_perm(required_permission):
+            if requestor and requestor.has_perm(required_permission):
                 return True
         return False
 

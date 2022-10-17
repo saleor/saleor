@@ -12,7 +12,6 @@ from urllib.parse import urlencode, urlparse
 import Adyen
 import graphene
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.forms.models import model_to_dict
@@ -221,7 +220,7 @@ def create_order(payment, checkout, manager):
             payment_data={},
             store_source=False,
             discounts=discounts,
-            user=checkout.user or AnonymousUser(),
+            user=checkout.user or None,
             app=None,
         )
     except ValidationError as e:

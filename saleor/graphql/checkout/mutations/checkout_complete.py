@@ -1,7 +1,6 @@
 from typing import Iterable
 
 import graphene
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType
@@ -26,11 +25,12 @@ from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
+from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
-from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
+from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
 from ...site.dataloaders import load_site
@@ -39,7 +39,7 @@ from ..types import Checkout
 from .utils import get_checkout
 
 
-class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
+class CheckoutComplete(BaseMutation, I18nMixin):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
         required=True,
@@ -211,11 +211,13 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
                     )
                 raise e
 
-            cls.validate_metadata(
-                info,
-                id or checkout_id or graphene.Node.to_global_id("Checkout", token),
-                data.get("metadata"),
-            )
+            metadata = data.get("metadata")
+            if metadata is not None:
+                cls.check_metadata_permissions(
+                    info,
+                    id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+                )
+                cls.validate_metadata_keys(metadata)
 
             validate_checkout_email(checkout)
 
@@ -250,10 +252,10 @@ class CheckoutComplete(BaseMutationWithMetadata, I18nMixin):
             cls.validate_checkout_addresses(checkout_info, lines)
 
             requestor = get_user_or_app_from_context(info.context)
-            if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
                 # Allow impersonating user and process a checkout by using user details
                 # assigned to checkout.
-                customer = checkout.user or AnonymousUser()
+                customer = checkout.user
             else:
                 customer = info.context.user
 
