@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
 - Add ability to filter payments by list of ids. #10821 by @kadewu
 - Add ability to filter customers by ids. #10694 by @kadewu
+- Add `User.checkouts` field. #10862 by @zedzior
 
 ### Other changes
 
