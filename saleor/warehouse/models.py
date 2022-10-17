@@ -222,6 +222,25 @@ class StockQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_available_quantity_including_reservations(self):
+        return self.annotate(
+            available_quantity_including_reservations=F("quantity")
+            - Coalesce(
+                Sum(
+                    "allocations__quantity_allocated",
+                    filter=Q(allocations__quantity_allocated__gt=0),
+                ),
+                0,
+            )
+            - Coalesce(
+                Sum(
+                    "reservations__quantity_reserved",
+                    filter=Q(reservations__reserved_until__gt=timezone.now()),
+                ),
+                0,
+            )
+        )
+
     def for_channel_and_click_and_collect(self, channel_slug: str):
         """Return the stocks for a given channel for a click and collect.
 
