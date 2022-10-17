@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.middleware.csrf import _get_new_csrf_token
+from django.urls import reverse
 from freezegun import freeze_time
 
 from .....account.error_codes import AccountErrorCode
@@ -12,6 +13,7 @@ from .....core.jwt import (
     create_refresh_token,
     jwt_decode,
 )
+from .....core.utils import build_absolute_uri
 from ....tests.utils import get_graphql_content
 
 MUTATION_TOKEN_REFRESH = """
@@ -52,6 +54,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
     )
     assert payload["type"] == JWT_ACCESS_TYPE
     assert payload["token"] == customer_user.jwt_token_key
+    assert payload["iss"] == build_absolute_uri(reverse("api"))
 
 
 @freeze_time("2020-03-18 12:00:00")
