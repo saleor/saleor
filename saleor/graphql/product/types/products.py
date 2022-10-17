@@ -1597,10 +1597,10 @@ class Category(ModelObjectType):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
+        sort_by=ProductOrder(description="Sort products."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        sort_by=ProductOrder(description="Sort products."),
         description=(
             "List of products in the category. Requires the following permissions to "
             "include the unpublished items: "
