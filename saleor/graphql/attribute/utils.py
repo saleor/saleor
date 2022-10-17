@@ -23,7 +23,7 @@ from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..utils import get_nodes
 
 if TYPE_CHECKING:
@@ -581,6 +581,10 @@ class AttributeInputErrors:
         "Attribute values cannot be blank.",
         "REQUIRED",
     )
+    ERROR_DUPLICATED_VALUES = (
+        "Duplicated attribute values are provided.",
+        "DUPLICATED_INPUT_ITEM",
+    )
 
     # file errors
     ERROR_NO_FILE_GIVEN = (
@@ -774,6 +778,10 @@ def validate_values(
 ):
     name_field = attribute.values.model.name.field  # type: ignore
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
+    if get_duplicated_values(values):
+        attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
+            attribute_id
+        )
     for value in values:
         if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(

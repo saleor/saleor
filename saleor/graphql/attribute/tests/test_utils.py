@@ -711,6 +711,59 @@ def test_validate_attributes_input_no_values_given(
 
 
 @pytest.mark.parametrize("creation", [True, False])
+def test_validate_attributes_duplicated_values_given(
+    creation, weight_attribute, color_attribute, product_type
+):
+    # given
+    color_attribute.value_required = True
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["value_required"])
+
+    weight_attribute.value_required = True
+    weight_attribute.input_type = AttributeInputType.MULTISELECT
+    weight_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["test", "new", "test"],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["test", "test"],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    attributes = product_type.variant_attributes.all()
+
+    # when
+    errors = validate_attributes_input(
+        input_data, attributes, is_page_attributes=False, creation=creation
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.DUPLICATED_INPUT_ITEM.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in [weight_attribute, color_attribute]
+    }
+
+
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_not_required_variant_selection_attributes_input_no_values_given(
     creation, weight_attribute, color_attribute, product_type
 ):
@@ -1400,28 +1453,3 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert result[0] == existing_value
     assert result[1].name == new_value
     assert result[2].name == new_value_2
-
-
-def test_prepare_attribute_values_two_same_values_given(color_attribute):
-    """Ensure that only one value is created when two same values are provided."""
-    # given
-    attr_values_count = color_attribute.values.count()
-
-    value = "test"
-    values = AttrValuesInput(
-        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
-        # we should get the new value only for the last element
-        values=[value, value],
-        file_url=None,
-        content_type=None,
-        references=[],
-    )
-
-    # when
-    result = prepare_attribute_values(color_attribute, values)
-
-    # then
-    color_attribute.refresh_from_db()
-    assert color_attribute.values.count() == attr_values_count + 1
-    assert result[0].name == value
-    assert result[1].name == value
