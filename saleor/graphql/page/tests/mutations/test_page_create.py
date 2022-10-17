@@ -3,13 +3,13 @@ from unittest import mock
 
 import graphene
 import pytz
+from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page, PageType
-from .....tests.consts import TEST_SERVER_DOMAIN
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_page_payload
@@ -358,7 +358,11 @@ def test_page_create_mutation_empty_attribute_value(
 
 
 def test_create_page_with_file_attribute(
-    staff_api_client, permission_manage_pages, page_type, page_file_attribute
+    staff_api_client,
+    permission_manage_pages,
+    page_type,
+    page_file_attribute,
+    site_settings,
 ):
     # given
     page_slug = "test-slug"
@@ -375,6 +379,9 @@ def test_create_page_with_file_attribute(
     attr_value = page_file_attribute.values.first()
 
     values_count = page_file_attribute.values.count()
+    file_url = (
+        f"http://{site_settings.site.domain}{settings.MEDIA_URL}{attr_value.file_url}"
+    )
 
     # test creating root page
     variables = {
@@ -384,7 +391,7 @@ def test_create_page_with_file_attribute(
             "isPublished": page_is_published,
             "slug": page_slug,
             "pageType": page_type_id,
-            "attributes": [{"id": file_attribute_id, "file": attr_value.file_url}],
+            "attributes": [{"id": file_attribute_id, "file": file_url}],
         }
     }
 
@@ -412,7 +419,7 @@ def test_create_page_with_file_attribute(
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
                 "file": {
-                    "url": f"http://{TEST_SERVER_DOMAIN}/media/{attr_value.file_url}",
+                    "url": file_url,
                     "contentType": None,
                 },
                 "reference": None,
@@ -429,7 +436,11 @@ def test_create_page_with_file_attribute(
 
 
 def test_create_page_with_file_attribute_new_attribute_value(
-    staff_api_client, permission_manage_pages, page_type, page_file_attribute
+    staff_api_client,
+    permission_manage_pages,
+    page_type,
+    page_file_attribute,
+    site_settings,
 ):
     # given
     page_slug = "test-slug"
@@ -444,6 +455,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
     file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
     page_type.page_attributes.add(page_file_attribute)
     new_value = "new_test_value.txt"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{new_value}"
     new_value_content_type = "text/plain"
 
     values_count = page_file_attribute.values.count()
@@ -459,7 +471,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
             "attributes": [
                 {
                     "id": file_attribute_id,
-                    "file": new_value,
+                    "file": file_url,
                     "contentType": new_value_content_type,
                 }
             ],
@@ -491,7 +503,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
                 "reference": None,
                 "name": new_value,
                 "file": {
-                    "url": f"http://{TEST_SERVER_DOMAIN}/media/" + new_value,
+                    "url": file_url,
                     "contentType": new_value_content_type,
                 },
                 "plainText": None,
