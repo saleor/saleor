@@ -1102,39 +1102,34 @@ class ProductVariantCreate(ModelMutation):
         object_id = data.get("id")
         object_sku = data.get("sku")
         attributes = data.get("attributes")
-        qs = data.get("qs")
 
-        if object_id or object_sku:
-            if attributes:
-                # Prefetches needed by AttributeAssignmentMixin and
-                # associate_attribute_values_to_instance
-                qs = cls.Meta.model.objects.prefetch_related(
-                    "product__product_type__variant_attributes__values",
-                    "product__product_type__attributevariant",
+        if attributes:
+            # Prefetches needed by AttributeAssignmentMixin and
+            # associate_attribute_values_to_instance
+            qs = cls.Meta.model.objects.prefetch_related(
+                "product__product_type__variant_attributes__values",
+                "product__product_type__attributevariant",
+            )
+        else:
+            # Use the default queryset.
+            qs = models.ProductVariant.objects.all()
+
+        if object_id:
+            return cls.get_node_or_error(
+                info, object_id, only_type="ProductVariant", qs=qs
+            )
+        elif object_sku:
+            instance = qs.filter(sku=object_sku).first()
+            if not instance:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Couldn't resolve to a node: %s" % object_sku,
+                            code="not_found",
+                        )
+                    }
                 )
-
-            if object_id:
-                return cls.get_node_or_error(
-                    info, object_id, only_type="ProductVariant", qs=qs
-                )
-            elif object_sku:
-                if attributes:
-                    instance = qs.filter(sku=object_sku).first()
-                else:
-                    instance = models.ProductVariant.objects.filter(
-                        sku=object_sku
-                    ).first()
-
-                if not instance:
-                    raise ValidationError(
-                        {
-                            "sku": ValidationError(
-                                "Couldn't resolve to a node: %s" % object_sku,
-                                code="not_found",
-                            )
-                        }
-                    )
-                return instance
+            return instance
         else:
             return cls._meta.model()
 
