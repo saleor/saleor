@@ -35,10 +35,10 @@ STAFF_PASSWORD_RESET_SUBJECT_FIELD = "staff_password_reset_subject"
 
 
 STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.number }} details"
-SET_STAFF_PASSWORD_DEFAULT_SUBJECT = "Set password e-mail"
-CSV_EXPORT_SUCCESS_DEFAULT_SUBJECT = "Export {{ data_type }} data"
-CSV_EXPORT_FAILED_DEFAULT_SUBJECT = "Export {{ data_type }} data"
-STAFF_PASSWORD_RESET_DEFAULT_SUBJECT = "Staff password reset"
+SET_STAFF_PASSWORD_DEFAULT_SUBJECT = "Set Your Dashboard Password"
+CSV_EXPORT_SUCCESS_DEFAULT_SUBJECT = "Your exported {{ data_type }} data is ready"
+CSV_EXPORT_FAILED_DEFAULT_SUBJECT = "Exporting {{ data_type }} data failed"
+STAFF_PASSWORD_RESET_DEFAULT_SUBJECT = "Reset Your Dashboard Password"
 
 
 PLUGIN_ID = "mirumee.notifications.admin_email"

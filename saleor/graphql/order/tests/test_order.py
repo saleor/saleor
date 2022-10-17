@@ -24,6 +24,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.postgres import FlatConcatSearchVector
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_money, zero_taxed_money
+from ....core.tests.utils import get_site_context_payload
 from ....discount.models import OrderDiscount, VoucherChannelListing
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
@@ -1597,8 +1598,7 @@ def test_order_confirm(
         "recipient_email": order_unconfirmed.user.email,
         "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMED,
@@ -1620,6 +1620,7 @@ def test_order_confirm_without_sku(
     order_unconfirmed,
     permission_manage_orders,
     payment_txn_preauth,
+    site_settings,
 ):
     order_unconfirmed.lines.update(product_sku=None)
     ProductVariant.objects.update(sku=None)
@@ -1659,8 +1660,7 @@ def test_order_confirm_without_sku(
         "recipient_email": order_unconfirmed.user.email,
         "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMED,
@@ -6644,8 +6644,7 @@ def test_order_capture(
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         },
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
