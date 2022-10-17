@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 import pytz
+from django.conf import settings
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
@@ -247,23 +248,24 @@ def test_update_page_only_title(staff_api_client, permission_manage_pages, page)
 
 
 def test_update_page_with_file_attribute_value(
-    staff_api_client, permission_manage_pages, page, page_file_attribute
+    staff_api_client, permission_manage_pages, page, page_file_attribute, site_settings
 ):
     # given
     query = UPDATE_PAGE_MUTATION
 
     page_type = page.page_type
     page_type.page_attributes.add(page_file_attribute)
-    new_value = "test.txt"
     page_file_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_file_attribute.pk
     )
 
     page_id = graphene.Node.to_global_id("Page", page.id)
+    file_name = "test.txt"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
 
     variables = {
         "id": page_id,
-        "input": {"attributes": [{"id": page_file_attribute_id, "file": new_value}]},
+        "input": {"attributes": [{"id": page_file_attribute_id, "file": file_url}]},
     }
 
     # when
@@ -281,12 +283,12 @@ def test_update_page_with_file_attribute_value(
         "attribute": {"slug": page_file_attribute.slug},
         "values": [
             {
-                "slug": slugify(new_value),
-                "name": new_value,
+                "slug": slugify(file_name),
+                "name": file_name,
                 "plainText": None,
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": file_url,
                     "contentType": None,
                 },
             }
@@ -296,7 +298,7 @@ def test_update_page_with_file_attribute_value(
 
 
 def test_update_page_with_file_attribute_new_value_is_not_created(
-    staff_api_client, permission_manage_pages, page, page_file_attribute
+    staff_api_client, permission_manage_pages, page, page_file_attribute, site_settings
 ):
     # given
     query = UPDATE_PAGE_MUTATION
@@ -310,14 +312,12 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
     associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
 
     page_id = graphene.Node.to_global_id("Page", page.id)
+    domain = site_settings.site.domain
+    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
 
     variables = {
         "id": page_id,
-        "input": {
-            "attributes": [
-                {"id": page_file_attribute_id, "file": existing_value.file_url}
-            ]
-        },
+        "input": {"attributes": [{"id": page_file_attribute_id, "file": file_url}]},
     }
 
     # when
@@ -340,7 +340,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
                 "plainText": None,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": file_url,
                     "contentType": existing_value.content_type,
                 },
             }

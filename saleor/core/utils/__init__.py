@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from django.utils.safestring import SafeText
 
 
-def build_absolute_uri(location: str) -> Optional[str]:
+def build_absolute_uri(location: str) -> str:
     """Create absolute uri from location.
 
     If provided location is absolute uri by itself, it returns unchanged value,

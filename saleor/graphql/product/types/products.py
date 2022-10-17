@@ -15,7 +15,7 @@ from ....core.permissions import (
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
-from ....core.utils import get_currency_for_country
+from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
@@ -918,7 +918,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
                 url = get_product_image_thumbnail(image, size, method="thumbnail")
                 alt = image.alt
-                return Image(alt=alt, url=info.context.build_absolute_uri(url))
+                return Image(alt=alt, url=url)
             return None
 
         return (
@@ -1699,7 +1699,7 @@ class ProductMedia(ModelObjectType):
             url = get_thumbnail(root.image, size, method="thumbnail")
         else:
             url = root.image.url
-        return info.context.build_absolute_uri(url)
+        return build_absolute_uri(url)
 
     @staticmethod
     def __resolve_references(roots: List["ProductMedia"], _info):
@@ -1738,4 +1738,4 @@ class ProductImage(graphene.ObjectType):
             url = get_thumbnail(root.image, size, method="thumbnail")
         else:
             url = root.image.url
-        return info.context.build_absolute_uri(url)
+        return build_absolute_uri(url)

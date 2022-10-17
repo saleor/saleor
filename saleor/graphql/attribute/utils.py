@@ -3,10 +3,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
-from urllib.parse import urlparse
 
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
@@ -20,6 +18,7 @@ from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
 from ...core.utils.editorjs import clean_editor_js
+from ...core.utils.url import get_default_storage_root_url
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
@@ -193,7 +192,7 @@ class AttributeAssignmentMixin:
             values = AttrValuesInput(
                 global_id=global_id,
                 values=attribute_input.get("values", []),
-                file_url=cls._clean_file_url(attribute_input.get("file")),
+                file_url=cls._clean_file_url(attribute_input.get("file"), error_class),
                 content_type=attribute_input.get("content_type"),
                 references=attribute_input.get("references", []),
                 rich_text=attribute_input.get("rich_text"),
@@ -258,12 +257,16 @@ class AttributeAssignmentMixin:
         return cleaned_input
 
     @staticmethod
-    def _clean_file_url(file_url: Optional[str]):
+    def _clean_file_url(file_url: Optional[str], error_class):
         # extract storage path from file URL
+        storage_root_url = get_default_storage_root_url()
+        if file_url and not file_url.startswith(storage_root_url):  # type: ignore
+            raise ValidationError(
+                "The file_url must be the path to the default storage.",
+                code=error_class.INVALID.value,
+            )
         return (
-            re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
-            if file_url is not None
-            else file_url
+            re.sub(storage_root_url, "", file_url) if file_url is not None else file_url
         )
 
     @classmethod

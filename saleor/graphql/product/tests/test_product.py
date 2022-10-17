@@ -9,6 +9,7 @@ import before_after
 import graphene
 import pytest
 import pytz
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import transaction
@@ -5259,6 +5260,7 @@ def test_create_product_with_file_attribute(
     file_attribute,
     color_attribute,
     permission_manage_products,
+    site_settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -5273,6 +5275,8 @@ def test_create_product_with_file_attribute(
     product_type.product_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     existing_value = file_attribute.values.first()
+    domain = site_settings.site.domain
+    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
 
     # test creating root product
     variables = {
@@ -5281,7 +5285,7 @@ def test_create_product_with_file_attribute(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": file_attr_id, "file": existing_value.file_url}],
+            "attributes": [{"id": file_attr_id, "file": file_url}],
         }
     }
 
@@ -5305,7 +5309,7 @@ def test_create_product_with_file_attribute(
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
                     "file": {
-                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "url": file_url,
                         "contentType": None,
                     },
                     "reference": None,
@@ -5608,6 +5612,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
     file_attribute,
     color_attribute,
     permission_manage_products,
+    site_settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -5621,7 +5626,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
     # Add second attribute
     product_type.product_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
-    non_existing_value = "new_test.jpg"
+    file_name = "new_test.jpg"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
 
     # test creating root product
     variables = {
@@ -5630,7 +5636,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": file_attr_id, "file": non_existing_value}],
+            "attributes": [{"id": file_attr_id, "file": file_url}],
         }
     }
 
@@ -5651,8 +5657,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
             "attribute": {"slug": file_attribute.slug},
             "values": [
                 {
-                    "name": non_existing_value,
-                    "slug": slugify(non_existing_value, allow_unicode=True),
+                    "name": file_name,
+                    "slug": slugify(file_name, allow_unicode=True),
                     "reference": None,
                     "richText": None,
                     "plainText": None,
@@ -5660,7 +5666,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "date": None,
                     "dateTime": None,
                     "file": {
-                        "url": "http://testserver/media/" + non_existing_value,
+                        "url": file_url,
                         "contentType": None,
                     },
                 }
@@ -5882,6 +5888,7 @@ def test_create_product_no_values_given(
     product_type,
     category,
     permission_manage_products,
+    site_settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -5894,6 +5901,9 @@ def test_create_product_no_values_given(
     color_attr = product_type.product_attributes.get(name="Color")
     color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
+    file_name = "test.jpg"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
+
     # test creating root product
     variables = {
         "input": {
@@ -5901,7 +5911,7 @@ def test_create_product_no_values_given(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": color_attr_id, "file": "test.jpg"}],
+            "attributes": [{"id": color_attr_id, "file": file_url}],
         }
     }
 
@@ -7073,6 +7083,7 @@ def test_update_product_with_file_attribute_value(
     product,
     product_type,
     permission_manage_products,
+    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -7082,11 +7093,12 @@ def test_update_product_with_file_attribute_value(
     attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     product_type.product_attributes.add(file_attribute)
 
-    new_value = "new_file.json"
+    file_name = "new_test.jpg"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
 
     variables = {
         "productId": product_id,
-        "input": {"attributes": [{"id": attribute_id, "file": new_value}]},
+        "input": {"attributes": [{"id": attribute_id, "file": file_url}]},
     }
 
     # when
@@ -7107,11 +7119,11 @@ def test_update_product_with_file_attribute_value(
         "values": [
             {
                 "id": ANY,
-                "name": new_value,
-                "slug": slugify(new_value),
+                "name": file_name,
+                "slug": slugify(file_name),
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": file_url,
                     "contentType": None,
                 },
                 "boolean": None,
@@ -7132,6 +7144,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     product,
     product_type,
     permission_manage_products,
+    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -7144,12 +7157,12 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     associate_attribute_values_to_instance(product, file_attribute, existing_value)
 
     values_count = file_attribute.values.count()
+    domain = site_settings.site.domain
+    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
 
     variables = {
         "productId": product_id,
-        "input": {
-            "attributes": [{"id": attribute_id, "file": existing_value.file_url}]
-        },
+        "input": {"attributes": [{"id": attribute_id, "file": file_url}]},
     }
 
     # when
@@ -7174,7 +7187,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": file_url,
                     "contentType": existing_value.content_type,
                 },
                 "boolean": None,
@@ -12179,7 +12192,7 @@ def test_query_product_for_federation(api_client, product, channel_USD):
 
 
 def test_query_product_media_for_federation(
-    api_client, product_with_image, channel_USD
+    api_client, product_with_image, channel_USD, site_settings
 ):
     media = product_with_image.media.first()
     media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
@@ -12209,7 +12222,7 @@ def test_query_product_media_for_federation(
         {
             "__typename": "ProductMedia",
             "id": media_id,
-            "url": "http://testserver/media/products/product.jpg",
+            "url": f"http://{site_settings.site.domain}/media/products/product.jpg",
         }
     ]
 
