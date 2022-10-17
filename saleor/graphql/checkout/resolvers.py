@@ -46,6 +46,9 @@ def resolve_checkout(info, token, id):
     if not requester:
         return None
 
+    if not requester:
+        return None
+
     has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
     if has_manage_checkout or has_impersonate_user:

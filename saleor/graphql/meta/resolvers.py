@@ -100,8 +100,8 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
     if not isinstance(required_permissions, list):
         raise PermissionDenied()
 
-    requester = load_requestor(info.context)
-    if not requester or not requester.has_perms(required_permissions):
+    requestor = load_requestor(info.context)
+    if not requestor or not requestor.has_perms(required_permissions):
         raise PermissionDenied()
 
 

@@ -92,6 +92,8 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
     from ...graphql.account.dataloaders import load_requestor
 
     requestor = load_requestor(context)
+    # requestor = get_user_or_app_from_context(context)
+
     if requestor and permissions:
         perm_checks_results = []
         for permission in permissions:

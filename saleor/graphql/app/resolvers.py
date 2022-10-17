@@ -24,12 +24,12 @@ def resolve_access_token_for_app(info, root):
         return None
 
     user = load_user(info.context)
-    if user.is_anonymous or not user.is_staff:
+    if not user or not user.is_staff:
         return None
     return create_access_token_for_app(root, user)
 
 
-def resolve_access_token_for_app_extension(info, root):
+def resolve_access_token_for_app_extension(info, root, app):
     user = load_user(info.context)
     if not user:
         return None
@@ -37,7 +37,7 @@ def resolve_access_token_for_app_extension(info, root):
     user_permissions = user.effective_permissions
     if set(extension_permissions).issubset(user_permissions):
         return create_access_token_for_app_extension(
-            app_extension=root, permissions=extension_permissions, user=user
+            app_extension=root, permissions=extension_permissions, user=user, app=app
         )
     return None
 

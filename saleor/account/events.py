@@ -65,10 +65,7 @@ def customer_email_changed_event(
     )
 
 
-def customer_placed_order_event(*, user: User, order: Order) -> Optional[CustomerEvent]:
-    if not user:
-        return None
-
+def customer_placed_order_event(*, user: User, order: Order) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=user, order=order, type=CustomerEvents.PLACED_ORDER
     )

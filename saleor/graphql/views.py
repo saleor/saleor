@@ -28,7 +28,7 @@ from .app.dataloaders import load_app
 from .context import get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
-from .utils import format_error, query_fingerprint
+from .utils import format_error, query_fingerprint, query_identifier
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
@@ -246,7 +246,7 @@ class GraphQLView(View):
             return (
                 None,
                 ExecutionResult(
-                    errors=[ValueError("Must provide a query string.")], invalid=True
+                    errors=[GraphQLError("Must provide a query string.")], invalid=True
                 ),
             )
 
@@ -296,6 +296,7 @@ class GraphQLView(View):
             if document is not None:
                 raw_query_string = document.document_string
                 span.set_tag("graphql.query", raw_query_string)
+                span.set_tag("graphql.query_identifier", query_identifier(document))
                 span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
                 try:
                     query_contains_schema = self.check_if_query_contains_only_schema(

@@ -480,6 +480,7 @@ class AppFetchManifest(BaseMutation):
             permissions=cleaned_data.get("permissions"),
             extensions=cleaned_data.get("extensions", []),
             webhooks=cleaned_data.get("webhooks", []),
+            audience=cleaned_data.get("audience"),
         )
 
     @classmethod

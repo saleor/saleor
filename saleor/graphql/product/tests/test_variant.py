@@ -6,6 +6,7 @@ from uuid import uuid4
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.utils.text import slugify
 from freezegun import freeze_time
 from measurement.measures import Weight
@@ -98,6 +99,7 @@ def test_fetch_variant(
     product,
     permission_manage_products,
     site_settings,
+    settings,
     channel_USD,
 ):
     # given
@@ -108,6 +110,7 @@ def test_fetch_variant(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "countryCode": "EU", "channel": channel_USD.slug}
@@ -154,6 +157,7 @@ def test_fetch_variant_no_stocks(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     warehouse = variant.stocks.first().warehouse
     # remove the warehouse channels
@@ -582,6 +586,14 @@ CREATE_VARIANT_MUTATION = """
                             globalThreshold
                             endDate
                         }
+                        metadata {
+                            key
+                            value
+                        }
+                        privateMetadata {
+                            key
+                            value
+                        }
                     }
                 }
             }
@@ -601,11 +613,12 @@ def test_create_variant_with_name(
     warehouse,
 ):
     # given
-    query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
     name = "test-name"
     weight = 10.22
+    metadata_key = "md key"
+    metadata_value = "md value"
     variant_slug = product_type.variant_attributes.first().slug
     attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
@@ -627,12 +640,14 @@ def test_create_variant_with_name(
             "weight": weight,
             "attributes": [{"id": attribute_id, "values": [variant_value]}],
             "trackInventory": True,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
         }
     }
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        CREATE_VARIANT_MUTATION, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
@@ -649,6 +664,11 @@ def test_create_variant_with_name(
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+    assert data["metadata"][0]["key"] == metadata_key
+    assert data["metadata"][0]["value"] == metadata_value
+    assert data["privateMetadata"][0]["key"] == metadata_key
+    assert data["privateMetadata"][0]["value"] == metadata_value
+
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
 

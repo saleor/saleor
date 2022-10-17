@@ -351,7 +351,7 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
     schema_context = request.getfixturevalue("schema_context")
     schema_context.user = SimpleLazyObject(
         lambda: staff_user
-    )  # TODO: change to setting token for user
+    )  # TODO DEKOZA: change to setting token for user
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     variables = {"productId": product_id, "channel": channel_USD.slug}

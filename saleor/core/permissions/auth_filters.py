@@ -7,6 +7,8 @@ def is_app(maybeapp) -> bool:
 
 def is_user(maybeuser) -> bool:
     return bool(maybeuser) and not is_app(maybeuser) and maybeuser.is_active
+    # user = context.user
+    # return user and user.is_active
 
 
 def is_staff_user(maybeuser) -> bool:
