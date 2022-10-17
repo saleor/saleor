@@ -5,6 +5,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money
@@ -769,6 +770,7 @@ def test_checkout_complete_requires_confirmation(
 ):
     site_settings.automatically_confirm_all_new_orders = False
     site_settings.save()
+    Site.objects.clear_cache()
     payment = payment_dummy
     payment.checkout = checkout_ready_to_complete
     payment.save()
