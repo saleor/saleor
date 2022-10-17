@@ -130,7 +130,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
             app_id = root.app_id
         else:
             requestor = get_user_or_app_from_context(info.context)
-            if requestor.has_perm(AppPermission.MANAGE_APPS):
+            if requestor and requestor.has_perm(AppPermission.MANAGE_APPS):
                 app_id = root.app_id
 
         if not app_id:
@@ -343,7 +343,7 @@ class App(ModelObjectType):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AppPermission.MANAGE_APPS):
+        if not requestor or not requestor.has_perm(AppPermission.MANAGE_APPS):
             qs = models.App.objects.none()
         else:
             qs = resolve_apps(info)

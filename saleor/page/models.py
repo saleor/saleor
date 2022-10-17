@@ -11,7 +11,7 @@ from ..seo.models import SeoModel, SeoModelTranslation
 
 class PageQueryset(PublishedQuerySet):
     def visible_to_user(self, requestor):
-        if requestor.has_perm(PagePermissions.MANAGE_PAGES):
+        if requestor and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             return self.all()
         return self.published()
 

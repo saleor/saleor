@@ -6,7 +6,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
 
 import graphene
-from django.contrib.auth.models import AnonymousUser
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
@@ -109,7 +108,7 @@ ORDER_PRICE_FIELDS = (
 def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
     if not requestor:
         return {"id": None, "type": None}
-    if isinstance(requestor, (User, AnonymousUser)):
+    if isinstance(requestor, User):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
     return {"id": requestor.name, "type": "app"}  # type: ignore
 

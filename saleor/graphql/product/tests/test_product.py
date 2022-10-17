@@ -8,6 +8,7 @@ import before_after
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import transaction
@@ -937,6 +938,7 @@ def test_product_query_by_id_weight_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.LB
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -4531,6 +4533,7 @@ def test_product_type_query_by_id_weight_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.OZ
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
@@ -4634,6 +4637,7 @@ def test_create_product(
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
     color_value_slug = color_attr.values.first().slug
+    color_value_name = color_attr.values.first().name
     color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
     # Add second attribute
@@ -4652,7 +4656,7 @@ def test_create_product(
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
-                {"id": color_attr_id, "values": [color_value_slug]},
+                {"id": color_attr_id, "values": [color_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         }

@@ -6,6 +6,7 @@ from uuid import uuid4
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.utils.text import slugify
 from freezegun import freeze_time
 from measurement.measures import Weight
@@ -98,6 +99,7 @@ def test_fetch_variant(
     product,
     permission_manage_products,
     site_settings,
+    settings,
     channel_USD,
 ):
     # given
@@ -108,6 +110,7 @@ def test_fetch_variant(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "countryCode": "EU", "channel": channel_USD.slug}
@@ -154,6 +157,7 @@ def test_fetch_variant_no_stocks(
 
     site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     warehouse = variant.stocks.first().warehouse
     # remove the warehouse channels
@@ -2488,8 +2492,8 @@ def test_update_product_variant_with_current_attribute(
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": color_attribute_id, "values": ["red"]},
-            {"id": size_attribute_id, "values": ["small"]},
+            {"id": color_attribute_id, "values": ["Red"]},
+            {"id": size_attribute_id, "values": ["Small"]},
         ],
     }
 
@@ -2506,6 +2510,48 @@ def test_update_product_variant_with_current_attribute(
     assert variant.sku == sku
     assert variant.attributes.first().values.first().slug == "red"
     assert variant.attributes.last().values.first().slug == "small"
+
+
+def test_update_product_variant_with_matching_slugs_different_values(
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
+):
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+    assert variant.attributes.first().values.first().slug == "red"
+    assert variant.attributes.last().values.first().slug == "small"
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    color_new_value = "r.ed"
+    size_new_value = "SmaLL"
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": color_attribute_id, "values": [color_new_value]},
+            {"id": size_attribute_id, "values": [size_new_value]},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    assert variant.sku == sku
+    assert variant.attributes.first().values.first().slug == "red-2"
+    assert variant.attributes.last().values.first().slug == "small-2"
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -2952,8 +2998,8 @@ def test_update_product_variant_with_new_attribute(
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": color_attribute_id, "values": ["red"]},
-            {"id": size_attribute_id, "values": ["big"]},
+            {"id": color_attribute_id, "values": ["Red"]},
+            {"id": size_attribute_id, "values": ["Big"]},
         ],
     }
 

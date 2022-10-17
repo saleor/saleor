@@ -1,5 +1,4 @@
 import graphene
-from django.contrib.auth.models import AnonymousUser
 from django.utils import timezone
 from graphene import AbstractType, ObjectType, Union
 from rx import Observable
@@ -103,7 +102,7 @@ class Event(graphene.Interface):
 
     @staticmethod
     def resolve_issuing_principal(_root, info):
-        if isinstance(info.context.requestor, AnonymousUser):
+        if not info.context.requestor:
             return None
         return info.context.requestor
 

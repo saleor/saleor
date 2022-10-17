@@ -634,7 +634,7 @@ def try_void_or_refund_inactive_payment(
 
 
 def payment_owned_by_user(payment_pk: int, user) -> bool:
-    if user.is_anonymous:
+    if not user:
         return False
     return (
         Payment.objects.filter(

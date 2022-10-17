@@ -84,6 +84,16 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 channel=checkout_info.channel,
             ).first(),
         )
+        if shipping_method and not delivery_method:
+            raise ValidationError(
+                {
+                    "delivery_method_id": ValidationError(
+                        "This shipping method is not applicable in the given channel.",
+                        code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )

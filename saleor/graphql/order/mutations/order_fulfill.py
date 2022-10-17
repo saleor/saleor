@@ -244,7 +244,7 @@ class OrderFulfill(BaseMutation):
         cleaned_input = cls.clean_input(info, order, data)
 
         context = info.context
-        user = context.user if not context.user.is_anonymous else None
+        user = context.user
         app = context.app
         manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
