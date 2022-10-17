@@ -15,7 +15,7 @@ from ....core.permissions import (
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
-from ....core.utils import get_currency_for_country
+from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
@@ -927,7 +927,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                 url = get_image_or_proxy_url(
                     thumbnail, image.id, "ProductMedia", size, format
                 )
-                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+                return Image(alt=image.alt, url=build_absolute_uri(url))
 
             return (
                 ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -1729,7 +1729,7 @@ class ProductMedia(ModelObjectType):
             return
 
         if not size:
-            return info.context.build_absolute_uri(root.image.url)
+            return build_absolute_uri(root.image.url)
 
         format = format.lower() if format else None
         size = get_thumbnail_size(size)
@@ -1738,7 +1738,7 @@ class ProductMedia(ModelObjectType):
             url = get_image_or_proxy_url(
                 thumbnail, root.id, "ProductMedia", size, format
             )
-            return info.context.build_absolute_uri(url)
+            return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -1779,7 +1779,7 @@ class ProductImage(graphene.ObjectType):
             return
 
         if not size:
-            return info.context.build_absolute_uri(root.image.url)
+            return build_absolute_uri(root.image.url)
 
         format = format.lower() if format else None
         size = get_thumbnail_size(size)
@@ -1788,7 +1788,7 @@ class ProductImage(graphene.ObjectType):
             url = get_image_or_proxy_url(
                 thumbnail, root.id, "ProductMedia", size, format
             )
-            return info.context.build_absolute_uri(url)
+            return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)

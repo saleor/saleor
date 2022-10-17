@@ -8,6 +8,7 @@ import before_after
 import graphene
 import pytest
 import pytz
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -50,7 +51,6 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
-from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, Stock, Warehouse
@@ -620,7 +620,7 @@ QUERY_PRODUCT_BY_ID_WITH_MEDIA = """
 
 
 def test_query_product_thumbnail_with_size_and_format_proxy_url_returned(
-    staff_api_client, product_with_image, channel_USD
+    staff_api_client, product_with_image, channel_USD, site_settings
 ):
     # given
     format = ThumbnailFormatEnum.WEBP.name
@@ -643,14 +643,14 @@ def test_query_product_thumbnail_with_size_and_format_proxy_url_returned(
         "ProductMedia", product_with_image.media.first().pk
     )
     expected_url = (
-        f"http://{TEST_SERVER_DOMAIN}"
+        f"http://{site_settings.site.domain}"
         f"/thumbnail/{product_media_id}/128/{format.lower()}/"
     )
     assert data["thumbnail"]["url"] == expected_url
 
 
 def test_query_product_thumbnail_with_size_and_proxy_url_returned(
-    staff_api_client, product_with_image, channel_USD
+    staff_api_client, product_with_image, channel_USD, site_settings
 ):
     # given
     id = graphene.Node.to_global_id("Product", product_with_image.pk)
@@ -671,12 +671,12 @@ def test_query_product_thumbnail_with_size_and_proxy_url_returned(
     )
     assert (
         data["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{product_media_id}/128/"
+        == f"http://{site_settings.site.domain}/thumbnail/{product_media_id}/128/"
     )
 
 
 def test_query_product_thumbnail_with_size_and_thumbnail_url_returned(
-    staff_api_client, product_with_image, channel_USD
+    staff_api_client, product_with_image, channel_USD, site_settings
 ):
     # given
     product_media = product_with_image.media.first()
@@ -702,12 +702,12 @@ def test_query_product_thumbnail_with_size_and_thumbnail_url_returned(
     data = content["data"]["product"]
     assert (
         data["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_query_product_thumbnail_only_format_provided_default_size_is_used(
-    staff_api_client, product_with_image, channel_USD
+    staff_api_client, product_with_image, channel_USD, site_settings
 ):
     # given
     format = ThumbnailFormatEnum.WEBP.name
@@ -729,7 +729,7 @@ def test_query_product_thumbnail_only_format_provided_default_size_is_used(
         "ProductMedia", product_with_image.media.first().pk
     )
     expected_url = (
-        f"http://{TEST_SERVER_DOMAIN}"
+        f"http://{site_settings.site.domain}"
         f"/thumbnail/{product_media_id}/256/{format.lower()}/"
     )
     assert data["thumbnail"]["url"] == expected_url
@@ -3853,7 +3853,7 @@ def test_query_product_media_by_invalid_id(
 
 
 def test_query_product_media_by_id_with_size_and_format_proxy_url_returned(
-    user_api_client, product_with_image, channel_USD
+    user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
     media = product_with_image.media.first()
@@ -3873,14 +3873,15 @@ def test_query_product_media_by_id_with_size_and_format_proxy_url_returned(
 
     content = get_graphql_content(response)
     assert content["data"]["product"]["mediaById"]["id"]
+    domain = site_settings.site.domain
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{domain}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
 def test_query_product_media_by_id_with_size_proxy_url_returned(
-    user_api_client, product_with_image, channel_USD
+    user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
     media = product_with_image.media.first()
@@ -3900,12 +3901,12 @@ def test_query_product_media_by_id_with_size_proxy_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/"
     )
 
 
 def test_query_product_media_by_id_with_size_thumbnail_url_returned(
-    user_api_client, product_with_image, channel_USD
+    user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
     media = product_with_image.media.first()
@@ -3930,12 +3931,12 @@ def test_query_product_media_by_id_with_size_thumbnail_url_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_query_product_media_by_id_only_format_provided_original_image_returned(
-    user_api_client, product_with_image, channel_USD
+    user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
     media = product_with_image.media.first()
@@ -3956,12 +3957,12 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
+        == f"http://{site_settings.site.domain}/media/{media.image.name}"
     )
 
 
 def test_query_product_media_by_id_no_size_value_original_image_returned(
-    user_api_client, product_with_image, channel_USD
+    user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
     media = product_with_image.media.first()
@@ -3980,7 +3981,7 @@ def test_query_product_media_by_id_no_size_value_original_image_returned(
     assert content["data"]["product"]["mediaById"]["id"]
     assert (
         content["data"]["product"]["mediaById"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/{media.image.name}"
+        == f"http://{site_settings.site.domain}/media/{media.image.name}"
     )
 
 
@@ -5506,6 +5507,7 @@ def test_create_product_with_file_attribute(
     file_attribute,
     color_attribute,
     permission_manage_products,
+    site_settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -5520,6 +5522,8 @@ def test_create_product_with_file_attribute(
     product_type.product_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     existing_value = file_attribute.values.first()
+    domain = site_settings.site.domain
+    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
 
     # test creating root product
     variables = {
@@ -5528,7 +5532,7 @@ def test_create_product_with_file_attribute(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": file_attr_id, "file": existing_value.file_url}],
+            "attributes": [{"id": file_attr_id, "file": file_url}],
         }
     }
 
@@ -5543,7 +5547,7 @@ def test_create_product_with_file_attribute(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert len(data["product"]["attributes"]) == 2
-    expected_url = f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
+
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -5553,7 +5557,7 @@ def test_create_product_with_file_attribute(
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
                     "file": {
-                        "url": expected_url,
+                        "url": file_url,
                         "contentType": None,
                     },
                     "reference": None,
@@ -5933,6 +5937,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
     file_attribute,
     color_attribute,
     permission_manage_products,
+    site_settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -5946,7 +5951,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
     # Add second attribute
     product_type.product_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
-    non_existing_value = "new_test.jpg"
+    file_name = "new_test.jpg"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
 
     # test creating root product
     variables = {
@@ -5955,7 +5961,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": file_attr_id, "file": non_existing_value}],
+            "attributes": [{"id": file_attr_id, "file": file_url}],
         }
     }
 
@@ -5976,8 +5982,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
             "attribute": {"slug": file_attribute.slug},
             "values": [
                 {
-                    "name": non_existing_value,
-                    "slug": slugify(non_existing_value, allow_unicode=True),
+                    "name": file_name,
+                    "slug": slugify(file_name, allow_unicode=True),
                     "reference": None,
                     "richText": None,
                     "plainText": None,
@@ -5985,8 +5991,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "date": None,
                     "dateTime": None,
                     "file": {
-                        "url": f"http://{TEST_SERVER_DOMAIN}/media/"
-                        + non_existing_value,
+                        "url": file_url,
                         "contentType": None,
                     },
                 }
@@ -6208,6 +6213,7 @@ def test_create_product_no_values_given(
     product_type,
     category,
     permission_manage_products,
+    site_settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -6220,6 +6226,9 @@ def test_create_product_no_values_given(
     color_attr = product_type.product_attributes.get(name="Color")
     color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
+    file_name = "test.jpg"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
+
     # test creating root product
     variables = {
         "input": {
@@ -6227,7 +6236,7 @@ def test_create_product_no_values_given(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": color_attr_id, "file": "test.jpg"}],
+            "attributes": [{"id": color_attr_id, "file": file_url}],
         }
     }
 
@@ -7424,6 +7433,7 @@ def test_update_product_with_file_attribute_value(
     product,
     product_type,
     permission_manage_products,
+    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -7433,11 +7443,12 @@ def test_update_product_with_file_attribute_value(
     attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     product_type.product_attributes.add(file_attribute)
 
-    new_value = "new_file.json"
+    file_name = "new_test.jpg"
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
 
     variables = {
         "productId": product_id,
-        "input": {"attributes": [{"id": attribute_id, "file": new_value}]},
+        "input": {"attributes": [{"id": attribute_id, "file": file_url}]},
     }
 
     # when
@@ -7458,11 +7469,11 @@ def test_update_product_with_file_attribute_value(
         "values": [
             {
                 "id": ANY,
-                "name": new_value,
-                "slug": slugify(new_value),
+                "name": file_name,
+                "slug": slugify(file_name),
                 "reference": None,
                 "file": {
-                    "url": f"http://{TEST_SERVER_DOMAIN}/media/{new_value}",
+                    "url": file_url,
                     "contentType": None,
                 },
                 "boolean": None,
@@ -7483,6 +7494,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     product,
     product_type,
     permission_manage_products,
+    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -7495,12 +7507,12 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     associate_attribute_values_to_instance(product, file_attribute, existing_value)
 
     values_count = file_attribute.values.count()
+    domain = site_settings.site.domain
+    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
 
     variables = {
         "productId": product_id,
-        "input": {
-            "attributes": [{"id": attribute_id, "file": existing_value.file_url}]
-        },
+        "input": {"attributes": [{"id": attribute_id, "file": file_url}]},
     }
 
     # when
@@ -7525,9 +7537,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": (
-                        f"http://{TEST_SERVER_DOMAIN}/media/{existing_value.file_url}"
-                    ),
+                    "url": file_url,
                     "contentType": existing_value.content_type,
                 },
                 "boolean": None,
@@ -12536,7 +12546,7 @@ def test_query_product_for_federation(api_client, product, channel_USD):
 
 
 def test_query_product_media_for_federation(
-    api_client, product_with_image, channel_USD
+    api_client, product_with_image, channel_USD, site_settings
 ):
     media = product_with_image.media.first()
     media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
@@ -12566,7 +12576,7 @@ def test_query_product_media_for_federation(
         {
             "__typename": "ProductMedia",
             "id": media_id,
-            "url": f"http://{TEST_SERVER_DOMAIN}/media/products/product.jpg",
+            "url": f"http://{site_settings.site.domain}/media/products/product.jpg",
         }
     ]
 
