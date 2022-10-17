@@ -2,7 +2,7 @@ import os
 import secrets
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 from uuid import UUID
 
 import graphene
@@ -18,6 +18,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
+from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AuthorizationFilters,
@@ -25,9 +26,11 @@ from ...core.permissions import (
     one_of_permissions_or_auth_filter_required,
 )
 from ...core.utils.events import call_event
+from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
+from ..payment.utils import metadata_contains_empty_key
 from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
-from .context import set_mutation_flag_in_context
+from .context import set_mutation_flag_in_context, setup_context_user
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import (
     TYPES_WITH_DOUBLE_ID_AVAILABLE,
@@ -137,6 +140,8 @@ class BaseMutation(graphene.Mutation):
         error_type_class=None,
         error_type_field=None,
         errors_mapping=None,
+        support_meta_field=False,
+        support_private_meta_field=False,
         **options,
     ):
         if not _meta:
@@ -155,6 +160,8 @@ class BaseMutation(graphene.Mutation):
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
+        _meta.support_meta_field = support_meta_field
+        _meta.support_private_meta_field = support_private_meta_field
 
         if permissions and auto_permission_message:
             permissions_msg = message_one_of_permissions_required(permissions)
@@ -370,6 +377,7 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
+        setup_context_user(info.context)
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
@@ -407,6 +415,54 @@ class BaseMutation(graphene.Mutation):
     @staticmethod
     def call_event(func_obj, *func_args):
         return call_event(func_obj, *func_args)
+
+    @classmethod
+    def update_metadata(cls, instance, meta_data_list: List, is_private: bool = False):
+        if is_private:
+            instance.store_value_in_private_metadata(
+                {data.key: data.value for data in meta_data_list}
+            )
+        else:
+            instance.store_value_in_metadata(
+                {data.key: data.value for data in meta_data_list}
+            )
+
+    @classmethod
+    def validate_metadata_keys(cls, metadata_list: List[dict]):
+        if metadata_contains_empty_key(metadata_list):
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_and_update_metadata(
+        cls, instance, metadata_list, private_metadata_list
+    ):
+        if cls._meta.support_meta_field and metadata_list is not None:
+            cls.validate_metadata_keys(metadata_list)
+            cls.update_metadata(instance, metadata_list)
+        if cls._meta.support_private_meta_field and private_metadata_list is not None:
+            cls.validate_metadata_keys(private_metadata_list)
+            cls.update_metadata(instance, private_metadata_list, is_private=True)
+
+    @classmethod
+    def check_metadata_permissions(cls, info, object_id, private=False):
+        type_name, db_id = graphene.Node.from_global_id(object_id)
+
+        if private:
+            meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)
+        else:
+            meta_permission = PUBLIC_META_PERMISSION_MAP.get(type_name)
+
+        if not meta_permission:
+            raise NotImplementedError(
+                f"Couldn't resolve permission to item type: {type_name}. "
+            )
 
 
 class ModelMutation(BaseMutation):
@@ -581,7 +637,11 @@ class ModelMutation(BaseMutation):
         instance = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
@@ -717,6 +777,8 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
+        setup_context_user(info.context)
+
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
         manager = load_plugin_manager(info.context)

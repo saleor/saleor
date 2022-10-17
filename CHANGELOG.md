@@ -11,11 +11,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter payments by list of ids. #10821 by @kadewu
 - Add ability to filter customers by ids. #10694 by @kadewu
 - Add `User.checkouts` field. #10862 by @zedzior
+- Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
+- Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multiselect attributes. - #10881 by @jakubkuc
+- Add ability to pass metadata directly in create/update mutations for product app models - #10689 by @SzymJ
 
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
 - Add base shipping price to `Order` - #10771 by @fowczarek
+- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
+- GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
+- Add `iss` field to JWT tokens - #10842 by @korycins
 
 ### GraphQL API
 

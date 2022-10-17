@@ -49,10 +49,10 @@ def check_can_edit_address(context, address):
     - customers associated to the given address.
     """
     requester = get_user_or_app_from_context(context)
-    if requester.has_perm(AccountPermissions.MANAGE_USERS):
+    if requester and requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
     app = load_app(context)
-    if not app and not context.user.is_anonymous:
+    if not app and context.user:
         is_owner = requester.addresses.filter(pk=address.pk).exists()
         if is_owner:
             return True

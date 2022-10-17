@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import graphene
+from django.urls import reverse
 from freezegun import freeze_time
 
 from .....account.error_codes import AccountErrorCode
@@ -10,12 +11,13 @@ from .....core.jwt import (
     create_refresh_token,
     jwt_decode,
 )
+from .....core.utils import build_absolute_uri
 from ....tests.utils import get_graphql_content
 from ...mutations.authentication import _get_new_csrf_token
 
 MUTATION_CREATE_TOKEN = """
-    mutation tokenCreate($email: String!, $password: String!){
-        tokenCreate(email: $email, password: $password) {
+    mutation tokenCreate($email: String!, $password: String!, $audience: String){
+        tokenCreate(email: $email, password: $password, audience: $audience) {
             token
             refreshToken
             csrfToken
@@ -66,6 +68,46 @@ def test_create_token(api_client, customer_user, settings):
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
+    assert payload["iss"] == build_absolute_uri(reverse("api"))
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_create_token_with_audience(api_client, customer_user, settings):
+    audience = "dashboard"
+    variables = {
+        "email": customer_user.email,
+        "password": customer_user._password,
+        "audience": audience,
+    }
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["tokenCreate"]
+
+    user_email = data["user"]["email"]
+    assert customer_user.email == user_email
+    assert content["data"]["tokenCreate"]["errors"] == []
+
+    token = data["token"]
+    refreshToken = data["refreshToken"]
+
+    payload = jwt_decode(token)
+    assert payload["email"] == customer_user.email
+    assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
+    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_ACCESS
+    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert payload["type"] == JWT_ACCESS_TYPE
+    assert payload["aud"] == f"custom:{audience}"
+
+    payload = jwt_decode(refreshToken)
+    assert payload["email"] == customer_user.email
+    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH
+    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert payload["type"] == JWT_REFRESH_TYPE
+    assert payload["token"] == customer_user.jwt_token_key
+    assert payload["aud"] == f"custom:{audience}"
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -178,3 +220,4 @@ def test_create_token_active_user_logged_before(api_client, customer_user, setti
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
+    assert payload["iss"] == build_absolute_uri(reverse("api"))

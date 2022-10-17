@@ -8,6 +8,7 @@ import before_after
 import graphene
 import pytest
 import pytz
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import transaction
@@ -937,6 +938,7 @@ def test_product_query_by_id_weight_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.LB
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -4531,6 +4533,7 @@ def test_product_type_query_by_id_weight_returned_in_default_unit(
 
     site_settings.default_weight_unit = WeightUnits.OZ
     site_settings.save(update_fields=["default_weight_unit"])
+    Site.objects.clear_cache()
 
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
@@ -4568,6 +4571,14 @@ CREATE_PRODUCT_MUTATION = """
                             rating
                             productType {
                                 name
+                            }
+                            metadata {
+                                key
+                                value
+                            }
+                            privateMetadata {
+                                key
+                                value
                             }
                             attributes {
                                 attribute {
@@ -4613,10 +4624,11 @@ def test_create_product(
     permission_manage_products,
     monkeypatch,
 ):
-    query = CREATE_PRODUCT_MUTATION
+    # given
 
     description_json = json.dumps(description_json)
-
+    metadata_key = "md key"
+    metadata_value = "md value"
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
@@ -4634,6 +4646,7 @@ def test_create_product(
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
     color_value_slug = color_attr.values.first().slug
+    color_value_name = color_attr.values.first().name
     color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
     # Add second attribute
@@ -4652,17 +4665,22 @@ def test_create_product(
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
-                {"id": color_attr_id, "values": [color_value_slug]},
+                {"id": color_attr_id, "values": [color_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
+
+    # then
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
@@ -4679,6 +4697,9 @@ def test_create_product(
     assert color_value_slug in values
 
     product = Product.objects.first()
+    assert product.metadata == {metadata_key: metadata_value}
+    assert product.private_metadata == {metadata_key: metadata_value}
+
     created_webhook_mock.assert_called_once_with(product)
     updated_webhook_mock.assert_not_called()
 
@@ -7132,6 +7153,14 @@ MUTATION_UPDATE_PRODUCT = """
                     productType {
                         name
                     }
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
+                    }
                     attributes {
                         attribute {
                             id
@@ -7175,7 +7204,8 @@ def test_update_product(
     monkeypatch,
     color_attribute,
 ):
-    query = MUTATION_UPDATE_PRODUCT
+    # given
+
     expected_other_description_json = other_description_json
     text = expected_other_description_json["blocks"][0]["data"]["text"]
     expected_other_description_json["blocks"][0]["data"]["text"] = strip_tags(text)
@@ -7187,6 +7217,14 @@ def test_update_product(
     product_slug = "updated-product"
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
+
+    old_meta = {"old": "meta"}
+    product.store_value_in_metadata(items=old_meta)
+    product.store_value_in_private_metadata(items=old_meta)
+    product.save(update_fields=["metadata", "private_metadata"])
+
+    metadata_key = "md key"
+    metadata_value = "md value"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -7208,14 +7246,20 @@ def test_update_product(
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [{"id": attribute_id, "values": [attr_value]}],
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        MUTATION_UPDATE_PRODUCT, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
+    product.refresh_from_db()
+
+    # then
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
@@ -7223,6 +7267,8 @@ def test_update_product(
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
+    assert product.metadata == {metadata_key: metadata_value, **old_meta}
+    assert product.private_metadata == {metadata_key: metadata_value, **old_meta}
 
     attributes = data["product"]["attributes"]
 
