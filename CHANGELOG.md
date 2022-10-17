@@ -21,6 +21,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow sorting products by `CREATED_AT` field. #10900 by @zedzior
 - Add ability to pass metadata directly in create/update mutations for product app models - #10689 by @SzymJ
 - Add ability to use SKU argument in `productVariantUpdate`, `productVariantDelete`, `productVariantBulkDelete`, `productVariantStocksUpdate`, `productVariantStocksDelete`, `productVariantChannelListingUpdate` mutations - #10861 by @SzymJ
+- Add sorting by `CREATED_AT` field. #10911 by @zedzior
+  - Affected types: GiftCard, Page.
+  - Deprecated `CREATION_DATE` sort field on Page type. Use `CREATED_AT` instead.
 
 ### Other changes
 
