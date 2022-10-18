@@ -652,7 +652,6 @@ def _prepare_checkout(
     if to_update:
         to_update.append("last_change")
         checkout.save(update_fields=to_update)
-        checkout_info.checkout = checkout
 
 
 def _get_order_data(
@@ -758,15 +757,21 @@ def complete_checkout(
             checkout = checkout_info.checkout
             channel_slug = checkout_info.channel.slug
             payment = checkout.get_last_active_payment()
-            _prepare_checkout(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                discounts=discounts,
-                tracking_code=tracking_code,
-                redirect_url=redirect_url,
-                payment=payment,
-            )
+            try:
+                _prepare_checkout(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    discounts=discounts,
+                    tracking_code=tracking_code,
+                    redirect_url=redirect_url,
+                    payment=payment,
+                )
+            except ValidationError as exc:
+                gateway.payment_refund_or_void(
+                    payment, manager, channel_slug=channel_slug
+                )
+                raise exc
 
             if site_settings is None:
                 site_settings = Site.objects.get_current().settings
