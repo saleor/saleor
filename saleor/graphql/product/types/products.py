@@ -1696,6 +1696,8 @@ class Category(ModelObjectType):
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
+
+        kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
