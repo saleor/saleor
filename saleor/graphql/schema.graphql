@@ -11766,7 +11766,14 @@ type Mutation {
   """
   productVariantDelete(
     """ID of a product variant to delete."""
-    id: ID!
+    id: ID
+
+    """
+    SKU of a product variant to delete.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantDelete
 
   """
@@ -11789,7 +11796,14 @@ type Mutation {
   """
   productVariantBulkDelete(
     """List of product variant IDs to delete."""
-    ids: [ID!]!
+    ids: [ID!]
+
+    """
+    List of product variant SKUs to delete.
+    
+    Added in Saleor 3.8.
+    """
+    skus: [String!]
   ): ProductVariantBulkDelete
 
   """
@@ -11811,8 +11825,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantStocksDelete(
+    """SKU of product variant for which stocks will be deleted."""
+    sku: String
+
     """ID of product variant for which stocks will be deleted."""
-    variantId: ID!
+    variantId: ID
+
+    """Input list of warehouse IDs."""
     warehouseIds: [ID!]
   ): ProductVariantStocksDelete
 
@@ -11822,11 +11841,14 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantStocksUpdate(
-    """Input list of stocks to create."""
+    """SKU of product variant for which stocks will be updated."""
+    sku: String
+
+    """Input list of stocks to create or update."""
     stocks: [StockInput!]!
 
-    """ID of a product variant for which stocks will be created."""
-    variantId: ID!
+    """ID of a product variant for which stocks will be updated."""
+    variantId: ID
   ): ProductVariantStocksUpdate
 
   """
@@ -11836,10 +11858,17 @@ type Mutation {
   """
   productVariantUpdate(
     """ID of a product variant to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a product variant."""
     input: ProductVariantInput!
+
+    """
+    SKU of a product variant to update.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantUpdate
 
   """
@@ -11876,12 +11905,19 @@ type Mutation {
   """
   productVariantChannelListingUpdate(
     """ID of a product variant to update."""
-    id: ID!
+    id: ID
 
     """
     List of fields required to create or upgrade product variant channel listings.
     """
     input: [ProductVariantChannelListingAddInput!]!
+
+    """
+    SKU of a product variant to update.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantChannelListingUpdate
 
   """
