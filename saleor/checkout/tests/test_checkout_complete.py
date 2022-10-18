@@ -1658,7 +1658,7 @@ def test_complete_checkout_race_condition(
     checkout.billing_address = customer_user.default_billing_address
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
-    token = checkout.token
+    token = str(checkout.token)
 
     # Place checkout
     manager = get_plugins_manager()

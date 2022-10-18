@@ -26,6 +26,7 @@ from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
+from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
 from ..discount.models import NotApplicable
@@ -773,7 +774,7 @@ def complete_checkout(
         .filter(pk=checkout_info.checkout.pk)
         .first()
     )
-    with traced_atomic_transaction():
+    with transaction_with_commit_on_errors():
         if checkout_for_update:
             fetch_checkout_prices_if_expired(
                 checkout_info,
