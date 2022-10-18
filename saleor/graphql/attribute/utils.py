@@ -527,16 +527,18 @@ def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
 def prepare_attribute_values(
     attribute: attribute_models.Attribute, attr_values: AttrValuesInput
 ):
+    values = attr_values.values
     slug_to_value_map = {}
     name_to_value_map = {}
-    for val in attribute.values.all():
+    for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
         slug_to_value_map[val.slug] = val
         name_to_value_map[val.name] = val
 
-    existing_slugs = set(slug_to_value_map.keys())
+    existing_slugs = get_existing_slugs(attribute, values)
+
     result = []
     values_to_create = []
-    for value in attr_values.values:
+    for value in values:
         # match the value firstly by slug then by name
         value_obj = slug_to_value_map.get(value) or name_to_value_map.get(value)
         if value_obj:
@@ -561,6 +563,15 @@ def prepare_attribute_values(
 
     attribute_models.AttributeValue.objects.bulk_create(values_to_create)
     return result
+
+
+def get_existing_slugs(attribute: attribute_models.Attribute, values: List[str]):
+    lookup = Q()
+    for value in values:
+        lookup |= Q(slug__startswith=slugify(value, allow_unicode=True))
+
+    existing_slugs = set(attribute.values.filter(lookup).values_list("slug", flat=True))
+    return existing_slugs
 
 
 class AttributeInputErrors:
