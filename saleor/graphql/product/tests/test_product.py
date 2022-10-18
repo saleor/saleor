@@ -53,7 +53,7 @@ from ....product.utils.costs import get_product_costs_data
 from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
-from ....warehouse.models import Allocation, Stock, Warehouse
+from ....warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_product_deleted_payload
 from ...core.enums import AttributeErrorCode, ReportingPeriod, ThumbnailFormatEnum
@@ -3477,6 +3477,48 @@ def test_products_query_with_filter_stock_availability_as_staff(
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
 
+    assert len(products) == 3
+
+
+def test_products_query_with_filter_stock_availability_including_reservations(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    order_line,
+    checkout_line,
+    permission_manage_products,
+    channel_USD,
+):
+
+    stocks = [product.variants.first().stocks.first() for product in product_list]
+    Allocation.objects.create(
+        order_line=order_line, stock=stocks[0], quantity_allocated=100
+    )
+    Reservation.objects.create(
+        checkout_line=checkout_line,
+        stock=stocks[1],
+        quantity_reserved=100,
+        reserved_until=timezone.now() + timedelta(minutes=5),
+    )
+    Allocation.objects.create(
+        order_line=order_line, stock=stocks[2], quantity_allocated=50
+    )
+    Reservation.objects.create(
+        checkout_line=checkout_line,
+        stock=stocks[2],
+        quantity_reserved=50,
+        reserved_until=timezone.now() + timedelta(minutes=5),
+    )
+    variables = {
+        "filter": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
     assert len(products) == 3
 
 
