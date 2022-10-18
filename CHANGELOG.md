@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
 - Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multiselect attributes. - #10881 by @jakubkuc
 - Add ability to pass metadata directly in create/update mutations for product app models - #10689 by @SzymJ
+- Add ability to sort and filter with categories.products - #10917 by @yemeksepeti-cihankarluk, @ogunheper
 
 ### Other changes
 
