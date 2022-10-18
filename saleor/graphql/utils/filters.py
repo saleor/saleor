@@ -21,10 +21,10 @@ def filter_by_period(queryset, period, field_name):
 
 def filter_range_field(qs, field, value):
     gte, lte = value.get("gte"), value.get("lte")
-    if gte:
+    if gte is not None:
         lookup = {f"{field}__gte": gte}
         qs = qs.filter(**lookup)
-    if lte:
+    if lte is not None:
         lookup = {f"{field}__lte": lte}
         qs = qs.filter(**lookup)
     return qs
