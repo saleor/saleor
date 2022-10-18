@@ -3,7 +3,6 @@ import graphene
 from .....app.models import AppExtension
 from .....app.types import AppExtensionMount
 from .....core.jwt import jwt_decode
-from .....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP_EXTENSION = """
@@ -184,9 +183,10 @@ def test_app_extension_access_token_with_audience(
     permission_manage_orders,
     permission_manage_products,
     permission_manage_apps,
+    site_settings,
 ):
     # given
-    app.audience = f"https://{TEST_SERVER_DOMAIN}.com/app-123"
+    app.audience = f"https://{site_settings.site.domain}.com/app-123"
     app.save()
     app_extension = AppExtension.objects.create(
         app=app,

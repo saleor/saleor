@@ -1547,6 +1547,7 @@ def test_create_variant_with_variant_reference_attribute_no_references_given(
     product_type_variant_reference_attribute,
     permission_manage_products,
     warehouse,
+    site_settings,
 ):
     # given
     query = CREATE_VARIANT_MUTATION
@@ -1570,13 +1571,14 @@ def test_create_variant_with_variant_reference_attribute_no_references_given(
             "quantity": 20,
         }
     ]
+    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}test.jpg"
 
     variables = {
         "input": {
             "product": product_id,
             "sku": sku,
             "stocks": stocks,
-            "attributes": [{"id": ref_attr_id, "file": "test.jpg"}],
+            "attributes": [{"id": ref_attr_id, "file": file_url}],
             "trackInventory": True,
         }
     }

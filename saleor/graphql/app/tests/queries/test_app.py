@@ -5,7 +5,6 @@ from freezegun import freeze_time
 from .....app.models import App
 from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
-from .....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
@@ -403,10 +402,11 @@ def test_app_query_access_token_with_audience(
     permission_manage_staff,
     external_app,
     webhook,
+    site_settings,
 ):
     app = external_app
     app.permissions.add(permission_manage_staff)
-    app.audience = f"https://{TEST_SERVER_DOMAIN}.com/app-123"
+    app.audience = f"https://{site_settings.site.domain}.com/app-123"
     app.save()
 
     webhook = webhook
