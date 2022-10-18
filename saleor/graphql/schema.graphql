@@ -6006,6 +6006,34 @@ input ProductFilterInput {
   stocks: ProductStockFilterInput
   search: String
   metadata: [MetadataFilter!]
+
+  """
+  Filter by the publication date. 
+  
+  Added in Saleor 3.8.
+  """
+  publishedFrom: DateTime
+
+  """
+  Filter by availability for purchase. 
+  
+  Added in Saleor 3.8.
+  """
+  isAvailable: Boolean
+
+  """
+  Filter by the date of availability for purchase. 
+  
+  Added in Saleor 3.8.
+  """
+  availableFrom: DateTime
+
+  """
+  Filter by visibility in product listings. 
+  
+  Added in Saleor 3.8.
+  """
+  isVisibleInListing: Boolean
   price: PriceRangeInput
 
   """Filter by the lowest variant price after discounts."""
