@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import AccountPermissions, AppPermission, AuthorizationFilters
+from ...core.utils import build_absolute_uri
 from ...csv import models
 from ..account.types import User
 from ..account.utils import check_is_owner_or_has_one_of_perms
@@ -87,7 +88,7 @@ class ExportFile(ModelObjectType):
         content_file = root.content_file
         if not content_file:
             return None
-        return info.context.build_absolute_uri(content_file.url)
+        return build_absolute_uri(content_file.url)
 
     @staticmethod
     def resolve_user(root: models.ExportFile, info):
