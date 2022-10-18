@@ -66,6 +66,7 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 is_published=True,
                 discounted_price_amount=Decimal(5),
                 published_at=datetime.datetime(2002, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=None,
             ),
             ProductChannelListing(
                 product=products[1],
@@ -73,6 +74,9 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 is_published=True,
                 discounted_price_amount=Decimal(15),
                 published_at=datetime.datetime(2000, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=datetime.datetime(
+                    2003, 1, 1, tzinfo=pytz.UTC
+                ),
             ),
             ProductChannelListing(
                 product=products[2],
@@ -80,13 +84,20 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 is_published=False,
                 discounted_price_amount=Decimal(4),
                 published_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=datetime.datetime(
+                    2000, 1, 1, tzinfo=pytz.UTC
+                ),
             ),
             ProductChannelListing(
                 product=products[3],
                 channel=channel_USD,
                 is_published=True,
+                visible_in_listings=True,
                 discounted_price_amount=Decimal(7),
                 published_at=datetime.datetime(2001, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=datetime.datetime(
+                    2001, 1, 1, tzinfo=pytz.UTC
+                ),
             ),
             # Second channel
             ProductChannelListing(
@@ -95,6 +106,9 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 is_published=False,
                 discounted_price_amount=Decimal(15),
                 published_at=datetime.datetime(2003, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=datetime.datetime(
+                    2003, 1, 1, tzinfo=pytz.UTC
+                ),
             ),
             ProductChannelListing(
                 product=products[1],
@@ -102,6 +116,9 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 is_published=True,
                 discounted_price_amount=Decimal(4),
                 published_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=datetime.datetime(
+                    2002, 1, 1, tzinfo=pytz.UTC
+                ),
             ),
             ProductChannelListing(
                 product=products[2],
@@ -109,13 +126,18 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 is_published=True,
                 discounted_price_amount=Decimal(5),
                 published_at=datetime.datetime(2000, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=None,
             ),
             ProductChannelListing(
                 product=products[4],
                 channel=channel_PLN,
                 is_published=True,
+                visible_in_listings=True,
                 discounted_price_amount=Decimal(7),
                 published_at=datetime.datetime(1998, 1, 1, tzinfo=pytz.UTC),
+                available_for_purchase_at=datetime.datetime(
+                    2000, 1, 1, tzinfo=pytz.UTC
+                ),
             ),
         ]
     )
@@ -514,6 +536,12 @@ def test_products_with_filtering_without_channel(
     [
         ({"isPublished": True}, 3),
         ({"isPublished": False}, 1),
+        ({"isAvailable": True}, 3),
+        ({"isAvailable": False}, 1),
+        ({"publishedFrom": "2001-01-01T00:00:00+00:00"}, 3),
+        ({"availableFrom": "2001-01-01T00:00:00+00:00"}, 2),
+        ({"isVisibleInListing": True}, 1),
+        ({"isVisibleInListing": False}, 3),
         ({"price": {"lte": 8}}, 2),
         ({"price": {"gte": 11}}, 1),
         ({"minimalPrice": {"lte": 4}}, 1),
@@ -553,6 +581,12 @@ def test_products_with_filtering_with_channel_USD(
     [
         ({"isPublished": True}, 3),
         ({"isPublished": False}, 1),
+        ({"isAvailable": True}, 3),
+        ({"isAvailable": False}, 1),
+        ({"publishedFrom": "2001-01-01T00:00:00+00:00"}, 3),
+        ({"availableFrom": "2001-01-01T00:00:00+00:00"}, 1),
+        ({"isVisibleInListing": True}, 1),
+        ({"isVisibleInListing": False}, 3),
         ({"price": {"lte": 8}}, 2),
         ({"price": {"gte": 11}}, 1),
         ({"minimalPrice": {"lte": 4}}, 1),
@@ -589,6 +623,12 @@ def test_products_with_filtering_with_channel_PLN(
     [
         {"isPublished": True},
         {"isPublished": False},
+        {"isAvailable": True},
+        {"isAvailable": False},
+        {"publishedFrom": "2001-01-01T00:00:00+00:00"},
+        {"availableFrom": "2001-01-01T00:00:00+00:00"},
+        {"isVisibleInListing": True},
+        {"isVisibleInListing": False},
         {"price": {"lte": 8}},
         {"price": {"gte": 11}},
         {"minimalPrice": {"lte": 4}},
