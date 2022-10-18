@@ -239,10 +239,9 @@ class CheckoutLine(ModelObjectType):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            site = load_site(info.context)
 
             def calculate_line_total_price(data):
-                (discounts, checkout_info, lines, site) = data
+                (discounts, checkout_info, lines) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
@@ -251,11 +250,10 @@ class CheckoutLine(ModelObjectType):
                             lines=lines,
                             checkout_line_info=line_info,
                             discounts=discounts,
-                            site_settings=site.settings,
                         )
                 return None
 
-            return Promise.all([discounts, checkout_info, lines, site]).then(
+            return Promise.all([discounts, checkout_info, lines]).then(
                 calculate_line_total_price
             )
 
@@ -551,14 +549,13 @@ class Checkout(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def calculate_total_price(data):
-            address, lines, checkout_info, discounts, site = data
+            address, lines, checkout_info, discounts = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
-                site_settings=site.settings,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -571,8 +568,7 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
-        return Promise.all([address, lines, checkout_info, discounts, site]).then(
+        return Promise.all([address, lines, checkout_info, discounts]).then(
             calculate_total_price
         )
 
@@ -583,14 +579,13 @@ class Checkout(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, discounts, site = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
-                site_settings=site.settings,
             )
 
         address_id = root.shipping_address_id or root.billing_address_id
@@ -602,9 +597,8 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
 
-        return Promise.all([address, lines, checkout_info, discounts, site]).then(
+        return Promise.all([address, lines, checkout_info, discounts]).then(
             calculate_subtotal_price
         )
 
@@ -615,14 +609,13 @@ class Checkout(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def calculate_shipping_price(data):
-            address, lines, checkout_info, discounts, site = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
-                site_settings=site.settings,
             )
 
         address = (
@@ -635,9 +628,8 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
 
-        return Promise.all([address, lines, checkout_info, discounts, site]).then(
+        return Promise.all([address, lines, checkout_info, discounts]).then(
             calculate_shipping_price
         )
 

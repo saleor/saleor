@@ -2,6 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from django.db.models import Exists, OuterRef
+from promise import Promise
 
 from ...tax.models import (
     TaxClass,
@@ -10,6 +11,12 @@ from ...tax.models import (
     TaxConfigurationPerCountry,
 )
 from ..core.dataloaders import DataLoader
+from ..product.dataloaders import (
+    ProductByIdLoader,
+    ProductByVariantIdLoader,
+    ProductTypeByProductIdLoader,
+    ProductTypeByVariantIdLoader,
+)
 
 
 class TaxConfigurationPerCountryByTaxConfigurationIDLoader(DataLoader):
@@ -52,6 +59,17 @@ class TaxClassCountryRateByTaxClassIDLoader(DataLoader):
         return [one_to_many[key] for key in keys]
 
 
+class TaxClassDefaultRateByCountryLoader(DataLoader):
+    context_key = "tax_class_default_rate_by_country"
+
+    def batch_load(self, keys):
+        tax_rates = TaxClassCountryRate.objects.using(
+            self.database_connection_name
+        ).filter(tax_class=None, country__in=keys)
+        tax_rates_map = {rate.country: rate for rate in tax_rates}
+        return [tax_rates_map.get(key) for key in keys]
+
+
 class TaxClassByIdLoader(DataLoader):
     context_key = "tax_class_by_id"
 
@@ -60,6 +78,64 @@ class TaxClassByIdLoader(DataLoader):
             keys
         )
         return [tax_class_map.get(obj_id) for obj_id in keys]
+
+
+class TaxClassByProductIdLoader(DataLoader):
+    context_key = "tax_class_by_product_id"
+
+    def batch_load(self, keys):
+        products = ProductByIdLoader(self.context).load_many(keys)
+        product_types = ProductTypeByProductIdLoader(self.context).load_many(keys)
+
+        def load_tax_classes(results):
+            (products, product_types) = results
+            products_map = dict(zip(keys, products))
+            product_types_map = dict(zip(keys, product_types))
+
+            tax_class_ids_map = {}
+            for product_id in keys:
+                product = products_map[product_id]
+                product_type = product_types_map[product_id]
+                tax_class_id = product.tax_class_id or product_type.tax_class_id
+                tax_class_ids_map[product_id] = tax_class_id
+
+            return [
+                TaxClassByIdLoader(self.context).load(tax_class_ids_map[product_id])
+                if tax_class_ids_map[product_id]
+                else None
+                for product_id in keys
+            ]
+
+        return Promise.all([products, product_types]).then(load_tax_classes)
+
+
+class TaxClassByVariantIdLoader(DataLoader):
+    context_key = "tax_class_by_variant_id"
+
+    def batch_load(self, keys):
+        products = ProductByVariantIdLoader(self.context).load_many(keys)
+        product_types = ProductTypeByVariantIdLoader(self.context).load_many(keys)
+
+        def load_tax_classes(results):
+            (products, product_types) = results
+            products_map = dict(zip(keys, products))
+            product_types_map = dict(zip(keys, product_types))
+
+            tax_class_ids_map = {}
+            for variant_pk in keys:
+                product = products_map[variant_pk]
+                product_type = product_types_map[variant_pk]
+                tax_class_id = product.tax_class_id or product_type.tax_class_id
+                tax_class_ids_map[variant_pk] = tax_class_id
+
+            return [
+                TaxClassByIdLoader(self.context).load(tax_class_ids_map[variant_id])
+                if tax_class_ids_map[variant_id]
+                else None
+                for variant_id in keys
+            ]
+
+        return Promise.all([products, product_types]).then(load_tax_classes)
 
 
 class ProductChargeTaxesByTaxClassIdLoader(DataLoader):

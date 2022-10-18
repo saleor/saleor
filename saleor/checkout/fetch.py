@@ -41,7 +41,7 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ..tax.models import TaxConfiguration
+    from ..tax.models import TaxClass, TaxConfiguration
     from .models import Checkout, CheckoutLine
 
 
@@ -53,6 +53,7 @@ class CheckoutLineInfo:
     product: "Product"
     product_type: "ProductType"
     collections: List["Collection"]
+    tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
 
 
@@ -221,10 +222,11 @@ def fetch_checkout_lines(
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
-    select_related_fields = ["variant__product__product_type"]
+    select_related_fields = ["variant__product__product_type__tax_class"]
     prefetch_related_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
+        "variant__product__tax_class",
         "variant__channel_listings__channel",
     ]
     if prefetch_variant_attributes:
@@ -264,6 +266,7 @@ def fetch_checkout_lines(
                         product=product,
                         product_type=product_type,
                         collections=collections,
+                        tax_class=product.tax_class or product_type.tax_class,
                     )
                 )
             continue
@@ -276,6 +279,7 @@ def fetch_checkout_lines(
                 product=product,
                 product_type=product_type,
                 collections=collections,
+                tax_class=product.tax_class or product_type.tax_class,
             )
         )
 

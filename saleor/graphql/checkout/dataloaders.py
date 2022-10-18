@@ -32,7 +32,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByChannelSlugLoader,
 )
-from ..tax.dataloaders import TaxConfigurationByChannelId
+from ..tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
 from ..warehouse.dataloaders import WarehouseByIdLoader
 
 
@@ -64,6 +64,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     products,
                     product_types,
                     collections,
+                    tax_classes,
                     channel_listings,
                     voucher_infos,
                 ) = results
@@ -71,6 +72,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 products_map = dict(zip(variants_pks, products))
                 product_types_map = dict(zip(variants_pks, product_types))
                 collections_map = dict(zip(variants_pks, collections))
+                tax_class_map = dict(zip(variants_pks, tax_classes))
                 channel_listings_map = dict(
                     zip(variant_ids_channel_ids, channel_listings)
                 )
@@ -93,6 +95,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
+                                tax_class=tax_class_map[line.variant_id],
                             )
                             for line in lines
                         ]
@@ -126,6 +129,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             collections = CollectionsByVariantIdLoader(self.context).load_many(
                 variants_pks
             )
+            tax_classes = TaxClassByVariantIdLoader(self.context).load_many(
+                variants_pks
+            )
 
             voucher_codes = {
                 checkout.voucher_code for checkout in checkouts if checkout.voucher_code
@@ -149,6 +155,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     products,
                     product_types,
                     collections,
+                    tax_classes,
                     channel_listings,
                     voucher_infos,
                 ]
