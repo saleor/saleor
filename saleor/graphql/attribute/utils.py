@@ -18,13 +18,13 @@ from text_unidecode import unidecode
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
-from ...core.utils import generate_unique_slug
+from ...core.utils import generate_unique_slug, prepare_unique_slug
 from ...core.utils.editorjs import clean_editor_js
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..utils import get_nodes
 
 if TYPE_CHECKING:
@@ -332,21 +332,11 @@ class AttributeAssignmentMixin:
         cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
-        result = []
         if not attr_values.values:
             return tuple()
-        for value in attr_values.values:
-            value_obj = attribute.values.filter(name=value).first()
-            if value_obj:
-                result.append(value_obj)
-            else:
-                instance = attribute_models.AttributeValue(
-                    attribute=attribute, name=value
-                )
-                slug = generate_unique_slug(instance, value)  # type: ignore
-                instance.slug = slug
-                instance.save()
-                result.append(instance)
+
+        result = prepare_attribute_values(attribute, attr_values)
+
         return tuple(result)
 
     @classmethod
@@ -530,6 +520,54 @@ def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     )
 
 
+def prepare_attribute_values(
+    attribute: attribute_models.Attribute, attr_values: AttrValuesInput
+):
+    values = attr_values.values
+    slug_to_value_map = {}
+    name_to_value_map = {}
+    for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
+        slug_to_value_map[val.slug] = val
+        name_to_value_map[val.name] = val
+
+    existing_slugs = get_existing_slugs(attribute, values)
+
+    result = []
+    values_to_create = []
+    for value in values:
+        # match the value firstly by slug then by name
+        value_obj = slug_to_value_map.get(value) or name_to_value_map.get(value)
+        if value_obj:
+            result.append(value_obj)
+        else:
+            slug = prepare_unique_slug(slugify(unidecode(value)), existing_slugs)
+            instance = attribute_models.AttributeValue(
+                attribute=attribute, name=value, slug=slug
+            )
+            result.append(instance)
+
+            values_to_create.append(instance)
+
+            # the set of existing slugs must be updated to not generate accidentally
+            # the same slug for two or more values
+            existing_slugs.add(slug)
+
+            # extend name to slug value to not create two elements with the same name
+            name_to_value_map[instance.name] = instance
+
+    attribute_models.AttributeValue.objects.bulk_create(values_to_create)
+    return result
+
+
+def get_existing_slugs(attribute: attribute_models.Attribute, values: List[str]):
+    lookup = Q()
+    for value in values:
+        lookup |= Q(slug__startswith=slugify(unidecode(value)))
+
+    existing_slugs = set(attribute.values.filter(lookup).values_list("slug", flat=True))
+    return existing_slugs
+
+
 class AttributeInputErrors:
     """Define error message and error code for given error.
 
@@ -547,6 +585,10 @@ class AttributeInputErrors:
     ERROR_BLANK_VALUE = (
         "Attribute values cannot be blank.",
         "REQUIRED",
+    )
+    ERROR_DUPLICATED_VALUES = (
+        "Duplicated attribute values are provided.",
+        "DUPLICATED_INPUT_ITEM",
     )
 
     # file errors
@@ -754,6 +796,10 @@ def validate_values(
 ):
     name_field = attribute.values.model.name.field  # type: ignore
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
+    if get_duplicated_values(values):
+        attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
+            attribute_id
+        )
     for value in values:
         if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(

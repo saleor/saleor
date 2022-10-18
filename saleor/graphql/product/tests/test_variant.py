@@ -2859,6 +2859,98 @@ def test_update_product_variant_with_matching_slugs_different_values(
     assert variant.attributes.last().values.first().slug == "small-2"
 
 
+def test_update_product_variant_with_value_that_matching_existing_slug(
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    permission_manage_products,
+):
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    attribute_1, attribute_2 = product.product_type.variant_attributes.all()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_1_id = graphene.Node.to_global_id("Attribute", attribute_1.pk)
+    attribute_2_id = graphene.Node.to_global_id("Attribute", attribute_2.pk)
+
+    attr_1_values_count = attribute_1.values.count()
+    attr_2_values_count = attribute_2.values.count()
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attribute_1_id, "values": [attribute_1.values.first().slug]},
+            {"id": attribute_2_id, "values": [attribute_2.values.first().slug]},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    assert variant.sku == sku
+    assert attribute_1.values.count() == attr_1_values_count
+    assert attribute_2.values.count() == attr_2_values_count
+    assert len(data["productVariant"]["attributes"]) == 2
+    for attr_data in data["productVariant"]["attributes"]:
+        assert len(attr_data["values"]) == 1
+
+
+def test_update_product_variant_with_value_that_matching_existing_name(
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    permission_manage_products,
+):
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    attribute_1, attribute_2 = product.product_type.variant_attributes.all()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_1_id = graphene.Node.to_global_id("Attribute", attribute_1.pk)
+    attribute_2_id = graphene.Node.to_global_id("Attribute", attribute_2.pk)
+
+    attr_1_values_count = attribute_1.values.count()
+    attr_2_values_count = attribute_2.values.count()
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attribute_1_id, "values": [attribute_1.values.first().name]},
+            {"id": attribute_2_id, "values": [attribute_2.values.first().name]},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    attribute_1.refresh_from_db()
+    attribute_2.refresh_from_db()
+    assert variant.sku == sku
+    assert attribute_1.values.count() == attr_1_values_count
+    assert attribute_2.values.count() == attr_2_values_count
+    assert len(data["productVariant"]["attributes"]) == 2
+    for attr_data in data["productVariant"]["attributes"]:
+        assert len(attr_data["values"]) == 1
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_boolean_attribute(
     product_variant_updated,
