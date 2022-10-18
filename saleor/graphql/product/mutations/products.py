@@ -59,6 +59,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...core.validators import validate_one_of_args_is_in_mutation
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
@@ -1099,18 +1100,38 @@ class ProductVariantCreate(ModelMutation):
         """
 
         object_id = data.get("id")
-        if object_id and data.get("attributes"):
+        object_sku = data.get("sku")
+        attributes = data.get("attributes")
+
+        if attributes:
             # Prefetches needed by AttributeAssignmentMixin and
             # associate_attribute_values_to_instance
             qs = cls.Meta.model.objects.prefetch_related(
                 "product__product_type__variant_attributes__values",
                 "product__product_type__attributevariant",
             )
+        else:
+            # Use the default queryset.
+            qs = models.ProductVariant.objects.all()
+
+        if object_id:
             return cls.get_node_or_error(
                 info, object_id, only_type="ProductVariant", qs=qs
             )
-
-        return super().get_instance(info, **data)
+        elif object_sku:
+            instance = qs.filter(sku=object_sku).first()
+            if not instance:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Couldn't resolve to a node: %s" % object_sku,
+                            code="not_found",
+                        )
+                    }
+                )
+            return instance
+        else:
+            return cls._meta.model()
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -1159,7 +1180,11 @@ class ProductVariantCreate(ModelMutation):
 class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of a product variant to update."
+            required=False, description="ID of a product variant to update."
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of a product variant to update." + ADDED_IN_38,
         )
         input = ProductVariantInput(
             required=True, description="Fields required to update a product variant."
@@ -1212,11 +1237,22 @@ class ProductVariantUpdate(ProductVariantCreate):
             attributes_data, used_attribute_values
         )
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        validate_one_of_args_is_in_mutation(
+            ProductErrorCode, "sku", data.get("sku"), "id", data.get("id")
+        )
+        return super().perform_mutation(_root, info, **data)
+
 
 class ProductVariantDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of a product variant to delete."
+            required=False, description="ID of a product variant to delete."
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of a product variant to delete." + ADDED_IN_38,
         )
 
     class Meta:
@@ -1242,8 +1278,24 @@ class ProductVariantDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
+        validate_one_of_args_is_in_mutation(
+            ProductErrorCode, "sku", data.get("sku"), "id", data.get("id")
+        )
+        if node_id := data.get("id"):
+            instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
+
+        if node_sku := data.get("sku"):
+            instance = models.ProductVariant.objects.filter(sku=node_sku).first()
+            if not instance:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Couldn't resolve to a node: %s" % node_sku,
+                            code="not_found",
+                        )
+                    }
+                )
+            data["id"] = graphene.Node.to_global_id("ProductVariant", instance.id)
 
         draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 

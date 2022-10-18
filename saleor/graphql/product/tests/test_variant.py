@@ -2353,7 +2353,7 @@ def test_product_variant_update_with_new_attributes(
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_update_product_variant(
+def test_update_product_variant_by_id(
     product_variant_updated_webhook_mock,
     product_variant_created_webhook_mock,
     staff_api_client,
@@ -2388,7 +2388,6 @@ def test_update_product_variant(
                     }
                 }
             }
-
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -2420,6 +2419,122 @@ def test_update_product_variant(
         product.variants.last()
     )
     product_variant_created_webhook_mock.assert_not_called()
+
+
+UPDATE_VARIANT_BY_SKU = """
+ mutation updateVariant (
+            $sku: String!,
+            $newSku: String!,
+            $quantityLimitPerCustomer: Int!
+            $trackInventory: Boolean!,
+            $attributes: [AttributeValueInput!]) {
+                productVariantUpdate(
+                    sku: $sku,
+                    input: {
+                        sku: $newSku,
+                        trackInventory: $trackInventory,
+                        attributes: $attributes,
+                        quantityLimitPerCustomer: $quantityLimitPerCustomer,
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                        quantityLimitPerCustomer
+                        channelListings {
+                            channel {
+                                slug
+                            }
+                        }
+                    }
+                    errors {
+                      field
+                      message
+                      attributes
+                      code
+                    }
+                }
+            }
+
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_product_variant_by_sku(
+    product_variant_updated_webhook_mock,
+    product_variant_created_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    #   given
+    variant = product.variants.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    sku = "test sku"
+    quantity_limit_per_customer = 5
+    attr_value = "S"
+
+    variables = {
+        "sku": variant.sku,
+        "newSku": sku,
+        "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit_per_customer,
+        "attributes": [{"id": attribute_id, "values": [attr_value]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    # then
+    assert data["name"] == variant.name
+    assert data["sku"] == sku
+    assert data["quantityLimitPerCustomer"] == quantity_limit_per_customer
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_created_webhook_mock.assert_not_called()
+
+
+def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    variant = product.variants.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    sku = "test sku"
+    quantity_limit_per_customer = 5
+    attr_value = "S"
+
+    variables = {
+        "sku": "randomSku",
+        "newSku": sku,
+        "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit_per_customer,
+        "attributes": [{"id": attribute_id, "values": [attr_value]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]
+
+    # then
+    assert data["errors"][0]["field"] == "sku"
+    assert data["errors"][0]["code"] == "NOT_FOUND"
 
 
 def test_update_product_variant_with_negative_weight(
@@ -3973,6 +4088,50 @@ def test_update_product_variant_can_not_turn_off_preorder(
     assert data["sku"] == sku
     assert data["preorder"]["globalThreshold"] == variant.preorder_global_threshold
     assert data["preorder"]["endDate"] is None
+
+
+DELETE_VARIANT_BY_SKU_MUTATION = """
+    mutation variantDelete($sku: String) {
+        productVariantDelete(sku: $sku) {
+            productVariant {
+                sku
+                id
+            }
+            }
+        }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_variant_by_sku(
+    mocked_recalculate_orders_task,
+    product_variant_deleted_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    variant = product.variants.first()
+    variant_sku = variant.sku
+    variables = {"sku": variant_sku}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_VARIANT_BY_SKU_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantDelete"]
+
+    # then
+    product_variant_deleted_webhook_mock.assert_called_once_with(variant)
+    assert data["productVariant"]["sku"] == variant_sku
+    with pytest.raises(variant._meta.model.DoesNotExist):
+        variant.refresh_from_db()
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 DELETE_VARIANT_MUTATION = """
