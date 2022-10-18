@@ -11,6 +11,9 @@ from ....tax import TaxCalculationStrategy
 from ....tax.models import TaxClassCountryRate, TaxConfigurationPerCountry
 from ...tests.utils import get_graphql_content
 
+TAX_RATE_DE = 19
+TAX_RATE_PL = 23
+
 QUERY_GET_VARIANT_PRICING = """
 fragment VariantPricingInfo on VariantPricingInfo {
   onSale
@@ -121,7 +124,7 @@ def test_variant_pricing(
     tc.prices_entered_with_tax = False
     tc.save()
 
-    tax_rate = Decimal(23)
+    tax_rate = Decimal(TAX_RATE_PL)
     country = "PL"
     tax_class.country_rates.update_or_create(rate=tax_rate, country=country)
 
@@ -298,13 +301,22 @@ def test_product_variant_without_price_as_staff_without_permission(
 def test_product_variant_without_price_as_staff_with_permission(
     staff_api_client, variant, stock, channel_USD, permission_manage_products
 ):
+    product = variant.product
+    variant_1, variant_2 = product.variants.all()
 
-    variant_channel_listing = variant.channel_listings.first()
+    variant_channel_listing = variant_1.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
 
-    product_id = graphene.Node.to_global_id("Product", variant.product.id)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_2_id = graphene.Node.to_global_id("ProductVariant", variant_2.id)
+    variant_2_price = (
+        variant_2.channel_listings.filter(channel_id=channel_USD.pk)
+        .first()
+        .price_amount
+    )
+
     variables = {
         "id": product_id,
         "channel": channel_USD.slug,
@@ -321,9 +333,17 @@ def test_product_variant_without_price_as_staff_with_permission(
 
     assert len(variants_data) == 2
 
-    assert variants_data[0]["pricing"] is not None
-    assert variants_data[1]["id"] == variant_id
-    assert variants_data[1]["pricing"] is None
+    item_without_price = {"id": variant_1_id, "pricingNoAddress": None, "pricing": None}
+    assert item_without_price in variants_data
+
+    item_with_price = {
+        "id": variant_2_id,
+        "pricingNoAddress": {
+            "priceUndiscounted": {"gross": {"amount": variant_2_price}}
+        },
+        "pricing": {"priceUndiscounted": {"gross": {"amount": variant_2_price}}},
+    }
+    assert item_with_price in variants_data
 
 
 QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
@@ -432,8 +452,8 @@ def _enable_flat_rates(channel, prices_entered_with_tax):
 
 def _configure_tax_rates(product):
     product.tax_class.country_rates.all().delete()
-    product.tax_class.country_rates.create(country="PL", rate=23)
-    product.tax_class.country_rates.create(country="DE", rate=19)
+    product.tax_class.country_rates.create(country="PL", rate=TAX_RATE_PL)
+    product.tax_class.country_rates.create(country="DE", rate=TAX_RATE_DE)
 
 
 @pytest.mark.parametrize(
@@ -494,7 +514,9 @@ def test_product_variant_pricing_default_country_default_rate(
     variant = product.variants.first()
     _enable_flat_rates(channel_PLN, True)
     TaxClassCountryRate.objects.all().delete()
-    TaxClassCountryRate.objects.create(country=channel_PLN.default_country, rate=23)
+    TaxClassCountryRate.objects.create(
+        country=channel_PLN.default_country, rate=TAX_RATE_PL
+    )
 
     # when
     variables = {
@@ -506,12 +528,18 @@ def test_product_variant_pricing_default_country_default_rate(
     data = content["data"]["productVariant"]
 
     # then
+    channel_listing = variant.channel_listings.filter(channel_id=channel_PLN.id).first()
+    gross = channel_listing.price_amount.quantize(Decimal(".01"))
+    net = (gross / Decimal(1 + TAX_RATE_PL / 100)).quantize(Decimal(".01"))
+    gross = float(gross)
+    net = float(net)
+
     price_PL = data["pricingPL"]["price"]
     price_undiscounted_PL = data["pricingPL"]["priceUndiscounted"]
-    assert price_PL["net"]["amount"] == 40.65
-    assert price_PL["gross"]["amount"] == 50.00
-    assert price_undiscounted_PL["net"]["amount"] == 40.65
-    assert price_undiscounted_PL["gross"]["amount"] == 50.00
+    assert price_PL["net"]["amount"] == net
+    assert price_PL["gross"]["amount"] == gross
+    assert price_undiscounted_PL["net"]["amount"] == net
+    assert price_undiscounted_PL["gross"]["amount"] == gross
 
 
 def test_product_variant_pricing_use_tax_class_from_product_type(
@@ -527,7 +555,7 @@ def test_product_variant_pricing_use_tax_class_from_product_type(
     product.tax_class = None
     product.save(update_fields=["tax_class"])
     product.product_type.tax_class.country_rates.create(
-        country=channel_PLN.default_country, rate=23
+        country=channel_PLN.default_country, rate=TAX_RATE_PL
     )
 
     # when
@@ -540,12 +568,18 @@ def test_product_variant_pricing_use_tax_class_from_product_type(
     data = content["data"]["productVariant"]
 
     # then
+    channel_listing = variant.channel_listings.filter(channel_id=channel_PLN.id).first()
+    gross = channel_listing.price_amount.quantize(Decimal(".01"))
+    net = (gross / Decimal(1 + TAX_RATE_PL / 100)).quantize(Decimal(".01"))
+    gross = float(gross)
+    net = float(net)
+
     price_PL = data["pricingPL"]["price"]
     price_undiscounted_PL = data["pricingPL"]["priceUndiscounted"]
-    assert price_PL["net"]["amount"] == 40.65
-    assert price_PL["gross"]["amount"] == 50.00
-    assert price_undiscounted_PL["net"]["amount"] == 40.65
-    assert price_undiscounted_PL["gross"]["amount"] == 50.00
+    assert price_PL["net"]["amount"] == net
+    assert price_PL["gross"]["amount"] == gross
+    assert price_undiscounted_PL["net"]["amount"] == net
+    assert price_undiscounted_PL["gross"]["amount"] == gross
 
 
 def test_product_variant_pricing_no_flat_rates_in_one_country(
@@ -572,16 +606,23 @@ def test_product_variant_pricing_no_flat_rates_in_one_country(
     data = content["data"]["productVariant"]
 
     # then
+    channel_listing = variant.channel_listings.filter(channel_id=channel_PLN.id).first()
+    price_pl = float(channel_listing.price_amount.quantize(Decimal(".01")))
+    gross_de = channel_listing.price_amount.quantize(Decimal(".01"))
+    net_de = (gross_de / Decimal(1 + TAX_RATE_DE / 100)).quantize(Decimal(".01"))
+    gross_de = float(gross_de)
+    net_de = float(net_de)
+
     price_PL = data["pricingPL"]["price"]
     price_undiscounted_PL = data["pricingPL"]["priceUndiscounted"]
-    assert price_PL["net"]["amount"] == 50.00
-    assert price_PL["gross"]["amount"] == 50.00
-    assert price_undiscounted_PL["net"]["amount"] == 50.00
-    assert price_undiscounted_PL["gross"]["amount"] == 50.00
+    assert price_PL["net"]["amount"] == price_pl
+    assert price_PL["gross"]["amount"] == price_pl
+    assert price_undiscounted_PL["net"]["amount"] == price_pl
+    assert price_undiscounted_PL["gross"]["amount"] == price_pl
 
     price_DE = data["pricingDE"]["price"]
     price_undiscounted_DE = data["pricingDE"]["priceUndiscounted"]
-    assert price_DE["net"]["amount"] == 42.02
-    assert price_DE["gross"]["amount"] == 50.00
-    assert price_undiscounted_DE["net"]["amount"] == 42.02
-    assert price_undiscounted_DE["gross"]["amount"] == 50.00
+    assert price_DE["net"]["amount"] == net_de
+    assert price_DE["gross"]["amount"] == gross_de
+    assert price_undiscounted_DE["net"]["amount"] == net_de
+    assert price_undiscounted_DE["gross"]["amount"] == gross_de

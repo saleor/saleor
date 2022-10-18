@@ -140,6 +140,8 @@ def _calculate_product_price_with_taxes(
     tax_calculation_strategy: str,
     prices_entered_with_tax: bool,
 ):
+    # Currently only FLAT_RATES strategy allows calculating taxes for product types;
+    # support for apps will be added in the future.
     if tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
         return calculate_flat_rate_tax(price, tax_rate, prices_entered_with_tax)
     else:

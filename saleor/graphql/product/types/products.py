@@ -606,7 +606,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(default_country_rate_obj):
-                        local_currency = None
                         local_currency = get_currency_for_country(country_code)
 
                         tax_config_country = next(
