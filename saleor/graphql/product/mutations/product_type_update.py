@@ -2,7 +2,6 @@ import graphene
 
 from ....core.permissions import ProductTypePermissions
 from ....product import models
-from ....product.search import update_products_search_vector
 from ....product.tasks import update_variants_names
 from ...core.types import ProductError
 from ..types import ProductType
@@ -43,5 +42,6 @@ class ProductTypeUpdate(ProductTypeCreate):
             "product_attributes" in cleaned_input
             or "variant_attributes" in cleaned_input
         ):
-            products = models.Product.objects.filter(product_type=instance)
-            update_products_search_vector(products)
+            models.Product.objects.filter(product_type=instance).update(
+                search_index_dirty=True
+            )
