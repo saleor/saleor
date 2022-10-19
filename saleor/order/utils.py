@@ -258,8 +258,6 @@ def create_order_line(
         variant=variant,
     )
 
-    manager.update_taxes_for_order_lines(order, list(order.lines.all()))
-
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         sale_id = get_sale_id_applied_as_a_discount(
