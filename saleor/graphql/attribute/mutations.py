@@ -394,21 +394,22 @@ class AttributeMixin:
     @classmethod
     def check_values_are_unique(cls, values_input: dict, attribute: models.Attribute):
         # Check values uniqueness in case of creating new attribute.
-        existing_values = attribute.values.values_list("slug", flat=True)
-        for value_data in values_input:
-            slug = slugify(unidecode(value_data["name"]))
-            if slug in existing_values:
-                msg = (
-                    "Value %s already exists within this attribute."
-                    % value_data["name"]
-                )
-                raise ValidationError(
-                    {
-                        cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                            msg, code=AttributeErrorCode.ALREADY_EXISTS.value
-                        )
-                    }
-                )
+        if attribute.pk:
+            existing_values = attribute.values.values_list("slug", flat=True)
+            for value_data in values_input:
+                slug = slugify(unidecode(value_data["name"]))
+                if slug in existing_values:
+                    msg = (
+                        "Value %s already exists within this attribute."
+                        % value_data["name"]
+                    )
+                    raise ValidationError(
+                        {
+                            cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                                msg, code=AttributeErrorCode.ALREADY_EXISTS.value
+                            )
+                        }
+                    )
 
         new_slugs = [
             slugify(unidecode(value_data["name"])) for value_data in values_input
