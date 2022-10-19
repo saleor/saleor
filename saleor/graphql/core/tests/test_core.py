@@ -430,13 +430,12 @@ def test_validate_image_url_response_without_content_headers(monkeypatch):
     "value, count, product_indexes",
     [
         ({"lte": 50, "gte": 25}, 1, [2]),
-        ({"lte": 25}, 3, [0, 1, 3]),
-        ({"lte": 10}, 2, [0, 3]),
+        ({"lte": 25}, 2, [0, 1]),
+        ({"lte": 10}, 1, [0]),
         ({"gte": 40}, 0, []),
-        ({"lte": 0, "gte": 0}, 1, [3]),
     ],
 )
-def test_filter_range_field(value, count, product_indexes, product_with_zero_discount):
+def test_filter_range_field(value, count, product_indexes, product_list):
     qs = ProductChannelListing.objects.all().order_by("pk")
     field = "discounted_price_amount"
 
@@ -444,6 +443,18 @@ def test_filter_range_field(value, count, product_indexes, product_with_zero_dis
 
     expected_products = [qs[index] for index in product_indexes]
     assert result.count() == count
+    assert list(result) == expected_products
+
+
+def test_filter_products_with_zero_discount(product_list):
+    product_list[0].channel_listings.update(discounted_price_amount=0)
+    qs = ProductChannelListing.objects.all().order_by("pk")
+    field = "discounted_price_amount"
+
+    result = filter_range_field(qs, field, {"lte": 0, "gte": 0})
+
+    expected_products = list(qs.filter(product=product_list[0]))
+    assert result.count() == 1
     assert list(result) == expected_products
 
 

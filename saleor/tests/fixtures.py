@@ -3268,26 +3268,6 @@ def product_with_images(product_type, category, media_root, channel_USD):
 
 
 @pytest.fixture
-def product_with_zero_discount(product_list, product_type, category, channel_USD):
-    product = Product.objects.create(
-        name="Test product 4",
-        slug="test-product-4",
-        product_type=product_type,
-        category=category,
-    )
-    ProductChannelListing.objects.create(
-        product=product,
-        channel=channel_USD,
-        is_published=True,
-        discounted_price_amount=0,
-        currency=channel_USD.currency_code,
-        visible_in_listings=True,
-        available_for_purchase_at=(datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)),
-    )
-    return product_list
-
-
-@pytest.fixture
 def voucher_without_channel(db):
     return Voucher.objects.create(code="mirumee")
 
