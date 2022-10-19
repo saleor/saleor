@@ -2,11 +2,14 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Model
+from django.template.defaultfilters import truncatechars
 from graphql import GraphQLError
 
+from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.editorjs import clean_editor_js
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -112,10 +115,16 @@ class BaseTranslateMutation(ModelMutation):
         validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
+    def pre_update_or_create(cls, instance, input_data):
+        return input_data
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id, model_type = cls.clean_node_id(**data)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         cls.validate_input(data["input"])
+
+        data["input"] = cls.pre_update_or_create(instance, data["input"])
 
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -327,6 +336,17 @@ class AttributeValueTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
+
+    @classmethod
+    def pre_update_or_create(cls, instance, input_data):
+        if "name" not in input_data.keys() or input_data["name"] is None:
+            if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
+                input_data["name"] = truncatechars(
+                    clean_editor_js(input_data["rich_text"], to_string=True), 100
+                )
+            elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
+                input_data["name"] = truncatechars(input_data["plain_text"], 100)
+        return input_data
 
 
 class SaleTranslate(BaseTranslateMutation):
