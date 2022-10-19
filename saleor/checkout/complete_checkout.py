@@ -630,48 +630,45 @@ def _prepare_checkout(
 ):
     """Prepare checkout object to complete the checkout process."""
     checkout = checkout_info.checkout
-    with traced_atomic_transaction():
-        # select_for_update locks objects rows till end of transaction block
-        checkout = Checkout.objects.select_for_update().get(pk=checkout.pk)
-        clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
-        clean_checkout_payment(
-            manager,
-            checkout_info,
-            lines,
-            discounts,
-            CheckoutErrorCode,
-            last_payment=payment,
-        )
-        if not checkout_info.channel.is_active:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        "Cannot complete checkout with inactive channel.",
-                        code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
-                    )
-                }
-            )
-        if redirect_url:
-            try:
-                validate_storefront_url(redirect_url)
-            except ValidationError as error:
-                raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID.value
+    clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
+    clean_checkout_payment(
+        manager,
+        checkout_info,
+        lines,
+        discounts,
+        CheckoutErrorCode,
+        last_payment=payment,
+    )
+    if not checkout_info.channel.is_active:
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    "Cannot complete checkout with inactive channel.",
+                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
                 )
+            }
+        )
+    if redirect_url:
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
+            )
 
-        to_update = []
-        if redirect_url and redirect_url != checkout.redirect_url:
-            checkout.redirect_url = redirect_url
-            to_update.append("redirect_url")
+    to_update = []
+    if redirect_url and redirect_url != checkout.redirect_url:
+        checkout.redirect_url = redirect_url
+        to_update.append("redirect_url")
 
-        if tracking_code and str(tracking_code) != checkout.tracking_code:
-            checkout.tracking_code = tracking_code
-            to_update.append("tracking_code")
+    if tracking_code and str(tracking_code) != checkout.tracking_code:
+        checkout.tracking_code = tracking_code
+        to_update.append("tracking_code")
 
-        if to_update:
-            to_update.append("last_change")
-            checkout.save(update_fields=to_update)
-            checkout_info.checkout = checkout
+    if to_update:
+        to_update.append("last_change")
+        checkout.save(update_fields=to_update)
+        checkout_info.checkout = checkout
 
 
 def _get_order_data(
