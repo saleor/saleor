@@ -9,7 +9,7 @@ import pytz
 from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
 
 from ...attribute import AttributeInputType
@@ -34,7 +34,7 @@ from ...product.models import (
     ProductVariantChannelListing,
 )
 from ...product.search import search_products
-from ...warehouse.models import Stock, Warehouse
+from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.descriptions import ADDED_IN_38
 from ..core.filters import (
@@ -331,13 +331,32 @@ def filter_products_by_collections(qs, collection_pks):
 
 
 def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
+    allocations = (
+        Allocation.objects.values("stock_id")
+        .filter(quantity_allocated__gt=0, stock_id=OuterRef("pk"))
+        .values_list(Sum("quantity_allocated"))
+    )
+    allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
+
+    reservations = (
+        Reservation.objects.values("stock_id")
+        .filter(
+            quantity_reserved__gt=0,
+            stock_id=OuterRef("pk"),
+            reserved_until__gt=timezone.now(),
+        )
+        .values_list(Sum("quantity_reserved"))
+    )
+    reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
+
     stocks = (
         Stock.objects.for_channel_and_country(channel_slug)
-        .annotate_available_quantity_including_reservations()
-        .filter(available_quantity_including_reservations__gt=0)
+        .filter(
+            quantity__gt=Coalesce(allocated_subquery, 0)
+            + Coalesce(reservation_subquery, 0)
+        )
         .values("product_variant_id")
     )
-
     variants = ProductVariant.objects.filter(
         Exists(stocks.filter(product_variant_id=OuterRef("pk")))
     ).values("product_id")
