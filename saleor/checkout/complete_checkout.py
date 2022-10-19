@@ -668,7 +668,6 @@ def _prepare_checkout(
     if to_update:
         to_update.append("last_change")
         checkout.save(update_fields=to_update)
-        checkout_info.checkout = checkout
 
 
 def _get_order_data(
@@ -793,9 +792,6 @@ def complete_checkout(
                 redirect_url=redirect_url,
                 payment=payment,
             )
-
-            if site_settings is None:
-                site_settings = Site.objects.get_current().settings
 
             try:
                 order_data = _get_order_data(
