@@ -14,7 +14,6 @@ from ....core.utils.json_serializer import CustomJsonEncoder
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
-from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
@@ -760,6 +759,7 @@ def test_category_update_background_image_mutation(
     category,
     permission_manage_products,
     media_root,
+    site_settings,
 ):
     # given
     alt_text = "Alt text for an image."
@@ -810,7 +810,7 @@ def test_category_update_background_image_mutation(
     assert category.background_image.file
     assert data["category"]["backgroundImage"]["alt"] == image_alt
     assert data["category"]["backgroundImage"]["url"].startswith(
-        f"http://{TEST_SERVER_DOMAIN}/media/category-backgrounds/{image_name}"
+        f"http://{site_settings.site.domain}/media/category-backgrounds/{image_name}"
     )
 
     # ensure that thumbnails for old background image has been deleted
@@ -1322,7 +1322,7 @@ FETCH_CATEGORY_QUERY = """
 
 
 def test_category_image_query_with_size_and_format_proxy_url_returned(
-    user_api_client, non_default_category, media_root
+    user_api_client, non_default_category, media_root, site_settings
 ):
     # given
     alt_text = "Alt text for an image."
@@ -1350,14 +1350,15 @@ def test_category_image_query_with_size_and_format_proxy_url_returned(
 
     data = content["data"]["category"]
     assert data["backgroundImage"]["alt"] == alt_text
+    domain = site_settings.site.domain
     assert (
         data["backgroundImage"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{category_id}/128/{format.lower()}/"
+        == f"http://{domain}/thumbnail/{category_id}/128/{format.lower()}/"
     )
 
 
 def test_category_image_query_with_size_proxy_url_returned(
-    user_api_client, non_default_category, media_root
+    user_api_client, non_default_category, media_root, site_settings
 ):
     # given
     alt_text = "Alt text for an image."
@@ -1385,12 +1386,12 @@ def test_category_image_query_with_size_proxy_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{category_id}/{size}/"
+        == f"http://{site_settings.site.domain}/thumbnail/{category_id}/{size}/"
     )
 
 
 def test_category_image_query_with_size_thumbnail_url_returned(
-    user_api_client, non_default_category, media_root
+    user_api_client, non_default_category, media_root, site_settings
 ):
     # given
     alt_text = "Alt text for an image."
@@ -1422,12 +1423,12 @@ def test_category_image_query_with_size_thumbnail_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_category_image_query_only_format_provided_original_image_returned(
-    user_api_client, non_default_category, media_root
+    user_api_client, non_default_category, media_root, site_settings
 ):
     # given
     alt_text = "Alt text for an image."
@@ -1454,14 +1455,13 @@ def test_category_image_query_only_format_provided_original_image_returned(
 
     data = content["data"]["category"]
     assert data["backgroundImage"]["alt"] == alt_text
-    expected_url = (
-        f"http://{TEST_SERVER_DOMAIN}/media/category-backgrounds/{background_mock.name}"
-    )
+    domain = site_settings.site.domain
+    expected_url = f"http://{domain}/media/category-backgrounds/{background_mock.name}"
     assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_category_image_query_no_size_value_original_image_returned(
-    user_api_client, non_default_category, media_root
+    user_api_client, non_default_category, media_root, site_settings
 ):
     # given
     alt_text = "Alt text for an image."
@@ -1485,9 +1485,8 @@ def test_category_image_query_no_size_value_original_image_returned(
 
     data = content["data"]["category"]
     assert data["backgroundImage"]["alt"] == alt_text
-    expected_url = (
-        f"http://{TEST_SERVER_DOMAIN}/media/category-backgrounds/{background_mock.name}"
-    )
+    domain = site_settings.site.domain
+    expected_url = f"http://{domain}/media/category-backgrounds/{background_mock.name}"
     assert data["backgroundImage"]["url"] == expected_url
 
 

@@ -1,5 +1,7 @@
 import graphene
 import pytest
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
@@ -1353,20 +1355,32 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
     }
 
 
+def test_clean_file_url_in_attribute_assignment_mixin(site_settings):
+    # given
+    name = "Test.jpg"
+    domain = site_settings.site.domain
+    url = f"http://{domain}{settings.MEDIA_URL}{name}"
+
+    # when
+    result = AttributeAssignmentMixin._clean_file_url(url, ProductErrorCode)
+
+    # then
+    assert result == name
+
+
 @pytest.mark.parametrize(
-    "file_url, expected_value",
+    "file_url",
     [
-        ("http://localhost:8000/media/Test.jpg", "Test.jpg"),
-        ("/media/Test.jpg", "Test.jpg"),
-        ("Test.jpg", "Test.jpg"),
-        ("", ""),
-        ("/ab/cd.jpg", "/ab/cd.jpg"),
+        "http://localhost:8000/media/Test.jpg",
+        "/media/Test.jpg",
+        "Test.jpg",
+        "/ab/cd.jpg",
     ],
 )
-def test_clean_file_url_in_attribute_assignment_mixin(file_url, expected_value):
-    result = AttributeAssignmentMixin._clean_file_url(file_url)
-
-    assert result == expected_value
+def test_clean_file_url_in_attribute_assignment_mixin_invalid_url(file_url):
+    # when & then
+    with pytest.raises(ValidationError):
+        AttributeAssignmentMixin._clean_file_url(file_url, ProductErrorCode)
 
 
 def test_prepare_attribute_values(color_attribute):
