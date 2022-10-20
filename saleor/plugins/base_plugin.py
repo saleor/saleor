@@ -237,14 +237,6 @@ class BasePlugin:
 
     authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
 
-    #  Update order lines taxes.
-    #
-    #  Overwrite this method if you need to apply specific logic for applying taxes on
-    #  order lines. Return Iterable["OrderLine"].
-    update_taxes_for_order_lines: Callable[
-        ["Order", List["OrderLine"], List["OrderLine"]], List["OrderLine"]
-    ]
-
     #  Calculate checkout line total.
     #
     #  Overwrite this method if you need to apply specific logic for the calculation

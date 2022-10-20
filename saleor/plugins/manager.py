@@ -364,20 +364,6 @@ class PluginsManager(PaymentInterface):
             channel_slug=order.channel.slug,
         ).quantize(Decimal(".0001"))
 
-    def update_taxes_for_order_lines(
-        self,
-        order: "Order",
-        lines: List["OrderLine"],
-    ):
-        lines = self.__run_method_on_plugins(
-            "update_taxes_for_order_lines",
-            lines,
-            order,
-            lines,
-            channel_slug=order.channel.slug,
-        )
-        return lines
-
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
