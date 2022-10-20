@@ -22,7 +22,6 @@ class SiteByHostLoader(DataLoader):
     context_key = "site_by_host"
 
     def batch_load(self, keys):
-        sites_mapped = Site.objects.using(self.database_connection_name).in_bulk(keys)
         # simulate nonexisting `domain__iexact__in`
         q_list = map(lambda k: Q(domain__iexact=k), keys)
         q_list = reduce(lambda a, b: a | b, q_list)
@@ -32,8 +31,7 @@ class SiteByHostLoader(DataLoader):
 
 
 def load_current_site(request):
-    if getattr(settings, "SITE_ID", ""):
-        site_id = settings.SITE_ID
+    if site_id := getattr(settings, "SITE_ID"):
         return SiteByIdLoader(request).load(site_id).get()
 
     host = request.get_host()
@@ -49,9 +47,6 @@ def load_current_site(request):
             "set the SITE_ID setting. Create a site in your database and "
             "set the SITE_ID setting."
         )
-
-    # Populate the other loader for free
-    SiteByIdLoader(request).prime(site.id, site)
     return site
 
 
