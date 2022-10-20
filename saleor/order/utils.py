@@ -29,7 +29,11 @@ from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
 )
-from ..tax.utils import get_display_gross_prices, get_tax_country
+from ..tax.utils import (
+    get_display_gross_prices,
+    get_tax_class_kwargs_for_order_line,
+    get_tax_country,
+)
 from ..warehouse.management import (
     decrease_allocations,
     get_order_lines_with_track_inventory,
@@ -231,6 +235,12 @@ def create_order_line(
     total_price = unit_price * quantity
     undiscounted_total_price = undiscounted_unit_price * quantity
 
+    tax_class = None
+    if product.tax_class_id:
+        tax_class = product.tax_class
+    else:
+        tax_class = product.product_type.tax_class
+
     product_name = str(product)
     variant_name = str(variant)
     translated_product_name = str(product.translated)
@@ -256,6 +266,7 @@ def create_order_line(
         total_price=total_price,
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
+        **get_tax_class_kwargs_for_order_line(tax_class),
     )
 
     unit_discount = line.undiscounted_unit_price - line.unit_price

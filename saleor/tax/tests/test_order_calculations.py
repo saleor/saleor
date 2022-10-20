@@ -594,3 +594,36 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
         )
         assert line.undiscounted_total_price == line.total_price
         assert line.tax_rate == Decimal("0.23")
+
+
+def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    lines = order.lines.all()
+    update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
+
+    # when
+    for line in lines:
+        tax_class = line.variant.product.tax_class
+        if tax_class:
+            tax_class.delete()
+        tax_class = line.variant.product.product_type.tax_class
+        if tax_class:
+            tax_class.delete()
+        line.refresh_from_db()
+
+    tax_class = order.shipping_method.tax_class
+    if tax_class:
+        tax_class.delete()
+        order.shipping_method.refresh_from_db()
+
+    update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
+
+    # then
+    assert order.total == TaxedMoney(
+        net=Money("65.04", "USD"), gross=Money("80.00", "USD")
+    )

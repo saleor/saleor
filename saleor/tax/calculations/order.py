@@ -12,7 +12,11 @@ from ...order.utils import (
     get_total_order_discount_excluding_shipping,
 )
 from ..models import TaxClassCountryRate
-from ..utils import get_tax_rate_for_tax_class, normalize_tax_rate_for_db
+from ..utils import (
+    denormalize_tax_rate_from_db,
+    get_tax_rate_for_tax_class,
+    normalize_tax_rate_for_db,
+)
 from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
@@ -39,13 +43,22 @@ def update_order_prices_with_flat_rates(
 
     # Calculate order shipping.
     shipping_method = order.shipping_method
-    tax_class = getattr(shipping_method, "tax_class", None)
-    shipping_tax_rate = get_tax_rate_for_tax_class(
-        tax_class,
-        tax_class.country_rates.all() if tax_class else [],
-        default_tax_rate,
-        country_code,
-    )
+    shipping_tax_class = getattr(shipping_method, "tax_class", None)
+    if shipping_tax_class:
+        shipping_tax_rate = get_tax_rate_for_tax_class(
+            shipping_tax_class,
+            shipping_tax_class.country_rates.all(),
+            default_tax_rate,
+            country_code,
+        )
+    elif order.shipping_tax_rate is not None:
+        # Use order.shipping_tax_rate if it was ever set before (it's non-null now).
+        # This is a valid case when recalculating shipping price and the tax class is
+        # null, because it was removed from the system.
+        shipping_tax_rate = denormalize_tax_rate_from_db(order.shipping_tax_rate)
+    else:
+        shipping_tax_rate = default_tax_rate
+
     order.shipping_price = _calculate_order_shipping(
         order, shipping_tax_rate, prices_entered_with_tax
     )
@@ -114,20 +127,21 @@ def update_taxes_for_order_lines(
         if not variant:
             continue
 
-        # TODO: Denormalize tax_class and store it in the order line model.
-        tax_class = None
-        if variant.product:
-            if variant.product.tax_class_id:
-                tax_class = variant.product.tax_class
-            else:
-                tax_class = variant.product.product_type.tax_class
-
-        tax_rate = get_tax_rate_for_tax_class(
-            tax_class,
-            tax_class.country_rates.all() if tax_class else [],
-            default_tax_rate,
-            country_code,
-        )
+        tax_class = line.tax_class
+        if tax_class:
+            tax_rate = get_tax_rate_for_tax_class(
+                tax_class,
+                tax_class.country_rates.all() if tax_class else [],
+                default_tax_rate,
+                country_code,
+            )
+        elif line.tax_rate is not None:
+            # line.tax_class can be None when the tax class was removed from DB. In
+            # this case try to use line.tax_rate which stores the denormalized tax rate
+            # value that was originally used.
+            tax_rate = denormalize_tax_rate_from_db(line.tax_rate)
+        else:
+            tax_rate = default_tax_rate
 
         line_total_price = line.base_unit_price * line.quantity
         undiscounted_subtotal += line_total_price

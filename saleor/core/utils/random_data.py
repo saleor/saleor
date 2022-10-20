@@ -91,6 +91,7 @@ from ...shipping.models import (
     ShippingZone,
 )
 from ...tax.models import TaxClass, TaxConfiguration
+from ...tax.utils import get_tax_class_kwargs_for_order_line
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
@@ -748,6 +749,7 @@ def _get_new_order_line(order, variant, channel, discounts):
         base_unit_price=untaxed_unit_price,
         undiscounted_base_unit_price=untaxed_unit_price,
         tax_rate=0,
+        **get_tax_class_kwargs_for_order_line(product.tax_class),
     )
 
 
