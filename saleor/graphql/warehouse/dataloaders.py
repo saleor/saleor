@@ -102,7 +102,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
 
         stocks = stocks.annotate_available_quantity()
 
-        stocks_reservations = self.prepare_stocks_reservations_map(variant_ids)
+        stocks_reservations = self.prepare_stocks_reservations_map(variant_ids, site)
 
         # A single country code (or a missing country code) can return results from
         # multiple shipping zones. We want to combine all quantities within a single
@@ -207,10 +207,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             )
         return warehouses
 
-    def prepare_stocks_reservations_map(self, variant_ids):
+    def prepare_stocks_reservations_map(self, variant_ids, site):
         """Prepare stock id to quantity reserved map for provided variant ids."""
         stocks_reservations = defaultdict(int)
-        site = load_site(self.context)
         if is_reservation_enabled(site.settings):  # type: ignore
             # Can't do second annotation on same queryset because it made
             # available_quantity annotated value incorrect thanks to how
