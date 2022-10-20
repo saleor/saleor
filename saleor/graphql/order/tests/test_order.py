@@ -2536,6 +2536,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                                 amount
                             }
                         }
+                        shippingMethodName
                     }
                 }
         }
@@ -2612,6 +2613,7 @@ def test_draft_order_create(
     order = Order.objects.first()
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
+    assert order.shipping_method_name == shipping_method.name
     assert order.billing_address
     assert order.shipping_address
     assert order.search_vector
