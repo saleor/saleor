@@ -1642,9 +1642,9 @@ def test_complete_checkout_invalid_shipping_method(
     )
 
 
-def delete_checkout(*a, **k):
-    ch = Checkout.objects.filter(pk=a[0].checkout.pk).first()
-    ch.delete()
+def delete_checkout(*args, **kwargs):
+    checkout = Checkout.objects.get(pk=args[0].checkout.pk)
+    checkout.delete()
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
