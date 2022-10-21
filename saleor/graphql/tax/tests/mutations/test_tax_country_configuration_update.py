@@ -247,3 +247,34 @@ def test_update_default_country_rate_throws_error_with_multiple_rates(
     assert data["errors"]
     code = TaxCountryConfigurationUpdateErrorCode.ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
     assert data["errors"][0]["code"] == code.name
+
+
+def test_validate_negative_rates(staff_api_client, permission_manage_taxes):
+    # given
+    tax_class_1 = TaxClass.objects.create(name="Books")
+    tax_class_2 = TaxClass.objects.create(name="Accessories")
+
+    id_1 = graphene.Node.to_global_id("TaxClass", tax_class_1.pk)
+    id_2 = graphene.Node.to_global_id("TaxClass", tax_class_2.pk)
+
+    # when
+    variables = {
+        "countryCode": "PL",
+        "updateTaxClassRates": [
+            {"rate": -1},
+            {"taxClassId": id_1, "rate": -1},
+            {"taxClassId": id_2, "rate": 0},
+        ],
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxCountryConfigurationUpdate"]
+    assert data["errors"]
+    code = TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_NEGATIVE_RATE
+    assert data["errors"][0]["code"] == code.name
+    assert len(data["errors"][0]["taxClassIds"]) == 1
+    assert id_1 in data["errors"][0]["taxClassIds"]

@@ -123,8 +123,37 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         return cleaned_data
 
     @classmethod
+    def _clean_rate_values(cls, tax_rate_items):
+        invalid_rates = []
+        for item in tax_rate_items:
+            rate = item.get("rate")
+            if rate is not None and rate < 0:
+                invalid_rates.append(item)
+
+        if invalid_rates:
+            code = (
+                error_codes.TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_NEGATIVE_RATE  # noqa: E501
+            )
+            message = "Cannot create rates with negative values."
+            params = {
+                "tax_class_ids": [
+                    item["tax_class_id"]
+                    for item in invalid_rates
+                    if item.get("tax_class_id")
+                ]
+            }
+            raise ValidationError(
+                {
+                    "update_tax_class_rates": ValidationError(
+                        code=code, message=message, params=params
+                    )
+                }
+            )
+
+    @classmethod
     def clean_input(cls, **data):
         update_tax_class_rates = data.get("update_tax_class_rates", [])
+        cls._clean_rate_values(update_tax_class_rates)
         cls._clean_default_rates(update_tax_class_rates)
         return cls._clean_tax_class_ids(update_tax_class_rates)
 
