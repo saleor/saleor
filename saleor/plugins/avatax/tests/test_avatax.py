@@ -4880,3 +4880,101 @@ def test_assign_tax_code_to_object_meta_no_obj_id(
         META_CODE_KEY: tax_code,
         META_DESCRIPTION_KEY: description,
     }
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+def test_calculate_checkout_shipping_validates_checkout(
+    mocked_func, settings, channel_USD, plugin_configuration, checkout_with_item
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+    manager = get_plugins_manager()
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+
+    checkout.shipping_method = None
+    checkout.save(update_fields=["shipping_method"])
+
+    for line in lines:
+        line.product_type.is_shipping_required = True
+        line.product_type.save()
+
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    manager.calculate_checkout_shipping(
+        checkout_info,
+        lines,
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert not mocked_func.called
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+def test_calculate_checkout_line_total_validates_checkout(
+    mocked_func, settings, channel_USD, plugin_configuration, checkout_with_item
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+    manager = get_plugins_manager()
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+
+    checkout.shipping_method = None
+    checkout.save(update_fields=["shipping_method"])
+
+    for line in lines:
+        line.product_type.is_shipping_required = True
+        line.product_type.save()
+
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        lines[0],
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert not mocked_func.called
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+def test_calculate_checkout_line_unit_price_validates_checkout(
+    mocked_func, settings, channel_USD, plugin_configuration, checkout_with_item
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+    manager = get_plugins_manager()
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+
+    checkout.shipping_method = None
+    checkout.save(update_fields=["shipping_method"])
+
+    for line in lines:
+        line.product_type.is_shipping_required = True
+        line.product_type.save()
+
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        lines[0],
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert not mocked_func.called
