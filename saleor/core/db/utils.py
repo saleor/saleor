@@ -39,6 +39,8 @@ def get_database_connection_name(context: "HttpRequest"):
 
 
 def setup_context_user(context: "HttpRequest") -> None:
-    if getattr(context.user, "_wrapped", None) is empty:
+    if hasattr(context.user, "_wrapped") and (
+        context.user._wrapped is empty or context.user._wrapped is None  # type: ignore
+    ):
         context.user._setup()  # type: ignore
         context.user = context.user._wrapped  # type: ignore
