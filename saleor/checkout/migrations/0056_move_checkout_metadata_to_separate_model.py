@@ -24,6 +24,11 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
+def clear_checkout_metadata(checkout):
+    checkout.metadata = None
+    checkout.private_metadata = None
+
+
 def move_all_checkout_metadata(apps, schema_editor):
     Checkout = apps.get_model("checkout", "Checkout")
     CheckoutMetadata = apps.get_model("checkout", "CheckoutMetadata")
@@ -55,77 +60,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.CreateModel(
-        #     name="CheckoutMetadata",
-        #     fields=[
-        #         (
-        #             "id",
-        #             models.AutoField(
-        #                 auto_created=True,
-        #                 primary_key=True,
-        #                 serialize=False,
-        #                 verbose_name="ID",
-        #             ),
-        #         ),
-        #         (
-        #             "private_metadata",
-        #             models.JSONField(
-        #                 blank=True,
-        #                 default=dict,
-        #                 encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
-        #                 null=True,
-        #             ),
-        #         ),
-        #         (
-        #             "metadata",
-        #             models.JSONField(
-        #                 blank=True,
-        #                 default=dict,
-        #                 encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
-        #                 null=True,
-        #             ),
-        #         ),
-        #     ],
-        #     options={
-        #         "abstract": False,
-        #     },
-        # ),
-        # migrations.AddField(
-        #     model_name="checkoutmetadata",
-        #     name="checkout",
-        #     field=models.OneToOneField(
-        #         on_delete=django.db.models.deletion.CASCADE,
-        #         related_name="metadata_storage",
-        #         to="checkout.checkout",
-        #     ),
-        # ),
         migrations.RunPython(move_all_checkout_metadata, migrations.RunPython.noop),
-        # migrations.RemoveIndex(
-        #     model_name="checkout",
-        #     name="checkout_p_meta_idx",
-        # ),
-        # migrations.RemoveIndex(
-        #     model_name="checkout",
-        #     name="checkout_meta_idx",
-        # ),
-        # migrations.RemoveField(
-        #     model_name="checkout",
-        #     name="metadata",
-        # ),
-        # migrations.RemoveField(
-        #     model_name="checkout",
-        #     name="private_metadata",
-        # ),
-        # migrations.AddIndex(
-        #     model_name="checkoutmetadata",
-        #     index=django.contrib.postgres.indexes.GinIndex(
-        #         fields=["private_metadata"], name="checkoutmetadata_p_meta_idx"
-        #     ),
-        # ),
-        # migrations.AddIndex(
-        #     model_name="checkoutmetadata",
-        #     index=django.contrib.postgres.indexes.GinIndex(
-        #         fields=["metadata"], name="checkoutmetadata_meta_idx"
-        #     ),
-        # ),
     ]
