@@ -27,4 +27,4 @@ def delete_expired_checkouts():
         empty_checkouts | expired_anonymous_checkouts | expired_user_checkout
     ).delete()
     if count:
-        task_logger.debug("Removed %s checkouts.", count)
+        task_logger.debug(f"Removed {count} checkouts.")

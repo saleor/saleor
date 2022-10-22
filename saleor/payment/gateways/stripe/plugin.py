@@ -503,9 +503,9 @@ class StripeGatewayPlugin(BasePlugin):
             return
         if domain in localhost_domains:
             logger.warning(
-                "Unable to subscribe localhost domain - %s to Stripe webhooks. Stripe "
-                "webhooks require domain which will be accessible from the network",
-                domain,
+                f"Unable to subscribe localhost domain - {domain} to Stripe webhooks. "
+                "Stripe webhooks require domain which will be accessible from the "
+                "network",
             )
             return
 

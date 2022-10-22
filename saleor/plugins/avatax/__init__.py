@@ -102,18 +102,18 @@ def api_post_request(
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
-        logger.debug("Hit to Avatax to calculate taxes %s", url)
+        logger.debug(f"Hit to Avatax to calculate taxes {url}")
         json_response = response.json()
         if "error" in response:  # type: ignore
-            logger.exception("Avatax response contains errors %s", json_response)
+            logger.exception(f"Avatax response contains errors {json_response}")
             return json_response
     except requests.exceptions.RequestException:
-        logger.exception("Fetching taxes failed %s", url)
+        logger.exception(f"Fetching taxes failed {url}")
         return {}
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
         logger.exception(
-            "Unable to decode the response from Avatax. Response: %s", content
+            f"Unable to decode the response from Avatax. Response: {content}"
         )
         return {}
     return json_response  # type: ignore
@@ -129,17 +129,17 @@ def api_get_request(
         auth = HTTPBasicAuth(username_or_account, password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
         json_response = response.json()
-        logger.debug("[GET] Hit to %s", url)
+        logger.debug(f"[GET] Hit to {url}")
         if "error" in json_response:  # type: ignore
-            logger.error("Avatax response contains errors %s", json_response)
+            logger.error(f"Avatax response contains errors {json_response}")
         return json_response
     except requests.exceptions.RequestException:
-        logger.exception("Failed to fetch data from %s", url)
+        logger.exception(f"Failed to fetch data from {url}")
         return {}
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
         logger.exception(
-            "Unable to decode the response from Avatax. Response: %s", content
+            f"Unable to decode the response from Avatax. Response: {content}"
         )
         return {}
 
@@ -615,7 +615,7 @@ def get_order_tax_data(
 ) -> Dict[str, Any]:
     data = get_order_request_data(order, config, tax_included)
     response = get_cached_response_or_fetch(
-        data, "order_%s" % order.id, config, force_refresh
+        data, f"order_{order.id}", config, force_refresh
     )
     if response and "error" in response:
         raise TaxError(response.get("error"))

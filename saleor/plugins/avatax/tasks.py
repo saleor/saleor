@@ -21,7 +21,7 @@ def api_post_request_task(transaction_url, data, config, order_id):
     order = Order.objects.filter(id=order_id).first()
     if not order:
         task_logger.error(
-            "Unable to send the order %s to Avatax. Order doesn't exist.", order_id
+            f"Unable to send the order {order_id} to Avatax. Order doesn't exist."
         )
         return
     if not data.get("createTransactionModel", {}).get("lines"):
@@ -43,7 +43,7 @@ def api_post_request_task(transaction_url, data, config, order_id):
         avatax_msg = response.get("error", {}).get("message", "")
         msg = f"Unable to send order to Avatax. {avatax_msg}"
         task_logger.warning(
-            "Unable to send order %s to Avatax. Response %s", order.id, response
+            f"Unable to send order {order.id} to Avatax. Response {response}"
         )
 
     external_notification_event(

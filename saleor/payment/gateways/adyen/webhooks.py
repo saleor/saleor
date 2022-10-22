@@ -72,15 +72,13 @@ def get_payment(
 ) -> Optional[Payment]:
     transaction_id = transaction_id or ""
     if payment_id is None or not payment_id.strip():
-        logger.warning("Missing payment ID. Reference %s", transaction_id)
+        logger.warning(f"Missing payment ID. Reference {transaction_id}")
         return None
     try:
         _type, db_payment_id = from_global_id_or_error(payment_id)
     except (UnicodeDecodeError, binascii.Error, GraphQLError):
         logger.warning(
-            "Unable to decode the payment ID %s. Reference %s",
-            payment_id,
-            transaction_id,
+            f"Unable to decode the payment ID {payment_id}. Reference {transaction_id}"
         )
         return None
     payments = (
@@ -93,10 +91,7 @@ def get_payment(
     payment = payments.first()
     if not payment:
         logger.warning(
-            "Payment for %s (%s) was not found. Reference %s",
-            payment_id,
-            db_payment_id,
-            transaction_id,
+            f"Payment for {payment_id} ({db_payment_id}) was not found. Reference {transaction_id}"
         )
     return payment
 
@@ -226,7 +221,7 @@ def create_order(payment, checkout, manager):
         )
     except ValidationError as e:
         logger.info(
-            "Failed to create order from checkout %s.", checkout.pk, extra={"error": e}
+            f"Failed to create order from checkout {checkout.pk}.", extra={"error": e}
         )
         return None
     # Refresh the payment to assign the newly created order
@@ -803,7 +798,7 @@ def refund_partial_payments(payments, config):
     for payment in payments:
         adyen_client = initialize_adyen_client(config)
         merchant_account = config.connection_params["merchant_account"]
-        logger.info("Calling refund for partial payment: %s", payment.psp_reference)
+        logger.info(f"Calling refund for partial payment: {payment.psp_reference}")
         call_refund(
             amount=payment.total,
             currency=payment.currency,

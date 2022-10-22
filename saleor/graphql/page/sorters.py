@@ -20,7 +20,7 @@ class PageSortField(graphene.Enum):
             if self.name == "PUBLICATION_DATE":
                 description += DEPRECATED_IN_3X_INPUT
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class PageSortingInput(SortInputObjectType):

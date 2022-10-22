@@ -80,7 +80,7 @@ def create_deliveries_for_subscriptions(
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
-            "Skipping subscription webhook. Event %s is not subscribable.", event_type
+            f"Skipping subscription webhook. Event {event_type} is not subscribable."
         )
         return []
 
@@ -98,7 +98,7 @@ def create_deliveries_for_subscriptions(
         )
         if not data:
             logger.warning(
-                "No payload was generated with subscription for event: %s" % event_type
+                f"No payload was generated with subscription for event: {event_type}"
             )
             continue
 
@@ -134,7 +134,7 @@ def create_delivery_for_subscription_sync_event(
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
-            "Skipping subscription webhook. Event %s is not subscribable.", event_type
+            f"Skipping subscription webhook. Event {event_type} is not subscribable."
         )
         return None
 
@@ -153,7 +153,7 @@ def create_delivery_for_subscription_sync_event(
         # in separate PR to ensure proper handling for all sync events.
         # It was implemented when sync webhooks were handling payment events only.
         raise PaymentError(
-            "No payload was generated with subscription for event: %s" % event_type
+            f"No payload was generated with subscription for event: {event_type}"
         )
     event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
     event_delivery = EventDelivery.objects.create(
@@ -635,19 +635,13 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
             continue
         if failed:
             logger.warning(
-                "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
-                webhook.id,
-                webhook.target_url,
-                failed,
-                len(events),
-                response.content,
+                f"Webhook ID: {webhook.id} failed request to {webhook.target_url} "
+                f"({failed}/{len(events)} events dropped): {response.content}.",
                 extra={**extra, "dropped_events_count": failed},
             )
             continue
         logger.debug(
-            "Successful delivered %s events to %r.",
-            len(events),
-            webhook.target_url,
+            f"Successfully delivered {len(events)} events to {webhook.target_url}.",
             extra={**extra, "dropped_events_count": 0},
         )
 

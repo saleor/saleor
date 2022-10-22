@@ -1927,7 +1927,7 @@ def test_create_deliveries_for_subscriptions_unsubscribable_event(
     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
 
     mocked_logger.assert_called_with(
-        "Skipping subscription webhook. Event %s is not subscribable.", event_type
+        f"Skipping subscription webhook. Event {event_type} is not subscribable."
     )
     assert len(deliveries) == 0
 

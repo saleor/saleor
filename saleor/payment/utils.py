@@ -628,9 +628,8 @@ def try_void_or_refund_inactive_payment(
             )
         except PaymentError:
             logger.exception(
-                "Unable to void/refund an inactive payment %s, %s.",
-                payment.id,
-                payment.psp_reference,
+                f"Unable to void/refund an inactive payment {payment.id}, "
+                f"{payment.psp_reference}."
             )
 
 

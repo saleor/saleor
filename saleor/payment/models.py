@@ -207,12 +207,7 @@ class Payment(ModelWithMetadata):
         ]
 
     def __repr__(self):
-        return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (
-            self.gateway,
-            self.is_active,
-            self.created_at,
-            self.charge_status,
-        )
+        return f"Payment(gateway={self.gateway}, is_active={self.is_active}, created={self.created_at}, charge_status={self.charge_status})"
 
     def get_last_transaction(self):
         return max(self.transactions.all(), default=None, key=attrgetter("pk"))
@@ -335,11 +330,7 @@ class Transaction(models.Model):
         ordering = ("pk",)
 
     def __repr__(self):
-        return "Transaction(type=%s, is_success=%s, created=%s)" % (
-            self.kind,
-            self.is_success,
-            self.created_at,
-        )
+        return f"Transaction(type={self.kind}, is_success={self.is_success}, created={self.created_at})"
 
     def get_amount(self):
         return Money(self.amount, self.currency)

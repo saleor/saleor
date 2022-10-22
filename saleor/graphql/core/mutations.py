@@ -251,7 +251,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id, code=code
+                            f"Couldn't resolve to a node: {node_id}", code=code
                         )
                     }
                 )

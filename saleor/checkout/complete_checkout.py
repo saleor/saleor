@@ -255,7 +255,7 @@ def _create_line_for_order(
 
     unit_discount_reason = None
     if sale_id:
-        unit_discount_reason = "Sale: %s" % graphene.Node.to_global_id("Sale", sale_id)
+        unit_discount_reason = f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
     if voucher_code:
         if unit_discount_reason:
             unit_discount_reason += f" & Voucher code: {voucher_code}"
@@ -698,7 +698,7 @@ def _get_order_data(
         raise ValidationError(e.message, code=e.code)
     except TaxError as tax_error:
         raise ValidationError(
-            "Unable to calculate taxes - %s" % str(tax_error),
+            f"Unable to calculate taxes - {str(tax_error)}",
             code=CheckoutErrorCode.TAX_ERROR.value,
         )
     return order_data

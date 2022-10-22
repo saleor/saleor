@@ -13,7 +13,7 @@ task_logger = get_task_logger(__name__)
 def delete_empty_allocations_task():
     count, _ = Allocation.objects.filter(quantity_allocated=0).delete()
     if count:
-        task_logger.debug("Removed %s allocations", count)
+        task_logger.debug(f"Removed {count} allocations")
 
 
 @app.task
@@ -27,9 +27,8 @@ def delete_expired_reservations_task():
 
     if stock_reservations or preorder_reservations:
         task_logger.debug(
-            "Removed %s stock reservations and %s preorder reservations",
-            stock_reservations,
-            preorder_reservations,
+            f"Removed {stock_reservations} stock reservations "
+            f"and {preorder_reservations} preorder reservations",
         )
 
 

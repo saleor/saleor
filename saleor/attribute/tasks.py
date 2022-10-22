@@ -16,9 +16,8 @@ def update_associated_products_search_vector(attribute_value_pk: int):
         task_logger.warning(
             (
                 "Could not perform search_vector update on associated products as "
-                'AttributeValue with pk "%s" does not exists.'
-            ),
-            attribute_value_pk,
+                f'AttributeValue with pk "{attribute_value_pk}" does not exists.'
+            )
         )
         return
 

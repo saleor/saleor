@@ -131,9 +131,7 @@ class BaseScheduler(celery.beat.Scheduler):
                     )
                 )
                 logger.debug(
-                    "Triggered %s, will trigger again in %ss",
-                    entry.name,
-                    next_time_to_run,
+                    f"Triggered {entry.name}, will trigger again in {next_time_to_run}s"
                 )
         # Non-original code, custom fix for Celery not waiting the correct duration
         # when the first task in heap needs to wait longer than other tasks in heap

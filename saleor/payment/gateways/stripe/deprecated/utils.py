@@ -78,9 +78,7 @@ def get_currency_from_stripe(currency):
 def get_payment_billing_fullname(payment_information: PaymentData) -> str:
     # Get billing name from payment
     payment_billing = payment_information.billing
-    if not payment_billing:
-        return ""
-    return "%s %s" % (payment_billing.last_name, payment_billing.first_name)
+    return f"{payment_billing.last_name} {payment_billing.first_name}" if payment_billing else ""
 
 
 def shipping_to_stripe_dict(shipping: AddressData) -> Dict:

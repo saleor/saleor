@@ -24,7 +24,7 @@ class ExportFileSortField(graphene.Enum):
 
         for self.name in ExportFileSortField.__enum__._member_names_:
             return f"Sort export file by {descriptions[self.name]}"
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ExportFileSortingInput(SortInputObjectType):

@@ -129,11 +129,9 @@ def update_ordered_media(ordered_media):
                 media.save(update_fields=["sort_order"])
             except DatabaseError as e:
                 msg = (
-                    "Cannot update media for instance: %s. "
+                    f"Cannot update media for instance: {media}. "
                     "Updating not existing object. "
-                    "Details: %s.",
-                    media,
-                    str(e),
+                    f"Details: {str(e)}.",
                 )
                 logger.warning(msg)
                 errors["media"].append(

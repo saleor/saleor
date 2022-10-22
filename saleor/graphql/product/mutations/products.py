@@ -1124,7 +1124,7 @@ class ProductVariantCreate(ModelMutation):
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % object_sku,
+                            f"Couldn't resolve to a node: {object_sku}",
                             code="not_found",
                         )
                     }
@@ -1290,7 +1290,7 @@ class ProductVariantDelete(ModelDeleteMutation):
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % node_sku,
+                            f"Couldn't resolve to a node: {node_sku}",
                             code="not_found",
                         )
                     }

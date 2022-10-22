@@ -102,4 +102,4 @@ def delete_old_export_files():
 
     export_files.delete()
 
-    task_logger.debug("Delete %s export files.", counter)
+    task_logger.debug(f"Delete {counter} export files.")

@@ -87,7 +87,7 @@ def handle_unrecoverable_state(
     error_codes: Iterable[str],
 ) -> None:
     message = f"Payment #{transaction_id} {action.capitalize()} Unrecoverable Error"
-    logger.error("%s: %s", message, ", ".join(error_codes))
+    logger.error(f'{message}: {", ".join(error_codes)}')
     if order:
         notify_dashboard(order, message)
 
@@ -114,7 +114,7 @@ def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
         with Posuto() as pp:
             jap_ad = pp.get(ad.postal_code)
     except KeyError:
-        logger.warning("Invalid japanese postal code: %s", ad.postal_code)
+        logger.warning(f"Invalid japanese postal code: {ad.postal_code}")
         return None
     else:
         return (

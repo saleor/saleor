@@ -92,7 +92,7 @@ class GraphQLView(View):
             return getattr(module, class_name)
         except (ImportError, AttributeError):
             raise ImportError(
-                "Cannot import '%s' graphene middleware!" % middleware_name
+                f"Cannot import '{middleware_name}' graphene middleware!"
             )
 
     @observability.report_view
