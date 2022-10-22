@@ -215,7 +215,12 @@ class ShippingMethod(ModelWithMetadata):
         return self.name
 
     def __repr__(self):
-        return f"ShippingMethod(type={self.type})" if self.type == ShippingMethodType.PRICE_BASED else f"ShippingMethod(type={self.type} weight_range=({_get_weight_type_display(self.minimum_order_weight, self.maximum_order_weight)})"
+        if self.type == ShippingMethodType.PRICE_BASED:
+            return f"ShippingMethod(type={self.type})"
+        weight_type_display = _get_weight_type_display(
+            self.minimum_order_weight, self.maximum_order_weight
+        )
+        return f"ShippingMethod(type={self.type} weight_range=({weight_type_display})"
 
 
 class ShippingMethodPostalCodeRule(models.Model):
