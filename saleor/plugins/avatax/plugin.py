@@ -287,7 +287,9 @@ class AvataxPlugin(BasePlugin):
     ) -> TaxedMoney:
         base_shipping_price = previous_value
 
-        response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
+        response = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, self.config
+        )
         if response is None:
             return previous_value
 
@@ -389,7 +391,9 @@ class AvataxPlugin(BasePlugin):
             _get_prices_entered_with_tax_for_checkout, checkout_info
         )
 
-        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
+        taxes_data = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, self.config
+        )
         variant = checkout_line_info.variant
 
         return self._calculate_checkout_line_total_price(
@@ -521,7 +525,9 @@ class AvataxPlugin(BasePlugin):
         variant = checkout_line_info.variant
 
         quantity = checkout_line_info.line.quantity
-        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
+        taxes_data = self._get_checkout_tax_data(
+            checkout_info, lines, discounts, self.config
+        )
         default_total = previous_value * quantity
         taxed_total_price = self._calculate_checkout_line_total_price(
             taxes_data,
