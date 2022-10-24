@@ -49,6 +49,11 @@ def update_order_prices_with_flat_rates(
     order.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate order total.
+    undiscounted_subtotal = sum(
+        [line.undiscounted_total_price for line in lines],
+        zero_taxed_money(order.currency),
+    )
+    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
     order.total = _calculate_order_total(order, lines)
 
 
@@ -70,8 +75,6 @@ def _calculate_order_total(
         undiscounted_subtotal += line.undiscounted_total_price
     total += order.shipping_price
 
-    # Vatlayer doesn't propagate order discount to shipping we should include
-    # remaining amount in total calculation.
     order_discount = order.discounts.filter(type=OrderDiscountType.MANUAL).first()
     if order_discount and order_discount.amount > undiscounted_subtotal.gross:
         remaining_amount = order_discount.amount - undiscounted_subtotal.gross
