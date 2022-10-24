@@ -5,7 +5,6 @@ import graphene
 from django.db.models import QuerySet
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
-from ...core.tracing import traced_resolver
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -66,7 +65,6 @@ class AttributeValue(ModelObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info, *_args):
         return (
             AttributesByAttributeId(info.context)
