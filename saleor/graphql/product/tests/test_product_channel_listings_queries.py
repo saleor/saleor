@@ -142,7 +142,7 @@ def test_product_channel_listing_pricing_field_no_address(
 
     # then
     assert (
-        mock_get_tax_rate_for_tax_class.call_args[0][2] == channel_USD.default_country
+        mock_get_tax_rate_for_tax_class.call_args[0][3] == channel_USD.default_country
     )
 
 

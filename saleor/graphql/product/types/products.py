@@ -98,6 +98,7 @@ from ...tax.dataloaders import (
     TaxClassByIdLoader,
     TaxClassByProductIdLoader,
     TaxClassByVariantIdLoader,
+    TaxClassCountryRateByTaxClassIDLoader,
     TaxClassDefaultRateByCountryLoader,
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
@@ -605,7 +606,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
-                    def calculate_pricing_info(default_country_rate_obj):
+                    def calculate_pricing_info(data):
+                        country_rates, default_country_rate_obj = data
                         local_currency = get_currency_for_country(country_code)
 
                         tax_config_country = next(
@@ -626,7 +628,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                             else Decimal(0)
                         )
                         tax_rate = get_tax_rate_for_tax_class(
-                            tax_class, default_tax_rate, country_code
+                            tax_class, country_rates, default_tax_rate, country_code
                         )
 
                         availability = get_variant_availability(
@@ -644,10 +646,18 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                         )
                         return VariantPricingInfo(**asdict(availability))
 
-                    return (
-                        TaxClassDefaultRateByCountryLoader(context)
-                        .load(country_code)
-                        .then(calculate_pricing_info)
+                    country_rates = (
+                        TaxClassCountryRateByTaxClassIDLoader(context).load(
+                            tax_class.pk
+                        )
+                        if tax_class
+                        else []
+                    )
+                    default_rate = TaxClassDefaultRateByCountryLoader(context).load(
+                        country_code
+                    )
+                    return Promise.all([country_rates, default_rate]).then(
+                        calculate_pricing_info
                     )
 
                 return (
@@ -1073,7 +1083,8 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
-                    def calculate_pricing_info(default_country_rate_obj):
+                    def calculate_pricing_info(data):
+                        country_rates, default_country_rate_obj = data
                         local_currency = None
                         local_currency = get_currency_for_country(country_code)
 
@@ -1112,7 +1123,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                             else Decimal(0)
                         )
                         tax_rate = get_tax_rate_for_tax_class(
-                            tax_class, default_tax_rate, country_code
+                            tax_class, country_rates, default_tax_rate, country_code
                         )
 
                         availability = get_product_availability(
@@ -1133,10 +1144,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                         pricing_info["display_gross_prices"] = display_gross_prices
                         return ProductPricingInfo(**pricing_info)
 
-                    return (
-                        TaxClassDefaultRateByCountryLoader(context)
-                        .load(country_code)
-                        .then(calculate_pricing_info)
+                    country_rates = (
+                        TaxClassCountryRateByTaxClassIDLoader(context).load(
+                            tax_class.pk
+                        )
+                        if tax_class
+                        else []
+                    )
+                    default_rate = TaxClassDefaultRateByCountryLoader(context).load(
+                        country_code
+                    )
+                    return Promise.all([country_rates, default_rate]).then(
+                        calculate_pricing_info
                     )
 
                 return (
