@@ -491,9 +491,9 @@ fake.add_provider(SaleorProvider)  # type: ignore
 def get_email(first_name, last_name):
     _first = unicodedata.normalize("NFD", first_name).encode("ascii", "ignore")
     _last = unicodedata.normalize("NFD", last_name).encode("ascii", "ignore")
-    encoded_first = _first.lower().decode("utf-8")
-    encoded_last = _last.lower().decode("utf-8")
-    return f'{encoded_first}.{encoded_last}@example.com'
+    decoded_first = _first.lower().decode("utf-8")
+    decoded_last = _last.lower().decode("utf-8")
+    return f"{decoded_first}.{decoded_last}@example.com"
 
 
 def create_product_image(product, placeholder_dir, image_name):
