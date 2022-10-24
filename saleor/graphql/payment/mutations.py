@@ -27,7 +27,13 @@ from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
 from ...order.models import Order
-from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
+from ...payment import (
+    PaymentError,
+    StorePaymentMethod,
+    TransactionAction,
+    TransactionEventStatus,
+    gateway,
+)
 from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
@@ -1184,6 +1190,16 @@ class TransactionRequestAction(BaseMutation):
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
             request_refund_action(**action_kwargs, refund_value=action_value)
+            # create REQUEST transaction event only for REFUND
+            cls.create_transaction_event_requested(transaction, action_value)
+
+    @classmethod
+    def create_transaction_event_requested(cls, transaction, action_value):
+        transaction.events.create(
+            status=TransactionEventStatus.REQUEST,
+            transaction=transaction,
+            amount_value=action_value,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):

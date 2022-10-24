@@ -5,9 +5,9 @@ import pytest
 from mock import patch
 
 from .....order import OrderEvents
-from .....payment import TransactionAction
+from .....payment import TransactionAction, TransactionEventStatus
 from .....payment.interface import TransactionActionData
-from .....payment.models import TransactionItem
+from .....payment.models import TransactionEvent, TransactionItem
 from ....core.enums import TransactionRequestActionErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum
@@ -185,6 +185,11 @@ def test_transaction_request_refund_action_for_order(
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_refund_amount
     assert event.parameters["reference"] == transaction.psp_reference
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -402,6 +407,11 @@ def test_transaction_request_refund_action_for_checkout(
         channel_slug=checkout.channel.slug,
     )
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+    )
+
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
@@ -573,3 +583,59 @@ def test_transaction_request_action_missing_event(
     )
 
     assert mocked_is_active.called
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_transaction_request_action_missing_event_refund_requested(
+    mocked_is_active, staff_api_client, permission_manage_payments, order
+):
+    # given
+    authorization_value = Decimal("10")
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["charge", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=authorization_value,
+    )
+    mocked_is_active.return_value = False
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "action_type": TransactionActionEnum.REFUND.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[
+            permission_manage_payments,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == (
+        "No app or plugin is configured to handle payment action requests."
+    )
+    code_enum = TransactionRequestActionErrorCode
+    assert data["errors"][0]["code"] == (
+        code_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
+
+    assert (
+        len(
+            TransactionEvent.objects.filter(
+                transaction=transaction,
+                status=TransactionEventStatus.REQUEST,
+            )
+        )
+        == 0
+    )
