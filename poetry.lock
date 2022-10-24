@@ -2888,7 +2888,7 @@ python-versions = "*"
 
 [[package]]
 name = "weasyprint"
-version = "56.1"
+version = "57.0"
 description = "The Awesome Document Factory"
 category = "main"
 optional = false
@@ -2900,13 +2900,13 @@ cssselect2 = ">=0.1"
 fonttools = {version = ">=4.0.0", extras = ["woff"]}
 html5lib = ">=1.1"
 Pillow = ">=4.0.0"
-pydyf = ">=0.2.0"
+pydyf = ">=0.5.0"
 Pyphen = ">=0.9.1"
 tinycss2 = ">=1.0.0"
 
 [package.extras]
 doc = ["sphinx", "sphinx_rtd_theme"]
-test = ["coverage[toml]", "pytest", "pytest-cov", "pytest-flake8", "pytest-isort", "pytest-xdist"]
+test = ["flake8", "isort", "pytest"]
 
 [[package]]
 name = "webencodings"
@@ -4680,8 +4680,8 @@ wcwidth = [
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
 ]
 weasyprint = [
-    {file = "weasyprint-56.1-py3-none-any.whl", hash = "sha256:86ffa626a7b335d19a7024c0b59a6b3160fd5c0e7a3634500f50a2c35faeafb5"},
-    {file = "weasyprint-56.1.tar.gz", hash = "sha256:27f796abce8edebc9e5b3cff2d095a9fa2b0af5766801431659db51203c70b38"},
+    {file = "weasyprint-57.0-py3-none-any.whl", hash = "sha256:c714681139a765964c3a8514ac1fc0f65ae063aada4aad752085575f2129e765"},
+    {file = "weasyprint-57.0.tar.gz", hash = "sha256:7b6f5cc13819e9a7d8748c1dbf0e8d2444f7a4818a98339f82dccaa822bf911b"},
 ]
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
