@@ -236,7 +236,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        checkout.metadata_storage.save()
+        checkout.metadata_storage.save(
+            update_fields=[
+                "private_metadata",
+            ]
+        )
         cls.call_event(manager.checkout_updated, checkout)
 
     @staticmethod

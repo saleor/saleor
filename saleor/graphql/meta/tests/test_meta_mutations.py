@@ -1169,8 +1169,6 @@ def execute_clear_public_metadata_for_item(
         "id": item_id,
         "keys": [key],
     }
-    # import ipdb
-    # ipdb.set_trace()
     response = client.post_graphql(
         DELETE_PUBLIC_METADATA_MUTATION % item_type,
         variables,
