@@ -205,7 +205,7 @@ def _finalize_checkout(
             app=None,
         )
     except ValidationError as e:
-        logger.info(f"Failed to complete checkout {checkout.pk}.", extra={"error": e})
+        logger.info("Failed to complete checkout %s.", checkout.pk, extra={"error": e})
         return None
 
 

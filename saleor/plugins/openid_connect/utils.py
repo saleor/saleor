@@ -63,13 +63,14 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
         response.raise_for_status()
         jwks = response.json()
     except requests.exceptions.RequestException:
-        logger.exception(f"Unable to fetch jwks from {jwks_url}")
+        logger.exception("Unable to fetch jwks from %s", jwks_url)
         raise AuthenticationError("Unable to finalize the authentication process.")
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
         logger.exception(
             "Unable to decode the response from auth service with jwks. "
-            f"Response: {content}"
+            "Response: %s",
+            content,
         )
         raise AuthenticationError("Unable to finalize the authentication process.")
     keys = jwks.get("keys", [])

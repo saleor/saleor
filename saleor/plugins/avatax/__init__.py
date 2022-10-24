@@ -102,18 +102,18 @@ def api_post_request(
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
-        logger.debug(f"Hit to Avatax to calculate taxes {url}")
+        logger.debug("Hit to Avatax to calculate taxes %s", url)
         json_response = response.json()
         if "error" in response:  # type: ignore
-            logger.exception(f"Avatax response contains errors {json_response}")
+            logger.exception("Avatax response contains errors %s", json_response)
             return json_response
     except requests.exceptions.RequestException:
-        logger.exception(f"Fetching taxes failed {url}")
+        logger.exception("Fetching taxes failed %s", url)
         return {}
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
         logger.exception(
-            f"Unable to decode the response from Avatax. Response: {content}"
+            "Unable to decode the response from Avatax. Response: %s", content
         )
         return {}
     return json_response  # type: ignore
@@ -129,17 +129,17 @@ def api_get_request(
         auth = HTTPBasicAuth(username_or_account, password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
         json_response = response.json()
-        logger.debug(f"[GET] Hit to {url}")
+        logger.debug("[GET] Hit to %s", url)
         if "error" in json_response:  # type: ignore
-            logger.error(f"Avatax response contains errors {json_response}")
+            logger.error("Avatax response contains errors %s", json_response)
         return json_response
     except requests.exceptions.RequestException:
-        logger.exception(f"Failed to fetch data from {url}")
+        logger.exception("Failed to fetch data from %s", url)
         return {}
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
         logger.exception(
-            f"Unable to decode the response from Avatax. Response: {content}"
+            "Unable to decode the response from Avatax. Response: %s", content
         )
         return {}
 

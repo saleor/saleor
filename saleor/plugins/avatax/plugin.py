@@ -341,9 +341,11 @@ class AvataxPlugin(BasePlugin):
             msg = response.get("error", {}).get("message", "")
             error_code = response.get("error", {}).get("code", "")
             logger.warning(
-                f"Unable to calculate taxes for checkout "
-                f"{checkout_info.checkout.token}, error_code: {error_code}, "
-                f"error_msg: {msg}",
+                "Unable to calculate taxes for checkout %s, error_code: %s, "
+                "error_msg: %s",
+                checkout_info.checkout.token,
+                error_code,
+                msg,
             )
             customer_msg = CustomerErrors.get_error_msg(response.get("error", {}))
             raise TaxError(customer_msg)

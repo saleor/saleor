@@ -17,4 +17,4 @@ def deactivate_expired_cards_task():
     gift_card_ids = list(gift_cards.values_list("id", flat=True))
     count = gift_cards.update(is_active=False)
     gift_cards_deactivated_event(gift_card_ids, user=None, app=None)
-    task_logger.debug(f"Deactivate {count} gift cards")
+    task_logger.debug("Deactivate %s gift cards", count)

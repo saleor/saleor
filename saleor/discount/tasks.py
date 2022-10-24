@@ -34,7 +34,7 @@ def send_sale_toggle_notifications():
     sale_ids = ", ".join([str(sale.id) for sale in sales])
     sales.update(notification_sent_datetime=datetime.now(pytz.UTC))
 
-    task_logger.info(f"The sale_toggle webhook sent for sales with ids: {sale_ids}")
+    task_logger.info("The sale_toggle webhook sent for sales with ids: %s", sale_ids)
 
 
 def fetch_catalogue_infos(sales):

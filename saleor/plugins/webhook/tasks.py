@@ -80,7 +80,7 @@ def create_deliveries_for_subscriptions(
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
-            f"Skipping subscription webhook. Event {event_type} is not subscribable."
+            "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
         return []
 
@@ -98,7 +98,7 @@ def create_deliveries_for_subscriptions(
         )
         if not data:
             logger.warning(
-                f"No payload was generated with subscription for event: {event_type}"
+                "No payload was generated with subscription for event: %s" % event_type
             )
             continue
 
@@ -134,7 +134,7 @@ def create_delivery_for_subscription_sync_event(
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
-            f"Skipping subscription webhook. Event {event_type} is not subscribable."
+            "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
         return None
 
@@ -635,13 +635,19 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
             continue
         if failed:
             logger.warning(
-                f"Webhook ID: {webhook.id} failed request to {webhook.target_url} "
-                f"({failed}/{len(events)} events dropped): {response.content}.",
+                "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
+                webhook.id,
+                webhook.target_url,
+                failed,
+                len(events),
+                response.content,
                 extra={**extra, "dropped_events_count": failed},
             )
             continue
         logger.debug(
-            f"Successfully delivered {len(events)} events to {webhook.target_url}.",
+            "Successful delivered %s events to %r.",
+            len(events),
+            webhook.target_url,
             extra={**extra, "dropped_events_count": 0},
         )
 

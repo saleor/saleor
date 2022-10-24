@@ -135,8 +135,8 @@ def change_transaction(
 
     if PRE_FULFILLMENT_ERROR_CODE in error_codes:
         logger.info(
-            f"Fulfillment for payment with id {payment_information.graphql_payment_id} "
-            "was reported",
+            "Fulfillment for payment with id %s was reported",
+            payment_information.graphql_payment_id,
         )
         return PaymentResult(status=PaymentStatus.FOR_REREGISTRATION)
 

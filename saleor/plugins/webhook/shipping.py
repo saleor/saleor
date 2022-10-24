@@ -176,12 +176,12 @@ def get_excluded_shipping_methods_from_response(
             type_name, method_id = from_global_id_or_error(method_data["id"])
             if type_name not in (APP_ID_PREFIX, str(ShippingMethod)):
                 logger.warning(
-                    f"Invalid type received. Expected ShippingMethod, got {type_name}"
+                    "Invalid type received. Expected ShippingMethod, got %s", type_name
                 )
                 continue
 
         except (KeyError, ValueError, TypeError, GraphQLError) as e:
-            logger.warning(f"Malformed ShippingMethod id was provided: {e}")
+            logger.warning("Malformed ShippingMethod id was provided: %s", e)
             continue
         excluded_methods.append(
             {"id": method_id, "reason": method_data.get("reason", "")}
