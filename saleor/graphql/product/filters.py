@@ -34,7 +34,7 @@ from ...product.models import (
     ProductVariantChannelListing,
 )
 from ...product.search import search_products
-from ...warehouse.models import Allocation, Stock, Warehouse
+from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.descriptions import ADDED_IN_38
 from ..core.filters import (
@@ -338,9 +338,23 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     )
     allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
 
+    reservations = (
+        Reservation.objects.values("stock_id")
+        .filter(
+            quantity_reserved__gt=0,
+            stock_id=OuterRef("pk"),
+            reserved_until__gt=timezone.now(),
+        )
+        .values_list(Sum("quantity_reserved"))
+    )
+    reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
+
     stocks = (
         Stock.objects.for_channel_and_country(channel_slug)
-        .filter(quantity__gt=Coalesce(allocated_subquery, 0))
+        .filter(
+            quantity__gt=Coalesce(allocated_subquery, 0)
+            + Coalesce(reservation_subquery, 0)
+        )
         .values("product_variant_id")
     )
     variants = ProductVariant.objects.filter(
