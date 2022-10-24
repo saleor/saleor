@@ -2723,7 +2723,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-pytz"
-version = "2022.4.0.0"
+version = "2022.5.0.0"
 description = "Typing stubs for pytz"
 category = "dev"
 optional = false
@@ -2970,7 +2970,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "73be2165b1353d227f5a1f790d7430c296672b9b69bc0cfa0155b9ba6e412dc9"
+content-hash = "2e4056c17c772f5582a902ac395f092f3483719eadc9136e84aa5eb2239e10af"
 
 [metadata.files]
 adyen = [
@@ -4576,8 +4576,8 @@ types-python-dateutil = [
     {file = "types_python_dateutil-2.8.19.2-py3-none-any.whl", hash = "sha256:3f4dbe465e7e0c6581db11fd7a4855d1355b78712b3f292bd399cd332247e9c0"},
 ]
 types-pytz = [
-    {file = "types-pytz-2022.4.0.0.tar.gz", hash = "sha256:17d66e4b16e80ceae0787726f3a22288df7d3f9fdebeb091dc64b92c0e4ea09d"},
-    {file = "types_pytz-2022.4.0.0-py3-none-any.whl", hash = "sha256:950b0f3d64ed5b03a3e29c1e38fe2be8371c933c8e97922d0352345336eb8af4"},
+    {file = "types-pytz-2022.5.0.0.tar.gz", hash = "sha256:0c163b15d3e598e6cc7074a99ca9ec72b25dc1b446acc133b827667af0b7b09a"},
+    {file = "types_pytz-2022.5.0.0-py3-none-any.whl", hash = "sha256:a8e1fe6a1b270fbfaf2553b20ad0f1316707cc320e596da903bb17d7373fed2d"},
 ]
 types-redis = [
     {file = "types-redis-4.3.21.2.tar.gz", hash = "sha256:ab542249a47d3903b94162e6395ae6be0cc0f562fd184ed51a0a34d8a7021a39"},
