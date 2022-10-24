@@ -9997,7 +9997,11 @@ enum PageSortField {
   """Sort pages by visibility."""
   VISIBILITY
 
-  """Sort pages by creation date."""
+  """
+  Sort pages by creation date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   CREATION_DATE
 
   """
@@ -10013,6 +10017,13 @@ enum PageSortField {
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   PUBLISHED_AT
+
+  """
+  Sort pages by creation date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  CREATED_AT
 }
 
 input PageFilterInput {
@@ -10243,14 +10254,21 @@ input GiftCardSortingInput {
 }
 
 enum GiftCardSortField {
-  """Sort orders by product."""
+  """Sort gift cards by product."""
   PRODUCT
 
-  """Sort orders by used by."""
+  """Sort gift cards by used by."""
   USED_BY
 
-  """Sort orders by current balance."""
+  """Sort gift cards by current balance."""
   CURRENT_BALANCE
+
+  """
+  Sort gift cards by created at.
+  
+  Added in Saleor 3.8.
+  """
+  CREATED_AT
 }
 
 input GiftCardFilterInput {
