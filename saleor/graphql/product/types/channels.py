@@ -33,6 +33,7 @@ from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...tax.dataloaders import (
     TaxClassByProductIdLoader,
+    TaxClassCountryRateByTaxClassIDLoader,
     TaxClassDefaultRateByCountryLoader,
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
@@ -233,7 +234,8 @@ class ProductChannelListing(ModelObjectType):
                         if not variants_channel_listing:
                             return None
 
-                        def calculate_pricing_info(default_country_rate_obj):
+                        def calculate_pricing_info(data):
+                            country_rates, default_country_rate_obj = data
                             local_currency = None
                             local_currency = get_currency_for_country(country_code)
 
@@ -258,7 +260,7 @@ class ProductChannelListing(ModelObjectType):
                                 else Decimal(0)
                             )
                             tax_rate = get_tax_rate_for_tax_class(
-                                tax_class, default_tax_rate, country_code
+                                tax_class, country_rates, default_tax_rate, country_code
                             )
                             prices_entered_with_tax = tax_config.prices_entered_with_tax
 
@@ -281,10 +283,18 @@ class ProductChannelListing(ModelObjectType):
                             pricing_info["display_gross_prices"] = display_gross_prices
                             return ProductPricingInfo(**pricing_info)
 
-                        return (
-                            TaxClassDefaultRateByCountryLoader(context)
-                            .load(country_code)
-                            .then(calculate_pricing_info)
+                        country_rates = (
+                            TaxClassCountryRateByTaxClassIDLoader(context).load(
+                                tax_class.pk
+                            )
+                            if tax_class
+                            else []
+                        )
+                        default_country_rate = TaxClassDefaultRateByCountryLoader(
+                            context
+                        ).load(country_code)
+                        return Promise.all([country_rates, default_country_rate]).then(
+                            calculate_pricing_info
                         )
 
                     return (

@@ -43,8 +43,12 @@ def update_checkout_prices_with_flat_rates(
     # Calculate checkout line totals.
     for line_info in lines:
         line = line_info.line
+        tax_class = line_info.tax_class
         tax_rate = get_tax_rate_for_tax_class(
-            line_info.tax_class, default_tax_rate, country_code
+            tax_class,
+            tax_class.country_rates.all() if tax_class else [],
+            default_tax_rate,
+            country_code,
         )
         line_total_price = calculate_checkout_line_total(
             checkout_info,
@@ -61,7 +65,10 @@ def update_checkout_prices_with_flat_rates(
     shipping_method = checkout_info.delivery_method_info.delivery_method
     tax_class = getattr(shipping_method, "tax_class", None)
     shipping_tax_rate = get_tax_rate_for_tax_class(
-        tax_class, default_tax_rate, country_code
+        tax_class,
+        tax_class.country_rates.all() if tax_class else [],
+        default_tax_rate,
+        country_code,
     )
     shipping_price = calculate_checkout_shipping(
         checkout_info, lines, shipping_tax_rate, prices_entered_with_tax

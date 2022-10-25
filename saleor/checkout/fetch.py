@@ -226,7 +226,8 @@ def fetch_checkout_lines(
     prefetch_related_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
-        "variant__product__tax_class",
+        "variant__product__product_type__tax_class__country_rates",
+        "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
     ]
     if prefetch_variant_attributes:

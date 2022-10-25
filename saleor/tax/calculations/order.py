@@ -41,7 +41,10 @@ def update_order_prices_with_flat_rates(
     shipping_method = order.shipping_method
     tax_class = getattr(shipping_method, "tax_class", None)
     shipping_tax_rate = get_tax_rate_for_tax_class(
-        tax_class, default_tax_rate, country_code
+        tax_class,
+        tax_class.country_rates.all() if tax_class else [],
+        default_tax_rate,
+        country_code,
     )
     order.shipping_price = _calculate_order_shipping(
         order, shipping_tax_rate, prices_entered_with_tax
@@ -121,7 +124,12 @@ def update_taxes_for_order_lines(
             else:
                 tax_class = variant.product.product_type.tax_class
 
-        tax_rate = get_tax_rate_for_tax_class(tax_class, default_tax_rate, country_code)
+        tax_rate = get_tax_rate_for_tax_class(
+            tax_class,
+            tax_class.country_rates.all() if tax_class else [],
+            default_tax_rate,
+            country_code,
+        )
 
         line_total_price = line.base_unit_price * line.quantity
         price_with_discounts = line.base_unit_price

@@ -378,7 +378,7 @@ def test_product_variant_price_no_address(
         QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS, variables
     )
     assert (
-        mock_get_tax_rate_for_tax_class.call_args[0][2] == channel_USD.default_country
+        mock_get_tax_rate_for_tax_class.call_args[0][3] == channel_USD.default_country
     )
 
 

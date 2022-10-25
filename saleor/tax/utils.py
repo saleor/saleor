@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
-    from ..tax.models import TaxClass
+    from ..tax.models import TaxClass, TaxClassCountryRate
     from .models import TaxConfiguration, TaxConfigurationPerCountry
 
 
@@ -192,11 +192,14 @@ def calculate_tax_rate(price: TaxedMoney) -> Decimal:
 
 
 def get_tax_rate_for_tax_class(
-    tax_class: Optional["TaxClass"], default_tax_rate: Decimal, country_code: str
+    tax_class: Optional["TaxClass"],
+    tax_class_country_rates: Iterable["TaxClassCountryRate"],
+    default_tax_rate: Decimal,
+    country_code: str,
 ) -> Decimal:
     tax_rate = default_tax_rate
     if tax_class:
-        for country_rate in tax_class.country_rates.all():
+        for country_rate in tax_class_country_rates:
             if country_rate.country == country_code:
                 tax_rate = country_rate.rate
     return tax_rate
