@@ -1886,7 +1886,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "psycopg2"
-version = "2.9.5"
+version = "2.9.4"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 category = "main"
 optional = false
@@ -2962,7 +2962,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "77e87d2c33faea7d0fbe95d301066a2408e591f45aad316c4336ca9ab707982d"
+content-hash = "7a55ad340787d0cc63172d2b305c548dd4c721fb6cbf89b513994e726aca0323"
 
 [metadata.files]
 adyen = [
