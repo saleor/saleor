@@ -1422,6 +1422,15 @@ enum WebhookEventTypeEnum {
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
+  """
+  A gift card metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  GIFT_CARD_METADATA_UPDATED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -1462,6 +1471,15 @@ enum WebhookEventTypeEnum {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
+  """
+  An order metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1501,6 +1519,15 @@ enum WebhookEventTypeEnum {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
+  """
+  A customer account metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CUSTOMER_METADATA_UPDATED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1510,6 +1537,15 @@ enum WebhookEventTypeEnum {
   """A collection is deleted."""
   COLLECTION_DELETED
 
+  """
+  A collection metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  COLLECTION_METADATA_UPDATED
+
   """A new product is created."""
   PRODUCT_CREATED
 
@@ -1518,6 +1554,15 @@ enum WebhookEventTypeEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+
+  """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_METADATA_UPDATED
 
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
@@ -1534,6 +1579,15 @@ enum WebhookEventTypeEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A new checkout is created."""
   CHECKOUT_CREATED
 
@@ -1541,6 +1595,15 @@ enum WebhookEventTypeEnum {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CHECKOUT_METADATA_UPDATED
 
   """A new fulfillment is created."""
   FULFILLMENT_CREATED
@@ -1550,6 +1613,15 @@ enum WebhookEventTypeEnum {
 
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -1599,6 +1671,15 @@ enum WebhookEventTypeEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
+  """
+  A shipping zone metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  SHIPPING_ZONE_METADATA_UPDATED
+
   """A new staff user is created."""
   STAFF_CREATED
 
@@ -1610,6 +1691,15 @@ enum WebhookEventTypeEnum {
 
   """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
+
+  """
+  Transaction item metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
   TRANSLATION_CREATED
@@ -1626,6 +1716,15 @@ enum WebhookEventTypeEnum {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
+  """
+  A warehouse metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  WAREHOUSE_METADATA_UPDATED
+
   """A new voucher created."""
   VOUCHER_CREATED
 
@@ -1634,6 +1733,15 @@ enum WebhookEventTypeEnum {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
+
+  """
+  A voucher metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  VOUCHER_METADATA_UPDATED
 
   """An observability event is created."""
   OBSERVABILITY
@@ -1833,6 +1941,15 @@ enum WebhookEventTypeAsyncEnum {
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
+  """
+  A gift card metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  GIFT_CARD_METADATA_UPDATED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -1873,6 +1990,15 @@ enum WebhookEventTypeAsyncEnum {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
+  """
+  An order metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1912,6 +2038,15 @@ enum WebhookEventTypeAsyncEnum {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
+  """
+  A customer account metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CUSTOMER_METADATA_UPDATED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1921,6 +2056,15 @@ enum WebhookEventTypeAsyncEnum {
   """A collection is deleted."""
   COLLECTION_DELETED
 
+  """
+  A collection metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  COLLECTION_METADATA_UPDATED
+
   """A new product is created."""
   PRODUCT_CREATED
 
@@ -1929,6 +2073,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+
+  """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_METADATA_UPDATED
 
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
@@ -1945,6 +2098,15 @@ enum WebhookEventTypeAsyncEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A new checkout is created."""
   CHECKOUT_CREATED
 
@@ -1952,6 +2114,15 @@ enum WebhookEventTypeAsyncEnum {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CHECKOUT_METADATA_UPDATED
 
   """A new fulfillment is created."""
   FULFILLMENT_CREATED
@@ -1961,6 +2132,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2010,6 +2190,15 @@ enum WebhookEventTypeAsyncEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
+  """
+  A shipping zone metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  SHIPPING_ZONE_METADATA_UPDATED
+
   """A new staff user is created."""
   STAFF_CREATED
 
@@ -2021,6 +2210,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
+
+  """
+  Transaction item metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
   TRANSLATION_CREATED
@@ -2037,6 +2235,15 @@ enum WebhookEventTypeAsyncEnum {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
+  """
+  A warehouse metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  WAREHOUSE_METADATA_UPDATED
+
   """A new voucher created."""
   VOUCHER_CREATED
 
@@ -2045,6 +2252,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
+
+  """
+  A voucher metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  VOUCHER_METADATA_UPDATED
 
   """An observability event is created."""
   OBSERVABILITY
@@ -2549,6 +2765,7 @@ enum WebhookSampleEventTypeEnum {
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
   GIFT_CARD_STATUS_CHANGED
+  GIFT_CARD_METADATA_UPDATED
   MENU_CREATED
   MENU_UPDATED
   MENU_DELETED
@@ -2561,6 +2778,7 @@ enum WebhookSampleEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  ORDER_METADATA_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -2574,22 +2792,28 @@ enum WebhookSampleEventTypeEnum {
   CUSTOMER_CREATED
   CUSTOMER_UPDATED
   CUSTOMER_DELETED
+  CUSTOMER_METADATA_UPDATED
   COLLECTION_CREATED
   COLLECTION_UPDATED
   COLLECTION_DELETED
+  COLLECTION_METADATA_UPDATED
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
+  PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
+  CHECKOUT_METADATA_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
   FULFILLMENT_APPROVED
+  FULFILLMENT_METADATA_UPDATED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -2606,18 +2830,22 @@ enum WebhookSampleEventTypeEnum {
   SHIPPING_ZONE_CREATED
   SHIPPING_ZONE_UPDATED
   SHIPPING_ZONE_DELETED
+  SHIPPING_ZONE_METADATA_UPDATED
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
   TRANSACTION_ACTION_REQUEST
+  TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
   WAREHOUSE_CREATED
   WAREHOUSE_UPDATED
   WAREHOUSE_DELETED
+  WAREHOUSE_METADATA_UPDATED
   VOUCHER_CREATED
   VOUCHER_UPDATED
   VOUCHER_DELETED
+  VOUCHER_METADATA_UPDATED
   OBSERVABILITY
 }
 
@@ -22476,6 +22704,30 @@ type GiftCardStatusChanged implements Event {
 }
 
 """
+Event sent when gift card metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type GiftCardMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The gift card the event relates to."""
+  giftCard: GiftCard
+}
+
+"""
 Event sent when new menu is created.
 
 Added in Saleor 3.4.
@@ -22782,6 +23034,30 @@ type OrderCancelled implements Event {
 }
 
 """
+Event sent when order metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
 Event sent when new draft order is created.
 
 Added in Saleor 3.2.
@@ -22944,6 +23220,36 @@ type ProductDeleted implements Event {
 }
 
 """
+Event sent when product metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product the event relates to."""
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """The category of the product."""
+  category: Category
+}
+
+"""
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
@@ -23065,6 +23371,33 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+}
+
+"""
+Event sent when product variant metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductVariantMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23352,6 +23685,33 @@ type FulfillmentApproved implements Event {
 }
 
 """
+Event sent when fulfillment metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type FulfillmentMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
+}
+
+"""
 Event sent when new customer user is created.
 
 Added in Saleor 3.2.
@@ -23383,6 +23743,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user the event relates to."""
+  user: User
+}
+
+"""
+Event sent when customer user metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CustomerMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23481,6 +23865,33 @@ type CollectionDeleted implements Event {
 }
 
 """
+Event sent when collection metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CollectionMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The collection the event relates to."""
+  collection(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Collection
+}
+
+"""
 Event sent when new checkout is created.
 
 Added in Saleor 3.2.
@@ -23512,6 +23923,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when checkout metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23925,6 +24360,33 @@ type ShippingZoneDeleted implements Event {
 }
 
 """
+Event sent when shipping zone metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ShippingZoneMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The shipping zone the event relates to."""
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+"""
 Event sent when new staff user is created.
 
 Added in Saleor 3.5.
@@ -24041,6 +24503,34 @@ type TransactionAction {
 
   """Transaction request amount. Null when action type is VOID."""
   amount: PositiveDecimal
+}
+
+"""
+Event sent when transaction item metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionItemMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Look up a transaction.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transaction: TransactionItem
 }
 
 """
@@ -24175,6 +24665,33 @@ type VoucherDeleted implements Event {
 }
 
 """
+Event sent when voucher metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type VoucherMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The voucher the event relates to."""
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+"""
 Event sent when new warehouse is created.
 
 Added in Saleor 3.4.
@@ -24230,6 +24747,30 @@ Added in Saleor 3.4.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type WarehouseDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The warehouse the event relates to."""
+  warehouse: Warehouse
+}
+
+"""
+Event sent when warehouse metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type WarehouseMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

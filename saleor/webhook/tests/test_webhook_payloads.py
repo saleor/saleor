@@ -48,6 +48,7 @@ from ..payloads import (
     generate_invoice_payload,
     generate_list_gateways_payload,
     generate_meta,
+    generate_metadata_updated_payload,
     generate_order_payload,
     generate_order_payload_for_tax_calculation,
     generate_payment_payload,
@@ -474,6 +475,55 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     assert payload["weight"] is None
 
 
+@freeze_time()
+def test_generate_fulfillment_metadata_updated_payload(
+    order_with_lines,
+    customer_user,
+):
+    fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
+
+    # when
+    payload = json.loads(generate_metadata_updated_payload(fulfillment, customer_user))[
+        0
+    ]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Fulfillment", fulfillment.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
+
+
+@freeze_time()
+def test_generate_gift_card_metadata_updated_payload(
+    gift_card,
+    customer_user,
+):
+    # when
+    payload = json.loads(generate_metadata_updated_payload(gift_card, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
+
+
+@freeze_time()
+def test_generate_voucher_metadata_updated_payload(
+    voucher,
+    customer_user,
+):
+    # when
+    payload = json.loads(generate_metadata_updated_payload(voucher, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
+
+
 def test_order_lines_have_all_required_fields(
     mocked_fetch_order, order, order_line_with_one_allocation
 ):
@@ -670,6 +720,23 @@ def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocati
     assert line_payload["product_variant_id"] == line.product_variant_id
 
 
+@freeze_time()
+def test_generate_order_metadata_updated_payload(
+    order_for_payload,
+    customer_user,
+):
+    order = order_for_payload
+
+    # when
+    payload = json.loads(generate_metadata_updated_payload(order, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
+
+
 def test_generate_collection_payload(collection):
     payload = json.loads(generate_collection_payload(collection))
     expected_payload = [
@@ -691,6 +758,40 @@ def test_generate_collection_payload(collection):
     ]
 
     assert payload == expected_payload
+
+
+@freeze_time()
+def test_generate_shipping_zone_metadata_updated_payload(
+    shipping_zone,
+    customer_user,
+):
+    # when
+    payload = json.loads(
+        generate_metadata_updated_payload(shipping_zone, customer_user)
+    )[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
+
+
+@freeze_time()
+def test_generate_collection_metadata_updated_payload(
+    collection,
+    customer_user,
+):
+    # when
+    payload = json.loads(generate_metadata_updated_payload(collection, customer_user))[
+        0
+    ]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Collection", collection.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
@@ -742,6 +843,23 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
         },
     ]
     assert payload == expected_payload
+
+
+@freeze_time()
+def test_generate_product_metadata_updated_payload(
+    product_with_variant_with_two_attributes,
+    customer_user,
+):
+    product = product_with_variant_with_two_attributes
+
+    # when
+    payload = json.loads(generate_metadata_updated_payload(product, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
 
 
 def test_generate_product_variant_payload(
@@ -878,6 +996,23 @@ def test_generate_product_variant_deleted_payload(
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
     assert len(payload.keys()) == len(payload_fields)
+
+
+@freeze_time()
+def test_generate_product_variant_metadata_updated_payload(
+    product_with_variant_with_two_attributes,
+    customer_user,
+):
+    variant = product_with_variant_with_two_attributes.variants.first()
+
+    # when
+    payload = json.loads(generate_metadata_updated_payload(variant, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1043,6 +1178,22 @@ def test_generate_payment_with_transactions_payload(dummy_webhook_app_payment_da
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
 
+@freeze_time()
+def test_generate_transaction_item_metadata_updated_payload(
+    transaction_item, customer_user
+):
+    # when
+    payload = json.loads(
+        generate_metadata_updated_payload(transaction_item, customer_user)
+    )[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
+
+
 def test_generate_checkout_lines_payload(checkout_with_single_item):
     payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
     assert payload.get("lines")
@@ -1068,6 +1219,23 @@ def test_generate_checkout_lines_payload_custom_price(checkout_with_single_item)
     assert line_data["sku"] == variant.sku
     assert line_data["variant_id"] == variant.get_global_id()
     assert line_data["base_price"] == str(price_override)
+
+
+@freeze_time()
+def test_generate_checkout_metadata_updated_payload(
+    checkout_with_single_item,
+    customer_user,
+):
+    checkout = checkout_with_single_item
+
+    # when
+    payload = json.loads(generate_metadata_updated_payload(checkout, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Checkout", checkout.token),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
 
 
 def test_generate_product_translation_payload(product_translation_fr):
@@ -1276,6 +1444,22 @@ def test_generate_customer_payload(customer_user, address_other_country, address
     }
 
     assert payload == expected_payload
+
+
+@freeze_time()
+def test_generate_customer_metadata_updated_payload(
+    customer_user,
+):
+    # when
+    payload = json.loads(
+        generate_metadata_updated_payload(customer_user, customer_user)
+    )[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("User", customer_user.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
+    }
 
 
 def test_generate_collection_point_payload(order_with_lines_for_cc):
@@ -1930,4 +2114,19 @@ def test_generate_transaction_action_request_payload_for_checkout(
             ).isoformat(),
             "version": __version__,
         },
+    }
+
+
+@freeze_time()
+def test_generate_warehouse_metadata_updated_payload(
+    warehouse,
+    customer_user,
+):
+    # when
+    payload = json.loads(generate_metadata_updated_payload(warehouse, customer_user))[0]
+
+    # then
+    assert payload == {
+        "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }

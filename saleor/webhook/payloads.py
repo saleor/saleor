@@ -131,6 +131,28 @@ def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs)
     return meta
 
 
+@traced_payload_generator
+def generate_metadata_updated_payload(
+    instance: Any, requestor: Optional["RequestorOrLazyObject"] = None
+):
+    serializer = PayloadSerializer()
+
+    if isinstance(instance, Checkout):
+        pk_field_name = "token"
+    else:
+        pk_field_name = "id"
+
+    return serializer.serialize(
+        [instance],
+        fields=[],
+        pk_field_name=pk_field_name,
+        extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+        },
+        dump_type_name=False,
+    )
+
+
 def prepare_order_lines_allocations_payload(line):
     warehouse_id_quantity_allocated_map = list(
         line.allocations.values(  # type: ignore

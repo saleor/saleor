@@ -59,6 +59,7 @@ if TYPE_CHECKING:
         TokenConfig,
         TransactionActionData,
     )
+    from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
         Collection,
@@ -597,6 +598,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("customer_updated", default_value, customer)
 
+    def customer_metadata_updated(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "customer_metadata_updated", default_value, customer
+        )
+
     def collection_created(self, collection: "Collection"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -615,6 +622,12 @@ class PluginsManager(PaymentInterface):
             "collection_deleted", default_value, collection
         )
 
+    def collection_metadata_updated(self, collection: "Collection"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "collection_metadata_updated", default_value, collection
+        )
+
     def product_created(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins("product_created", default_value, product)
@@ -627,6 +640,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "product_deleted", default_value, product, variants
+        )
+
+    def product_metadata_updated(self, product: "Product"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_metadata_updated", default_value, product
         )
 
     def product_variant_created(self, product_variant: "ProductVariant"):
@@ -659,6 +678,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         self.__run_method_on_plugins(
             "product_variant_back_in_stock", default_value, stock
+        )
+
+    def product_variant_metadata_updated(self, product_variant: "ProductVariant"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_metadata_updated", default_value, product_variant
         )
 
     def order_created(self, order: "Order"):
@@ -779,6 +804,12 @@ class PluginsManager(PaymentInterface):
             "order_fulfilled", default_value, order, channel_slug=order.channel.slug
         )
 
+    def order_metadata_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_metadata_updated", default_value, order
+        )
+
     def fulfillment_created(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -806,6 +837,12 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
+    def fulfillment_metadata_updated(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "fulfillment_metadata_updated", default_value, fulfillment
+        )
+
     def tracking_number_updated(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -831,6 +868,12 @@ class PluginsManager(PaymentInterface):
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+        )
+
+    def checkout_metadata_updated(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_metadata_updated", default_value, checkout
         )
 
     def page_created(self, page: "Page"):
@@ -890,6 +933,12 @@ class PluginsManager(PaymentInterface):
             default_value,
             payment_data,
             channel_slug=channel_slug,
+        )
+
+    def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_item_metadata_updated", default_value, transaction_item
         )
 
     def address_created(self, address: "Address"):
@@ -1010,6 +1059,12 @@ class PluginsManager(PaymentInterface):
             "gift_card_status_changed", default_value, gift_card
         )
 
+    def gift_card_metadata_updated(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_metadata_updated", default_value, gift_card
+        )
+
     def menu_created(self, menu: "Menu"):
         default_value = None
         return self.__run_method_on_plugins("menu_created", default_value, menu)
@@ -1076,6 +1131,12 @@ class PluginsManager(PaymentInterface):
             "shipping_zone_deleted", default_value, shipping_zone
         )
 
+    def shipping_zone_metadata_updated(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_metadata_updated", default_value, shipping_zone
+        )
+
     def staff_created(self, staff_user: "User"):
         default_value = None
         return self.__run_method_on_plugins("staff_created", default_value, staff_user)
@@ -1106,6 +1167,12 @@ class PluginsManager(PaymentInterface):
             "warehouse_deleted", default_value, warehouse
         )
 
+    def warehouse_metadata_updated(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_metadata_updated", default_value, warehouse
+        )
+
     def voucher_created(self, voucher: "Voucher"):
         default_value = None
         return self.__run_method_on_plugins("voucher_created", default_value, voucher)
@@ -1117,6 +1184,12 @@ class PluginsManager(PaymentInterface):
     def voucher_deleted(self, voucher: "Voucher"):
         default_value = None
         return self.__run_method_on_plugins("voucher_deleted", default_value, voucher)
+
+    def voucher_metadata_updated(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "voucher_metadata_updated", default_value, voucher
+        )
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str

@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
+    from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
         Collection,
@@ -405,6 +406,12 @@ class BasePlugin:
     #  updated.
     checkout_updated: Callable[["Checkout", Any], Any]
 
+    #  Trigger when checkout metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a checkout
+    #  metadata is updated.
+    checkout_metadata_updated: Callable[["Checkout", Any], Any]
+
     #  Trigger when collection is created.
     #
     #  Overwrite this method if you need to trigger specific logic after a collection is
@@ -422,6 +429,12 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic after a collection is
     #  updated.
     collection_updated: Callable[["Collection", Any], Any]
+
+    #  Trigger when collection metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection
+    #  metadata is updated.
+    collection_metadata_updated: Callable[["Collection", Any], Any]
 
     confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
 
@@ -442,6 +455,12 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic after a user is
     #  updated.
     customer_updated: Callable[["User", Any], Any]
+
+    #  Trigger when user metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a user
+    #  metadata is updated.
+    customer_metadata_updated: Callable[["User", Any], Any]
 
     #  Handle authentication request.
     #
@@ -479,21 +498,29 @@ class BasePlugin:
     #  Triggered when ShopFetchTaxRates mutation is called.
     fetch_taxes_data: Callable[[Any], Any]
 
-    #  Trigger when fulfillemnt is created.
+    #  Trigger when fulfillment is created.
     #
     #  Overwrite this method if you need to trigger specific logic when a fulfillment is
     #  created.
     fulfillment_created: Callable[["Fulfillment", Any], Any]
 
-    #  Trigger when fulfillemnt is cancelled.
+    #  Trigger when fulfillment is cancelled.
+    #
     #  Overwrite this method if you need to trigger specific logic when a fulfillment is
     #  cancelled.
     fulfillment_canceled: Callable[["Fulfillment", Any], Any]
 
-    #  Trigger when fulfillemnt is approved.
+    #  Trigger when fulfillment is approved.
+    #
     #  Overwrite this method if you need to trigger specific logic when a fulfillment is
     #  approved.
     fulfillment_approved: Callable[["Fulfillment", Any], Any]
+
+    #  Trigger when fulfillment metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a fulfillment
+    #  metadata is updated.
+    fulfillment_metadata_updated: Callable[["Fulfillment", Any], Any]
 
     get_checkout_line_tax_rate: Callable[
         [
@@ -578,6 +605,12 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic after a gift card is
     #  updated.
     gift_card_updated: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card
+    #  metadata is updated.
+    gift_card_metadata_updated: Callable[["GiftCard", None], None]
 
     #  Trigger when gift card status is changed.
     #
@@ -682,6 +715,12 @@ class BasePlugin:
     #  changed.
     order_updated: Callable[["Order", Any], Any]
 
+    #  Trigger when order metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when an order
+    #  metadata is changed.
+    order_metadata_updated: Callable[["Order", Any], Any]
+
     #  Trigger when page is created.
     #
     #  Overwrite this method if you need to trigger specific logic when a page is
@@ -754,6 +793,12 @@ class BasePlugin:
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
 
+    #  Trigger when transaction item metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a transaction
+    #  item metadata is updated.
+    transaction_item_metadata_updated: Callable[["TransactionItem", Any], Any]
+
     #  Trigger when product is created.
     #
     #  Overwrite this method if you need to trigger specific logic after a product is
@@ -772,6 +817,12 @@ class BasePlugin:
     #  updated.
     product_updated: Callable[["Product", Any], Any]
 
+    #  Trigger when product metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product
+    #  metadata is updated.
+    product_metadata_updated: Callable[["Product", Any], Any]
+
     #  Trigger when product variant is created.
     #
     #  Overwrite this method if you need to trigger specific logic after a product
@@ -789,6 +840,12 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic after a product
     #  variant is updated.
     product_variant_updated: Callable[["ProductVariant", Any], Any]
+
+    #  Trigger when product variant metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product
+    #  variant metadata is updated.
+    product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
 
     refund_payment: Callable[["PaymentData", Any], GatewayResponse]
 
@@ -845,6 +902,12 @@ class BasePlugin:
     #  is updated.
     shipping_zone_updated: Callable[["ShippingZone", None], None]
 
+    #  Trigger when shipping zone metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  metadata is updated.
+    shipping_zone_metadata_updated: Callable[["ShippingZone", None], None]
+
     #  Define if storefront should add info about taxes to the price.
     #
     #  It is used only by the old storefront. The returned value determines if
@@ -892,6 +955,12 @@ class BasePlugin:
     #  updated.
     warehouse_updated: Callable[["Warehouse", None], None]
 
+    #  Trigger when warehouse metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a warehouse
+    #  metadata is updated.
+    warehouse_metadata_updated: Callable[["Warehouse", None], None]
+
     #  Trigger when voucher is created.
     #
     #  Overwrite this method if you need to trigger specific logic after a voucher is
@@ -909,6 +978,12 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic after a voucher is
     #  updated.
     voucher_updated: Callable[["Voucher", None], None]
+
+    #  Trigger when voucher metadata is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher
+    #  metadata is updated.
+    voucher_metadata_updated: Callable[["Voucher", None], None]
 
     #  Handle received http request.
     #
