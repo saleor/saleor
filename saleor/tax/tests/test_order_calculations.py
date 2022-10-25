@@ -34,6 +34,9 @@ def test_calculations_calculate_order_total(order_with_lines):
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
     # then
+    assert order.undiscounted_total == TaxedMoney(
+        net=Money("65.04", "USD"), gross=Money("80.00", "USD")
+    )
     assert order.total == TaxedMoney(
         net=Money("65.04", "USD"), gross=Money("80.00", "USD")
     )

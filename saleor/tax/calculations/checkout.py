@@ -83,24 +83,13 @@ def calculate_checkout_shipping(
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ) -> TaxedMoney:
-    default_price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
-    shipping_price = getattr(
-        checkout_info.delivery_method_info.delivery_method,
-        "price",
-        default_price,
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
     )
-    voucher = checkout_info.voucher
-    is_shipping_discount = voucher.type == VoucherType.SHIPPING if voucher else False
-    if is_shipping_discount:
-        shipping_price = max(
-            shipping_price - checkout_info.checkout.discount,
-            zero_money(shipping_price.currency),
-        )
-
-    shipping_price = calculate_flat_rate_tax(
+    shipping_price_taxed = calculate_flat_rate_tax(
         shipping_price, tax_rate, prices_entered_with_tax
     )
-    return quantize_price(shipping_price, shipping_price.currency)
+    return quantize_price(shipping_price_taxed, shipping_price_taxed.currency)
 
 
 def calculate_checkout_line_total(
