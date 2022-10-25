@@ -98,7 +98,7 @@ def test_update_rates_as_app(app_api_client, permission_manage_taxes):
     _test_country_rates_update(app_api_client, permission_manage_taxes)
 
 
-def test_create_country_rate_throws_exception_when_rate_is_none(
+def test_create_country_rate_ignore_input_item_when_rate_is_none(
     staff_api_client, permission_manage_taxes
 ):
     # given
@@ -109,12 +109,14 @@ def test_create_country_rate_throws_exception_when_rate_is_none(
     id_1 = graphene.Node.to_global_id("TaxClass", tax_class_1.pk)
     id_2 = graphene.Node.to_global_id("TaxClass", tax_class_2.pk)
 
+    rate_1 = 20
+
     # when
     variables = {
         "countryCode": "PL",
         "updateTaxClassRates": [
-            {"taxClassId": id_1, "rate": 20},  # should update existing rate
-            {"taxClassId": id_2},  # try creating a new item, but the rate is missing
+            {"taxClassId": id_1, "rate": rate_1},  # should update existing rate
+            {"taxClassId": id_2},  # the rate is missing, ignore this item
         ],
     }
     response = staff_api_client.post_graphql(
@@ -124,12 +126,14 @@ def test_create_country_rate_throws_exception_when_rate_is_none(
     # then
     content = get_graphql_content(response)
     data = content["data"]["taxCountryConfigurationUpdate"]
-    assert data["errors"]
+    assert not data["errors"]
+    assert len(data["taxCountryConfiguration"]["taxClassCountryRates"]) == 1
+
     assert (
-        data["errors"][0]["code"]
-        == TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_WITH_NULL_RATE.name
+        data["taxCountryConfiguration"]["taxClassCountryRates"][0]["taxClass"]["id"]
+        == id_1
     )
-    assert data["errors"][0]["taxClassIds"] == [id_2]
+    assert data["taxCountryConfiguration"]["taxClassCountryRates"][0]["rate"] == rate_1
 
 
 def test_delete_country_rate(staff_api_client, permission_manage_taxes):

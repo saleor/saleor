@@ -202,29 +202,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         for tax_class_id in create_ids:
             input_item = cleaned_data[tax_class_id]
             rate = input_item.get("rate")
-            if rate is None:
-                code = (
-                    TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_WITH_NULL_RATE
-                )
-                raise ValidationError(
-                    {
-                        "update_tax_class_rates": ValidationError(
-                            code=code,
-                            message=(
-                                "Cannot create a new tax rate without providing it's "
-                                "value."
-                            ),
-                            params={
-                                "tax_class_ids": [
-                                    graphene.Node.to_global_id(
-                                        "TaxClass", tax_class_id
-                                    ),
-                                ]
-                            },
-                        )
-                    }
-                )
-            else:
+            if rate is not None:
                 obj = models.TaxClassCountryRate(
                     country=country_code, tax_class_id=tax_class_id, rate=rate
                 )
