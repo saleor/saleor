@@ -189,6 +189,64 @@ def test_digital_content_create_mutation_default_settings(
     assert variant.digital_content.use_default_settings
 
 
+def test_digital_content_create_mutation_with_metadata(
+    monkeypatch, staff_api_client, variant, permission_manage_products, media_root
+):
+    # given
+    query = """
+    mutation createDigitalContent($variant: ID!,
+        $input: DigitalContentUploadInput!) {
+        digitalContentCreate(variantId: $variant, input: $input) {
+            variant {
+                id
+            }
+            content {
+                metadata {
+                    key
+                    value
+                }
+                privateMetadata {
+                    key
+                    value
+                }
+            }
+        }
+    }
+    """
+
+    image_file, image_name = create_image()
+    url_valid_days = 3
+    max_downloads = 5
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    variables = {
+        "variant": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "input": {
+            "useDefaultSettings": False,
+            "maxDownloads": max_downloads,
+            "urlValidDays": url_valid_days,
+            "automaticFulfillment": True,
+            "contentFile": image_name,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+        },
+    }
+
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+
+    # when
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    get_graphql_content(response)
+    variant.refresh_from_db()
+
+    # then
+    assert variant.digital_content.metadata == {metadata_key: metadata_value}
+    assert variant.digital_content.private_metadata == {metadata_key: metadata_value}
+
+
 def test_digital_content_create_mutation_removes_old_content(
     monkeypatch, staff_api_client, variant, permission_manage_products, media_root
 ):
@@ -267,6 +325,7 @@ def test_digital_content_delete_mutation(
 def test_digital_content_update_mutation(
     monkeypatch, staff_api_client, variant, digital_content, permission_manage_products
 ):
+    # given
     url_valid_days = 3
     max_downloads = 5
     query = """
@@ -280,6 +339,14 @@ def test_digital_content_update_mutation(
                 maxDownloads
                 urlValidDays
                 automaticFulfillment
+                metadata {
+                    key
+                    value
+                }
+                privateMetadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -287,6 +354,12 @@ def test_digital_content_update_mutation(
 
     digital_content.automatic_fulfillment = False
     variant.digital_content = digital_content
+    old_meta = {"old": "meta"}
+    metadata_key = "md key"
+    metadata_value = "md value"
+    variant.digital_content.store_value_in_metadata(items=old_meta)
+    variant.digital_content.store_value_in_private_metadata(items=old_meta)
+    variant.digital_content.save(update_fields=["metadata", "private_metadata"])
     variant.digital_content.save()
 
     variables = {
@@ -296,18 +369,28 @@ def test_digital_content_update_mutation(
             "urlValidDays": url_valid_days,
             "automaticFulfillment": True,
             "useDefaultSettings": False,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     variant = ProductVariant.objects.get(id=variant.id)
     digital_content = variant.digital_content
+
+    # then
     assert digital_content.max_downloads == max_downloads
     assert digital_content.url_valid_days == url_valid_days
     assert digital_content.automatic_fulfillment
+    assert digital_content.metadata == {metadata_key: metadata_value, **old_meta}
+    assert digital_content.private_metadata == {
+        metadata_key: metadata_value,
+        **old_meta,
+    }
 
 
 def test_digital_content_update_mutation_missing_content(

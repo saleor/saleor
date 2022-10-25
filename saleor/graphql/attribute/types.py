@@ -10,7 +10,6 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
 )
-from ...core.tracing import traced_resolver
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -72,7 +71,6 @@ class AttributeValue(ModelObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info):
         return (
             AttributesByAttributeId(info.context)

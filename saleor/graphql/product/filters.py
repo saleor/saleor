@@ -34,8 +34,9 @@ from ...product.models import (
     ProductVariantChannelListing,
 )
 from ...product.search import search_products
-from ...warehouse.models import Allocation, Stock, Warehouse
+from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
+from ..core.descriptions import ADDED_IN_38
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
@@ -337,9 +338,23 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     )
     allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
 
+    reservations = (
+        Reservation.objects.values("stock_id")
+        .filter(
+            quantity_reserved__gt=0,
+            stock_id=OuterRef("pk"),
+            reserved_until__gt=timezone.now(),
+        )
+        .values_list(Sum("quantity_reserved"))
+    )
+    reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
+
     stocks = (
         Stock.objects.for_channel_and_country(channel_slug)
-        .filter(quantity__gt=Coalesce(allocated_subquery, 0))
+        .filter(
+            quantity__gt=Coalesce(allocated_subquery, 0)
+            + Coalesce(reservation_subquery, 0)
+        )
         .values("product_variant_id")
     )
     variants = ProductVariant.objects.filter(
@@ -449,6 +464,46 @@ def _filter_products_is_published(qs, _, value, channel_slug):
         Exists(product_channel_listings.filter(product_id=OuterRef("pk"))),
         Exists(variants.filter(product_id=OuterRef("pk"))),
     )
+
+
+def _filter_products_is_available(qs, _, value, channel_slug):
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
+    now = datetime.datetime.now(pytz.UTC)
+    if value:
+        product_channel_listings = ProductChannelListing.objects.filter(
+            Exists(channel.filter(pk=OuterRef("channel_id"))),
+            available_for_purchase_at__lte=now,
+        ).values("product_id")
+    else:
+        product_channel_listings = ProductChannelListing.objects.filter(
+            Exists(channel.filter(pk=OuterRef("channel_id"))),
+            Q(available_for_purchase_at__gt=now)
+            | Q(available_for_purchase_at__isnull=True),
+        ).values("product_id")
+
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+
+
+def _filter_products_channel_field_from_date(qs, _, value, channel_slug, field):
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
+    lookup = {
+        f"{field}__lte": value,
+    }
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))),
+        **lookup,
+    ).values("product_id")
+
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+
+
+def _filter_products_visible_in_listing(qs, _, value, channel_slug):
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))), visible_in_listings=value
+    ).values("product_id")
+
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
 def _filter_variant_price(qs, _, value, channel_slug):
@@ -594,6 +649,24 @@ class ProductStockFilterInput(graphene.InputObjectType):
 
 class ProductFilter(MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
+    published_from = ObjectTypeFilter(
+        input_class=graphene.DateTime,
+        method="filter_published_from",
+        help_text=f"Filter by the publication date. {ADDED_IN_38}",
+    )
+    is_available = django_filters.BooleanFilter(
+        method="filter_is_available",
+        help_text=f"Filter by availability for purchase. {ADDED_IN_38}",
+    )
+    available_from = ObjectTypeFilter(
+        input_class=graphene.DateTime,
+        method="filter_available_from",
+        help_text=f"Filter by the date of availability for purchase. {ADDED_IN_38}",
+    )
+    is_visible_in_listing = django_filters.BooleanFilter(
+        method="filter_listed",
+        help_text=f"Filter by visibility in product listings. {ADDED_IN_38}",
+    )
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
@@ -658,6 +731,44 @@ class ProductFilter(MetadataFilterBase):
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return _filter_products_is_published(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
+
+    def filter_published_from(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_channel_field_from_date(
+            queryset,
+            name,
+            value,
+            channel_slug,
+            "published_at",
+        )
+
+    def filter_is_available(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_is_available(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
+
+    def filter_available_from(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_channel_field_from_date(
+            queryset,
+            name,
+            value,
+            channel_slug,
+            "available_for_purchase_at",
+        )
+
+    def filter_listed(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_visible_in_listing(
             queryset,
             name,
             value,

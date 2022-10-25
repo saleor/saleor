@@ -1,11 +1,17 @@
 import graphene
 import pytest
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
 from ...product.mutations.products import AttrValuesInput
-from ..utils import AttributeAssignmentMixin, validate_attributes_input
+from ..utils import (
+    AttributeAssignmentMixin,
+    prepare_attribute_values,
+    validate_attributes_input,
+)
 
 
 @pytest.mark.parametrize("creation", [True, False])
@@ -707,6 +713,59 @@ def test_validate_attributes_input_no_values_given(
 
 
 @pytest.mark.parametrize("creation", [True, False])
+def test_validate_attributes_duplicated_values_given(
+    creation, weight_attribute, color_attribute, product_type
+):
+    # given
+    color_attribute.value_required = True
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["value_required"])
+
+    weight_attribute.value_required = True
+    weight_attribute.input_type = AttributeInputType.MULTISELECT
+    weight_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["test", "new", "test"],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["test", "test"],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    attributes = product_type.variant_attributes.all()
+
+    # when
+    errors = validate_attributes_input(
+        input_data, attributes, is_page_attributes=False, creation=creation
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.DUPLICATED_INPUT_ITEM.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in [weight_attribute, color_attribute]
+    }
+
+
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_not_required_variant_selection_attributes_input_no_values_given(
     creation, weight_attribute, color_attribute, product_type
 ):
@@ -1296,17 +1355,115 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
     }
 
 
+def test_clean_file_url_in_attribute_assignment_mixin(site_settings):
+    # given
+    name = "Test.jpg"
+    domain = site_settings.site.domain
+    url = f"http://{domain}{settings.MEDIA_URL}{name}"
+
+    # when
+    result = AttributeAssignmentMixin._clean_file_url(url, ProductErrorCode)
+
+    # then
+    assert result == name
+
+
 @pytest.mark.parametrize(
-    "file_url, expected_value",
+    "file_url",
     [
-        ("http://localhost:8000/media/Test.jpg", "Test.jpg"),
-        ("/media/Test.jpg", "Test.jpg"),
-        ("Test.jpg", "Test.jpg"),
-        ("", ""),
-        ("/ab/cd.jpg", "/ab/cd.jpg"),
+        "http://localhost:8000/media/Test.jpg",
+        "/media/Test.jpg",
+        "Test.jpg",
+        "/ab/cd.jpg",
     ],
 )
-def test_clean_file_url_in_attribute_assignment_mixin(file_url, expected_value):
-    result = AttributeAssignmentMixin._clean_file_url(file_url)
+def test_clean_file_url_in_attribute_assignment_mixin_invalid_url(file_url):
+    # when & then
+    with pytest.raises(ValidationError):
+        AttributeAssignmentMixin._clean_file_url(file_url, ProductErrorCode)
 
-    assert result == expected_value
+
+def test_prepare_attribute_values(color_attribute):
+    # given
+    existing_value = color_attribute.values.first()
+    attr_values_count = color_attribute.values.count()
+    new_value = existing_value.name.upper()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        # we should get the new value only for the last element
+        values=[existing_value.name, existing_value.slug, new_value],
+        file_url=None,
+        content_type=None,
+        references=[],
+    )
+
+    # when
+    prepare_attribute_values(color_attribute, values)
+
+    # then
+    color_attribute.refresh_from_db()
+    assert color_attribute.values.count() == attr_values_count + 1
+    assert color_attribute.values.last().name == new_value
+
+
+def test_prepare_attribute_values_prefer_the_slug_match(color_attribute):
+    """Ensure that the value with slug match is returned as the first choice.
+
+    When the value with the matching slug is not found, the value with the matching
+    name is returned."""
+    # given
+    existing_value = color_attribute.values.first()
+    second_val = color_attribute.values.create(
+        name=existing_value.slug, slug=f"{existing_value.slug}-2"
+    )
+
+    attr_values_count = color_attribute.values.count()
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        # we should get the new value only for the last element
+        values=[existing_value.name, second_val.name, second_val.slug],
+        file_url=None,
+        content_type=None,
+        references=[],
+    )
+
+    # when
+    result = prepare_attribute_values(color_attribute, values)
+
+    # then
+    color_attribute.refresh_from_db()
+    assert color_attribute.values.count() == attr_values_count
+    assert result == [existing_value, existing_value, second_val]
+
+
+def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
+    """Ensure that the unique slug for all values is created.
+
+    Ensure that when providing the two or more values that are giving the same slug
+    the integrity error is not raised."""
+    # given
+    existing_value = color_attribute.values.first()
+    attr_values_count = color_attribute.values.count()
+    new_value = "RED"
+    new_value_2 = "ReD"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        # we should get the new value only for the last element
+        values=[existing_value.name, new_value, new_value_2],
+        file_url=None,
+        content_type=None,
+        references=[],
+    )
+
+    # when
+    result = prepare_attribute_values(color_attribute, values)
+
+    # then
+    color_attribute.refresh_from_db()
+    assert color_attribute.values.count() == attr_values_count + 2
+    assert len(result) == 3
+    assert result[0] == existing_value
+    assert result[1].name == new_value
+    assert result[2].name == new_value_2

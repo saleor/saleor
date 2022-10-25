@@ -31,13 +31,13 @@ from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
+from ....core.tests.utils import get_site_context_payload
 from ....core.tokens import account_delete_token_generator
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
-from ....tests.consts import TEST_SERVER_DOMAIN
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
@@ -204,6 +204,13 @@ FULL_USER_QUERY = """
                     }
                 }
             }
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
         }
     }
 """
@@ -303,8 +310,10 @@ def test_query_customer_user(
     assert data["giftCards"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_used.pk
     )
-
     assert data["checkoutIds"] == [to_global_id_or_none(checkout)]
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
 
 
 def test_query_customer_user_with_orders(
@@ -780,7 +789,7 @@ USER_AVATAR_QUERY = """
 
 
 def test_query_user_avatar_with_size_and_format_proxy_url_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -803,14 +812,15 @@ def test_query_user_avatar_with_size_and_format_proxy_url_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
+    domain = site_settings.site.domain
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{user_uuid}/128/{format.lower()}/"
+        == f"http://{domain}/thumbnail/{user_uuid}/128/{format.lower()}/"
     )
 
 
 def test_query_user_avatar_with_size_proxy_url_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -833,12 +843,12 @@ def test_query_user_avatar_with_size_proxy_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{user_uuid}/128/"
+        == f"http://{site_settings.site.domain}/thumbnail/{user_uuid}/128/"
     )
 
 
 def test_query_user_avatar_with_size_thumbnail_url_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -864,12 +874,12 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_query_user_avatar_only_format_provided_original_image_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -893,12 +903,12 @@ def test_query_user_avatar_only_format_provided_original_image_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/{avatar_mock.name}"
+        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
     )
 
 
 def test_query_user_avatar_no_size_value(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -920,7 +930,7 @@ def test_query_user_avatar_no_size_value(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/{avatar_mock.name}"
+        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
     )
 
 
@@ -1044,6 +1054,14 @@ ME_QUERY = """
                 code
                 name
             }
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+                totalCount
+            }
         }
     }
 """
@@ -1111,6 +1129,9 @@ def test_me_query_checkout(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
 
 
 def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
@@ -1125,6 +1146,42 @@ def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert not data["checkout"]
+    assert not data["checkouts"]["edges"]
+
+
+def test_me_query_checkouts_with_channel(user_api_client, checkout, checkout_JPY):
+    query = """
+        query Me($channel: String) {
+            me {
+                checkouts(first: 10, channel: $channel) {
+                    edges {
+                        node {
+                            id
+                            channel {
+                                slug
+                            }
+                        }
+                    }
+                    totalCount
+                }
+            }
+        }
+    """
+
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+
+    response = user_api_client.post_graphql(query, {"channel": checkout.channel.slug})
+
+    content = get_graphql_content(response)
+    data = content["data"]["me"]["checkouts"]
+    assert data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
+    assert data["totalCount"] == 1
+    assert data["edges"][0]["node"]["channel"]["slug"] == checkout.channel.slug
 
 
 QUERY_ME_CHECKOUT_TOKENS = """
@@ -1344,6 +1401,7 @@ def test_customer_register(
     api_client,
     channel_PLN,
     order,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
@@ -1375,9 +1433,8 @@ def test_customer_register(
         "token": "token",
         "confirm_url": confirm_url,
         "recipient_email": new_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
@@ -1482,6 +1539,7 @@ def test_customer_create(
     address,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1539,9 +1597,8 @@ def test_customer_create(
         "token": "token",
         "password_set_url": password_set_url,
         "recipient_email": new_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
@@ -1563,6 +1620,7 @@ def test_customer_create_send_password_with_url(
     staff_api_client,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1589,9 +1647,8 @@ def test_customer_create_send_password_with_url(
         "password_set_url": password_set_url,
         "token": "token",
         "recipient_email": new_customer.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
@@ -2176,7 +2233,7 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 @patch("saleor.account.notifications.account_delete_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion(
-    mocked_notify, mocked_token, user_api_client, channel_PLN
+    mocked_notify, mocked_token, user_api_client, channel_PLN, site_settings
 ):
     mocked_token.return_value = "token"
     user = user_api_client.user
@@ -2195,9 +2252,8 @@ def test_account_request_deletion(
         "delete_url": delete_url,
         "token": "token",
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2210,7 +2266,7 @@ def test_account_request_deletion(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_token_validation(
-    mocked_notify, user_api_client, channel_PLN
+    mocked_notify, user_api_client, channel_PLN, site_settings
 ):
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
@@ -2229,9 +2285,8 @@ def test_account_request_deletion_token_validation(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2271,7 +2326,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, settings, channel_PLN
+    mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
     user = user_api_client.user
     user.last_login = timezone.now()
@@ -2295,9 +2350,8 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2310,7 +2364,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_subdomain(
-    mocked_notify, user_api_client, settings, channel_PLN
+    mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
@@ -2330,9 +2384,8 @@ def test_account_request_deletion_subdomain(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2656,6 +2709,7 @@ def test_staff_create(
     permission_manage_staff,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     group = permission_group_manage_users
     group.permissions.add(permission_manage_products)
@@ -2702,9 +2756,8 @@ def test_staff_create(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2867,6 +2920,7 @@ def test_staff_create_out_of_scope_group(
     permission_manage_users,
     permission_group_manage_users,
     channel_PLN,
+    site_settings,
 ):
     """Ensure user can't create staff with groups which are out of user scope.
     Ensure superuser pass restrictions.
@@ -2947,9 +3001,8 @@ def test_staff_create_out_of_scope_group(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2962,10 +3015,7 @@ def test_staff_create_out_of_scope_group(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create_send_password_with_url(
-    mocked_notify,
-    staff_api_client,
-    media_root,
-    permission_manage_staff,
+    mocked_notify, staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
@@ -2989,9 +3039,8 @@ def test_staff_create_send_password_with_url(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4806,7 +4855,12 @@ CONFIRM_ACCOUNT_MUTATION = """
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password(
-    mocked_notify, user_api_client, customer_user, channel_PLN, channel_USD
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
 ):
     redirect_url = "https://www.example.com"
     variables = {
@@ -4826,9 +4880,8 @@ def test_account_reset_password(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4920,7 +4973,7 @@ def test_account_confirmation_invalid_token(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_request_password_reset_email_for_staff(
-    mocked_notify, staff_api_client, channel_USD
+    mocked_notify, staff_api_client, channel_USD, site_settings
 ):
     redirect_url = "https://www.example.com"
     variables = {"email": staff_api_client.user.email, "redirectUrl": redirect_url}
@@ -4936,9 +4989,8 @@ def test_request_password_reset_email_for_staff(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": staff_api_client.user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -5007,7 +5059,13 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, customer_user, settings, channel_PLN, channel_USD
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    settings,
+    channel_PLN,
+    channel_USD,
+    site_settings,
 ):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
@@ -5029,9 +5087,8 @@ def test_account_reset_password_all_storefront_hosts_allowed(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -5044,7 +5101,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_subdomain(
-    mocked_notify, user_api_client, customer_user, settings, channel_PLN
+    mocked_notify, user_api_client, customer_user, settings, channel_PLN, site_settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
@@ -5066,9 +5123,8 @@ def test_account_reset_password_subdomain(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -5379,8 +5435,9 @@ def test_user_avatar_update_mutation_permission(api_client):
     assert_no_permission(response)
 
 
-def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
-    # given
+def test_user_avatar_update_mutation(
+    monkeypatch, staff_api_client, media_root, site_settings
+):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -5400,7 +5457,7 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
 
     assert user.avatar
     assert data["user"]["avatar"]["url"].startswith(
-        f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/avatar"
+        f"http://{site_settings.site.domain}/media/user-avatars/avatar"
     )
     img_name, format = os.path.splitext(image_file._name)
     file_name = user.avatar.name
@@ -5409,8 +5466,9 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
     assert file_name.endswith(format)
 
 
-def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
-    # given
+def test_user_avatar_update_mutation_image_exists(
+    staff_api_client, media_root, site_settings
+):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -5438,7 +5496,7 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
 
     assert user.avatar != avatar_mock
     assert data["user"]["avatar"]["url"].startswith(
-        f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/new_image"
+        f"http://{site_settings.site.domain}/media/user-avatars/new_image"
     )
     assert not user.thumbnails.exists()
 

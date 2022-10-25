@@ -21,7 +21,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
 )
-from ..core.descriptions import CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_38, CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
 from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
 
@@ -145,6 +145,7 @@ class ProductOrderField(graphene.Enum):
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
     COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
+    CREATED_AT = ["created_at", "name", "slug"]
 
     @property
     def description(self):
@@ -179,6 +180,7 @@ class ProductOrderField(graphene.Enum):
             ),
             ProductOrderField.LAST_MODIFIED_AT.name: "update date.",
             ProductOrderField.RATING.name: "rating.",
+            ProductOrderField.CREATED_AT.name: "creation date." + ADDED_IN_38,
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"

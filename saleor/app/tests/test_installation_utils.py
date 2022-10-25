@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...tests.consts import TEST_SERVER_DOMAIN
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
 from ..installation_utils import (
@@ -63,10 +62,10 @@ def test_install_app_created_app(
 
 
 def test_install_app_created_app_with_audience(
-    app_manifest, app_installation, monkeypatch
+    app_manifest, app_installation, monkeypatch, site_settings
 ):
     # given
-    audience = f"https://{TEST_SERVER_DOMAIN}.com/app-123"
+    audience = f"https://{site_settings.site.domain}.com/app-123"
     app_manifest["audience"] = audience
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest

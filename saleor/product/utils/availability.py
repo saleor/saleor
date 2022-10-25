@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple, Union
 
-import opentracing
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...channel.models import Channel
@@ -250,56 +249,53 @@ def get_variant_availability(
     tax_calculation_strategy: str,
     tax_rate: Decimal
 ) -> VariantAvailability:
-    with opentracing.global_tracer().start_active_span("get_variant_availability"):
-        discounted_price = get_variant_price(
-            variant=variant,
-            variant_channel_listing=variant_channel_listing,
-            product=product,
-            collections=collections,
-            discounts=discounts,
-            channel=channel,
-        )
-        discounted_price_taxed = _calculate_product_price_with_taxes(
-            discounted_price,
-            tax_rate,
-            tax_calculation_strategy,
-            prices_entered_with_tax,
-        )
-        undiscounted_price = get_variant_price(
-            variant=variant,
-            variant_channel_listing=variant_channel_listing,
-            product=product,
-            collections=collections,
-            discounts=[],
-            channel=channel,
-        )
-        undiscounted_price_taxed = _calculate_product_price_with_taxes(
-            undiscounted_price,
-            tax_rate,
-            tax_calculation_strategy,
-            prices_entered_with_tax,
-        )
-        discount = _get_total_discount(undiscounted_price_taxed, discounted_price_taxed)
+    discounted_price = get_variant_price(
+        variant=variant,
+        variant_channel_listing=variant_channel_listing,
+        product=product,
+        collections=collections,
+        discounts=discounts,
+        channel=channel,
+    )
+    discounted_price_taxed = _calculate_product_price_with_taxes(
+        discounted_price,
+        tax_rate,
+        tax_calculation_strategy,
+        prices_entered_with_tax,
+    )
+    undiscounted_price = get_variant_price(
+        variant=variant,
+        variant_channel_listing=variant_channel_listing,
+        product=product,
+        collections=collections,
+        discounts=[],
+        channel=channel,
+    )
+    undiscounted_price_taxed = _calculate_product_price_with_taxes(
+        undiscounted_price,
+        tax_rate,
+        tax_calculation_strategy,
+        prices_entered_with_tax,
+    )
+    discount = _get_total_discount(undiscounted_price_taxed, discounted_price_taxed)
 
-        if local_currency:
-            price_local_currency = to_local_currency(
-                discounted_price_taxed, local_currency
-            )
-            discount_local_currency = to_local_currency(discount, local_currency)
-        else:
-            price_local_currency = None
-            discount_local_currency = None
+    if local_currency:
+        price_local_currency = to_local_currency(discounted_price_taxed, local_currency)
+        discount_local_currency = to_local_currency(discount, local_currency)
+    else:
+        price_local_currency = None
+        discount_local_currency = None
 
-        is_visible = (
-            product_channel_listing is not None and product_channel_listing.is_visible
-        )
-        is_on_sale = is_visible and discount is not None
+    is_visible = (
+        product_channel_listing is not None and product_channel_listing.is_visible
+    )
+    is_on_sale = is_visible and discount is not None
 
-        return VariantAvailability(
-            on_sale=is_on_sale,
-            price=discounted_price_taxed,
-            price_undiscounted=undiscounted_price_taxed,
-            discount=discount,
-            price_local_currency=price_local_currency,
-            discount_local_currency=discount_local_currency,
-        )
+    return VariantAvailability(
+        on_sale=is_on_sale,
+        price=discounted_price_taxed,
+        price_undiscounted=undiscounted_price_taxed,
+        discount=discount,
+        price_local_currency=price_local_currency,
+        discount_local_currency=discount_local_currency,
+    )

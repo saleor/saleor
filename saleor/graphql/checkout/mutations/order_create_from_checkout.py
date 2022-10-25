@@ -10,9 +10,10 @@ from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
+from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...discount.dataloaders import load_discounts
-from ...meta.mutations import BaseMutationWithMetadata, MetadataInput
+from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
 from ..enums import OrderCreateFromCheckoutErrorCode
@@ -36,7 +37,7 @@ class OrderCreateFromCheckoutError(Error):
     )
 
 
-class OrderCreateFromCheckout(BaseMutationWithMetadata):
+class OrderCreateFromCheckout(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
 
     class Arguments:
@@ -77,6 +78,8 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
@@ -97,13 +100,15 @@ class OrderCreateFromCheckout(BaseMutationWithMetadata):
             only_type=Checkout,
             code=OrderCreateFromCheckoutErrorCode.CHECKOUT_NOT_FOUND.value,
         )
+        metadata = data.get("metadata")
+        private_metadata = data.get("private_metadata")
 
-        cls.validate_metadata(
-            info,
-            checkout_id,
-            data.get("metadata"),
-            data.get("private_metadata"),
-        )
+        if cls._meta.support_meta_field and metadata is not None:
+            cls.check_metadata_permissions(info, checkout_id)
+            cls.validate_metadata_keys(metadata)
+        if cls._meta.support_private_meta_field and private_metadata is not None:
+            cls.check_metadata_permissions(info, checkout_id, private=True)
+            cls.validate_metadata_keys(private_metadata)
 
         tracking_code = analytics.get_client_id(info.context)
 
