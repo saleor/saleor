@@ -121,7 +121,7 @@ def test_raise_duplicated_item_error(staff_api_client, permission_manage_taxes):
     assert errors[0]["countryCodes"] == ["PL"]
 
 
-def test_remove_country_rates(staff_api_client, permission_manage_taxes):
+def test_remove_all_country_rates(staff_api_client, permission_manage_taxes):
     # given
     tax_class = TaxClass.objects.create(name="Tax Class")
     tax_class.country_rates.create(country="PL", rate=21)
@@ -141,3 +141,33 @@ def test_remove_country_rates(staff_api_client, permission_manage_taxes):
     data = content["data"]["taxClassUpdate"]
     assert not data["errors"]
     assert len(data["taxClass"]["countries"]) == 0
+
+
+def test_remove_individual_country_rates(staff_api_client, permission_manage_taxes):
+    # given
+    tax_class = TaxClass.objects.create(name="Tax Class")
+    tax_class.country_rates.create(country="PL", rate=21)
+    tax_class.country_rates.create(country="DE", rate=19)
+    id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
+    new_rate_pl = 23
+    variables = {
+        "id": id,
+        "input": {
+            "updateCountryRates": [
+                {"countryCode": "PL", "rate": new_rate_pl},
+                {"countryCode": "DE"},  # null rate; should remove this item from DB
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxClassUpdate"]
+    assert not data["errors"]
+    assert len(data["taxClass"]["countries"]) == 1
+    assert data["taxClass"]["countries"][0]["country"]["code"] == "PL"

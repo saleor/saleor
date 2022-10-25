@@ -15534,10 +15534,22 @@ input TaxClassUpdateInput {
   """
   List of country-specific tax rates to create or update for this tax class.
   """
-  updateCountryRates: [CountryRateInput!]
+  updateCountryRates: [CountryRateUpdateInput!]
 
-  """List of country codes for which to remove the tax class rates."""
+  """
+  List of country codes for which to remove the tax class rates. Note: it removes all rates for given country code.
+  """
   removeCountryRates: [CountryCode!]
+}
+
+input CountryRateUpdateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate. Provide `null` to remove the particular rate.
+  """
+  rate: Float
 }
 
 """
