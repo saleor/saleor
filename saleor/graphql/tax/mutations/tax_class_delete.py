@@ -2,7 +2,7 @@ import graphene
 
 from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
-from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import Error
 from ..types import TaxClass
@@ -25,7 +25,7 @@ class TaxClassDelete(ModelDeleteMutation):
                 "product types or shipping methods using it are updated to use the "
                 "default tax class."
             )
-            + ADDED_IN_35
+            + ADDED_IN_39
             + PREVIEW_FEATURE
         )
         error_type_class = TaxClassDeleteError

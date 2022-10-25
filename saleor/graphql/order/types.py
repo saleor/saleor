@@ -60,8 +60,8 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
-    ADDED_IN_35,
     ADDED_IN_38,
+    ADDED_IN_39,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -1038,7 +1038,7 @@ class Order(ModelObjectType):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront." + ADDED_IN_35 + PREVIEW_FEATURE
+            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
         ),
         required=True,
     )

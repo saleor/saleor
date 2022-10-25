@@ -4,7 +4,7 @@ from django_countries.fields import Country
 from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
-from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
 from ..types import TaxCountryConfiguration
@@ -34,7 +34,7 @@ class TaxCountryConfigurationDelete(BaseMutation):
     class Meta:
         description = (
             "Remove all tax class rates for a specific country."
-            + ADDED_IN_35
+            + ADDED_IN_39
             + PREVIEW_FEATURE
         )
         error_type_class = TaxCountryConfigurationDeleteError
