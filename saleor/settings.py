@@ -694,7 +694,9 @@ BUILTIN_PLUGINS = [
 ]
 
 # Plugin discovery
-EXTERNAL_PLUGINS = []
+EXTERNAL_PLUGINS = [
+    "saleor.payment.gateways.shop2shop.plugin.Shop2ShopGatewayPlugin",
+]
 installed_plugins = pkg_resources.iter_entry_points("saleor.plugins")
 for entry_point in installed_plugins:
     plugin_path = "{}.{}".format(entry_point.module_name, entry_point.attrs[0])

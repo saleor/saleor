@@ -1,10 +1,8 @@
 from typing import TYPE_CHECKING
 
-from django.conf import settings
-
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
-from ..utils import get_supported_currencies
+from ..utils import get_supported_currencies,  require_active_plugin
 from . import (
     GatewayConfig,
     authorize,
@@ -22,16 +20,6 @@ if TYPE_CHECKING:
     from ...interface import GatewayResponse, PaymentData, TokenConfig
 
 
-def require_active_plugin(fn):
-    def wrapped(self, *args, **kwargs):
-        previous = kwargs.get("previous_value", None)
-        if not self.active:
-            return previous
-        return fn(self, *args, **kwargs)
-
-    return wrapped
-
-
 class Shop2ShopGatewayPlugin(BasePlugin):
     PLUGIN_ID = "yebofresh.payments.shop2shop"
     PLUGIN_NAME = GATEWAY_NAME
@@ -39,7 +27,7 @@ class Shop2ShopGatewayPlugin(BasePlugin):
     DEFAULT_CONFIGURATION = [
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
-        {"name": "Supported currencies", "value": settings.DEFAULT_CURRENCY},
+        {"name": "Supported currencies", "value": "ZAR"},
     ]
     CONFIG_STRUCTURE = {
         "Store customers card": {
