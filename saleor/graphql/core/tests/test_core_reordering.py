@@ -262,9 +262,9 @@ def test_reordering_concurrently(dummy_attribute, assert_num_queries):
     assert ctx[1]["sql"] == (
         'UPDATE "attribute_attributevalue" '
         'SET "sort_order" = '
-        f'(CASE WHEN ("attribute_attributevalue"."id" = {entries[0].pk}) '
+        f'CAST(CASE WHEN ("attribute_attributevalue"."id" = {entries[0].pk}) '
         f'THEN 1 WHEN ("attribute_attributevalue"."id" = {entries[1].pk}) '
-        "THEN 0 ELSE NULL END)::integer "
+        "THEN 0 ELSE NULL END AS integer) "
         'WHERE "attribute_attributevalue"."id" '
         f"IN ({entries[0].pk}, {entries[1].pk})"
     )
@@ -296,8 +296,8 @@ def test_reordering_deleted_node_from_concurrent(dummy_attribute, assert_num_que
     assert ctx[1]["sql"] == (
         'UPDATE "attribute_attributevalue" '
         'SET "sort_order" = '
-        f'(CASE WHEN ("attribute_attributevalue"."id" = {entries[0].pk}) '
+        f'CAST(CASE WHEN ("attribute_attributevalue"."id" = {entries[0].pk}) '
         f'THEN 1 WHEN ("attribute_attributevalue"."id" = {entries[1].pk}) '
-        "THEN 0 ELSE NULL END)::integer "
+        "THEN 0 ELSE NULL END AS integer) "
         f'WHERE "attribute_attributevalue"."id" IN ({entries[0].pk}, {entries[1].pk})'
     )

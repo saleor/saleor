@@ -40,6 +40,7 @@ from ....webhook.payloads import (
     generate_collection_payload,
     generate_customer_payload,
     generate_invoice_payload,
+    generate_metadata_updated_payload,
     generate_order_payload,
     generate_page_payload,
     generate_product_deleted_payload,
@@ -300,6 +301,31 @@ def test_customer_updated(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    customer_user,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.customer_metadata_updated(customer_user)
+    expected_data = generate_metadata_updated_payload(customer_user)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+        [any_webhook],
+        customer_user,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_order_fully_paid(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
@@ -400,6 +426,31 @@ def test_collection_deleted(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_collection_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    collection,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.collection_metadata_updated(collection)
+    expected_data = generate_metadata_updated_payload(collection)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.COLLECTION_METADATA_UPDATED,
+        [any_webhook],
+        collection,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_product_created(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
@@ -490,6 +541,31 @@ def test_product_deleted(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_product_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    product,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_metadata_updated(product)
+    expected_data = generate_metadata_updated_payload(product)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_METADATA_UPDATED,
+        [any_webhook],
+        product,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_product_variant_created(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
@@ -556,6 +632,31 @@ def test_product_variant_deleted(
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,
         WebhookEventAsyncType.PRODUCT_VARIANT_DELETED,
+        [any_webhook],
+        variant,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_product_variant_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_metadata_updated(variant)
+    expected_data = generate_metadata_updated_payload(variant)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED,
         [any_webhook],
         variant,
         None,
@@ -667,6 +768,31 @@ def test_order_cancelled(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.order_metadata_updated(order_with_lines)
+    expected_data = generate_metadata_updated_payload(order_with_lines)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.ORDER_METADATA_UPDATED,
+        [any_webhook],
+        order_with_lines,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_checkout_created(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
@@ -730,6 +856,31 @@ def test_checkout_updated(
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,
         WebhookEventAsyncType.CHECKOUT_UPDATED,
+        [any_webhook],
+        checkout_with_items,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_checkout_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    checkout_with_items,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.checkout_metadata_updated(checkout_with_items)
+    expected_data = generate_metadata_updated_payload(checkout_with_items)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
         [any_webhook],
         checkout_with_items,
         None,
@@ -861,6 +1012,156 @@ def test_invoice_sent(
 
     mocked_webhook_trigger.assert_called_once_with(
         expected_data, WebhookEventAsyncType.INVOICE_SENT, [any_webhook], invoice, None
+    )
+
+
+@freeze_time("2020-03-18 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_fulfillment_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    fulfillment,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.fulfillment_metadata_updated(fulfillment)
+    expected_data = generate_metadata_updated_payload(fulfillment)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED,
+        [any_webhook],
+        fulfillment,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_gift_card_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    gift_card,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.gift_card_metadata_updated(gift_card)
+    expected_data = generate_metadata_updated_payload(gift_card)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED,
+        [any_webhook],
+        gift_card,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_voucher_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    voucher,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.voucher_metadata_updated(voucher)
+    expected_data = generate_metadata_updated_payload(voucher)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.VOUCHER_METADATA_UPDATED,
+        [any_webhook],
+        voucher,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_shipping_zone_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    shipping_zone,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.shipping_zone_metadata_updated(shipping_zone)
+    expected_data = generate_metadata_updated_payload(shipping_zone)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED,
+        [any_webhook],
+        shipping_zone,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_warehouse_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    warehouse,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.warehouse_metadata_updated(warehouse)
+    expected_data = generate_metadata_updated_payload(warehouse)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED,
+        [any_webhook],
+        warehouse,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_transaction_item_metadata_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    transaction_item,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.transaction_item_metadata_updated(transaction_item)
+    expected_data = generate_metadata_updated_payload(transaction_item)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
+        [any_webhook],
+        transaction_item,
+        None,
     )
 
 

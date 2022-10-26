@@ -36,6 +36,22 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ
+### Other changes
+
+- Add new asynchronous events for objects metadata updates - #10520 by @rafalp
+  - `CHECKOUT_METADATA_UPDATED`
+  - `COLLECTION_METADATA_UPDATED`
+  - `CUSTOMER_METADATA_UPDATED`
+  - `FULFILLMENT_METADATA_UPDATED`
+  - `GIFT_CARD_METADATA_UPDATED`
+  - `ORDER_METADATA_UPDATED`
+  - `PRODUCT_METADATA_UPDATED`
+  - `PRODUCT_VARIANT_METADATA_UPDATED`
+  - `SHIPPING_ZONE_METADATA_UPDATED`
+  - `TRANSACTION_ITEM_METADATA_UPDATED`
+  - `WAREHOUSE_METADATA_UPDATED`
+  - `VOUCHER_METADATA_UPDATED`
+
 
 # 3.7.0
 
