@@ -1034,7 +1034,7 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     data = content["data"]["checkoutLinesAdd"]
     error_msg = (
         "Could not resolve to a node with the global id list of "
-        f"'{invalid_variant_id}'."
+        f"'['{invalid_variant_id}']'."
     )
     assert data["errors"][0]["message"] == error_msg
     assert data["errors"][0]["field"] == "variantId"
