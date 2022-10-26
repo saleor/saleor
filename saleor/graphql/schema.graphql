@@ -15537,7 +15537,7 @@ input TaxClassUpdateInput {
   updateCountryRates: [CountryRateUpdateInput!]
 
   """
-  List of country codes for which to remove the tax class rates. Note: it removes all rates for given country code.
+  List of country codes for which to remove the tax class rates. Note: It removes all rates for given country code.
   """
   removeCountryRates: [CountryCode!]
 }
