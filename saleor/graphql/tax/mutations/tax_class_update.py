@@ -9,9 +9,21 @@ from ...core.mutations import ModelMutation
 from ...core.types import Error, NonNullList
 from ...core.utils import get_duplicates_items
 from ..types import TaxClass
-from .tax_class_create import CountryRateInput
 
 TaxClassUpdateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassUpdateErrorCode)
+
+
+class CountryRateUpdateInput(graphene.InputObjectType):
+    country_code = CountryCodeEnum(
+        description="Country in which this rate applies.", required=True
+    )
+    rate = graphene.Float(
+        description=(
+            "Tax rate value provided as percentage. Example: provide `23` to "
+            "represent `23%` tax rate. Provide `null` to remove the particular rate."
+        ),
+        required=False,
+    )
 
 
 class TaxClassUpdateError(Error):
@@ -26,14 +38,17 @@ class TaxClassUpdateError(Error):
 class TaxClassUpdateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the tax class.")
     update_country_rates = NonNullList(
-        CountryRateInput,
+        CountryRateUpdateInput,
         description=(
             "List of country-specific tax rates to create or update for this tax class."
         ),
     )
     remove_country_rates = NonNullList(
         CountryCodeEnum,
-        description="List of country codes for which to remove the tax class rates.",
+        description=(
+            "List of country codes for which to remove the tax class rates. Note: It "
+            "removes all rates for given country code."
+        ),
     )
 
 
@@ -74,26 +89,38 @@ class TaxClassUpdate(ModelMutation):
     def update_country_rates(cls, instance, country_rates):
         input_data_by_country = {item["country_code"]: item for item in country_rates}
 
-        # update existing instances
+        # Update existing instances.
         to_update = instance.country_rates.filter(
             country__in=input_data_by_country.keys()
         )
         updated_countries = []
         for obj in to_update:
             data = input_data_by_country[obj.country]
-            obj.rate = data["rate"]
-            updated_countries.append(obj.country.code)
+            rate = data.get("rate")
+            if rate:
+                obj.rate = rate
+                updated_countries.append(obj.country.code)
         models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))
 
-        # create new instances
+        # Create new instances.
         to_create = [
             models.TaxClassCountryRate(
                 tax_class=instance, country=item["country_code"], rate=item["rate"]
             )
             for item in country_rates
             if item["country_code"] not in updated_countries
+            and item.get("rate") is not None
         ]
         models.TaxClassCountryRate.objects.bulk_create(to_create)
+
+        # Delete instances where null rates were provided.
+        to_delete = [
+            item["country_code"] for item in country_rates if item.get("rate") is None
+        ]
+        models.TaxClassCountryRate.objects.filter(
+            country__in=to_delete,
+            tax_class=instance,
+        ).delete()
 
     @classmethod
     def remove_country_rates(cls, country_codes):
