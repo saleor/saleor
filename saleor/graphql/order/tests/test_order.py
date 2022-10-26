@@ -7627,7 +7627,6 @@ def test_order_update_shipping_no_shipping_method_channel_listings(
     assert errors[0]["field"] == "shippingMethod"
 
 
-@pytest.mark.skip(reason="Rewrite to use tax calculation based on tax classes.")
 def test_order_update_shipping_tax_included(
     staff_api_client,
     permission_manage_orders,
@@ -7635,6 +7634,7 @@ def test_order_update_shipping_tax_included(
     shipping_method,
     staff_user,
 ):
+    # given
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -7643,6 +7643,14 @@ def test_order_update_shipping_tax_included(
     address.country = "DE"
     address.save()
 
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = "FLAT_RATES"
+    tc.prices_entered_with_tax = True
+    tc.save()
+    shipping_method.tax_class.country_rates.get_or_create(country="DE", rate=19)
+
+    # when
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -7650,6 +7658,8 @@ def test_order_update_shipping_tax_included(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["id"] == order_id
