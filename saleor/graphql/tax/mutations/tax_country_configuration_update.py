@@ -7,7 +7,7 @@ from graphql import GraphQLError
 from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
-from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...core.utils import from_global_id_or_error
@@ -60,7 +60,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
     class Meta:
         description = (
             "Update tax class rates for a specific country."
-            + ADDED_IN_35
+            + ADDED_IN_39
             + PREVIEW_FEATURE
         )
         error_type_class = TaxCountryConfigurationUpdateError

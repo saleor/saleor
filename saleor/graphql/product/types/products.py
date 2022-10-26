@@ -56,7 +56,7 @@ from ...core.connection import (
 )
 from ...core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_35,
+    ADDED_IN_39,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -220,7 +220,7 @@ class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_35 + PREVIEW_FEATURE
+            "should include taxes." + ADDED_IN_39 + PREVIEW_FEATURE
         ),
         required=True,
     )

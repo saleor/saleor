@@ -98,7 +98,7 @@ type Query {
   """
   Look up a tax configuration.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -112,7 +112,7 @@ type Query {
   """
   List of tax configurations.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -138,7 +138,7 @@ type Query {
   """
   Look up a tax class.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -152,7 +152,7 @@ type Query {
   """
   List of tax classes.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -2830,7 +2830,7 @@ type CountryDisplay {
   country: String!
 
   """Country tax."""
-  vat: VAT
+  vat: VAT @deprecated(reason: "This field will be removed in Saleor 4.0. Use `TaxClassCountryRate` type to manage tax rates per country.")
 }
 
 """Represents a VAT rate for a country."""
@@ -4784,7 +4784,7 @@ type TaxType {
 """
 Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -4848,7 +4848,7 @@ type TaxClass implements Node & ObjectWithMetadata {
 """
 Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -6004,7 +6004,7 @@ type ProductPricingInfo {
   """
   Determines whether this product's price displayed in a storefront should include taxes.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -7568,7 +7568,7 @@ enum TranslatableKinds {
 """
 Channel-specific tax configuration.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -7653,7 +7653,7 @@ enum TaxCalculationStrategy {
 """
 Country-specific exceptions of a channel's tax configuration.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -7736,7 +7736,7 @@ input TaxClassFilterInput {
 """
 Tax class rates grouped by country.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -8383,7 +8383,7 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   Determines whether checkout prices should include taxes when displayed in a storefront.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9096,7 +9096,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Determines whether checkout prices should include taxes when displayed in a storefront.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -11475,7 +11475,7 @@ type Mutation {
   """
   Create a tax class.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -11489,7 +11489,7 @@ type Mutation {
   """
   Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -11503,7 +11503,7 @@ type Mutation {
   """
   Update a tax class.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -11520,7 +11520,7 @@ type Mutation {
   """
   Update tax configuration for a channel.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -11537,7 +11537,7 @@ type Mutation {
   """
   Update tax class rates for a specific country.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -11556,7 +11556,7 @@ type Mutation {
   """
   Remove all tax class rates for a specific country.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.9.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -15403,7 +15403,7 @@ type WarehouseShippingZoneUnassign {
 """
 Create a tax class.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -15458,7 +15458,7 @@ input CountryRateInput {
 """
 Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -15492,7 +15492,7 @@ enum TaxClassDeleteErrorCode {
 """
 Update a tax class.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -15555,7 +15555,7 @@ input CountryRateUpdateInput {
 """
 Update tax configuration for a channel.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -15637,7 +15637,7 @@ input TaxConfigurationPerCountryInput {
 """
 Update tax class rates for a specific country.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -15685,7 +15685,7 @@ input TaxClassRateInput {
 """
 Remove all tax class rates for a specific country.
 
-Added in Saleor 3.5.
+Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 

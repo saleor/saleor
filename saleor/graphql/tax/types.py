@@ -4,7 +4,7 @@ from ...tax import models
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from .dataloaders import (
@@ -53,7 +53,7 @@ class TaxConfiguration(ModelObjectType):
 
     class Meta:
         description = (
-            "Channel-specific tax configuration." + ADDED_IN_35 + PREVIEW_FEATURE
+            "Channel-specific tax configuration." + ADDED_IN_39 + PREVIEW_FEATURE
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.TaxConfiguration
@@ -104,7 +104,7 @@ class TaxConfigurationPerCountry(ModelObjectType):
     class Meta:
         description = (
             "Country-specific exceptions of a channel's tax configuration."
-            + ADDED_IN_35
+            + ADDED_IN_39
             + PREVIEW_FEATURE
         )
         interface = [graphene.relay.Node]
@@ -127,7 +127,7 @@ class TaxClass(ModelObjectType):
         description = (
             "Tax class is a named object used to define tax rates per country. Tax "
             "class can be assigned to product types, products and shipping methods to "
-            "define their tax rates." + ADDED_IN_35 + PREVIEW_FEATURE
+            "define their tax rates." + ADDED_IN_39 + PREVIEW_FEATURE
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.TaxClass
@@ -157,7 +157,7 @@ class TaxClassCountryRate(ModelObjectType):
         description = (
             "Tax rate for a country. When tax class is null, it represents the default "
             "tax rate for that country; otherwise it's a country tax rate specific to "
-            "the given tax class." + ADDED_IN_35 + PREVIEW_FEATURE
+            "the given tax class." + ADDED_IN_39 + PREVIEW_FEATURE
         )
         model = models.TaxClassCountryRate
 
@@ -186,7 +186,7 @@ class TaxCountryConfiguration(graphene.ObjectType):
 
     class Meta:
         description = (
-            "Tax class rates grouped by country." + ADDED_IN_35 + PREVIEW_FEATURE
+            "Tax class rates grouped by country." + ADDED_IN_39 + PREVIEW_FEATURE
         )
 
     @staticmethod
