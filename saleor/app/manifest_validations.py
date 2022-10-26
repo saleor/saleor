@@ -256,7 +256,9 @@ def validate_required_fields(manifest_data, errors):
             errors["extensions"].append(
                 ValidationError(
                     "Missing required fields for app extension: "
-                    f'{", ".join(missing_fields)}.', code=AppErrorCode.REQUIRED.value)
+                    f'{", ".join(missing_fields)}.',
+                    code=AppErrorCode.REQUIRED.value,
+                )
             )
 
     webhooks = manifest_data.get("webhooks", [])
@@ -265,6 +267,8 @@ def validate_required_fields(manifest_data, errors):
         if missing_fields := webhook_required_fields.difference(webhook_fields):
             errors["webhooks"].append(
                 ValidationError(
-                    f'Missing required fields for webhook: '
-                    f'{", ".join(missing_fields)}.', code=AppErrorCode.REQUIRED.value)
+                    f"Missing required fields for webhook: "
+                    f'{", ".join(missing_fields)}.',
+                    code=AppErrorCode.REQUIRED.value,
+                )
             )

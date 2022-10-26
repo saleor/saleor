@@ -150,9 +150,7 @@ class ProcessedImage:
         save_kwargs["icc_profile"] = image.info.get("icc_profile")
 
         if hasattr(self, f"preprocess_{format}"):
-            image, addl_save_kwargs = getattr(self, f"preprocess_{format}")(
-                image=image
-            )
+            image, addl_save_kwargs = getattr(self, f"preprocess_{format}")(image=image)
             save_kwargs.update(addl_save_kwargs)
 
         return image, save_kwargs
