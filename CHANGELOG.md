@@ -2,9 +2,30 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.9.0
+
+### Highlights
+
+- Flat tax rates - #9784 by @maarcingebala
+
+### Breaking changes
+
+- Drop Vatlayer plugin - #9784 by @maarcingebala
+  - The following fields are no longer used:
+    - `Product.chargeTaxes` - from now on, presence of `Product.taxClass` instance decides whether to charge taxes for a product. As a result, the "Charge Taxes" column in CSV product exports returns empty values.
+    - `Shop.chargeTaxesOnShipping` - from now on, presence of `ShippingMethod.taxClass` decides whether to charge taxes for a shipping method.
+    - `Shop.includeTaxesInPrices`, `Shop.displayGrossPrices` - configuration moved to `Channel.taxConfiguration`.
+  - Removed the following plugin manager methods:
+    - `assign_tax_code_to_object_meta`
+    - `apply_taxes_to_product`
+    - `fetch_taxes_data`
+    - `get_tax_rate_percentage_value`
+    - `update_taxes_for_order_lines`
+
 # 3.8.0 [Unreleased]
 
 ### GraphQL API
+
 - Add ability to filter by slug. #10578 by @kadewu
   - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
@@ -36,6 +57,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `taxExemptionManage` mutation - #10344 by @SzymJ
+
 ### Other changes
 
 - Add new asynchronous events for objects metadata updates - #10520 by @rafalp
@@ -51,7 +73,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - `TRANSACTION_ITEM_METADATA_UPDATED`
   - `WAREHOUSE_METADATA_UPDATED`
   - `VOUCHER_METADATA_UPDATED`
-
 
 # 3.7.0
 
