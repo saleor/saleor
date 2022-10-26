@@ -46,7 +46,7 @@ class TaxClassUpdateInput(graphene.InputObjectType):
     remove_country_rates = NonNullList(
         CountryCodeEnum,
         description=(
-            "List of country codes for which to remove the tax class rates. Note: it "
+            "List of country codes for which to remove the tax class rates. Note: It "
             "removes all rates for given country code."
         ),
     )
