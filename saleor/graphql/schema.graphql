@@ -2830,7 +2830,7 @@ type CountryDisplay {
   country: String!
 
   """Country tax."""
-  vat: VAT
+  vat: VAT @deprecated(reason: "This field will be removed in Saleor 4.0. Use `TaxClassCountryRate` type to manage tax rates per country.")
 }
 
 """Represents a VAT rate for a country."""
