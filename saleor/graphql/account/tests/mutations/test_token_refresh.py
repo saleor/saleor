@@ -14,6 +14,7 @@ from .....core.jwt import (
     jwt_decode,
 )
 from .....core.utils import build_absolute_uri
+from ....tests.fixtures import ApiClient
 from ....tests.utils import get_graphql_content
 
 MUTATION_TOKEN_REFRESH = """
@@ -234,3 +235,26 @@ def test_refresh_token_when_user_deactivated_token(api_client, customer_user):
     assert not data["token"]
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
+
+
+def test_refresh_token_expired_auth_token_in_headers(customer_user, settings):
+    with freeze_time("2018-05-31 12:00:01"):
+        auth_token = create_access_token(customer_user)
+    api_client = ApiClient(user=customer_user)
+    api_client.token = auth_token
+
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    variables = {"token": refresh_token, "csrf_token": None}
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["tokenRefresh"]
+    errors = data["errors"]
+
+    assert not errors
+    token = data.get("token")
+    assert token
+    payload = jwt_decode(token)
+    assert payload["email"] == customer_user.email
+    assert payload["type"] == JWT_ACCESS_TYPE
