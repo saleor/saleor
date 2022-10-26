@@ -16,7 +16,7 @@ documentation = "https://docs.saleor.io/"
   braintree = ">=4.2,<4.18"
   dj-database-url = "^1"
   dj-email-url = "^1"
-  django = {version = "^4.0.7", extras = ["bcrypt"]}
+  django = {version = "^3.2.16", extras = ["bcrypt"]}
   django-countries = "^7.2"
   django-filter = "^22.1"
   django-measurement = "^3.0"
@@ -51,7 +51,7 @@ documentation = "https://docs.saleor.io/"
   jaeger-client = "^4.5.0"
   openpyxl = "^3.0.3"
   django-cache-url = "^3.1.2"
-  pyjwt = ">=2.4.0,<3.0.0"
+  pyjwt = "2.5.0" # Version 2.6.0 changed iat validation which causes tests to fail: https://github.com/saleor/saleor/issues/11047
   python-json-logger = ">=0.1.11,<2.1.0"
   pytimeparse = "^1.1.8"
   django-redis = "^5.0.0"
