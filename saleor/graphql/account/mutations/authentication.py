@@ -11,6 +11,7 @@ from graphene.types.generic import GenericScalar
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode
+from ....core.db.utils import set_mutation_flag_in_context
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -249,6 +250,27 @@ class RefreshToken(BaseMutation):
         user = get_user(payload)
         token = create_access_token(user)
         return cls(errors=[], user=user, token=token)
+
+    # Temporary fix only in 3.7 to rollback undocumented breaking change.
+    # In 3.7 we shouldn't validate JWT auth token in `RefreshToken`` mutation.
+    # Since 3.8 we want always validate provided JWT token. In any query/mutation.
+    @classmethod
+    def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
+
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
+        try:
+            response = cls.perform_mutation(root, info, **data)
+            if response.errors is None:
+                response.errors = []
+            return response
+        except ValidationError as e:
+            return cls.handle_errors(e)
 
 
 class VerifyToken(BaseMutation):
