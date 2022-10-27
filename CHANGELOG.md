@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
 - GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
 - Add `iss` field to JWT tokens - #10842 by @korycins
+- Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
 
 ### GraphQL API
 
