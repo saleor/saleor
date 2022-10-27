@@ -25,7 +25,6 @@ from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import TaxError, zero_taxed_money
-from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
@@ -466,7 +465,6 @@ def _prepare_order_data(
     return order_data
 
 
-@traced_atomic_transaction()
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
@@ -770,20 +768,21 @@ def complete_checkout(
         .filter(pk=checkout_info.checkout.pk)
         .first()
     )
+
+    fetch_checkout_prices_if_expired(
+        checkout_info,
+        manager,
+        lines,
+        discounts=discounts,
+        site_settings=site_settings,
+    )
+
     with transaction_with_commit_on_errors():
         checkout = checkout_info.checkout
         if not checkout_for_update:
             order = Order.objects.filter(checkout_token=checkout.token).first()
             if order:
                 return order, False, {}
-
-        fetch_checkout_prices_if_expired(
-            checkout_info,
-            manager,
-            lines,
-            discounts=discounts,
-            site_settings=site_settings,
-        )
 
         channel_slug = checkout_info.channel.slug
         payment = checkout.get_last_active_payment()
