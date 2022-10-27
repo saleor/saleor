@@ -88,6 +88,7 @@ def reserve_stocks(
     reserved_until: datetime,
     *,
     replace: bool = True,
+    lock: bool = True
 ):
     """Reserve stocks for given `checkout_lines` in given country."""
     variants_ids = [line.variant_id for line in checkout_lines]
@@ -100,9 +101,9 @@ def reserve_stocks(
     if not checkout_lines:
         return
 
+    stocks = Stock.objects.select_for_update(of=("self",)) if lock else Stock.objects
     stocks = list(
-        Stock.objects.select_for_update(of=("self",))
-        .get_variants_stocks_for_country(country_code, channel.slug, variants)
+        stocks.get_variants_stocks_for_country(country_code, channel.slug, variants)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
@@ -186,6 +187,7 @@ def _create_stock_reservations(
     quantity = line.quantity
     quantity_reserved = 0
     reservations = []
+
     for stock_data in stocks:
         quantity_allocated_in_stock = quantity_allocation_for_stocks.get(
             stock_data.pk, 0

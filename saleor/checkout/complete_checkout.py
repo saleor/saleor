@@ -559,7 +559,9 @@ def _create_order(
         additional_warehouse_lookup,
         check_reservations=is_reservation_enabled(site_settings),
         checkout_lines=[line.line for line in checkout_lines],
+        lock=False,
     )
+
     allocate_preorders(
         order_lines_info,
         checkout_info.channel.slug,
