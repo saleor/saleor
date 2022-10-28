@@ -49,9 +49,11 @@ def _bulk_release_voucher_usage(order_ids):
         voucher=OuterRef("pk"),
         id__in=order_ids,
     )
-    count_orders = voucher_orders.annotate(
-        count=Func(F("pk"), function="Count")
-    ).values("count")
+    count_orders = (
+        voucher_orders.annotate(count=Func(F("pk"), function="Count"))
+        .values("count")
+        .order_by()
+    )
 
     Voucher.objects.filter(
         Exists(voucher_orders),

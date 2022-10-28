@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 from django.apps import AppConfig
 from django.conf import settings
-from django.db.models import Field
+from django.db.models import CharField, TextField
 from django.utils.module_loading import import_string
 
 from .db.filters import PostgresILike
@@ -11,14 +11,14 @@ from .db.filters import PostgresILike
 class CoreAppConfig(AppConfig):
     name = "saleor.core"
 
-    def ready(self):
-        Field.register_lookup(PostgresILike)
-
+    def ready(self) -> None:
+        CharField.register_lookup(PostgresILike)
+        TextField.register_lookup(PostgresILike)
         if settings.SENTRY_DSN:
             settings.SENTRY_INIT(settings.SENTRY_DSN, settings.SENTRY_OPTS)
         self.validate_jwt_manager()
 
-    def validate_jwt_manager(self):
+    def validate_jwt_manager(self) -> None:
         jwt_manager_path = getattr(settings, "JWT_MANAGER_PATH", None)
         if not jwt_manager_path:
             raise ImportError(
