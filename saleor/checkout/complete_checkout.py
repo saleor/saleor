@@ -343,7 +343,6 @@ def _create_lines_for_order(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
-    check_reservations: bool,
     taxes_included_in_prices: bool,
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
@@ -390,7 +389,7 @@ def _create_lines_for_order(
         additional_filter_lookup=additional_warehouse_lookup,
         existing_lines=lines,
         replace=True,
-        check_reservations=check_reservations,
+        check_reservations=True,
     )
 
     return [
@@ -415,7 +414,6 @@ def _prepare_order_data(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable["DiscountInfo"],
     taxes_included_in_prices: bool,
-    check_reservations: bool = False,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -472,7 +470,6 @@ def _prepare_order_data(
         checkout_info,
         lines,
         discounts,
-        check_reservations,
         taxes_included_in_prices,
     )
 
@@ -594,7 +591,7 @@ def _create_order(
         manager,
         checkout_info.delivery_method_info.warehouse_pk,
         additional_warehouse_lookup,
-        check_reservations=is_reservation_enabled(site_settings),
+        check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
     )
     allocate_preorders(
@@ -720,7 +717,6 @@ def _get_order_data(
             checkout_info=checkout_info,
             lines=lines,
             discounts=discounts,
-            check_reservations=is_reservation_enabled(site_settings),
             taxes_included_in_prices=site_settings.include_taxes_in_prices,
         )
     except InsufficientStock as e:
@@ -862,8 +858,7 @@ def complete_checkout(
         action_data: Dict[str, str] = {}
         if payment and txn:
             if txn.customer_id and user:
-                store_customer_id(user, payment.gateway, txn.customer_id)
-                # type: ignore
+                store_customer_id(user, payment.gateway, txn.customer_id)  # type:ignore
 
             action_required = txn.action_required
             if action_required:
@@ -952,7 +947,6 @@ def _create_order_lines_from_checkout_lines(
         checkout_info,
         lines,
         discounts,
-        reservation_enabled,
         taxes_included_in_prices,
     )
     order_lines = []
@@ -983,7 +977,7 @@ def _handle_allocations_of_order_lines(
         manager,
         checkout_info.delivery_method_info.warehouse_pk,
         additional_warehouse_lookup,
-        check_reservations=reservation_enabled,
+        check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
     )
     allocate_preorders(
