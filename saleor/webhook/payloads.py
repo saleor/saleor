@@ -959,15 +959,19 @@ def generate_page_payload(
 def _generate_refund_data_payload(data):
     data["order_lines_to_refund"] = [
         {
-            "line_id": line_data["line"].pk,
+            "line_id": graphene.Node.to_global_id("OrderLine", line_data["line"].pk),
             "quantity": line_data["quantity"],
-            "variant_id": line_data["variant"].pk,
+            "variant_id": graphene.Node.to_global_id(
+                "ProductVariant", line_data["variant"].pk
+            ),
         }
         for line_data in data["order_lines_to_refund"]
     ]
     data["fulfillment_lines_to_refund"] = [
         {
-            "line_id": line_data["line"].pk,
+            "line_id": graphene.Node.to_global_id(
+                "FulfillmentLine", line_data["line"].pk
+            ),
             "quantity": line_data["quantity"],
             "replace": line_data["replace"],
         }
