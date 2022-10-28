@@ -956,11 +956,39 @@ def generate_page_payload(
     return page_payload
 
 
+def _generate_refund_data_payload(data):
+    data["order_lines_to_refund"] = [
+        {
+            "line_id": graphene.Node.to_global_id("OrderLine", line_data["line"].pk),
+            "quantity": line_data["quantity"],
+            "variant_id": graphene.Node.to_global_id(
+                "ProductVariant", line_data["variant"].pk
+            ),
+        }
+        for line_data in data["order_lines_to_refund"]
+    ]
+    data["fulfillment_lines_to_refund"] = [
+        {
+            "line_id": graphene.Node.to_global_id(
+                "FulfillmentLine", line_data["line"].pk
+            ),
+            "quantity": line_data["quantity"],
+            "replace": line_data["replace"],
+        }
+        for line_data in data["fulfillment_lines_to_refund"]
+    ]
+    return data
+
+
 @traced_payload_generator
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
     data = asdict(payment_data)
+
+    if refund_data := data.get("refund_data"):
+        data["refund_data"] = _generate_refund_data_payload(refund_data)
+
     data["amount"] = quantize_price(data["amount"], data["currency"])
     payment_app_data = from_payment_app_id(data["gateway"])
     if payment_app_data:
