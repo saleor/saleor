@@ -50,13 +50,11 @@ class CustomModelEntry(ModelEntry):
     @classmethod
     def from_entry(cls, name, app=None, **entry):
         # Super method has 'PeriodicTask' hardcoded
-        return cls(
-            models.CustomPeriodicTask._default_manager.update_or_create(
-                name=name,
-                defaults=cls._unpack_fields(**entry),
-            ),
-            app=app,
+        obj, created = models.CustomPeriodicTask._default_manager.update_or_create(
+            name=name,
+            defaults=cls._unpack_fields(**entry),
         )
+        return cls(obj, app=app)
 
 
 class BaseScheduler(celery.beat.Scheduler):
