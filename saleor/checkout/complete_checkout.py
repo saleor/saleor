@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -15,6 +16,7 @@ import graphene
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -26,6 +28,7 @@ from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
+from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
 from ..discount.models import NotApplicable
@@ -51,6 +54,7 @@ from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
+from ..warehouse.models import Reservation, Stock
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .base_calculations import (
@@ -74,6 +78,8 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
     from .models import Checkout
+
+RESERVE_DURATION = 45
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -102,6 +108,37 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     return {
         "voucher": voucher,
     }
+
+
+def _reserve_stocks_without_availability_check(
+    checkout_info: CheckoutInfo,
+    lines: Iterable[CheckoutLineInfo],
+):
+    """Add additional temporary reservation for stock.
+
+    Due to unlocking rows, for the time of external payment call, it prevents users
+    ordering the same product, in the same time, which is out of stock.
+    """
+    variants = [line.variant for line in lines]
+    stocks = Stock.objects.get_variants_stocks_for_country(
+        country_code=checkout_info.get_country(),
+        channel_slug=checkout_info.channel,
+        products_variants=variants,
+    )
+    variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
+
+    reservations = []
+    for line in lines:
+        if line.variant.id in variants_stocks_map:
+            reservations.append(
+                Reservation(
+                    quantity_reserved=line.line.quantity,
+                    reserved_until=timezone.now() + timedelta(seconds=RESERVE_DURATION),
+                    stock=variants_stocks_map[line.variant.id],
+                    checkout_line=line.line,
+                )
+            )
+    Reservation.objects.bulk_create(reservations)
 
 
 def _process_shipping_data_for_order(
@@ -732,6 +769,7 @@ def _process_payment(
                 additional_data=payment_data,
                 channel_slug=channel_slug,
             )
+
         payment.refresh_from_db()
         if not txn.is_success:
             raise PaymentError(txn.error)
@@ -762,44 +800,52 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
-    if site_settings is None:
-        site_settings = Site.objects.get_current().settings
+    with transaction_with_commit_on_errors():
+        if site_settings is None:
+            site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(
-        checkout_info, manager, lines, discounts=discounts, site_settings=site_settings
-    )
-
-    checkout = checkout_info.checkout
-    channel_slug = checkout_info.channel.slug
-    payment = checkout.get_last_active_payment()
-    try:
-        _prepare_checkout(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
+        fetch_checkout_prices_if_expired(
+            checkout_info,
+            manager,
+            lines,
             discounts=discounts,
-            tracking_code=tracking_code,
-            redirect_url=redirect_url,
-            payment=payment,
+            site_settings=site_settings,
         )
-    except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-        raise exc
 
-    try:
-        order_data = _get_order_data(
-            manager, checkout_info, lines, discounts, site_settings
-        )
-    except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-        raise exc
+        checkout = checkout_info.checkout
+        channel_slug = checkout_info.channel.slug
+        payment = checkout.get_last_active_payment()
+        try:
+            _prepare_checkout(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                discounts=discounts,
+                tracking_code=tracking_code,
+                redirect_url=redirect_url,
+                payment=payment,
+            )
+        except ValidationError as exc:
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            raise exc
 
-    customer_id = None
-    if payment and user:
-        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
+        try:
+            order_data = _get_order_data(
+                manager, checkout_info, lines, discounts, site_settings
+            )
+        except ValidationError as exc:
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            raise exc
 
-    action_required = False
-    action_data: Dict[str, str] = {}
+        customer_id = None
+        if payment and user:
+            customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
+
+        _reserve_stocks_without_availability_check(checkout_info, lines)
+
+    # Process payments out of transaction to unlock stock rows for another user,
+    # who potentially can order the same product variants
+    txn = None
     if payment:
         txn = _process_payment(
             payment=payment,  # type: ignore
@@ -811,51 +857,60 @@ def complete_checkout(
             channel_slug=channel_slug,
         )
 
-        if txn.customer_id and user:
-            store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
+    with transaction_with_commit_on_errors():
+        action_required = False
+        action_data: Dict[str, str] = {}
+        if payment and txn:
+            if txn.customer_id and user:
+                store_customer_id(user, payment.gateway, txn.customer_id)
+                # type: ignore
 
-        action_required = txn.action_required
-        if action_required:
-            action_data = txn.action_required_data
-            release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
-            )
+            action_required = txn.action_required
+            if action_required:
+                action_data = txn.action_required_data
+                release_voucher_usage(
+                    order_data.get("voucher"), order_data.get("user_email")
+                )
 
-    order = None
-    if not action_required and not _is_refund_ongoing(payment):
-        try:
-            order = _create_order(
-                checkout_info=checkout_info,
-                checkout_lines=lines,
-                order_data=order_data,
-                user=user,  # type: ignore
-                app=app,
-                manager=manager,
-                site_settings=site_settings,
-                metadata_list=metadata_list,
-                private_metadata_list=private_metadata_list,
-            )
-            # remove checkout after order is successfully created
-            checkout.delete()
-        except InsufficientStock as e:
-            release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
-            )
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-            error = prepare_insufficient_stock_checkout_validation_error(e)
-            raise error
-        except GiftCardNotApplicable as e:
-            release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
-            )
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-            raise ValidationError(code=e.code, message=e.message)
+        order = None
+        if not action_required and not _is_refund_ongoing(payment):
+            try:
+                order = _create_order(
+                    checkout_info=checkout_info,
+                    checkout_lines=lines,
+                    order_data=order_data,
+                    user=user,  # type: ignore
+                    app=app,
+                    manager=manager,
+                    site_settings=site_settings,
+                    metadata_list=metadata_list,
+                    private_metadata_list=private_metadata_list,
+                )
+                # remove checkout after order is successfully created
+                checkout.delete()
+            except InsufficientStock as e:
+                release_voucher_usage(
+                    order_data.get("voucher"), order_data.get("user_email")
+                )
+                gateway.payment_refund_or_void(
+                    payment, manager, channel_slug=channel_slug
+                )
+                error = prepare_insufficient_stock_checkout_validation_error(e)
+                raise error
+            except GiftCardNotApplicable as e:
+                release_voucher_usage(
+                    order_data.get("voucher"), order_data.get("user_email")
+                )
+                gateway.payment_refund_or_void(
+                    payment, manager, channel_slug=channel_slug
+                )
+                raise ValidationError(code=e.code, message=e.message)
 
-        # if the order total value is 0 it is paid from the definition
-        if order.total.net.amount == 0:
-            mark_order_as_paid(order, user, app, manager)
+            # if the order total value is 0 it is paid from the definition
+            if order.total.net.amount == 0:
+                mark_order_as_paid(order, user, app, manager)
 
-    return order, action_required, action_data
+        return order, action_required, action_data
 
 
 def _is_refund_ongoing(payment):
