@@ -12,11 +12,14 @@ __all__ = ["perform_reordering"]
 class FinalSortOrder:
     """Describe a final sort order value for a given PK.
 
-    This is needed to tell django which objects and values to associate and update.
+    This is a hack to tell Django which objects and values to associate and update.
     """
 
     pk: int
     sort_order: int
+
+    def _prepare_related_fields_for_save(self, operation_name, fields=None):
+        pass
 
 
 class Reordering:
