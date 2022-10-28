@@ -50,7 +50,6 @@ def allocate_stocks(
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     check_reservations: bool = False,
     checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
-    lock: bool = True,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -83,14 +82,13 @@ def allocate_stocks(
         else Stock.objects.for_channel_and_country(channel_slug, country_code)
     )
 
-    stocks = stocks.select_for_update(of=("self",)) if lock else stocks
-
     stocks = list(
-        stocks.filter(**filter_lookup)
+        stocks.select_for_update(of=("self",))
+        .filter(**filter_lookup)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
-    stocks_id = [stock.pop("id") for stock in stocks]
+    stocks_id = (stock.pop("id") for stock in stocks)
 
     quantity_reservation_for_stocks: Dict = _prepare_stock_to_reserved_quantity_map(
         checkout_lines, check_reservations, stocks_id

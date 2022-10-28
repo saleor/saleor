@@ -1,9 +1,7 @@
-from datetime import timedelta
 from typing import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from ....checkout import AddressType
 from ....checkout.checkout_cleaner import (
@@ -23,7 +21,6 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
-from ....warehouse.models import Reservation, Stock
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
@@ -168,43 +165,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             billing_address.save()
 
     @classmethod
-    def _reserve_stocks_for_checkout_complete(
-        cls,
-        checkout_info: CheckoutInfo,
-        lines: Iterable[CheckoutLineInfo],
-        site_settings,
-    ):
-        """Add temporary reservation for stocks, to get rid of locking stock rows."""
-        RESERVE_DURATION = 45
-
-        variants = [line.variant for line in lines]
-        stocks = Stock.objects.get_variants_stocks_for_country(
-            country_code=checkout_info.get_country(),
-            channel_slug=checkout_info.channel,
-            products_variants=variants,
-        )
-        variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
-
-        dummy_reservations = []
-        for line in lines:
-            if line.variant.id in variants_stocks_map:
-                dummy_reservations.append(
-                    Reservation(
-                        quantity_reserved=line.line.quantity,
-                        reserved_until=timezone.now()
-                        + timedelta(seconds=RESERVE_DURATION),
-                        stock=variants_stocks_map[line.variant.id],
-                        checkout_line=line.line,
-                    )
-                )
-        Reservation.objects.bulk_create(dummy_reservations)
-
-        if not site_settings.reserve_stock_duration_anonymous_user:
-            site_settings.reserve_stock_duration_anonymous_user = RESERVE_DURATION
-        if not site_settings.reserve_stock_duration_authenticated_user:
-            site_settings.reserve_stock_duration_anonymous_user = RESERVE_DURATION
-
-    @classmethod
     def perform_mutation(
         cls, _root, info, store_source, checkout_id=None, token=None, id=None, **data
     ):
@@ -213,85 +173,82 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
         )
 
-        try:
-            checkout = get_checkout(
-                cls,
-                info,
-                checkout_id=checkout_id,
-                token=token,
-                id=id,
-                error_class=CheckoutErrorCode,
-            )
-        except ValidationError as e:
-            # DEPRECATED
-            if id or checkout_id:
-                id = id or checkout_id
-                token = cls.get_global_id_or_error(
-                    id, only_type=Checkout, field="id" if id else "checkout_id"
-                )
-
-            order = order_models.Order.objects.get_by_checkout_token(token)
-            if order:
-                if not order.channel.is_active:
-                    raise ValidationError(
-                        {
-                            "channel": ValidationError(
-                                "Cannot complete checkout with inactive channel.",
-                                code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
-                            )
-                        }
-                    )
-                # The order is already created. We return it as a success
-                # checkoutComplete response. Order is anonymized for not logged in
-                # user
-                return CheckoutComplete(
-                    order=order, confirmation_needed=False, confirmation_data={}
-                )
-            raise e
-
-        metadata = data.get("metadata")
-        if metadata is not None:
-            cls.check_metadata_permissions(
-                info,
-                id or checkout_id or graphene.Node.to_global_id("Checkout", token),
-            )
-            cls.validate_metadata_keys(metadata)
-
-        validate_checkout_email(checkout)
-
-        manager = load_plugin_manager(info.context)
-        lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
-            not_available_variants_ids = {
-                graphene.Node.to_global_id("ProductVariant", pk)
-                for pk in unavailable_variant_pks
-            }
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Some of the checkout lines variants are unavailable.",
-                        code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
-                        params={"variants": not_available_variants_ids},
-                    )
-                }
-            )
-        if not lines:
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Cannot complete checkout without lines.",
-                        code=CheckoutErrorCode.NO_LINES.value,
-                    )
-                }
-            )
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
-        site = load_site(info.context)
-
-        cls._reserve_stocks_for_checkout_complete(checkout_info, lines, site.settings)
-
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
+            try:
+                checkout = get_checkout(
+                    cls,
+                    info,
+                    checkout_id=checkout_id,
+                    token=token,
+                    id=id,
+                    error_class=CheckoutErrorCode,
+                )
+            except ValidationError as e:
+                # DEPRECATED
+                if id or checkout_id:
+                    id = id or checkout_id
+                    token = cls.get_global_id_or_error(
+                        id, only_type=Checkout, field="id" if id else "checkout_id"
+                    )
+
+                order = order_models.Order.objects.get_by_checkout_token(token)
+                if order:
+                    if not order.channel.is_active:
+                        raise ValidationError(
+                            {
+                                "channel": ValidationError(
+                                    "Cannot complete checkout with inactive channel.",
+                                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                                )
+                            }
+                        )
+                    # The order is already created. We return it as a success
+                    # checkoutComplete response. Order is anonymized for not logged in
+                    # user
+                    return CheckoutComplete(
+                        order=order, confirmation_needed=False, confirmation_data={}
+                    )
+                raise e
+
+            metadata = data.get("metadata")
+            if metadata is not None:
+                cls.check_metadata_permissions(
+                    info,
+                    id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+                )
+                cls.validate_metadata_keys(metadata)
+
+            validate_checkout_email(checkout)
+
+            manager = load_plugin_manager(info.context)
+            lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+            if unavailable_variant_pks:
+                not_available_variants_ids = {
+                    graphene.Node.to_global_id("ProductVariant", pk)
+                    for pk in unavailable_variant_pks
+                }
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "Some of the checkout lines variants are unavailable.",
+                            code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
+                            params={"variants": not_available_variants_ids},
+                        )
+                    }
+                )
+            if not lines:
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "Cannot complete checkout without lines.",
+                            code=CheckoutErrorCode.NO_LINES.value,
+                        )
+                    }
+                )
+            discounts = load_discounts(info.context)
+            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+
             cls.validate_checkout_addresses(checkout_info, lines)
 
             requestor = get_user_or_app_from_context(info.context)
@@ -302,6 +259,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             else:
                 customer = info.context.user
 
+            site = load_site(info.context)
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -316,7 +274,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 redirect_url=data.get("redirect_url"),
                 metadata_list=data.get("metadata"),
             )
-
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(
