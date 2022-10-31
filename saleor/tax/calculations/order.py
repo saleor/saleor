@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Tuple
 
 from prices import Money, TaxedMoney
 
@@ -33,7 +33,7 @@ def update_order_prices_with_flat_rates(
     )
 
     # Calculate order line totals.
-    update_taxes_for_order_lines(
+    _, undiscounted_subtotal = update_taxes_for_order_lines(
         order, lines, country_code, default_tax_rate, prices_entered_with_tax
     )
 
@@ -52,11 +52,7 @@ def update_order_prices_with_flat_rates(
     order.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate order total.
-    undiscounted_subtotal = sum(
-        [line.undiscounted_total_price for line in lines],
-        zero_taxed_money(order.currency),
-    )
-    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
+    order.undiscounted_total = undiscounted_subtotal + order.base_shipping_price
     order.total = _calculate_order_total(order, lines)
 
 
@@ -101,7 +97,7 @@ def update_taxes_for_order_lines(
     country_code: str,
     default_tax_rate: Decimal,
     prices_entered_with_tax: bool,
-) -> Iterable["OrderLine"]:
+) -> Tuple[Iterable["OrderLine"], TaxedMoney]:
     currency = order.currency
     lines = list(lines)
 
@@ -110,6 +106,8 @@ def update_taxes_for_order_lines(
         [line.base_unit_price.amount * line.quantity for line in lines]
     )
     total_line_discounts = 0
+
+    undiscounted_subtotal = zero_taxed_money(order.currency)
 
     for line in lines:
         variant = line.variant
@@ -132,6 +130,8 @@ def update_taxes_for_order_lines(
         )
 
         line_total_price = line.base_unit_price * line.quantity
+        undiscounted_subtotal += line_total_price
+
         price_with_discounts = line.base_unit_price
         if total_discount_amount:
             if line is lines[-1]:
@@ -171,4 +171,4 @@ def update_taxes_for_order_lines(
         )
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
-    return lines
+    return lines, undiscounted_subtotal

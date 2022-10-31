@@ -34,11 +34,44 @@ def test_calculations_calculate_order_total(order_with_lines):
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
     # then
-    assert order.undiscounted_total == TaxedMoney(
-        net=Money("65.04", "USD"), gross=Money("80.00", "USD")
-    )
     assert order.total == TaxedMoney(
         net=Money("65.04", "USD"), gross=Money("80.00", "USD")
+    )
+
+
+def test_calculations_calculate_order_undiscounted_total(
+    order_with_lines, voucher_shipping_type
+):
+    # given
+    order = order_with_lines
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    lines = order.lines.all()
+
+    order.discounts.create(
+        type=OrderDiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=10,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=order.currency,
+        amount_value=10,
+    )
+    order.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(5.0),
+        name=voucher_shipping_type.code,
+        currency=order.currency,
+        amount_value=Decimal(5.0),
+    )
+
+    # when
+    update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
+
+    # then
+    assert order.undiscounted_total == TaxedMoney(
+        net=Money("80.00", "USD"), gross=Money("80.00", "USD")
     )
 
 
@@ -413,7 +446,7 @@ def test_update_taxes_for_order_lines(order_with_lines):
     country_code = get_order_country(order)
 
     # when
-    lines = update_taxes_for_order_lines(
+    lines, _ = update_taxes_for_order_lines(
         order, lines, country_code, Decimal(23), prices_entered_with_tax
     )
 
@@ -470,7 +503,7 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
     )
 
     # when
-    lines = update_taxes_for_order_lines(
+    lines, _ = update_taxes_for_order_lines(
         order, lines, country_code, Decimal(23), prices_entered_with_tax
     )
 
@@ -542,7 +575,7 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
     )
 
     # when
-    lines = update_taxes_for_order_lines(
+    lines, _ = update_taxes_for_order_lines(
         order, lines, country_code, Decimal(23), prices_entered_with_tax
     )
 
