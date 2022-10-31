@@ -153,3 +153,56 @@ def test_file_upload_file_with_the_same_name_already_exists(
     assert file_url != f"http://{domain}/media/{image_file._name}"
     assert file_url != f"http://{domain}/media/{path}"
     assert default_storage.exists(file_url.replace(f"http://{domain}/media/", ""))
+
+
+def test_file_upload_file_name_with_space(staff_api_client, media_root):
+    # given
+    image_file, image_name = create_image("file name with spaces")
+    variables = {"image": image_name}
+    body = get_multipart_request_body(
+        FILE_UPLOAD_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["fileUpload"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["uploadedFile"]["contentType"] == "image/png"
+    file_name, format = os.path.splitext(image_file._name)
+    file_name = file_name.replace(" ", "_")
+    returned_url = data["uploadedFile"]["url"]
+    file_path = urlparse(returned_url).path
+    assert file_path.startswith(f"/media/file_upload/{file_name}")
+    assert file_path.endswith(format)
+    assert default_storage.exists(file_path.lstrip("/media"))
+
+
+def test_file_upload_file_name_with_encoded_value(staff_api_client, media_root):
+    # given
+    image_file, image_name = create_image("file%20name")
+    variables = {"image": image_name}
+    body = get_multipart_request_body(
+        FILE_UPLOAD_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["fileUpload"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["uploadedFile"]["contentType"] == "image/png"
+    file_name, format = os.path.splitext(image_file._name)
+    returned_url = data["uploadedFile"]["url"]
+    file_path = urlparse(returned_url).path
+    assert file_path.startswith(f"/media/file_upload/{file_name}")
+    assert file_path.endswith(format)
+    assert default_storage.exists(file_path.lstrip("/media"))
