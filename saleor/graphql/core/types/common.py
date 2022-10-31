@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 import graphene
 from django.core.files.storage import default_storage
@@ -440,7 +440,8 @@ class File(graphene.ObjectType):
         # check if URL is absolute:
         if urlparse(root.url).netloc:
             return root.url
-        return build_absolute_uri(default_storage.url(root.url))
+        # unquote used for preventing double URL encoding
+        return build_absolute_uri(default_storage.url(unquote(root.url)))
 
 
 class PriceInput(graphene.InputObjectType):
