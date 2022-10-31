@@ -399,8 +399,7 @@ class AttributeMixin:
             slug = slugify(unidecode(value_data["name"]))
             if slug in existing_values:
                 msg = (
-                    "Value %s already exists within this attribute."
-                    % value_data["name"]
+                    f'Value {value_data["name"]} already exists within this attribute.'
                 )
                 raise ValidationError(
                     {
@@ -561,7 +560,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         remove_values = cleaned_input.get("remove_values", [])
         for value in remove_values:
             if value.attribute != instance:
-                msg = "Value %s does not belong to this attribute." % value
+                msg = f"Value {value} does not belong to this attribute."
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(

@@ -44,11 +44,9 @@ class JSONWebTokenBackend(ModelBackend):
 
         perm_cache_name = "_effective_permissions_cache"
         if not getattr(user_obj, perm_cache_name, None):
-            perms = getattr(self, "_get_%s_permissions" % from_name)(user_obj)
+            perms = getattr(self, f"_get_{from_name}_permissions")(user_obj)
             perms = perms.values_list("content_type__app_label", "codename").order_by()
-            setattr(
-                user_obj, perm_cache_name, {"%s.%s" % (ct, name) for ct, name in perms}
-            )
+            setattr(user_obj, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(user_obj, perm_cache_name)
 
 

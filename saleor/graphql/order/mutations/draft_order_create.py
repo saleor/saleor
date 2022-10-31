@@ -362,7 +362,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 )
             except TaxError as tax_error:
                 raise ValidationError(
-                    "Unable to calculate taxes - %s" % str(tax_error),
+                    f"Unable to calculate taxes - {str(tax_error)}",
                     code=OrderErrorCode.TAX_ERROR.value,
                 )
 

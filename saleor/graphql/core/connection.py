@@ -47,7 +47,7 @@ def get_field_value(instance: DjangoModel, field_name: str):
         attr = getattr(attr, elem, None)  # type:ignore
 
     if callable(attr):
-        return "%s" % attr()
+        return f"{attr()}"
     return attr
 
 

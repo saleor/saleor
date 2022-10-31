@@ -850,7 +850,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                            f"Couldn't resolve to a node: {sku}", code="not_found"
                         )
                     }
                 )
@@ -943,7 +943,7 @@ class ProductVariantStocksDelete(BaseMutation):
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                            f"Couldn't resolve to a node: {sku}", code="not_found"
                         )
                     }
                 )

@@ -615,7 +615,7 @@ def get_order_tax_data(
 ) -> Dict[str, Any]:
     data = get_order_request_data(order, config, tax_included)
     response = get_cached_response_or_fetch(
-        data, "order_%s" % order.id, config, force_refresh
+        data, f"order_{order.id}", config, force_refresh
     )
     if response and "error" in response:
         raise TaxError(response.get("error"))
