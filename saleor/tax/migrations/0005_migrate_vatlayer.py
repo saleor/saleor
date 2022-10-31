@@ -8,6 +8,10 @@ from django.db import migrations
 VATLAYER_ID = "mirumee.taxes.vatlayer"
 
 
+# Must be the same as in 0004_migrate_tax_class.py
+TAX_CLASS_ZERO_RATE = "No Taxes"
+
+
 def _clear_country_code(country_code: str) -> Optional[str]:
     return countries.alpha2(country_code.strip()) if country_code else None
 
@@ -61,7 +65,7 @@ def create_tax_rates(apps, use_origin_country_map):
     TaxClassCountryRate = apps.get_model("tax", "TaxClassCountryRate")
     VAT = apps.get_model("django_prices_vatlayer", "VAT")
 
-    tax_classes = TaxClass.objects.all()
+    tax_classes = TaxClass.objects.exclude(name=TAX_CLASS_ZERO_RATE)
     vat_rates = VAT.objects.all()
 
     rates = {}
