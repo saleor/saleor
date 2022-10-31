@@ -27,31 +27,27 @@ def _test_field_resolvers(tax_class: TaxClass, data: dict):
     assert data["countries"][0]["rate"] == country_rate.rate
 
 
-def test_tax_class_query_no_permissions(staff_api_client):
+def test_tax_class_query_no_permissions(user_api_client):
     # given
     tax_class = TaxClass.objects.first()
     id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
     variables = {"id": id}
 
     # when
-    response = staff_api_client.post_graphql(QUERY, variables, permissions=[])
+    response = user_api_client.post_graphql(QUERY, variables)
 
     # then
     assert_no_permission(response)
 
 
-def test_tax_class_query_staff_user(
-    staff_api_client, permission_manage_taxes, default_tax_class
-):
+def test_tax_class_query_staff_user(staff_api_client, default_tax_class):
     # given
     tax_class = default_tax_class
     id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
     variables = {"id": id}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY, variables, permissions=[permission_manage_taxes]
-    )
+    response = staff_api_client.post_graphql(QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -59,8 +55,36 @@ def test_tax_class_query_staff_user(
     _test_field_resolvers(tax_class, data)
 
 
-def test_tax_class_query_app(
-    app_api_client, permission_manage_taxes, default_tax_class
+def test_tax_class_query_app(app_api_client, default_tax_class):
+    # given
+    tax_class = default_tax_class
+    id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxClass"]
+    _test_field_resolvers(tax_class, data)
+
+
+TAX_CLASS_PRIVATE_METADATA_QUERY = """
+    query TaxClass($id: ID!) {
+        taxClass(id: $id) {
+            id
+            privateMetadata {
+                key
+                value
+            }
+        }
+    }
+"""
+
+
+def test_tax_class_private_metadata_requires_manage_taxes_app(
+    app_api_client, default_tax_class, permission_manage_taxes
 ):
     # given
     tax_class = default_tax_class
@@ -69,10 +93,35 @@ def test_tax_class_query_app(
 
     # when
     response = app_api_client.post_graphql(
-        QUERY, variables, permissions=[permission_manage_taxes]
+        TAX_CLASS_PRIVATE_METADATA_QUERY,
+        variables,
+        permissions=[permission_manage_taxes],
     )
 
     # then
     content = get_graphql_content(response)
     data = content["data"]["taxClass"]
-    _test_field_resolvers(tax_class, data)
+    assert data["id"] == graphene.Node.to_global_id("TaxClass", tax_class.pk)
+    assert data["privateMetadata"]
+
+
+def test_tax_class_private_metadata_requires_manage_taxes_staff_user(
+    staff_api_client, default_tax_class, permission_manage_taxes
+):
+    # given
+    tax_class = default_tax_class
+    id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        TAX_CLASS_PRIVATE_METADATA_QUERY,
+        variables,
+        permissions=[permission_manage_taxes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxClass"]
+    assert data["id"] == graphene.Node.to_global_id("TaxClass", tax_class.pk)
+    assert data["privateMetadata"]

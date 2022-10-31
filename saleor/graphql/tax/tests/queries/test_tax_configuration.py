@@ -35,7 +35,7 @@ def _test_field_resolvers(tax_configuration: TaxConfiguration, data: dict):
     )
 
 
-def test_tax_configuration_query_no_permissions(channel_USD, staff_api_client):
+def test_tax_configuration_query_no_permissions(channel_USD, user_api_client):
     # given
     id = graphene.Node.to_global_id(
         "TaxConfiguration", channel_USD.tax_configuration.pk
@@ -43,15 +43,13 @@ def test_tax_configuration_query_no_permissions(channel_USD, staff_api_client):
     variables = {"id": id}
 
     # when
-    response = staff_api_client.post_graphql(QUERY, variables, permissions=[])
+    response = user_api_client.post_graphql(QUERY, variables, permissions=[])
 
     # then
     assert_no_permission(response)
 
 
-def test_tax_configuration_query_staff_user(
-    channel_USD, staff_api_client, permission_manage_taxes
-):
+def test_tax_configuration_query_staff_user(channel_USD, staff_api_client):
     # given
     id = graphene.Node.to_global_id(
         "TaxConfiguration", channel_USD.tax_configuration.pk
@@ -59,9 +57,7 @@ def test_tax_configuration_query_staff_user(
     variables = {"id": id}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY, variables, permissions=[permission_manage_taxes]
-    )
+    response = staff_api_client.post_graphql(QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -70,8 +66,38 @@ def test_tax_configuration_query_staff_user(
     )
 
 
-def test_tax_configuration_query_app(
-    channel_USD, app_api_client, permission_manage_taxes
+def test_tax_configuration_query_app(channel_USD, app_api_client):
+    # given
+    id = graphene.Node.to_global_id(
+        "TaxConfiguration", channel_USD.tax_configuration.pk
+    )
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _test_field_resolvers(
+        channel_USD.tax_configuration, content["data"]["taxConfiguration"]
+    )
+
+
+TAX_CONFIGURATION_PRIVATE_METADATA_QUERY = """
+    query TaxConfiguration($id: ID!) {
+        taxConfiguration(id: $id) {
+            id
+            privateMetadata {
+                key
+                value
+            }
+        }
+    }
+"""
+
+
+def test_tax_class_private_metadata_requires_manage_taxes_app(
+    app_api_client, channel_USD, permission_manage_taxes
 ):
     # given
     id = graphene.Node.to_global_id(
@@ -81,11 +107,15 @@ def test_tax_configuration_query_app(
 
     # when
     response = app_api_client.post_graphql(
-        QUERY, variables, permissions=[permission_manage_taxes]
+        TAX_CONFIGURATION_PRIVATE_METADATA_QUERY,
+        variables,
+        permissions=[permission_manage_taxes],
     )
 
     # then
     content = get_graphql_content(response)
-    _test_field_resolvers(
-        channel_USD.tax_configuration, content["data"]["taxConfiguration"]
+    data = content["data"]["taxConfiguration"]
+    assert data["id"] == graphene.Node.to_global_id(
+        "TaxConfiguration", channel_USD.tax_configuration.pk
     )
+    assert data["privateMetadata"]

@@ -19,6 +19,10 @@ def default_tax_class(db):
                 META_CODE_KEY: DEFAULT_TAX_CODE,
                 META_DESCRIPTION_KEY: "Default tax code",
             },
+            "private_metadata": {
+                META_CODE_KEY: DEFAULT_TAX_CODE,
+                META_DESCRIPTION_KEY: "Default tax code",
+            },
         },
     )
     TaxClassCountryRate.objects.bulk_create(

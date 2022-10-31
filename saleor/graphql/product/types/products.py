@@ -11,10 +11,8 @@ from promise import Promise
 from ....attribute import models as attribute_models
 from ....core.permissions import (
     AuthorizationFilters,
-    CheckoutPermissions,
     OrderPermissions,
     ProductPermissions,
-    ProductTypePermissions,
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
@@ -938,10 +936,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[
-            CheckoutPermissions.MANAGE_TAXES,
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
 
     class Meta:
@@ -1509,11 +1504,7 @@ class ProductType(ModelObjectType):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[
-            CheckoutPermissions.MANAGE_TAXES,
-            ProductPermissions.MANAGE_PRODUCTS,
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-        ],
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
     variant_attributes = NonNullList(
         Attribute,
