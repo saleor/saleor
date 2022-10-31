@@ -1,8 +1,13 @@
 # Changelog
 
+# 3.9.0 [Unreleased]
+
+- Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
+  <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
+
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.8.0 [Unreleased]
+# 3.8.0
 
 ### GraphQL API
 - Add ability to filter by slug. #10578 by @kadewu
