@@ -26,7 +26,6 @@ from ...warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order
-    from ...product.models import Product, ProductType
     from ...tax.models import TaxClass
 
 
@@ -289,7 +288,7 @@ def generate_request_data_from_checkout_lines(
         if product.tax_class:
             tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
         elif product_type.tax_class:
-            tax_code = retrieve_tax_code_from_meta(product_type)
+            tax_code = retrieve_tax_code_from_meta(product_type.tax_class)
         else:
             tax_code = DEFAULT_TAX_CODE
 
@@ -383,8 +382,15 @@ def get_order_lines_data(
             continue
         product = line.variant.product
         product_type = line.variant.product.product_type
-        tax_code = retrieve_tax_code_from_meta(product, default=None)
-        tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
+
+        tax_code = None
+        if product.tax_class:
+            tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
+        elif product_type.tax_class:
+            tax_code = retrieve_tax_code_from_meta(product_type.tax_class)
+        else:
+            tax_code = DEFAULT_TAX_CODE
+
         prices_data = base_order_calculations.base_order_line_total(line)
 
         if prices_entered_with_tax:
@@ -663,8 +669,7 @@ def get_cached_tax_codes_or_fetch(
 
 
 def retrieve_tax_code_from_meta(
-    obj: Union["Product", "ProductType", "TaxClass"],
-    default: Optional[str] = DEFAULT_TAX_CODE,
+    obj: "TaxClass", default: Optional[str] = DEFAULT_TAX_CODE
 ):
     tax_code = obj.get_value_from_metadata(META_CODE_KEY, default)
     return tax_code
