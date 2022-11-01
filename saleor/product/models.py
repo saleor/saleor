@@ -735,7 +735,7 @@ class ProductVariantChannelListing(models.Model):
 
     cost_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        decimal_places=5,
         blank=True,
         null=True,
     )
