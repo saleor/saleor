@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='productvariantchannellisting',
             name='cost_price_amount',
-            field=models.DecimalField(blank=True, decimal_places=10, max_digits=12, null=True),
+            field=models.DecimalField(blank=True, decimal_places=5, max_digits=12, null=True),
         ),
     ]
