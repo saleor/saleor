@@ -41,12 +41,12 @@ def _test_field_resolvers(
         assert expected_rate_data in data["taxClassCountryRates"]
 
 
-def test_tax_country_configuration_query_no_permissions(staff_api_client):
+def test_tax_country_configuration_query_no_permissions(user_api_client):
     # given
     country_code = "PL"
 
     # when
-    response = staff_api_client.post_graphql(
+    response = user_api_client.post_graphql(
         QUERY, {"countryCode": country_code}, permissions=[]
     )
 
@@ -54,17 +54,13 @@ def test_tax_country_configuration_query_no_permissions(staff_api_client):
     assert_no_permission(response)
 
 
-def test_tax_country_configuration_query_staff_user(
-    staff_api_client, permission_manage_taxes
-):
+def test_tax_country_configuration_query_staff_user(staff_api_client):
     # given
     country_code = "PL"
     country_rates = TaxClassCountryRate.objects.filter(country="PL")
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY, {"countryCode": country_code}, permissions=[permission_manage_taxes]
-    )
+    response = staff_api_client.post_graphql(QUERY, {"countryCode": country_code})
 
     # then
     content = get_graphql_content(response)
@@ -73,15 +69,13 @@ def test_tax_country_configuration_query_staff_user(
     )
 
 
-def test_tax_country_configuration_query_app(app_api_client, permission_manage_taxes):
+def test_tax_country_configuration_query_app(app_api_client):
     # given
     country_code = "PL"
     country_rates = TaxClassCountryRate.objects.filter(country="PL")
 
     # when
-    response = app_api_client.post_graphql(
-        QUERY, {"countryCode": country_code}, permissions=[permission_manage_taxes]
-    )
+    response = app_api_client.post_graphql(QUERY, {"countryCode": country_code})
 
     # then
     content = get_graphql_content(response)

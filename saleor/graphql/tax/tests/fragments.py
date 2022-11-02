@@ -22,10 +22,6 @@ TAX_CONFIGURATION_FRAGMENT = """
       key
       value
     }
-    privateMetadata {
-      key
-      value
-    }
   }
 """
 
@@ -42,10 +38,6 @@ TAX_CLASS_FRAGMENT = """
       rate
     }
     metadata {
-      key
-      value
-    }
-    privateMetadata {
       key
       value
     }

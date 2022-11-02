@@ -20,32 +20,26 @@ def _test_field_resolvers(data: dict):
     assert len(data["taxCountryConfigurations"]) == len(configured_countries)
 
 
-def test_tax_country_configurations_query_no_permissions(staff_api_client):
+def test_tax_country_configurations_query_no_permissions(user_api_client):
     # when
-    response = staff_api_client.post_graphql(QUERY, {}, permissions=[])
+    response = user_api_client.post_graphql(QUERY, {}, permissions=[])
 
     # then
     assert_no_permission(response)
 
 
-def test_tax_country_configurations_query_staff_user(
-    staff_api_client, permission_manage_taxes
-):
+def test_tax_country_configurations_query_staff_user(staff_api_client):
     # when
-    response = staff_api_client.post_graphql(
-        QUERY, {}, permissions=[permission_manage_taxes]
-    )
+    response = staff_api_client.post_graphql(QUERY, {})
 
     # then
     content = get_graphql_content(response)
     _test_field_resolvers(content["data"])
 
 
-def test_tax_country_configurations_query_app(app_api_client, permission_manage_taxes):
+def test_tax_country_configurations_query_app(app_api_client):
     # when
-    response = app_api_client.post_graphql(
-        QUERY, {}, permissions=[permission_manage_taxes]
-    )
+    response = app_api_client.post_graphql(QUERY, {})
 
     # then
     content = get_graphql_content(response)

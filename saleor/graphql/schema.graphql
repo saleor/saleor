@@ -102,7 +102,7 @@ type Query {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: MANAGE_TAXES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxConfiguration(
     """ID of a tax configuration."""
@@ -116,7 +116,7 @@ type Query {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: MANAGE_TAXES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxConfigurations(
     """Filtering options for tax configurations."""
@@ -142,7 +142,7 @@ type Query {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: MANAGE_TAXES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass(
     """ID of a tax class."""
@@ -156,7 +156,7 @@ type Query {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: MANAGE_TAXES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClasses(
     """Sort tax classes."""
@@ -181,14 +181,14 @@ type Query {
   """
   Tax class rates grouped by country.
   
-  Requires one of the following permissions: MANAGE_TAXES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxCountryConfiguration(
     """Country for which to return tax class rates."""
     countryCode: CountryCode!
   ): TaxCountryConfiguration
 
-  "\\n\\nRequires one of the following permissions: MANAGE_TAXES."
+  "\\n\\nRequires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP."
   taxCountryConfigurations: [TaxCountryConfiguration!]
 
   """
@@ -4859,7 +4859,7 @@ type Product implements Node & ObjectWithMetadata {
   """
   Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   
-  Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   taxClass: TaxClass
 }
@@ -4949,7 +4949,7 @@ type ProductType implements Node & ObjectWithMetadata {
   """
   Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   
-  Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   taxClass: TaxClass
 
