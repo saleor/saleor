@@ -444,7 +444,10 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
 
 
 @pytest.mark.integration
-@patch("saleor.graphql.checkout.mutations.checkout_complete.complete_checkout")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_complete"
+    ".complete_checkout_post_payment_part"
+)
 def test_checkout_complete_by_app(
     mocked_complete_checkout,
     app_api_client,
@@ -496,20 +499,21 @@ def test_checkout_complete_by_app(
         manager=ANY,
         checkout_info=ANY,
         lines=ANY,
-        payment_data=ANY,
-        store_source=ANY,
-        discounts=ANY,
+        payment=ANY,
+        txn=ANY,
+        order_data=ANY,
         user=checkout.user,
         app=ANY,
         site_settings=ANY,
-        tracking_code=ANY,
-        redirect_url=ANY,
         metadata_list=ANY,
     )
 
 
 @pytest.mark.integration
-@patch("saleor.graphql.checkout.mutations.checkout_complete.complete_checkout")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_complete."
+    "complete_checkout_post_payment_part"
+)
 def test_checkout_complete_by_app_with_missing_permission(
     mocked_complete_checkout,
     app_api_client,
@@ -561,14 +565,12 @@ def test_checkout_complete_by_app_with_missing_permission(
         manager=ANY,
         checkout_info=ANY,
         lines=ANY,
-        payment_data=ANY,
-        store_source=ANY,
-        discounts=ANY,
+        payment=ANY,
+        txn=ANY,
+        order_data=ANY,
         user=None,
         app=ANY,
         site_settings=ANY,
-        tracking_code=ANY,
-        redirect_url=ANY,
         metadata_list=ANY,
     )
 
@@ -1739,7 +1741,6 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
 def test_order_already_exists(
     user_api_client, checkout_ready_to_complete, payment_dummy, order_with_lines
 ):
-
     checkout = checkout_ready_to_complete
     order_with_lines.checkout_token = checkout.token
     order_with_lines.save()

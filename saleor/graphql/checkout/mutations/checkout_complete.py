@@ -1,14 +1,21 @@
+from datetime import timedelta
 from typing import Iterable
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ....checkout import AddressType
 from ....checkout.checkout_cleaner import (
     clean_checkout_shipping,
     validate_checkout_email,
 )
-from ....checkout.complete_checkout import complete_checkout
+from ....checkout.complete_checkout import (
+    complete_checkout_post_payment_part,
+    complete_checkout_pre_payment_part,
+    process_payment,
+)
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutInfo,
@@ -19,7 +26,11 @@ from ....checkout.fetch import (
 from ....checkout.utils import is_shipping_required
 from ....core import analytics
 from ....core.permissions import AccountPermissions
+from ....core.transactions import transaction_with_commit_on_errors
+from ....discount.utils import release_voucher_usage
 from ....order import models as order_models
+from ....payment import gateway
+from ....warehouse.models import Reservation, Stock
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
@@ -163,16 +174,62 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         if billing_address_data != billing_address.as_data():
             billing_address.save()
 
+    @staticmethod
+    def compare_order_data(order_data_1, order_data_2):
+        order_total_check = (
+            order_data_1["total"].gross.amount == order_data_2["total"].gross.amount
+        )
+        order_lines_quantity_check = len(order_data_1["lines"]) == len(
+            order_data_2["lines"]
+        )
+        variants_id_1 = [line.variant.id for line in order_data_1["lines"]]
+        order_lines_check = all(
+            [line.variant.id in variants_id_1 for line in order_data_2["lines"]]
+        )
+        return order_total_check and order_lines_quantity_check and order_lines_check
+
+    @staticmethod
+    def reserve_stocks_without_availability_check(
+        checkout_info: CheckoutInfo,
+        lines: Iterable[CheckoutLineInfo],
+    ):
+        """Add additional temporary reservation for stock.
+
+        Due to unlocking rows, for the time of external payment call, it prevents users
+        ordering the same product, in the same time, which is out of stock.
+        """
+        variants = [line.variant for line in lines]
+        stocks = Stock.objects.get_variants_stocks_for_country(
+            country_code=checkout_info.get_country(),
+            channel_slug=checkout_info.channel,
+            products_variants=variants,
+        )
+        variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
+
+        reservations = []
+        for line in lines:
+            if line.variant.id in variants_stocks_map:
+                reservations.append(
+                    Reservation(
+                        quantity_reserved=line.line.quantity,
+                        reserved_until=timezone.now()
+                        + timedelta(seconds=settings.RESERVE_DURATION),
+                        stock=variants_stocks_map[line.variant.id],
+                        checkout_line=line.line,
+                    )
+                )
+        Reservation.objects.bulk_create(reservations)
+
     @classmethod
-    def perform_mutation(
-        cls, _root, info, store_source, checkout_id=None, token=None, id=None, **data
+    def prepare_and_validate_checkout_info(
+        cls, _root, info, checkout_id=None, token=None, id=None, **data
     ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
         )
 
-        tracking_code = analytics.get_client_id(info.context)
+        result = {}
         try:
             checkout = get_checkout(
                 cls,
@@ -204,9 +261,10 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 # The order is already created. We return it as a success
                 # checkoutComplete response. Order is anonymized for not logged in
                 # user
-                return CheckoutComplete(
+                result["checkout_complete"] = CheckoutComplete(
                     order=order, confirmation_needed=False, confirmation_data={}
                 )
+                return result
             raise e
 
         metadata = data.get("metadata")
@@ -220,6 +278,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         validate_checkout_email(checkout)
 
         manager = load_plugin_manager(info.context)
+
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             not_available_variants_ids = {
@@ -257,21 +316,118 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         else:
             customer = info.context.user
 
-        site = load_site(info.context)
-        order, action_required, action_data = complete_checkout(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            payment_data=data.get("payment_data", {}),
-            store_source=store_source,
-            discounts=discounts,
-            user=customer,
-            app=load_app(info.context),
-            site_settings=site.settings,
-            tracking_code=tracking_code,
-            redirect_url=data.get("redirect_url"),
-            metadata_list=data.get("metadata"),
-        )
+        result["checkout_info"] = checkout_info
+        result["lines"] = lines
+        result["discounts"] = discounts
+        result["customer"] = customer
+        result["manager"] = manager
+        result["site"] = load_site(info.context)
+        result["tracking_code"] = analytics.get_client_id(info.context)
+
+        return result
+
+    @classmethod
+    def perform_mutation(
+        cls, _root, info, store_source, checkout_id=None, token=None, id=None, **data
+    ):
+        with transaction_with_commit_on_errors():
+            prepayment_info = cls.prepare_and_validate_checkout_info(
+                _root, info, checkout_id, token, id, **data
+            )
+
+            if prepayment_info.get("checkout_complete"):
+                return prepayment_info["checkout_complete"]
+
+            payment, customer_id, order_data = complete_checkout_pre_payment_part(
+                manager=prepayment_info["manager"],
+                checkout_info=prepayment_info["checkout_info"],
+                lines=prepayment_info["lines"],
+                discounts=prepayment_info["discounts"],
+                user=prepayment_info["customer"],
+                site_settings=prepayment_info["site"].settings,
+                tracking_code=prepayment_info["tracking_code"],
+                redirect_url=data.get("redirect_url"),
+            )
+
+            cls.reserve_stocks_without_availability_check(
+                prepayment_info["checkout_info"], prepayment_info["lines"]
+            )
+
+        # Process payments out of transaction to unlock stock rows for another user,
+        # who potentially can order the same product variants.
+        txn = None
+        if payment:
+            txn = process_payment(
+                payment=payment,
+                customer_id=customer_id,
+                store_source=store_source,
+                payment_data=data.get("payment_data", {}),
+                order_data=order_data,
+                manager=prepayment_info["manager"],
+                channel_slug=prepayment_info["checkout_info"].channel.slug,
+            )
+
+        with transaction_with_commit_on_errors():
+            # Run pre-payment checks to make sure, that nothing has changed to the
+            # checkout, during processing payment.
+            try:
+                post_payment_info = cls.prepare_and_validate_checkout_info(
+                    _root, info, checkout_id, token, id, **data
+                )
+
+                if post_payment_info.get("checkout_complete"):
+                    return post_payment_info["checkout_complete"]
+            except ValidationError as e:
+                release_voucher_usage(
+                    order_data.get("voucher"), order_data.get("user_email")
+                )
+                gateway.payment_refund_or_void(
+                    payment,
+                    prepayment_info["manager"],
+                    channel_slug=prepayment_info["checkout_info"].channel.slug,
+                )
+                raise e
+
+            post_payment_info["checkout_info"].checkout.voucher_code = None
+            _, _, post_payment_order_data = complete_checkout_pre_payment_part(
+                manager=post_payment_info["manager"],
+                checkout_info=post_payment_info["checkout_info"],
+                lines=post_payment_info["lines"],
+                discounts=post_payment_info["discounts"],
+                user=post_payment_info["customer"],
+                site_settings=post_payment_info["site"].settings,
+                tracking_code=post_payment_info["tracking_code"],
+                redirect_url=data.get("redirect_url"),
+            )
+
+            if cls.compare_order_data(order_data, post_payment_order_data):
+                (
+                    order,
+                    action_required,
+                    action_data,
+                ) = complete_checkout_post_payment_part(
+                    manager=post_payment_info["manager"],
+                    checkout_info=post_payment_info["checkout_info"],
+                    lines=post_payment_info["lines"],
+                    payment=payment,
+                    txn=txn,
+                    order_data=order_data,
+                    user=post_payment_info["customer"],
+                    app=load_app(info.context),
+                    site_settings=post_payment_info["site"].settings,
+                    metadata_list=data.get("metadata"),
+                )
+            else:
+                release_voucher_usage(
+                    order_data.get("voucher"), order_data.get("user_email")
+                )
+                gateway.payment_refund_or_void(
+                    payment,
+                    prepayment_info["manager"],
+                    channel_slug=prepayment_info["checkout_info"].channel.slug,
+                )
+                raise ValidationError("Checkout has changed during payment processing")
+
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(
