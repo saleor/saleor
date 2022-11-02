@@ -130,7 +130,7 @@ def _validate_image_format(file, field_name, error_class):
 
 
 def validate_slug_and_generate_if_needed(
-    instance: Type["Model"],
+    instance: "Model",
     slugable_field: str,
     cleaned_input: dict,
     slug_field_name: str = "slug",
@@ -196,7 +196,9 @@ def validate_if_int_or_uuid(id):
 
 
 def from_global_id_or_error(
-    global_id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+    global_id: str,
+    only_type: Union[ObjectType, str, None] = None,
+    raise_error: bool = False,
 ):
     """Resolve global ID or raise GraphQLError.
 
@@ -226,7 +228,7 @@ def from_global_id_or_error(
 
 
 def from_global_id_or_none(
-    global_id, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+    global_id, only_type: Union[ObjectType, str, None] = None, raise_error: bool = False
 ):
     if not global_id:
         return None

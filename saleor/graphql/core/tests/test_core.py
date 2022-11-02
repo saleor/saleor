@@ -248,14 +248,13 @@ def test_validate_image_file():
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
     image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
     field = "image"
 
     # when
-    result = validate_image_file(img, field, ProductErrorCode)
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
 
     # then
-    assert not result
+    validate_image_file(img, field, ProductErrorCode)
 
 
 def test_validate_image_file_invalid_content_type():
@@ -367,17 +366,16 @@ def test_validate_image_url_valid_image_response(monkeypatch):
         Mock(return_value=valid_image_response_mock),
     )
     field = "image"
-    dummy_url = "http://example.com/valid_url.jpg"
 
     # when
-    result = validate_image_url(
-        dummy_url,
-        field,
-        ProductErrorCode.INVALID,
-    )
+    dummy_url = "http://example.com/valid_url.jpg"
 
     # then
-    assert result is None
+    validate_image_url(
+        dummy_url,
+        field,
+        ProductErrorCode.INVALID.value,
+    )
 
 
 def test_validate_image_url_invalid_mimetype_response(monkeypatch):
@@ -396,7 +394,7 @@ def test_validate_image_url_invalid_mimetype_response(monkeypatch):
         validate_image_url(
             dummy_url,
             field,
-            ProductErrorCode.INVALID,
+            ProductErrorCode.INVALID.value,
         )
 
     # then
@@ -419,7 +417,7 @@ def test_validate_image_url_response_without_content_headers(monkeypatch):
         validate_image_url(
             dummy_url,
             field,
-            ProductErrorCode.INVALID,
+            ProductErrorCode.INVALID.value,
         )
 
     # then
