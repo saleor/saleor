@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
+from django.utils.functional import empty
 
 from ...account.models import User
 from ...app.models import App
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .dataloaders import DataLoader
 
 
-UserType = Union[User, AnonymousUser]
+UserType = Optional[User]
 
 
 class SaleorContext(HttpRequest):
@@ -20,6 +20,7 @@ class SaleorContext(HttpRequest):
     is_mutation: bool
     dataloaders: Dict[str, "DataLoader"]
     app: Optional["App"]
+    user: UserType  # type: ignore
 
 
 def set_mutation_flag_in_context(context: SaleorContext) -> None:
@@ -51,3 +52,11 @@ def get_database_connection_name(context: SaleorContext) -> str:
     if not is_mutation:
         return settings.DATABASE_CONNECTION_REPLICA_NAME
     return settings.DATABASE_CONNECTION_DEFAULT_NAME
+
+
+def setup_context_user(context: SaleorContext) -> None:
+    if hasattr(context.user, "_wrapped") and (
+        context.user._wrapped is empty or context.user._wrapped is None  # type: ignore
+    ):
+        context.user._setup()  # type: ignore
+        context.user = context.user._wrapped  # type: ignore

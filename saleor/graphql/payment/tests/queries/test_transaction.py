@@ -2,9 +2,10 @@ from decimal import Decimal
 
 from .....payment import TransactionEventActionType, TransactionEventStatus
 from .....payment.models import TransactionEvent
-from .....tests.consts import TEST_SERVER_DOMAIN
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
+
+TEST_SERVER_DOMAIN = "testserver.com"
 
 TRANSACTION_QUERY = """
     query transaction($id: ID!){
@@ -282,7 +283,7 @@ def test_transaction_event_by_user(
         currency="USD",
         type=TransactionEventActionType.CHARGE,
         amount_value=Decimal("10.00"),
-        external_url=f"http://`{TEST_SERVER_DOMAIN}.com/test",
+        external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
     )
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
@@ -325,7 +326,7 @@ def test_transaction_event_by_app(
         currency="USD",
         type=TransactionEventActionType.CHARGE,
         amount_value=Decimal("10.00"),
-        external_url=f"http://`{TEST_SERVER_DOMAIN}.com/test",
+        external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
     )
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}

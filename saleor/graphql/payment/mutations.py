@@ -732,7 +732,9 @@ class TransactionCreate(BaseMutation):
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict], field_name, error_code):
+    def validate_metadata_keys(  # type: ignore
+        cls, metadata_list: List[dict], field_name, error_code
+    ):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
@@ -869,7 +871,7 @@ class TransactionCreate(BaseMutation):
         try:
             return payment_models.TransactionItem.objects.create(
                 **transaction_input,
-                user=user if user.is_authenticated else None,
+                user=user if user and user.is_authenticated else None,
                 app=app,
             )
         except IntegrityError:
@@ -1091,7 +1093,9 @@ class TransactionUpdate(TransactionCreate):
         instance = cls.get_node_or_error(info, instance_id, only_type=TransactionItem)
 
         cls.check_can_update(
-            transaction=instance, user=user if user.is_authenticated else None, app=app
+            transaction=instance,
+            user=user if user and user.is_authenticated else None,
+            app=app,
         )
 
         transaction_data = data.get("transaction")
@@ -1160,7 +1164,7 @@ class TransactionRequestAction(BaseMutation):
         for required_permission in required_permissions:
             # We want to allow to call this mutation for requestor with one of following
             # permission: manage_orders, handle_payments
-            if requestor.has_perm(required_permission):
+            if requestor and requestor.has_perm(required_permission):
                 return True
         return False
 

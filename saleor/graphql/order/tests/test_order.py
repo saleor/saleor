@@ -8,7 +8,6 @@ from unittest.mock import ANY, MagicMock, Mock, call, patch
 import graphene
 import pytest
 import pytz
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import Sum
@@ -25,6 +24,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.postgres import FlatConcatSearchVector
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_money, zero_taxed_money
+from ....core.tests.utils import get_site_context_payload
 from ....discount.models import OrderDiscount, VoucherChannelListing
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
@@ -53,7 +53,6 @@ from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
@@ -1124,7 +1123,6 @@ def test_order_available_shipping_methods_with_weight_based_shipping_method(
     permission_manage_orders,
     minimum_order_weight_value,
 ):
-
     shipping_method = shipping_method_weight_based
     order = order_line.order
     if minimum_order_weight_value is not None:
@@ -2167,6 +2165,7 @@ def test_order_query_product_image_size_and_format_given_proxy_url_returned(
     permission_manage_orders,
     order_line,
     product_with_image,
+    site_settings,
 ):
     # given
     order_line.variant.product = product_with_image
@@ -2186,10 +2185,11 @@ def test_order_query_product_image_size_and_format_given_proxy_url_returned(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    domain = site_settings.site.domain
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{domain}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
@@ -2198,6 +2198,7 @@ def test_order_query_product_image_size_given_proxy_url_returned(
     permission_manage_orders,
     order_line,
     product_with_image,
+    site_settings,
 ):
     # given
     order_line.variant.product = product_with_image
@@ -2218,7 +2219,7 @@ def test_order_query_product_image_size_given_proxy_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/"
     )
 
 
@@ -2227,6 +2228,7 @@ def test_order_query_product_image_size_given_thumbnail_url_returned(
     permission_manage_orders,
     order_line,
     product_with_image,
+    site_settings,
 ):
     # given
     order_line.variant.product = product_with_image
@@ -2251,7 +2253,7 @@ def test_order_query_product_image_size_given_thumbnail_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -2260,6 +2262,7 @@ def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
     permission_manage_orders,
     order_line,
     variant_with_image,
+    site_settings,
 ):
     # given
     order_line.variant = variant_with_image
@@ -2279,10 +2282,11 @@ def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    domain = site_settings.site.domain
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/{format.lower()}/"
+        == f"http://{domain}/thumbnail/{media_id}/128/{format.lower()}/"
     )
 
 
@@ -2291,6 +2295,7 @@ def test_order_query_variant_image_size_given_proxy_url_returned(
     permission_manage_orders,
     order_line,
     variant_with_image,
+    site_settings,
 ):
     # given
     order_line.variant = variant_with_image
@@ -2311,7 +2316,7 @@ def test_order_query_variant_image_size_given_proxy_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{media_id}/128/"
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/"
     )
 
 
@@ -2320,6 +2325,7 @@ def test_order_query_variant_image_size_given_thumbnail_url_returned(
     permission_manage_orders,
     order_line,
     variant_with_image,
+    site_settings,
 ):
     # given
     order_line.variant = variant_with_image
@@ -2344,7 +2350,7 @@ def test_order_query_variant_image_size_given_thumbnail_url_returned(
     assert len(order_data["lines"]) == 1
     assert (
         order_data["lines"][0]["thumbnail"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
@@ -2422,8 +2428,7 @@ def test_order_confirm(
         "recipient_email": order_unconfirmed.user.email,
         "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMED,
@@ -2445,6 +2450,7 @@ def test_order_confirm_without_sku(
     order_unconfirmed,
     permission_manage_orders,
     payment_txn_preauth,
+    site_settings,
 ):
     order_unconfirmed.lines.update(product_sku=None)
     ProductVariant.objects.update(sku=None)
@@ -2484,8 +2490,7 @@ def test_order_confirm_without_sku(
         "recipient_email": order_unconfirmed.user.email,
         "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMED,
@@ -3354,6 +3359,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                                 amount
                             }
                         }
+                        shippingMethodName
                     }
                 }
         }
@@ -3430,6 +3436,7 @@ def test_draft_order_create(
     order = Order.objects.first()
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
+    assert order.shipping_method_name == shipping_method.name
     assert order.billing_address
     assert order.shipping_address
     assert order.search_vector
@@ -4764,6 +4771,30 @@ def test_draft_order_delete(staff_api_client, permission_manage_orders, draft_or
     )
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
+
+
+def test_draft_order_delete_product(
+    app_api_client, permission_manage_products, draft_order
+):
+    query = """
+        mutation DeleteProduct($id: ID!) {
+          productDelete(id: $id) {
+            product {
+              id
+            }
+          }
+        }
+    """
+    order = draft_order
+    line = order.lines.first()
+    product = line.variant.product
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"id": product_id}
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["productDelete"]["product"]["id"] == product_id
 
 
 @pytest.mark.parametrize(
@@ -7330,7 +7361,7 @@ def test_order_cancel_as_app(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=AnonymousUser(), app=app_api_client.app, manager=ANY
+        order=order, user=None, app=app_api_client.app, manager=ANY
     )
 
 
@@ -7445,8 +7476,7 @@ def test_order_capture(
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         },
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -8012,7 +8042,6 @@ def test_order_refund_with_transaction_action_request_missing_event(
 def test_clean_payment_without_payment_associated_to_order(
     staff_api_client, permission_manage_orders, order, requires_amount, mutation_name
 ):
-
     assert not OrderEvent.objects.exists()
 
     additional_arguments = ", amount: 2" if requires_amount else ""
@@ -9252,7 +9281,7 @@ def test_order_bulk_cancel_as_app(
     assert not data["errors"]
 
     calls = [
-        call(order=order, user=AnonymousUser(), app=app_api_client.app, manager=ANY)
+        call(order=order, user=None, app=app_api_client.app, manager=ANY)
         for order in orders
     ]
 
@@ -10332,7 +10361,6 @@ def test_orders_query_with_filter_by_orders_id(
     permission_manage_orders,
     channel_USD,
 ):
-
     # given
     orders = Order.objects.bulk_create(
         [
@@ -10371,7 +10399,6 @@ def test_orders_query_with_filter_by_old_orders_id(
     permission_manage_orders,
     channel_USD,
 ):
-
     # given
     orders = Order.objects.bulk_create(
         [
@@ -10412,7 +10439,6 @@ def test_orders_query_with_filter_by_old_and_new_orders_id(
     permission_manage_orders,
     channel_USD,
 ):
-
     # given
     orders = Order.objects.bulk_create(
         [
@@ -11349,12 +11375,12 @@ def test_order_resolver_tax_recalculation(
 
     query = (
         """
-    query OrderPrices($id: ID!) {
-        order(id: $id) {
-            %s { net { amount } gross { amount } }
+        query OrderPrices($id: ID!) {
+            order(id: $id) {
+                %s { net { amount } gross { amount } }
+            }
         }
-    }
-    """
+        """
         % price_name
     )
     variables = {"id": order_id}
@@ -11421,14 +11447,14 @@ def test_order_line_resolver_tax_recalculation(
 
     query = (
         """
-    query OrderLinePrices($id: ID!) {
-        order(id: $id) {
-            lines {
-                %s { net { amount } gross { amount } }
+        query OrderLinePrices($id: ID!) {
+            order(id: $id) {
+                lines {
+                    %s { net { amount } gross { amount } }
+                }
             }
         }
-    }
-    """
+        """
         % price_name
     )
     variables = {"id": order_id}
@@ -11459,7 +11485,6 @@ query OrderShippingTaxRate($id: ID!) {
     }
 }
 """
-
 
 ORDER_LINE_TAX_RATE_QUERY = """
 query OrderLineTaxRate($id: ID!) {

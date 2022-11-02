@@ -696,7 +696,7 @@ class Fulfillment(ModelWithMetadata):
 
     @property
     def composed_id(self):
-        return "%s-%s" % (self.order.number, self.fulfillment_order)
+        return f"{self.order.number}-{self.fulfillment_order}"
 
     def can_edit(self):
         return self.status != FulfillmentStatus.CANCELED

@@ -21,7 +21,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
 )
-from ..core.descriptions import CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_38, CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
 from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
 
@@ -40,7 +40,7 @@ class CategorySortField(graphene.Enum):
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort categories by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
@@ -92,7 +92,7 @@ class CollectionSortField(graphene.Enum):
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
@@ -145,6 +145,7 @@ class ProductOrderField(graphene.Enum):
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
     COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
+    CREATED_AT = ["created_at", "name", "slug"]
 
     @property
     def description(self):
@@ -179,10 +180,11 @@ class ProductOrderField(graphene.Enum):
             ),
             ProductOrderField.LAST_MODIFIED_AT.name: "update date.",
             ProductOrderField.RATING.name: "rating.",
+            ProductOrderField.CREATED_AT.name: "creation date." + ADDED_IN_38,
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_price(queryset: QuerySet, channel_slug: str) -> QuerySet:
@@ -268,7 +270,7 @@ class ProductVariantSortField(graphene.Enum):
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort products variants by {sort_name}."
 
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ProductVariantSortingInput(SortInputObjectType):
@@ -292,7 +294,7 @@ class ProductTypeSortField(graphene.Enum):
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ProductTypeSortingInput(SortInputObjectType):

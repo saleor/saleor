@@ -218,9 +218,21 @@ def test_build_absolute_uri(site_settings, settings):
     # Case when static url is resolved to relative url
     logo_url = build_absolute_uri(static("images/close.svg"))
     protocol = "https" if settings.ENABLE_SSL else "http"
-    current_url = "%s://%s" % (protocol, site_settings.site.domain)
+    current_url = f"{protocol}://{site_settings.site.domain}"
     logo_location = urljoin(current_url, static("images/close.svg"))
     assert logo_url == logo_location
+
+
+def test_build_absolute_uri_with_host(site_settings, settings):
+    # given
+    host = "test.com"
+    location = "images/close.svg"
+
+    # when
+    url = build_absolute_uri(location, host)
+
+    # then
+    assert url == f"http://{host}/{location}"
 
 
 def test_delete_sort_order_with_null_value(menu_item):

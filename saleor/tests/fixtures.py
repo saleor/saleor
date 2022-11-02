@@ -3783,6 +3783,32 @@ def gift_card_event(gift_card, order, app, staff_user):
     )
 
 
+@pytest.fixture
+def gift_card_list():
+    gift_cards = list(
+        GiftCard.objects.bulk_create(
+            [
+                GiftCard(
+                    code="code-test-1",
+                    initial_balance=Money(10, "USD"),
+                    current_balance=Money(10, "USD"),
+                ),
+                GiftCard(
+                    code="code-test-2",
+                    initial_balance=Money(10, "USD"),
+                    current_balance=Money(10, "USD"),
+                ),
+                GiftCard(
+                    code="code-test-3",
+                    initial_balance=Money(10, "USD"),
+                    current_balance=Money(10, "USD"),
+                ),
+            ]
+        )
+    )
+    return gift_cards
+
+
 def recalculate_order(order):
     lines = OrderLine.objects.filter(order_id=order.pk)
     prices = [line.total_price for line in lines]

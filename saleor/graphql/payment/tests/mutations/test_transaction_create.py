@@ -8,13 +8,14 @@ from .....order.utils import update_order_authorize_data, update_order_charge_da
 from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
-from .....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import (
     TransactionActionEnum,
     TransactionEventActionTypeEnum,
     TransactionEventStatusEnum,
 )
+
+TEST_SERVER_DOMAIN = "testserver.com"
 
 MUTATION_TRANSACTION_CREATE = """
 mutation TransactionCreate(
@@ -89,7 +90,7 @@ def test_transaction_create_for_order_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -546,7 +547,7 @@ def test_transaction_create_empty_metadata_key_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -592,7 +593,7 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -736,7 +737,7 @@ def test_creates_transaction_event_for_order_by_app(
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -812,7 +813,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -1150,7 +1151,7 @@ def test_transaction_create_for_order_by_staff(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1611,7 +1612,7 @@ def test_transaction_create_empty_metadata_key_by_staff(
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -1657,7 +1658,7 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {

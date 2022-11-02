@@ -15,7 +15,7 @@ from ....core.permissions import (
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
-from ....core.utils import get_currency_for_country
+from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
@@ -906,7 +906,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    @traced_resolver
     def resolve_thumbnail(
         root: ChannelContext[models.Product], info, *, size=256, format=None
     ):
@@ -927,7 +926,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                 url = get_image_or_proxy_url(
                     thumbnail, image.id, "ProductMedia", size, format
                 )
-                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+                return Image(alt=image.alt, url=build_absolute_uri(url))
 
             return (
                 ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -1187,7 +1186,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    @traced_resolver
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1205,7 +1203,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1223,7 +1220,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_available_for_purchase_at(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1729,7 +1725,7 @@ class ProductMedia(ModelObjectType):
             return
 
         if not size:
-            return info.context.build_absolute_uri(root.image.url)
+            return build_absolute_uri(root.image.url)
 
         format = format.lower() if format else None
         size = get_thumbnail_size(size)
@@ -1738,7 +1734,7 @@ class ProductMedia(ModelObjectType):
             url = get_image_or_proxy_url(
                 thumbnail, root.id, "ProductMedia", size, format
             )
-            return info.context.build_absolute_uri(url)
+            return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -1779,7 +1775,7 @@ class ProductImage(graphene.ObjectType):
             return
 
         if not size:
-            return info.context.build_absolute_uri(root.image.url)
+            return build_absolute_uri(root.image.url)
 
         format = format.lower() if format else None
         size = get_thumbnail_size(size)
@@ -1788,7 +1784,7 @@ class ProductImage(graphene.ObjectType):
             url = get_image_or_proxy_url(
                 thumbnail, root.id, "ProductMedia", size, format
             )
-            return info.context.build_absolute_uri(url)
+            return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)

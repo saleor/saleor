@@ -38,6 +38,7 @@ from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
     RICH_CONTENT,
@@ -58,6 +59,8 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...core.validators import validate_one_of_args_is_in_mutation
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductMedia, ProductVariant
@@ -78,6 +81,18 @@ class CategoryInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a product media.")
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the category metadata." + ADDED_IN_38),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the category private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class CategoryCreate(ModelMutation):
@@ -100,6 +115,8 @@ class CategoryCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -154,6 +171,8 @@ class CategoryUpdate(CategoryCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -209,6 +228,20 @@ class CollectionInput(graphene.InputObjectType):
     publication_date = graphene.Date(
         description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the collection metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the collection private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class CollectionCreateInput(CollectionInput):
@@ -232,6 +265,8 @@ class CollectionCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -287,6 +322,8 @@ class CollectionUpdate(CollectionCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -543,6 +580,18 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     rating = graphene.Float(description="Defines the product rating value.")
+    metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the product metadata." + ADDED_IN_38),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product private metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -578,6 +627,8 @@ class ProductCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -707,6 +758,8 @@ class ProductUpdate(ProductCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -831,6 +884,21 @@ class ProductVariantInput(graphene.InputObjectType):
             "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product variant metadata." + ADDED_IN_38
+        ),
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product variant private metadata."
+            + ADDED_IN_38
+        ),
+        required=False,
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -865,6 +933,8 @@ class ProductVariantCreate(ModelMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -1030,18 +1100,38 @@ class ProductVariantCreate(ModelMutation):
         """
 
         object_id = data.get("id")
-        if object_id and data.get("attributes"):
+        object_sku = data.get("sku")
+        attributes = data.get("attributes")
+
+        if attributes:
             # Prefetches needed by AttributeAssignmentMixin and
             # associate_attribute_values_to_instance
             qs = cls.Meta.model.objects.prefetch_related(
                 "product__product_type__variant_attributes__values",
                 "product__product_type__attributevariant",
             )
+        else:
+            # Use the default queryset.
+            qs = models.ProductVariant.objects.all()
+
+        if object_id:
             return cls.get_node_or_error(
                 info, object_id, only_type="ProductVariant", qs=qs
             )
-
-        return super().get_instance(info, **data)
+        elif object_sku:
+            instance = qs.filter(sku=object_sku).first()
+            if not instance:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            f"Couldn't resolve to a node: {object_sku}",
+                            code="not_found",
+                        )
+                    }
+                )
+            return instance
+        else:
+            return cls._meta.model()
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -1090,7 +1180,11 @@ class ProductVariantCreate(ModelMutation):
 class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of a product variant to update."
+            required=False, description="ID of a product variant to update."
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of a product variant to update." + ADDED_IN_38,
         )
         input = ProductVariantInput(
             required=True, description="Fields required to update a product variant."
@@ -1104,6 +1198,8 @@ class ProductVariantUpdate(ProductVariantCreate):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -1141,11 +1237,22 @@ class ProductVariantUpdate(ProductVariantCreate):
             attributes_data, used_attribute_values
         )
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        validate_one_of_args_is_in_mutation(
+            ProductErrorCode, "sku", data.get("sku"), "id", data.get("id")
+        )
+        return super().perform_mutation(_root, info, **data)
+
 
 class ProductVariantDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of a product variant to delete."
+            required=False, description="ID of a product variant to delete."
+        )
+        sku = graphene.String(
+            required=False,
+            description="SKU of a product variant to delete." + ADDED_IN_38,
         )
 
     class Meta:
@@ -1171,8 +1278,24 @@ class ProductVariantDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
+        validate_one_of_args_is_in_mutation(
+            ProductErrorCode, "sku", data.get("sku"), "id", data.get("id")
+        )
+        if node_id := data.get("id"):
+            instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
+
+        if node_sku := data.get("sku"):
+            instance = models.ProductVariant.objects.filter(sku=node_sku).first()
+            if not instance:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            f"Couldn't resolve to a node: {node_sku}",
+                            code="not_found",
+                        )
+                    }
+                )
+            data["id"] = graphene.Node.to_global_id("ProductVariant", instance.id)
 
         draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 

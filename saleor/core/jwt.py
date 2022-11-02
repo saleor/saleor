@@ -30,7 +30,12 @@ def jwt_base_payload(
     exp_delta: Optional[timedelta], token_owner: str
 ) -> Dict[str, Any]:
     utc_now = datetime.utcnow()
-    payload = {"iat": utc_now, JWT_OWNER_FIELD: token_owner}
+
+    payload = {
+        "iat": utc_now,
+        JWT_OWNER_FIELD: token_owner,
+        "iss": get_jwt_manager().get_issuer(),
+    }
     if exp_delta:
         payload["exp"] = utc_now + exp_delta
     return payload
@@ -73,9 +78,11 @@ def jwt_decode_with_exception_handler(
         return None
 
 
-def jwt_decode(token: str, verify_expiration=settings.JWT_EXPIRE) -> Dict[str, Any]:
+def jwt_decode(
+    token: str, verify_expiration=settings.JWT_EXPIRE, verify_aud: bool = False
+) -> Dict[str, Any]:
     jwt_manager = get_jwt_manager()
-    return jwt_manager.decode(token, verify_expiration)
+    return jwt_manager.decode(token, verify_expiration, verify_aud=verify_aud)
 
 
 def create_token(payload: Dict[str, Any], exp_delta: timedelta) -> str:
@@ -157,6 +164,7 @@ def _create_access_token_for_third_party_actions(
     type: str,
     object_id: int,
     object_payload_key: str,
+    audience: Optional[str],
 ):
     app_permission_enums = get_permission_names(permissions)
 
@@ -167,6 +175,8 @@ def _create_access_token_for_third_party_actions(
         PERMISSIONS_FIELD: list(app_permission_enums & user_permission_enums),
         USER_PERMISSION_FIELD: list(user_permission_enums),
     }
+    if audience:
+        additional_payload["aud"] = audience
 
     payload = jwt_user_payload(
         user,
@@ -192,11 +202,15 @@ def create_access_token_for_app(app: "App", user: "User"):
         type="App",
         object_id=app.id,
         object_payload_key="app",
+        audience=app.audience,
     )
 
 
 def create_access_token_for_app_extension(
-    app_extension: "AppExtension", permissions: Iterable["Permission"], user: "User"
+    app_extension: "AppExtension",
+    permissions: Iterable["Permission"],
+    user: "User",
+    app: "App",
 ):
     return _create_access_token_for_third_party_actions(
         permissions=permissions,
@@ -204,4 +218,5 @@ def create_access_token_for_app_extension(
         type="AppExtension",
         object_id=app_extension.id,
         object_payload_key="app_extension",
+        audience=app.audience,
     )

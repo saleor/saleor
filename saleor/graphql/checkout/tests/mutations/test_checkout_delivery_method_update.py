@@ -318,6 +318,7 @@ def test_checkout_delivery_method_update_shipping_zone_without_channel(
     address,
 ):
     shipping_method.shipping_zone.channels.clear()
+    shipping_method.channel_listings.all().delete()
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])

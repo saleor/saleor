@@ -491,10 +491,9 @@ fake.add_provider(SaleorProvider)  # type: ignore
 def get_email(first_name, last_name):
     _first = unicodedata.normalize("NFD", first_name).encode("ascii", "ignore")
     _last = unicodedata.normalize("NFD", last_name).encode("ascii", "ignore")
-    return "%s.%s@example.com" % (
-        _first.lower().decode("utf-8"),
-        _last.lower().decode("utf-8"),
-    )
+    decoded_first = _first.lower().decode("utf-8")
+    decoded_last = _last.lower().decode("utf-8")
+    return f"{decoded_first}.{decoded_last}@example.com"
 
 
 def create_product_image(product, placeholder_dir, image_name):
@@ -851,7 +850,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
 
 def create_fake_sale():
     sale = Sale.objects.create(
-        name="Happy %s day!" % fake.word(),
+        name=f"Happy {fake.word()} day!",
         type=DiscountValueType.PERCENTAGE,
     )
     for channel in Channel.objects.all():
@@ -872,7 +871,7 @@ def create_fake_sale():
 def create_users(user_password, how_many=10):
     for _ in range(how_many):
         user = create_fake_user(user_password)
-        yield "User: %s" % (user.email,)
+        yield f"User: {user.email}"
 
 
 def create_permission_groups(staff_password):
@@ -968,14 +967,14 @@ def create_orders(how_many=10):
     discounts = fetch_discounts(timezone.now())
     for _ in range(how_many):
         order = create_fake_order(discounts)
-        yield "Order: %s" % (order,)
+        yield f"Order: {order}"
 
 
 def create_product_sales(how_many=5):
     for _ in range(how_many):
         sale = create_fake_sale()
         update_products_discounted_prices_of_discount_task.delay(sale.pk)
-        yield "Sale: %s" % (sale,)
+        yield f"Sale: {sale}"
 
 
 def create_channel(channel_name, currency_code, slug=None, country=None):
@@ -1510,7 +1509,7 @@ def create_page_type():
         pk = page_type_data.pop("pk")
         defaults = dict(page_type_data["fields"])
         page_type, _ = PageType.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "Page type %s created" % page_type.slug
+        yield f"Page type {page_type.slug} created"
 
 
 def create_pages():
@@ -1523,7 +1522,7 @@ def create_pages():
         defaults = dict(page_data["fields"])
         defaults["page_type_id"] = defaults.pop("page_type")
         page, _ = Page.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "Page %s created" % page.slug
+        yield f"Page {page.slug} created"
 
 
 def create_menus():
@@ -1535,7 +1534,7 @@ def create_menus():
         pk = menu["pk"]
         defaults = menu["fields"]
         menu, _ = Menu.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "Menu %s created" % menu.name
+        yield f"Menu {menu.name} created"
     for menu_item in menu_item_data:
         pk = menu_item["pk"]
         defaults = dict(menu_item["fields"])
@@ -1545,7 +1544,7 @@ def create_menus():
         defaults["page_id"] = defaults.pop("page")
         defaults.pop("parent")
         menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "MenuItem %s created" % menu_item.name
+        yield f"MenuItem {menu_item.name} created"
     for menu_item in menu_item_data:
         pk = menu_item["pk"]
         defaults = dict(menu_item["fields"])

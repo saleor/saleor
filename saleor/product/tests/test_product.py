@@ -276,7 +276,7 @@ def test_digital_product_view(client, digital_content_url):
 
     assert response.status_code == 200
     assert response["content-type"] == "image/jpeg"
-    assert response["content-disposition"] == 'attachment; filename="%s"' % filename
+    assert response["content-disposition"] == f'attachment; filename="{filename}"'
 
     # Ensure an event was generated from downloading a digital good.
     # The validity of this event is checked in test_digital_product_increment_download

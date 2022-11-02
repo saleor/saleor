@@ -255,7 +255,7 @@ def _create_line_for_order(
 
     unit_discount_reason = None
     if sale_id:
-        unit_discount_reason = "Sale: %s" % graphene.Node.to_global_id("Sale", sale_id)
+        unit_discount_reason = f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
     if voucher_code:
         if unit_discount_reason:
             unit_discount_reason += f" & Voucher code: {voucher_code}"
@@ -698,7 +698,7 @@ def _get_order_data(
         raise ValidationError(e.message, code=e.code)
     except TaxError as tax_error:
         raise ValidationError(
-            "Unable to calculate taxes - %s" % str(tax_error),
+            f"Unable to calculate taxes - {str(tax_error)}",
             code=CheckoutErrorCode.TAX_ERROR.value,
         )
     return order_data
@@ -772,15 +772,19 @@ def complete_checkout(
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
     payment = checkout.get_last_active_payment()
-    _prepare_checkout(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        discounts=discounts,
-        tracking_code=tracking_code,
-        redirect_url=redirect_url,
-        payment=payment,
-    )
+    try:
+        _prepare_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=discounts,
+            tracking_code=tracking_code,
+            redirect_url=redirect_url,
+            payment=payment,
+        )
+    except ValidationError as exc:
+        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        raise exc
 
     try:
         order_data = _get_order_data(
@@ -791,7 +795,7 @@ def complete_checkout(
         raise exc
 
     customer_id = None
-    if payment and user.is_authenticated:
+    if payment and user:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     action_required = False
@@ -807,7 +811,7 @@ def complete_checkout(
             channel_slug=channel_slug,
         )
 
-        if txn.customer_id and user.is_authenticated:
+        if txn.customer_id and user:
             store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
         action_required = txn.action_required

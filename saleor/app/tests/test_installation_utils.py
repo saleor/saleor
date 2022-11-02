@@ -61,6 +61,25 @@ def test_install_app_created_app(
     assert list(app.permissions.all()) == [permission_manage_products]
 
 
+def test_install_app_created_app_with_audience(
+    app_manifest, app_installation, monkeypatch, site_settings
+):
+    # given
+    audience = f"https://{site_settings.site.domain}.com/app-123"
+    app_manifest["audience"] = audience
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.audience == audience
+
+
 @freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")

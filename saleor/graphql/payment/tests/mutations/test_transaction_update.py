@@ -8,13 +8,14 @@ from .....order.utils import update_order_authorize_data, update_order_charge_da
 from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
-from .....tests.consts import TEST_SERVER_DOMAIN
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import (
     TransactionActionEnum,
     TransactionEventActionTypeEnum,
     TransactionEventStatusEnum,
 )
+
+TEST_SERVER_DOMAIN = "testserver.com"
 
 MUTATION_TRANSACTION_UPDATE = """
 mutation TransactionUpdate(
@@ -261,7 +262,7 @@ def test_transaction_update_external_url_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -908,7 +909,7 @@ def test_creates_transaction_event_for_order_by_app(
     event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     amount_value = Decimal("10")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -1010,7 +1011,7 @@ def test_transaction_update_external_url_by_staff(
 ):
     # given
     transaction = transaction_item_created_by_user
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -1775,7 +1776,7 @@ def test_creates_transaction_event_for_order_by_staff(
     event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}.com/external-url"
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     amount_value = Decimal("10")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),

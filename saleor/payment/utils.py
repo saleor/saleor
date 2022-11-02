@@ -23,7 +23,6 @@ from . import (
     PaymentError,
     StorePaymentMethod,
     TransactionKind,
-    gateway,
 )
 from .error_codes import PaymentErrorCode
 from .interface import (
@@ -616,10 +615,12 @@ def try_void_or_refund_inactive_payment(
     active. Some payment methods don't required confirmation so we can receive delayed
     webhook when we have order already paid.
     """
+    from .gateway import payment_refund_or_void
+
     if transaction.is_success:
         channel_slug = get_channel_slug_from_payment(payment)
         try:
-            gateway.payment_refund_or_void(
+            payment_refund_or_void(
                 payment,
                 manager,
                 channel_slug=channel_slug,
@@ -634,7 +635,7 @@ def try_void_or_refund_inactive_payment(
 
 
 def payment_owned_by_user(payment_pk: int, user) -> bool:
-    if user.is_anonymous:
+    if not user:
         return False
     return (
         Payment.objects.filter(

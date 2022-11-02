@@ -153,7 +153,7 @@ def create_delivery_for_subscription_sync_event(
         # in separate PR to ensure proper handling for all sync events.
         # It was implemented when sync webhooks were handling payment events only.
         raise PaymentError(
-            "No payload was generated with subscription for event: %s" % event_type
+            f"No payload was generated with subscription for event: {event_type}"
         )
     event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
     event_delivery = EventDelivery.objects.create(

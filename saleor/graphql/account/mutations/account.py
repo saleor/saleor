@@ -85,6 +85,7 @@ class AccountRegister(ModelMutation):
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
 
     @classmethod
     def mutate(cls, root, info, **data):
@@ -94,9 +95,6 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        data["metadata"] = {
-            item["key"]: item["value"] for item in data.get("metadata") or []
-        }
         if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             return super().clean_input(info, instance, data, input_cls=None)
         elif not data.get("redirect_url"):

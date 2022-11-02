@@ -170,7 +170,7 @@ class CheckoutByUserLoader(DataLoader):
         checkout_by_user_map = defaultdict(list)
         for checkout in checkouts:
             checkout_by_user_map[checkout.user_id].append(checkout)
-        return [checkout_by_user_map.get(user_id) for user_id in keys]
+        return [checkout_by_user_map[user_id] for user_id in keys]
 
 
 class CheckoutByUserAndChannelLoader(DataLoader):
@@ -192,7 +192,7 @@ class CheckoutByUserAndChannelLoader(DataLoader):
         for checkout in checkouts:
             key = (checkout.user_id, checkout.channel_slug)
             checkout_by_user_and_channel_map[key].append(checkout)
-        return [checkout_by_user_and_channel_map.get(key) for key in keys]
+        return [checkout_by_user_and_channel_map[key] for key in keys]
 
 
 class CheckoutInfoByCheckoutTokenLoader(DataLoader):

@@ -46,7 +46,7 @@ class OrderGrantRefundCreate(BaseMutation):
             amount_value=amount,
             currency=order.currency,
             reason=reason,
-            user=info.context.user if not info.context.user.is_anonymous else None,
+            user=info.context.user,
             app=info.context.app,
         )
         return cls(order=order, granted_refund=granted_refund)

@@ -11,7 +11,7 @@ from ..seo.models import SeoModel, SeoModelTranslation
 
 class PageQueryset(PublishedQuerySet):
     def visible_to_user(self, requestor):
-        if requestor.has_perm(PagePermissions.MANAGE_PAGES):
+        if requestor and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             return self.all()
         return self.published()
 
@@ -23,7 +23,7 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     translated = TranslationProxy()
 
