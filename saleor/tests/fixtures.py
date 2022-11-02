@@ -3842,13 +3842,20 @@ def recalculate_order(order):
 
 @pytest.fixture
 def order_with_lines(
-    order, product_type, category, shipping_zone, warehouse, channel_USD
+    order,
+    product_type,
+    category,
+    shipping_zone,
+    warehouse,
+    channel_USD,
+    default_tax_class,
 ):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
