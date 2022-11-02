@@ -23,12 +23,12 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...discount.utils import fetch_active_discounts
 from ...graphql.utils import get_user_or_app_from_context
-from ...order import OrderOrigin
+from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...payment import TransactionAction
-from ...payment.interface import TransactionActionData, TransactionData
+from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
@@ -38,6 +38,7 @@ from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
     _generate_collection_point_payload,
+    _generate_refund_data_payload,
     generate_checkout_payload,
     generate_checkout_payload_for_tax_calculation,
     generate_collection_payload,
@@ -59,7 +60,6 @@ from ..payloads import (
     generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
-    serialize_refund_data,
 )
 from ..serializers import serialize_checkout_lines
 
@@ -1081,24 +1081,8 @@ def test_generate_list_gateways_payload(checkout):
 
 @freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
-    dummy_webhook_app_payment_data.refund_data = {
-        "order_lines_to_refund": [
-            {
-                "line": order_line,
-                "quantity": 1,
-                "is_digital": "None",
-                "digital_content": "None",
-                "replace": False,
-                "warehouse_pk": "None",
-            }
-        ]
-    }
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
-
-    expected_payload["refund_data"] = serialize_refund_data(
-        dummy_webhook_app_payment_data.refund_data
-    )
 
     expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
         Decimal("0.01")
@@ -1112,24 +1096,49 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
 
 
 @freeze_time("1914-06-28 10:50")
+def test_generate_payment_payload_with_refund_data(
+    dummy_webhook_app_payment_data, order_with_lines
+):
+    # given
+    refund_data = RefundData(
+        order_lines_to_refund=[
+            OrderLineInfo(line=line, quantity=line.quantity, variant=line.variant)
+            for line in order_with_lines.lines.all()
+        ]
+    )
+    dummy_webhook_app_payment_data.refund_data = refund_data
+
+    # when
+    payload = generate_payment_payload(dummy_webhook_app_payment_data)
+    expected_payload = asdict(dummy_webhook_app_payment_data)
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
+    expected_payload["payment_method"] = from_payment_app_id(
+        dummy_webhook_app_payment_data.gateway
+    ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+    expected_payload["refund_data"] = _generate_refund_data_payload(asdict(refund_data))
+
+    # then
+    assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+@freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload_fulfillment_return(
     dummy_webhook_app_payment_data, fulfillment
 ):
-    dummy_webhook_app_payment_data.refund_data = {
-        "fulfillment_lines_to_refund": [
-            {
-                "line": fulfillment.lines.first(),
-                "quantity": 1,
-                "replace": False,
-            }
+    refund_data = RefundData(
+        fulfillment_lines_to_refund=[
+            FulfillmentLineData(line=line, quantity=line.quantity)
+            for line in fulfillment.lines.all()
         ]
-    }
+    )
+    dummy_webhook_app_payment_data.refund_data = refund_data
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
 
-    expected_payload["refund_data"] = serialize_refund_data(
-        dummy_webhook_app_payment_data.refund_data
-    )
+    expected_payload["refund_data"] = _generate_refund_data_payload(asdict(refund_data))
 
     expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
         Decimal("0.01")
