@@ -26,6 +26,7 @@ from ...warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order
+    from ...product.models import Product, ProductType
     from ...tax.models import TaxClass
 
 
@@ -281,17 +282,9 @@ def generate_request_data_from_checkout_lines(
     )
 
     for line_info in lines_info:
-        tax_code = None
         product = line_info.product
         product_type = line_info.product_type
-
-        if product.tax_class:
-            tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
-        elif product_type.tax_class:
-            tax_code = retrieve_tax_code_from_meta(product_type.tax_class)
-        else:
-            tax_code = DEFAULT_TAX_CODE
-
+        tax_code = _get_product_tax_code(product, product_type)
         is_non_taxable_product = tax_code == TAX_CODE_NON_TAXABLE_PRODUCT
 
         tax_override_data = {}
@@ -380,17 +373,10 @@ def get_order_lines_data(
     for line in lines:
         if not line.variant:
             continue
+
         product = line.variant.product
         product_type = line.variant.product.product_type
-
-        tax_code = None
-        if product.tax_class:
-            tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
-        elif product_type.tax_class:
-            tax_code = retrieve_tax_code_from_meta(product_type.tax_class)
-        else:
-            tax_code = DEFAULT_TAX_CODE
-
+        tax_code = _get_product_tax_code(product, product_type)
         prices_data = base_order_calculations.base_order_line_total(line)
 
         if prices_entered_with_tax:
@@ -666,6 +652,17 @@ def get_cached_tax_codes_or_fetch(
             tax_codes = generate_tax_codes_dict(response)
             cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)
     return tax_codes
+
+
+def _get_product_tax_code(product: "Product", product_type: "ProductType"):
+    tax_code = None
+    if product.tax_class:
+        tax_code = retrieve_tax_code_from_meta(product.tax_class, default=None)
+    elif product_type.tax_class:
+        tax_code = retrieve_tax_code_from_meta(product_type.tax_class)
+    else:
+        tax_code = DEFAULT_TAX_CODE
+    return tax_code
 
 
 def retrieve_tax_code_from_meta(
