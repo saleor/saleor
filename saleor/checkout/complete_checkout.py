@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -12,9 +13,11 @@ from typing import (
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -52,6 +55,7 @@ from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
+from ..warehouse.models import Reservation, Stock
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .base_calculations import (
@@ -75,13 +79,6 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
     from .models import Checkout
-
-from datetime import timedelta
-
-from django.conf import settings
-from django.utils import timezone
-
-from ..warehouse.models import Reservation, Stock
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
