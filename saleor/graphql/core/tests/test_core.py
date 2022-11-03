@@ -446,6 +446,18 @@ def test_filter_range_field(value, count, product_indexes, product_list):
     assert list(result) == expected_products
 
 
+def test_filter_products_with_zero_discount(product_list):
+    product_list[0].channel_listings.update(discounted_price_amount=0)
+    qs = ProductChannelListing.objects.all().order_by("pk")
+    field = "discounted_price_amount"
+
+    result = filter_range_field(qs, field, {"lte": 0, "gte": 0})
+
+    expected_products = list(qs.filter(product=product_list[0]))
+    assert result.count() == 1
+    assert list(result) == expected_products
+
+
 def test_get_duplicated_values():
     values = ("a", "b", "a", 1, 1, 1, 2)
 
