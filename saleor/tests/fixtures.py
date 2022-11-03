@@ -2617,7 +2617,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         visible_in_listings=True,
         available_for_purchase=datetime.date(1999, 1, 1),
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
+    variant = ProductVariant.objects.create(product=product, sku="SKU_E")
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
