@@ -122,6 +122,13 @@ def test_transaction_request_charge_action_for_order(
     assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
     assert event.parameters["reference"] == transaction.psp_reference
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.CHARGE,
+        amount_value=expected_called_charge_amount,
+    )
+
 
 @pytest.mark.parametrize(
     "refund_amount, expected_called_refund_amount",
@@ -189,6 +196,8 @@ def test_transaction_request_refund_action_for_order(
     assert TransactionEvent.objects.get(
         transaction=transaction,
         status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.REFUND,
+        amount_value=expected_called_refund_amount,
     )
 
 
@@ -242,6 +251,13 @@ def test_transaction_request_void_action_for_order(
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.VOID,
+        amount_value=0,
+    )
+
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
@@ -287,6 +303,13 @@ def test_transaction_request_void_action_for_checkout(
             action_value=None,
         ),
         channel_slug=checkout.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.VOID,
+        amount_value=0,
     )
 
 
@@ -346,6 +369,13 @@ def test_transaction_request_charge_action_for_checkout(
             action_value=expected_called_charge_amount,
         ),
         channel_slug=checkout.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.CHARGE,
+        amount_value=expected_called_charge_amount,
     )
 
 
@@ -410,6 +440,8 @@ def test_transaction_request_refund_action_for_checkout(
     assert TransactionEvent.objects.get(
         transaction=transaction,
         status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.REFUND,
+        amount_value=expected_called_refund_amount,
     )
 
 
@@ -559,52 +591,6 @@ def test_transaction_request_action_missing_event(
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "action_type": TransactionActionEnum.VOID.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_REQUEST_ACTION,
-        variables,
-        permissions=[
-            permission_manage_payments,
-        ],
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["transactionRequestAction"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["message"] == (
-        "No app or plugin is configured to handle payment action requests."
-    )
-    code_enum = TransactionRequestActionErrorCode
-    assert data["errors"][0]["code"] == (
-        code_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
-    )
-
-    assert mocked_is_active.called
-
-
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-def test_transaction_request_action_missing_event_refund_requested(
-    mocked_is_active, staff_api_client, permission_manage_payments, order
-):
-    # given
-    authorization_value = Decimal("10")
-    transaction = TransactionItem.objects.create(
-        status="Authorized",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["charge", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=authorization_value,
-    )
-    mocked_is_active.return_value = False
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "action_type": TransactionActionEnum.REFUND.name,
     }
 
     # when
