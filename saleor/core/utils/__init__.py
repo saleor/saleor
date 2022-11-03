@@ -95,7 +95,7 @@ def to_local_currency(price, currency):
 
 
 def generate_unique_slug(
-    instance: Type[Model],
+    instance: Model,
     slugable_value: str,
     slug_field_name: str = "slug",
     *,

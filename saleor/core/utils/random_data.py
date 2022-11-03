@@ -517,7 +517,7 @@ def create_address(save=True, **kwargs):
     )
 
     if address.country == "US":
-        state = fake.state_abbr()
+        state = fake.state_abbr(include_territories=False)
         address.country_area = state
         address.postal_code = fake.postalcode_in_state(state)
     else:
