@@ -1296,7 +1296,7 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
 @mock.patch(
-    "saleor.checkout.complete_checkout._process_payment",
+    "saleor.checkout.complete_checkout.process_payment",
 )
 def test_complete_checkout_action_required_voucher_once_per_customer(
     mocked_process_payment,
