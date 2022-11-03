@@ -1256,7 +1256,7 @@ def complete_checkout(
             tracking_code=tracking_code,
             redirect_url=redirect_url,
         )
-        _reserve_stocks_without_availability_check(checkout_info, lines)
+        reservations = _reserve_stocks_without_availability_check(checkout_info, lines)
 
     # Process payments out of transaction to unlock stock rows for another user,
     # who potentially can order the same product variants.
@@ -1310,6 +1310,8 @@ def complete_checkout(
                 manager,
                 channel_slug=checkout_info.channel.slug,
             )
+            if not is_reservation_enabled(site_settings):
+                Reservation.objects.filter(id__in=[r.id for r in reservations]).delete()
             raise ValidationError("Checkout has changed during payment processing")
 
     return order, action_required, action_data
@@ -1359,3 +1361,4 @@ def _reserve_stocks_without_availability_check(
                 )
             )
     Reservation.objects.bulk_create(reservations)
+    return reservations
