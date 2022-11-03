@@ -1275,7 +1275,6 @@ def complete_checkout(
     with transaction_with_commit_on_errors():
         # Run pre-payment checks to make sure, that nothing has changed to the
         # checkout, during processing payment.
-
         checkout_info.checkout.voucher_code = None
         _, _, post_payment_order_data = complete_checkout_pre_payment_part(
             manager=manager,

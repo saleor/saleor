@@ -5,6 +5,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 import pytz
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models.aggregates import Sum
 from django.utils import timezone
@@ -302,7 +303,6 @@ def test_checkout_complete(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
-
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
@@ -3197,3 +3197,72 @@ def test_checkout_complete_with_not_normalized_billing_address(
     assert billing_address
     assert billing_address.city == "WASHINGTON"
     assert billing_address.country_area == "DC"
+
+
+@patch.object(PluginsManager, "process_payment")
+def test_checkout_complete_check_reservations(
+    mocked_process_payment,
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    shipping_method,
+    action_required_gateway_response,
+):
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    orders_count = Order.objects.count()
+    assert not len(Reservation.objects.all())
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert data["confirmationNeeded"] is True
+
+    reservations = Reservation.objects.all()
+    assert len(reservations) == 1
+    assert reservations[0].checkout_line.checkout.token == checkout.token
+    assert reservations[0].reserved_until <= timezone.now() + timedelta(
+        seconds=settings.RESERVE_DURATION
+    )
+    assert Order.objects.count() == orders_count
+
+    gateway_response = action_required_gateway_response
+    gateway_response.action_required = False
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    response_2 = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response_2)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert not data["confirmationNeeded"]
+    assert not len(Reservation.objects.all())
+    assert Order.objects.count() == orders_count + 1
