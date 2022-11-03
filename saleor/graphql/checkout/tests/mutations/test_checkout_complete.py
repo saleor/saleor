@@ -444,10 +444,7 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
 
 
 @pytest.mark.integration
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_complete"
-    ".complete_checkout_post_payment_part"
-)
+@patch("saleor.graphql.checkout.mutations.checkout_complete.complete_checkout")
 def test_checkout_complete_by_app(
     mocked_complete_checkout,
     app_api_client,
@@ -510,10 +507,7 @@ def test_checkout_complete_by_app(
 
 
 @pytest.mark.integration
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_complete."
-    "complete_checkout_post_payment_part"
-)
+@patch("saleor.graphql.checkout.mutations.checkout_complete.complete_checkout")
 def test_checkout_complete_by_app_with_missing_permission(
     mocked_complete_checkout,
     app_api_client,

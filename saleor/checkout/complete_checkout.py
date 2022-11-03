@@ -26,6 +26,7 @@ from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
+from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
 from ..discount.models import NotApplicable
@@ -74,6 +75,13 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
     from .models import Checkout
+
+from datetime import timedelta
+
+from django.conf import settings
+from django.utils import timezone
+
+from ..warehouse.models import Reservation, Stock
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -700,7 +708,7 @@ def _get_order_data(
     return order_data
 
 
-def process_payment(
+def _process_payment(
     payment: Payment,
     customer_id: Optional[str],
     store_source: bool,
@@ -1240,20 +1248,24 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
-    payment, customer_id, order_data = complete_checkout_pre_payment_part(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        discounts=discounts,
-        user=user,
-        site_settings=site_settings,
-        tracking_code=tracking_code,
-        redirect_url=redirect_url,
-    )
+    with transaction_with_commit_on_errors():
+        payment, customer_id, order_data = complete_checkout_pre_payment_part(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=discounts,
+            user=user,
+            site_settings=site_settings,
+            tracking_code=tracking_code,
+            redirect_url=redirect_url,
+        )
+        _reserve_stocks_without_availability_check(checkout_info, lines)
 
+    # Process payments out of transaction to unlock stock rows for another user,
+    # who potentially can order the same product variants.
     txn = None
     if payment:
-        txn = process_payment(
+        txn = _process_payment(
             payment=payment,
             customer_id=customer_id,
             store_source=store_source,
@@ -1263,18 +1275,90 @@ def complete_checkout(
             channel_slug=checkout_info.channel.slug,
         )
 
-    order, action_required, action_data = complete_checkout_post_payment_part(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment=payment,
-        txn=txn,
-        order_data=order_data,
-        user=user,
-        app=app,
-        site_settings=site_settings,
-        metadata_list=metadata_list,
-        private_metadata_list=private_metadata_list,
-    )
+    with transaction_with_commit_on_errors():
+        # Run pre-payment checks to make sure, that nothing has changed to the
+        # checkout, during processing payment.
+
+        checkout_info.checkout.voucher_code = None
+        _, _, post_payment_order_data = complete_checkout_pre_payment_part(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=discounts,
+            user=user,
+            site_settings=site_settings,
+            tracking_code=tracking_code,
+            redirect_url=redirect_url,
+        )
+        if _compare_order_data(order_data, post_payment_order_data):
+            order, action_required, action_data = complete_checkout_post_payment_part(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                payment=payment,
+                txn=txn,
+                order_data=order_data,
+                user=user,
+                app=app,
+                site_settings=site_settings,
+                metadata_list=metadata_list,
+                private_metadata_list=private_metadata_list,
+            )
+        else:
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
+            )
+            gateway.payment_refund_or_void(
+                payment,
+                manager,
+                channel_slug=checkout_info.channel.slug,
+            )
+            raise ValidationError("Checkout has changed during payment processing")
 
     return order, action_required, action_data
+
+
+def _compare_order_data(order_data_1, order_data_2):
+    order_total_check = (
+        order_data_1["total"].gross.amount == order_data_2["total"].gross.amount
+    )
+    order_lines_quantity_check = len(order_data_1["lines"]) == len(
+        order_data_2["lines"]
+    )
+    variants_id_1 = [line.variant.id for line in order_data_1["lines"]]
+    order_lines_check = all(
+        [line.variant.id in variants_id_1 for line in order_data_2["lines"]]
+    )
+    return order_total_check and order_lines_quantity_check and order_lines_check
+
+
+def _reserve_stocks_without_availability_check(
+    checkout_info: CheckoutInfo,
+    lines: Iterable[CheckoutLineInfo],
+):
+    """Add additional temporary reservation for stock.
+
+    Due to unlocking rows, for the time of external payment call, it prevents users
+    ordering the same product, in the same time, which is out of stock.
+    """
+    variants = [line.variant for line in lines]
+    stocks = Stock.objects.get_variants_stocks_for_country(
+        country_code=checkout_info.get_country(),
+        channel_slug=checkout_info.channel,
+        products_variants=variants,
+    )
+    variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
+
+    reservations = []
+    for line in lines:
+        if line.variant.id in variants_stocks_map:
+            reservations.append(
+                Reservation(
+                    quantity_reserved=line.line.quantity,
+                    reserved_until=timezone.now()
+                    + timedelta(seconds=settings.RESERVE_DURATION),
+                    stock=variants_stocks_map[line.variant.id],
+                    checkout_line=line.line,
+                )
+            )
+    Reservation.objects.bulk_create(reservations)
