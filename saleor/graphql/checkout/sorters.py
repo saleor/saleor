@@ -15,7 +15,7 @@ class CheckoutSortField(graphene.Enum):
         if self.name in CheckoutSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort checkouts by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_payment(queryset: QuerySet, **_kwargs) -> QuerySet:

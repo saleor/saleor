@@ -22,7 +22,7 @@ class ExportScope(graphene.Enum):
         }
         if self.name in description_mapping:
             return description_mapping[self.name]
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ProductFieldEnum(graphene.Enum):
