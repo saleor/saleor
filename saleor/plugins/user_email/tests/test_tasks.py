@@ -1223,7 +1223,6 @@ def test_send_gift_card_email_task_by_user_resending(
         "requester_app_id": None,
         "recipient_email": recipient_email,
         "resending": True,
-        "recipient_email": recipient_email,
         "gift_card": {
             "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
@@ -1276,14 +1275,12 @@ def test_send_gift_card_email_task_by_app(
         "requester_app_id": to_global_id_or_none(app),
         "recipient_email": recipient_email,
         "resending": False,
-        "recipient_email": recipient_email,
         "gift_card": {
             "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
         },
-        "recipient_email": recipient_email,
     }
 
     user_email_plugin(

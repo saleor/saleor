@@ -2,14 +2,12 @@ import binascii
 import mimetypes
 import os
 import secrets
-from enum import Enum
-from typing import TYPE_CHECKING, Type, Union
+from typing import TYPE_CHECKING, Union
 from uuid import UUID
 
 import graphene
 import requests
 from django.core.exceptions import ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene import ObjectType
 from graphql.error import GraphQLError
 from PIL import Image
@@ -18,7 +16,6 @@ from ....core.utils import generate_unique_slug
 from ....plugins.webhook.utils import APP_ID_PREFIX
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django.db.models import Model
 
 

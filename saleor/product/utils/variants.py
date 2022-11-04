@@ -17,9 +17,8 @@ def generate_and_set_variant_name(
         assignment__variant_selection=True,
         assignment__attribute__type=AttributeType.PRODUCT_TYPE,
     )
-    for (
-        attribute_rel
-    ) in variant_selection_attributes.iterator():  # type: AssignedVariantAttribute
+    attribute_rel: AssignedVariantAttribute
+    for attribute_rel in variant_selection_attributes.iterator():
         values_qs = attribute_rel.values.all()
         translated_values = [str(value.translated) for value in values_qs]
         attributes_display.append(", ".join(translated_values))

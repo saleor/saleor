@@ -21,7 +21,6 @@ from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ..checkout.models import Checkout
     from ..order.models import Order
 

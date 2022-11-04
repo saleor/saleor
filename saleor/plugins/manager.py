@@ -37,7 +37,6 @@ from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ..account.models import Address, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue

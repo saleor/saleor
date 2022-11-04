@@ -20,10 +20,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
 from ...discount import OrderDiscountType, VoucherType
 from ...order.interface import OrderTaxedPricesData
-from ...order.utils import (
-    get_total_order_discount_excluding_shipping,
-    get_voucher_discount_assigned_to_order,
-)
+from ...order.utils import get_total_order_discount_excluding_shipping
 from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -38,7 +35,6 @@ from . import (
 )
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...account.models import Address
     from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo

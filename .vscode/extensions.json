@@ -1,5 +1,6 @@
 {
     "recommendations": [
+        "charliermarsh.ruff",
         "editorconfig.editorconfig",
         "github.vscode-pull-request-github",
         "ms-python.black-formatter",

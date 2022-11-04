@@ -15,10 +15,10 @@ repos:
         exclude: ^templates/templated_email/compiled/
         exclude_types: [svg]
 
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.2
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.106
     hooks:
-      - id: flake8
+      - id: ruff
 
   - repo: https://github.com/pycqa/isort
     rev: 5.10.1

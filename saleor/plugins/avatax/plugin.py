@@ -1,12 +1,11 @@
 import logging
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
 import opentracing.tags
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from django_countries import countries
@@ -16,7 +15,6 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
 from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
 from ...discount import DiscountInfo
-from ...order import base_calculations as base_order_calculations
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -43,11 +41,8 @@ from . import (
 from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...account.models import Address
-    from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
     from ..models import PluginConfiguration

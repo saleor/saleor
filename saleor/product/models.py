@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
@@ -50,7 +50,6 @@ from ..core.permissions import (
 )
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
-from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import zero_weight
@@ -60,10 +59,7 @@ from ..seo.models import SeoModel, SeoModelTranslation
 from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from decimal import Decimal
-
-    from django.db.models import OrderBy
 
     from ..account.models import User
     from ..app.models import App

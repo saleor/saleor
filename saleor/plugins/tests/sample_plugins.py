@@ -4,7 +4,6 @@ from typing import (
     Any,
     DefaultDict,
     Iterable,
-    List,
     Optional,
     Set,
     Tuple,
@@ -25,11 +24,10 @@ from ...order.interface import OrderTaxedPricesData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...account.models import Address
-    from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.models import Checkout
+    from ...core.models import EventDelivery
     from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...order.models import Order, OrderLine
