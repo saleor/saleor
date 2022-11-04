@@ -14,6 +14,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
+from ..attribute.dataloaders import AttributesByAttributeValueIdLoader
 from ..channel import ChannelContext
 from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
@@ -135,8 +136,8 @@ class AttributeValueTranslatableContent(ModelObjectType):
         return root
 
     @staticmethod
-    def resolve_attribute(root: attribute_models.AttributeValue, _info):
-        return root.attribute
+    def resolve_attribute(root: attribute_models.AttributeValue, info):
+        return AttributesByAttributeValueIdLoader(info.context).load(root.attribute_id)
 
 
 class ProductVariantTranslation(BaseTranslationType):
