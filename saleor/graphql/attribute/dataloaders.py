@@ -37,13 +37,3 @@ class AttributeValueByIdLoader(DataLoader):
             self.database_connection_name
         ).in_bulk(keys)
         return [attribute_values.get(attribute_value_id) for attribute_value_id in keys]
-
-
-class AttributesByAttributeValueIdLoader(DataLoader):
-    context_key = "attributes_by_attributevalue"
-
-    def batch_load(self, keys):
-        attributes = Attribute.objects.using(self.database_connection_name).in_bulk(
-            keys
-        )
-        return [attributes.get(attribute_id) for attribute_id in attributes]

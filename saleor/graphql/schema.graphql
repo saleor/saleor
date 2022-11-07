@@ -6624,7 +6624,7 @@ type AttributeValueTranslatableContent implements Node {
   """
   Associated attribute that can be translated.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.9.
   """
   attribute: AttributeTranslatableContent
 }

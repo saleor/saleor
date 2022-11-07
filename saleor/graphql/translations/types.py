@@ -14,9 +14,9 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
-from ..attribute.dataloaders import AttributesByAttributeValueIdLoader
+from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
-from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.descriptions import ADDED_IN_39, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
@@ -124,7 +124,7 @@ class AttributeValueTranslatableContent(ModelObjectType):
     )
     attribute = graphene.Field(
         AttributeTranslatableContent,
-        description="Associated attribute that can be translated." + ADDED_IN_38,
+        description="Associated attribute that can be translated." + ADDED_IN_39,
     )
 
     class Meta:
@@ -137,7 +137,7 @@ class AttributeValueTranslatableContent(ModelObjectType):
 
     @staticmethod
     def resolve_attribute(root: attribute_models.AttributeValue, info):
-        return AttributesByAttributeValueIdLoader(info.context).load(root.attribute_id)
+        return AttributesByAttributeId(info.context).load(root.attribute_id)
 
 
 class ProductVariantTranslation(BaseTranslationType):

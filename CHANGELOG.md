@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
   <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
 
 ...
 
@@ -42,7 +43,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add sorting by `CREATED_AT` field. #10911 by @zedzior
   - Affected types: GiftCard, Page.
   - Deprecated `CREATION_DATE` sort field on Page type. Use `CREATED_AT` instead.
-- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
 
 ### Other changes
 
