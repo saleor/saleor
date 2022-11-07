@@ -8,7 +8,7 @@ import pytest
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
-from .....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 
 PRODUCT_MEDIA_CREATE_QUERY = """
     mutation createProductMedia(
@@ -216,7 +216,7 @@ def test_invalid_product_media_create_mutation(
         }
     }
     """
-    image_file, image_name = create_pdf_file_with_image_ext()
+    image_file, image_name = create_zip_file_with_image_ext()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "image": image_name,
