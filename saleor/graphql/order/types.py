@@ -1494,7 +1494,7 @@ class Order(ModelObjectType):
 
         if external_app_shipping_id:
 
-            def get_sipping_method(site):
+            def get_shipping_method(site):
                 keep_gross = site.settings.include_taxes_in_prices
                 price = (
                     root.shipping_price_gross if keep_gross else root.shipping_price_net
@@ -1505,7 +1505,7 @@ class Order(ModelObjectType):
                     price=price,
                 )
 
-            return get_site_promise(info.context).then(get_sipping_method)
+            return get_site_promise(info.context).then(get_shipping_method)
 
         if not root.shipping_method_id:
             return None
