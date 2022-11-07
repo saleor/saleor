@@ -2726,7 +2726,7 @@ types-urllib3 = "<1.27"
 
 [[package]]
 name = "types-six"
-version = "1.16.21"
+version = "1.16.21.1"
 description = "Typing stubs for six"
 category = "dev"
 optional = false
@@ -2945,8 +2945,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "35a9fefb3cee74e3cb60512695e582b7c0f4cc98263621f4b97204b6d1bc0d7c"
+python-versions = "~3.9"
+content-hash = "09a320ff2b3286923846cd05cd96403a9f94a1cd7862f4399a64baa3eb6dd63c"
 
 [metadata.files]
 adyen = [
@@ -4093,6 +4093,8 @@ phonenumberslite = [
     {file = "phonenumberslite-8.12.57.tar.gz", hash = "sha256:8940c6f887aabb5d1a6095dbc6e35144d0b53f75a9e9b2018e2703d9b9a71090"},
 ]
 pillow = [
+    {file = "Pillow-9.3.0-1-cp37-cp37m-win32.whl", hash = "sha256:e6ea6b856a74d560d9326c0f5895ef8050126acfdc7ca08ad703eb0081e82b74"},
+    {file = "Pillow-9.3.0-1-cp37-cp37m-win_amd64.whl", hash = "sha256:32a44128c4bdca7f31de5be641187367fe2a450ad83b833ef78910397db491aa"},
     {file = "Pillow-9.3.0-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:0b7257127d646ff8676ec8a15520013a698d1fdc48bc2a79ba4e53df792526f2"},
     {file = "Pillow-9.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b90f7616ea170e92820775ed47e136208e04c967271c9ef615b6fbd08d9af0e3"},
     {file = "Pillow-9.3.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:68943d632f1f9e3dce98908e873b3a090f6cba1cbb1b892a9e8d97c938871fbe"},
@@ -4543,8 +4545,8 @@ types-requests = [
     {file = "types_requests-2.28.11.2-py3-none-any.whl", hash = "sha256:14941f8023a80b16441b3b46caffcbfce5265fd14555844d6029697824b5a2ef"},
 ]
 types-six = [
-    {file = "types-six-1.16.21.tar.gz", hash = "sha256:562b036de1a837eafe164827c5c53d7a8d703a44bb211642932dcd59e9e0f7c9"},
-    {file = "types_six-1.16.21-py3-none-any.whl", hash = "sha256:e4428b56da2505b5de228a3b5603561fa98571540fd75a90306eed8b3016ddf4"},
+    {file = "types-six-1.16.21.1.tar.gz", hash = "sha256:186e3ae992462310d2db4668582db636eae7561f8d3e528fc57d1e9424469109"},
+    {file = "types_six-1.16.21.1-py3-none-any.whl", hash = "sha256:5183af144636a9dababf77cce98808b5222eb7d30922f25075c1d62adc852e7d"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.25.1.tar.gz", hash = "sha256:a948584944b2412c9a74b9cf64f6c48caf8652cb88b38361316f6d15d8a184cd"},
