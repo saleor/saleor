@@ -722,6 +722,11 @@ if (
 WEBHOOK_TIMEOUT = 10
 WEBHOOK_SYNC_TIMEOUT = 20
 
+# Since we split checkout complete logic into two separate transactions, in order to
+# mimic stock lock, we apply short reservation for the stocks. The value represents
+# time of the reservation in seconds.
+RESERVE_DURATION = 45
+
 # Initialize a simple and basic Jaeger Tracing integration
 # for open-tracing if enabled.
 #
