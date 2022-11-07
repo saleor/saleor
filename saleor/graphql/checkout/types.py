@@ -46,7 +46,7 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site
+from ..site.dataloaders import get_site_promise, load_site_callback
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
@@ -233,7 +233,7 @@ class CheckoutLine(ModelObjectType):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            site = load_site(info.context)
+            site = get_site_promise(info.context)
 
             def calculate_line_total_price(data):
                 (discounts, checkout_info, lines, site) = data
@@ -561,7 +561,7 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
+        site = get_site_promise(info.context)
         return Promise.all([address, lines, checkout_info, discounts, site]).then(
             calculate_total_price
         )
@@ -592,7 +592,7 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
+        site = get_site_promise(info.context)
 
         return Promise.all([address, lines, checkout_info, discounts, site]).then(
             calculate_subtotal_price
@@ -625,7 +625,7 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
+        site = get_site_promise(info.context)
 
         return Promise.all([address, lines, checkout_info, discounts, site]).then(
             calculate_shipping_price
@@ -695,8 +695,8 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_stock_reservation_expires(root: models.Checkout, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_stock_reservation_expires(root: models.Checkout, info, site):
         if not is_reservation_enabled(site.settings):
             return None
 

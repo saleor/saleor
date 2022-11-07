@@ -391,7 +391,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         if address is not None:
             country_code = address.country
         channel_slug = str(root.channel_slug) if root.channel_slug else None
-
         global_quantity_limit_per_checkout = site.settings.limit_quantity_per_checkout
 
         if root.node.is_preorder_active():
