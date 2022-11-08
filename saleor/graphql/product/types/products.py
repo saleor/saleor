@@ -83,7 +83,7 @@ from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
-from ...site.dataloaders import load_site
+from ...site.dataloaders import load_site_callback
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -380,17 +380,17 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
+    @load_site_callback
     def resolve_quantity_available(
         root: ChannelContext[models.ProductVariant],
         info,
+        site,
         address=None,
         country_code=None,
     ):
         if address is not None:
             country_code = address.country
-        site = load_site(info.context)
         channel_slug = str(root.channel_slug) if root.channel_slug else None
-
         global_quantity_limit_per_checkout = site.settings.limit_quantity_per_checkout
 
         if root.node.is_preorder_active():

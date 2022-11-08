@@ -19,7 +19,7 @@ from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
 from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection
-from ..site.dataloaders import load_site
+from ..site.dataloaders import get_site_promise
 from .dataloaders import MenuItemsByParentMenuLoader
 from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput
@@ -511,7 +511,7 @@ class AssignNavigation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, navigation_type, menu=None):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         if menu is not None:
             menu = cls.get_node_or_error(info, menu, field="menu", only_type=Menu)
 

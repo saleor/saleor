@@ -19,7 +19,7 @@ from ...core.validators import validate_variants_available_in_channel
 from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (
@@ -83,7 +83,7 @@ class CheckoutLinesAdd(BaseMutation):
         variants, quantities = get_variants_and_total_quantities(
             variants, checkout_lines_data
         )
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
             quantities,
@@ -141,7 +141,7 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         if variants and checkout_lines_data:
-            site = load_site(info.context)
+            site = get_site_promise(info.context).get()
             checkout = add_variants_to_checkout(
                 checkout,
                 variants,

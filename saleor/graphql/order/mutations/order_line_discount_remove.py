@@ -7,7 +7,7 @@ from ....order.utils import invalidate_order_prices, remove_discount_from_order_
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon
 
@@ -37,7 +37,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         tax_included = site.settings.include_taxes_in_prices
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine

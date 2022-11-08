@@ -20,7 +20,7 @@ from ..core.types import (
     TimePeriodInputType,
 )
 from ..plugins.dataloaders import load_plugin_manager
-from ..site.dataloaders import load_site
+from ..site.dataloaders import get_site_promise
 from .enums import GiftCardSettingsExpiryTypeEnum
 from .types import GiftCardSettings, OrderSettings, Shop
 
@@ -149,7 +149,7 @@ class ShopSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         instance = site.settings
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
@@ -176,7 +176,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         data = data.get("input")
 
         if data:
@@ -210,7 +210,7 @@ class ShopDomainUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         data = data.get("input")
         domain = data.get("domain")
         name = data.get("name")
@@ -386,7 +386,7 @@ class OrderSettingsUpdate(BaseMutation):
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
         ]
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         instance = site.settings
         update_fields = []
         for field in FIELDS:
@@ -424,7 +424,7 @@ class GiftCardSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         instance = site.settings
         input = data["input"]
         cls.clean_input(input, instance)
