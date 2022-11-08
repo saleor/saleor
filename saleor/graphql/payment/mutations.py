@@ -1,9 +1,11 @@
-from typing import TYPE_CHECKING, List
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...channel.models import Channel
+from ...checkout import models as checkout_models
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -29,9 +31,6 @@ from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
 from .types import Payment, PaymentInitialized
 from .utils import metadata_contains_empty_key
-
-if TYPE_CHECKING:
-    from ...checkout import models as checkout_models
 
 
 def description(enum):
@@ -275,30 +274,50 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
 
-        cancel_active_payments(checkout)
-
         metadata = data.get("metadata")
 
         if metadata is not None:
             cls.validate_metadata_keys(metadata)
             metadata = {data.key: data.value for data in metadata}
 
-        payment = None
-        if amount != 0:
-            payment = create_payment(
-                gateway=gateway,
-                payment_token=data.get("token", ""),
-                total=amount,
-                currency=checkout.currency,
-                email=checkout.get_customer_email(),
-                extra_data=extra_data,
-                # FIXME this is not a customer IP address. It is a client storefront ip
-                customer_ip_address=get_client_ip(info.context),
-                checkout=checkout,
-                return_url=data.get("return_url"),
-                store_payment_method=data["store_payment_method"],
-                metadata=metadata,
+        # The payment creation and deactivation of old payments should happened in the
+        # transaction to avoid creating multiple active payments.
+        with transaction.atomic():
+            # The checkout lock is used to prevent processing checkout completion
+            # and new payment creation. This kind of case could result in the missing
+            # payments, that were created for the checkout that was already converted
+            # to an order.
+            checkout = (
+                checkout_models.Checkout.objects.select_for_update()
+                .filter(pk=checkout_info.checkout.pk)
+                .first()
             )
+
+            if not checkout:
+                raise ValidationError(
+                    "Checkout doesn't exist anymore.",
+                    code=PaymentErrorCode.NOT_FOUND.value,
+                )
+
+            cancel_active_payments(checkout)
+
+            payment = None
+            if amount != 0:
+                payment = create_payment(
+                    gateway=gateway,
+                    payment_token=data.get("token", ""),
+                    total=amount,
+                    currency=checkout.currency,
+                    email=checkout.get_customer_email(),
+                    extra_data=extra_data,
+                    # FIXME this is not a customer IP address.
+                    # It is a client storefront ip
+                    customer_ip_address=get_client_ip(info.context),
+                    checkout=checkout,
+                    return_url=data.get("return_url"),
+                    store_payment_method=data["store_payment_method"],
+                    metadata=metadata,
+                )
 
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
