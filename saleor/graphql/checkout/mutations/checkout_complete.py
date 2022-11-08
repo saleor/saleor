@@ -32,7 +32,7 @@ from ...discount.dataloaders import load_discounts
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -257,7 +257,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         else:
             customer = info.context.user
 
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
 
         order, action_required, action_data = complete_checkout(
             manager=manager,

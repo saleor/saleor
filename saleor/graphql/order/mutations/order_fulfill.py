@@ -15,7 +15,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -240,7 +240,7 @@ class OrderFulfill(BaseMutation):
             qs=order_models.Order.objects.prefetch_related("lines__variant"),
         )
         data = data.get("input")
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         cleaned_input = cls.clean_input(info, order, data, site=site)
 
         context = info.context
