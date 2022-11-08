@@ -48,7 +48,7 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site
+from ..site.dataloaders import load_site_callback
 from ..tax.dataloaders import (
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
@@ -697,8 +697,8 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_stock_reservation_expires(root: models.Checkout, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_stock_reservation_expires(root: models.Checkout, info, site):
         if not is_reservation_enabled(site.settings):
             return None
 

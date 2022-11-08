@@ -28,7 +28,7 @@ from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .utils import (
     check_lines_quantity,
@@ -180,7 +180,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls, info, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List["CheckoutLineData"]]:
         app = load_app(info.context)
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
@@ -310,7 +310,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             variants = cleaned_input.get("variants")
             checkout_lines_data = cleaned_input.get("lines_data")
             if variants and checkout_lines_data:
-                site = load_site(info.context)
+                site = get_site_promise(info.context).get()
                 add_variants_to_checkout(
                     instance,
                     variants,
