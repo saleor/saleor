@@ -71,6 +71,7 @@ from .checkout_cleaner import (
     clean_checkout_shipping,
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
+from .models import Checkout
 from .utils import get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
@@ -78,7 +79,6 @@ if TYPE_CHECKING:
     from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
-    from .models import Checkout
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -1258,9 +1258,19 @@ def complete_checkout(
         )
         reservations = _reserve_stocks_without_availability_check(checkout_info, lines)
 
+    # Fetch the checkout with a lock just to ensure that no payment is created
+    # for this checkout right now.
+    with transaction.atomic():
+        (
+            Checkout.objects.select_for_update()
+            .filter(pk=checkout_info.checkout.pk)
+            .first()
+        )
+
     # Process payments out of transaction to unlock stock rows for another user,
     # who potentially can order the same product variants.
     txn = None
+    channel_slug = checkout_info.channel.slug
     if payment:
         txn = _process_payment(
             payment=payment,
@@ -1269,8 +1279,19 @@ def complete_checkout(
             payment_data=payment_data,
             order_data=order_data,
             manager=manager,
-            channel_slug=checkout_info.channel.slug,
+            channel_slug=channel_slug,
         )
+
+        # As payment processing might take a while, we need to check if the payment
+        # doesn't become inactive in the meantime. If it's inactive we need to refund
+        # the payment.
+        payment.refresh_from_db()
+        if not payment.is_active:
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            raise ValidationError(
+                f"The payment with pspReference: {payment.psp_reference} is inactive.",
+                code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+            )
 
     with transaction_with_commit_on_errors():
         # Run pre-payment checks to make sure, that nothing has changed to the
