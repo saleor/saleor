@@ -727,6 +727,10 @@ def complete_checkout(
 
     action_required = False
     action_data: Dict[str, str] = {}
+    # Fetch the checkout with a lock just to ensure that no payment is created
+    # for this checkout right now.
+    with transaction.atomic():
+        (Checkout.objects.select_for_update().filter(pk=checkout.pk).first())
     if payment:
         txn = _process_payment(
             payment=payment,  # type: ignore
@@ -737,6 +741,17 @@ def complete_checkout(
             manager=manager,
             channel_slug=channel_slug,
         )
+
+        # As payment processing might take a while, we need to check if the payment
+        # doesn't become inactive in the meantime. If it's inactive we need to refund
+        # the payment.
+        payment.refresh_from_db()
+        if not payment.is_active:
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            raise ValidationError(
+                f"The payment with pspReference: {payment.psp_reference} is inactive.",
+                code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+            )
 
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
