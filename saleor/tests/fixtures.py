@@ -28,7 +28,7 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppExtension, AppInstallation, AppToken
+from ..app.models import App, AppExtension, AppInstallation
 from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
@@ -144,7 +144,6 @@ class CaptureQueriesContext(BaseCaptureQueriesContext):
 
     @property
     def captured_queries(self):
-        # flake8: noqa
         base_queries = self.connection.queries[
             self.initial_queries : self.final_queries
         ]
@@ -3595,7 +3594,6 @@ def order_line_with_one_allocation(
 def checkout_line_with_reservation_in_many_stocks(
     customer_user, variant_with_many_stocks, checkout
 ):
-    address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
     checkout_line = checkout.lines.create(
@@ -3629,7 +3627,6 @@ def checkout_line_with_reservation_in_many_stocks(
 def checkout_line_with_one_reservation(
     customer_user, variant_with_many_stocks, checkout
 ):
-    address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
     checkout_line = checkout.lines.create(
@@ -4247,7 +4244,7 @@ def order_with_line_without_inventory_tracking(
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
     unit_price = TaxedMoney(net=net, gross=gross)
-    line = order.lines.create(
+    order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
@@ -5481,7 +5478,9 @@ def other_description_json():
             {
                 "key": "",
                 "data": {
-                    "text": "A GRAPHQL-FIRST <b>ECOMMERCE</b> PLATFORM FOR PERFECTIONISTS",
+                    "text": (
+                        "A GRAPHQL-FIRST <b>ECOMMERCE</b> PLATFORM FOR PERFECTIONISTS"
+                    ),
                 },
                 "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
                 "type": "header-two",

@@ -8,7 +8,6 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models.deletion import SET_NULL
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -24,7 +23,6 @@ from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django_measurement import Weight
 
     from ..payment.models import Payment

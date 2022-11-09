@@ -286,9 +286,13 @@ def test_get_default_fulfillment_payload(fulfillment, digital_content, site_sett
     payload = get_default_fulfillment_payload(order, fulfillment)
 
     # make sure that test will not fail because of the list order
-    payload["order"]["lines"] = sorted(payload["order"]["lines"], key=lambda l: l["id"])
-    payload["physical_lines"] = sorted(payload["physical_lines"], key=lambda l: l["id"])
-    order_payload["lines"] = sorted(order_payload["lines"], key=lambda l: l["id"])
+    payload["order"]["lines"] = sorted(
+        payload["order"]["lines"], key=lambda line: line["id"]
+    )
+    payload["physical_lines"] = sorted(
+        payload["physical_lines"], key=lambda line: line["id"]
+    )
+    order_payload["lines"] = sorted(order_payload["lines"], key=lambda line: line["id"])
 
     digital_line = fulfillment.lines.get(order_line=line.id)
     physical_line = fulfillment.lines.exclude(id=digital_line.id).first()

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
-from django.conf import settings
 from django_countries.fields import Country
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -18,7 +17,6 @@ from ...product.models import (
 )
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...plugins.manager import PluginsManager
 
 

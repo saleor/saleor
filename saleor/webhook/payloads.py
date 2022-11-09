@@ -212,10 +212,10 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
-            "product_variant_id": (lambda l: l.product_variant_id),
-            "total_price_net_amount": (lambda l: l.total_price.net.amount),
-            "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
-            "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
+            "product_variant_id": (lambda line: line.product_variant_id),
+            "total_price_net_amount": (lambda line: line.total_price.net.amount),
+            "total_price_gross_amount": (lambda line: line.total_price.gross.amount),
+            "allocations": (lambda line: prepare_order_lines_allocations_payload(line)),
         },
     )
 
@@ -1307,24 +1307,28 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
         lines,
         fields=("product_name", "variant_name", "quantity"),
         extra_dict_data={
-            "variant_id": (lambda l: l.product_variant_id),
-            "full_name": (lambda l: l.variant.display_product() if l.variant else None),
+            "variant_id": (lambda line: line.product_variant_id),
+            "full_name": (
+                lambda line: line.variant.display_product() if line.variant else None
+            ),
             "product_metadata": (
-                lambda l: l.variant.product.metadata if l.variant else {}
+                lambda line: line.variant.product.metadata if line.variant else {}
             ),
             "product_type_metadata": (
-                lambda l: l.variant.product.product_type.metadata if l.variant else {}
+                lambda line: line.variant.product.product_type.metadata
+                if line.variant
+                else {}
             ),
             "charge_taxes": (
-                lambda l: l.variant.product.charge_taxes if l.variant else None
+                lambda line: line.variant.product.charge_taxes if line.variant else None
             ),
-            "sku": (lambda l: l.product_sku),
+            "sku": (lambda line: line.product_sku),
             "unit_amount": (
-                lambda l: quantize_price(l.base_unit_price_amount, l.currency)
+                lambda line: quantize_price(line.base_unit_price_amount, line.currency)
             ),
             "total_amount": (
-                lambda l: quantize_price(
-                    l.base_unit_price_amount * l.quantity, l.currency
+                lambda line: quantize_price(
+                    line.base_unit_price_amount * line.quantity, line.currency
                 )
             ),
         },
