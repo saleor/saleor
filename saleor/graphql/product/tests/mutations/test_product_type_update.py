@@ -3,10 +3,10 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductType
-from ...tests.utils import get_graphql_content
-from ..enums import ProductTypeKindEnum
+from .....product.error_codes import ProductErrorCode
+from .....product.models import ProductType
+from ....tests.utils import get_graphql_content
+from ...enums import ProductTypeKindEnum
 
 PRODUCT_TYPE_UPDATE_MUTATION = """
 mutation updateProductType(

@@ -4,10 +4,10 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
-from ....attribute.utils import associate_attribute_values_to_instance
-from ....order import OrderStatus
-from ....order.models import OrderLine
-from ...tests.utils import get_graphql_content
+from .....attribute.utils import associate_attribute_values_to_instance
+from .....order import OrderStatus
+from .....order.models import OrderLine
+from ....tests.utils import get_graphql_content
 
 PRODUCT_TYPE_DELETE_MUTATION = """
     mutation deleteProductType($id: ID!) {

@@ -4,8 +4,8 @@ import graphene
 import pytz
 from freezegun import freeze_time
 
-from ....product.error_codes import CollectionErrorCode
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....product.error_codes import CollectionErrorCode
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 COLLECTION_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateCollectionChannelListing(
