@@ -116,7 +116,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
         manager = load_plugin_manager(info.context)
-
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
