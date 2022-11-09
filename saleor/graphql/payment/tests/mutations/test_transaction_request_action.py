@@ -616,12 +616,7 @@ def test_transaction_request_action_missing_event(
 
     assert mocked_is_active.called
 
-    assert (
-        len(
-            TransactionEvent.objects.filter(
-                transaction=transaction,
-                status=TransactionEventStatus.REQUEST,
-            )
-        )
-        == 0
-    )
+    assert not TransactionEvent.objects.filter(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+    ).exists()
