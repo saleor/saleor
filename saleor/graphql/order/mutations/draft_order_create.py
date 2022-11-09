@@ -30,7 +30,7 @@ from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 from ..utils import (
     OrderLineData,
@@ -116,7 +116,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
         manager = load_plugin_manager(info.context)
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
@@ -330,7 +330,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         return cls._save_draft_order(
             info,
             instance,
