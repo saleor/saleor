@@ -6,13 +6,13 @@ import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ....checkout.fetch import fetch_checkout_info
-from ....checkout.utils import add_variant_to_checkout
-from ....plugins.manager import get_plugins_manager
-from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductVariant, ProductVariantChannelListing
-from ....product.utils.costs import get_product_costs_data
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....checkout.fetch import fetch_checkout_info
+from .....checkout.utils import add_variant_to_checkout
+from .....plugins.manager import get_plugins_manager
+from .....product.error_codes import ProductErrorCode
+from .....product.models import ProductVariant, ProductVariantChannelListing
+from .....product.utils.costs import get_product_costs_data
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateProductChannelListing(

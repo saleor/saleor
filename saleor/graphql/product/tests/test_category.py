@@ -14,6 +14,7 @@ from ....core.utils.json_serializer import CustomJsonEncoder
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
@@ -1576,3 +1577,303 @@ def test_query_category_for_federation(api_client, non_default_category):
             "name": non_default_category.name,
         }
     ]
+
+
+def test_query_products_no_channel_shipping_zones(
+    staff_api_client, product, permission_manage_products, stock, channel_USD
+):
+    channel_USD.shipping_zones.clear()
+    category = Category.objects.first()
+    product = category.products.first()
+    query = """
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        isAvailable(address: $address)
+                    }
+                }
+            }
+        }
+    }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["category"] is not None
+    product_edges_data = content["data"]["category"]["products"]["edges"]
+    assert len(product_edges_data) == category.products.count()
+    product_data = product_edges_data[0]["node"]
+    assert product_data["name"] == product.name
+    assert product_data["isAvailable"] is False
+
+
+QUERY_CATEGORIES_WITH_SORT = """
+    query ($sort_by: CategorySortingInput!) {
+        categories(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "category_sort, result_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["Cat1", "Cat2", "SubCat", "SubSubCat"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["SubSubCat", "SubCat", "Cat2", "Cat1"],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "ASC"},
+            ["Cat2", "SubSubCat", "Cat1", "SubCat"],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
+            ["SubCat", "Cat1", "SubSubCat", "Cat2"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "ASC"},
+            ["Cat2", "SubCat", "SubSubCat", "Cat1"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "DESC"},
+            ["Cat1", "SubSubCat", "SubCat", "Cat2"],
+        ),
+    ],
+)
+def test_categories_query_with_sort(
+    category_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_products,
+    product_type,
+):
+    cat1 = Category.objects.create(
+        name="Cat1",
+        slug="slug_category1",
+        description=dummy_editorjs("Description cat1."),
+    )
+    Product.objects.create(
+        name="Test",
+        slug="test",
+        product_type=product_type,
+        category=cat1,
+    )
+    Category.objects.create(
+        name="Cat2",
+        slug="slug_category2",
+        description=dummy_editorjs("Description cat2."),
+    )
+    Category.objects.create(
+        name="SubCat",
+        slug="slug_subcategory1",
+        parent=Category.objects.get(name="Cat1"),
+        description=dummy_editorjs("Subcategory_description of cat1."),
+    )
+    subsubcat = Category.objects.create(
+        name="SubSubCat",
+        slug="slug_subcategory2",
+        parent=Category.objects.get(name="SubCat"),
+        description=dummy_editorjs("Subcategory_description of cat1."),
+    )
+    Product.objects.create(
+        name="Test2",
+        slug="test2",
+        product_type=product_type,
+        category=subsubcat,
+    )
+    variables = {"sort_by": category_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_CATEGORIES_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    categories = content["data"]["categories"]["edges"]
+
+    for order, category_name in enumerate(result_order):
+        assert categories[order]["node"]["name"] == category_name
+
+
+@pytest.mark.parametrize(
+    "category_filter, count",
+    [
+        ({"search": "slug_"}, 4),
+        ({"search": "Category1"}, 1),
+        ({"search": "cat1"}, 3),
+        ({"search": "Description cat1."}, 2),
+        ({"search": "Subcategory_description"}, 1),
+        ({"ids": [to_global_id("Category", 2), to_global_id("Category", 3)]}, 2),
+    ],
+)
+def test_categories_query_with_filter(
+    category_filter,
+    count,
+    staff_api_client,
+    permission_manage_products,
+):
+    query = """
+        query ($filter: CategoryFilterInput!, ) {
+              categories(first:5, filter: $filter) {
+                totalCount
+                edges{
+                  node{
+                    id
+                    name
+                  }
+                }
+              }
+            }
+    """
+
+    Category.objects.create(
+        id=1,
+        name="Category1",
+        slug="slug_category1",
+        description=dummy_editorjs("Description cat1."),
+        description_plaintext="Description cat1.",
+    )
+    Category.objects.create(
+        id=2,
+        name="Category2",
+        slug="slug_category2",
+        description=dummy_editorjs("Description cat2."),
+        description_plaintext="Description cat2.",
+    )
+
+    Category.objects.create(
+        id=3,
+        name="SubCategory",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Category1"),
+        description=dummy_editorjs("Subcategory_description of cat1."),
+        description_plaintext="Subcategory_description of cat1.",
+    )
+    Category.objects.create(
+        id=4,
+        name="DoubleSubCategory",
+        slug="slug_subcategory4",
+        description=dummy_editorjs("Super important Description cat1."),
+        description_plaintext="Super important Description cat1.",
+    )
+    variables = {"filter": category_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["categories"]["totalCount"] == count
+
+
+def test_fetch_product_from_category_query(
+    staff_api_client, product, permission_manage_products, stock, channel_USD
+):
+    category = Category.objects.first()
+    product = category.products.first()
+    query = """
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        slug
+                        thumbnail{
+                            url
+                            alt
+                        }
+                        media {
+                            url
+                        }
+                        variants {
+                            name
+                            channelListings {
+                                costPrice {
+                                    amount
+                                }
+                            }
+                        }
+                        channelListings {
+                            purchaseCost {
+                                start {
+                                    amount
+                                }
+                                stop {
+                                    amount
+                                }
+                            }
+                            margin {
+                                start
+                                stop
+                            }
+                        }
+                        isAvailable(address: $address)
+                        pricing(address: $address) {
+                            priceRange {
+                                start {
+                                    gross {
+                                        amount
+                                        currency
+                                    }
+                                    net {
+                                        amount
+                                        currency
+                                    }
+                                    currency
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["category"] is not None
+    product_edges_data = content["data"]["category"]["products"]["edges"]
+    assert len(product_edges_data) == category.products.count()
+    product_data = product_edges_data[0]["node"]
+    assert product_data["name"] == product.name
+    assert product_data["slug"] == product.slug
+
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
+    purchase_cost, margin = get_product_costs_data(
+        variant_channel_listing, True, channel_USD.currency_code
+    )
+    cost_start = product_data["channelListings"][0]["purchaseCost"]["start"]["amount"]
+    cost_stop = product_data["channelListings"][0]["purchaseCost"]["stop"]["amount"]
+
+    assert purchase_cost.start.amount == cost_start
+    assert purchase_cost.stop.amount == cost_stop
+    assert product_data["isAvailable"] is True
+    assert margin[0] == product_data["channelListings"][0]["margin"]["start"]
+    assert margin[1] == product_data["channelListings"][0]["margin"]["stop"]
+
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    variant_channel_data = product_data["variants"][0]["channelListings"][0]
+    variant_cost = variant_channel_data["costPrice"]["amount"]
+
+    assert variant_channel_listing.cost_price.amount == variant_cost

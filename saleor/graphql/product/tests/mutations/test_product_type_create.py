@@ -3,12 +3,12 @@ from unittest.mock import ANY
 import graphene
 import pytest
 
-from ....attribute import AttributeType
-from ....plugins.manager import PluginsManager
-from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductType
-from ...tests.utils import get_graphql_content
-from ..enums import ProductTypeKindEnum
+from .....attribute import AttributeType
+from .....plugins.manager import PluginsManager
+from .....product.error_codes import ProductErrorCode
+from .....product.models import ProductType
+from ....tests.utils import get_graphql_content
+from ...enums import ProductTypeKindEnum
 
 PRODUCT_TYPE_CREATE_MUTATION = """
     mutation createProductType(

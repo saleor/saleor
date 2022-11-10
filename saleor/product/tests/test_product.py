@@ -18,6 +18,7 @@ from ...graphql.product.filters import (
 )
 from .. import ProductTypeKind, models
 from ..models import DigitalContentUrl
+from ..tasks import update_variants_names
 from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
 
@@ -381,3 +382,11 @@ def test_product_media_delete(delete_from_storage_task_mock, product_with_image)
 
     # then
     delete_from_storage_task_mock.assert_called_once_with(media.image.name)
+
+
+@patch("saleor.product.tasks._update_variants_names")
+def test_product_update_variants_names(mock__update_variants_names, product_type):
+    variant_attributes = [product_type.variant_attributes.first()]
+    variant_attr_ids = [attr.pk for attr in variant_attributes]
+    update_variants_names(product_type.pk, variant_attr_ids)
+    assert mock__update_variants_names.call_count == 1

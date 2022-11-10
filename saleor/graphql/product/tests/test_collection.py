@@ -1,13 +1,15 @@
 import os
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
+import pytz
 from django.core.files import File
 from graphql_relay import to_global_id
 
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
-from ....product.models import Collection, Product
+from ....product.models import Collection, CollectionChannelListing, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
@@ -1709,4 +1711,215 @@ def test_query_collection_for_federation(api_client, published_collection, chann
             "id": collection_id,
             "name": published_collection.name,
         }
+    ]
+
+
+@pytest.mark.parametrize(
+    "collection_filter, count",
+    [
+        ({"published": "PUBLISHED"}, 2),
+        ({"published": "HIDDEN"}, 1),
+        ({"search": "-published1"}, 1),
+        ({"search": "Collection3"}, 1),
+        ({"ids": [to_global_id("Collection", 2), to_global_id("Collection", 3)]}, 2),
+    ],
+)
+def test_collections_query_with_filter(
+    collection_filter,
+    count,
+    channel_USD,
+    staff_api_client,
+    permission_manage_products,
+):
+    query = """
+        query ($filter: CollectionFilterInput!, $channel: String) {
+              collections(first:5, filter: $filter, channel: $channel) {
+                edges{
+                  node{
+                    id
+                    name
+                  }
+                }
+              }
+            }
+    """
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(
+                id=1,
+                name="Collection1",
+                slug="collection-published1",
+                description=dummy_editorjs("Test description"),
+            ),
+            Collection(
+                id=2,
+                name="Collection2",
+                slug="collection-published2",
+                description=dummy_editorjs("Test description"),
+            ),
+            Collection(
+                id=3,
+                name="Collection3",
+                slug="collection-unpublished",
+                description=dummy_editorjs("Test description"),
+            ),
+        ]
+    )
+    published = (True, True, False)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, collection=collection, is_published=published[num]
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+    variables = {
+        "filter": collection_filter,
+        "channel": channel_USD.slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    collections = content["data"]["collections"]["edges"]
+
+    assert len(collections) == count
+
+
+QUERY_COLLECTIONS_WITH_SORT = """
+    query ($sort_by: CollectionSortingInput!, $channel: String) {
+        collections(first:5, sortBy: $sort_by, channel: $channel) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "collection_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
+        ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
+        ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
+        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll1", "Coll3", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
+    ],
+)
+def test_collections_query_with_sort(
+    collection_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    channel_USD,
+):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
+        ]
+    )
+    published = (True, False, True)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, collection=collection, is_published=published[num]
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+    product.collections.add(Collection.objects.get(name="Coll2"))
+    variables = {"sort_by": collection_sort, "channel": channel_USD.slug}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    collections = content["data"]["collections"]["edges"]
+    for order, collection_name in enumerate(result_order):
+        assert collections[order]["node"]["name"] == collection_name
+
+
+QUERY_PAGINATED_SORTED_COLLECTIONS = """
+    query (
+        $first: Int, $sort_by: CollectionSortingInput!, $after: String, $channel: String
+    ) {
+        collections(first: $first, sortBy: $sort_by, after: $after, channel: $channel) {
+                edges{
+                    node{
+                        slug
+                    }
+                }
+                pageInfo{
+                    startCursor
+                    endCursor
+                    hasNextPage
+                    hasPreviousPage
+                }
+            }
+        }
+"""
+
+
+def test_pagination_for_sorting_collections_by_published_at_date(
+    api_client, channel_USD
+):
+    """Ensure that using the cursor in sorting collections by published at date works
+    properly."""
+    # given
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
+        ]
+    )
+    now = datetime.now(pytz.UTC)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD,
+                collection=collection,
+                is_published=True,
+                published_at=now - timedelta(days=num),
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+
+    first = 2
+    variables = {
+        "sort_by": {"direction": "DESC", "field": "PUBLISHED_AT"},
+        "channel": channel_USD.slug,
+        "first": first,
+    }
+
+    # first request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_COLLECTIONS, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]
+    assert len(data["edges"]) == first
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        collection.slug for collection in collections[:first]
+    ]
+    end_cursor = data["pageInfo"]["endCursor"]
+
+    variables["after"] = end_cursor
+
+    # when
+    # second request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_COLLECTIONS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]
+    expected_count = len(collections) - first
+    assert len(data["edges"]) == expected_count
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        collection.slug for collection in collections[first:]
     ]
