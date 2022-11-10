@@ -20112,6 +20112,7 @@ enum CheckoutErrorCode {
   UNAVAILABLE_VARIANT_IN_CHANNEL
   EMAIL_NOT_SET
   NO_LINES
+  INACTIVE_PAYMENT
 }
 
 """Update billing address in the existing checkout."""
