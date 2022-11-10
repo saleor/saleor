@@ -4,8 +4,8 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from ....shipping.error_codes import ShippingErrorCode
-from ..mutations import BaseChannelListingMutation
+from .....shipping.error_codes import ShippingErrorCode
+from ...mutations import BaseChannelListingMutation
 
 
 def test_validate_duplicated_channel_ids(channel_PLN, channel_USD):

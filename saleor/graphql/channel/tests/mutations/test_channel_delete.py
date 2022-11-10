@@ -5,14 +5,14 @@ import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
-from ....channel.error_codes import ChannelErrorCode
-from ....channel.models import Channel
-from ....checkout.models import Checkout
-from ....core.utils.json_serializer import CustomJsonEncoder
-from ....order.models import Order
-from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.payloads import generate_meta, generate_requestor
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....channel.error_codes import ChannelErrorCode
+from .....channel.models import Channel
+from .....checkout.models import Checkout
+from .....core.utils.json_serializer import CustomJsonEncoder
+from .....order.models import Order
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_DELETE_MUTATION = """
     mutation deleteChannel($id: ID!, $input: ChannelDeleteInput){
