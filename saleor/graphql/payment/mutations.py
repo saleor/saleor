@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import F
 
 from ...channel.models import Channel
@@ -297,33 +298,54 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
 
-        cancel_active_payments(checkout)
-
         metadata = data.get("metadata")
 
         if metadata is not None:
             cls.validate_metadata_keys(metadata)
             metadata = {data.key: data.value for data in metadata}
 
-        payment = None
-        if amount != 0:
-            store_payment_method = (
-                data.get("store_payment_method") or StorePaymentMethod.NONE
+        # The payment creation and deactivation of old payments should happened in the
+        # transaction to avoid creating multiple active payments.
+        with transaction.atomic():
+            # The checkout lock is used to prevent processing checkout completion
+            # and new payment creation. This kind of case could result in the missing
+            # payments, that were created for the checkout that was already converted
+            # to an order.
+            checkout = (
+                checkout_models.Checkout.objects.select_for_update()
+                .filter(pk=checkout_info.checkout.pk)
+                .first()
             )
-            payment = create_payment(
-                gateway=gateway,
-                payment_token=data.get("token", ""),
-                total=amount,
-                currency=checkout.currency,
-                email=checkout.get_customer_email(),
-                extra_data=extra_data,
-                # FIXME this is not a customer IP address. It is a client storefront ip
-                customer_ip_address=get_client_ip(info.context),
-                checkout=checkout,
-                return_url=data.get("return_url"),
-                store_payment_method=store_payment_method,
-                metadata=metadata,
-            )
+
+            if not checkout:
+                raise ValidationError(
+                    "Checkout doesn't exist anymore.",
+                    code=PaymentErrorCode.NOT_FOUND.value,
+                )
+
+            cancel_active_payments(checkout)
+
+            payment = None
+            if amount != 0:
+                store_payment_method = (
+                    data.get("store_payment_method") or StorePaymentMethod.NONE
+                )
+
+                payment = create_payment(
+                    gateway=gateway,
+                    payment_token=data.get("token", ""),
+                    total=amount,
+                    currency=checkout.currency,
+                    email=checkout.get_customer_email(),
+                    extra_data=extra_data,
+                    # FIXME this is not a customer IP address.
+                    # It is a client storefront ip
+                    customer_ip_address=get_client_ip(info.context),
+                    checkout=checkout,
+                    return_url=data.get("return_url"),
+                    store_payment_method=store_payment_method,
+                    metadata=metadata,
+                )
 
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
