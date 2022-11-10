@@ -285,7 +285,7 @@ def test_channel_update_mutation_add_shipping_zone(
 
 
 @patch(
-    "saleor.graphql.channel.mutations."
+    "saleor.graphql.channel.mutations.channel_update."
     "drop_invalid_shipping_methods_relations_for_given_channels.delay"
 )
 def test_channel_update_mutation_remove_shipping_zone(
