@@ -48,7 +48,7 @@ from ....product.models import (
 )
 from ....product.search import prepare_product_search_vector_value
 from ....product.tasks import update_variants_names
-from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.tests.utils import create_image, create_zip_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
@@ -10080,7 +10080,7 @@ def test_invalid_product_media_create_mutation(
         }
     }
     """
-    image_file, image_name = create_pdf_file_with_image_ext()
+    image_file, image_name = create_zip_file_with_image_ext()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "image": image_name,
