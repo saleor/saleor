@@ -957,14 +957,14 @@ python-dateutil = ">=2.4"
 
 [[package]]
 name = "fakeredis"
-version = "1.10.0"
+version = "1.10.1"
 description = "Fake implementation of redis API for testing purposes."
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-redis = "<4.4"
+redis = "<4.5"
 sortedcontainers = ">=2.4.0,<3.0.0"
 
 [package.extras]
@@ -2945,8 +2945,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "35a9fefb3cee74e3cb60512695e582b7c0f4cc98263621f4b97204b6d1bc0d7c"
+python-versions = "~3.9"
+content-hash = "f74ea6459a0c08953c05a5f5e287d6b6326135d6ef88d0f7b8e13904bbaac4c5"
 
 [metadata.files]
 adyen = [
@@ -3506,8 +3506,8 @@ faker = [
     {file = "Faker-15.2.0.tar.gz", hash = "sha256:f35b9b47fb84d7334645feba0dd87bbf5aba2b617cd83ec8e1b8c6dcd859a710"},
 ]
 fakeredis = [
-    {file = "fakeredis-1.10.0-py3-none-any.whl", hash = "sha256:0be420a79fabda234963a2730c4ce609a6d44a598e8dd253ce97785bef944285"},
-    {file = "fakeredis-1.10.0.tar.gz", hash = "sha256:2b02370118535893d832bcd3c099ef282de3f13b29ae3922432e2225794ec334"},
+    {file = "fakeredis-1.10.1-py3-none-any.whl", hash = "sha256:054ec109ec2cb4b1f0c6ed8d53603b07504c971bf8865dc6459eb5598e02ef1b"},
+    {file = "fakeredis-1.10.1.tar.gz", hash = "sha256:2d0d9163ce9ea7e3eae44c65d2e4ed168a8a3827a1d3ba430ca6f31ab0e762ff"},
 ]
 filelock = [
     {file = "filelock-3.8.0-py3-none-any.whl", hash = "sha256:617eb4e5eedc82fc5f47b6d61e4d11cb837c56cb4544e39081099fa17ad109d4"},
@@ -4204,6 +4204,8 @@ protobuf = [
 psycopg2 = [
     {file = "psycopg2-2.9.5-cp310-cp310-win32.whl", hash = "sha256:d3ef67e630b0de0779c42912fe2cbae3805ebaba30cda27fea2a3de650a9414f"},
     {file = "psycopg2-2.9.5-cp310-cp310-win_amd64.whl", hash = "sha256:4cb9936316d88bfab614666eb9e32995e794ed0f8f6b3b718666c22819c1d7ee"},
+    {file = "psycopg2-2.9.5-cp311-cp311-win32.whl", hash = "sha256:093e3894d2d3c592ab0945d9eba9d139c139664dcf83a1c440b8a7aa9bb21955"},
+    {file = "psycopg2-2.9.5-cp311-cp311-win_amd64.whl", hash = "sha256:920bf418000dd17669d2904472efeab2b20546efd0548139618f8fa305d1d7ad"},
     {file = "psycopg2-2.9.5-cp36-cp36m-win32.whl", hash = "sha256:b9ac1b0d8ecc49e05e4e182694f418d27f3aedcfca854ebd6c05bb1cffa10d6d"},
     {file = "psycopg2-2.9.5-cp36-cp36m-win_amd64.whl", hash = "sha256:fc04dd5189b90d825509caa510f20d1d504761e78b8dfb95a0ede180f71d50e5"},
     {file = "psycopg2-2.9.5-cp37-cp37m-win32.whl", hash = "sha256:922cc5f0b98a5f2b1ff481f5551b95cd04580fd6f0c72d9b22e6c0145a4840e0"},
