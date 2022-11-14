@@ -3,9 +3,9 @@ import uuid
 import graphene
 import pytest
 
-from ....channel.error_codes import ChannelErrorCode
-from ....warehouse.models import ChannelWarehouse
-from ...tests.utils import get_graphql_content
+from .....channel.error_codes import ChannelErrorCode
+from .....warehouse.models import ChannelWarehouse
+from ....tests.utils import get_graphql_content
 
 CHANNEL_REORDER_WAREHOUSES = """
     mutation ChannelReorderWarehouses($channelId: ID!, $moves: [ReorderInput!]!) {
