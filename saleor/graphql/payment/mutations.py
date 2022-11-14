@@ -27,7 +27,13 @@ from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
 from ...order.models import Order
-from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
+from ...payment import (
+    PaymentError,
+    StorePaymentMethod,
+    TransactionAction,
+    TransactionEventStatus,
+    gateway,
+)
 from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
@@ -1173,17 +1179,37 @@ class TransactionRequestAction(BaseMutation):
         cls, action, action_kwargs, action_value: Optional[Decimal]
     ):
         if action == TransactionAction.VOID:
+            transaction = action_kwargs["transaction"]
             request_void_action(**action_kwargs)
+            cls.create_transaction_event_requested(
+                transaction, 0, TransactionAction.VOID
+            )
         elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
             request_charge_action(**action_kwargs, charge_value=action_value)
+            cls.create_transaction_event_requested(
+                transaction, action_value, TransactionAction.CHARGE
+            )
         elif action == TransactionAction.REFUND:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
             request_refund_action(**action_kwargs, refund_value=action_value)
+            cls.create_transaction_event_requested(
+                transaction, action_value, TransactionAction.REFUND
+            )
+
+    @classmethod
+    def create_transaction_event_requested(cls, transaction, action_value, type):
+        transaction.events.create(
+            status=TransactionEventStatus.REQUEST,
+            transaction=transaction,
+            amount_value=action_value,
+            currency=transaction.currency,
+            type=type,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
