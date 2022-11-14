@@ -1,8 +1,9 @@
 import pytest
+from django.utils import timezone
 
-from ....discount import DiscountValueType
-from ....discount.models import Sale, SaleChannelListing
-from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
+from .....discount import DiscountValueType
+from .....discount.models import Sale, SaleChannelListing
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
 @pytest.fixture
@@ -254,3 +255,59 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["sales"]["edges"]
+
+
+QUERY_SALE_WITH_SORT = """
+    query ($sort_by: SaleSortingInput!) {
+        sales(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "sale_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["BigSale", "Sale2", "Sale3"]),
+        ({"field": "NAME", "direction": "DESC"}, ["Sale3", "Sale2", "BigSale"]),
+        ({"field": "TYPE", "direction": "ASC"}, ["Sale2", "Sale3", "BigSale"]),
+        ({"field": "TYPE", "direction": "DESC"}, ["BigSale", "Sale3", "Sale2"]),
+        ({"field": "START_DATE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
+        ({"field": "START_DATE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
+        ({"field": "END_DATE", "direction": "ASC"}, ["Sale2", "Sale3", "BigSale"]),
+        ({"field": "END_DATE", "direction": "DESC"}, ["BigSale", "Sale3", "Sale2"]),
+    ],
+)
+def test_query_sales_with_sort(
+    sale_sort, result_order, staff_api_client, permission_manage_discounts, channel_USD
+):
+    sales = Sale.objects.bulk_create(
+        [
+            Sale(name="BigSale", type="PERCENTAGE"),
+            Sale(
+                name="Sale2",
+                type="FIXED",
+                start_date=timezone.now().replace(year=2012, month=1, day=5),
+                end_date=timezone.now().replace(year=2013, month=1, day=5),
+            ),
+            Sale(
+                name="Sale3",
+                type="FIXED",
+                start_date=timezone.now().replace(year=2011, month=1, day=5),
+                end_date=timezone.now().replace(year=2015, month=12, day=31),
+            ),
+        ]
+    )
+    variables = {"sort_by": sale_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    response = staff_api_client.post_graphql(QUERY_SALE_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    sales = content["data"]["sales"]["edges"]
+
+    for order, sale_name in enumerate(result_order):
+        assert sales[order]["node"]["name"] == sale_name
