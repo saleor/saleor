@@ -5,11 +5,11 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ....discount import DiscountValueType
-from ....discount.utils import fetch_catalogue_info
-from ...tests.utils import get_graphql_content
-from ..enums import DiscountValueTypeEnum
-from ..mutations.utils import convert_catalogue_info_to_global_ids
+from .....discount import DiscountValueType
+from .....discount.utils import fetch_catalogue_info
+from ....tests.utils import get_graphql_content
+from ...enums import DiscountValueTypeEnum
+from ...mutations.utils import convert_catalogue_info_to_global_ids
 
 SALE_UPDATE_MUTATION = """
     mutation  saleUpdate($id: ID!, $input: SaleInput!) {

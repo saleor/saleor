@@ -7,8 +7,8 @@ from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import SaleTranslate, VoucherTranslate
-from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .filters import SaleFilter, VoucherFilter
+from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .mutations.sale_add_catalogues import SaleAddCatalogues
 from .mutations.sale_channel_listing_update import SaleChannelListingUpdate
 from .mutations.sale_create import SaleCreate

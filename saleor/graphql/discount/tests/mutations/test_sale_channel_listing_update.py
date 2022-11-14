@@ -2,10 +2,10 @@ from unittest.mock import patch
 
 import graphene
 
-from ....discount import DiscountValueType
-from ....discount.error_codes import DiscountErrorCode
-from ....discount.models import SaleChannelListing
-from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
+from .....discount import DiscountValueType
+from .....discount.error_codes import DiscountErrorCode
+from .....discount.models import SaleChannelListing
+from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateSaleChannelListing(
