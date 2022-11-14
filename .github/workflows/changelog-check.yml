@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: dangoslen/changelog-enforcer@83e1e992a730c447cca6e9ecf8e7b21cb9a7463e
       with:
-        skipLabels: "skip changelog,dependencies,rfc"
+        skipLabels: "skip changelog,dependencies,bot"
