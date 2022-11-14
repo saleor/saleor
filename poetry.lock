@@ -2707,7 +2707,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-redis"
-version = "4.3.21.3"
+version = "4.3.21.4"
 description = "Typing stubs for redis"
 category = "dev"
 optional = false
@@ -2945,8 +2945,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "35a9fefb3cee74e3cb60512695e582b7c0f4cc98263621f4b97204b6d1bc0d7c"
+python-versions = "~3.9"
+content-hash = "a57b825e0fa6f60b53a762b7d1398a75d95c83441c2847f500bcc37e3d941fda"
 
 [metadata.files]
 adyen = [
@@ -4204,6 +4204,8 @@ protobuf = [
 psycopg2 = [
     {file = "psycopg2-2.9.5-cp310-cp310-win32.whl", hash = "sha256:d3ef67e630b0de0779c42912fe2cbae3805ebaba30cda27fea2a3de650a9414f"},
     {file = "psycopg2-2.9.5-cp310-cp310-win_amd64.whl", hash = "sha256:4cb9936316d88bfab614666eb9e32995e794ed0f8f6b3b718666c22819c1d7ee"},
+    {file = "psycopg2-2.9.5-cp311-cp311-win32.whl", hash = "sha256:093e3894d2d3c592ab0945d9eba9d139c139664dcf83a1c440b8a7aa9bb21955"},
+    {file = "psycopg2-2.9.5-cp311-cp311-win_amd64.whl", hash = "sha256:920bf418000dd17669d2904472efeab2b20546efd0548139618f8fa305d1d7ad"},
     {file = "psycopg2-2.9.5-cp36-cp36m-win32.whl", hash = "sha256:b9ac1b0d8ecc49e05e4e182694f418d27f3aedcfca854ebd6c05bb1cffa10d6d"},
     {file = "psycopg2-2.9.5-cp36-cp36m-win_amd64.whl", hash = "sha256:fc04dd5189b90d825509caa510f20d1d504761e78b8dfb95a0ede180f71d50e5"},
     {file = "psycopg2-2.9.5-cp37-cp37m-win32.whl", hash = "sha256:922cc5f0b98a5f2b1ff481f5551b95cd04580fd6f0c72d9b22e6c0145a4840e0"},
@@ -4537,8 +4539,8 @@ types-pytz = [
     {file = "types_pytz-2022.6.0.1-py3-none-any.whl", hash = "sha256:bea605ce5d5a5d52a8e1afd7656c9b42476e18a0f888de6be91587355313ddf4"},
 ]
 types-redis = [
-    {file = "types-redis-4.3.21.3.tar.gz", hash = "sha256:2e1f184056188c8754ded0b5173dc01824d2bfe41975fe318068a68beedfb62c"},
-    {file = "types_redis-4.3.21.3-py3-none-any.whl", hash = "sha256:77ee5b8ca3a779e09807348c7f0b33c0f38a46096cd6c8a2e0176b28b3784b34"},
+    {file = "types-redis-4.3.21.4.tar.gz", hash = "sha256:3955c5682f926a1aaee13ed5bc0a37521115b0b8ffd6cd457facf517999abe93"},
+    {file = "types_redis-4.3.21.4-py3-none-any.whl", hash = "sha256:cf8a94ac9efbeb6459fd1aa05dbb977fc59c1022ebe8f72bc0bae57df136105d"},
 ]
 types-requests = [
     {file = "types-requests-2.28.11.2.tar.gz", hash = "sha256:fdcd7bd148139fb8eef72cf4a41ac7273872cad9e6ada14b11ff5dfdeee60ed3"},
