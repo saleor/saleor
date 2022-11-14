@@ -6,13 +6,13 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
-from ....core.prices import quantize_price
-from ....discount import DiscountValueType
-from ....order import OrderEvents, OrderStatus
-from ....order.error_codes import OrderErrorCode
-from ....order.interface import OrderTaxedPricesData
-from ...discount.enums import DiscountValueTypeEnum
-from ...tests.utils import get_graphql_content
+from .....core.prices import quantize_price
+from .....discount import DiscountValueType
+from .....order import OrderEvents, OrderStatus
+from .....order.error_codes import OrderErrorCode
+from .....order.interface import OrderTaxedPricesData
+from ....discount.enums import DiscountValueTypeEnum
+from ....tests.utils import get_graphql_content
 
 ORDER_DISCOUNT_ADD = """
 mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){

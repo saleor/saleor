@@ -3,20 +3,19 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 
-from ....core.exceptions import InsufficientStock, InsufficientStockData
-from ....giftcard import GiftCardEvents
-from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderStatus
-from ....order.actions import fulfill_order_lines
-from ....order.error_codes import OrderErrorCode
-from ....order.events import OrderEvents
-from ....order.fetch import OrderLineInfo
-from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus, OrderLine
-from ....plugins.manager import get_plugins_manager
-from ....product.models import Product, ProductVariant
-from ....tests.utils import flush_post_commit_hooks
-from ....warehouse.models import Allocation, Stock
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....core.exceptions import InsufficientStock, InsufficientStockData
+from .....giftcard import GiftCardEvents
+from .....giftcard.models import GiftCard, GiftCardEvent
+from .....order import FulfillmentStatus, OrderEvents, OrderStatus
+from .....order.actions import fulfill_order_lines
+from .....order.error_codes import OrderErrorCode
+from .....order.fetch import OrderLineInfo
+from .....order.models import Fulfillment, FulfillmentLine, OrderLine
+from .....plugins.manager import get_plugins_manager
+from .....product.models import Product, ProductVariant
+from .....tests.utils import flush_post_commit_hooks
+from .....warehouse.models import Allocation, Stock
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_QUERY = """
     mutation fulfillOrder(
