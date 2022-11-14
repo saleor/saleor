@@ -23,7 +23,6 @@ MIME_TYPE_TO_PIL_IDENTIFIER = {
     "image/jpeg": "JPEG",
     "image/pcd": "PCD",
     "image/pcx": "PCX",
-    "application/pdf": "PDF",
     "image/png": "PNG",
     "image/x-ppm": "PPM",
     "image/psd": "PSD",
