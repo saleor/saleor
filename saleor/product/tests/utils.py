@@ -12,7 +12,7 @@ def create_image(image_name="product2"):
     return image, image_name
 
 
-def create_pdf_file_with_image_ext():
+def create_zip_file_with_image_ext():
     file_name = "product.jpg"
-    file_data = SimpleUploadedFile(file_name, b"product_data", "application/pdf")
+    file_data = SimpleUploadedFile(file_name, b"product_data", "application/zip")
     return file_data, file_name
