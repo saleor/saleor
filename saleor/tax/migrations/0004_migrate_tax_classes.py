@@ -148,6 +148,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("tax", "0003_add_manage_taxes_permission"),
+        ("product", "0177_product_tax_class_producttype_tax_class"),
     ]
 
     operations = [

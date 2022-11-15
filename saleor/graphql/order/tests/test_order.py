@@ -7597,6 +7597,14 @@ def test_order_update_shipping(
     assert order.shipping_tax_rate == Decimal("0.0")
     assert order.shipping_method_name == shipping_method.name
 
+    shipping_tax_class = shipping_method.tax_class
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class == shipping_tax_class
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
+
 
 @pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
 def test_order_update_shipping_no_shipping_method_channel_listings(
@@ -7711,6 +7719,10 @@ def test_order_update_shipping_clear_shipping_method(
     assert order.base_shipping_price == zero_money(order.currency)
     assert order.shipping_price == zero_taxed_money(order.currency)
     assert order.shipping_method_name is None
+
+    assert order.shipping_tax_class is None
+    assert order.shipping_tax_class_metadata == {}
+    assert order.shipping_tax_class_private_metadata == {}
 
 
 def test_order_update_shipping_shipping_required(

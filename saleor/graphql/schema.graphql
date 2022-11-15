@@ -9248,7 +9248,27 @@ type Order implements Node & ObjectWithMetadata {
 
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
+
+  """The shipping tax rate value."""
   shippingTaxRate: Float!
+
+  """
+  Denormalized tax class assigned to the shipping method.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  shippingTaxClass: TaxClass
+
+  """Denormalized name of the tax class assigned to the shipping method."""
+  shippingTaxClassName: String
+
+  """Denormalized public metadata of the shipping method's tax class."""
+  shippingTaxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the shipping method's tax class. Requires staff permissions to access.
+  """
+  shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
@@ -9544,6 +9564,24 @@ type OrderLine implements Node & ObjectWithMetadata {
 
   """Type of the discount: fixed or percent"""
   unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Denormalized tax class of the product in this order line.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
+
+  """Denormalized name of the tax class."""
+  taxClassName: String
+
+  """Denormalized public metadata of the tax class."""
+  taxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the tax class. Requires staff permissions to access.
+  """
+  taxClassPrivateMetadata: [MetadataItem!]!
 }
 
 """

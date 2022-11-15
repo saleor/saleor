@@ -616,9 +616,9 @@ def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
             tax_class.delete()
         line.refresh_from_db()
 
-    tax_class = order.shipping_method.tax_class
-    if tax_class:
-        tax_class.delete()
+    shipping_tax_class = order.shipping_method.tax_class
+    if shipping_tax_class:
+        shipping_tax_class.delete()
         order.shipping_method.refresh_from_db()
 
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)

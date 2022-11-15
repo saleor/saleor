@@ -52,6 +52,17 @@ from .. import (
 from ..plugin import AvataxPlugin
 
 
+def order_set_shipping_method(order, shipping_method):
+    order.shipping_method = shipping_method
+    order.shipping_method_name = shipping_method.name
+    order.shipping_tax_class = shipping_method.tax_class
+    order.shipping_tax_class_name = shipping_method.tax_class.name
+    order.shipping_tax_class_metadata = shipping_method.tax_class.metadata
+    order.shipping_tax_class_private_metadata = (
+        shipping_method.tax_class.private_metadata
+    )
+
+
 @pytest.fixture
 def avatax_config():
     return AvataxConfiguration(
@@ -516,8 +527,18 @@ def test_calculate_order_line_total(
     site_settings.save(update_fields=["company_address"])
 
     order.shipping_address = ship_to_pl_address
-    order.shipping_method = shipping_zone.shipping_methods.get()
-    order.save(update_fields=["shipping_address", "shipping_method"])
+    shipping_method = shipping_zone.shipping_methods.get()
+    order_set_shipping_method(order, shipping_method)
+    order.save(
+        update_fields=[
+            "shipping_address",
+            "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
+        ]
+    )
 
     variant = order_line.variant
     product = variant.product
@@ -569,8 +590,9 @@ def test_calculate_order_line_without_sku_total(
 
     order = order_line.order
     order.shipping_address = ship_to_pl_address
-    order.shipping_method = shipping_zone.shipping_methods.get()
-    order.save(update_fields=["shipping_address", "shipping_method"])
+    shipping_method = shipping_zone.shipping_methods.get()
+    order_set_shipping_method(order, shipping_method)
+    order.save()
 
     tax_configuration = order.channel.tax_configuration
     tax_configuration.charge_taxes = True
@@ -626,8 +648,9 @@ def test_calculate_order_line_total_with_discount(
 
     order = order_line.order
     order.shipping_address = ship_to_pl_address
-    order.shipping_method = shipping_zone.shipping_methods.get()
-    order.save(update_fields=["shipping_address", "shipping_method"])
+    shipping_method = shipping_zone.shipping_methods.get()
+    order_set_shipping_method(order, shipping_method)
+    order.save()
 
     tax_configuration = order.channel.tax_configuration
     tax_configuration.charge_taxes = True
@@ -710,8 +733,9 @@ def test_calculate_order_line_total_entire_order_voucher(
     tax_configuration.country_exceptions.all().delete()
 
     order.shipping_address = ship_to_pl_address
-    order.shipping_method = shipping_zone.shipping_methods.get()
-    order.save(update_fields=["shipping_address", "shipping_method"])
+    shipping_method = shipping_zone.shipping_methods.get()
+    order_set_shipping_method(order, shipping_method)
+    order.save()
 
     variant = order_line.variant
     product = variant.product
@@ -801,8 +825,9 @@ def test_calculate_order_line_total_shipping_voucher(
     tax_configuration.country_exceptions.all().delete()
 
     order.shipping_address = ship_to_pl_address
-    order.shipping_method = shipping_zone.shipping_methods.get()
-    order.save(update_fields=["shipping_address", "shipping_method"])
+    shipping_method = shipping_zone.shipping_methods.get()
+    order_set_shipping_method(order, shipping_method)
+    order.save()
 
     variant = order_line.variant
     product = variant.product
@@ -939,7 +964,7 @@ def test_calculate_order_shipping_order_not_valid(
     )
     order.shipping_address = None
     order.base_shipping_price = Money("10.00", "USD")
-    order.shipping_method = shipping_method
+    order_set_shipping_method(order, shipping_method)
     order.save()
 
     order.shipping_method.channel_listings.filter(channel_id=order.channel_id).update(
@@ -1734,8 +1759,7 @@ def test_calculate_order_shipping(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     site_settings.company_address = address
@@ -1756,8 +1780,7 @@ def test_calculate_order_total(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     site_settings.company_address = address
@@ -1798,8 +1821,7 @@ def test_calculate_order_shipping_entire_order_voucher(
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.total = total
     order.undiscounted_total = total
     order.voucher = voucher
@@ -1853,8 +1875,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
     )
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.total = total
     order.undiscounted_total = total
     order.voucher = voucher_free_shipping
@@ -1908,8 +1929,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     )
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.total = total
     order.undiscounted_total = total
     order.voucher = voucher_shipping_type
@@ -1936,8 +1956,7 @@ def test_calculate_order_shipping_zero_shipping_amount(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     channel_listing = method.channel_listings.get(channel=order.channel)
@@ -1961,8 +1980,7 @@ def test_calculate_order_shipping_no_channel_listing(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     method.channel_listings.all().delete()
@@ -2025,8 +2043,7 @@ def test_calculate_order_line_unit(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     site_settings.company_address = address_usa
@@ -2069,8 +2086,7 @@ def test_calculate_order_line_unit_in_JPY(
     order = order_line_JPY.order
     method = shipping_zone_JPY.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     site_settings.company_address = address
@@ -2113,8 +2129,7 @@ def test_calculate_order_line_unit_with_discount(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     site_settings.company_address = address_usa
@@ -3105,8 +3120,7 @@ def test_get_order_line_tax_rate(
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     # when
@@ -3167,8 +3181,7 @@ def test_get_order_line_tax_rate_error_in_response(
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     # when
@@ -3356,8 +3369,7 @@ def test_get_order_shipping_tax_rate(
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     # when
@@ -3402,8 +3414,7 @@ def test_get_order_shipping_tax_rate_error_in_response(
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     # when
@@ -3430,8 +3441,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
 
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    order_set_shipping_method(order, method)
     order.save()
 
     # when
@@ -3979,14 +3989,17 @@ def test_get_order_request_data_confirmed_order_with_voucher(
 
     order_with_lines.status = OrderStatus.UNFULFILLED
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
+    order_set_shipping_method(order_with_lines, method)
     order_with_lines.save(
         update_fields=[
             "status",
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
         ]
     )
 
@@ -4028,14 +4041,17 @@ def test_get_order_request_data_confirmed_order_with_sale(
 
     order_with_lines.status = OrderStatus.UNFULFILLED
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
+    order_set_shipping_method(order_with_lines, method)
     order_with_lines.save(
         update_fields=[
             "status",
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
         ]
     )
 
@@ -4082,14 +4098,17 @@ def test_get_order_request_data_draft_order_with_voucher(
 
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
+    order_set_shipping_method(order_with_lines, method)
     order_with_lines.save(
         update_fields=[
             "status",
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
         ]
     )
 
@@ -4146,8 +4165,7 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
 
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
+    order_set_shipping_method(order_with_lines, method)
     order_with_lines.base_shipping_price = zero_money(order_with_lines.currency)
     order_with_lines.voucher = voucher_free_shipping
     order_with_lines.save(
@@ -4158,6 +4176,10 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
         ]
     )
 
@@ -4213,8 +4235,7 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
 
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
+    order_set_shipping_method(order_with_lines, method)
     order_with_lines.base_shipping_price = zero_money(order_with_lines.currency)
     order_with_lines.voucher = voucher_free_shipping
     order_with_lines.save(
@@ -4225,6 +4246,10 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
         ]
     )
 
@@ -4270,14 +4295,17 @@ def test_get_order_request_data_draft_order_with_sale(
 
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
+    order_set_shipping_method(order_with_lines, method)
     order_with_lines.save(
         update_fields=[
             "status",
             "shipping_address",
             "shipping_method_name",
             "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_name",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_private_metadata",
         ]
     )
 

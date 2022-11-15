@@ -123,7 +123,7 @@ from ..shipping.models import (
 )
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
-from ..tax.utils import get_tax_class_kwargs_for_order_line
+from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
@@ -3967,6 +3967,7 @@ def order_with_lines(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
     recalculate_order(order)
@@ -4021,7 +4022,7 @@ def order_with_lines_for_cc(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
-        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
+        **get_tax_class_kwargs_for_order_line(variant.product.product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line,
@@ -4243,6 +4244,7 @@ def order_with_lines_channel_PLN(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
     recalculate_order(order)
@@ -4280,7 +4282,7 @@ def order_with_line_without_inventory_tracking(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
-        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
+        **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
     )
 
     recalculate_order(order)

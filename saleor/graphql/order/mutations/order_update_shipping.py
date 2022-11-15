@@ -115,6 +115,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_tax_class_name",
                     "shipping_tax_class_private_metadata",
                     "shipping_tax_class_metadata",
+                    "shipping_tax_rate",
                     "should_refresh_prices",
                     "updated_at",
                 ]
@@ -153,12 +154,15 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         clean_order_update_shipping(order, shipping_method_data, manager)
 
         order.shipping_method = method
-
         order.shipping_method_name = method.name
-        order.shipping_tax_class = method.tax_class
-        order.shipping_tax_class_name = method.tax_class.name
-        order.shipping_tax_class_private_metadata = method.tax_class.private_metadata
-        order.shipping_tax_class_metadata = method.tax_class.metadata
+
+        tax_class = method.tax_class
+        if tax_class:
+            order.shipping_tax_class = tax_class
+            order.shipping_tax_class_name = tax_class.name
+            order.shipping_tax_class_private_metadata = tax_class.private_metadata
+            order.shipping_tax_class_metadata = tax_class.metadata
+
         order.base_shipping_price = shipping_method_data.price
         invalidate_order_prices(order)
         order.save(
