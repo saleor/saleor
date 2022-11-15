@@ -9,7 +9,7 @@ from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import NonNullList, ProductError
-from ...core.utils import validate_slug_and_generate_if_needed
+from ...core.validators import validate_slug_and_generate_if_needed
 from ..enums import ProductTypeKindEnum
 from ..types import ProductType
 

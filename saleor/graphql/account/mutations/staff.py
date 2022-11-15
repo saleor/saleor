@@ -26,7 +26,8 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
-from ...core.utils import add_hash_to_file_name, validate_image_file
+from ...core.utils import add_hash_to_file_name
+from ...core.validators.file import validate_image_file
 from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..utils import (

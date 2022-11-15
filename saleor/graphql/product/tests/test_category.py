@@ -821,60 +821,6 @@ def test_category_update_background_image_mutation(
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_update_mutation_invalid_background_image_content_type(
     delete_from_storage_task_mock,
-    # pil_image_mock,
-    monkeypatch,
-    staff_api_client,
-    category,
-    permission_manage_products,
-    media_root,
-):
-    # given
-    from ...core.utils import Image
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-
-    image_file, image_name = create_image()
-    image_alt = "Alt text for an image."
-
-    error_msg = "Test syntax error"
-    image_file_mock = Mock(side_effect=SyntaxError(error_msg))
-    # monkeypatch.setattr("saleor.graphql.core.utils.__init__.Image", image_file_mock)
-    Image.open = image_file_mock
-
-    size = 128
-    thumbnail_mock = MagicMock(spec=File)
-    thumbnail_mock.name = "thumbnail_image.jpg"
-    Thumbnail.objects.create(category=category, size=size, image=thumbnail_mock)
-
-    variables = {
-        "name": "new-name",
-        "slug": "new-slug",
-        "id": to_global_id("Category", category.id),
-        "backgroundImage": image_name,
-        "backgroundImageAlt": image_alt,
-        "isPublished": True,
-    }
-    body = get_multipart_request_body(
-        MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
-    )
-
-    # when
-    response = staff_api_client.post_multipart(body)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["categoryUpdate"]
-    assert data["errors"][0]["field"] == "backgroundImage"
-    assert error_msg in data["errors"][0]["message"]
-
-    # ensure that thumbnails for old background image hasn't been deleted
-    assert Thumbnail.objects.filter(category_id=category.id)
-    delete_from_storage_task_mock.assert_not_called()
-
-
-@patch("saleor.core.tasks.delete_from_storage_task.delay")
-def test_category_update_mutation_invalid_background_image(
-    delete_from_storage_task_mock,
     staff_api_client,
     category,
     permission_manage_products,
@@ -910,6 +856,58 @@ def test_category_update_mutation_invalid_background_image(
     data = content["data"]["categoryUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
     assert data["errors"][0]["message"] == "Invalid file type."
+
+    # ensure that thumbnails for old background image hasn't been deleted
+    assert Thumbnail.objects.filter(category_id=category.id)
+    delete_from_storage_task_mock.assert_not_called()
+
+
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
+def test_category_update_mutation_invalid_background_image(
+    delete_from_storage_task_mock,
+    monkeypatch,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    image_file, image_name = create_image()
+    image_alt = "Alt text for an image."
+
+    error_msg = "Test syntax error"
+    image_file_mock = Mock(side_effect=SyntaxError(error_msg))
+    monkeypatch.setattr(
+        "saleor.graphql.core.validators.file.Image.open", image_file_mock
+    )
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(category=category, size=size, image=thumbnail_mock)
+
+    variables = {
+        "name": "new-name",
+        "slug": "new-slug",
+        "id": to_global_id("Category", category.id),
+        "backgroundImage": image_name,
+        "backgroundImageAlt": image_alt,
+        "isPublished": True,
+    }
+    body = get_multipart_request_body(
+        MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+    assert data["errors"][0]["field"] == "backgroundImage"
+    assert error_msg in data["errors"][0]["message"]
 
     # ensure that thumbnails for old background image hasn't been deleted
     assert Thumbnail.objects.filter(category_id=category.id)

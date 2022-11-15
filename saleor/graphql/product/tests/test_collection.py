@@ -838,20 +838,21 @@ def test_update_collection_invalid_background_image_content_type(
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_update_collection_invalid_background_image(
     delete_from_storage_task_mock,
+    monkeypatch,
     staff_api_client,
     collection,
     permission_manage_products,
     media_root,
 ):
     # given
-    from ...core.utils import Image
-
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
     error_msg = "Test syntax error"
     image_file_mock = Mock(side_effect=SyntaxError(error_msg))
-    Image.open = image_file_mock
+    monkeypatch.setattr(
+        "saleor.graphql.core.validators.file.Image.open", image_file_mock
+    )
 
     size = 128
     thumbnail_mock = MagicMock(spec=File)

@@ -48,18 +48,19 @@ from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import CollectionError, NonNullList, ProductError, SeoInput, Upload
-from ...core.utils import (
-    add_hash_to_file_name,
+from ...core.utils import add_hash_to_file_name, get_duplicated_values
+from ...core.utils.reordering import perform_reordering
+from ...core.validators import (
     clean_seo_fields,
-    get_duplicated_values,
+    validate_one_of_args_is_in_mutation,
+    validate_slug_and_generate_if_needed,
+)
+from ...core.validators.file import (
     get_filename_from_url,
     is_image_url,
     validate_image_file,
     validate_image_url,
-    validate_slug_and_generate_if_needed,
 )
-from ...core.utils.reordering import perform_reordering
-from ...core.validators import validate_one_of_args_is_in_mutation
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import load_plugin_manager
 from ...warehouse.types import Warehouse
