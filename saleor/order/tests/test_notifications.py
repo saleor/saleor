@@ -677,9 +677,7 @@ def test_get_default_images_payload(product_with_image):
     thumbnail_mock.name = "thumbnail_image.jpg"
 
     media = product_with_image.media.first()
-    thumbnail = Thumbnail.objects.create(
-        product_media=media, image=thumbnail_mock, size=size
-    )
+    Thumbnail.objects.create(product_media=media, image=thumbnail_mock, size=size)
 
     media_id = graphene.Node.to_global_id("ProductMedia", media.id)
 
@@ -688,7 +686,5 @@ def test_get_default_images_payload(product_with_image):
 
     # then
     images_payload = payload["first_image"]["original"]
-    assert images_payload[size] == thumbnail.image.url
     for th_size in THUMBNAIL_SIZES:
-        if th_size != size:
-            assert images_payload[th_size] == f"/thumbnail/{media_id}/{th_size}/"
+        assert images_payload[th_size] == f"/thumbnail/{media_id}/{th_size}/"

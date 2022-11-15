@@ -13,8 +13,8 @@ from ..discount import OrderDiscountType
 from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
-from ..product.product_images import get_product_image_thumbnail_url
 from ..thumbnail import THUMBNAIL_SIZES
+from ..thumbnail.utils import get_image_or_proxy_url
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
@@ -24,7 +24,10 @@ if TYPE_CHECKING:
 
 def get_image_payload(instance: ProductMedia):
     return {
-        size: get_product_image_thumbnail_url(instance, size)
+        # This is temporary solution, the get_product_image_thumbnail_url
+        # should be optimize - we should fetch all thumbnails at once instead of
+        # fetching thumbnails by one for each size
+        size: get_image_or_proxy_url(None, instance.id, "ProductMedia", size, None)
         for size in THUMBNAIL_SIZES
     }
 
