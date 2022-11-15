@@ -2000,6 +2000,43 @@ def test_update_product_with_numeric_attribute_value_by_numeric_field(
     updated_webhook_mock.assert_called_once_with(product)
 
 
+def test_update_product_with_numeric_attribute_by_numeric_field_null_value(
+    staff_api_client,
+    numeric_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    value = AttributeValue.objects.create(
+        attribute=numeric_attribute, slug=slug_value, name="20.0"
+    )
+    associate_attribute_values_to_instance(product, numeric_attribute, value)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "numeric": None}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+    assert not data["product"]["attributes"][1]["values"]
+
+
 def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_created(
     staff_api_client,
     numeric_attribute,

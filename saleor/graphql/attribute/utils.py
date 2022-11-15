@@ -41,7 +41,7 @@ class AttrValuesForSelectableFieldInput:
 @dataclass
 class AttrValuesInput:
     global_id: str
-    values: List[str]
+    values: Optional[List[str]] = None
     dropdown: Optional[AttrValuesForSelectableFieldInput] = None
     multiselect: Optional[List[AttrValuesForSelectableFieldInput]] = None
     numeric: Optional[str] = None
@@ -736,6 +736,7 @@ def validate_attributes_input(
         AttributeInputType.REFERENCE: validate_reference_attributes_input,
         AttributeInputType.RICH_TEXT: validate_rich_text_attributes_input,
     }
+
     for attribute, attr_values in input_data:
         attrs = (
             attribute,
@@ -765,7 +766,6 @@ def validate_attributes_input(
         errors = validate_required_attributes(
             input_data, attribute_qs, errors, error_code_enum
         )
-    # err
     return errors
 
 
@@ -970,15 +970,22 @@ def validate_numeric_input(
     attribute_errors: T_ERROR_DICT,
 ):
     attribute_id = attr_values.global_id
-    if not attr_values.numeric:
+    if attr_values.numeric is None:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
                 attribute_id
             )
+            return
+        return
 
     try:
         float(attr_values.numeric)  # type: ignore
     except ValueError:
+        attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
+            attribute_id
+        )
+
+    if isinstance(attr_values.numeric, bool):
         attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
             attribute_id
         )
