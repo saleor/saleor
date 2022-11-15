@@ -340,7 +340,7 @@ def order_line_tax_rate(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Decimal:
+) -> Optional[Decimal]:
     """Return the tax rate of provided line.
 
     It takes into account all plugins.
@@ -374,7 +374,7 @@ def order_shipping_tax_rate(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Decimal:
+) -> Optional[Decimal]:
     """Return the shipping tax rate of the order.
 
     It takes into account all plugins.

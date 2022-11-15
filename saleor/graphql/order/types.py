@@ -528,7 +528,7 @@ class OrderLine(ModelObjectType):
     quantity = graphene.Int(required=True)
     quantity_fulfilled = graphene.Int(required=True)
     unit_discount_reason = graphene.String()
-    tax_rate = graphene.Float(required=True)
+    tax_rate = graphene.Float(required=False)
     digital_content_url = graphene.Field(DigitalContentUrl)
     thumbnail = ThumbnailField()
     unit_price = graphene.Field(
@@ -975,7 +975,7 @@ class Order(ModelObjectType):
         TaxedMoney, description="Total price of shipping.", required=True
     )
     shipping_tax_rate = graphene.Float(
-        required=True, description="The shipping tax rate value."
+        required=False, description="The shipping tax rate value."
     )
     shipping_tax_class = PermissionsField(
         TaxClass,
@@ -1750,6 +1750,8 @@ class Order(ModelObjectType):
         if root.shipping_method_id:
             return cls.resolve_shipping_method(root, info).then(
                 lambda shipping_method_data: shipping_method_data.tax_class
+                if shipping_method_data
+                else None
             )
         return None
 

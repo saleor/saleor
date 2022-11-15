@@ -9250,7 +9250,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingPrice: TaxedMoney!
 
   """The shipping tax rate value."""
-  shippingTaxRate: Float!
+  shippingTaxRate: Float
 
   """
   Denormalized tax class assigned to the shipping method.
@@ -9502,7 +9502,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   quantity: Int!
   quantityFulfilled: Int!
   unitDiscountReason: String
-  taxRate: Float!
+  taxRate: Float
   digitalContentUrl: DigitalContentUrl
   thumbnail(
     """

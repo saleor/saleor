@@ -3962,6 +3962,12 @@ def order_with_lines(
     shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
+    order.shipping_tax_class = shipping_method.tax_class
+    order.shipping_tax_class_name = shipping_method.tax_class.name
+    order.shipping_tax_class_metadata = shipping_method.tax_class.metadata
+    order.shipping_tax_class_private_metadata = (
+        shipping_method.tax_class.private_metadata
+    )  # noqa: E501
 
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
