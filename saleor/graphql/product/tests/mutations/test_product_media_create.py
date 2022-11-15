@@ -49,6 +49,7 @@ def test_product_media_create_mutation(
     permission_manage_products,
     media_root,
 ):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
@@ -58,9 +59,7 @@ def test_product_media_create_mutation(
     body = get_multipart_request_body(
         PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
     )
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
     get_graphql_content(response)
     product.refresh_from_db()
     product_image = product.media.last()

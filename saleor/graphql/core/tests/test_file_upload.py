@@ -83,7 +83,7 @@ def test_file_upload_by_app(app_api_client, media_root):
     errors = data["errors"]
 
     assert not errors
-    assert data["uploadedFile"]["contentType"] == "image/png"
+    assert data["uploadedFile"]["contentType"] == "image/jpeg"
     file_name, format = os.path.splitext(image_file._name)
     returned_url = data["uploadedFile"]["url"]
     file_path = urlparse(returned_url).path

@@ -10,7 +10,7 @@ import requests
 from django.core.exceptions import ValidationError
 from graphene import ObjectType
 from graphql.error import GraphQLError
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from ....core.utils import generate_unique_slug
 from ....plugins.webhook.utils import APP_ID_PREFIX
@@ -109,6 +109,7 @@ def validate_image_file(file, field_name, error_class) -> None:
             }
         )
     _validate_image_format(file, field_name, error_class)
+    _validate_image_exif(file, field_name, error_class)
 
 
 def _validate_image_format(file, field_name, error_class):
@@ -141,6 +142,23 @@ def get_allowed_extensions():
         for ext, file_type in Image.EXTENSION.items()
         if file_type.upper() in MIME_TYPE_TO_PIL_IDENTIFIER.values()
     ]
+
+
+def _validate_image_exif(file, field_name, error_class):
+    try:
+        im = Image.open(file)
+        im.getexif()
+    except (SyntaxError, TypeError, UnidentifiedImageError) as e:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Invalid file. The following error was raised during the attempt "
+                    "of opening the file and getting the exchangeable image file data:"
+                    f" {str(e)}",
+                    code=error_class.INVALID.value,
+                )
+            }
+        )
 
 
 def validate_slug_and_generate_if_needed(
