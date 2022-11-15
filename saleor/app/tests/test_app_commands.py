@@ -62,6 +62,7 @@ def test_creates_app_from_manifest_sends_token(monkeypatch):
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
+            "Saleor-Api-Url": "http://mirumee.com/graphql/",
         },
         json={"auth_token": ANY},
         timeout=ANY,
@@ -124,6 +125,7 @@ def test_sends_data_to_target_url(monkeypatch):
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
+            "Saleor-Api-Url": "http://mirumee.com/graphql/",
         },
         json={"auth_token": ANY},
         timeout=ANY,
