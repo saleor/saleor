@@ -13,7 +13,7 @@ from graphql_relay import to_global_id
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
-from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.tests.utils import create_image, create_zip_file_with_image_ext
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
@@ -785,7 +785,7 @@ def test_category_update_mutation_invalid_background_image(
     media_root,
 ):
     # given
-    image_file, image_name = create_pdf_file_with_image_ext()
+    image_file, image_name = create_zip_file_with_image_ext()
     image_alt = "Alt text for an image."
     size = 128
     thumbnail_mock = MagicMock(spec=File)
