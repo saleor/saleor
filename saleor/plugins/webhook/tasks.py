@@ -13,6 +13,7 @@ from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
@@ -21,6 +22,7 @@ from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
+from ...core.utils import build_absolute_uri
 from ...graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
@@ -317,6 +319,7 @@ def send_webhook_using_http(
         AppHeaders.EVENT_TYPE: event_type,
         AppHeaders.DOMAIN: domain,
         AppHeaders.SIGNATURE: signature,
+        AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
     try:
         response = requests.post(

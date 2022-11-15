@@ -2,6 +2,7 @@ class AppHeaders:
     DOMAIN = "Saleor-Domain"
     EVENT_TYPE = "Saleor-Event"
     SIGNATURE = "Saleor-Signature"
+    API_URL = "Saleor-Api-Url"
 
 
 class DeprecatedAppHeaders:
