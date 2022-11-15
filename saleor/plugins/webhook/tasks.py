@@ -375,6 +375,10 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
 
     msg_attributes = {
         "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "SaleorApiUrl": {
+            "DataType": "String",
+            "StringValue": build_absolute_uri(reverse("api"), domain),
+        },
         "EventType": {"DataType": "String", "StringValue": event_type},
     }
     if signature:
@@ -412,6 +416,7 @@ def send_webhook_using_google_cloud_pubsub(
                 topic_name,
                 message,
                 saleorDomain=domain,
+                saleorApiUrl=build_absolute_uri(reverse("api"), domain),
                 eventType=event_type,
                 signature=signature,
             )
