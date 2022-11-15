@@ -1189,16 +1189,20 @@ def test_generate_payment_with_transactions_payload(dummy_webhook_app_payment_da
 
 @freeze_time()
 def test_generate_transaction_item_metadata_updated_payload(
-    transaction_item, customer_user
+    transaction_item_created_by_user, customer_user
 ):
     # when
     payload = json.loads(
-        generate_metadata_updated_payload(transaction_item, customer_user)
+        generate_metadata_updated_payload(
+            transaction_item_created_by_user, customer_user
+        )
     )[0]
 
     # then
     assert payload == {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id),
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.id
+        ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
 
