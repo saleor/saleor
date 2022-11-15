@@ -528,7 +528,7 @@ class OrderLine(ModelObjectType):
     quantity = graphene.Int(required=True)
     quantity_fulfilled = graphene.Int(required=True)
     unit_discount_reason = graphene.String()
-    tax_rate = graphene.Float(required=False)
+    tax_rate = graphene.Float(required=True)
     digital_content_url = graphene.Field(DigitalContentUrl)
     thumbnail = ThumbnailField()
     unit_price = graphene.Field(
@@ -729,7 +729,9 @@ class OrderLine(ModelObjectType):
 
         def _resolve_tax_rate(data):
             order, lines = data
-            return calculations.order_line_tax_rate(order, root, manager, lines)
+            return calculations.order_line_tax_rate(
+                order, root, manager, lines
+            ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
@@ -975,7 +977,7 @@ class Order(ModelObjectType):
         TaxedMoney, description="Total price of shipping.", required=True
     )
     shipping_tax_rate = graphene.Float(
-        required=False, description="The shipping tax rate value."
+        required=True, description="The shipping tax rate value."
     )
     shipping_tax_class = PermissionsField(
         TaxClass,
@@ -1266,7 +1268,9 @@ class Order(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def _resolve_shipping_tax_rate(lines):
-            return calculations.order_shipping_tax_rate(root, manager, lines)
+            return calculations.order_shipping_tax_rate(
+                root, manager, lines
+            ) or Decimal(0)
 
         return (
             OrderLinesByOrderIdLoader(info.context)
