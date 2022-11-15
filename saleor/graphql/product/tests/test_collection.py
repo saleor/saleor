@@ -8,7 +8,7 @@ from graphql_relay import to_global_id
 
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
-from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.tests.utils import create_image, create_zip_file_with_image_ext
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ...core.enums import ThumbnailFormatEnum
@@ -743,7 +743,7 @@ def test_update_collection_invalid_background_image(
     media_root,
 ):
     # given
-    image_file, image_name = create_pdf_file_with_image_ext()
+    image_file, image_name = create_zip_file_with_image_ext()
     image_alt = "Alt text for an image."
 
     size = 128
