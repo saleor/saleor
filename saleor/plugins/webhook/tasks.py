@@ -16,6 +16,7 @@ from django.conf import settings
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
+from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
@@ -310,12 +311,12 @@ def send_webhook_using_http(
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-        "X-Saleor-Event": event_type,
-        "X-Saleor-Domain": domain,
-        "X-Saleor-Signature": signature,
-        "Saleor-Event": event_type,
-        "Saleor-Domain": domain,
-        "Saleor-Signature": signature,
+        DeprecatedAppHeaders.EVENT_TYPE: event_type,
+        DeprecatedAppHeaders.DOMAIN: domain,
+        DeprecatedAppHeaders.SIGNATURE: signature,
+        AppHeaders.EVENT_TYPE: event_type,
+        AppHeaders.DOMAIN: domain,
+        AppHeaders.SIGNATURE: signature,
     }
     try:
         response = requests.post(
