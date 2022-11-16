@@ -5,9 +5,9 @@ import pytest
 from mock import patch
 
 from .....order import OrderEvents
-from .....payment import TransactionAction
+from .....payment import TransactionAction, TransactionEventStatus
 from .....payment.interface import TransactionActionData
-from .....payment.models import TransactionItem
+from .....payment.models import TransactionEvent, TransactionItem
 from ....core.enums import TransactionRequestActionErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum
@@ -122,6 +122,13 @@ def test_transaction_request_charge_action_for_order(
     assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
     assert event.parameters["reference"] == transaction.psp_reference
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.CHARGE,
+        amount_value=expected_called_charge_amount,
+    )
+
 
 @pytest.mark.parametrize(
     "refund_amount, expected_called_refund_amount",
@@ -186,6 +193,13 @@ def test_transaction_request_refund_action_for_order(
     assert Decimal(event.parameters["amount"]) == expected_called_refund_amount
     assert event.parameters["reference"] == transaction.psp_reference
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.REFUND,
+        amount_value=expected_called_refund_amount,
+    )
+
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
@@ -237,6 +251,13 @@ def test_transaction_request_void_action_for_order(
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.VOID,
+        amount_value=0,
+    )
+
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
@@ -282,6 +303,13 @@ def test_transaction_request_void_action_for_checkout(
             action_value=None,
         ),
         channel_slug=checkout.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.VOID,
+        amount_value=0,
     )
 
 
@@ -343,6 +371,13 @@ def test_transaction_request_charge_action_for_checkout(
         channel_slug=checkout.channel.slug,
     )
 
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.CHARGE,
+        amount_value=expected_called_charge_amount,
+    )
+
 
 @pytest.mark.parametrize(
     "refund_amount, expected_called_refund_amount",
@@ -400,6 +435,13 @@ def test_transaction_request_refund_action_for_checkout(
             action_value=expected_called_refund_amount,
         ),
         channel_slug=checkout.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+        type=TransactionAction.REFUND,
+        amount_value=expected_called_refund_amount,
     )
 
 
@@ -573,3 +615,8 @@ def test_transaction_request_action_missing_event(
     )
 
     assert mocked_is_active.called
+
+    assert not TransactionEvent.objects.filter(
+        transaction=transaction,
+        status=TransactionEventStatus.REQUEST,
+    ).exists()

@@ -1829,19 +1829,19 @@ def test_voucher_metadata_updated(
 
 
 def test_transaction_item_metadata_updated(
-    transaction_item_created_by_user,
+    transaction_item_created_by_app,
     subscription_transaction_item_metadata_updated_webhook,
 ):
     # given
     webhooks = [subscription_transaction_item_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED
     transaction_item_id = graphene.Node.to_global_id(
-        "TransactionItem", transaction_item_created_by_user.id
+        "TransactionItem", transaction_item_created_by_app.id
     )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, transaction_item_created_by_user, webhooks
+        event_type, transaction_item_created_by_app, webhooks
     )
 
     # then

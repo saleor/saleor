@@ -1148,19 +1148,19 @@ def test_transaction_item_metadata_updated(
     mocked_get_webhooks_for_event,
     any_webhook,
     settings,
-    transaction_item_created_by_user,
+    transaction_item_created_by_app,
 ):
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    manager.transaction_item_metadata_updated(transaction_item_created_by_user)
-    expected_data = generate_metadata_updated_payload(transaction_item_created_by_user)
+    manager.transaction_item_metadata_updated(transaction_item_created_by_app)
+    expected_data = generate_metadata_updated_payload(transaction_item_created_by_app)
 
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,
         WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
         [any_webhook],
-        transaction_item_created_by_user,
+        transaction_item_created_by_app,
         None,
     )
 
