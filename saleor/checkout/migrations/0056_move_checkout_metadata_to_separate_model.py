@@ -38,15 +38,16 @@ def move_all_checkout_metadata(apps, schema_editor):
         )
         .order_by("pk")
         .distinct("token")
+        .only("pk", "metadata", "private_metadata")
     )
     for batch_pks in queryset_in_batches(checkouts_with_meta):
         checkouts = Checkout.objects.filter(pk__in=batch_pks)
         CheckoutMetadata.objects.bulk_create(
             CheckoutMetadata(
                 checkout=checkout,
-                metadata=checkout.metadata if hasattr(checkout, "metadata") else {},
+                metadata=checkout.metadata if checkout.metadata else {},
                 private_metadata=checkout.private_metadata
-                if hasattr(checkout, "private_metadata")
+                if checkout.private_metadata
                 else {},
             )
             for checkout in checkouts

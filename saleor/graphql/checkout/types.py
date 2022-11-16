@@ -3,8 +3,6 @@ from promise import Promise
 
 from saleor.graphql.meta import resolvers as MetaResolvers
 
-# from ..meta.resolvers import resolve_object_with_metadata_type, \
-#     check_private_metadata_privilege, resolve_private_metadata, resolve_metadata
 from ...checkout import calculations, models
 from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,

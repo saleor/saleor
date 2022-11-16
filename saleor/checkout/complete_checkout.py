@@ -776,16 +776,15 @@ def complete_checkout(
         discounts=discounts,
         site_settings=site_settings,
     )
-
+    checkout = checkout_info.checkout
     with transaction_with_commit_on_errors():
-        checkout = checkout_info.checkout
         if not checkout_for_update:
             order = Order.objects.filter(checkout_token=checkout.token).first()
             if order:
                 return order, False, {}
 
         channel_slug = checkout_info.channel.slug
-        payment = checkout.get_last_active_payment()
+        payment = checkout_for_update.get_last_active_payment()  # type: ignore
         _prepare_checkout(
             manager=manager,
             checkout_info=checkout_info,
