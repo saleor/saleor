@@ -8,10 +8,10 @@ from PIL import Image
 
 from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
+    clean_image_file,
     get_filename_from_url,
     is_image_mimetype,
     is_supported_image_mimetype,
-    validate_image_file,
     validate_image_url,
 )
 
@@ -142,7 +142,7 @@ def test_validate_image_url_response_without_content_headers(monkeypatch):
     assert exc.value.args[0][field].message == "Invalid file type."
 
 
-def test_validate_image_file():
+def test_clean_image_file():
     # given
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
@@ -153,10 +153,10 @@ def test_validate_image_file():
     img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
 
     # then
-    validate_image_file(img, field, ProductErrorCode)
+    clean_image_file({field: img}, field, ProductErrorCode)
 
 
-def test_validate_image_file_invalid_content_type():
+def test_clean_image_file_invalid_content_type():
     # given
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
@@ -166,25 +166,25 @@ def test_validate_image_file_invalid_content_type():
 
     # when
     with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
+        clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
     assert exc.value.args[0][field].message == "Invalid file type."
 
 
-def test_validate_image_file_no_file():
+def test_clean_image_file_no_file():
     # given
     field = "image"
 
     # when
     with pytest.raises(ValidationError) as exc:
-        validate_image_file(None, field, ProductErrorCode)
+        clean_image_file({field: None}, field, ProductErrorCode)
 
     # then
     assert exc.value.args[0][field].message == "File is required."
 
 
-def test_validate_image_file_no_file_extension():
+def test_clean_image_file_no_file_extension():
     # given
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
@@ -194,13 +194,13 @@ def test_validate_image_file_no_file_extension():
 
     # when
     with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
+        clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
     assert exc.value.args[0][field].message == "Lack of file extension."
 
 
-def test_validate_image_file_invalid_file_extension():
+def test_clean_image_file_invalid_file_extension():
     # given
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
@@ -210,7 +210,7 @@ def test_validate_image_file_invalid_file_extension():
 
     # when
     with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
+        clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
     assert (
@@ -219,7 +219,7 @@ def test_validate_image_file_invalid_file_extension():
     )
 
 
-def test_validate_image_file_file_extension_not_supported_by_thumbnails():
+def test_clean_image_file_file_extension_not_supported_by_thumbnails():
     # given
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
@@ -229,10 +229,54 @@ def test_validate_image_file_file_extension_not_supported_by_thumbnails():
 
     # when
     with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
+        clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
     assert (
         exc.value.args[0][field].message
         == "Invalid file extension. Image file required."
     )
+
+
+def test_clean_image_file_issue_with_file_opening(monkeypatch):
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    field = "image"
+
+    error_msg = "Test syntax error"
+    image_file_mock = Mock(side_effect=SyntaxError(error_msg))
+    monkeypatch.setattr(
+        "saleor.graphql.core.validators.file.Image.open", image_file_mock
+    )
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        clean_image_file({field: img}, field, ProductErrorCode)
+
+    # then
+    assert error_msg in exc.value.args[0][field].message
+
+
+def test_clean_image_file_exif_validation_raising_error(monkeypatch):
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    field = "image"
+
+    error_msg = "Test syntax error"
+    image_file_mock = Mock(side_effect=SyntaxError(error_msg))
+    monkeypatch.setattr(
+        "saleor.graphql.core.validators.file._validate_image_exif", image_file_mock
+    )
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        clean_image_file({field: img}, field, ProductErrorCode)
+
+    # then
+    assert error_msg in exc.value.args[0][field].message

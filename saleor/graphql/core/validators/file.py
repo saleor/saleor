@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
 from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
+from ..utils import add_hash_to_file_name
 
 Image.init()
 
@@ -57,31 +58,51 @@ def get_filename_from_url(url: str) -> str:
     return f"{name}_{hash}{format}"
 
 
-def validate_image_file(file, field_name, error_class) -> None:
-    """Validate if the file is an image supported by thumbnails."""
-    if not file:
+def clean_image_file(cleaned_input, img_field_name, error_class):
+    """Extract and clean uploaded image file.
+
+    Validate if the file is an image supported by thumbnails.
+    """
+    img_file = cleaned_input.get(img_field_name)
+    if not img_file:
         raise ValidationError(
             {
-                field_name: ValidationError(
+                img_field_name: ValidationError(
                     "File is required.", code=error_class.REQUIRED
                 )
             }
         )
-    if not is_supported_image_mimetype(file.content_type):
+    if not is_supported_image_mimetype(img_file.content_type):
         raise ValidationError(
             {
-                field_name: ValidationError(
+                img_field_name: ValidationError(
                     "Invalid file type.", code=error_class.INVALID
                 )
             }
         )
-    _validate_image_format(file, field_name, error_class)
-    _validate_image_exif(file, field_name, error_class)
+
+    _validate_image_format(img_file, img_field_name, error_class)
+    try:
+        with Image.open(img_file) as image:
+            _validate_image_exif(image, img_field_name, error_class)
+    except (SyntaxError, TypeError, UnidentifiedImageError) as e:
+        raise ValidationError(
+            {
+                img_field_name: ValidationError(
+                    "Invalid file. The following error was raised during the attempt "
+                    f"of opening the file: {str(e)}",
+                    code=error_class.INVALID.value,
+                )
+            }
+        )
+
+    add_hash_to_file_name(img_file)
+    return img_file
 
 
 def _validate_image_format(file, field_name, error_class):
     """Validate image file format."""
-    allowed_extensions = get_allowed_extensions()
+    allowed_extensions = _get_allowed_extensions()
     _file_name, format = os.path.splitext(file._name)
     if not format:
         raise ValidationError(
@@ -102,7 +123,7 @@ def _validate_image_format(file, field_name, error_class):
         )
 
 
-def get_allowed_extensions():
+def _get_allowed_extensions():
     """Return image extension lists that are supported by thumbnails."""
     return [
         ext.lower()
@@ -111,17 +132,15 @@ def get_allowed_extensions():
     ]
 
 
-def _validate_image_exif(file, field_name, error_class):
+def _validate_image_exif(img, field_name, error_class):
     try:
-        with Image.open(file) as im:
-            im.getexif()
+        img.getexif()
     except (SyntaxError, TypeError, UnidentifiedImageError) as e:
         raise ValidationError(
             {
                 field_name: ValidationError(
                     "Invalid file. The following error was raised during the attempt "
-                    "of opening the file and getting the exchangeable image file data:"
-                    f" {str(e)}",
+                    f"of getting the exchangeable image file data: {str(e)}.",
                     code=error_class.INVALID.value,
                 )
             }
