@@ -27,7 +27,6 @@ GATEWAY_NAME = "NP後払い"
 REQUIRED_FIELDS = (MERCHANT_CODE, SP_CODE, TERMINAL_ID, SHIPPING_COMPANY)
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ....plugins.models import PluginConfiguration
     from . import GatewayResponse, PaymentData
 
@@ -192,7 +191,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             raise ValidationError(
                 {
                     field: ValidationError(
-                        f"The parameter is required.",
+                        "The parameter is required.",
                         code=PluginErrorCode.REQUIRED.value,
                     )
                     for field in missing_fields
@@ -202,7 +201,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             raise ValidationError(
                 {
                     SHIPPING_COMPANY: ValidationError(
-                        f"Shipping company code is invalid",
+                        "Shipping company code is invalid",
                         code=PluginErrorCode.INVALID.value,
                     )
                 }

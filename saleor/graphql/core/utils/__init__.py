@@ -2,23 +2,21 @@ import binascii
 import mimetypes
 import os
 import secrets
-from enum import Enum
-from typing import TYPE_CHECKING, Type, Union
+from typing import TYPE_CHECKING, Union
 from uuid import UUID
 
 import graphene
 import requests
 from django.core.exceptions import ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene import ObjectType
 from graphql.error import GraphQLError
 from PIL import Image
 
 from ....core.utils import generate_unique_slug
 from ....plugins.webhook.utils import APP_ID_PREFIX
+from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django.db.models import Model
 
 
@@ -53,6 +51,13 @@ def is_image_mimetype(mimetype: str) -> bool:
     return mimetype.startswith("image/")
 
 
+def is_supported_image_mimetype(mimetype: str) -> bool:
+    """Check if mimetype is a mimetype that thumbnails support."""
+    if mimetype is None:
+        return False
+    return mimetype in MIME_TYPE_TO_PIL_IDENTIFIER.keys()
+
+
 def is_image_url(url: str) -> bool:
     """Check if file URL seems to be an image."""
     if url.endswith(".webp"):
@@ -71,7 +76,7 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
     head = requests.head(url)
     header = head.headers
     content_type = header.get("content-type")
-    if content_type is None or not is_image_mimetype(content_type):
+    if content_type is None or not is_supported_image_mimetype(content_type):
         raise ValidationError(
             {field_name: ValidationError("Invalid file type.", code=error_code)}
         )
@@ -86,7 +91,7 @@ def get_filename_from_url(url: str) -> str:
 
 
 def validate_image_file(file, field_name, error_class) -> None:
-    """Validate if the file is an image."""
+    """Validate if the file is an image supported by thumbnails."""
     if not file:
         raise ValidationError(
             {
@@ -95,7 +100,7 @@ def validate_image_file(file, field_name, error_class) -> None:
                 )
             }
         )
-    if not is_image_mimetype(file.content_type):
+    if not is_supported_image_mimetype(file.content_type):
         raise ValidationError(
             {
                 field_name: ValidationError(
@@ -108,7 +113,7 @@ def validate_image_file(file, field_name, error_class) -> None:
 
 def _validate_image_format(file, field_name, error_class):
     """Validate image file format."""
-    allowed_extensions = [ext.lower() for ext in Image.EXTENSION]
+    allowed_extensions = get_allowed_extensions()
     _file_name, format = os.path.splitext(file._name)
     if not format:
         raise ValidationError(
@@ -129,8 +134,17 @@ def _validate_image_format(file, field_name, error_class):
         )
 
 
+def get_allowed_extensions():
+    """Return image extension lists that are supported by thumbnails."""
+    return [
+        ext.lower()
+        for ext, file_type in Image.EXTENSION.items()
+        if file_type.upper() in MIME_TYPE_TO_PIL_IDENTIFIER.values()
+    ]
+
+
 def validate_slug_and_generate_if_needed(
-    instance: Type["Model"],
+    instance: "Model",
     slugable_field: str,
     cleaned_input: dict,
     slug_field_name: str = "slug",
@@ -196,7 +210,9 @@ def validate_if_int_or_uuid(id):
 
 
 def from_global_id_or_error(
-    global_id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+    global_id: str,
+    only_type: Union[ObjectType, str, None] = None,
+    raise_error: bool = False,
 ):
     """Resolve global ID or raise GraphQLError.
 
@@ -228,7 +244,7 @@ def from_global_id_or_error(
 
 
 def from_global_id_or_none(
-    global_id, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+    global_id, only_type: Union[ObjectType, str, None] = None, raise_error: bool = False
 ):
     if not global_id:
         return None

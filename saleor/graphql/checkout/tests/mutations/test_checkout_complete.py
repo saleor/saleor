@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
+import before_after
 import graphene
 import pytest
 import pytz
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models.aggregates import Sum
 from django.utils import timezone
@@ -317,12 +319,13 @@ def test_checkout_complete(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
-
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
     order_confirmed_mock.assert_called_once_with(order)
     _recalculate_order_prices_mock.assert_not_called()
+
+    assert not len(Reservation.objects.all())
 
 
 @pytest.mark.integration
@@ -1754,7 +1757,6 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
 def test_order_already_exists(
     user_api_client, checkout_ready_to_complete, payment_dummy, order_with_lines
 ):
-
     checkout = checkout_ready_to_complete
     order_with_lines.checkout_token = checkout.token
     order_with_lines.save()
@@ -3213,3 +3215,184 @@ def test_checkout_complete_with_not_normalized_billing_address(
     assert billing_address
     assert billing_address.city == "WASHINGTON"
     assert billing_address.country_area == "DC"
+
+
+@patch.object(PluginsManager, "process_payment")
+def test_checkout_complete_check_reservations_create(
+    mocked_process_payment,
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    shipping_method,
+    action_required_gateway_response,
+):
+    # given
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    orders_count = Order.objects.count()
+    assert not len(Reservation.objects.all())
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert data["confirmationNeeded"] is True
+
+    reservations = Reservation.objects.all()
+    assert len(reservations) == 1
+    assert reservations[0].checkout_line.checkout.token == checkout.token
+    assert reservations[0].reserved_until <= timezone.now() + timedelta(
+        seconds=settings.RESERVE_DURATION
+    )
+    assert Order.objects.count() == orders_count
+
+
+def test_checkout_complete_reservations_drop(
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.tax_exemption = True
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert not len(Reservation.objects.all())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checkout_complete_payment_create_create_run_in_meantime(
+    site_settings,
+    user_api_client,
+    checkout_without_shipping_required,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # Call CheckoutPaymentCreate mutation during the CheckoutComplete call processing.
+    # It should cause deactivation of current payment and creation of new one.
+    def call_payment_create_mutation(*args, **kwargs):
+        from ....payment.tests.mutations.test_checkout_payment_create import (
+            CREATE_PAYMENT_MUTATION,
+            DUMMY_GATEWAY,
+        )
+
+        variables = {
+            "id": to_global_id_or_none(checkout),
+            "input": {
+                "gateway": DUMMY_GATEWAY,
+                "token": "sample-token",
+                "amount": total.gross.amount,
+            },
+        }
+
+        user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # when
+    with before_after.before(
+        "saleor.checkout.complete_checkout._get_order_data",
+        call_payment_create_mutation,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.INACTIVE_PAYMENT.name

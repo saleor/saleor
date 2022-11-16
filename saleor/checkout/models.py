@@ -23,7 +23,6 @@ from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django_measurement import Weight
 
     from ..payment.models import Payment

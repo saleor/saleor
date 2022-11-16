@@ -1,11 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, List, Set, Union
-
-from django.conf import settings
+from typing import TYPE_CHECKING, Dict, List, Set, Union
 
 if TYPE_CHECKING:
-    # flake8: noqa
-    from .models import Sale, SaleChannelListing, Voucher
+    from .models import Sale, SaleChannelListing
 
 
 class DiscountValueType:
@@ -38,7 +35,7 @@ class VoucherType:
 
 @dataclass
 class DiscountInfo:
-    sale: Union["Sale", "Voucher"]
+    sale: "Sale"
     channel_listings: Dict[str, "SaleChannelListing"]
     product_ids: Union[List[int], Set[int]]
     category_ids: Union[List[int], Set[int]]

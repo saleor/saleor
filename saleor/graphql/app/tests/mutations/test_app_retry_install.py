@@ -40,7 +40,8 @@ def test_retry_install_app_mutation(
     app_installation.save()
     mocked_task = Mock()
     monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+        "saleor.graphql.app.mutations.app_retry_install.install_app_task.delay",
+        mocked_task,
     )
     query = RETRY_INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
@@ -74,7 +75,8 @@ def test_retry_install_app_mutation_by_app(
     app_installation.save()
     mocked_task = Mock()
     monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+        "saleor.graphql.app.mutations.app_retry_install.install_app_task.delay",
+        mocked_task,
     )
     id = graphene.Node.to_global_id("AppInstallation", app_installation.id)
     query = RETRY_INSTALL_APP_MUTATION
@@ -113,7 +115,8 @@ def test_retry_install_app_mutation_app_has_more_permission_than_user_requestor(
 
     mocked_task = Mock()
     monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+        "saleor.graphql.app.mutations.app_retry_install.install_app_task.delay",
+        mocked_task,
     )
 
     query = RETRY_INSTALL_APP_MUTATION
@@ -156,7 +159,8 @@ def test_retry_install_app_mutation_app_has_more_permission_than_app_requestor(
 
     mocked_task = Mock()
     monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+        "saleor.graphql.app.mutations.app_retry_install.install_app_task.delay",
+        mocked_task,
     )
 
     query = RETRY_INSTALL_APP_MUTATION
@@ -198,7 +202,8 @@ def test_cannot_retry_installation_if_status_is_different_than_failed(
 
     mocked_task = Mock()
     monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+        "saleor.graphql.app.mutations.app_retry_install.install_app_task.delay",
+        mocked_task,
     )
     query = RETRY_INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])

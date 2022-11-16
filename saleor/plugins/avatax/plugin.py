@@ -16,7 +16,6 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...discount import DiscountInfo
-from ...order import base_calculations as base_order_calculations
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
 from ...tax.utils import get_charge_taxes_for_checkout, get_charge_taxes_for_order
@@ -44,7 +43,6 @@ from . import (
 from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order, OrderLine
@@ -660,7 +658,7 @@ class AvataxPlugin(BasePlugin):
         previous_value: Decimal,
     ) -> Decimal:
         charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
-        if not checkout_line_info.product.charge_taxes:
+        if not charge_taxes:
             return previous_value
 
         response = self._get_checkout_tax_data(

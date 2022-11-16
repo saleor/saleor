@@ -4,7 +4,6 @@ from typing import (
     Any,
     DefaultDict,
     Iterable,
-    List,
     Optional,
     Set,
     Tuple,
@@ -13,7 +12,6 @@ from typing import (
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
-from django_countries.fields import Country
 from graphene import Mutation
 from graphql import GraphQLError, ResolveInfo
 from graphql.execution import ExecutionResult
@@ -25,15 +23,14 @@ from ...order.interface import OrderTaxedPricesData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...account.models import Address
-    from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.models import Checkout
+    from ...core.models import EventDelivery
     from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...order.models import Order, OrderLine
-    from ...product.models import Product, ProductType, ProductVariant
+    from ...product.models import Product, ProductVariant
 
 
 def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:

@@ -12,23 +12,26 @@ for more details)
 GraphQL query
 """
 
-# flake8: noqa: F405
 import logging
+import os
 import re
 
+import sentry_sdk
 from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
-from ..settings import *  # noqa: F403, lgtm [py/polluting-import]
+from ..settings import *  # noqa: F403
 
 logger = logging.getLogger(__name__)
+
 
 # Override urls to use different GraphQL view on demo
 ROOT_URLCONF = "saleor.demo.urls"
 
-PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
+PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]  # noqa: F405
 
-GRAPHENE.setdefault("MIDDLEWARE", []).insert(  # type: ignore
+GRAPHENE.setdefault("MIDDLEWARE", []).insert(  # type: ignore # noqa: F405
     0, "saleor.graphql.middleware.ReadOnlyMiddleware"
 )
 
@@ -42,7 +45,7 @@ if not (BRAINTREE_API_KEY and BRAINTREE_MERCHANT_ID and BRAINTREE_SECRET_API_KEY
         "sandbox configuration in the demo mode with `populatedb` command."
     )
 
-PWA_ORIGINS = get_list(os.environ.get("PWA_ORIGINS", "demo.saleor.io"))
+PWA_ORIGINS = get_list(os.environ.get("PWA_ORIGINS", "demo.saleor.io"))  # noqa: F405
 PWA_DASHBOARD_URL_RE = re.compile("^https?://[^/]+/dashboard/.*")
 
 ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
@@ -50,8 +53,8 @@ ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
 # Remove "saleor.core" and add it after adding "saleor.demo", to have "populatedb"
 # command overridden when using demo settings
 # (see saleor.demo.management.commands.populatedb).
-INSTALLED_APPS.remove("saleor.core")
-INSTALLED_APPS += ["saleor.demo", "saleor.core"]
+INSTALLED_APPS.remove("saleor.core")  # noqa: F405
+INSTALLED_APPS += ["saleor.demo", "saleor.core"]  # noqa: F405
 ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = False
 
 

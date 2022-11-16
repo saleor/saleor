@@ -62,7 +62,7 @@ class WarehouseQueryset(models.QuerySet):
     def applicable_for_click_and_collect_no_quantity_check(
         self, lines_qs: QuerySet[CheckoutLine], channel_id: int
     ):
-        """Return the queryset of a `Warehouse` which are applicable for click and collect.
+        """Return Warehouses which support click and collect.
 
         Note this method does not check stocks quantity for given `CheckoutLine`s.
         This method should be used only if stocks quantity will be checked in further
@@ -83,7 +83,7 @@ class WarehouseQueryset(models.QuerySet):
     def applicable_for_click_and_collect(
         self, lines_qs: QuerySet[CheckoutLine], channel_id: int
     ) -> QuerySet["Warehouse"]:
-        """Return the queryset of a `Warehouse` which are applicable for click and collect.
+        """Return Warehouses which support click and collect.
 
         Note additional check of stocks quantity for given `CheckoutLine`s.
         For `WarehouseClickAndCollect.LOCAL` all `CheckoutLine`s must be available from

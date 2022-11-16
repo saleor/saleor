@@ -375,7 +375,7 @@ class ProductVariantBulkCreate(BaseMutation):
             )
         )
         for channel_listing_data in channels_data:
-            if not channel_listing_data["channel"].id in channels_assigned_to_product:
+            if channel_listing_data["channel"].id not in channels_assigned_to_product:
                 channels_not_assigned_to_product.append(
                     channel_listing_data["channel_id"]
                 )

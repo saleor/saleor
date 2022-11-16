@@ -1,6 +1,6 @@
 import os
 import socket
-from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
@@ -18,7 +18,6 @@ task_logger = get_task_logger(__name__)
 
 
 if TYPE_CHECKING:
-    # flake8: noqa: F401
     from django.utils.safestring import SafeText
 
 
@@ -95,7 +94,7 @@ def to_local_currency(price, currency):
 
 
 def generate_unique_slug(
-    instance: Type[Model],
+    instance: Model,
     slugable_value: str,
     slug_field_name: str = "slug",
     *,

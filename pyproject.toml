@@ -34,7 +34,6 @@ documentation = "https://docs.saleor.io/"
   google-measurement-protocol = "^1.0"
   html-to-draftjs = "^1.0.1"
   markdown = "^3.1.1"
-  maxminddb = ">=1.5.4,<3.0.0"
   petl = "1.7.11"
   opentracing = "^2.3.0"
   phonenumberslite = "^8.12.25"
@@ -72,7 +71,6 @@ documentation = "https://docs.saleor.io/"
   graphene = "<3.0"
   uvicorn = {extras = ["standard"], version = "^0.19.0"}
   Authlib = "^1.0.0"
-  types-redis = "^4.2.6"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
@@ -113,6 +111,8 @@ documentation = "https://docs.saleor.io/"
   pytest-xdist = "^3.0.2"
   mypy = "^0.982"
   pywatchman = "^1.4.1"
+  types-mock = "^4.0.15.2"
+  types-redis = "^4.2.6"
   types-requests = "^2.28.2"
   types-pytz = "^2022.1.1"
   types-pkg-resources = "^0.1.3"
@@ -124,7 +124,6 @@ documentation = "https://docs.saleor.io/"
   types-freezegun = "^1.1.7"
   types-six = "^1.16.17"
   fakeredis = "^1.8"
-  types-redis = "^4.2.6"
 
 [tool.black]
 target_version = [ "py35", "py36", "py37", "py38" ]
