@@ -374,9 +374,16 @@ def get_order_lines_data(
         if not line.variant:
             continue
 
-        product = line.variant.product
-        product_type = line.variant.product.product_type
-        tax_code = _get_product_tax_code(product, product_type)
+        tax_code = None
+        tax_class = line.tax_class
+
+        if tax_class:
+            tax_code = retrieve_tax_code_from_meta(tax_class, default=None)
+        elif line.tax_class_metadata:
+            tax_code = line.tax_class_metadata.get(META_CODE_KEY, DEFAULT_TAX_CODE)
+        else:
+            tax_code = DEFAULT_TAX_CODE
+
         prices_data = base_order_calculations.base_order_line_total(line)
 
         if prices_entered_with_tax:
@@ -409,8 +416,11 @@ def get_order_lines_data(
         shipping_discounted = order.discounts.filter(
             type=OrderDiscountType.MANUAL
         ).exists()
-        tax_class = getattr(order.shipping_method, "tax_class", None)
-        if tax_class:
+
+        # Calculate shipping tax if there is a shipping_tax_class assigned to the order,
+        # or if there is at least tax_class name set (this might be the case when tax
+        # class was assigned but it was removed from DB).
+        if order.shipping_tax_class_id or order.shipping_tax_class_name:
             append_shipping_to_data(
                 data=data,
                 shipping_price_amount=shipping_price if shipping_price else None,

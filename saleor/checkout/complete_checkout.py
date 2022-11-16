@@ -53,6 +53,10 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..tax.utils import (
+    get_shipping_tax_class_kwargs_for_order,
+    get_tax_class_kwargs_for_order_line,
+)
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
@@ -130,11 +134,15 @@ def _process_shipping_data_for_order(
         if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
+    shipping_method = delivery_method_info.delivery_method
+    tax_class = getattr(shipping_method, "tax_class", None)
+
     result: Dict[str, Any] = {
         "shipping_address": shipping_address,
         "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
+        **get_shipping_tax_class_kwargs_for_order(tax_class),
     }
     result.update(delivery_method_info.delivery_method_order_field)
     result.update(delivery_method_info.delivery_method_name)
@@ -266,6 +274,12 @@ def _create_line_for_order(
         else:
             unit_discount_reason = f"Voucher code: {voucher_code}"
 
+    tax_class = None
+    if product.tax_class_id:
+        tax_class = product.tax_class
+    else:
+        tax_class = product.product_type.tax_class
+
     line = OrderLine(
         product_name=product_name,
         variant_name=variant_name,
@@ -291,6 +305,7 @@ def _create_line_for_order(
         undiscounted_base_unit_price=undiscounted_base_unit_price,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
+        **get_tax_class_kwargs_for_order_line(tax_class),
     )
     is_digital = line.is_digital
     line_info = OrderLineInfo(

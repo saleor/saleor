@@ -93,9 +93,7 @@ def populate_tax_calculation_strategy(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("tax", "0001_initial"),
-    ]
+    dependencies = [("tax", "0001_initial"), ("plugins", "0010_auto_20220104_1239")]
 
     operations = [
         migrations.RunPython(

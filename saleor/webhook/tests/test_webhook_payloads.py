@@ -1086,7 +1086,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "collection_point_name": None,
             "shipping_price_net_amount": "10.00",
             "shipping_price_gross_amount": "12.30",
-            "shipping_tax_rate": "0.0000",
+            "shipping_tax_rate": "0.2300",
             "total_net_amount": "80.00",
             "total_gross_amount": "98.40",
             "weight": "0.0:g",

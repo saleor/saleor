@@ -123,6 +123,7 @@ from ..shipping.models import (
 )
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
+from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
@@ -3896,6 +3897,7 @@ def order_with_lines(
         base_unit_price=base_price,
         undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -3948,6 +3950,7 @@ def order_with_lines(
         base_unit_price=base_price,
         undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -3959,11 +3962,18 @@ def order_with_lines(
     shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
+    order.shipping_tax_class = shipping_method.tax_class
+    order.shipping_tax_class_name = shipping_method.tax_class.name
+    order.shipping_tax_class_metadata = shipping_method.tax_class.metadata
+    order.shipping_tax_class_private_metadata = (
+        shipping_method.tax_class.private_metadata
+    )  # noqa: E501
 
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
     recalculate_order(order)
@@ -4018,6 +4028,7 @@ def order_with_lines_for_cc(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(variant.product.product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line,
@@ -4168,6 +4179,7 @@ def order_with_lines_channel_PLN(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -4219,6 +4231,7 @@ def order_with_lines_channel_PLN(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -4237,6 +4250,7 @@ def order_with_lines_channel_PLN(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
     recalculate_order(order)
@@ -4274,6 +4288,7 @@ def order_with_line_without_inventory_tracking(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
     )
 
     recalculate_order(order)
@@ -4331,6 +4346,7 @@ def order_with_preorder_lines(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     PreorderAllocation.objects.create(
         order_line=line,
@@ -6038,6 +6054,7 @@ def allocations(order_list, stock, channel_USD):
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
             ),
             OrderLine(
                 order=order_list[1],
@@ -6052,6 +6069,7 @@ def allocations(order_list, stock, channel_USD):
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
             ),
             OrderLine(
                 order=order_list[2],
@@ -6066,6 +6084,7 @@ def allocations(order_list, stock, channel_USD):
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
             ),
         ]
     )

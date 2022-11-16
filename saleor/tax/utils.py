@@ -179,6 +179,11 @@ def normalize_tax_rate_for_db(tax_rate: Decimal) -> Decimal:
     return tax_rate / 100
 
 
+def denormalize_tax_rate_from_db(tax_rate: Decimal) -> Decimal:
+    # Revert results of `normalize_tax_rate_for_db`.
+    return tax_rate * 100
+
+
 def calculate_tax_rate(price: TaxedMoney) -> Decimal:
     """Calculate the tax rate as percentage value from given price.
 
@@ -203,3 +208,27 @@ def get_tax_rate_for_tax_class(
             if country_rate.country == country_code:
                 tax_rate = country_rate.rate
     return tax_rate
+
+
+def get_tax_class_kwargs_for_order_line(tax_class: Optional["TaxClass"]):
+    if not tax_class:
+        return {}
+
+    return {
+        "tax_class": tax_class,
+        "tax_class_name": tax_class.name,
+        "tax_class_private_metadata": tax_class.private_metadata,
+        "tax_class_metadata": tax_class.metadata,
+    }
+
+
+def get_shipping_tax_class_kwargs_for_order(tax_class: Optional["TaxClass"]):
+    if not tax_class:
+        return {}
+
+    return {
+        "shipping_tax_class": tax_class,
+        "shipping_tax_class_name": tax_class.name,
+        "shipping_tax_class_private_metadata": tax_class.private_metadata,
+        "shipping_tax_class_metadata": tax_class.metadata,
+    }

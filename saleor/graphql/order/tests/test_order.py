@@ -197,6 +197,19 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                                 key
                                 value
                             }
+                            taxClass {
+                                name
+                            }
+                            taxClassName
+                            taxClassMetadata {
+                                key
+                                value
+                            }
+                            taxClassPrivateMetadata {
+                                key
+                                value
+                            }
+                            taxRate
                         }
                     }
                 }
@@ -254,6 +267,122 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
             "warehouse": {"id": warehouse_id},
         }
     ]
+
+    line_tax_class = line.variant.product.tax_class
+    assert first_order_data_line["taxClass"]["name"] == line_tax_class.name
+    assert first_order_data_line["taxClassName"] == line_tax_class.name
+    assert (
+        first_order_data_line["taxClassMetadata"][0]["key"]
+        == list(line_tax_class.metadata.keys())[0]
+    )
+    assert (
+        first_order_data_line["taxClassMetadata"][0]["value"]
+        == list(line_tax_class.metadata.values())[0]
+    )
+    assert (
+        first_order_data_line["taxClassPrivateMetadata"][0]["key"]
+        == list(line_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        first_order_data_line["taxClassPrivateMetadata"][0]["value"]
+        == list(line_tax_class.private_metadata.values())[0]
+    )
+
+
+def test_denormalized_tax_class_in_orderline_query(
+    staff_api_client, permission_manage_orders, fulfilled_order
+):
+    # given
+    order = fulfilled_order
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            thumbnail(size: 540) {
+                                url
+                            }
+                            variant {
+                                id
+                            }
+                            quantity
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
+                            unitPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                            totalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                            metadata {
+                                key
+                                value
+                            }
+                            privateMetadata {
+                                key
+                                value
+                            }
+                            taxClass {
+                                name
+                            }
+                            taxClassName
+                            taxClassMetadata {
+                                key
+                                value
+                            }
+                            taxClassPrivateMetadata {
+                                key
+                                value
+                            }
+                            taxRate
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    line_tax_class = order.lines.first().tax_class
+    assert line_tax_class
+
+    # when
+    line_tax_class.delete()
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    # then
+    line_data = content["data"]["orders"]["edges"][0]["node"]["lines"][0]
+    assert line_data["taxClass"] is None
+    assert line_data["taxClassName"] == line_tax_class.name
+    assert (
+        line_data["taxClassMetadata"][0]["key"]
+        == list(line_tax_class.metadata.keys())[0]
+    )
+    assert (
+        line_data["taxClassMetadata"][0]["value"]
+        == list(line_tax_class.metadata.values())[0]
+    )
+    assert (
+        line_data["taxClassPrivateMetadata"][0]["key"]
+        == list(line_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        line_data["taxClassPrivateMetadata"][0]["value"]
+        == list(line_tax_class.private_metadata.values())[0]
+    )
 
 
 def test_order_line_with_allocations(
@@ -340,6 +469,18 @@ query OrdersQuery {
                     }
                 }
                 shippingTaxRate
+                shippingTaxClass {
+                    name
+                }
+                shippingTaxClassName
+                shippingTaxClassMetadata {
+                    key
+                    value
+                }
+                shippingTaxClassPrivateMetadata {
+                    key
+                    value
+                }
                 lines {
                     id
                     unitPrice{
@@ -570,6 +711,25 @@ def test_order_query(
     )
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
+    shipping_tax_class = order.shipping_method.tax_class
+    assert order_data["shippingTaxClass"]["name"] == shipping_tax_class.name
+    assert order_data["shippingTaxClassName"] == shipping_tax_class.name
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["key"]
+        == list(shipping_tax_class.metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["value"]
+        == list(shipping_tax_class.metadata.values())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["key"]
+        == list(shipping_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["value"]
+        == list(shipping_tax_class.private_metadata.values())[0]
+    )
     assert order_data["shippingMethod"]["active"] is True
     assert order_data["shippingMethod"]["message"] == ""
     assert public_value == order_data["shippingMethod"]["metadata"][0]["value"]
@@ -607,6 +767,46 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
+
+
+def test_order_query_denormalized_shipping_tax_class_data(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    shipping_tax_class = order.shipping_method.tax_class
+    assert shipping_tax_class
+
+    # when
+    shipping_tax_class.delete()
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["shippingTaxClass"] is None
+    assert order_data["shippingTaxClassName"] == shipping_tax_class.name
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["key"]
+        == list(shipping_tax_class.metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["value"]
+        == list(shipping_tax_class.metadata.values())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["key"]
+        == list(shipping_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["value"]
+        == list(shipping_tax_class.private_metadata.values())[0]
+    )
 
 
 def test_order_query_total_price_is_0(
@@ -7597,6 +7797,14 @@ def test_order_update_shipping(
     assert order.shipping_tax_rate == Decimal("0.0")
     assert order.shipping_method_name == shipping_method.name
 
+    shipping_tax_class = shipping_method.tax_class
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class == shipping_tax_class
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
+
 
 @pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
 def test_order_update_shipping_no_shipping_method_channel_listings(
@@ -7711,6 +7919,10 @@ def test_order_update_shipping_clear_shipping_method(
     assert order.base_shipping_price == zero_money(order.currency)
     assert order.shipping_price == zero_taxed_money(order.currency)
     assert order.shipping_method_name is None
+
+    assert order.shipping_tax_class is None
+    assert order.shipping_tax_class_metadata == {}
+    assert order.shipping_tax_class_private_metadata == {}
 
 
 def test_order_update_shipping_shipping_required(

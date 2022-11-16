@@ -9248,7 +9248,47 @@ type Order implements Node & ObjectWithMetadata {
 
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
+
+  """The shipping tax rate value."""
   shippingTaxRate: Float!
+
+  """
+  Denormalized tax class assigned to the shipping method.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  shippingTaxClass: TaxClass
+
+  """
+  Denormalized name of the tax class assigned to the shipping method.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassName: String
+
+  """
+  Denormalized public metadata of the shipping method's tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the shipping method's tax class. Requires staff permissions to access.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
@@ -9544,6 +9584,44 @@ type OrderLine implements Node & ObjectWithMetadata {
 
   """Type of the discount: fixed or percent"""
   unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Denormalized tax class of the product in this order line.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
+
+  """
+  Denormalized name of the tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassName: String
+
+  """
+  Denormalized public metadata of the tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the tax class. Requires staff permissions to access.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassPrivateMetadata: [MetadataItem!]!
 }
 
 """

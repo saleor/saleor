@@ -88,7 +88,8 @@ from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
-from ..meta.types import ObjectWithMetadata
+from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
+from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..plugins.dataloaders import load_plugin_manager
@@ -108,9 +109,11 @@ from ..shipping.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from ..tax.dataloaders import (
+    TaxClassByIdLoader,
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
+from ..tax.types import TaxClass
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -586,6 +589,36 @@ class OrderLine(ModelObjectType):
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
     )
+    tax_class = PermissionsField(
+        TaxClass,
+        description="Denormalized tax class of the product in this order line."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    tax_class_name = graphene.Field(
+        graphene.String,
+        description="Denormalized name of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+    )
+    tax_class_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description="Denormalized public metadata of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+    )
+    tax_class_private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized private metadata of the tax class. Requires staff "
+            "permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -702,7 +735,9 @@ class OrderLine(ModelObjectType):
 
         def _resolve_tax_rate(data):
             order, lines = data
-            return calculations.order_line_tax_rate(order, root, manager, lines)
+            return calculations.order_line_tax_rate(
+                order, root, manager, lines
+            ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
@@ -784,6 +819,23 @@ class OrderLine(ModelObjectType):
     @staticmethod
     def resolve_allocations(root: models.OrderLine, info):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_tax_class(root: models.OrderLine, info):
+        return (
+            TaxClassByIdLoader(info.context).load(root.tax_class_id)
+            if root.tax_class_id
+            else None
+        )
+
+    @staticmethod
+    def resolve_tax_class_metadata(root: models.OrderLine, _info):
+        return resolve_metadata(root.tax_class_metadata)
+
+    @staticmethod
+    def resolve_tax_class_private_metadata(root: models.OrderLine, info):
+        check_private_metadata_privilege(root, info)
+        return resolve_metadata(root.tax_class_private_metadata)
 
 
 class Order(ModelObjectType):
@@ -930,7 +982,43 @@ class Order(ModelObjectType):
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
-    shipping_tax_rate = graphene.Float(required=True)
+    shipping_tax_rate = graphene.Float(
+        required=True, description="The shipping tax rate value."
+    )
+    shipping_tax_class = PermissionsField(
+        TaxClass,
+        description="Denormalized tax class assigned to the shipping method."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    shipping_tax_class_name = graphene.Field(
+        graphene.String,
+        description=(
+            "Denormalized name of the tax class assigned to the shipping method."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        ),
+        required=False,
+    )
+    shipping_tax_class_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized public metadata of the shipping method's tax class."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        ),
+    )
+    shipping_tax_class_private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized private metadata of the shipping method's tax class. "
+            "Requires staff permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+    )
     token = graphene.String(
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
@@ -1192,7 +1280,9 @@ class Order(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def _resolve_shipping_tax_rate(lines):
-            return calculations.order_shipping_tax_rate(root, manager, lines)
+            return calculations.order_shipping_tax_rate(
+                root, manager, lines
+            ) or Decimal(0)
 
         return (
             OrderLinesByOrderIdLoader(info.context)
@@ -1670,6 +1760,25 @@ class Order(ModelObjectType):
             return tax_configs_per_country.then(calculate_display_gross_prices)
 
         return tax_config.then(load_tax_country_exceptions)
+
+    @classmethod
+    def resolve_shipping_tax_class(cls, root: models.Order, info):
+        if root.shipping_method_id:
+            return cls.resolve_shipping_method(root, info).then(
+                lambda shipping_method_data: shipping_method_data.tax_class
+                if shipping_method_data
+                else None
+            )
+        return None
+
+    @staticmethod
+    def resolve_shipping_tax_class_metadata(root: models.Order, _info):
+        return resolve_metadata(root.shipping_tax_class_metadata)
+
+    @staticmethod
+    def resolve_shipping_tax_class_private_metadata(root: models.Order, info):
+        check_private_metadata_privilege(root, info)
+        return resolve_metadata(root.shipping_tax_class_private_metadata)
 
 
 class OrderCountableConnection(CountableConnection):
