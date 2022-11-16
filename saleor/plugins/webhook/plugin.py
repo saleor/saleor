@@ -46,6 +46,7 @@ from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_re
 from .tasks import (
     send_webhook_request_async,
     trigger_all_webhooks_sync,
+    trigger_transaction_request,
     trigger_webhook_sync,
     trigger_webhooks_async,
 )
@@ -1283,6 +1284,31 @@ class WebhookPlugin(BasePlugin):
                 subscribable_object=transaction_data,
                 requestor=self.requestor,
             )
+
+    def transaction_request(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        if not transaction_data.transaction.app_id:
+            logger.warning(
+                f"Transaction request skipped for "
+                f"{transaction_data.transaction.psp_reference}. "
+                f"Missing relation to App."
+            )
+            return None
+
+        if not transaction_data.event:
+            logger.warning(
+                f"Transaction request skipped for "
+                f"{transaction_data.transaction.psp_reference}. "
+                f"Missing relation to TransactionEvent."
+            )
+            return None
+
+        trigger_transaction_request(transaction_data, self.requestor)
+        return None
 
     def __run_payment_webhook(
         self,

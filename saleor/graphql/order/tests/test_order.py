@@ -7509,7 +7509,7 @@ def test_order_charge_with_transaction_action_request(
         authorized_value=Decimal("10"),
     )
     charge_value = Decimal(5.0)
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     order_id = to_global_id_or_none(order)
 
     variables = {"id": order_id, "amount": charge_value}
@@ -7555,7 +7555,7 @@ def test_order_capture_with_transaction_action_request_missing_event(
         order_id=order.pk,
         authorized_value=authorization_value,
     )
-    mocked_is_active.return_value = False
+    mocked_is_active.side_effect = [False, False]
 
     order_id = to_global_id_or_none(order)
 
@@ -7811,7 +7811,7 @@ def test_order_void_with_transaction_action_request(
         authorized_value=Decimal("10"),
     )
 
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     order_id = to_global_id_or_none(order)
 
@@ -7856,7 +7856,7 @@ def test_order_void_with_transaction_action_request_missing_event(
         order_id=order.pk,
         authorized_value=Decimal("10.0"),
     )
-    mocked_is_active.return_value = False
+    mocked_is_active.side_effect = [False, False]
 
     order_id = to_global_id_or_none(order)
     variables = {"id": order_id}
@@ -7968,7 +7968,7 @@ def test_order_refund_with_transaction_action_request(
         authorized_value=Decimal("10"),
     )
     refund_value = Decimal(5.0)
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     order_id = to_global_id_or_none(order)
     variables = {"id": order_id, "amount": refund_value}
@@ -8014,7 +8014,7 @@ def test_order_refund_with_transaction_action_request_missing_event(
         order_id=order.pk,
         authorized_value=authorized_value,
     )
-    mocked_is_active.return_value = False
+    mocked_is_active.side_effect = [False, False]
 
     order_id = to_global_id_or_none(order)
     variables = {"id": order_id, "amount": authorized_value}

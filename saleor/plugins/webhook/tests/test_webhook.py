@@ -31,7 +31,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
-from ....payment import TransactionAction
+from ....payment import TransactionAction, TransactionEventStatus
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
 from ....webhook.event_types import WebhookEventAsyncType
@@ -1148,19 +1148,19 @@ def test_transaction_item_metadata_updated(
     mocked_get_webhooks_for_event,
     any_webhook,
     settings,
-    transaction_item,
+    transaction_item_created_by_user,
 ):
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    manager.transaction_item_metadata_updated(transaction_item)
-    expected_data = generate_metadata_updated_payload(transaction_item)
+    manager.transaction_item_metadata_updated(transaction_item_created_by_user)
+    expected_data = generate_metadata_updated_payload(transaction_item_created_by_user)
 
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,
         WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
         [any_webhook],
-        transaction_item,
+        transaction_item_created_by_user,
         None,
     )
 
@@ -1462,6 +1462,54 @@ def test_transaction_action_request(
         [any_webhook],
         subscribable_object=transaction_action_data,
         requestor=ANY,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
+def test_transaction_request(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order,
+    channel_USD,
+    app,
+):
+    # given
+    any_webhook.app = app
+    any_webhook.save()
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app=app,
+    )
+    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    action_value = Decimal("5.00")
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.CHARGE,
+        action_value=action_value,
+        event=event,
+    )
+
+    # when
+    manager.transaction_request(transaction_action_data, channel_slug=channel_USD.slug)
+
+    # then
+    mocked_webhook_trigger.assert_called_once_with(
+        transaction_action_data,
+        None,
     )
 
 

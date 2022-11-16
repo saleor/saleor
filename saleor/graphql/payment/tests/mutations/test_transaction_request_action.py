@@ -79,7 +79,7 @@ def test_transaction_request_charge_action_for_order(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -143,7 +143,7 @@ def test_transaction_request_refund_action_for_order(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -197,7 +197,7 @@ def test_transaction_request_void_action_for_order(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -248,7 +248,7 @@ def test_transaction_request_void_action_for_checkout(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -305,7 +305,7 @@ def test_transaction_request_charge_action_for_checkout(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -364,7 +364,7 @@ def test_transaction_request_refund_action_for_checkout(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -413,7 +413,7 @@ def test_transaction_request_uses_handle_payment_permission(
     permission_manage_payments,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -462,7 +462,7 @@ def test_transaction_request_uses_manage_orders_permission(
     permission_manage_orders,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
         status="Captured",

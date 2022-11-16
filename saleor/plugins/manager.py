@@ -935,6 +935,17 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
+    def transaction_request(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_request",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):
         default_value = None
         return self.__run_method_on_plugins(

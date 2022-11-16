@@ -17,9 +17,9 @@ from ...order.models import Order
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
+from ..const import APP_ID_PREFIX
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
 from .tasks import trigger_webhook_sync
-from .utils import APP_ID_PREFIX
 
 logger = logging.getLogger(__name__)
 

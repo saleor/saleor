@@ -17,6 +17,8 @@ from ..payment.interface import (
     RefundData,
     TransactionActionData,
 )
+from ..webhook.event_types import WebhookEventSyncType
+from ..webhook.utils import get_webhooks_for_event
 from . import GatewayError, PaymentError, TransactionAction, TransactionKind
 from .models import Payment, Transaction, TransactionItem
 from .utils import (
@@ -171,14 +173,33 @@ def _request_payment_action(
     payment_data = TransactionActionData(
         transaction=transaction, action_type=action_type, action_value=action_value
     )
-    event_active = manager.is_event_active_for_any_plugin(
+    transaction_action_request_event_active = manager.is_event_active_for_any_plugin(
         "transaction_action_request", channel_slug=channel_slug
     )
-    if not event_active:
+
+    transaction_request_event_active = manager.is_event_active_for_any_plugin(
+        "transaction_request", channel_slug=channel_slug
+    )
+
+    webhook_is_active = None
+    if transaction.app_id:
+        webhook_is_active = get_webhooks_for_event(
+            WebhookEventSyncType.TRANSACTION_REQUEST,
+            apps_ids=[transaction.app_id],
+        )
+
+    if (
+        not transaction_action_request_event_active
+        and not transaction_request_event_active
+        and not webhook_is_active
+    ):
         raise PaymentError(
             "No app or plugin is configured to handle payment action requests."
         )
-    manager.transaction_action_request(payment_data, channel_slug=channel_slug)
+    if transaction_request_event_active or webhook_is_active:
+        manager.transaction_request(payment_data, channel_slug=channel_slug)
+    else:
+        manager.transaction_action_request(payment_data, channel_slug=channel_slug)
 
 
 @raise_payment_error

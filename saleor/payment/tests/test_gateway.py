@@ -371,7 +371,7 @@ def test_request_capture_action_on_order(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     action_value = Decimal("5.00")
 
     # when
@@ -417,7 +417,7 @@ def test_request_capture_action_by_app(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     action_value = Decimal("5.00")
 
     # when
@@ -463,7 +463,7 @@ def test_request_capture_action_on_checkout(
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     action_value = Decimal("5.00")
 
     # when
@@ -532,7 +532,7 @@ def test_request_refund_action_on_order(
         order_id=order.pk,
         charged_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     action_value = Decimal("5.00")
 
     # when
@@ -578,7 +578,7 @@ def test_request_refund_action_by_app(
         order_id=order.pk,
         charged_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     action_value = Decimal("5.00")
 
     # when
@@ -625,7 +625,7 @@ def test_request_refund_action_on_checkout(
         checkout_id=checkout.pk,
         charged_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
     action_value = Decimal("5.00")
 
     # when
@@ -690,7 +690,7 @@ def test_request_void_action_on_order(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     # when
     request_void_action(
@@ -733,7 +733,7 @@ def test_request_void_action_by_app(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     # when
     request_void_action(
@@ -777,7 +777,7 @@ def test_request_void_action_on_checkout(
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
     )
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     # when
     request_void_action(

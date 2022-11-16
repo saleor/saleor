@@ -793,6 +793,8 @@ class BasePlugin:
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
 
+    transaction_request: Callable[["TransactionActionData", None], None]
+
     #  Trigger when transaction item metadata is updated.
     #
     #  Overwrite this method if you need to trigger specific logic when a transaction

@@ -57,7 +57,7 @@ def test_fulfillment_refund_products_with_transaction_action_request(
     fulfilled_order,
 ):
     # given
-    mocked_is_active.return_value = True
+    mocked_is_active.side_effect = [True, False]
 
     charged_value = Decimal("20.0")
     transaction = TransactionItem.objects.create(

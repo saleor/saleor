@@ -15,7 +15,7 @@ from graphql.error import GraphQLError
 from PIL import Image
 
 from ....core.utils import generate_unique_slug
-from ....plugins.webhook.utils import APP_ID_PREFIX
+from ....plugins.const import APP_ID_PREFIX
 
 if TYPE_CHECKING:
     # flake8: noqa

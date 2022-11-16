@@ -1766,6 +1766,7 @@ enum WebhookEventTypeEnum {
 
   """Void payment."""
   PAYMENT_VOID
+  TRANSACTION_REQUEST
 
   """
   Event called for checkout tax calculation.
@@ -1826,6 +1827,7 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+  TRANSACTION_REQUEST
 
   """
   Event called for checkout tax calculation.
