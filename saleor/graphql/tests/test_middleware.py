@@ -1,8 +1,8 @@
 import pytest
 from django.test import override_settings
 
-from ..core.exceptions import ReadOnlyException
-from .tests.utils import get_graphql_content
+from ...core.exceptions import ReadOnlyException
+from .utils import get_graphql_content
 
 
 @override_settings(
