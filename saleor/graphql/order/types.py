@@ -591,26 +591,32 @@ class OrderLine(ModelObjectType):
     )
     tax_class = PermissionsField(
         TaxClass,
-        description="Denormalized tax class of the product in this order line.",
+        description="Denormalized tax class of the product in this order line."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
         required=False,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
     tax_class_name = graphene.Field(
         graphene.String,
-        description="Denormalized name of the tax class.",
+        description="Denormalized name of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
         required=False,
     )
     tax_class_metadata = NonNullList(
         MetadataItem,
         required=True,
-        description="Denormalized public metadata of the tax class.",
+        description="Denormalized public metadata of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
     )
     tax_class_private_metadata = NonNullList(
         MetadataItem,
         required=True,
         description=(
             "Denormalized private metadata of the tax class. Requires staff "
-            "permissions to access."
+            "permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
         ),
     )
 
@@ -981,7 +987,9 @@ class Order(ModelObjectType):
     )
     shipping_tax_class = PermissionsField(
         TaxClass,
-        description="Denormalized tax class assigned to the shipping method.",
+        description="Denormalized tax class assigned to the shipping method."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
         required=False,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
@@ -989,6 +997,8 @@ class Order(ModelObjectType):
         graphene.String,
         description=(
             "Denormalized name of the tax class assigned to the shipping method."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
         ),
         required=False,
     )
@@ -997,6 +1007,8 @@ class Order(ModelObjectType):
         required=True,
         description=(
             "Denormalized public metadata of the shipping method's tax class."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
         ),
     )
     shipping_tax_class_private_metadata = NonNullList(
@@ -1004,7 +1016,7 @@ class Order(ModelObjectType):
         required=True,
         description=(
             "Denormalized private metadata of the shipping method's tax class. "
-            "Requires staff permissions to access."
+            "Requires staff permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
         ),
     )
     token = graphene.String(
