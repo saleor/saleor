@@ -2,7 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.9.0
+# 3.9.0 [Unreleased]
 
 ### Highlights
 
@@ -22,19 +22,15 @@ All notable, unreleased changes to this project will be documented in this file.
     - `get_tax_rate_percentage_value`
     - `update_taxes_for_order_lines`
 
-# 3.8.0 [Unreleased]
-
 ### GraphQL API
 
-- Add ability to filter by slug. #10578 by @kadewu
-# 3.9.0 [Unreleased]
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+
+### Other changes
 
 - Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
   <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
-- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
-
-...
 
 # 3.8.0
 
@@ -77,11 +73,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `iss` field to JWT tokens - #10842 by @korycins
 - Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
 
-### GraphQL API
 
-- Add `taxExemptionManage` mutation - #10344 by @SzymJ
-
-### Other changes
 ### Saleor Apps
 
 - Add `iss` field to JWT tokens - #10842 by @korycins
