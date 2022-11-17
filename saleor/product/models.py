@@ -56,7 +56,13 @@ from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
-from . import CollectionType, ProductMediaTypes, ProductTypeKind
+from . import (
+    CollectionType,
+    ProductMediaTypes,
+    ProductTypeKind,
+    RuleOperator,
+    RuleQualifier,
+)
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -962,3 +968,53 @@ class CollectionTranslation(SeoModelTranslation):
             }
         )
         return translated_keys
+
+
+class CollectionRule(models.Model):
+    collection = models.ForeignKey(
+        Collection, related_name="rules", on_delete=models.CASCADE
+    )
+    operator = models.CharField(
+        max_length=64, choices=RuleOperator.CHOICES, null=False, blank=False
+    )
+    qualifier = models.CharField(
+        max_length=64, choices=RuleQualifier.CHOICES, null=False, blank=False
+    )
+    attribute = models.ForeignKey(
+        "attribute.Attribute",
+        null=True,
+        blank=True,
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        ordering = ("pk",)
+
+
+class RuleValue(models.Model):
+    collection_rule = models.ForeignKey(
+        CollectionRule,
+        related_name="values",
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+    )
+    value = models.ForeignKey(
+        "attribute.AttributeValue",
+        null=True,
+        blank=True,
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
+    text = models.TextField(
+        blank=True,
+        null=True,
+    )
+    date = models.DateField(null=True, blank=True)
+    boolean = models.BooleanField(null=True, blank=True)
+    numeric_value = models.IntegerField(null=True, blank=True)
+    reference_id = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("pk",)

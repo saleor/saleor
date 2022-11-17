@@ -26,6 +26,19 @@ class CollectionType:
     DYNAMIC = "dynamic"
 
     CHOICES = [
-        (STATIC, "static"),
-        (DYNAMIC, "dynamic"),
+        (STATIC, "Static"),
+        (DYNAMIC, "Dynamic"),
     ]
+
+
+class RuleOperator:
+    IS = "is"
+    IS_NOT = "is_not"
+
+    CHOICES = [(IS, "Is"), (IS_NOT, "Is not")]
+
+
+class RuleQualifier:
+    ATTRIBUTE = "attribute"
+
+    CHOICES = [(ATTRIBUTE, "Attribute")]
