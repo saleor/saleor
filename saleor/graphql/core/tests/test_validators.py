@@ -129,12 +129,37 @@ def test_validate_slug_and_generate_if_needed_not_raises_errors(
     [
         {"slug": None, "name": "test"},
         {"slug": "", "name": "test"},
+    ],
+)
+def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
+    # given
+    category = Category(name="test")
+    previous_slug_value = cleaned_input["slug"]
+
+    # when
+    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
+
+    # then
+    assert previous_slug_value != cleaned_input["slug"]
+    assert cleaned_input["slug"] == cleaned_input["name"]
+
+
+@pytest.mark.parametrize(
+    "cleaned_input",
+    [
         {"slug": ""},
         {"slug": None},
         {"slug": "test-slug"},
         {"slug": "test-slug", "name": "test"},
     ],
 )
-def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
+def test_validate_slug_and_generate_if_needed_slug_not_changed(cleaned_input):
+    # given
     category = Category(name="test")
+    previous_slug_value = cleaned_input["slug"]
+
+    # when
     validate_slug_and_generate_if_needed(category, "name", cleaned_input)
+
+    # then
+    assert cleaned_input["slug"] == previous_slug_value
