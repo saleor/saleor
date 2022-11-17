@@ -19,3 +19,13 @@ class ProductTypeKind:
         (NORMAL, "A standard product type."),
         (GIFT_CARD, "A gift card product type."),
     ]
+
+
+class CollectionType:
+    STATIC = "static"
+    DYNAMIC = "dynamic"
+
+    CHOICES = [
+        (STATIC, "static"),
+        (DYNAMIC, "dynamic"),
+    ]

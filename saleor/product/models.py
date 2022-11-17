@@ -56,7 +56,7 @@ from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
-from . import ProductMediaTypes, ProductTypeKind
+from . import CollectionType, ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -870,6 +870,9 @@ class CollectionsQueryset(models.QuerySet):
 class Collection(SeoModel, ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    type = models.CharField(
+        max_length=64, default=CollectionType.STATIC, choices=CollectionType.CHOICES
+    )
     products = models.ManyToManyField(
         Product,
         blank=True,
@@ -882,6 +885,7 @@ class Collection(SeoModel, ModelWithMetadata):
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    should_refresh = models.BooleanField(default=False)
 
     objects = models.Manager.from_queryset(CollectionsQueryset)()
 
