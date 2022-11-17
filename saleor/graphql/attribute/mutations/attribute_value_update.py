@@ -1,6 +1,6 @@
 import graphene
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
@@ -10,6 +10,27 @@ from ...plugins.dataloaders import load_plugin_manager
 from ..types import Attribute, AttributeValue
 from .attribute_update import AttributeValueUpdateInput
 from .attribute_value_create import AttributeValueCreate
+
+PRODUCTS_BATCH_SIZE = 10000
+
+
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:PRODUCTS_BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
 
 
 class AttributeValueUpdate(AttributeValueCreate):
@@ -62,22 +83,24 @@ class AttributeValueUpdate(AttributeValueCreate):
             qs = (
                 product_models.Product.objects.select_for_update(of=("self",))
                 .filter(
-                    Q(
-                        Exists(
-                            instance.productassignments.filter(
-                                product_id=OuterRef("id")
+                    Q(search_index_dirty=False)
+                    & (
+                        Q(
+                            Exists(
+                                instance.productassignments.filter(
+                                    product_id=OuterRef("id")
+                                )
                             )
                         )
+                        | Q(Exists(variants.filter(product_id=OuterRef("id"))))
                     )
-                    | Q(Exists(variants.filter(product_id=OuterRef("id"))))
                 )
                 .order_by("pk")
             )
-            # qs is executed in a subquery to make sure the SELECT statement gets
-            # properly evaluated and locks the rows in the same order every time.
-            product_models.Product.objects.filter(
-                pk__in=Subquery(qs.values("pk"))
-            ).update(search_index_dirty=True)
+            for batch_pks in queryset_in_batches(qs):
+                product_models.Product.objects.filter(pk__in=batch_pks).update(
+                    search_index_dirty=True
+                )
 
         manager = load_plugin_manager(info.context)
         cls.call_event(manager.attribute_value_updated, instance)
