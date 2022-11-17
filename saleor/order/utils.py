@@ -3,7 +3,6 @@ from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
-from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -29,6 +28,11 @@ from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
+)
+from ..tax.utils import (
+    get_display_gross_prices,
+    get_tax_class_kwargs_for_order_line,
+    get_tax_country,
 )
 from ..warehouse.management import (
     decrease_allocations,
@@ -61,7 +65,7 @@ def get_order_country(order: Order) -> str:
     if order.is_shipping_required():
         address = order.shipping_address
     if address is None:
-        return settings.DEFAULT_COUNTRY
+        return order.channel.default_country.code
     return address.country.code
 
 
@@ -203,7 +207,6 @@ def create_order_line(
     order,
     line_data,
     manager,
-    site_settings,
     discounts=None,
     allocate_stock=False,
 ):
@@ -232,6 +235,12 @@ def create_order_line(
     total_price = unit_price * quantity
     undiscounted_total_price = undiscounted_unit_price * quantity
 
+    tax_class = None
+    if product.tax_class_id:
+        tax_class = product.tax_class
+    else:
+        tax_class = product.product_type.tax_class
+
     product_name = str(product)
     variant_name = str(variant)
     translated_product_name = str(product.translated)
@@ -257,9 +266,8 @@ def create_order_line(
         total_price=total_price,
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
+        **get_tax_class_kwargs_for_order_line(tax_class),
     )
-
-    manager.update_taxes_for_order_lines(order, list(order.lines.all()))
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
@@ -271,8 +279,11 @@ def create_order_line(
             channel=channel,
             variant_id=variant.id,
         )
-        taxes_included_in_prices = site_settings.include_taxes_in_prices
-        if taxes_included_in_prices:
+
+        tax_configuration = channel.tax_configuration
+        prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
+        if prices_entered_with_tax:
             discount_amount = unit_discount.gross
         else:
             discount_amount = unit_discount.net
@@ -316,7 +327,6 @@ def add_variant_to_order(
     user,
     app,
     manager,
-    site_settings,
     discounts=None,
     allocate_stock=False,
 ):
@@ -363,7 +373,6 @@ def add_variant_to_order(
             order,
             line_data,
             manager,
-            site_settings,
             discounts,
             allocate_stock,
         )
@@ -768,8 +777,6 @@ def update_discount_for_order_line(
     reason: Optional[str],
     value_type: Optional[str],
     value: Optional[Decimal],
-    manager,
-    tax_included,
 ):
     """Update discount fields for order line. Apply discount to the price."""
     current_value = order_line.unit_discount_value
@@ -825,9 +832,7 @@ def update_discount_for_order_line(
     order_line.save(update_fields=fields_to_update)
 
 
-def remove_discount_from_order_line(
-    order_line: OrderLine, order: "Order", manager, tax_included
-):
+def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
     order_line.unit_price = TaxedMoney(
         net=order_line.undiscounted_base_unit_price,
@@ -949,3 +954,27 @@ def update_order_authorize_data(order: Order, with_save=True):
         order.save(
             update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
         )
+
+
+def update_order_display_gross_prices(order: "Order"):
+    """Update Order's `display_gross_prices` DB field.
+
+    It gets the appropriate country code based on the current order lines and addresses.
+    Having the country code get the proper tax configuration for this channel and
+    country and determine whether gross prices should be displayed for this order.
+    Doesn't save the value in the database.
+    """
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    country_code = get_tax_country(
+        channel,
+        order.is_shipping_required(),
+        order.shipping_address,
+        order.billing_address,
+    )
+    country_tax_configuration = tax_configuration.country_exceptions.filter(
+        country=country_code
+    ).first()
+    order.display_gross_prices = get_display_gross_prices(
+        tax_configuration, country_tax_configuration
+    )

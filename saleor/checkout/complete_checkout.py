@@ -48,11 +48,19 @@ from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_vector_value
-from ..order.utils import update_order_authorize_data, update_order_charge_data
+from ..order.utils import (
+    update_order_authorize_data,
+    update_order_charge_data,
+    update_order_display_gross_prices,
+)
 from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..tax.utils import (
+    get_shipping_tax_class_kwargs_for_order,
+    get_tax_class_kwargs_for_order_line,
+)
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.models import Reservation, Stock
@@ -131,11 +139,15 @@ def _process_shipping_data_for_order(
         if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
+    shipping_method = delivery_method_info.delivery_method
+    tax_class = getattr(shipping_method, "tax_class", None)
+
     result: Dict[str, Any] = {
         "shipping_address": shipping_address,
         "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
+        **get_shipping_tax_class_kwargs_for_order(tax_class),
     }
     result.update(delivery_method_info.delivery_method_order_field)
     result.update(delivery_method_info.delivery_method_name)
@@ -170,7 +182,7 @@ def _create_line_for_order(
     discounts: Iterable[DiscountInfo],
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> OrderLineInfo:
     """Create a line for the given order.
 
@@ -253,7 +265,7 @@ def _create_line_for_order(
         voucher_code = checkout_line_info.voucher.code
 
     discount_price = undiscounted_unit_price - unit_price
-    if taxes_included_in_prices:
+    if prices_entered_with_tax:
         discount_amount = discount_price.gross
     else:
         discount_amount = discount_price.net
@@ -266,6 +278,12 @@ def _create_line_for_order(
             unit_discount_reason += f" & Voucher code: {voucher_code}"
         else:
             unit_discount_reason = f"Voucher code: {voucher_code}"
+
+    tax_class = None
+    if product.tax_class_id:
+        tax_class = product.tax_class
+    else:
+        tax_class = product.product_type.tax_class
 
     line = OrderLine(
         product_name=product_name,
@@ -292,6 +310,7 @@ def _create_line_for_order(
         undiscounted_base_unit_price=undiscounted_base_unit_price,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
+        **get_tax_class_kwargs_for_order_line(tax_class),
     )
     is_digital = line.is_digital
     line_info = OrderLineInfo(
@@ -311,7 +330,7 @@ def _create_lines_for_order(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
@@ -369,7 +388,7 @@ def _create_lines_for_order(
             discounts,
             product_translations,
             variants_translation,
-            taxes_included_in_prices,
+            prices_entered_with_tax,
         )
         for checkout_line_info in lines
     ]
@@ -381,7 +400,7 @@ def _prepare_order_data(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable["DiscountInfo"],
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -438,7 +457,7 @@ def _prepare_order_data(
         checkout_info,
         lines,
         discounts,
-        taxes_included_in_prices,
+        prices_entered_with_tax,
     )
 
     # validate checkout gift cards
@@ -574,6 +593,9 @@ def _create_order(
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
+    # store current tax configuration
+    update_order_display_gross_prices(order)
+
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
     if metadata_list:
@@ -679,13 +701,15 @@ def _get_order_data(
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
+    tax_configuration = checkout_info.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     try:
         order_data = _prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             discounts=discounts,
-            taxes_included_in_prices=site_settings.include_taxes_in_prices,
+            prices_entered_with_tax=prices_entered_with_tax,
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
@@ -762,13 +786,7 @@ def complete_checkout_pre_payment_part(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(
-        checkout_info,
-        manager,
-        lines,
-        discounts=discounts,
-        site_settings=site_settings,
-    )
+    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts=discounts)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
@@ -901,14 +919,14 @@ def _create_order_lines_from_checkout_lines(
     discounts: List["DiscountInfo"],
     manager: "PluginsManager",
     order_pk: Union[str, UUID],
-    taxes_included_in_prices: bool,
+    prices_entered_with_tax: bool,
 ) -> List[OrderLineInfo]:
     order_lines_info = _create_lines_for_order(
         manager,
         checkout_info,
         lines,
         discounts,
-        taxes_included_in_prices,
+        prices_entered_with_tax,
     )
     order_lines = []
     for line_info in order_lines_info:
@@ -1028,7 +1046,8 @@ def _create_order_from_checkout(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     reservation_enabled = is_reservation_enabled(site_settings)
-    taxes_included_in_prices = site_settings.include_taxes_in_prices
+    tax_configuration = checkout_info.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # total
     taxed_total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1116,7 +1135,7 @@ def _create_order_from_checkout(
         discounts=discounts,
         manager=manager,
         order_pk=order.pk,
-        taxes_included_in_prices=taxes_included_in_prices,
+        prices_entered_with_tax=prices_entered_with_tax,
     )
 
     # allocations
@@ -1142,6 +1161,9 @@ def _create_order_from_checkout(
     checkout_info.checkout.payment_transactions.update(order=order, checkout_id=None)
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
+
+    # tax settings
+    update_order_display_gross_prices(order)
 
     # order search
     order.search_vector = FlatConcatSearchVector(

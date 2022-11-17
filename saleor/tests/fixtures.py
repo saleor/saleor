@@ -89,8 +89,6 @@ from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
-from ..plugins.models import PluginConfiguration
-from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..plugins.webhook.tasks import WebhookResponse
 from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
 from ..plugins.webhook.utils import to_payment_app_id
@@ -124,6 +122,7 @@ from ..shipping.models import (
 )
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
+from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
@@ -221,20 +220,6 @@ def assert_num_queries(capture_queries):
 @pytest.fixture
 def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
-
-
-@pytest.fixture
-def setup_vatlayer(settings, channel_USD):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    data = {
-        "active": True,
-        "channel": channel_USD,
-        "configuration": [
-            {"name": "Access key", "value": "vatlayer_access_key"},
-        ],
-    }
-    PluginConfiguration.objects.create(identifier=VatlayerPlugin.PLUGIN_ID, **data)
-    return settings
 
 
 @pytest.fixture(autouse=True)
@@ -1020,7 +1005,7 @@ def staff_users(staff_user):
 
 
 @pytest.fixture
-def shipping_zone(db, channel_USD):  # pylint: disable=W0613
+def shipping_zone(db, channel_USD, default_tax_class):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name="Europe", countries=[code for code, name in countries]
     )
@@ -1029,6 +1014,7 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
         shipping_zone=shipping_zone,
+        tax_class=default_tax_class,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -1182,13 +1168,14 @@ def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def shipping_method(shipping_zone, channel_USD):
+def shipping_method(shipping_zone, channel_USD, default_tax_class):
     method = ShippingMethod.objects.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
         shipping_zone=shipping_zone,
         maximum_delivery_days=10,
         minimum_delivery_days=5,
+        tax_class=default_tax_class,
     )
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
@@ -2002,13 +1989,14 @@ def permission_manage_taxes():
 
 
 @pytest.fixture
-def product_type(color_attribute, size_attribute):
+def product_type(color_attribute, size_attribute, default_tax_class):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
         kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
+        tax_class=default_tax_class,
     )
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(
@@ -2068,7 +2056,7 @@ def product_type_without_variant():
 
 
 @pytest.fixture
-def product(product_type, category, warehouse, channel_USD):
+def product(product_type, category, warehouse, channel_USD, default_tax_class):
     product_attr = product_type.product_attributes.first()
     product_attr_value = product_attr.values.first()
 
@@ -2077,6 +2065,7 @@ def product(product_type, category, warehouse, channel_USD):
         slug="test-product-11",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -2891,7 +2880,9 @@ def product_without_category(product):
 
 
 @pytest.fixture
-def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
+def product_list(
+    product_type, category, warehouse, channel_USD, channel_PLN, default_tax_class
+):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
 
@@ -2904,6 +2895,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     description_plaintext="big blue product",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 2",
@@ -2911,6 +2903,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     description_plaintext="big orange product",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 3",
@@ -2918,6 +2911,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     description_plaintext="small red",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
             ]
         )
@@ -3023,7 +3017,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
 @pytest.fixture
 def product_list_with_variants_many_channel(
-    product_type, category, channel_USD, channel_PLN
+    product_type, category, channel_USD, channel_PLN, default_tax_class
 ):
     products = list(
         Product.objects.bulk_create(
@@ -3033,18 +3027,21 @@ def product_list_with_variants_many_channel(
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 2",
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
                 Product(
                     name="Test product 3",
                     slug="test-product-c",
                     category=category,
                     product_type=product_type,
+                    tax_class=default_tax_class,
                 ),
             ]
         )
@@ -3192,12 +3189,13 @@ def product_with_image(product, image, media_root):
 
 
 @pytest.fixture
-def unavailable_product(product_type, category, channel_USD):
+def unavailable_product(product_type, category, channel_USD, default_tax_class):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-5",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -3209,12 +3207,15 @@ def unavailable_product(product_type, category, channel_USD):
 
 
 @pytest.fixture
-def unavailable_product_with_variant(product_type, category, warehouse, channel_USD):
+def unavailable_product_with_variant(
+    product_type, category, warehouse, channel_USD, default_tax_class
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -3244,12 +3245,15 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
 
 
 @pytest.fixture
-def product_with_images(product_type, category, media_root, channel_USD):
+def product_with_images(
+    product_type, category, media_root, channel_USD, default_tax_class
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-7",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -3835,13 +3839,20 @@ def recalculate_order(order):
 
 @pytest.fixture
 def order_with_lines(
-    order, product_type, category, shipping_zone, warehouse, channel_USD
+    order,
+    product_type,
+    category,
+    shipping_zone,
+    warehouse,
+    channel_USD,
+    default_tax_class,
 ):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -3882,6 +3893,7 @@ def order_with_lines(
         base_unit_price=base_price,
         undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -3934,6 +3946,7 @@ def order_with_lines(
         base_unit_price=base_price,
         undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -3945,11 +3958,18 @@ def order_with_lines(
     shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
+    order.shipping_tax_class = shipping_method.tax_class
+    order.shipping_tax_class_name = shipping_method.tax_class.name
+    order.shipping_tax_class_metadata = shipping_method.tax_class.metadata
+    order.shipping_tax_class_private_metadata = (
+        shipping_method.tax_class.private_metadata
+    )  # noqa: E501
 
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
     recalculate_order(order)
@@ -4004,6 +4024,7 @@ def order_with_lines_for_cc(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(variant.product.product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line,
@@ -4154,6 +4175,7 @@ def order_with_lines_channel_PLN(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -4205,6 +4227,7 @@ def order_with_lines_channel_PLN(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -4223,6 +4246,7 @@ def order_with_lines_channel_PLN(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
     recalculate_order(order)
@@ -4260,6 +4284,7 @@ def order_with_line_without_inventory_tracking(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
     )
 
     recalculate_order(order)
@@ -4317,6 +4342,7 @@ def order_with_preorder_lines(
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
     )
     PreorderAllocation.objects.create(
         order_line=line,
@@ -6026,6 +6052,7 @@ def allocations(order_list, stock, channel_USD):
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
             ),
             OrderLine(
                 order=order_list[1],
@@ -6040,6 +6067,7 @@ def allocations(order_list, stock, channel_USD):
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
             ),
             OrderLine(
                 order=order_list[2],
@@ -6054,6 +6082,7 @@ def allocations(order_list, stock, channel_USD):
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
             ),
         ]
     )

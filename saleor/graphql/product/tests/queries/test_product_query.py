@@ -1,5 +1,5 @@
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import graphene
 import pytest
@@ -12,7 +12,6 @@ from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.units import WeightUnits
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
-from .....product.utils.availability import get_variant_availability
 from .....tests.utils import dummy_editorjs
 from .....thumbnail.models import Thumbnail
 from .....warehouse.models import Stock
@@ -1521,44 +1520,6 @@ def test_product_variant_without_price_as_staff_with_permission(
     assert variants_data[0]["pricing"] is not None
     assert variants_data[1]["id"] == variant_id
     assert variants_data[1]["pricing"] is None
-
-
-QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
-    query getProductVariants($id: ID!, $channel: String) {
-        product(id: $id, channel: $channel) {
-            variants {
-                id
-                pricing {
-                    priceUndiscounted {
-                        gross {
-                            amount
-                        }
-                    }
-                }
-            }
-        }
-    }
-"""
-
-
-@patch(
-    "saleor.graphql.product.types.products.get_variant_availability",
-    wraps=get_variant_availability,
-)
-def test_product_variant_price_no_address(
-    mock_get_variant_availability, user_api_client, variant, stock, channel_USD
-):
-    channel_USD.default_country = "FR"
-    channel_USD.save()
-    product_id = graphene.Node.to_global_id("Product", variant.product.id)
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    user_api_client.post_graphql(
-        QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS, variables
-    )
-    assert (
-        mock_get_variant_availability.call_args[1]["country"]
-        == channel_USD.default_country
-    )
 
 
 def test_get_product_with_sorted_attribute_values(

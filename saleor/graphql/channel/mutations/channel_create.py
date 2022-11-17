@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from ....channel import models
 from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....tax.models import TaxConfiguration
 from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_37, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
@@ -104,5 +105,6 @@ class ChannelCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        TaxConfiguration.objects.create(channel=instance)
         manager = load_plugin_manager(info.context)
         cls.call_event(manager.channel_created, instance)

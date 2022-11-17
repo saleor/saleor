@@ -245,27 +245,6 @@ def test_get_price(
     assert price.amount == expected_price
 
 
-def test_product_get_price_do_not_charge_taxes(
-    product_type, category, discount_info, channel_USD
-):
-    product = models.Product.objects.create(
-        product_type=product_type,
-        category=category,
-        charge_taxes=False,
-    )
-    variant = product.variants.create()
-    channel_listing = models.ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    price = variant.get_price(
-        product, [], channel_USD, channel_listing, discounts=[discount_info]
-    )
-    assert price == Money("5.00", "USD")
-
-
 def test_digital_product_view(client, digital_content_url):
     """Ensure a user (anonymous or not) can download a non-expired digital good
     using its associated token and that all associated events

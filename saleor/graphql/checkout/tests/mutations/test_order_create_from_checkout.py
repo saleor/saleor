@@ -166,12 +166,27 @@ def test_order_from_checkout(
     assert order.private_metadata == checkout.private_metadata
 
     order_line = order.lines.first()
+    line_tax_class = order_line.variant.product.tax_class
+    shipping_tax_class = shipping_method.tax_class
+
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert checkout_line_metadata == order_line.metadata
     assert checkout_line_private_metadata == order_line.private_metadata
+
+    assert order_line.tax_class == line_tax_class
+    assert order_line.tax_class_name == line_tax_class.name
+    assert order_line.tax_class_metadata == line_tax_class.metadata
+    assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
+
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class_name == shipping_tax_class.name
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
     assert order.search_vector
 
     gift_card.refresh_from_db()

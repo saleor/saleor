@@ -33,6 +33,9 @@ CREATE_PRODUCT_MUTATION = """
                             }
                             description
                             chargeTaxes
+                            taxClass {
+                                id
+                            }
                             taxType {
                                 taxCode
                                 description
@@ -94,6 +97,7 @@ def test_create_product(
     description_json,
     permission_manage_products,
     monkeypatch,
+    tax_classes,
 ):
     # given
 
@@ -106,6 +110,7 @@ def test_create_product(
     product_slug = "product-test-slug"
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
+    tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -134,6 +139,7 @@ def test_create_product(
             "slug": product_slug,
             "description": description_json,
             "chargeTaxes": product_charge_taxes,
+            "taxClass": tax_class_id,
             "taxCode": product_tax_rate,
             "attributes": [
                 {"id": color_attr_id, "values": [color_value_name]},
@@ -160,6 +166,7 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
+    assert data["product"]["taxClass"]["id"] == tax_class_id
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -173,6 +180,36 @@ def test_create_product(
 
     created_webhook_mock.assert_called_once_with(product)
     updated_webhook_mock.assert_not_called()
+
+
+def test_create_product_use_tax_class_from_product_type(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+    default_tax_class,
+    tax_classes,
+):
+    # given
+    default_tax_class_id = graphene.Node.to_global_id("TaxClass", default_tax_class.pk)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": "Test Empty Tax Class",
+            "slug": "test-empty-tax-class",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["taxClass"]["id"] == default_tax_class_id
 
 
 def test_create_product_description_plaintext(
@@ -759,7 +796,6 @@ def test_create_product_no_slug_in_input(
     product_type,
     category,
     permission_manage_products,
-    monkeypatch,
     input_slug,
 ):
     query = CREATE_PRODUCT_MUTATION
@@ -767,14 +803,6 @@ def test_create_product_no_slug_in_input(
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
-    product_tax_rate = "STANDARD"
-
-    # Mock tax interface with fake response from tax gateway
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(description="", code=product_tax_rate),
-    )
 
     # test creating root product
     variables = {
@@ -783,7 +811,6 @@ def test_create_product_no_slug_in_input(
             "category": category_id,
             "name": product_name,
             "slug": input_slug,
-            "taxCode": product_tax_rate,
         }
     }
 
@@ -795,7 +822,6 @@ def test_create_product_no_slug_in_input(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == "test-name"
-    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
 
@@ -804,28 +830,18 @@ def test_create_product_no_category_id(
     staff_api_client,
     product_type,
     permission_manage_products,
-    monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     product_name = "test name"
-    product_tax_rate = "STANDARD"
     input_slug = "test-slug"
-
-    # Mock tax interface with fake response from tax gateway
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(description="", code=product_tax_rate),
-    )
 
     variables = {
         "input": {
             "productType": product_type_id,
             "name": product_name,
             "slug": input_slug,
-            "taxCode": product_tax_rate,
         }
     }
 
@@ -837,7 +853,6 @@ def test_create_product_no_category_id(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == input_slug
-    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"] is None
 

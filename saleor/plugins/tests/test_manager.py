@@ -5,7 +5,6 @@ from unittest import mock
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
-from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -569,29 +568,6 @@ def test_manager_get_taxes_for_order(
     ) == expected_tax_data(order)
 
 
-@pytest.mark.parametrize(
-    "plugins, price",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
-)
-def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
-    country = Country("PL")
-    variant = product.variants.all()[0]
-    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    currency = variant.get_price(
-        variant.product, [], channel_USD, variant_channel_listing, None
-    ).currency
-    expected_price = Money(price, currency)
-    taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_product(
-        product,
-        variant.get_price(
-            variant.product, [], channel_USD, variant_channel_listing, None
-        ),
-        country,
-        channel_USD.slug,
-    )
-    assert TaxedMoney(expected_price, expected_price) == taxed_price
-
-
 def test_manager_sale_created(sale):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
@@ -648,18 +624,6 @@ def test_manager_sale_toggle(sale):
 
     assert sale == sale_returned
     assert current_catalogue == current_catalogue_returned
-
-
-@pytest.mark.parametrize(
-    "plugins, amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "15.0"), ([], "0")],
-)
-def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
-    country = Country("PL")
-    tax_rate_value = PluginsManager(plugins=plugins).get_tax_rate_percentage_value(
-        product, country
-    )
-    assert tax_rate_value == Decimal(amount)
 
 
 def test_manager_get_plugin_configuration(plugin_configuration):

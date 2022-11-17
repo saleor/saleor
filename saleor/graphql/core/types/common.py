@@ -6,7 +6,7 @@ from django.core.files.storage import default_storage
 from ....core.tracing import traced_resolver
 from ....core.utils import build_absolute_uri
 from ...account.enums import AddressTypeEnum
-from ..descriptions import ADDED_IN_36, PREVIEW_FEATURE
+from ..descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -65,7 +65,14 @@ class NonNullList(graphene.List):
 class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description="Country code.", required=True)
     country = graphene.String(description="Country name.", required=True)
-    vat = graphene.Field(VAT, description="Country tax.")
+    vat = graphene.Field(
+        VAT,
+        description="Country tax.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `TaxClassCountryRate` type to manage tax "
+            "rates per country."
+        ),
+    )
 
 
 class LanguageDisplay(graphene.ObjectType):

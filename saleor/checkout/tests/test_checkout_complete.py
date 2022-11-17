@@ -73,7 +73,7 @@ def test_create_order_captured_payment_creates_expected_events(
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,
@@ -222,7 +222,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=None,
         app=None,
@@ -366,7 +366,7 @@ def test_create_order_preauth_payment_creates_expected_events(
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,
@@ -479,7 +479,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=None,
         app=None,
@@ -567,7 +567,7 @@ def test_create_order_insufficient_stock(
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         )
 
 
@@ -591,7 +591,7 @@ def test_create_order_doesnt_duplicate_order(
         checkout_info=checkout_info,
         lines=lines,
         discounts=[],
-        taxes_included_in_prices=True,
+        prices_entered_with_tax=True,
     )
 
     order_1 = _create_order(
@@ -658,7 +658,7 @@ def test_create_order_with_gift_card(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -709,7 +709,7 @@ def test_create_order_with_gift_card_partial_use(
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,
@@ -773,7 +773,7 @@ def test_create_order_with_many_gift_cards(
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,
@@ -864,7 +864,7 @@ def test_create_order_gift_card_bought(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -945,7 +945,7 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -1009,7 +1009,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -1069,7 +1069,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -1097,7 +1097,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
             checkout_info=checkout_info,
             lines=lines,
             discounts=[],
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,
@@ -1126,7 +1126,7 @@ def test_create_order_with_variant_tracking_false(
         checkout_info=checkout_info,
         lines=lines,
         discounts=[],
-        taxes_included_in_prices=True,
+        prices_entered_with_tax=True,
     )
 
     order_1 = _create_order(
@@ -1180,7 +1180,7 @@ def test_create_order_use_translations(
         checkout_info=checkout_info,
         lines=lines,
         discounts=[],
-        taxes_included_in_prices=True,
+        prices_entered_with_tax=True,
     )
     order_line = order_data["lines"][0].line
 
@@ -1469,6 +1469,41 @@ def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_a
     assert not customer_user.addresses.filter(**new_address_data).exists()
 
 
+def test_create_order_update_display_gross_prices(checkout_with_item, customer_user):
+    # given
+    checkout = checkout_with_item
+    channel = checkout.channel
+    tax_configuration = channel.tax_configuration
+
+    tax_configuration.display_gross_prices = False
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    lines, _ = fetch_checkout_lines(checkout)
+    order_data = _prepare_order_data(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=[],
+        prices_entered_with_tax=True,
+    )
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=order_data,
+        user=customer_user,
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    assert not order.display_gross_prices
+
+
 def test_create_order_store_shipping_prices(
     checkout_with_items_and_shipping, shipping_method, customer_user
 ):
@@ -1504,7 +1539,7 @@ def test_create_order_store_shipping_prices(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,
@@ -1555,7 +1590,7 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
             checkout_info=checkout_info,
             lines=lines,
             discounts=None,
-            taxes_included_in_prices=True,
+            prices_entered_with_tax=True,
         ),
         user=customer_user,
         app=None,

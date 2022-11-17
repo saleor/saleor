@@ -43,6 +43,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
         value
         for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
         for value in mapping.values()
+        if value
     )
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
@@ -78,7 +79,6 @@ def test_get_products_data(product, product_with_image, collection, image, chann
             "description_as_str": json.dumps(product.description),
             "category__slug": product.category.slug,
             "product_type__name": product.product_type.name,
-            "charge_taxes": product.charge_taxes,
             "collections__slug": (
                 ""
                 if not product.collections.all()

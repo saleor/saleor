@@ -214,7 +214,20 @@ class Order(ModelWithMetadata):
         amount_field="base_shipping_price_amount", currency_field="currency"
     )
     shipping_tax_rate = models.DecimalField(
-        max_digits=5, decimal_places=4, default=Decimal("0.0")
+        max_digits=5, decimal_places=4, blank=True, null=True
+    )
+    shipping_tax_class = models.ForeignKey(
+        "tax.TaxClass",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    shipping_tax_class_name = models.CharField(max_length=255, blank=True, null=True)
+    shipping_tax_class_private_metadata = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
+    shipping_tax_class_metadata = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
 
     # Token of a checkout instance that this order was created from
@@ -286,7 +299,6 @@ class Order(ModelWithMetadata):
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
-
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
@@ -612,7 +624,20 @@ class OrderLine(ModelWithMetadata):
     )
 
     tax_rate = models.DecimalField(
-        max_digits=5, decimal_places=4, default=Decimal("0.0")
+        max_digits=5, decimal_places=4, blank=True, null=True
+    )
+    tax_class = models.ForeignKey(
+        "tax.TaxClass",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    tax_class_name = models.CharField(max_length=255, blank=True, null=True)
+    tax_class_private_metadata = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
+    tax_class_metadata = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
 
     # Fulfilled when voucher code was used for product in the line

@@ -17,6 +17,7 @@ from ..core.units import WeightUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
+from ..tax.models import TaxClass
 from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules
 
@@ -203,6 +204,13 @@ class ShippingMethod(ModelWithMetadata):
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    tax_class = models.ForeignKey(
+        TaxClass,
+        related_name="shipping_methods",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
     objects = models.Manager.from_queryset(ShippingMethodQueryset)()
     translated = TranslationProxy()

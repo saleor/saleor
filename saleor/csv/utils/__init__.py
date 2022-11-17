@@ -8,7 +8,7 @@ class ProductExportFields:
             "description": "description_as_str",
             "category": "category__slug",
             "product type": "product_type__name",
-            "charge taxes": "charge_taxes",
+            "charge taxes": "",  # deprecated; remove in Saleor 4.0
             "product weight": "product_weight",
             "variant id": "variants__id",
             "variant sku": "variants__sku",

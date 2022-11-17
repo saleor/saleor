@@ -90,6 +90,8 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...tax.models import TaxClass, TaxConfiguration
+from ...tax.utils import get_tax_class_kwargs_for_order_line
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
@@ -634,7 +636,6 @@ def create_order_lines(order, discounts, how_many=10):
         )
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
-    manager.update_taxes_for_order_lines(order, lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -695,7 +696,6 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
                 quantity=line.quantity,
             )
         )
-    manager.update_taxes_for_order_lines(order, lines)
     PreorderAllocation.objects.bulk_create(preorder_allocations)
 
     OrderLine.objects.bulk_update(
@@ -749,6 +749,7 @@ def _get_new_order_line(order, variant, channel, discounts):
         base_unit_price=untaxed_unit_price,
         undiscounted_base_unit_price=untaxed_unit_price,
         tax_rate=0,
+        **get_tax_class_kwargs_for_order_line(product.tax_class),
     )
 
 
@@ -989,6 +990,7 @@ def create_channel(channel_name, currency_code, slug=None, country=None):
             "default_country": country,
         },
     )
+    TaxConfiguration.objects.get_or_create(channel=channel)
     return f"Channel: {channel}"
 
 
@@ -1612,3 +1614,12 @@ def create_checkout_with_same_variant_in_multiple_lines():
         "Created checkout with four lines and same variant in multiple lines "
         f"Checkout token: {checkout_info.checkout.token}."
     )
+
+
+def create_tax_classes():
+    names = ["Groceries", "Books"]
+    tax_classes = []
+    for name in names:
+        tax_classes.append(TaxClass(name=name))
+    TaxClass.objects.bulk_create(tax_classes)
+    yield f"Created tax classes: {names}"

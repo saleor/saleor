@@ -243,10 +243,10 @@ INSTALLED_APPS = [
     "saleor.site",
     "saleor.page",
     "saleor.payment",
+    "saleor.tax",
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.app",
-    "saleor.tax",
     "saleor.thumbnail",
     "saleor.schedulers",
     # External apps
@@ -678,7 +678,6 @@ FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES"
 
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",
-    "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",

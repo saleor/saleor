@@ -17,11 +17,10 @@ from typing import (
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
-from django_countries.fields import Country
 from graphene import Mutation
 from graphql import GraphQLError, ResolveInfo
 from graphql.execution import ExecutionResult
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 from promise.promise import Promise
 
 from ..core.models import EventDelivery
@@ -62,6 +61,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..tax.models import TaxClass
     from ..warehouse.models import Warehouse
 
 PluginConfigurationType = List[dict]
@@ -185,17 +185,8 @@ class BasePlugin:
     # status is changed.
     app_status_changed: Callable[["App", None], None]
 
-    # Apply taxes to the product price based on the customer country.
-    #
-    # Overwrite this method if you want to show products with taxes.
-    apply_taxes_to_product: Callable[
-        ["Product", Money, Country, TaxedMoney], TaxedMoney
-    ]
-
     # Assign tax code dedicated to plugin.
-    assign_tax_code_to_object_meta: Callable[
-        [Union["Product", "ProductType"], Union[str, None], Any], Any
-    ]
+    assign_tax_code_to_object_meta: Callable[["TaxClass", Union[str, None], Any], Any]
 
     # Trigger when attribute is created.
     #
@@ -239,14 +230,6 @@ class BasePlugin:
     authenticate_user: Callable[[WSGIRequest, Optional["User"]], Union["User", None]]
 
     authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
-
-    # Update order lines taxes.
-    #
-    # Overwrite this method if you need to apply specific logic for applying taxes on
-    # order lines. Return Iterable["OrderLine"].
-    update_taxes_for_order_lines: Callable[
-        ["Order", List["OrderLine"], List["OrderLine"]], List["OrderLine"]
-    ]
 
     # Calculate checkout line total.
     #
@@ -491,9 +474,6 @@ class BasePlugin:
         Tuple[Union["User", None], dict],
     ]
 
-    # Triggered when ShopFetchTaxRates mutation is called.
-    fetch_taxes_data: Callable[[Any], Any]
-
     # Trigger when fulfillment is created.
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
@@ -566,14 +546,7 @@ class BasePlugin:
 
     # Return tax code from object meta.
     get_tax_code_from_object_meta: Callable[
-        [Union["Product", "ProductType"], "TaxType"], "TaxType"
-    ]
-
-    # Return tax rate percentage value for a given tax rate type in a country.
-    #
-    # It is used only by the old storefront.
-    get_tax_rate_percentage_value: Callable[
-        [Union["Product", "ProductType"], Country, Any], Decimal
+        [Union["Product", "ProductType", "TaxClass"], "TaxType"], "TaxType"
     ]
 
     # Return list of all tax categories.

@@ -15,7 +15,12 @@ from ...core.utils import build_absolute_uri
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.types import (
@@ -206,9 +211,6 @@ class Shop(graphene.ObjectType):
         graphene.String, description="List of possible phone prefixes.", required=True
     )
     header_text = graphene.String(description="Header text.")
-    include_taxes_in_prices = graphene.Boolean(
-        description="Include taxes in prices.", required=True
-    )
     fulfillment_auto_approve = graphene.Boolean(
         description="Automatically approve all new fulfillments." + ADDED_IN_31,
         required=True,
@@ -216,12 +218,6 @@ class Shop(graphene.ObjectType):
     fulfillment_allow_unpaid = graphene.Boolean(
         description="Allow to approve fulfillments which are unpaid." + ADDED_IN_31,
         required=True,
-    )
-    display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store.", required=True
-    )
-    charge_taxes_on_shipping = graphene.Boolean(
-        description="Charge taxes on shipping.", required=True
     )
     track_inventory_by_default = graphene.Boolean(
         description="Enable inventory tracking."
@@ -296,6 +292,34 @@ class Shop(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+    )
+
+    # deprecated
+    include_taxes_in_prices = graphene.Boolean(
+        description="Include taxes in prices.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use "
+            "`Channel.taxConfiguration.pricesEnteredWithTax` to determine whether "
+            "prices are entered with tax."
+        ),
+        required=True,
+    )
+    display_gross_prices = graphene.Boolean(
+        description="Display prices with tax in store.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
+            "whether to display gross or net prices."
+        ),
+        required=True,
+    )
+    charge_taxes_on_shipping = graphene.Boolean(
+        description="Charge taxes on shipping.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `ShippingMethodType.taxClass` to determine "
+            "whether taxes are calculated for shipping methods; if a tax class is set, "
+            "the taxes will be calculated, otherwise no tax rate will be applied."
+        ),
+        required=True,
     )
 
     class Meta:
@@ -378,11 +402,6 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_include_taxes_in_prices(_, _info, site):
-        return site.settings.include_taxes_in_prices
-
-    @staticmethod
-    @load_site_callback
     def resolve_fulfillment_auto_approve(_, _info, site):
         return site.settings.fulfillment_auto_approve
 
@@ -390,11 +409,6 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_fulfillment_allow_unpaid(_, info, site):
         return site.settings.fulfillment_allow_unpaid
-
-    @staticmethod
-    @load_site_callback
-    def resolve_display_gross_prices(_, _info, site):
-        return site.settings.display_gross_prices
 
     @staticmethod
     @load_site_callback
@@ -491,3 +505,15 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_version(_, _info):
         return __version__
+
+    # deprecated
+
+    @staticmethod
+    @load_site_callback
+    def resolve_include_taxes_in_prices(_, _info, site):
+        return site.settings.include_taxes_in_prices
+
+    @staticmethod
+    @load_site_callback
+    def resolve_display_gross_prices(_, _info, site):
+        return site.settings.display_gross_prices

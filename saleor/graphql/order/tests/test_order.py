@@ -40,7 +40,11 @@ from ....order.search import (
     prepare_order_search_vector_value,
     update_order_search_vector,
 )
-from ....order.utils import update_order_authorize_data, update_order_charge_data
+from ....order.utils import (
+    get_order_country,
+    update_order_authorize_data,
+    update_order_charge_data,
+)
 from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
 from ....payment.interface import TransactionActionData
 from ....payment.models import Payment, TransactionEvent, TransactionItem
@@ -193,6 +197,19 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                                 key
                                 value
                             }
+                            taxClass {
+                                name
+                            }
+                            taxClassName
+                            taxClassMetadata {
+                                key
+                                value
+                            }
+                            taxClassPrivateMetadata {
+                                key
+                                value
+                            }
+                            taxRate
                         }
                     }
                 }
@@ -250,6 +267,122 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
             "warehouse": {"id": warehouse_id},
         }
     ]
+
+    line_tax_class = line.variant.product.tax_class
+    assert first_order_data_line["taxClass"]["name"] == line_tax_class.name
+    assert first_order_data_line["taxClassName"] == line_tax_class.name
+    assert (
+        first_order_data_line["taxClassMetadata"][0]["key"]
+        == list(line_tax_class.metadata.keys())[0]
+    )
+    assert (
+        first_order_data_line["taxClassMetadata"][0]["value"]
+        == list(line_tax_class.metadata.values())[0]
+    )
+    assert (
+        first_order_data_line["taxClassPrivateMetadata"][0]["key"]
+        == list(line_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        first_order_data_line["taxClassPrivateMetadata"][0]["value"]
+        == list(line_tax_class.private_metadata.values())[0]
+    )
+
+
+def test_denormalized_tax_class_in_orderline_query(
+    staff_api_client, permission_manage_orders, fulfilled_order
+):
+    # given
+    order = fulfilled_order
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            thumbnail(size: 540) {
+                                url
+                            }
+                            variant {
+                                id
+                            }
+                            quantity
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
+                            unitPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                            totalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                            metadata {
+                                key
+                                value
+                            }
+                            privateMetadata {
+                                key
+                                value
+                            }
+                            taxClass {
+                                name
+                            }
+                            taxClassName
+                            taxClassMetadata {
+                                key
+                                value
+                            }
+                            taxClassPrivateMetadata {
+                                key
+                                value
+                            }
+                            taxRate
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    line_tax_class = order.lines.first().tax_class
+    assert line_tax_class
+
+    # when
+    line_tax_class.delete()
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    # then
+    line_data = content["data"]["orders"]["edges"][0]["node"]["lines"][0]
+    assert line_data["taxClass"] is None
+    assert line_data["taxClassName"] == line_tax_class.name
+    assert (
+        line_data["taxClassMetadata"][0]["key"]
+        == list(line_tax_class.metadata.keys())[0]
+    )
+    assert (
+        line_data["taxClassMetadata"][0]["value"]
+        == list(line_tax_class.metadata.values())[0]
+    )
+    assert (
+        line_data["taxClassPrivateMetadata"][0]["key"]
+        == list(line_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        line_data["taxClassPrivateMetadata"][0]["value"]
+        == list(line_tax_class.private_metadata.values())[0]
+    )
 
 
 def test_order_line_with_allocations(
@@ -336,6 +469,18 @@ query OrdersQuery {
                     }
                 }
                 shippingTaxRate
+                shippingTaxClass {
+                    name
+                }
+                shippingTaxClassName
+                shippingTaxClassMetadata {
+                    key
+                    value
+                }
+                shippingTaxClassPrivateMetadata {
+                    key
+                    value
+                }
                 lines {
                     id
                     unitPrice{
@@ -566,6 +711,25 @@ def test_order_query(
     )
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
+    shipping_tax_class = order.shipping_method.tax_class
+    assert order_data["shippingTaxClass"]["name"] == shipping_tax_class.name
+    assert order_data["shippingTaxClassName"] == shipping_tax_class.name
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["key"]
+        == list(shipping_tax_class.metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["value"]
+        == list(shipping_tax_class.metadata.values())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["key"]
+        == list(shipping_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["value"]
+        == list(shipping_tax_class.private_metadata.values())[0]
+    )
     assert order_data["shippingMethod"]["active"] is True
     assert order_data["shippingMethod"]["message"] == ""
     assert public_value == order_data["shippingMethod"]["metadata"][0]["value"]
@@ -603,6 +767,46 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
+
+
+def test_order_query_denormalized_shipping_tax_class_data(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    shipping_tax_class = order.shipping_method.tax_class
+    assert shipping_tax_class
+
+    # when
+    shipping_tax_class.delete()
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["shippingTaxClass"] is None
+    assert order_data["shippingTaxClassName"] == shipping_tax_class.name
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["key"]
+        == list(shipping_tax_class.metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassMetadata"][0]["value"]
+        == list(shipping_tax_class.metadata.values())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["key"]
+        == list(shipping_tax_class.private_metadata.keys())[0]
+    )
+    assert (
+        order_data["shippingTaxClassPrivateMetadata"][0]["value"]
+        == list(shipping_tax_class.private_metadata.values())[0]
+    )
 
 
 def test_order_query_total_price_is_0(
@@ -1537,6 +1741,7 @@ ORDER_CONFIRM_MUTATION = """
             errors {
                 field
                 code
+                message
             }
             order {
                 status
@@ -1616,6 +1821,41 @@ def test_order_confirm(
     handle_fully_paid_order_mock.assert_called_once_with(
         ANY, order_info, staff_api_client.user, None, site_settings
     )
+
+
+def test_order_confirm_update_display_gross_prices(
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    channel = order.channel
+    tax_config = channel.tax_configuration
+
+    # Change the current display_gross_prices to the opposite of what is set in the
+    # order.display_gross_prices.
+    new_display_gross_prices = not order.display_gross_prices
+
+    tax_config.display_gross_prices = new_display_gross_prices
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order.id)},
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderConfirm"]["errors"]
+    order.refresh_from_db()
+    assert order.display_gross_prices == new_display_gross_prices
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -2506,6 +2746,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         addressType
                     }
                     order {
+                        id
                         discount {
                             amount
                         }
@@ -3535,6 +3776,51 @@ def test_draft_order_create_invalid_shipping_address(
     assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
 
 
+def test_draft_order_create_update_display_gross_prices(
+    staff_api_client,
+    permission_manage_orders,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    # display_gross_prices is disabled and there is no country-specific configuration
+    # order.display_gross_prices should be also disabled as a result
+
+    tax_config = channel_USD.tax_configuration
+    tax_config.display_gross_prices = False
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_list = [{"variantId": variant_0_id, "quantity": 2}]
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "lines": variant_list,
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+        "channel": channel_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    order_id = content["data"]["draftOrderCreate"]["order"]["id"]
+    _, order_pk = graphene.Node.from_global_id(order_id)
+
+    order = Order.objects.get(id=order_pk)
+    assert not order.display_gross_prices
+
+
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_draft_order_create_price_recalculation(
     mock_fetch_order_prices_if_expired,
@@ -4155,6 +4441,51 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     assert errors[0]["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
     assert errors[0]["field"] == "lines"
     assert errors[0]["orderLines"] == [graphene.Node.to_global_id("OrderLine", line.pk)]
+
+
+QUERY_ORDER_PRICES = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            displayGrossPrices
+        }
+    }
+"""
+
+
+def test_order_display_gross_prices_use_default(user_api_client, order_with_lines):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.id)}
+    tax_config = order_with_lines.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["order"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_config.display_gross_prices
+
+
+def test_order_display_gross_prices_use_country_exception(
+    user_api_client, order_with_lines
+):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.id)}
+    tax_config = order_with_lines.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+    country_code = get_order_country(order_with_lines)
+    tax_country_config = tax_config.country_exceptions.create(
+        country=country_code, display_gross_prices=False
+    )
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["order"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_country_config.display_gross_prices
 
 
 def test_validate_draft_order(draft_order):
@@ -5090,6 +5421,35 @@ ORDER_LINES_CREATE_MUTATION = """
         }
     }
 """
+
+
+def test_draft_order_complete_display_gross_prices(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+):
+    # given
+    order = draft_order
+    channel = order.channel
+    tax_config = channel.tax_configuration
+
+    # Change the current display_gross_prices to the opposite of what is set in the
+    # order.display_gross_prices.
+    new_display_gross_prices = not order.display_gross_prices
+
+    tax_config.display_gross_prices = new_display_gross_prices
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderComplete"]["errors"]
+    order.refresh_from_db()
+    assert order.display_gross_prices == new_display_gross_prices
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -7437,6 +7797,14 @@ def test_order_update_shipping(
     assert order.shipping_tax_rate == Decimal("0.0")
     assert order.shipping_method_name == shipping_method.name
 
+    shipping_tax_class = shipping_method.tax_class
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class == shipping_tax_class
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
+
 
 @pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
 def test_order_update_shipping_no_shipping_method_channel_listings(
@@ -7473,8 +7841,8 @@ def test_order_update_shipping_tax_included(
     order_with_lines,
     shipping_method,
     staff_user,
-    vatlayer,
 ):
+    # given
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -7483,6 +7851,14 @@ def test_order_update_shipping_tax_included(
     address.country = "DE"
     address.save()
 
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = "FLAT_RATES"
+    tc.prices_entered_with_tax = True
+    tc.save()
+    shipping_method.tax_class.country_rates.get_or_create(country="DE", rate=19)
+
+    # when
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -7490,6 +7866,8 @@ def test_order_update_shipping_tax_included(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["id"] == order_id
@@ -7541,6 +7919,10 @@ def test_order_update_shipping_clear_shipping_method(
     assert order.base_shipping_price == zero_money(order.currency)
     assert order.shipping_price == zero_taxed_money(order.currency)
     assert order.shipping_method_name is None
+
+    assert order.shipping_tax_class is None
+    assert order.shipping_tax_class_metadata == {}
+    assert order.shipping_tax_class_private_metadata == {}
 
 
 def test_order_update_shipping_shipping_required(

@@ -223,6 +223,8 @@ def from_global_id_or_error(
     '<type>:<UUID>' : Internal ID containing object type and UUID
     Optionally validate the object type, if `only_type` is provided,
     raise GraphQLError when `raise_error` is set to True.
+
+    Returns tuple: (type, id).
     """
     try:
         type_, id_ = graphene.Node.from_global_id(global_id)

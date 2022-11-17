@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions, OrderPermissions
+from ..core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
@@ -55,7 +56,9 @@ class ShopMutations(graphene.ObjectType):
 
     shop_domain_update = ShopDomainUpdate.Field()
     shop_settings_update = ShopSettingsUpdate.Field()
-    shop_fetch_tax_rates = ShopFetchTaxRates.Field()
+    shop_fetch_tax_rates = ShopFetchTaxRates.Field(
+        deprecation_reason=DEPRECATED_IN_3X_MUTATION
+    )
     shop_settings_translate = ShopSettingsTranslate.Field()
     shop_address_update = ShopAddressUpdate.Field()
 

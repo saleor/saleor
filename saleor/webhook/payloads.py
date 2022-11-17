@@ -17,7 +17,6 @@ from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
-from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -36,6 +35,8 @@ from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product
 from ..shipping.interface import ShippingMethodData
+from ..tax.models import TaxClassCountryRate
+from ..tax.utils import get_charge_taxes_for_order
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -646,7 +647,6 @@ PRODUCT_FIELDS = (
     "description",
     "currency",
     "updated_at",
-    "charge_taxes",
     "weight",
     "publication_date",
     "is_published",
@@ -677,6 +677,18 @@ def serialize_product_channel_listing_payload(channel_listings):
     return channel_listing_payload
 
 
+def _get_charge_taxes_for_product(product: "Product") -> bool:
+    charge_taxes = False
+    tax_class_id = product.tax_class_id or product.product_type.tax_class_id
+    if tax_class_id:
+        charge_taxes = (
+            TaxClassCountryRate.objects.filter(tax_class_id=tax_class_id)
+            .exclude(rate=Decimal("0"))
+            .exists()
+        )
+    return charge_taxes
+
+
 @traced_payload_generator
 def generate_product_payload(
     product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
@@ -705,6 +717,7 @@ def generate_product_payload(
                 }
                 for media_obj in product.media.all()
             ],
+            "charge_taxes": _get_charge_taxes_for_product(product),
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
                     product.channel_listings.all()  # type: ignore
@@ -731,6 +744,7 @@ def generate_product_deleted_payload(
         [product],
         fields=product_fields,
         extra_dict_data={
+            "charge_taxes": _get_charge_taxes_for_product(product),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "variants": list(product_variant_ids),
         },
@@ -1217,7 +1231,8 @@ def generate_checkout_payload_for_tax_calculation(
     lines: Iterable["CheckoutLineInfo"],
 ):
     checkout = checkout_info.checkout
-    included_taxes_in_prices = include_taxes_in_prices()
+    tax_configuration = checkout_info.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     discount_infos = fetch_active_discounts()
 
     serializer = PayloadSerializer()
@@ -1289,7 +1304,7 @@ def generate_checkout_payload_for_tax_calculation(
         extra_dict_data={
             "user_id": user_id,
             "user_public_metadata": user_public_metadata,
-            "included_taxes_in_prices": included_taxes_in_prices,
+            "included_taxes_in_prices": prices_entered_with_tax,
             "total_amount": total_amount,
             "shipping_amount": shipping_method_amount,
             "shipping_name": shipping_method_name,
@@ -1300,9 +1315,13 @@ def generate_checkout_payload_for_tax_calculation(
     return checkout_data
 
 
-def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]):
-
+def _generate_order_lines_payload_for_tax_calculation(lines: QuerySet[OrderLine]):
     serializer = PayloadSerializer()
+
+    charge_taxes = False
+    if lines:
+        charge_taxes = get_charge_taxes_for_order(lines[0].order)
+
     return serializer.serialize(
         lines,
         fields=("product_name", "variant_name", "quantity"),
@@ -1319,9 +1338,7 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
                 if line.variant
                 else {}
             ),
-            "charge_taxes": (
-                lambda line: line.variant.product.charge_taxes if line.variant else None
-            ),
+            "charge_taxes": (lambda _line: charge_taxes),
             "sku": (lambda line: line.product_sku),
             "unit_amount": (
                 lambda line: quantize_price(line.base_unit_price_amount, line.currency)
@@ -1338,7 +1355,9 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
 @traced_payload_generator
 def generate_order_payload_for_tax_calculation(order: "Order"):
     serializer = PayloadSerializer()
-    included_taxes_in_prices = include_taxes_in_prices()
+
+    tax_configuration = order.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # Prepare Order data
     address = order.shipping_address or order.billing_address
@@ -1378,7 +1397,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
             "user_id": user_id,
             "user_public_metadata": user_public_metadata,
             "discounts": discounts_dict,
-            "included_taxes_in_prices": included_taxes_in_prices,
+            "included_taxes_in_prices": prices_entered_with_tax,
             "shipping_amount": shipping_method_amount,
             "shipping_name": shipping_method_name,
             "lines": json.loads(

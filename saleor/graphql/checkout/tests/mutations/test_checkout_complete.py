@@ -288,10 +288,25 @@ def test_checkout_complete(
     assert order.total_authorized == zero_money(order.currency)
 
     order_line = order.lines.first()
+    line_tax_class = order_line.tax_class
+    shipping_tax_class = shipping_method.tax_class
+
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
+
+    assert order_line.tax_class == line_tax_class
+    assert order_line.tax_class_name == line_tax_class.name
+    assert order_line.tax_class_metadata == line_tax_class.metadata
+    assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
+
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class_name == shipping_tax_class.name
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
     assert order.payments.exists()
     assert order.search_vector
     order_payment = order.payments.first()

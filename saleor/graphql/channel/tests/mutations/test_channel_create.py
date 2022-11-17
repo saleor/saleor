@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from .....channel.error_codes import ChannelErrorCode
 from .....channel.models import Channel
 from .....core.utils.json_serializer import CustomJsonEncoder
+from .....tax.models import TaxConfiguration
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -410,3 +411,29 @@ def test_channel_create_mutation_trigger_webhook(
         channel,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+
+def test_channel_create_creates_tax_configuration(
+    permission_manage_channels, staff_api_client
+):
+    # given
+    slug = "channel-with-tax-config"
+    variables = {
+        "input": {
+            "name": "Channel with tax config",
+            "slug": slug,
+            "currencyCode": "USD",
+            "defaultCountry": "US",
+        }
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+
+    # then
+    channel = Channel.objects.get(slug=slug)
+    assert TaxConfiguration.objects.filter(channel=channel).exists()
