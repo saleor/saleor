@@ -380,7 +380,8 @@ class AttributeValueSelectableTypeInput(graphene.InputObjectType):
 
     class Meta:
         description = (
-            "Represents attribute value. If no ID provided, value will be resolved."
+            "Represents attribute value. If no ID provided, value will be resolved. "
+            + ADDED_IN_39
         )
 
 

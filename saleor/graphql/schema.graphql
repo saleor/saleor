@@ -17439,7 +17439,11 @@ input AttributeValueInput {
   dateTime: DateTime
 }
 
-"""Represents attribute value. If no ID provided, value will be resolved."""
+"""
+Represents attribute value. If no ID provided, value will be resolved. 
+
+Added in Saleor 3.9.
+"""
 input AttributeValueSelectableTypeInput {
   """ID of an attribute value."""
   id: ID
