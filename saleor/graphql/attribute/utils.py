@@ -892,3 +892,22 @@ def prepare_error_list_from_error_attribute_mapping(
         errors.append(error)
 
     return errors
+
+
+def queryset_in_batches(queryset, batch_size):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:batch_size]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
