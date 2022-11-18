@@ -1,5 +1,6 @@
 import itertools
 
+import graphene
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
 from graphene import Argument, InputField, InputObjectType, String
@@ -80,7 +81,14 @@ class FilterInputObjectType(InputObjectType):
             if input_class:
                 field_type = convert_form_field(filter_field)
             else:
-                field_type = convert_form_field(filter_field.field)
+                # ensure backward compatibility for filtering pages by id
+                if (
+                    cls.custom_filterset_class.__name__ == "PageFilter"
+                    and name == "ids"
+                ):
+                    field_type = graphene.List(graphene.ID, filter_field.field.required)
+                else:
+                    field_type = convert_form_field(filter_field.field)
                 field_type.description = getattr(filter_field, "help_text", "")
             kwargs = getattr(field_type, "kwargs", {})
             field_type.kwargs = kwargs
