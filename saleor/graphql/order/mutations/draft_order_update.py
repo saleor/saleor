@@ -7,7 +7,6 @@ from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
 from ..types import Order
 from .draft_order_create import DraftOrderCreate, DraftOrderInput
 
@@ -59,13 +58,11 @@ class DraftOrderUpdate(DraftOrderCreate):
     def save(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
-        site = load_site(info.context)
         return cls._save_draft_order(
             info,
             instance,
             cleaned_input,
             is_new_instance=False,
             app=app,
-            site=site,
             manager=manager,
         )

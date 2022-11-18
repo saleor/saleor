@@ -18,11 +18,10 @@ from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
-from django_countries.fields import Country
 from graphene import Mutation
 from graphql import GraphQLError, ResolveInfo
 from graphql.execution import ExecutionResult
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import base_calculations
@@ -33,11 +32,11 @@ from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
+from ..tax.utils import calculate_tax_rate
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ..account.models import Address, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
@@ -69,6 +68,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..tax.models import TaxClass
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
@@ -343,7 +343,7 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
         shipping_price: TaxedMoney,
     ):
-        default_value = base_calculations.base_tax_rate(shipping_price)
+        default_value = calculate_tax_rate(shipping_price)
         return self.__run_method_on_plugins(
             "get_checkout_shipping_tax_rate",
             default_value,
@@ -355,27 +355,13 @@ class PluginsManager(PaymentInterface):
         ).quantize(Decimal(".0001"))
 
     def get_order_shipping_tax_rate(self, order: "Order", shipping_price: TaxedMoney):
-        default_value = base_calculations.base_tax_rate(shipping_price)
+        default_value = calculate_tax_rate(shipping_price)
         return self.__run_method_on_plugins(
             "get_order_shipping_tax_rate",
             default_value,
             order,
             channel_slug=order.channel.slug,
         ).quantize(Decimal(".0001"))
-
-    def update_taxes_for_order_lines(
-        self,
-        order: "Order",
-        lines: List["OrderLine"],
-    ):
-        lines = self.__run_method_on_plugins(
-            "update_taxes_for_order_lines",
-            lines,
-            order,
-            lines,
-            channel_slug=order.channel.slug,
-        )
-        return lines
 
     def calculate_checkout_line_total(
         self,
@@ -500,7 +486,7 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
     ) -> Decimal:
-        default_value = base_calculations.base_tax_rate(unit_price)
+        default_value = calculate_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_checkout_line_tax_rate",
             default_value,
@@ -520,7 +506,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         unit_price: TaxedMoney,
     ) -> Decimal:
-        default_value = base_calculations.base_tax_rate(unit_price)
+        default_value = calculate_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_order_line_tax_rate",
             default_value,
@@ -550,24 +536,6 @@ class PluginsManager(PaymentInterface):
     def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_order", order, channel_slug=order.channel.slug
-        )
-
-    def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, channel_slug: str
-    ):
-        default_value = quantize_price(
-            TaxedMoney(net=price, gross=price), price.currency
-        )
-        return quantize_price(
-            self.__run_method_on_plugins(
-                "apply_taxes_to_product",
-                default_value,
-                product,
-                price,
-                country,
-                channel_slug=channel_slug,
-            ),
-            price.currency,
         )
 
     def preprocess_order_creation(
@@ -1444,29 +1412,19 @@ class PluginsManager(PaymentInterface):
 
     # FIXME these methods should be more generic
 
-    def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: Optional[str]
-    ):
+    def assign_tax_code_to_object_meta(self, obj: "TaxClass", tax_code: Optional[str]):
         default_value = None
         return self.__run_method_on_plugins(
             "assign_tax_code_to_object_meta", default_value, obj, tax_code
         )
 
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"]
+        self, obj: Union["Product", "ProductType", "TaxClass"]
     ) -> TaxType:
         default_value = TaxType(code="", description="")
         return self.__run_method_on_plugins(
             "get_tax_code_from_object_meta", default_value, obj
         )
-
-    def get_tax_rate_percentage_value(
-        self, obj: Union["Product", "ProductType"], country: Country
-    ) -> Decimal:
-        default_value = Decimal("0").quantize(Decimal("1."))
-        return self.__run_method_on_plugins(
-            "get_tax_rate_percentage_value", default_value, obj, country
-        ).quantize(Decimal("1."))
 
     def save_plugin_configuration(
         self, plugin_id, channel_slug: Optional[str], cleaned_data: dict
@@ -1504,10 +1462,6 @@ class PluginsManager(PaymentInterface):
             if plugin.check_plugin_id(plugin_id):
                 return plugin
         return None
-
-    def fetch_taxes_data(self) -> bool:
-        default_value = False
-        return self.__run_method_on_plugins("fetch_taxes_data", default_value)
 
     def webhook_endpoint_without_channel(
         self, request: WSGIRequest, plugin_id: str

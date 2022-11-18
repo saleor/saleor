@@ -1,6 +1,6 @@
 import os
 import socket
-from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
@@ -18,7 +18,6 @@ task_logger = get_task_logger(__name__)
 
 
 if TYPE_CHECKING:
-    # flake8: noqa: F401
     from django.utils.safestring import SafeText
 
 
@@ -30,7 +29,7 @@ def build_absolute_uri(location: str, domain: Optional[str] = None) -> str:
     """
     host = domain or Site.objects.get_current().domain
     protocol = "https" if settings.ENABLE_SSL else "http"
-    current_uri = "%s://%s" % (protocol, host)
+    current_uri = f"{protocol}://{host}"
     location = urljoin(current_uri, location)
     return iri_to_uri(location)
 
@@ -95,7 +94,7 @@ def to_local_currency(price, currency):
 
 
 def generate_unique_slug(
-    instance: Type[Model],
+    instance: Model,
     slugable_value: str,
     slug_field_name: str = "slug",
     *,

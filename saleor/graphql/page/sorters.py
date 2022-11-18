@@ -25,7 +25,7 @@ class PageSortField(graphene.Enum):
             if self.name == "CREATED_AT":
                 description += ADDED_IN_38
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class PageSortingInput(SortInputObjectType):
@@ -41,8 +41,8 @@ class PageTypeSortField(graphene.Enum):
     @property
     def description(self):
         if self.name in PageTypeSortField.__enum__._member_names_:
-            sport_name = self.name.lower().replace("_", " ")
-            return f"Sort page types by {sport_name}."
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort page types by {sort_name}."
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 

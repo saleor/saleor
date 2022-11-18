@@ -1032,6 +1032,9 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    error_msg = "Could not resolve to a node with the global id list of '%s'."
-    assert data["errors"][0]["message"] == error_msg % [invalid_variant_id]
+    error_msg = (
+        "Could not resolve to a node with the global id list of "
+        f"'['{invalid_variant_id}']'."
+    )
+    assert data["errors"][0]["message"] == error_msg
     assert data["errors"][0]["field"] == "variantId"

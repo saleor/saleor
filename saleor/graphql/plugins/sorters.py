@@ -54,7 +54,7 @@ class PluginSortField(graphene.Enum):
         }
         if self.name in descriptions:
             return f"Sort plugins by {descriptions[self.name]}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class PluginSortingInput(SortInputObjectType):

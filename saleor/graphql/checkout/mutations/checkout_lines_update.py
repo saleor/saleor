@@ -18,7 +18,7 @@ from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
@@ -104,7 +104,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         variants, quantities = get_variants_and_total_quantities(
             variants, checkout_lines_data, quantity_to_update_check=True
         )
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
             quantities,

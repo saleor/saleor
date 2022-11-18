@@ -30,7 +30,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
@@ -94,7 +94,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         for line_info in lines:
             variants.append(line_info.variant)
             quantities.append(line_info.line.quantity)
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
             quantities,

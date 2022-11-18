@@ -4,7 +4,6 @@ from typing import (
     Any,
     DefaultDict,
     Iterable,
-    List,
     Optional,
     Set,
     Tuple,
@@ -13,7 +12,6 @@ from typing import (
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
-from django_countries.fields import Country
 from graphene import Mutation
 from graphql import GraphQLError, ResolveInfo
 from graphql.execution import ExecutionResult
@@ -25,15 +23,14 @@ from ...order.interface import OrderTaxedPricesData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...account.models import Address
-    from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.models import Checkout
+    from ...core.models import EventDelivery
     from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...order.models import Order, OrderLine
-    from ...product.models import Product, ProductType, ProductVariant
+    from ...product.models import Product, ProductVariant
 
 
 def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
@@ -186,15 +183,6 @@ class PluginSample(BasePlugin):
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         return True
-
-    def apply_taxes_to_product(self, product, price, country, previous_value, **kwargs):
-        price = Money("1.0", price.currency)
-        return TaxedMoney(price, price)
-
-    def get_tax_rate_percentage_value(
-        self, obj: Union["Product", "ProductType"], country: Country, previous_value
-    ) -> Decimal:
-        return Decimal("15.0").quantize(Decimal("1."))
 
     def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value

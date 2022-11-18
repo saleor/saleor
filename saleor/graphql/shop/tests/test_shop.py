@@ -903,58 +903,6 @@ def test_query_available_shipping_methods_for_given_address(
     ) not in {ship_meth["id"] for ship_meth in data}
 
 
-def test_query_available_shipping_methods_no_address_vatlayer_set(
-    staff_api_client,
-    shipping_method,
-    shipping_method_channel_PLN,
-    channel_USD,
-    setup_vatlayer,
-):
-    # given
-    query = AVAILABLE_SHIPPING_METHODS_QUERY
-
-    # when
-    response = staff_api_client.post_graphql(query, {"channel": channel_USD.slug})
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]["availableShippingMethods"]
-    assert {ship_meth["id"] for ship_meth in data} == {
-        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
-        for ship_meth in ShippingMethod.objects.filter(
-            channel_listings__channel__slug=channel_USD.slug
-        )
-    }
-
-
-def test_query_available_shipping_methods_for_given_address_vatlayer_set(
-    staff_api_client,
-    channel_USD,
-    shipping_method,
-    shipping_zone_without_countries,
-    address,
-    setup_vatlayer,
-):
-    # given
-    query = AVAILABLE_SHIPPING_METHODS_QUERY
-    shipping_method_count = ShippingMethod.objects.count()
-    variables = {
-        "channel": channel_USD.slug,
-        "address": {"country": CountryCodeEnum.US.name},
-    }
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]["availableShippingMethods"]
-    assert len(data) == shipping_method_count - 1
-    assert graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_zone_without_countries.pk
-    ) not in {ship_meth["id"] for ship_meth in data}
-
-
 def test_query_available_shipping_methods_for_excluded_postal_code(
     staff_api_client, channel_USD, shipping_method
 ):

@@ -14,14 +14,14 @@ from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
-from ....order.utils import get_order_country
+from ....order.utils import get_order_country, update_order_display_gross_prices
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
@@ -92,6 +92,7 @@ class DraftOrderComplete(BaseMutation):
             order.search_vector = FlatConcatSearchVector(
                 *prepare_order_search_vector_value(order)
             )
+            update_order_display_gross_prices(order)
             order.save()
 
             channel = order.channel
@@ -102,7 +103,7 @@ class DraftOrderComplete(BaseMutation):
                         line=line, quantity=line.quantity, variant=line.variant
                     )
                     order_lines_info.append(line_data)
-                    site = load_site(info.context)
+                    site = get_site_promise(info.context).get()
                     try:
                         with traced_atomic_transaction():
                             allocate_stocks(

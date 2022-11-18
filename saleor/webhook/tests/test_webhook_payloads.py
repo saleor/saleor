@@ -23,12 +23,12 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...discount.utils import fetch_active_discounts
 from ...graphql.utils import get_user_or_app_from_context
-from ...order import OrderOrigin
+from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...payment import TransactionAction
-from ...payment.interface import TransactionActionData, TransactionData
+from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
@@ -38,6 +38,7 @@ from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
     _generate_collection_point_payload,
+    _generate_refund_data_payload,
     generate_checkout_payload,
     generate_checkout_payload_for_tax_calculation,
     generate_collection_payload,
@@ -52,6 +53,7 @@ from ..payloads import (
     generate_order_payload,
     generate_order_payload_for_tax_calculation,
     generate_payment_payload,
+    generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_requestor,
@@ -59,7 +61,6 @@ from ..payloads import (
     generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
-    serialize_refund_data,
 )
 from ..serializers import serialize_checkout_lines
 
@@ -297,17 +298,19 @@ def test_generate_order_payload(
 
 
 @freeze_time()
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
 @mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
 def test_generate_order_payload_for_tax_calculation(
     mocked_order_lines,
     order_for_payload,
-    taxes_included,
-    site_settings,
-    customer_user,
+    prices_entered_with_tax,
 ):
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save(update_fields=["include_taxes_in_prices"])
+    order = order_for_payload
+
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     order_lines = '"order_lines"'
     mocked_order_lines.return_value = order_lines
@@ -345,7 +348,7 @@ def test_generate_order_payload_for_tax_calculation(
         },
         "user_id": graphene.Node.to_global_id("User", user.pk),
         "user_public_metadata": user.metadata,
-        "included_taxes_in_prices": taxes_included,
+        "included_taxes_in_prices": prices_entered_with_tax,
         "currency": order.currency,
         "shipping_name": order.shipping_method.name,
         "shipping_amount": str(
@@ -604,15 +607,21 @@ def test_order_lines_have_all_required_fields(
     }
 
 
-@pytest.mark.parametrize("taxes_included", [True])  # , False])
+@pytest.mark.parametrize(
+    "charge_taxes, prices_entered_with_tax",
+    [(False, False), (False, True), (True, False), (True, True)],
+)
 def test_order_lines_for_tax_calculation_have_all_required_fields(
     order,
     order_line_with_one_allocation,
-    taxes_included,
-    site_settings,
+    charge_taxes,
+    prices_entered_with_tax,
 ):
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save(update_fields=["include_taxes_in_prices"])
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     order.lines.add(order_line_with_one_allocation)
     currency = order.currency
@@ -649,7 +658,7 @@ def test_order_lines_for_tax_calculation_have_all_required_fields(
         "product_type_metadata": {"product_type_meta": "value"},
         "quantity": line.quantity,
         "sku": line.product_sku,
-        "charge_taxes": variant.product.charge_taxes,
+        "charge_taxes": charge_taxes,
         "unit_amount": str(quantize_price(line.base_unit_price_amount, currency)),
         "total_amount": str(
             quantize_price(line.base_unit_price_amount * line.quantity, currency)
@@ -657,10 +666,14 @@ def test_order_lines_for_tax_calculation_have_all_required_fields(
     }
 
 
+@pytest.mark.parametrize("charge_taxes", [True, False])
 def test_order_lines_for_tax_calculation_with_removed_variant(
-    order,
-    order_line_with_one_allocation,
+    order, order_line_with_one_allocation, charge_taxes
 ):
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
+    tax_configuration.save(update_fields=["charge_taxes"])
+    tax_configuration.country_exceptions.all().delete()
 
     order.lines.add(order_line_with_one_allocation)
     currency = order.currency
@@ -692,7 +705,7 @@ def test_order_lines_for_tax_calculation_with_removed_variant(
         "product_type_metadata": {},
         "quantity": line.quantity,
         "sku": line.product_sku,
-        "charge_taxes": None,
+        "charge_taxes": charge_taxes,
         "unit_amount": str(quantize_price(line.base_unit_price_amount, currency)),
         "total_amount": str(
             quantize_price(line.base_unit_price_amount * line.quantity, currency)
@@ -758,6 +771,25 @@ def test_generate_collection_payload(collection):
     ]
 
     assert payload == expected_payload
+
+
+@pytest.mark.parametrize("tax_rate", [0, 23])
+def test_generate_product_payload_charge_taxes(
+    product_with_two_variants, default_tax_class, tax_rate
+):
+    # given
+    product = product_with_two_variants
+    default_tax_class.country_rates.all().delete()
+    default_tax_class.country_rates.create(country="PL", rate=tax_rate)
+    product.tax_class = default_tax_class
+    product.save(update_fields=["tax_class"])
+
+    # when
+    payload = json.loads(generate_product_payload(product_with_two_variants))
+
+    # then
+    expected_charge_taxes = tax_rate != 0
+    assert payload[0]["charge_taxes"] == expected_charge_taxes
 
 
 @freeze_time()
@@ -1054,7 +1086,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "collection_point_name": None,
             "shipping_price_net_amount": "10.00",
             "shipping_price_gross_amount": "12.30",
-            "shipping_tax_rate": "0.0000",
+            "shipping_tax_rate": "0.2300",
             "total_net_amount": "80.00",
             "total_gross_amount": "98.40",
             "weight": "0.0:g",
@@ -1081,24 +1113,8 @@ def test_generate_list_gateways_payload(checkout):
 
 @freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
-    dummy_webhook_app_payment_data.refund_data = {
-        "order_lines_to_refund": [
-            {
-                "line": order_line,
-                "quantity": 1,
-                "is_digital": "None",
-                "digital_content": "None",
-                "replace": False,
-                "warehouse_pk": "None",
-            }
-        ]
-    }
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
-
-    expected_payload["refund_data"] = serialize_refund_data(
-        dummy_webhook_app_payment_data.refund_data
-    )
 
     expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
         Decimal("0.01")
@@ -1112,24 +1128,49 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
 
 
 @freeze_time("1914-06-28 10:50")
+def test_generate_payment_payload_with_refund_data(
+    dummy_webhook_app_payment_data, order_with_lines
+):
+    # given
+    refund_data = RefundData(
+        order_lines_to_refund=[
+            OrderLineInfo(line=line, quantity=line.quantity, variant=line.variant)
+            for line in order_with_lines.lines.all()
+        ]
+    )
+    dummy_webhook_app_payment_data.refund_data = refund_data
+
+    # when
+    payload = generate_payment_payload(dummy_webhook_app_payment_data)
+    expected_payload = asdict(dummy_webhook_app_payment_data)
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
+    expected_payload["payment_method"] = from_payment_app_id(
+        dummy_webhook_app_payment_data.gateway
+    ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+    expected_payload["refund_data"] = _generate_refund_data_payload(asdict(refund_data))
+
+    # then
+    assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+@freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload_fulfillment_return(
     dummy_webhook_app_payment_data, fulfillment
 ):
-    dummy_webhook_app_payment_data.refund_data = {
-        "fulfillment_lines_to_refund": [
-            {
-                "line": fulfillment.lines.first(),
-                "quantity": 1,
-                "replace": False,
-            }
+    refund_data = RefundData(
+        fulfillment_lines_to_refund=[
+            FulfillmentLineData(line=line, quantity=line.quantity)
+            for line in fulfillment.lines.all()
         ]
-    }
+    )
+    dummy_webhook_app_payment_data.refund_data = refund_data
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
 
-    expected_payload["refund_data"] = serialize_refund_data(
-        dummy_webhook_app_payment_data.refund_data
-    )
+    expected_payload["refund_data"] = _generate_refund_data_payload(asdict(refund_data))
 
     expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
         Decimal("0.01")
@@ -1584,21 +1625,22 @@ def test_generate_sale_toggle_payload(sale):
 
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
 def test_generate_checkout_payload_for_tax_calculation(
     mocked_serialize_checkout_lines_for_tax_calculation,
     mocked_fetch_checkout,
     checkout_with_prices,
-    site_settings,
-    taxes_included,
+    prices_entered_with_tax,
 ):
     checkout = checkout_with_prices
     currency = checkout.currency
 
     discounts_info = fetch_active_discounts()
 
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save(update_fields=["include_taxes_in_prices"])
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     mocked_serialized_checkout_lines = {"data": "checkout_lines_data"}
     mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
@@ -1650,7 +1692,7 @@ def test_generate_checkout_payload_for_tax_calculation(
         },
         "currency": currency,
         "discounts": [{"amount": "5.00", "name": "Voucher 5 USD"}],
-        "included_taxes_in_prices": taxes_included,
+        "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
         "shipping_name": checkout.shipping_method.name,
@@ -1679,15 +1721,16 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     mocked_serialize_checkout_lines_for_tax_calculation,
     mocked_fetch_checkout,
     checkout_with_digital_item,
-    site_settings,
 ):
-    taxes_included = True
+    prices_entered_with_tax = True
     discounts_info = fetch_active_discounts()
     checkout = checkout_with_digital_item
     currency = checkout.currency
 
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save(update_fields=["include_taxes_in_prices"])
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     mocked_serialized_checkout_lines = {"data": "checkout_lines_data"}
     mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
@@ -1731,7 +1774,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
         },
         "currency": currency,
         "discounts": [],
-        "included_taxes_in_prices": taxes_included,
+        "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {},
         "shipping_name": None,
@@ -1756,17 +1799,18 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
 
 
 @freeze_time()
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
 def test_generate_checkout_payload(
     checkout_with_prices,
-    site_settings,
-    taxes_included,
+    prices_entered_with_tax,
     customer_user,
 ):
     checkout = checkout_with_prices
 
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save(update_fields=["include_taxes_in_prices"])
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     # when
     payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]

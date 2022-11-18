@@ -5,11 +5,11 @@ from ....attribute import AttributeType
 from ....core.permissions import ProductTypePermissions
 from ....product import ProductTypeKind, models
 from ....product.error_codes import ProductErrorCode
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import NonNullList, ProductError
 from ...core.utils import validate_slug_and_generate_if_needed
-from ...plugins.dataloaders import load_plugin_manager
 from ..enums import ProductTypeKindEnum
 from ..types import ProductType
 
@@ -45,7 +45,20 @@ class ProductTypeInput(graphene.InputObjectType):
         description="Determines if products are digital.", required=False
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
-    tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
+    tax_code = graphene.String(
+        description=(
+            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT}. "
+            "Use tax classes to control the tax calculation for a product type."
+        )
+    )
+    tax_class = graphene.ID(
+        description=(
+            "ID of a tax class to assign to this product type. All products of this "
+            "product type would use this tax class, unless it's overridden in the "
+            "`Product` type."
+        ),
+        required=False,
+    )
 
 
 class ProductTypeCreate(ModelMutation):
@@ -93,11 +106,6 @@ class ProductTypeCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
-
-        tax_code = cleaned_input.pop("tax_code", "")
-        if tax_code:
-            manager = load_plugin_manager(info.context)
-            manager.assign_tax_code_to_object_meta(instance, tax_code)
 
         cls.validate_attributes(cleaned_input)
 
