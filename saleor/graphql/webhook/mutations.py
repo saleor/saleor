@@ -255,7 +255,9 @@ class WebhookDelete(ModelDeleteMutation):
                     code=WebhookErrorCode.INVALID,
                 )
             try:
-                app.webhooks.get(id=object_id)
+                webhook = app.webhooks.get(id=object_id)
+                webhook.is_active = False
+                webhook.save(update_fields=["is_active"])
             except models.Webhook.DoesNotExist:
                 raise ValidationError(
                     f"Couldn't resolve to a node: {node_id}",
