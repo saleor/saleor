@@ -26100,7 +26100,7 @@ union TaxSourceLine = CheckoutLine | OrderLine
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | PageType
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
