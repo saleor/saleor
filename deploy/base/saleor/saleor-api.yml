@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-api
+spec:
+  selector:
+    matchLabels:
+      app: saleor-api
+  template:
+    metadata:
+      labels:
+        app: saleor-api
+    spec:
+      restartPolicy: Always
+      initContainers:
+      - name: saleor-init-a
+        image: skymoore/saleor
+        env:
+          - name: RSA_PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: saleor-rsa-key
+                key: private.pem
+        envFrom:
+          - configMapRef:
+              name: saleor-env
+          - secretRef:
+              name: saleor-secret
+        command:
+          - "python"
+          - "manage.py"
+          - "makemigrations"
+        volumeMounts:
+        - mountPath: /app/media
+          name: saleor-media-volume
+      - name: saleor-init-b
+        image: skymoore/saleor
+        env:
+          - name: RSA_PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: saleor-rsa-key
+                key: private.pem
+        envFrom:
+          - configMapRef:
+              name: saleor-env
+          - secretRef:
+              name: saleor-secret
+        command:
+          - "python"
+          - "manage.py"
+          - "migrate"
+        volumeMounts:
+        - mountPath: /app/media
+          name: saleor-media-volume
+      containers:
+      - name: saleor-api
+        image: skymoore/saleor
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256M"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 90
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+        env:
+          - name: RSA_PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: saleor-rsa-key
+                key: private.pem
+        envFrom:
+          - configMapRef:
+              name: saleor-env
+          - secretRef:
+              name: saleor-secret
+        ports:
+          - containerPort:  8000
+            name:  saleor-api
+        volumeMounts:
+          - mountPath: /app/media
+            name: saleor-media-volume
+      volumes:
+        - name: saleor-media-volume
+          persistentVolumeClaim:
+            claimName: saleor-media

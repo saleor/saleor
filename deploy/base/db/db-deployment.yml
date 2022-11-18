@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      initContainers:
+        - name: volume-dirs-init-cntr
+          image: busybox:1.35
+          command:
+            - "/bin/mkdir"
+          args:
+            - "-p"
+            - "/db/data"
+          volumeMounts:
+            - name: db-volume
+              mountPath: "/db"
+            - name: replica-user-volume
+              mountPath: /docker-entrypoint-initdb.d/ #replica_user.sql
+      containers:
+        - name: db
+          image: postgres:13-alpine
+          env:
+            - name: PG_TRUST_LOCALNET
+              value: "true"
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust
+            - name: POSTGRES_USER
+              value: saleor
+            - name: POSTGRES_PASSWORD
+              value: saleor
+            - name: POSTGRES_DB
+              value: saleor
+          ports:
+            - name: db
+              containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - name: db-volume
+              mountPath: /var/lib/postgresql/data
+              subPath: data
+      volumes:
+        - name: db-volume
+          persistentVolumeClaim:
+            claimName: db
+        - name: replica-user-volume
+          configMap:
+            name: db-replica-user

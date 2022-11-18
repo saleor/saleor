@@ -1,0 +1,16 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name:  mailhog
+spec:
+  selector:
+    app:  mailhog
+  type:  NodePort
+  ports:
+  - name:  mailhog-ui
+    port:  8025
+    targetPort:  mailhog-ui
+  - name: mailhog-smtp
+    port: 1025
+    targetPort: mailhog-smtp

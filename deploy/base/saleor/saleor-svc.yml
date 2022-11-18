@@ -1,0 +1,13 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name:  saleor
+spec:
+  selector:
+    app:  saleor-api
+  type:  NodePort
+  ports:
+  - name:  saleor-api
+    port:  8000
+    targetPort: saleor-api

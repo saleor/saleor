@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: saleor
+
+resources:
+  - namespace.yml
+  - ./infra
+  - ./config
+  - ./db
+  - ./jaeger
+  - ./mailhog
+  - ./redis
+  - ./saleor
