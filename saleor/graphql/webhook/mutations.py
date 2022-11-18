@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
@@ -263,8 +264,14 @@ class WebhookDelete(ModelDeleteMutation):
                     f"Couldn't resolve to a node: {node_id}",
                     code=WebhookErrorCode.GRAPHQL_ERROR,
                 )
-
-        return super().perform_mutation(_root, info, **data)
+        try:
+            response = super().perform_mutation(_root, info, **data)
+        except IntegrityError:
+            raise ValidationError(
+                "Webhook couldn't be deleted at this time.",
+                code=WebhookErrorCode.GRAPHQL_ERROR,
+            )
+        return response
 
 
 class EventDeliveryRetry(BaseMutation):
