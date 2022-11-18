@@ -16,7 +16,6 @@ from ....checkout.utils import (
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
-from ....product import models as product_models
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -90,13 +89,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         channel_slug: str,
         delivery_method_info: "DeliveryMethodBase",
     ) -> None:
-        variant_ids = [line_info.variant.id for line_info in lines]
-        variants = list(
-            product_models.ProductVariant.objects.filter(
-                id__in=variant_ids
-            ).prefetch_related("product__product_type")
-        )  # FIXME: is this prefetch needed?
-        quantities = [line_info.line.quantity for line_info in lines]
+        variants = []
+        quantities = []
+        for line_info in lines:
+            variants.append(line_info.variant)
+            quantities.append(line_info.line.quantity)
         site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
