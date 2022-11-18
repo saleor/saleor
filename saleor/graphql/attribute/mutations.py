@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
 from text_unidecode import unidecode
 
@@ -29,6 +29,7 @@ from ..core.utils.reordering import perform_reordering
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .types import Attribute, AttributeValue
+from .utils import queryset_in_batches
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -755,22 +756,25 @@ class AttributeValueUpdate(AttributeValueCreate):
             qs = (
                 product_models.Product.objects.select_for_update(of=("self",))
                 .filter(
-                    Q(
-                        Exists(
-                            instance.productassignments.filter(
-                                product_id=OuterRef("id")
+                    Q(search_index_dirty=False)
+                    & (
+                        Q(
+                            Exists(
+                                instance.productassignments.filter(
+                                    product_id=OuterRef("id")
+                                )
                             )
                         )
+                        | Q(Exists(variants.filter(product_id=OuterRef("id"))))
                     )
-                    | Q(Exists(variants.filter(product_id=OuterRef("id"))))
                 )
                 .order_by("pk")
             )
-            # qs is executed in a subquery to make sure the SELECT statement gets
-            # properly evaluated and locks the rows in the same order every time.
-            product_models.Product.objects.filter(
-                pk__in=Subquery(qs.values("pk"))
-            ).update(search_index_dirty=True)
+            PRODUCTS_BATCH_SIZE = 10000
+            for batch_pks in queryset_in_batches(qs, PRODUCTS_BATCH_SIZE):
+                product_models.Product.objects.filter(pk__in=batch_pks).update(
+                    search_index_dirty=True
+                )
 
         info.context.plugins.attribute_value_updated(instance)
         info.context.plugins.attribute_updated(instance.attribute)
