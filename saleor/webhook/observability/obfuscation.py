@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
+from urllib.parse import urlparse, urlunparse
 
 from graphql import (
     GraphQLError,
@@ -45,6 +46,17 @@ def hide_sensitive_headers(
         key: val if key.upper().replace("-", "_") not in sensitive_headers else MASK
         for key, val in headers.items()
     }
+
+
+def obfuscate_url(url: str) -> str:
+    parts = urlparse(url)
+    if parts.username is None:
+        return url
+    if parts.password is None:
+        netloc = f"{parts.username}@{parts.hostname}"
+    else:
+        netloc = f"{parts.username}:{MASK}@{parts.hostname}"
+    return urlunparse([parts[0], netloc, *parts[2:]])
 
 
 class SensitiveFieldError(GraphQLError):
