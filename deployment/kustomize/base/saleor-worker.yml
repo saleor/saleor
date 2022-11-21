@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-worker
+spec:
+  template:
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: saleor-worker
+        image: skymoore/saleor:3.8.4
+        imagePullPolicy: Always
+        command:
+          - celery
+        args:
+          - -A
+          - saleor
+          - --app=saleor.celeryconf:app
+          - worker
+          - --loglevel=info
+          - -B
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256M"
+        env:
+          - name: RSA_PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: saleor-rsa-key
+                key: private.pem
+        envFrom:
+          - configMapRef:
+              name: saleor-env
+          - secretRef:
+              name: saleor-secret
+        volumeMounts:
+          - mountPath: /app/media
+            name: saleor-media-volume
+      volumes:
+        - name: saleor-media-volume
+          persistentVolumeClaim:
+            claimName: saleor-media
