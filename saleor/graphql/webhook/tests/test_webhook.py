@@ -319,7 +319,8 @@ def test_webhook_delete_deactivates_before_deletion(
     get_graphql_content(response)
 
     # then
-    assert Webhook.objects.all().first().is_active is False
+    webhook.refresh_from_db()
+    assert webhook.is_active is False
 
 
 def test_webhook_delete_when_app_doesnt_exist(app_api_client, app):
