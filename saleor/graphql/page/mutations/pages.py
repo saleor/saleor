@@ -19,7 +19,7 @@ from ...core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_INPUT, RICH_CONTE
 from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
-from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ...utils.validators import check_for_duplicates
 from ..types import Page, PageType
 

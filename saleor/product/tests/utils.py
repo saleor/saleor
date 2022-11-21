@@ -8,7 +8,7 @@ def create_image(image_name="product2"):
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1), color=(255, 0, 0, 0))
     image.save(img_data, format="JPEG")
-    image = SimpleUploadedFile(image_name + ".jpg", img_data.getvalue(), "image/png")
+    image = SimpleUploadedFile(image_name + ".jpg", img_data.getvalue(), "image/jpeg")
     return image, image_name
 
 
