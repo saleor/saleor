@@ -40,10 +40,16 @@ def test_hide_sensitive_headers(headers, sensitive, expected):
     "url,expected",
     [
         ("http://example.com/test", "http://example.com/test"),
-        ("http://example.com/test/path?q=val", "http://example.com/test/path?q=val"),
-        ("https://example.com/test/path?q=val", "https://example.com/test/path?q=val"),
-        ("http://user@example.com/test", "http://user@example.com/test"),
-        ("http://:password@example.com/test", f"http://:{MASK}@example.com/test"),
+        (
+            "https://example.com:8000/test/path?q=val&k=val",
+            "https://example.com:8000/test/path?q=val&k=val",
+        ),
+        ("https://user@example.com/test", "https://user@example.com/test"),
+        ("https://:password@example.com/test", f"https://:{MASK}@example.com/test"),
+        (
+            "http://user:password@example.com:8000/test",
+            f"http://user:{MASK}@example.com:8000/test",
+        ),
         (
             "awssqs://key:secret@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",
             f"awssqs://key:{MASK}@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",

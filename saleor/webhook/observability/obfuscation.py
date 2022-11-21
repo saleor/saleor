@@ -52,10 +52,9 @@ def obfuscate_url(url: str) -> str:
     parts = urlparse(url)
     if parts.username is None:
         return url
-    if parts.password is None:
-        netloc = f"{parts.username}@{parts.hostname}"
-    else:
-        netloc = f"{parts.username}:{MASK}@{parts.hostname}"
+    password = "" if parts.password is None else f":{MASK}"
+    port = "" if parts.port is None else f":{parts.port}"
+    netloc = f"{parts.username}{password}@{parts.hostname}{port}"
     return urlunparse([parts[0], netloc, *parts[2:]])
 
 
