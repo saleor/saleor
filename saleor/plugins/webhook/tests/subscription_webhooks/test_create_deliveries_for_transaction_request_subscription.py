@@ -12,14 +12,14 @@ from .....payment import (
 )
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
-from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
 from ...tasks import create_deliveries_for_subscriptions
 
-TRANSACTION_ACTION_REQUEST_SUBSCRIPTION_QUERY = """
+TRANSACTION_REQUEST_SUBSCRIPTION_QUERY = """
 subscription{
   event{
-    ... on TransactionActionRequest{
+    ... on TransactionRequest{
       transaction{
         id
         createdAt
@@ -62,9 +62,7 @@ subscription{
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_transaction_refund_action_request(
-    order, webhook_app, permission_manage_payments
-):
+def test_transaction_refund_request(order, webhook_app, permission_manage_payments):
     # given
     charged_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
@@ -77,6 +75,7 @@ def test_transaction_refund_action_request(
         order_id=order.pk,
         charged_value=charged_value,
     )
+
     action_value = Decimal("5.00")
     request_event = transaction.events.create(
         status=TransactionEventStatus.REQUEST,
@@ -84,13 +83,14 @@ def test_transaction_refund_action_request(
         currency=transaction.currency,
         type=TransactionEventActionType.REFUND,
     )
+
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
         target_url="http://www.example.com/any",
-        subscription_query=TRANSACTION_ACTION_REQUEST_SUBSCRIPTION_QUERY,
+        subscription_query=TRANSACTION_REQUEST_SUBSCRIPTION_QUERY,
     )
-    event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
+    event_type = WebhookEventSyncType.TRANSACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
@@ -116,7 +116,7 @@ def test_transaction_refund_action_request(
             "voidedAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {
                 "currency": "USD",
-                "amount": float(quantize_price(charged_value, "USD")),
+                "amount": quantize_price(charged_value, "USD"),
             },
             "events": [
                 {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
@@ -129,15 +129,13 @@ def test_transaction_refund_action_request(
         },
         "action": {
             "actionType": "REFUND",
-            "amount": float(quantize_price(action_value, "USD")),
+            "amount": quantize_price(action_value, "USD"),
         },
     }
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_transaction_charge_action_request(
-    order, webhook_app, permission_manage_payments
-):
+def test_transaction_charge_request(order, webhook_app, permission_manage_payments):
     # given
     authorized_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
@@ -150,23 +148,25 @@ def test_transaction_charge_action_request(
         order_id=order.pk,
         authorized_value=authorized_value,
     )
+
+    action_value = Decimal("5.00")
     request_event = transaction.events.create(
         status=TransactionEventStatus.REQUEST,
-        amount_value=authorized_value,
+        amount_value=action_value,
         currency=transaction.currency,
         type=TransactionEventActionType.CHARGE,
     )
+
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
         target_url="http://www.example.com/any",
-        subscription_query=TRANSACTION_ACTION_REQUEST_SUBSCRIPTION_QUERY,
+        subscription_query=TRANSACTION_REQUEST_SUBSCRIPTION_QUERY,
     )
-    event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
+    event_type = WebhookEventSyncType.TRANSACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
-    action_value = Decimal("5.00")
     transaction_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.CHARGE,
@@ -208,9 +208,7 @@ def test_transaction_charge_action_request(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_transaction_void_action_request(
-    order, webhook_app, permission_manage_payments
-):
+def test_transaction_void_request(order, webhook_app, permission_manage_payments):
     # given
     authorized_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
@@ -223,19 +221,20 @@ def test_transaction_void_action_request(
         order_id=order.pk,
         authorized_value=authorized_value,
     )
+
     request_event = transaction.events.create(
         status=TransactionEventStatus.REQUEST,
-        amount_value=authorized_value,
         currency=transaction.currency,
         type=TransactionEventActionType.CANCEL,
     )
+
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
         target_url="http://www.example.com/any",
-        subscription_query=TRANSACTION_ACTION_REQUEST_SUBSCRIPTION_QUERY,
+        subscription_query=TRANSACTION_REQUEST_SUBSCRIPTION_QUERY,
     )
-    event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
+    event_type = WebhookEventSyncType.TRANSACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)

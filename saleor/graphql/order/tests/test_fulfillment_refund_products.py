@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
@@ -47,6 +48,13 @@ mutation OrderFulfillmentRefundProducts(
 """
 
 
+# FIXME:
+@pytest.mark.skip(
+    reason=(
+        "Next PR will drop usage of transaction_action_request "
+        "in the old payment flow."
+    )
+)
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_fulfillment_refund_products_with_transaction_action_request(
@@ -101,6 +109,13 @@ def test_fulfillment_refund_products_with_transaction_action_request(
     assert event.parameters["reference"] == transaction.psp_reference
 
 
+# FIXME:
+@pytest.mark.skip(
+    reason=(
+        "Next PR will drop usage of transaction_action_request "
+        "in the old payment flow."
+    )
+)
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 def test_fulfillment_refund_products_with_missing_payment_action_hook(
     mocked_is_active,

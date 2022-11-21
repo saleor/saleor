@@ -31,6 +31,7 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_37,
     ADDED_IN_38,
+    ADDED_IN_39,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -1256,24 +1257,16 @@ class TransactionAction(ObjectType, AbstractType):
         return None
 
 
-class TransactionActionRequest(ObjectType):
+class TransactionActionBase(ObjectType):
     transaction = graphene.Field(
         TransactionItem,
-        description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Look up a transaction.",
     )
     action = graphene.Field(
         TransactionAction,
         required=True,
-        description="Requested action data." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Requested action data.",
     )
-
-    class Meta:
-        interfaces = (Event,)
-        description = (
-            "Event sent when transaction action is requested."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
-        )
 
     @staticmethod
     def resolve_transaction(root, _info):
@@ -1286,6 +1279,27 @@ class TransactionActionRequest(ObjectType):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data
+
+
+class TransactionActionRequest(TransactionActionBase):
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction action is requested."
+            + ADDED_IN_34
+            + "\n\nDEPRECATED: This subscription will be removed in 3.10 "
+            + "release. Use TransactionRequest instead."
+        )
+
+
+class TransactionRequest(TransactionActionBase):
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction action is requested."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        )
 
 
 class TransactionItemMetadataUpdated(ObjectType):
@@ -1714,6 +1728,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
     WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
     WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+    WebhookEventSyncType.TRANSACTION_REQUEST: TransactionRequest,
     WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (OrderFilterShippingMethods),
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
         CheckoutFilterShippingMethods

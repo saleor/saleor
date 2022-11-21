@@ -12526,7 +12526,7 @@ type Mutation {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
-  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionRequestAction(
     """Determines the action type."""
@@ -17987,7 +17987,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
-Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionRequestAction {
   transaction: TransactionItem
@@ -24824,7 +24824,7 @@ Event sent when transaction action is requested.
 
 Added in Saleor 3.4.
 
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+DEPRECATED: This subscription will be removed in 3.10 release. Use TransactionRequest instead.
 """
 type TransactionActionRequest implements Event {
   """Time of the event."""
@@ -24839,22 +24839,10 @@ type TransactionActionRequest implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a transaction.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a transaction."""
   transaction: TransactionItem
 
-  """
-  Requested action data.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Requested action data."""
   action: TransactionAction!
 }
 
@@ -25314,6 +25302,33 @@ type PaymentListGateways implements Event {
 
   """The checkout the event relates to."""
   checkout: Checkout
+}
+
+"""
+Event sent when transaction action is requested.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionRequest implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
 }
 
 """

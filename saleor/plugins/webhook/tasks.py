@@ -1,7 +1,6 @@
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, TypeVar
@@ -30,6 +29,10 @@ from ...graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ...payment import PaymentError
 from ...payment.interface import TransactionActionData
 from ...payment.models import TransactionEvent
+from ...payment.utils import (
+    create_failed_transaction_event,
+    create_transaction_event_from_request_and_webhook_response,
+)
 from ...site.models import Site
 from ...webhook import observability
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -45,7 +48,6 @@ from .utils import (
     create_event_delivery_list_for_webhooks,
     delivery_update,
     get_delivery_for_webhook,
-    parse_transaction_action_data,
 )
 
 if TYPE_CHECKING:
@@ -451,8 +453,13 @@ def send_webhook_using_scheme_method(
 
 def handle_webhook_retry(
     celery_task, webhook, response_content, delivery, delivery_attempt
-):
-    success_retry = True
+) -> bool:
+    """Handle celery retry for webhook requests.
+
+    Calls retry to re-run the celery_task by raising Retry exception.
+    When MaxRetriesExceededError is raised the function will end without exception.
+    """
+    is_success = True
     task_logger.info(
         "[Webhook ID: %r] Failed request to %r: %r for event: %r."
         " Delivery attempt id: %r",
@@ -470,6 +477,7 @@ def handle_webhook_retry(
         observability.report_event_delivery_attempt(delivery_attempt, next_retry)
         raise retry_error
     except MaxRetriesExceededError:
+        is_success = False
         task_logger.warning(
             "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
             "Delivery id: %r",
@@ -477,8 +485,7 @@ def handle_webhook_retry(
             webhook.target_url,
             delivery.id,
         )
-        success_retry = False
-    return success_retry
+    return is_success
 
 
 @app.task(
@@ -509,11 +516,8 @@ def send_webhook_request_async(self, event_delivery_id):
             )
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
-            success_retry = handle_webhook_retry(
-                self, webhook, response.content, delivery, attempt
-            )
-            if not success_retry:
-                delivery_status = EventDeliveryStatus.FAILED
+            handle_webhook_retry(self, webhook, response.content, delivery, attempt)
+            delivery_status = EventDeliveryStatus.FAILED
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
                 "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
@@ -697,42 +701,63 @@ def observability_reporter_task():
 
 
 def trigger_transaction_request(transaction_data: "TransactionActionData", requestor):
+    if not transaction_data.event:
+        logger.warning(
+            "The transaction request for transaction: %s doesn't have a "
+            "proper REQUEST event.",
+            transaction_data.transaction.id,
+        )
+        return None
     event_type = WebhookEventSyncType.TRANSACTION_REQUEST
     if not transaction_data.transaction.app_id:
+        create_failed_transaction_event(
+            transaction_data.event,
+            cause=(
+                "Cannot process the action as the given transaction is not "
+                "attached to any app."
+            ),
+        )
+        return None
+    webhook = get_webhooks_for_event(
+        event_type, apps_ids=[transaction_data.transaction.app_id]
+    ).first()
+    if not webhook:
+        create_failed_transaction_event(
+            transaction_data.event,
+            cause="Cannot find a webhook that can process the action.",
+        )
         return None
 
-    if webhook := get_webhooks_for_event(
-        event_type, apps_ids=[transaction_data.transaction.app_id]
-    ).first():
-
+    if webhook.subscription_query:
+        delivery = create_delivery_for_subscription_sync_event(
+            event_type=event_type,
+            subscribable_object=transaction_data,
+            webhook=webhook,
+        )
+        if not delivery:
+            create_failed_transaction_event(
+                transaction_data.event,
+                cause="Cannot generate a payload for the action.",
+            )
+            return None
+    else:
         payload = generate_transaction_action_request_payload(
             transaction_data, requestor
         )
-        if webhook.subscription_query:
-            delivery = create_delivery_for_subscription_sync_event(
-                event_type=event_type,
-                subscribable_object=transaction_data,
-                webhook=webhook,
-            )
-            if not delivery:
-                return None
-        else:
-            event_payload = EventPayload.objects.create(payload=payload)
-            delivery = EventDelivery.objects.create(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
-        if not transaction_data.event:
-            return None
-
-        call_event(
-            handle_transaction_request_task.delay,
-            delivery.id,
-            webhook.app.name,
-            transaction_data.event.id,
+        event_payload = EventPayload.objects.create(payload=payload)
+        delivery = EventDelivery.objects.create(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=event_payload,
+            webhook=webhook,
         )
+
+    call_event(
+        handle_transaction_request_task.delay,
+        delivery.id,
+        webhook.app.name,
+        transaction_data.event.id,
+    )
     return None
 
 
@@ -756,34 +781,15 @@ def handle_transaction_request_task(self, delivery_id, app_name, request_event_i
             f"for transaction-request webhook."
         )
         return None
-    response, response_data = _send_webhook_request_sync(app_name, delivery)
-    if response.response_status_code and response.response_status_code > 500:
-        attempt = create_attempt(delivery=delivery, task_id=None)
+    attempt = create_attempt(delivery, self.request.id)
+    response, response_data = _send_webhook_request_sync(
+        app_name, delivery, attempt=attempt
+    )
+    if response.response_status_code and response.response_status_code >= 500:
         handle_webhook_retry(
             self, delivery.webhook, response.content, delivery, attempt
         )
-
-    if response_data is None:
-        return None
-    transaction_request_response = parse_transaction_action_data(
-        response_data,
+        response_data = None
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, response_data
     )
-    if transaction_request_response is None:
-        return None
-
-    psp_reference = transaction_request_response.psp_reference
-    request_event.psp_reference
-    request_event.save()
-    if response_event := transaction_request_response.event:
-        TransactionEvent.objects.create(
-            # FIXME: temporary add datetime to psp_reference as it is unique
-            psp_reference=psp_reference + datetime.now(),
-            created_at=response_event.time or datetime.now(),
-            status=response_event.result,
-            type=response_event.type or request_event.type,
-            amount_value=response_event.amount or request_event.amount_value,
-            external_url=response_event.external_url,
-            currency=request_event.currency,
-            transaction_id=request_event.transaction_id,
-            # cause="" # FIXME: cause will be added in separate PR
-        )

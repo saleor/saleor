@@ -3,7 +3,6 @@ import json
 import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
 from time import time
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -17,15 +16,7 @@ from ...core.models import (
     EventPayload,
 )
 from ...core.taxes import TaxData, TaxLineData
-from ...graphql.core.utils import str_to_enum
-from ...payment import TransactionEventActionType, TransactionEventReportResult
-from ...payment.interface import (
-    GatewayResponse,
-    PaymentGateway,
-    PaymentMethodInfo,
-    TransactionRequestEventResponse,
-    TransactionRequestResponse,
-)
+from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...webhook.event_types import WebhookEventSyncType
 from ..const import APP_ID_PREFIX
 
@@ -185,86 +176,6 @@ def parse_tax_data(
         return _unsafe_parse_tax_data(response_data)
     except (TypeError, KeyError, decimal.DecimalException):
         return None
-
-
-def parse_transaction_action_data(
-    response_data: Any,
-) -> Optional["TransactionRequestResponse"]:
-    """Parse response from transaction action webhook.
-
-    It takes the recieved response from sync webhook and
-    """
-    psp_reference: str = response_data.get("pspReference")
-    if not psp_reference:
-        logger.error("Missing `pspReference` field in the response.")
-        return None
-    event_data = response_data.get("event")
-    parsed_event_data: dict = {}
-    error_fields = []
-    if event_data:
-        missing_msg = (
-            "Missing value for field: %s, value: %s in "
-            "response of transaction action webhook."
-        )
-        invalid_msg = (
-            "Incorrect value for field: %s in "
-            "response of transaction action webhook."
-        )
-        event_result_types = {
-            str_to_enum(event_results[0]): event_results[0]
-            for event_results in TransactionEventReportResult.CHOICES
-        }
-        result_data = event_data.get("result")
-        if result_data and result_data in event_result_types:
-            parsed_event_data["result"] = event_result_types[result_data]
-        else:
-            logger.warning(missing_msg % "result", result_data)
-            error_fields.append("result")
-
-        event_type_types = {
-            str_to_enum(event_results[0]): event_results[0]
-            for event_results in TransactionEventActionType.CHOICES
-        }
-        type_data = event_data.get("type")
-        if type_data:
-            if type_data in event_type_types:
-                parsed_event_data["type"] = event_type_types[type_data]
-            else:
-                logger.warning(invalid_msg % "type", type_data)
-                error_fields.append("type")
-        else:
-            parsed_event_data["type"] = None
-
-        if amount_data := event_data.get("amount"):
-            try:
-                parsed_event_data["amount_value"] = decimal.Decimal(amount_data)
-            except decimal.DecimalException:
-                logger.warning(invalid_msg % "amount", amount_data)
-                error_fields.append("amount")
-        else:
-            parsed_event_data["amount_value"] = None
-
-        if event_time_data := event_data.get("time"):
-            try:
-                parsed_event_data["created_at"] = (
-                    datetime.fromisoformat(event_time_data) if event_time_data else None
-                )
-            except ValueError:
-                logger.warning(invalid_msg % "time", event_time_data)
-                error_fields.append("time")
-        else:
-            parsed_event_data["created_at"] = datetime.now()
-
-        parsed_event_data["external_url"] = event_data.get("externalUrl")
-        parsed_event_data["name"] = event_data.get("name")
-        # parsed_event_data["cause"] # FIXME:
-
-    if not error_fields:
-        return TransactionRequestResponse(
-            psp_reference=psp_reference,
-            event=TransactionRequestEventResponse(**parsed_event_data),
-        )
-    return None
 
 
 def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:

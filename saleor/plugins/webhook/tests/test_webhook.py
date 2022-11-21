@@ -31,7 +31,11 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
-from ....payment import TransactionAction, TransactionEventStatus
+from ....payment import (
+    TransactionAction,
+    TransactionEventActionType,
+    TransactionEventStatus,
+)
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
 from ....webhook.event_types import WebhookEventAsyncType
@@ -1440,11 +1444,21 @@ def test_transaction_action_request(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
+
     action_value = Decimal("5.00")
+
+    request_event = transaction.events.create(
+        status=TransactionEventStatus.REQUEST,
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventActionType.CHARGE,
+    )
+
     transaction_action_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
+        event=request_event,
     )
 
     # when

@@ -20,10 +20,11 @@ from ..payment.interface import (
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
 from . import GatewayError, PaymentError, TransactionAction, TransactionKind
-from .models import Payment, Transaction, TransactionItem
+from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .utils import (
     clean_authorize,
     clean_capture,
+    create_failed_transaction_event,
     create_payment_information,
     create_transaction,
     gateway_postprocess,
@@ -87,6 +88,7 @@ def request_charge_action(
     transaction: TransactionItem,
     manager: "PluginsManager",
     charge_value: Optional[Decimal],
+    request_event: TransactionEvent,
     channel_slug: str,
     user: UserType,
     app: AppType,
@@ -101,6 +103,7 @@ def request_charge_action(
         action_type=TransactionAction.CHARGE,
         action_value=charge_value,
         channel_slug=channel_slug,
+        request_event=request_event,
     )
     if order_id := transaction.order_id:
         event_transaction_capture_requested(
@@ -116,6 +119,7 @@ def request_refund_action(
     transaction: TransactionItem,
     manager: "PluginsManager",
     refund_value: Optional[Decimal],
+    request_event: TransactionEvent,
     channel_slug: str,
     user: UserType,
     app: AppType,
@@ -129,6 +133,7 @@ def request_refund_action(
         action_type=TransactionAction.REFUND,
         action_value=refund_value,
         channel_slug=channel_slug,
+        request_event=request_event,
     )
     if order_id := transaction.order_id:
         event_transaction_refund_requested(
@@ -143,6 +148,7 @@ def request_refund_action(
 def request_void_action(
     transaction: TransactionItem,
     manager: "PluginsManager",
+    request_event: TransactionEvent,
     channel_slug: str,
     user: UserType,
     app: AppType,
@@ -153,6 +159,7 @@ def request_void_action(
         action_type=TransactionAction.VOID,
         action_value=None,
         channel_slug=channel_slug,
+        request_event=request_event,
     )
     if order_id := transaction.order_id:
         event_transaction_void_requested(
@@ -169,9 +176,13 @@ def _request_payment_action(
     action_type: str,
     action_value: Optional[Decimal],
     channel_slug: str,
+    request_event: TransactionEvent,
 ):
     payment_data = TransactionActionData(
-        transaction=transaction, action_type=action_type, action_value=action_value
+        transaction=transaction,
+        action_type=action_type,
+        action_value=action_value,
+        event=request_event,
     )
     transaction_action_request_event_active = manager.is_event_active_for_any_plugin(
         "transaction_action_request", channel_slug=channel_slug
@@ -181,9 +192,9 @@ def _request_payment_action(
         "transaction_request", channel_slug=channel_slug
     )
 
-    webhook_is_active = None
+    webhooks = None
     if transaction.app_id:
-        webhook_is_active = get_webhooks_for_event(
+        webhooks = get_webhooks_for_event(
             WebhookEventSyncType.TRANSACTION_REQUEST,
             apps_ids=[transaction.app_id],
         )
@@ -191,12 +202,17 @@ def _request_payment_action(
     if (
         not transaction_action_request_event_active
         and not transaction_request_event_active
-        and not webhook_is_active
+        and not webhooks
     ):
+        create_failed_transaction_event(
+            request_event,
+            cause="No app or plugin is configured to handle payment action requests.",
+        )
         raise PaymentError(
             "No app or plugin is configured to handle payment action requests."
         )
-    if transaction_request_event_active or webhook_is_active:
+
+    if transaction_request_event_active or webhooks:
         manager.transaction_request(payment_data, channel_slug=channel_slug)
     else:
         manager.transaction_action_request(payment_data, channel_slug=channel_slug)

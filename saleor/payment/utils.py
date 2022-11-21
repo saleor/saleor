@@ -1,12 +1,15 @@
+import decimal
 import json
 import logging
+from datetime import datetime
 from decimal import Decimal
-from typing import Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
+from django.utils import timezone
 
 from ..account.models import User
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -14,6 +17,7 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
+from ..graphql.core.utils import str_to_enum
 from ..order.models import Order
 from ..order.utils import update_order_authorize_data, update_order_charge_data
 from ..plugins.manager import PluginsManager, get_plugins_manager
@@ -22,6 +26,8 @@ from . import (
     GatewayError,
     PaymentError,
     StorePaymentMethod,
+    TransactionEventActionType,
+    TransactionEventReportResult,
     TransactionKind,
 )
 from .error_codes import PaymentErrorCode
@@ -35,8 +41,10 @@ from .interface import (
     RefundData,
     StorePaymentMethodEnum,
     TransactionData,
+    TransactionRequestEventResponse,
+    TransactionRequestResponse,
 )
-from .models import Payment, Transaction
+from .models import Payment, Transaction, TransactionEvent
 
 logger = logging.getLogger(__name__)
 
@@ -643,3 +651,135 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
         ).first()
         is not None
     )
+
+
+def parse_transaction_action_data(
+    response_data: Any,
+) -> Optional["TransactionRequestResponse"]:
+    """Parse response from transaction action webhook.
+
+    It takes the recieved response from sync webhook and
+    """
+    psp_reference: str = response_data.get("pspReference")
+    if not psp_reference:
+        logger.error("Missing `pspReference` field in the response.")
+        return None
+    event_data = response_data.get("event")
+    parsed_event_data: dict = {}
+    error_fields = []
+    if event_data:
+        missing_msg = (
+            "Missing value for field: %s in " "response of transaction action webhook."
+        )
+        invalid_msg = (
+            "Incorrect value for field: %s, value: %s in "
+            "response of transaction action webhook."
+        )
+        event_result_types = {
+            str_to_enum(event_results[0]): event_results[0]
+            for event_results in TransactionEventReportResult.CHOICES
+        }
+        result_data = event_data.get("result")
+        if result_data and result_data in event_result_types:
+            parsed_event_data["result"] = event_result_types[result_data]
+        else:
+            logger.warning(missing_msg, "result")
+            error_fields.append("result")
+
+        if event_psp_reference := event_data.get("pspReference"):
+            parsed_event_data["psp_reference"] = event_psp_reference
+        else:
+            logger.warning(missing_msg, "pspReference")
+            error_fields.append("pspReference")
+
+        event_type_types = {
+            str_to_enum(event_results[0]): event_results[0]
+            for event_results in TransactionEventActionType.CHOICES
+        }
+        type_data = event_data.get("type")
+        if type_data:
+            if type_data in event_type_types:
+                parsed_event_data["type"] = event_type_types[type_data]
+            else:
+                logger.warning(invalid_msg, "type", type_data)
+                error_fields.append("type")
+        else:
+            parsed_event_data["type"] = None
+
+        if amount_data := event_data.get("amount"):
+            try:
+                parsed_event_data["amount"] = decimal.Decimal(amount_data)
+            except decimal.DecimalException:
+                logger.warning(invalid_msg, "amount", amount_data)
+                error_fields.append("amount")
+        else:
+            parsed_event_data["amount"] = None
+
+        if event_time_data := event_data.get("time"):
+            try:
+                parsed_event_data["time"] = (
+                    datetime.fromisoformat(event_time_data) if event_time_data else None
+                )
+            except ValueError:
+                logger.warning(invalid_msg, "time", event_time_data)
+                error_fields.append("time")
+        else:
+            parsed_event_data["time"] = timezone.now()
+
+        parsed_event_data["external_url"] = event_data.get("externalUrl", "")
+        parsed_event_data["name"] = event_data.get("name", "")
+        parsed_event_data["cause"] = event_data.get("cause", "")
+
+    if not error_fields:
+        return TransactionRequestResponse(
+            psp_reference=psp_reference,
+            event=TransactionRequestEventResponse(**parsed_event_data)
+            if parsed_event_data
+            else None,
+        )
+    return None
+
+
+def create_failed_transaction_event(request_event: TransactionEvent, cause: str):
+    return TransactionEvent.objects.create(
+        status=TransactionEventReportResult.FAILURE,
+        type=request_event.type,
+        amount_value=request_event.amount_value,
+        currency=request_event.currency,
+        transaction_id=request_event.transaction_id,
+        cause=cause,
+    )
+
+
+def create_transaction_event_from_request_and_webhook_response(
+    request_event: TransactionEvent,
+    transaction_webhook_response: Optional[Dict[str, Any]] = None,
+):
+    if transaction_webhook_response is None:
+        return create_failed_transaction_event(
+            request_event, cause="Failed to delivery request."
+        )
+    transaction_request_response = parse_transaction_action_data(
+        transaction_webhook_response,
+    )
+    if transaction_request_response is None:
+        return create_failed_transaction_event(
+            request_event, cause="Failed to process recieved action response."
+        )
+
+    psp_reference = transaction_request_response.psp_reference
+    request_event.psp_reference = psp_reference
+    request_event.save()
+    if response_event := transaction_request_response.event:
+        return TransactionEvent.objects.create(
+            psp_reference=response_event.psp_reference,
+            status=response_event.result,  # type: ignore
+            created_at=response_event.time or timezone.now(),
+            type=response_event.type or request_event.type,
+            amount_value=response_event.amount or request_event.amount_value,
+            external_url=response_event.external_url,
+            currency=request_event.currency,
+            transaction_id=request_event.transaction_id,
+            cause=response_event.cause,
+            name=response_event.name,
+        )

@@ -18,19 +18,20 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 class TransactionActionData:
     action_type: str
     transaction: TransactionItem
+    event: "TransactionEvent"
     action_value: Optional[Decimal] = None
-    event: Optional["TransactionEvent"] = None
 
 
 @dataclass
 class TransactionRequestEventResponse:
+    psp_reference: str
     result: "TransactionEventReportResult"
     amount: Optional[Decimal] = None
     type: Optional["TransactionEventActionType"] = None
     time: Optional[datetime] = None
-    external_url: Optional[str] = None
-    name: Optional[str] = None
-    cause: Optional[str] = None
+    external_url: Optional[str] = ""
+    name: Optional[str] = ""
+    cause: Optional[str] = ""
 
 
 @dataclass
