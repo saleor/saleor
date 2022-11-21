@@ -659,6 +659,8 @@ def parse_transaction_action_data(
     """Parse response from transaction action webhook.
 
     It takes the recieved response from sync webhook and
+    returns TransactionRequestResponse with all details.
+    If unable to parse, None will be returned.
     """
     psp_reference: str = response_data.get("pspReference")
     if not psp_reference:
