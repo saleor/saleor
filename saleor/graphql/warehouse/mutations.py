@@ -13,7 +13,7 @@ from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WarehouseError
-from ..core.utils import (
+from ..core.validators import (
     validate_required_string_field,
     validate_slug_and_generate_if_needed,
 )

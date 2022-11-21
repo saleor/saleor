@@ -1,22 +1,18 @@
 import enum
 import os
-from io import BytesIO
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import django_filters
 import graphene
 import pytest
 from django.core.exceptions import ImproperlyConfigured, ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from graphene import InputField
 from micawber import ProviderException, ProviderRegistry
-from PIL import Image
 
 from ....core.utils.validators import get_oembed_data
 from ....product import ProductMediaTypes
-from ....product.error_codes import ProductErrorCode
-from ....product.models import Category, Product, ProductChannelListing
+from ....product.models import Product, ProductChannelListing
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
@@ -24,28 +20,8 @@ from ..enums import ReportingPeriod
 from ..filters import EnumFilter
 from ..mutations import BaseMutation
 from ..types import FilterInputObjectType
-from ..utils import (
-    add_hash_to_file_name,
-    clean_seo_fields,
-    get_duplicated_values,
-    get_filename_from_url,
-    is_image_mimetype,
-    is_supported_image_mimetype,
-    snake_to_camel_case,
-    validate_image_file,
-    validate_image_url,
-    validate_slug_and_generate_if_needed,
-)
+from ..utils import add_hash_to_file_name, get_duplicated_values, snake_to_camel_case
 from . import ErrorTest
-
-
-def test_clean_seo_fields():
-    title = "lady title"
-    description = "fantasy description"
-    data = {"seo": {"title": title, "description": description}}
-    clean_seo_fields(data)
-    assert data["seo_title"] == title
-    assert data["seo_description"] == description
 
 
 def test_user_error_field_name_for_related_object(
@@ -203,269 +179,6 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
 
     with pytest.raises(ImproperlyConfigured):
         _run_test()
-
-
-@pytest.mark.parametrize(
-    "cleaned_input",
-    [
-        {"slug": None, "name": "test"},
-        {"slug": "", "name": "test"},
-        {"slug": ""},
-        {"slug": None},
-    ],
-)
-def test_validate_slug_and_generate_if_needed_raises_errors(category, cleaned_input):
-    with pytest.raises(ValidationError):
-        validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-@pytest.mark.parametrize(
-    "cleaned_input", [{"slug": "test-slug"}, {"slug": "test-slug", "name": "test"}]
-)
-def test_validate_slug_and_generate_if_needed_not_raises_errors(
-    category, cleaned_input
-):
-    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-@pytest.mark.parametrize(
-    "cleaned_input",
-    [
-        {"slug": None, "name": "test"},
-        {"slug": "", "name": "test"},
-        {"slug": ""},
-        {"slug": None},
-        {"slug": "test-slug"},
-        {"slug": "test-slug", "name": "test"},
-    ],
-)
-def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
-    category = Category(name="test")
-    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-def test_validate_image_file():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    result = validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert not result
-
-
-def test_validate_image_file_invalid_content_type():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "text/plain")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert exc.value.args[0][field].message == "Invalid file type."
-
-
-def test_validate_image_file_no_file():
-    # given
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(None, field, ProductErrorCode)
-
-    # then
-    assert exc.value.args[0][field].message == "File is required."
-
-
-def test_validate_image_file_no_file_extension():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert exc.value.args[0][field].message == "Lack of file extension."
-
-
-def test_validate_image_file_invalid_file_extension():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.txt", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert (
-        exc.value.args[0][field].message
-        == "Invalid file extension. Image file required."
-    )
-
-
-def test_validate_image_file_file_extension_not_supported_by_thumbnails():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.pxr", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert (
-        exc.value.args[0][field].message
-        == "Invalid file extension. Image file required."
-    )
-
-
-def test_get_filename_from_url_unique():
-    # given
-    file_format = "jpg"
-    file_name = "lenna"
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name)
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
-
-
-def test_is_image_mimetype_valid_mimetype():
-    # given
-    valid_mimetype = "image/jpeg"
-
-    # when
-    result = is_image_mimetype(valid_mimetype)
-
-    # then
-    assert result
-
-
-def test_is_image_mimetype_invalid_mimetype():
-    # given
-    invalid_mimetype = "application/javascript"
-
-    # when
-    result = is_image_mimetype(invalid_mimetype)
-
-    # then
-    assert not result
-
-
-def test_is_supported_image_mimetype_valid_mimetype():
-    # given
-    valid_mimetype = "image/jpeg"
-
-    # when
-    result = is_supported_image_mimetype(valid_mimetype)
-
-    # then
-    assert result
-
-
-def test_is_supported_image_mimetype_invalid_mimetype():
-    # given
-    invalid_mimetype = "application/javascript"
-
-    # when
-    result = is_supported_image_mimetype(invalid_mimetype)
-
-    # then
-    assert not result
-
-
-def test_validate_image_url_valid_image_response(monkeypatch):
-    # given
-    valid_image_response_mock = Mock()
-    valid_image_response_mock.headers = {"content-type": "image/jpeg"}
-    monkeypatch.setattr(
-        "saleor.graphql.core.utils.requests.head",
-        Mock(return_value=valid_image_response_mock),
-    )
-    field = "image"
-    dummy_url = "http://example.com/valid_url.jpg"
-
-    # when
-    result = validate_image_url(
-        dummy_url,
-        field,
-        ProductErrorCode.INVALID,
-    )
-
-    # then
-    assert result is None
-
-
-def test_validate_image_url_invalid_mimetype_response(monkeypatch):
-    # given
-    invalid_response_mock = Mock()
-    invalid_response_mock.headers = {"content-type": "application/json"}
-    monkeypatch.setattr(
-        "saleor.graphql.core.utils.requests.head",
-        Mock(return_value=invalid_response_mock),
-    )
-    field = "image"
-    dummy_url = "http://example.com/invalid_url.json"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_url(
-            dummy_url,
-            field,
-            ProductErrorCode.INVALID,
-        )
-
-    # then
-    assert exc.value.args[0][field].message == "Invalid file type."
-
-
-def test_validate_image_url_response_without_content_headers(monkeypatch):
-    # given
-    invalid_response_mock = Mock()
-    invalid_response_mock.headers = {}
-    monkeypatch.setattr(
-        "saleor.graphql.core.utils.requests.head",
-        Mock(return_value=invalid_response_mock),
-    )
-    field = "image"
-    dummy_url = "http://example.com/broken_url"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_url(
-            dummy_url,
-            field,
-            ProductErrorCode.INVALID,
-        )
-
-    # then
-    assert exc.value.args[0][field].message == "Invalid file type."
 
 
 @pytest.mark.parametrize(
