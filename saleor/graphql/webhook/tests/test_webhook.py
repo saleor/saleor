@@ -305,6 +305,23 @@ def test_webhook_delete_by_inactive_app(app_api_client, webhook):
     assert_no_permission(response)
 
 
+@patch("saleor.webhook.models.Webhook.delete")
+def test_webhook_delete_deactivates_before_deletion(
+    mocked_delete, app_api_client, webhook
+):
+    # given
+    query = WEBHOOK_DELETE_BY_APP
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+
+    # when
+    response = app_api_client.post_graphql(query, variables=variables)
+    get_graphql_content(response)
+
+    # then
+    assert Webhook.objects.all().first().is_active is False
+
+
 def test_webhook_delete_when_app_doesnt_exist(app_api_client, app):
     app.delete()
 
