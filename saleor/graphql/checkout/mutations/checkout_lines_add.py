@@ -11,7 +11,7 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types import CheckoutError, NonNullList
+from ...core.types import CheckoutError
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
 from ..types import Checkout
@@ -45,7 +45,7 @@ class CheckoutLinesAdd(BaseMutation):
                 f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
             ),
         )
-        lines = NonNullList(
+        lines = graphene.List(
             CheckoutLineInput,
             required=True,
             description=(
