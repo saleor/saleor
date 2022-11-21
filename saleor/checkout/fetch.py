@@ -41,6 +41,7 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
+    from ..tax.models import TaxClass, TaxConfiguration
     from .models import Checkout, CheckoutLine
 
 
@@ -52,6 +53,7 @@ class CheckoutLineInfo:
     product: "Product"
     product_type: "ProductType"
     collections: List["Collection"]
+    tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
 
 
@@ -64,6 +66,7 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
     all_shipping_methods: List["ShippingMethodData"]
+    tax_configuration: "TaxConfiguration"
     valid_pick_up_points: List["Warehouse"]
     voucher: Optional["Voucher"] = None
 
@@ -219,10 +222,12 @@ def fetch_checkout_lines(
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
-    select_related_fields = ["variant__product__product_type"]
+    select_related_fields = ["variant__product__product_type__tax_class"]
     prefetch_related_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
+        "variant__product__product_type__tax_class__country_rates",
+        "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
     ]
     if prefetch_variant_attributes:
@@ -262,6 +267,7 @@ def fetch_checkout_lines(
                         product=product,
                         product_type=product_type,
                         collections=collections,
+                        tax_class=product.tax_class or product_type.tax_class,
                     )
                 )
             continue
@@ -274,6 +280,7 @@ def fetch_checkout_lines(
                 product=product,
                 product_type=product_type,
                 collections=collections,
+                tax_class=product.tax_class or product_type.tax_class,
             )
         )
 
@@ -394,6 +401,7 @@ def fetch_checkout_info(
     from .utils import get_voucher_for_checkout
 
     channel = checkout.channel
+    tax_configuration = channel.tax_configuration
     shipping_address = checkout.shipping_address
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
@@ -407,6 +415,7 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
+        tax_configuration=tax_configuration,
         all_shipping_methods=[],
         valid_pick_up_points=[],
         voucher=voucher,

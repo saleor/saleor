@@ -23,7 +23,6 @@ from . import (
 GATEWAY_NAME = "Authorize.Net"
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...interface import CustomerSource
     from ..models import PluginConfiguration
     from . import GatewayResponse, PaymentData
@@ -62,7 +61,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         },
         "use_sandbox": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should use Authorize.Net sandbox environment.",
+            "help_text": (
+                "Determines if Saleor should use Authorize.Net sandbox environment."
+            ),
             "label": "Use sandbox",
         },
         "store_customers_card": {

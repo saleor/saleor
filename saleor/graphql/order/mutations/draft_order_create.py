@@ -18,6 +18,7 @@ from ....order.utils import (
     create_order_line,
     invalidate_order_prices,
     recalculate_order_weight,
+    update_order_display_gross_prices,
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -30,7 +31,6 @@ from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
-from ...site.dataloaders import load_site
 from ..types import Order
 from ..utils import (
     OrderLineData,
@@ -116,7 +116,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
         manager = load_plugin_manager(info.context)
-        site = load_site(info.context)
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
@@ -145,8 +144,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
-        display_gross_prices = site.settings.display_gross_prices
-        cleaned_input["display_gross_prices"] = display_gross_prices
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address, manager
@@ -285,7 +282,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.shipping_method_name = shipping_method.name
 
     @staticmethod
-    def _save_lines(info, instance, lines_data, app, site, manager):
+    def _save_lines(info, instance, lines_data, app, manager):
         if lines_data:
             lines = []
             for line_data in lines_data:
@@ -293,7 +290,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     instance,
                     line_data,
                     manager,
-                    site.settings,
                 )
                 lines.append(new_line)
 
@@ -309,6 +305,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app):
         if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
+            tax_class = shipping_method.tax_class
+            if tax_class:
+                instance.shipping_tax_class = tax_class
+                instance.shipping_tax_class_name = tax_class.name
+                instance.shipping_tax_class_private_metadata = tax_class.metadata
+                instance.shipping_tax_class_metadata = tax_class.private_metadata
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
@@ -330,20 +332,18 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance, cleaned_input):
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
-        site = load_site(info.context)
         return cls._save_draft_order(
             info,
             instance,
             cleaned_input,
             is_new_instance=True,
             app=app,
-            site=site,
             manager=manager,
         )
 
     @classmethod
     def _save_draft_order(
-        cls, info, instance, cleaned_input, *, is_new_instance, app, site, manager
+        cls, info, instance, cleaned_input, *, is_new_instance, app, manager
     ):
         with traced_atomic_transaction():
             # Process addresses
@@ -358,13 +358,15 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             try:
                 # Process any lines to add
                 cls._save_lines(
-                    info, instance, cleaned_input.get("lines_data"), app, site, manager
+                    info, instance, cleaned_input.get("lines_data"), app, manager
                 )
             except TaxError as tax_error:
                 raise ValidationError(
                     f"Unable to calculate taxes - {str(tax_error)}",
                     code=OrderErrorCode.TAX_ERROR.value,
                 )
+
+            update_order_display_gross_prices(instance)
 
             if is_new_instance:
                 cls.call_event(manager.draft_order_created, instance)
@@ -373,7 +375,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 cls.call_event(manager.draft_order_updated, instance)
 
             # Post-process the results
-            updated_fields = ["weight", "search_vector", "updated_at"]
+            updated_fields = [
+                "weight",
+                "search_vector",
+                "updated_at",
+                "display_gross_prices",
+            ]
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
                 updated_fields.append("should_refresh_prices")

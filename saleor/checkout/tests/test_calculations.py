@@ -10,11 +10,13 @@ from prices import Money, TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
+from ...tax import TaxCalculationStrategy
+from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..base_calculations import (
     base_checkout_delivery_price,
     calculate_base_line_total_price,
 )
-from ..calculations import _apply_tax_data_from_app, fetch_checkout_prices_if_expired
+from ..calculations import _apply_tax_data, fetch_checkout_prices_if_expired
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
 
@@ -51,7 +53,7 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
     lines = checkout_lines
 
     # when
-    _apply_tax_data_from_app(
+    _apply_tax_data(
         checkout,
         [
             Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)
@@ -121,7 +123,7 @@ def get_taxed_money(
 
 
 @freeze_time("2020-12-12 12:00:00")
-@patch("saleor.checkout.calculations._apply_tax_data_from_app")
+@patch("saleor.checkout.calculations._apply_tax_data")
 def test_fetch_checkout_prices_if_expired_plugins(
     _mocked_from_app,
     plugins_manager,
@@ -179,6 +181,46 @@ def test_fetch_checkout_prices_if_expired_plugins(
     assert checkout_with_items.total == subtotal + shipping_price
 
 
+@patch(
+    "saleor.checkout.calculations.update_checkout_prices_with_flat_rates",
+    wraps=update_checkout_prices_with_flat_rates,
+)
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_fetch_checkout_prices_if_expired_flat_rates(
+    mocked_update_checkout_prices_with_flat_rates,
+    checkout_with_items_and_shipping,
+    fetch_kwargs,
+    prices_entered_with_tax,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = prices_entered_with_tax
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    country_code = checkout.shipping_address.country.code
+    for line in checkout.lines.all():
+        line.variant.product.tax_class.country_rates.update_or_create(
+            country=country_code, rate=23
+        )
+
+    checkout.shipping_method.tax_class.country_rates.update_or_create(
+        country=country_code, rate=23
+    )
+
+    # when
+    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    checkout.refresh_from_db()
+    line = checkout.lines.first()
+
+    # then
+    mocked_update_checkout_prices_with_flat_rates.assert_called_once()
+    assert line.tax_rate == Decimal("0.2300")
+    assert checkout.shipping_tax_rate == Decimal("0.2300")
+
+
 @freeze_time("2020-12-12 12:00:00")
 def test_fetch_checkout_prices_if_expired_webhooks_success(
     plugins_manager,
@@ -208,7 +250,7 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
-    checkout_with_items_and_shipping, settings, site_settings
+    checkout_with_items_and_shipping, settings
 ):
     """Test tax exemption when taxes are included in prices.
 
@@ -230,6 +272,10 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
     checkout.tax_exemption = True
     checkout.save(update_fields=["price_expiration", "tax_exemption"])
 
+    tc = checkout.channel.tax_configuration
+    tc.prices_entered_with_tax = True
+    tc.save(update_fields=["prices_entered_with_tax"])
+
     currency = checkout.currency
 
     discounts = []
@@ -239,7 +285,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
         "checkout_info": fetch_checkout_info(checkout, lines_info, discounts, manager),
         "manager": manager,
         "lines": lines_info,
-        "site_settings": site_settings,
         "address": checkout.shipping_address or checkout.billing_address,
         "discounts": discounts,
     }
@@ -271,7 +316,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_prices(
-    checkout_with_items_and_shipping, settings, site_settings
+    checkout_with_items_and_shipping, settings
 ):
     """Test tax exemption when taxes are not included in prices.
 
@@ -286,8 +331,11 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
     checkout.price_expiration = timezone.now()
     checkout.tax_exemption = True
     checkout.save(update_fields=["price_expiration", "tax_exemption"])
-    site_settings.include_taxes_in_prices = False
-    site_settings.save(update_fields=["include_taxes_in_prices"])
+
+    tc = checkout.channel.tax_configuration
+    tc.prices_entered_with_tax = False
+    tc.save(update_fields=["prices_entered_with_tax"])
+
     currency = checkout.currency
 
     discounts = []
@@ -297,7 +345,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
         "checkout_info": checkout_info,
         "manager": manager,
         "lines": lines_info,
-        "site_settings": site_settings,
         "address": checkout.shipping_address or checkout.billing_address,
         "discounts": discounts,
     }

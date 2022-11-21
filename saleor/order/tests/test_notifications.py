@@ -286,9 +286,13 @@ def test_get_default_fulfillment_payload(fulfillment, digital_content, site_sett
     payload = get_default_fulfillment_payload(order, fulfillment)
 
     # make sure that test will not fail because of the list order
-    payload["order"]["lines"] = sorted(payload["order"]["lines"], key=lambda l: l["id"])
-    payload["physical_lines"] = sorted(payload["physical_lines"], key=lambda l: l["id"])
-    order_payload["lines"] = sorted(order_payload["lines"], key=lambda l: l["id"])
+    payload["order"]["lines"] = sorted(
+        payload["order"]["lines"], key=lambda line: line["id"]
+    )
+    payload["physical_lines"] = sorted(
+        payload["physical_lines"], key=lambda line: line["id"]
+    )
+    order_payload["lines"] = sorted(order_payload["lines"], key=lambda line: line["id"])
 
     digital_line = fulfillment.lines.get(order_line=line.id)
     physical_line = fulfillment.lines.exclude(id=digital_line.id).first()
@@ -395,7 +399,6 @@ def test_send_confirmation_emails_without_addresses_for_payment(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -449,7 +452,6 @@ def test_send_confirmation_emails_without_addresses_for_order(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -666,9 +668,7 @@ def test_get_default_images_payload(product_with_image):
     thumbnail_mock.name = "thumbnail_image.jpg"
 
     media = product_with_image.media.first()
-    thumbnail = Thumbnail.objects.create(
-        product_media=media, image=thumbnail_mock, size=size
-    )
+    Thumbnail.objects.create(product_media=media, image=thumbnail_mock, size=size)
 
     media_id = graphene.Node.to_global_id("ProductMedia", media.id)
 
@@ -677,7 +677,5 @@ def test_get_default_images_payload(product_with_image):
 
     # then
     images_payload = payload["first_image"]["original"]
-    assert images_payload[size] == thumbnail.image.url
     for th_size in THUMBNAIL_SIZES:
-        if th_size != size:
-            assert images_payload[th_size] == f"/thumbnail/{media_id}/{th_size}/"
+        assert images_payload[th_size] == f"/thumbnail/{media_id}/{th_size}/"

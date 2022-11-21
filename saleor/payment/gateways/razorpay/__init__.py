@@ -64,7 +64,7 @@ def get_error_message_from_razorpay_error(exc: BaseException):
 
 
 def clean_razorpay_response(response: Dict):
-    """Convert the Razorpay response to our internal representation for easier processing.
+    """Convert the Razorpay response to our internal representation.
 
     As the Razorpay response payload contains the final amount
     in paisa, we convert the amount to Indian Rupees (by dividing by 100).

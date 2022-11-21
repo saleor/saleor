@@ -538,7 +538,6 @@
       "category": 26,
       "created_at": "2022-05-12T22:07:58.327Z",
       "updated_at": "2022-05-19T09:20:18.453Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -573,7 +572,6 @@
       "category": 28,
       "created_at": "2022-05-13T14:34:39.934Z",
       "updated_at": "2022-05-13T20:11:18.993Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -608,7 +606,6 @@
       "category": 28,
       "created_at": "2022-05-13T20:14:01.299Z",
       "updated_at": "2022-05-13T20:39:54.551Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -643,7 +640,6 @@
       "category": 28,
       "created_at": "2022-05-13T20:44:05.403Z",
       "updated_at": "2022-05-13T20:47:18.902Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -678,7 +674,6 @@
       "category": 28,
       "created_at": "2022-05-13T20:50:54.123Z",
       "updated_at": "2022-05-13T21:15:21.592Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -701,7 +696,6 @@
       "category": 29,
       "created_at": "2022-05-13T21:07:45.009Z",
       "updated_at": "2022-05-13T21:10:33.993Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -724,7 +718,6 @@
       "category": 29,
       "created_at": "2022-05-13T21:11:28.525Z",
       "updated_at": "2022-05-16T16:40:43.118Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -747,7 +740,6 @@
       "category": 29,
       "created_at": "2022-05-13T21:13:28.944Z",
       "updated_at": "2022-05-13T21:14:28.328Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -782,7 +774,6 @@
       "category": 39,
       "created_at": "2022-05-13T21:20:59.727Z",
       "updated_at": "2022-05-15T09:38:17.179Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -817,7 +808,6 @@
       "category": 39,
       "created_at": "2022-05-13T21:29:38.009Z",
       "updated_at": "2022-05-14T21:37:02.094Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -852,7 +842,6 @@
       "category": 40,
       "created_at": "2022-05-13T21:37:35.753Z",
       "updated_at": "2022-05-14T21:36:42.372Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -887,7 +876,6 @@
       "category": 39,
       "created_at": "2022-05-13T21:41:46.295Z",
       "updated_at": "2022-05-14T21:36:18.923Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -922,7 +910,6 @@
       "category": 39,
       "created_at": "2022-05-13T21:44:02.972Z",
       "updated_at": "2022-05-14T21:36:31.780Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -945,7 +932,6 @@
       "category": 35,
       "created_at": "2022-05-13T23:50:16.297Z",
       "updated_at": "2022-05-14T21:33:36.545Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -968,7 +954,6 @@
       "category": 36,
       "created_at": "2022-05-14T21:10:01.383Z",
       "updated_at": "2022-05-14T21:33:04.263Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -991,7 +976,6 @@
       "category": 37,
       "created_at": "2022-05-14T21:24:57.725Z",
       "updated_at": "2022-05-14T21:25:09.229Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1024,7 +1008,6 @@
       "category": 26,
       "created_at": "2022-05-14T21:53:34.556Z",
       "updated_at": "2022-05-19T09:15:38.806Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1057,7 +1040,6 @@
       "category": 26,
       "created_at": "2022-05-15T09:03:06.009Z",
       "updated_at": "2022-05-19T09:19:50.290Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1092,7 +1074,6 @@
       "category": 26,
       "created_at": "2022-05-15T09:10:17.077Z",
       "updated_at": "2022-05-19T09:22:29.677Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1127,7 +1108,6 @@
       "category": 41,
       "created_at": "2022-05-15T09:28:13.067Z",
       "updated_at": "2022-05-15T09:28:13.368Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1162,7 +1142,6 @@
       "category": 41,
       "created_at": "2022-05-15T09:32:27.163Z",
       "updated_at": "2022-05-16T16:38:35.766Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1197,7 +1176,6 @@
       "category": 43,
       "created_at": "2022-05-16T16:19:50.880Z",
       "updated_at": "2022-05-18T12:21:40.815Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1232,7 +1210,6 @@
       "category": 43,
       "created_at": "2022-05-16T16:25:11.442Z",
       "updated_at": "2022-05-16T16:25:11.768Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1267,7 +1244,6 @@
       "category": 43,
       "created_at": "2022-05-16T16:27:16.648Z",
       "updated_at": "2022-05-16T16:27:16.933Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1302,7 +1278,6 @@
       "category": 43,
       "created_at": "2022-05-16T16:28:14.885Z",
       "updated_at": "2022-05-17T12:36:31.471Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1325,7 +1300,6 @@
       "category": 37,
       "created_at": "2022-05-17T11:44:16.884Z",
       "updated_at": "2022-05-17T11:44:17.205Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1360,7 +1334,6 @@
       "category": 39,
       "created_at": "2022-05-17T11:48:18.537Z",
       "updated_at": "2022-05-17T11:50:42.152Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1393,7 +1366,6 @@
       "category": 44,
       "created_at": "2022-05-17T11:57:19.204Z",
       "updated_at": "2022-05-18T19:30:32.578Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1428,7 +1400,6 @@
       "category": 39,
       "created_at": "2022-05-17T12:02:44.850Z",
       "updated_at": "2022-05-18T12:21:19.661Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1463,7 +1434,6 @@
       "category": 41,
       "created_at": "2022-05-18T12:06:53.986Z",
       "updated_at": "2022-05-18T12:07:49.831Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1486,7 +1456,6 @@
       "category": 44,
       "created_at": "2022-05-18T19:29:35.052Z",
       "updated_at": "2022-05-18T19:29:47.127Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
@@ -1509,7 +1478,6 @@
       "category": 44,
       "created_at": "2022-05-18T19:31:14.463Z",
       "updated_at": "2022-05-18T19:31:14.751Z",
-      "charge_taxes": false,
       "weight": null,
       "rating": 0.0
     }
