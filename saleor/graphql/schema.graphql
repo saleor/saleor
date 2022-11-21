@@ -8380,7 +8380,7 @@ input PageFilterInput {
   search: String
   metadata: [MetadataFilter!]
   pageTypes: [ID!]
-  ids: [ID!]
+  ids: [ID]
 }
 
 type PageTypeCountableConnection {
@@ -11282,7 +11282,7 @@ type Mutation {
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
-    lines: [CheckoutLineInput!]!
+    lines: [CheckoutLineInput]!
 
     """Checkout token."""
     token: UUID
