@@ -31,10 +31,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
   <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
-- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
 - Add exif image validation - #11224 by @IKarbowiak
 
-...
 
 # 3.8.0
 
