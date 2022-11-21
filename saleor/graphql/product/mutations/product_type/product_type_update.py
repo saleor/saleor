@@ -1,10 +1,10 @@
 import graphene
 
-from ....core.permissions import ProductTypePermissions
-from ....product import models
-from ....product.tasks import update_variants_names
-from ...core.types import ProductError
-from ..types import ProductType
+from .....core.permissions import ProductTypePermissions
+from .....product import models
+from .....product.tasks import update_variants_names
+from ....core.types import ProductError
+from ...types import ProductType
 from .product_type_create import ProductTypeCreate, ProductTypeInput
 
 
