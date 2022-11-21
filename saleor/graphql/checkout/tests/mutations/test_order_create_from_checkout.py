@@ -224,9 +224,12 @@ def test_order_from_checkout_with_metadata(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
     checkout.save()
+    checkout.metadata_storage.save()
 
     metadata_key = "md key"
     metadata_value = "md value"
@@ -266,9 +269,12 @@ def test_order_from_checkout_with_metadata(
     assert not order.original
     assert str(order.pk) == order_token
     assert order.total.gross == total.gross
-    assert order.metadata == {**checkout.metadata, **{metadata_key: metadata_value}}
+    assert order.metadata == {
+        **checkout.metadata_storage.metadata,
+        **{metadata_key: metadata_value},
+    }
     assert order.private_metadata == {
-        **checkout.private_metadata,
+        **checkout.metadata_storage.private_metadata,
         **{metadata_key: metadata_value},
     }
     order_confirmed_mock.assert_called_once_with(order)

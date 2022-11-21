@@ -357,7 +357,7 @@ def test_checkout_complete_with_metadata(
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
     )
-    checkout.metadata_sotrage.save()
+    checkout.metadata_storage.save()
     checkout.save()
 
     manager = get_plugins_manager()
@@ -400,8 +400,11 @@ def test_checkout_complete_with_metadata(
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
 
-    assert order.metadata == {**checkout.metadata, **{metadata_key: metadata_value}}
-    assert order.private_metadata == checkout.private_metadata
+    assert order.metadata == {
+        **checkout.metadata_storage.metadata,
+        **{metadata_key: metadata_value},
+    }
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -427,10 +430,11 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={meta_key: "oldValue"})
+    checkout.metadata_storage.store_value_in_metadata(items={meta_key: "oldValue"})
     checkout.save()
+    checkout.metadata_storage.save()
 
-    assert checkout.metadata[meta_key] != new_meta_value
+    assert checkout.metadata_storage.metadata[meta_key] != new_meta_value
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
@@ -3394,8 +3398,10 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
     checkout.save()
 
     manager = get_plugins_manager()
