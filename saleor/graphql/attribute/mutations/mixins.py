@@ -5,7 +5,7 @@ from text_unidecode import unidecode
 from ....attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ...core.utils import validate_slug_and_generate_if_needed
+from ...core.validators import validate_slug_and_generate_if_needed
 
 
 class AttributeMixin:
