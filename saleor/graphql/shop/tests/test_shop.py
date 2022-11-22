@@ -1611,6 +1611,25 @@ def test_version_query_as_staff_user(staff_api_client):
     assert content["data"]["shop"]["version"] == __version__
 
 
+def test_schema_version_query(api_client):
+    # given
+    query = """
+        query {
+            shop {
+                schemaVersion
+            }
+        }
+    """
+
+    # when
+    response = api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["shop"]["schemaVersion"] in __version__
+    assert content["data"]["shop"]["schemaVersion"] != __version__
+
+
 def test_cannot_get_shop_limit_info_when_not_staff(user_api_client):
     query = LIMIT_INFO_QUERY
     response = user_api_client.post_graphql(query)
