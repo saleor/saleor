@@ -187,6 +187,34 @@ def test_checkout_create_with_zero_quantity(
     assert error["code"] == CheckoutErrorCode.ZERO_QUANTITY.name
 
 
+def test_checkout_create_quantity_not_provided(
+    api_client, stock, graphql_address_data, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    error = get_graphql_content(response)["data"]["checkoutCreate"]["errors"][0]
+
+    assert error["field"] == "quantity"
+    assert error["code"] == CheckoutErrorCode.REQUIRED.name
+
+
 def test_checkout_create_with_unavailable_variant(
     api_client, stock, graphql_address_data, channel_USD
 ):

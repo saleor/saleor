@@ -96,6 +96,20 @@ def update_checkout_shipping_method_if_invalid(
         clear_delivery_method(checkout_info)
 
 
+def check_lines_quantity_requirement(lines):
+    """Validate if the quantity is provided for each line."""
+    for line in lines:
+        if line.get("quantity") is None:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "The quantity value is required.",
+                        code=CheckoutErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+
 def check_lines_quantity(
     variants,
     quantities,
