@@ -831,3 +831,32 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     error_msg = "Could not resolve to a node with the global id list of '%s'."
     assert data["errors"][0]["message"] == error_msg % [invalid_variant_id]
     assert data["errors"][0]["field"] == "variantId"
+
+
+def test_checkout_lines_add_quantity_not_provided(
+    user_api_client, checkout_with_item, stock
+):
+    # given
+    variant = stock.product_variant
+    checkout = checkout_with_item
+
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 3
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "quantity"
+    assert errors[0]["code"] == CheckoutErrorCode.REQUIRED.name

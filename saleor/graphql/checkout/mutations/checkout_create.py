@@ -27,6 +27,7 @@ from ...product.types import ProductVariant
 from ..types import Checkout
 from .utils import (
     check_lines_quantity,
+    check_lines_quantity_requirement,
     check_permissions_for_custom_prices,
     group_quantity_and_custom_prices_by_variants,
     validate_variants_are_published,
@@ -82,7 +83,9 @@ class CheckoutValidationRules(graphene.InputObjectType):
 
 
 class CheckoutLineInput(graphene.InputObjectType):
-    quantity = graphene.Int(required=True, description="The number of items purchased.")
+    quantity = graphene.Int(
+        required=False, description="The number of items purchased."
+    )
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
     price = PositiveDecimal(
         required=False,
@@ -158,6 +161,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def clean_checkout_lines(
         cls, info, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List["CheckoutLineData"]]:
+        check_lines_quantity_requirement(lines)
         check_permissions_for_custom_prices(info.context.app, lines)
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(

@@ -18,6 +18,7 @@ from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (
     check_lines_quantity,
+    check_lines_quantity_requirement,
     check_permissions_for_custom_prices,
     get_checkout,
     group_quantity_and_custom_prices_by_variants,
@@ -160,6 +161,7 @@ class CheckoutLinesAdd(BaseMutation):
         cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
     ):
         check_permissions_for_custom_prices(info.context.app, lines)
+        cls.check_lines_quantity_requirement(lines)
 
         checkout = get_checkout(
             cls,
@@ -200,3 +202,11 @@ class CheckoutLinesAdd(BaseMutation):
         )
         manager.checkout_updated(checkout)
         return CheckoutLinesAdd(checkout=checkout)
+
+    @classmethod
+    def check_lines_quantity_requirement(cls, lines):
+        """Validate if the quantity is provided for each line.
+
+        The quantity value is required only for `add` mutation.
+        """
+        check_lines_quantity_requirement(lines)

@@ -521,7 +521,7 @@ def test_add_billing_address_to_checkout(
 MUTATION_CHECKOUT_LINES_UPDATE = (
     FRAGMENT_CHECKOUT_LINE
     + """
-        mutation updateCheckoutLine($id: ID, $lines: [CheckoutLineUpdateInput!]!){
+        mutation updateCheckoutLine($id: ID, $lines: [CheckoutLineInput!]!){
           checkoutLinesUpdate(id: $id, lines: $lines) {
             checkout {
               id

@@ -19,7 +19,7 @@ from ...mutations.utils import update_checkout_shipping_method_if_invalid
 
 MUTATION_CHECKOUT_LINES_UPDATE = """
     mutation checkoutLinesUpdate(
-            $id: ID, $lines: [CheckoutLineUpdateInput!]!) {
+            $id: ID, $lines: [CheckoutLineInput!]!) {
         checkoutLinesUpdate(id: $id, lines: $lines) {
             checkout {
                 id
