@@ -249,6 +249,7 @@ class WebhookDelete(ModelDeleteMutation):
         object_id = cls.get_global_id_or_error(node_id)
 
         app = get_app_promise(info.context).get()
+        webhook = None
         if app:
             if not app.is_active:
                 raise ValidationError(
@@ -257,18 +258,20 @@ class WebhookDelete(ModelDeleteMutation):
                 )
             try:
                 webhook = app.webhooks.get(id=object_id)
-                webhook.is_active = False
-                webhook.save(update_fields=["is_active"])
             except models.Webhook.DoesNotExist:
                 raise ValidationError(
                     f"Couldn't resolve to a node: {node_id}",
                     code=WebhookErrorCode.GRAPHQL_ERROR,
                 )
         try:
+            webhook = webhook or models.Webhook.objects.get(object_id)
+            webhook.is_active = False
+            webhook.save(update_fields=["is_active"])
             response = super().perform_mutation(_root, info, **data)
         except IntegrityError:
             raise ValidationError(
-                "Webhook couldn't be deleted at this time.",
+                "Webhook couldn't be deleted at this time due to running task."
+                "Webhook deactivated. Try deleting Webhook later",
                 code=WebhookErrorCode.GRAPHQL_ERROR,
             )
         return response
