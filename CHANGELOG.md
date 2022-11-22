@@ -42,6 +42,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve checkout total base calculations - #10048 by @IKarbowiak
 - Improve click & collect and stock allocation - #10043 by @IKarbowiak
 - New event for starting and ending sales - #10110 by @IKarbowiak
+### GraphQL API
+
+- Allow skipping address validation for checkout mutations (#10084) (7de33b145)
+- Add `OrderFilter.numbers` filter - #9967 by @SzymJ
+- Expose manifest in the `App` type (#10055) (f0f944066)
+- Deprecate `configurationUrl` and `dataPrivacy` fields in apps (#10046) (68bd7c8a2)
+- Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
+
+### Saleor Apps
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
