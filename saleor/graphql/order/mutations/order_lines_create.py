@@ -22,7 +22,6 @@ from ...core.types import NonNullList, OrderError
 from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import load_plugin_manager
 from ...product.types import ProductVariant
-from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
 from ..utils import (
     OrderLineData,
@@ -122,7 +121,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_data, user, app, manager, settings, discounts):
+    def add_lines_to_order(order, lines_data, user, app, manager, discounts):
         added_lines: List[OrderLine] = []
         try:
             for line_data in lines_data:
@@ -132,7 +131,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
-                    settings,
                     discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
@@ -155,7 +153,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls.validate_variants(order, variants)
         app = load_app(info.context)
         manager = load_plugin_manager(info.context)
-        site = load_site(info.context)
         discounts = load_discounts(info.context)
         with traced_atomic_transaction():
             added_lines = cls.add_lines_to_order(
@@ -164,7 +161,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 info.context.user,
                 app,
                 manager,
-                site.settings,
                 discounts,
             )
 

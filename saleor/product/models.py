@@ -1,5 +1,5 @@
 import datetime
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
@@ -50,20 +50,17 @@ from ..core.permissions import (
 )
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
-from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from decimal import Decimal
-
-    from django.db.models import OrderBy
 
     from ..account.models import User
     from ..app.models import App
@@ -156,6 +153,13 @@ class ProductType(ModelWithMetadata):
         measurement=Weight,
         unit_choices=WeightUnits.CHOICES,  # type: ignore
         default=zero_weight,
+    )
+    tax_class = models.ForeignKey(
+        TaxClass,
+        related_name="product_types",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
     )
 
     class Meta(ModelWithMetadata.Meta):
@@ -422,6 +426,13 @@ class Product(SeoModel, ModelWithMetadata):
         related_name="+",
     )
     rating = models.FloatField(null=True, blank=True)
+    tax_class = models.ForeignKey(
+        TaxClass,
+        related_name="products",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
     objects = models.Manager.from_queryset(ProductsQueryset)()
     translated = TranslationProxy()

@@ -1225,7 +1225,7 @@ def test_me_checkout_tokens_without_channel_param_inactive_channel(
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert str(checkouts[0].token) in data["checkoutTokens"]
-    assert not str(checkouts[1].token) in data["checkoutTokens"]
+    assert str(checkouts[1].token) not in data["checkoutTokens"]
 
 
 def test_me_checkout_tokens_with_channel(
@@ -1243,7 +1243,7 @@ def test_me_checkout_tokens_with_channel(
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert str(checkouts[0].token) in data["checkoutTokens"]
-    assert not str(checkouts[1].token) in data["checkoutTokens"]
+    assert str(checkouts[1].token) not in data["checkoutTokens"]
 
 
 def test_me_checkout_tokens_with_inactive_channel(

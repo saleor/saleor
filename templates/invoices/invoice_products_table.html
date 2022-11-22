@@ -27,13 +27,13 @@
                 </span>
             </td>
             <td class="cell-price">
-                <span class="normal-text-table cell-price-content">{% price product.unit_price.gross %}</span>
+                <span class="normal-text-table cell-price-content">{% price product.unit_price.gross display_gross=order.display_gross_prices %}</span>
             </td>
             <td class="cell-quantity">
                 <span class="normal-text-table cell-quantity-content">{{ product.quantity }}</span>
             </td>
             <td class="cell-total-price">
-                <span class="normal-text-table">{% price product.total_price.gross %}</span>
+                <span class="normal-text-table">{% price product.total_price.gross display_gross=order.display_gross_prices %}</span>
             </td>
         </tr>
         {% endfor %}

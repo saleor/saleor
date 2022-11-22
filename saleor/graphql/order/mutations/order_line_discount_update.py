@@ -8,8 +8,6 @@ from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -59,10 +57,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-        manager = load_plugin_manager(info.context)
-        site = load_site(info.context)
         order_line_before_update = copy.deepcopy(order_line)
-        tax_included = site.settings.include_taxes_in_prices
         app = load_app(info.context)
         with traced_atomic_transaction():
             update_discount_for_order_line(
@@ -71,8 +66,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
                 reason=reason,
                 value_type=value_type,
                 value=value,
-                manager=manager,
-                tax_included=tax_included,
             )
             if (
                 order_line_before_update.unit_discount_value != value

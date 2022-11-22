@@ -17,7 +17,6 @@ from . import (
 GATEWAY_NAME = "Braintree"
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ...interface import CustomerSource
     from . import GatewayResponse, PaymentData, TokenConfig
 
@@ -78,7 +77,9 @@ class BraintreeGatewayPlugin(BasePlugin):
         },
         "Require 3D secure": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should enforce 3D Secure during payment.",
+            "help_text": (
+                "Determines if Saleor should enforce 3D Secure during payment."
+            ),
             "label": "Require 3D Secure",
         },
         "Supported currencies": {

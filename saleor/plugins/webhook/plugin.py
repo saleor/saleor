@@ -89,6 +89,7 @@ if TYPE_CHECKING:
     )
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
+    from ...tax.models import TaxClass
     from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
 
@@ -1528,7 +1529,7 @@ class WebhookPlugin(BasePlugin):
         return methods
 
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"], previous_value: Any
+        self, obj: Union["Product", "ProductType", "TaxClass"], previous_value: Any
     ):
         """Get tax code and description for a product or product type.
 

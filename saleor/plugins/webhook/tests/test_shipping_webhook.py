@@ -407,9 +407,11 @@ def test_order_available_shipping_methods(
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    mocked_webhook.side_effect = lambda *args, **kwargs: webhook_response(
-        order_with_lines.shipping_method
-    )
+
+    def respond(*args, **kwargs):
+        return webhook_response(order_with_lines.shipping_method)
+
+    mocked_webhook.side_effect = respond
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     # when
     response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
