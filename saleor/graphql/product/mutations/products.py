@@ -48,17 +48,15 @@ from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import CollectionError, NonNullList, ProductError, SeoInput, Upload
-from ...core.utils import (
-    add_hash_to_file_name,
-    clean_seo_fields,
-    get_duplicated_values,
+from ...core.utils import get_duplicated_values
+from ...core.utils.reordering import perform_reordering
+from ...core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...core.validators.file import (
+    clean_image_file,
     get_filename_from_url,
     is_image_url,
-    validate_image_file,
     validate_image_url,
-    validate_slug_and_generate_if_needed,
 )
-from ...core.utils.reordering import perform_reordering
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductMedia, ProductVariant
 from ..utils import (
@@ -122,9 +120,7 @@ class CategoryCreate(ModelMutation):
             )
             cleaned_input["parent"] = parent
         if data.get("background_image"):
-            image_data = info.context.FILES.get(data["background_image"])
-            validate_image_file(image_data, "background_image", ProductErrorCode)
-            add_hash_to_file_name(image_data)
+            clean_image_file(cleaned_input, "background_image", ProductErrorCode)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -242,9 +238,7 @@ class CollectionCreate(ModelMutation):
             error.code = CollectionErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
         if data.get("background_image"):
-            image_data = info.context.FILES.get(data["background_image"])
-            validate_image_file(image_data, "background_image", CollectionErrorCode)
-            add_hash_to_file_name(image_data)
+            clean_image_file(cleaned_input, "background_image", ProductErrorCode)
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
@@ -1303,12 +1297,10 @@ class ProductMediaCreate(BaseMutation):
         )
 
         alt = data.get("alt", "")
-        image = data.get("image")
         media_url = data.get("media_url")
-        if image:
-            image_data = info.context.FILES.get(image)
-            validate_image_file(image_data, "image", ProductErrorCode)
-            add_hash_to_file_name(image_data)
+        if img_data := data.get("image"):
+            data["image"] = info.context.FILES.get(img_data)
+            image_data = clean_image_file(data, "image", ProductErrorCode)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
