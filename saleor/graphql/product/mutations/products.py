@@ -237,7 +237,7 @@ class CollectionCreate(ModelMutation):
             error.code = CollectionErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
         if data.get("background_image"):
-            clean_image_file(cleaned_input, "background_image", ProductErrorCode)
+            clean_image_file(cleaned_input, "background_image", CollectionErrorCode)
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
