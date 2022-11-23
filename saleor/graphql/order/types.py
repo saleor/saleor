@@ -89,7 +89,7 @@ from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import load_plugin_manager, plugin_manager_promise_callback
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -1229,9 +1229,8 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total(root: models.Order, info):
-        manager = load_plugin_manager(info.context)
-
+    @plugin_manager_promise_callback
+    def resolve_total(root: models.Order, info, manager):
         def _resolve_total(lines):
             return calculations.order_total(root, manager, lines)
 
