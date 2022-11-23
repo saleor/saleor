@@ -106,9 +106,13 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email).first()
-        if user and user.check_password(password):
-            return user
+        users = models.User.objects.filter(email__iexact=email).all()
+
+        if len(users) > 1:
+            users = [user for user in users if user.email == email]  # type: ignore
+
+        if users and users[0].check_password(password):
+            return users[0]
         return None
 
     @classmethod

@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta, timezone
+from typing import List
 
 import graphene
+import pytest
 from django.urls import reverse
 from freezegun import freeze_time
 
 from .....account.error_codes import AccountErrorCode
+from .....account.models import User
 from .....core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TYPE,
@@ -13,7 +16,7 @@ from .....core.jwt import (
 )
 from .....core.utils import build_absolute_uri
 from ....tests.utils import get_graphql_content
-from ...mutations.authentication import _get_new_csrf_token
+from ...mutations.authentication import CreateToken, _get_new_csrf_token
 
 MUTATION_CREATE_TOKEN = """
     mutation tokenCreate($email: String!, $password: String!, $audience: String){
@@ -221,3 +224,34 @@ def test_create_token_active_user_logged_before(api_client, customer_user, setti
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["iss"] == build_absolute_uri(reverse("api"))
+
+
+@pytest.fixture
+def users_with_similar_emails():
+    users = [
+        User.objects.create_user("andrew@example.com", "password"),
+        User.objects.create_user("Andrew@example.com", "password"),
+        User.objects.create_user("andrew2@example.com", "password"),
+    ]
+    return users
+
+
+@freeze_time("2020-03-18 12:00:00")
+@pytest.mark.parametrize(
+    "email,expected_user",
+    [
+        ("andrew@example.com", 0),
+        ("Andrew@example.com", 1),
+        ("ANDREW@example.com", None),
+        ("andrew2@example.com", 2),
+        ("ANDREW2@example.com", 2),
+        ("non_existing_email@example.com", None),
+    ],
+)
+def test_email_case_sensitivity(email, expected_user, users_with_similar_emails):
+    # given
+    users: List[User] = users_with_similar_emails
+    # when
+    user = CreateToken._retrieve_user_from_credentials(email=email, password="password")
+    # then
+    assert user == users[expected_user] if expected_user is not None else user is None

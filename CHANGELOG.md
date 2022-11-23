@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
 - Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
 ...
+- Make email authentication case insensitive. #11284 by @zedzior
 
 # 3.8.0
 
