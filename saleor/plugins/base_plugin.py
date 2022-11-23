@@ -1018,7 +1018,7 @@ class BasePlugin:
             cls.CONFIG_STRUCTURE if cls.CONFIG_STRUCTURE is not None else {}
         )
         configuration_to_update_dict = {
-            c_field["name"]: c_field["value"] for c_field in configuration_to_update
+            c_field["name"]: c_field.get("value") for c_field in configuration_to_update
         }
         for config_item in current_config:
             new_value = configuration_to_update_dict.get(config_item["name"])
