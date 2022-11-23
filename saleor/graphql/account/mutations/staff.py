@@ -26,7 +26,7 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
-from ...core.utils import add_hash_to_file_name, validate_image_file
+from ...core.validators.file import clean_image_file
 from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..utils import (
@@ -647,11 +647,10 @@ class UserAvatarUpdate(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, image):
+    def perform_mutation(cls, _root, info, **data):
         user = info.context.user
-        image_data = info.context.FILES.get(image)
-        validate_image_file(image_data, "image", AccountErrorCode)
-        add_hash_to_file_name(image_data)
+        data["image"] = info.context.FILES.get(data["image"])
+        image_data = clean_image_file(data, "image", AccountErrorCode)
         if user.avatar:
             user.avatar.delete()
             thumbnail_models.Thumbnail.objects.filter(user_id=user.id).delete()

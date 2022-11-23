@@ -25,8 +25,8 @@ from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AttributeError, NonNullList
-from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
+from ..core.validators import validate_slug_and_generate_if_needed
 from ..plugins.dataloaders import load_plugin_manager
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
