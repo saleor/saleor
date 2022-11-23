@@ -2217,6 +2217,7 @@ def test_query_product_media_sorting_default(
     media2 = media[1]["sortOrder"]
     assert media1 <= media2
 
+
 def test_product_attribute_field_filtering(staff_api_client, product, channel_USD):
     # given
     query = """

@@ -309,7 +309,7 @@ class MediaChoicesSortField(graphene.Enum):
     @property
     def description(self):
         descriptions = {
-            MediaChoicesSortField.ID.name: "Sort media by id.",
+            MediaChoicesSortField.ID.name: "Sort media by ID.",
         }
         if self.name in descriptions:
             return descriptions[self.name]

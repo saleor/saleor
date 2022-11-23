@@ -4806,7 +4806,7 @@ type Product implements Node & ObjectWithMetadata {
   """
   Get a single attribute attached to product by attribute slug.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.9.
   """
   attribute(
     """Slug of the attribute"""
@@ -4838,7 +4838,7 @@ type Product implements Node & ObjectWithMetadata {
   """
   Get a single variant by SKU or ID. 
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.9.
   """
   variant(
     """ID of the variant."""
@@ -4858,7 +4858,7 @@ type Product implements Node & ObjectWithMetadata {
     """
     Sort media. 
     
-    Added in Saleor 3.8.
+    Added in Saleor 3.9.
     """
     sortBy: MediaSortingInput
   ): [ProductMedia!]
@@ -6346,7 +6346,7 @@ input MediaSortingInput {
 }
 
 enum MediaChoicesSortField {
-  """Sort media by id."""
+  """Sort media by ID."""
   ID
 }
 

@@ -55,7 +55,6 @@ from ...core.connection import (
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
-    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -873,7 +872,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ),
         description=(
             f"Get a single attribute attached to product by attribute slug."
-            f"{ADDED_IN_38}"
+            f"{ADDED_IN_39}"
         ),
     )
     attributes = NonNullList(
@@ -903,7 +902,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ProductVariant,
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
-        description=f"Get a single variant by SKU or ID. {ADDED_IN_38}",
+        description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
     )
     variants = NonNullList(
         ProductVariant,
@@ -916,7 +915,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     media = NonNullList(
         lambda: ProductMedia,
         sort_by=graphene.Argument(
-            MediaSortingInput, description=f"Sort media. {ADDED_IN_38}"
+            MediaSortingInput, description=f"Sort media. {ADDED_IN_39}"
         ),
         description="List of media for the product.",
     )
