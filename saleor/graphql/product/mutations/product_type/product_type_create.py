@@ -1,17 +1,17 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....attribute import AttributeType
-from ....core.permissions import ProductTypePermissions
-from ....product import ProductTypeKind, models
-from ....product.error_codes import ProductErrorCode
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
-from ...core.mutations import ModelMutation
-from ...core.scalars import WeightScalar
-from ...core.types import NonNullList, ProductError
-from ...core.validators import validate_slug_and_generate_if_needed
-from ..enums import ProductTypeKindEnum
-from ..types import ProductType
+from .....attribute import AttributeType
+from .....core.permissions import ProductTypePermissions
+from .....product import ProductTypeKind, models
+from .....product.error_codes import ProductErrorCode
+from ....core.descriptions import DEPRECATED_IN_3X_INPUT
+from ....core.mutations import ModelMutation
+from ....core.scalars import WeightScalar
+from ....core.types import NonNullList, ProductError
+from ....core.validators import validate_slug_and_generate_if_needed
+from ...enums import ProductTypeKindEnum
+from ...types import ProductType
 
 
 class ProductTypeInput(graphene.InputObjectType):

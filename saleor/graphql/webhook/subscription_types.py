@@ -577,7 +577,7 @@ class ProductBase(AbstractType):
         description="The product the event relates to.",
     )
     category = graphene.Field(
-        "saleor.graphql.product.types.products.Category",
+        "saleor.graphql.product.types.categories.Category",
         description="The category of the product.",
     )
 
@@ -917,7 +917,7 @@ class CustomerMetadataUpdated(ObjectType, UserBase):
 
 class CollectionBase(AbstractType):
     collection = graphene.Field(
-        "saleor.graphql.product.types.products.Collection",
+        "saleor.graphql.product.types.collections.Collection",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),

@@ -1,16 +1,16 @@
 import graphene
 from django.db.models import Q
 
-from ....attribute import AttributeInputType
-from ....attribute import models as attribute_models
-from ....core.permissions import ProductTypePermissions
-from ....core.tracing import traced_atomic_transaction
-from ....order import OrderStatus
-from ....order import models as order_models
-from ....product import models
-from ...core.mutations import ModelDeleteMutation
-from ...core.types import ProductError
-from ..types import ProductType
+from .....attribute import AttributeInputType
+from .....attribute import models as attribute_models
+from .....core.permissions import ProductTypePermissions
+from .....core.tracing import traced_atomic_transaction
+from .....order import OrderStatus
+from .....order import models as order_models
+from .....product import models
+from ....core.mutations import ModelDeleteMutation
+from ....core.types import ProductError
+from ...types import ProductType
 
 
 class ProductTypeDelete(ModelDeleteMutation):

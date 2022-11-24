@@ -42,7 +42,8 @@ from ...core.validators import (
 )
 from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
-from ..types.products import Collection, Product, ProductVariant
+from ..types.collections import Collection
+from ..types.products import Product, ProductVariant
 
 if TYPE_CHECKING:
     from ....channel.models import Channel as ChannelModel

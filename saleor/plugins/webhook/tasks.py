@@ -13,13 +13,16 @@ from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
+from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
+from ...core.utils import build_absolute_uri
 from ...graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
@@ -310,12 +313,13 @@ def send_webhook_using_http(
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-        "X-Saleor-Event": event_type,
-        "X-Saleor-Domain": domain,
-        "X-Saleor-Signature": signature,
-        "Saleor-Event": event_type,
-        "Saleor-Domain": domain,
-        "Saleor-Signature": signature,
+        DeprecatedAppHeaders.EVENT_TYPE: event_type,
+        DeprecatedAppHeaders.DOMAIN: domain,
+        DeprecatedAppHeaders.SIGNATURE: signature,
+        AppHeaders.EVENT_TYPE: event_type,
+        AppHeaders.DOMAIN: domain,
+        AppHeaders.SIGNATURE: signature,
+        AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
     try:
         response = requests.post(
@@ -371,6 +375,10 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
 
     msg_attributes = {
         "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "SaleorApiUrl": {
+            "DataType": "String",
+            "StringValue": build_absolute_uri(reverse("api"), domain),
+        },
         "EventType": {"DataType": "String", "StringValue": event_type},
     }
     if signature:
@@ -408,6 +416,7 @@ def send_webhook_using_google_cloud_pubsub(
                 topic_name,
                 message,
                 saleorDomain=domain,
+                saleorApiUrl=build_absolute_uri(reverse("api"), domain),
                 eventType=event_type,
                 signature=signature,
             )
