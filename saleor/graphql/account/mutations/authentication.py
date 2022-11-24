@@ -109,7 +109,9 @@ class CreateToken(BaseMutation):
         users = models.User.objects.filter(email__iexact=email).all()
 
         if len(users) > 1:
-            users = [user for user in users if user.email == email]  # type: ignore
+            users_exact = [user for user in users if user.email == email]
+            users_iexact = [user for user in users if user.email == email.lower()]
+            users = users_exact or users_iexact  # type: ignore
 
         if users and users[0].check_password(password):
             return users[0]

@@ -231,7 +231,10 @@ def users_with_similar_emails():
     users = [
         User.objects.create_user("andrew@example.com", "password"),
         User.objects.create_user("Andrew@example.com", "password"),
-        User.objects.create_user("andrew2@example.com", "password"),
+        User.objects.create_user("john@example.com", "password"),
+        User.objects.create_user("Susan@example.com", "password"),
+        User.objects.create_user("Cindy@example.com", "password"),
+        User.objects.create_user("CINDY@example.com", "password"),
     ]
     return users
 
@@ -242,9 +245,14 @@ def users_with_similar_emails():
     [
         ("andrew@example.com", 0),
         ("Andrew@example.com", 1),
-        ("ANDREW@example.com", None),
-        ("andrew2@example.com", 2),
-        ("ANDREW2@example.com", 2),
+        ("ANDREW@example.com", 0),
+        ("john@example.com", 2),
+        ("John@example.com", 2),
+        ("Susan@example.com", 3),
+        ("susan@example.com", 3),
+        ("Cindy@example.com", 4),
+        ("cindy@example.com", None),
+        ("CiNdY@example.com", None),
         ("non_existing_email@example.com", None),
     ],
 )
