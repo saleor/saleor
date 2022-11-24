@@ -1972,6 +1972,18 @@ def test_query_product_media_for_federation(
     ]
 
 
+QUERY_PRODUCT_WITH_VARIANT = """
+    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
+        product(id: $id, channel: $channel){
+           variant(id: $variant_id, sku: $sku){
+            id
+            sku
+           }
+        }
+    }
+    """
+
+
 @pytest.mark.parametrize(
     "variant_id, sku, result",
     ((False, "123", "123"), (True, None, "123")),
@@ -1985,16 +1997,6 @@ def test_product_variant_field_filtering(
     channel_USD,
 ):
     # given
-    query = """
-    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
-        product(id: $id, channel: $channel){
-           variant(id: $variant_id, sku: $sku){
-            id
-            sku
-           }
-        }
-    }
-    """
     variant = product.variants.first()
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -2008,7 +2010,10 @@ def test_product_variant_field_filtering(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2021,16 +2026,6 @@ def test_product_variant_field_filtering_null_response(
     channel_USD,
 ):
     # given
-    query = """
-    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
-        product(id: $id, channel: $channel){
-           variant(id: $variant_id, sku: $sku){
-            id
-            sku
-           }
-        }
-    }
-    """
     sku = "not_existing"
     variant_id = None
 
@@ -2042,7 +2037,10 @@ def test_product_variant_field_filtering_null_response(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2055,16 +2053,6 @@ def test_product_variant_field_filtering_argument_required_error(
     channel_USD,
 ):
     # given
-    query = """
-    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
-        product(id: $id, channel: $channel){
-           variant(id: $variant_id, sku: $sku){
-            id
-            sku
-           }
-        }
-    }
-    """
     sku = None
     variant_id = None
 
@@ -2076,7 +2064,10 @@ def test_product_variant_field_filtering_argument_required_error(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
@@ -2090,16 +2081,6 @@ def test_product_variant_field_filtering_argument_cannot_be_combined_error(
     channel_USD,
 ):
     # given
-    query = """
-    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
-        product(id: $id, channel: $channel){
-           variant(id: $variant_id, sku: $sku){
-            id
-            sku
-           }
-        }
-    }
-    """
     sku = "123"
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -2112,12 +2093,27 @@ def test_product_variant_field_filtering_argument_cannot_be_combined_error(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
     error_message = "Argument 'id' cannot be combined"
     assert error_message in content["errors"][0]["message"]
+
+
+QUERY_PRODUCT_WITH_SORTED_MEDIA = """
+        query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
+            product(id: $id, channel: $channel){
+                media(sortBy: $sort_by){
+                    id
+                    sortOrder
+                }
+            }
+        }
+    """
 
 
 def test_query_product_media_sorting_asc(
@@ -2126,16 +2122,6 @@ def test_query_product_media_sorting_asc(
     channel_USD,
 ):
     # given
-    query = """
-        query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
-            product(id: $id, channel: $channel){
-                media(sortBy: $sort_by){
-                    id
-                }
-            }
-        }
-    """
-
     sort_by = {"field": "ID", "direction": "ASC"}
     variables = {
         "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
@@ -2144,7 +2130,10 @@ def test_query_product_media_sorting_asc(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2158,16 +2147,6 @@ def test_query_product_media_sorting_desc(
     staff_api_client, product_with_image_list, channel_USD
 ):
     # given
-    query = """
-        query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
-            product(id: $id, channel: $channel){
-                media(sortBy: $sort_by){
-                    id
-                }
-            }
-        }
-    """
-
     sort_by = {"field": "ID", "direction": "DESC"}
     variables = {
         "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
@@ -2176,7 +2155,10 @@ def test_query_product_media_sorting_desc(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2190,16 +2172,6 @@ def test_query_product_media_sorting_default(
     staff_api_client, product_with_image_list, channel_USD
 ):
     # given
-    query = """
-        query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
-            product(id: $id, channel: $channel){
-                media(sortBy: $sort_by){
-                    sortOrder
-                }
-            }
-        }
-    """
-
     sort_by = None
     variables = {
         "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
@@ -2208,7 +2180,10 @@ def test_query_product_media_sorting_default(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2218,10 +2193,8 @@ def test_query_product_media_sorting_default(
     assert media1 <= media2
 
 
-def test_product_attribute_field_filtering(staff_api_client, product, channel_USD):
-    # given
-    query = """
-    query Product($id: ID!, $channel: String, $slug: String!){
+QUERY_PRODUCT_WITH_ATTRIBUTE = """
+query Product($id: ID!, $channel: String, $slug: String!){
         product(id: $id, channel: $channel){
            attribute(slug: $slug){
             attribute{
@@ -2231,7 +2204,11 @@ def test_product_attribute_field_filtering(staff_api_client, product, channel_US
            }
         }
     }
-    """
+"""
+
+
+def test_product_attribute_field_filtering(staff_api_client, product, channel_USD):
+    # given
     slug = "color"
 
     variables = {
@@ -2241,7 +2218,10 @@ def test_product_attribute_field_filtering(staff_api_client, product, channel_US
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_ATTRIBUTE,
+        variables,
+    )
 
     # then
     expected_slug = "color"
@@ -2254,18 +2234,6 @@ def test_product_attribute_field_filtering_not_found(
     staff_api_client, product, channel_USD
 ):
     # given
-    query = """
-    query Product($id: ID!, $channel: String, $slug: String!){
-        product(id: $id, channel: $channel){
-           attribute(slug: $slug){
-            attribute{
-                id
-                slug
-            }
-           }
-        }
-    }
-    """
     slug = ""
 
     variables = {
@@ -2275,7 +2243,10 @@ def test_product_attribute_field_filtering_not_found(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_ATTRIBUTE,
+        variables,
+    )
 
     # then
     content = get_graphql_content(response)
