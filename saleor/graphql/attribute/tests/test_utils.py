@@ -6,9 +6,9 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
-from ...product.mutations.products import AttrValuesInput
 from ..utils import (
     AttributeAssignmentMixin,
+    AttrValuesInput,
     prepare_attribute_values,
     validate_attributes_input,
 )
