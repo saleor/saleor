@@ -50,6 +50,7 @@ def hide_sensitive_headers(
 
 def obfuscate_url(url: str) -> str:
     parts = urlparse(url)
+    # If parts.username returns None there are no credentials in the URL
     if parts.username is None:
         return url
     password = "" if parts.password is None else f":{MASK}"
