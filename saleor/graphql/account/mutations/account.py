@@ -121,6 +121,16 @@ class AccountRegister(ModelMutation):
             data.get("channel"), error_class=AccountErrorCode
         ).slug
 
+        if data["email"].lower() != data["email"]:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Email address contains at least one upper case letter.",
+                        code=AccountErrorCode.EMAIL_WITH_UPPER_CASE,
+                    )
+                }
+            )
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
@@ -446,6 +456,15 @@ class RequestEmailChange(BaseMutation):
                 {
                     "new_email": ValidationError(
                         "Email is used by other user.", code=AccountErrorCode.UNIQUE
+                    )
+                }
+            )
+        if data["new_email"].lower() != data["new_email"]:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Email address contains at least one upper case letter.",
+                        code=AccountErrorCode.EMAIL_WITH_UPPER_CASE,
                     )
                 }
             )

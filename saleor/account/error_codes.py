@@ -35,6 +35,7 @@ class AccountErrorCode(Enum):
     CHANNEL_INACTIVE = "channel_inactive"
     MISSING_CHANNEL_SLUG = "missing_channel_slug"
     ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
+    EMAIL_WITH_UPPER_CASE = "email_with_upper_case"
 
 
 class PermissionGroupErrorCode(Enum):
