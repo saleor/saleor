@@ -1603,5 +1603,7 @@ class WebhookPlugin(BasePlugin):
                 WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
             ),
         }
-        webhooks = get_webhooks_for_event(event_type=map_event[event])
-        return any(webhooks)
+
+        if event in map_event:
+            return any(get_webhooks_for_event(event_type=map_event[event]))
+        return False
