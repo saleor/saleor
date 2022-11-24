@@ -1,5 +1,6 @@
 from django.db import migrations, models
-import django.db.models.deletion
+import django.contrib.postgres.indexes
+
 
 import saleor.core.utils.json_serializer
 
@@ -53,5 +54,17 @@ class Migration(migrations.Migration):
             options={
                 "abstract": False,
             },
+        ),
+        migrations.AddIndex(
+            model_name="checkoutmetadata",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["private_metadata"], name="checkoutmetadata_p_meta_idx"
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="checkoutmetadata",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["metadata"], name="checkoutmetadata_meta_idx"
+            ),
         ),
     ]
