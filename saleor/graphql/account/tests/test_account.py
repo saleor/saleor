@@ -1488,26 +1488,6 @@ def test_customer_register_no_redirect_url(mocked_notify, api_client):
     mocked_notify.assert_not_called()
 
 
-@override_settings(ALLOWED_CLIENT_HOSTS=["localhost"])
-def test_account_register_email_with_upper_case_letter(api_client, channel_USD):
-    # given
-    variables = {
-        "email": "Customer@example.com",
-        "password": "Password",
-        "redirectUrl": "http://localhost:3000",
-        "channel": channel_USD.slug,
-    }
-
-    # when
-    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
-
-    # then
-    errors = response.json()["data"]["accountRegister"]["errors"]
-    assert errors
-    assert errors[0]["field"] == "email"
-    assert errors[0]["code"] == AccountErrorCode.EMAIL_WITH_UPPER_CASE.name
-
-
 CUSTOMER_CREATE_MUTATION = """
     mutation CreateCustomer(
         $email: String, $firstName: String, $lastName: String, $channel: String
@@ -6413,25 +6393,6 @@ def test_request_email_change_to_existing_email(
             "field": "newEmail",
         }
     ]
-
-
-def test_request_email_change_with_upper_case(user_api_client):
-    # given
-    variables = {
-        "password": "password",
-        "new_email": "Test@test.com",
-        "redirect_url": "http://www.example.com",
-    }
-
-    # when
-    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    errors = content["data"]["requestEmailChange"]["errors"]
-    assert errors
-    assert errors[0]["field"] == "email"
-    assert errors[0]["code"] == AccountErrorCode.EMAIL_WITH_UPPER_CASE.name
 
 
 def test_request_email_change_with_invalid_redirect_url(
