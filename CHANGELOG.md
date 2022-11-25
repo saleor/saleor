@@ -42,6 +42,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve checkout total base calculations - #10048 by @IKarbowiak
 - Improve click & collect and stock allocation - #10043 by @IKarbowiak
 - New event for starting and ending sales - #10110 by @IKarbowiak
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
