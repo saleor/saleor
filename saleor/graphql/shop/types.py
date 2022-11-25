@@ -15,7 +15,12 @@ from ...core.utils import build_absolute_uri
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.types import (
@@ -295,6 +300,10 @@ class Shop(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
     )
+    schema_version = graphene.String(
+        description="Minor Saleor API version." + ADDED_IN_35,
+        required=True,
+    )
 
     class Meta:
         description = (
@@ -474,3 +483,8 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_version(_, _info):
         return __version__
+
+    @staticmethod
+    def resolve_schema_version(_, _info):
+        major, minor, _ = __version__.split(".", 2)
+        return f"{major}.{minor}"
