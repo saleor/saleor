@@ -6649,6 +6649,7 @@ type Shop {
   staffNotificationRecipients: [StaffNotificationRecipient]
   limits: LimitInfo!
   version: String!
+  schemaVersion: String!
 }
 
 type ShopAddressUpdate {
