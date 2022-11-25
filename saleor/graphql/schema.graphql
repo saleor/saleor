@@ -5408,6 +5408,9 @@ type Shop {
 
   """Saleor API version."""
   version: String!
+
+  """Minor Saleor API version.New in Saleor 3.1."""
+  schemaVersion: String!
 }
 
 """
