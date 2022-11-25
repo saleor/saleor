@@ -486,4 +486,5 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_schema_version(_, _info):
-        return f'{__version__.split(".")[0]}.{__version__.split(".")[1]}'
+        major, minor, _ = __version__.split(".", 2)
+        return f"{major}.{minor}"
