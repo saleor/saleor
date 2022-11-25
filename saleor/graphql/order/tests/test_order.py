@@ -28,7 +28,7 @@ from ....core.tests.utils import get_site_context_payload
 from ....discount.models import OrderDiscount, VoucherChannelListing
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
-from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
+from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -51,7 +51,6 @@ from ....payment import (
     TransactionAction,
     TransactionEventStatus,
 )
-from ....payment.interface import TransactionActionData
 from ....payment.models import Payment, TransactionEvent, TransactionItem
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
@@ -7876,111 +7875,6 @@ def test_order_capture(
     )
 
 
-# FIXME:
-@pytest.mark.skip(
-    reason=(
-        "Next PR will drop usage of transaction_action_request "
-        "in the old payment flow."
-    )
-)
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_order_charge_with_transaction_action_request(
-    mocked_transaction_action_request,
-    mocked_is_active,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-):
-    # given
-    transaction = TransactionItem.objects.create(
-        status="Authorized",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["charge", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=Decimal("10"),
-    )
-    charge_value = Decimal(5.0)
-    mocked_is_active.side_effect = [True, False]
-    order_id = to_global_id_or_none(order)
-
-    variables = {"id": order_id, "amount": charge_value}
-
-    # when
-    response = staff_api_client.post_graphql(
-        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderCapture"]
-    assert not data["errors"]
-
-    assert mocked_is_active.called
-    mocked_transaction_action_request.assert_called_once_with(
-        TransactionActionData(
-            transaction=transaction,
-            action_type=TransactionAction.CHARGE,
-            action_value=charge_value,
-        ),
-        channel_slug=order.channel.slug,
-    )
-
-    event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
-    assert Decimal(event.parameters["amount"]) == charge_value
-    assert event.parameters["reference"] == transaction.psp_reference
-
-
-# FIXME:
-@pytest.mark.skip(
-    reason=(
-        "Next PR will drop usage of transaction_action_request "
-        "in the old payment flow."
-    )
-)
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-def test_order_capture_with_transaction_action_request_missing_event(
-    mocked_is_active, staff_api_client, permission_manage_orders, order
-):
-    # given
-    authorization_value = Decimal("10")
-    TransactionItem.objects.create(
-        status="Authorized",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=authorization_value,
-    )
-    mocked_is_active.side_effect = [False, False]
-
-    order_id = to_global_id_or_none(order)
-
-    variables = {"id": order_id, "amount": authorization_value}
-
-    # when
-    response = staff_api_client.post_graphql(
-        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderCapture"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["message"] == (
-        "No app or plugin is configured to handle payment action requests."
-    )
-    assert data["errors"][0]["code"] == (
-        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
-    )
-
-    assert mocked_is_active.called
-
-
 MUTATION_MARK_ORDER_AS_PAID = """
     mutation markPaid($id: ID!, $transaction: String) {
         orderMarkAsPaid(id: $id, transactionReference: $transaction) {
@@ -8192,109 +8086,6 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
-# FIXME:
-@pytest.mark.skip(
-    reason=(
-        "Next PR will drop usage of transaction_action_request "
-        "in the old payment flow."
-    )
-)
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_order_void_with_transaction_action_request(
-    mocked_transaction_action_request,
-    mocked_is_active,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-):
-    # given
-    transaction = TransactionItem.objects.create(
-        status="Authorized",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=Decimal("10"),
-    )
-
-    mocked_is_active.side_effect = [True, False]
-
-    order_id = to_global_id_or_none(order)
-
-    variables = {"id": order_id}
-
-    # when
-    response = staff_api_client.post_graphql(
-        ORDER_VOID, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderVoid"]
-    assert not data["errors"]
-
-    assert mocked_is_active.called
-    mocked_transaction_action_request.assert_called_once_with(
-        TransactionActionData(
-            transaction=transaction,
-            action_type=TransactionAction.VOID,
-            action_value=None,
-        ),
-        channel_slug=order.channel.slug,
-    )
-
-    event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["reference"] == transaction.psp_reference
-
-
-# FIXME:
-@pytest.mark.skip(
-    reason=(
-        "Next PR will drop usage of transaction_action_request "
-        "in the old payment flow."
-    )
-)
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-def test_order_void_with_transaction_action_request_missing_event(
-    mocked_is_active, staff_api_client, permission_manage_orders, order
-):
-    # given
-    TransactionItem.objects.create(
-        status="Authorized",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=Decimal("10.0"),
-    )
-    mocked_is_active.side_effect = [False, False]
-
-    order_id = to_global_id_or_none(order)
-    variables = {"id": order_id}
-
-    # when
-    response = staff_api_client.post_graphql(
-        ORDER_VOID, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderVoid"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["message"] == (
-        "No app or plugin is configured to handle payment action requests."
-    )
-    assert data["errors"][0]["code"] == (
-        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
-    )
-
-    assert mocked_is_active.called
-
-
 ORDER_REFUND_MUTATION = """
     mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
         orderRefund(id: $id, amount: $amount) {
@@ -8361,107 +8152,6 @@ def test_order_refund_with_gift_card_lines(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
     assert data["errors"][0]["field"] == "id"
-
-
-# FIXME:
-@pytest.mark.skip(
-    reason=(
-        "Next PR will drop usage of transaction_action_request "
-        "in the old payment flow."
-    )
-)
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_order_refund_with_transaction_action_request(
-    mocked_transaction_action_request,
-    mocked_is_active,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-):
-    # given
-    transaction = TransactionItem.objects.create(
-        status="Captured",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["refund"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=Decimal("10"),
-    )
-    refund_value = Decimal(5.0)
-    mocked_is_active.side_effect = [True, False]
-
-    order_id = to_global_id_or_none(order)
-    variables = {"id": order_id, "amount": refund_value}
-
-    # when
-    response = staff_api_client.post_graphql(
-        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderRefund"]
-    assert not data["errors"]
-
-    assert mocked_is_active.called
-    mocked_transaction_action_request.assert_called_once_with(
-        TransactionActionData(
-            transaction=transaction,
-            action_type=TransactionAction.REFUND,
-            action_value=refund_value,
-        ),
-        channel_slug=order.channel.slug,
-    )
-
-    event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
-    assert Decimal(event.parameters["amount"]) == refund_value
-    assert event.parameters["reference"] == transaction.psp_reference
-
-
-# FIXME:
-@pytest.mark.skip(
-    reason=(
-        "Next PR will drop usage of transaction_action_request "
-        "in the old payment flow."
-    )
-)
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-def test_order_refund_with_transaction_action_request_missing_event(
-    mocked_is_active, staff_api_client, permission_manage_orders, order
-):
-    # given
-    authorized_value = Decimal("10")
-    TransactionItem.objects.create(
-        status="Authorized",
-        type="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["refund"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=authorized_value,
-    )
-    mocked_is_active.side_effect = [False, False]
-
-    order_id = to_global_id_or_none(order)
-    variables = {"id": order_id, "amount": authorized_value}
-
-    # when
-    response = staff_api_client.post_graphql(
-        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderRefund"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["code"] == (
-        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
-    )
-
-    assert mocked_is_active.called
 
 
 @pytest.mark.parametrize(

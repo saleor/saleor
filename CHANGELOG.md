@@ -30,6 +30,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `TransactionEventStatus.PENDING` - Will be removed in Saleor3.10, as the API is the preview feature.
   - Add `CANCEL` to `TransactionActionEnum`.
   - Deprecate `TransactionActionEnum.VOID` - Will be removed in Saleor3.10, as the API is the preview feature Use `CANCEL` instead.
+  - Drop calling `transaction-request-action` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
+
 # 3.9.0 [Unreleased]
 
 ### Highlights
