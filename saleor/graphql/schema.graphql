@@ -6961,6 +6961,13 @@ type Shop {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   version: String!
+
+  """
+  Minor Saleor API version.
+  
+  Added in Saleor 3.1.
+  """
+  schemaVersion: String!
 }
 
 """

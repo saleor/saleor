@@ -294,6 +294,10 @@ class Shop(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
     )
+    schema_version = graphene.String(
+        description="Minor Saleor API version." + ADDED_IN_31,
+        required=True,
+    )
 
     class Meta:
         description = (
@@ -473,3 +477,8 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_version(_, _info):
         return __version__
+
+    @staticmethod
+    def resolve_schema_version(_, _info):
+        major, minor, _ = __version__.split(".", 2)
+        return f"{major}.{minor}"
