@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.auth.models import Permission
 
 from ...core.permissions import (
     AppPermission,
@@ -8,6 +7,7 @@ from ...core.permissions import (
     get_permissions_from_names,
 )
 from ...core.permissions import permission_required as core_permission_required
+from ...permission.models import Permission
 from ..utils import get_user_or_app_from_context
 
 

@@ -12,7 +12,7 @@ from typing import Type, Union
 from unittest.mock import patch
 
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from django.core.files import File
 from django.db import connection
 from django.db.models import F
@@ -67,6 +67,7 @@ from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...permission.models import Permission
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (
     Category,

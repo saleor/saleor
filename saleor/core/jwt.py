@@ -4,10 +4,10 @@ from typing import Any, Dict, Iterable, Optional
 import graphene
 import jwt
 from django.conf import settings
-from django.contrib.auth.models import Permission
 
 from ..account.models import User
 from ..app.models import App, AppExtension
+from ..permission.models import Permission
 from .jwt_manager import get_jwt_manager
 from .permissions import (
     get_permission_names,

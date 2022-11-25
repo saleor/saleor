@@ -1,9 +1,9 @@
 import jwt
 import pytest
-from django.contrib.auth.models import Permission
 from freezegun import freeze_time
 from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 
+from ...permission.models import Permission
 from ..auth_backend import JSONWebTokenBackend
 from ..jwt import (
     JWT_ACCESS_TYPE,

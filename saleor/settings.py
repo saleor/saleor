@@ -224,6 +224,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
+    "saleor.permission",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",

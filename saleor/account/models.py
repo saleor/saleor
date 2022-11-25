@@ -8,7 +8,6 @@ from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     Group,
-    Permission,
     PermissionsMixin,
 )
 from django.contrib.postgres.indexes import GinIndex
@@ -27,6 +26,7 @@ from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
+from ..permission.models import Permission
 from . import CustomerEvents
 from .validators import validate_possible_number
 
