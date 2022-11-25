@@ -355,7 +355,6 @@ def request_data_for_gateway_config(
     channel = get_or_create_checkout_metadata(checkout).get_value_from_metadata(
         "channel", "web"
     )
-    # channel = checkout.metadata_storage.get_value_from_metadata("channel", "web")
     return {
         "merchantAccount": merchant_account,
         "countryCode": country_code,
