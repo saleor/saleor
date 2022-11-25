@@ -1,8 +1,6 @@
 import graphene
 from promise import Promise
 
-from saleor.graphql.meta import resolvers as MetaResolvers
-
 from ...checkout import calculations, models
 from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
@@ -41,6 +39,7 @@ from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
+from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import load_plugin_manager

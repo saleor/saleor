@@ -2,6 +2,7 @@ import graphene
 from graphene.types.generic import GenericScalar
 
 from ...checkout.models import Checkout
+from ...checkout.utils import get_or_create_checkout_metadata
 from ...core.models import ModelWithMetadata
 from ..channel import ChannelContext
 from ..core.descriptions import ADDED_IN_33, PREVIEW_FEATURE
@@ -134,5 +135,5 @@ class ObjectWithMetadata(graphene.Interface):
 
 def get_valid_metadata_instance(instance):
     if isinstance(instance, Checkout):
-        instance = instance.metadata_storage
+        instance = get_or_create_checkout_metadata(instance)
     return instance
