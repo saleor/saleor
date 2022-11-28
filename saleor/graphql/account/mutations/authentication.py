@@ -30,6 +30,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import AccountError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import User
+from ..utils import retrieve_user_by_email
 
 
 def get_payload(token):
@@ -106,15 +107,10 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        users = models.User.objects.filter(email__iexact=email).all()
+        user = retrieve_user_by_email(email)
 
-        if len(users) > 1:
-            users_exact = [user for user in users if user.email == email]
-            users_iexact = [user for user in users if user.email == email.lower()]
-            users = users_exact or users_iexact  # type: ignore
-
-        if users and users[0].check_password(password):
-            return users[0]
+        if user and user.check_password(password):
+            return user
         return None
 
     @classmethod

@@ -33,6 +33,7 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError
 from ...plugins.dataloaders import load_plugin_manager
+from ..utils import retrieve_user_by_email
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -158,9 +159,8 @@ class RequestPasswordReset(BaseMutation):
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
 
-        try:
-            user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
+        user = retrieve_user_by_email(email)
+        if not user:
             raise ValidationError(
                 {
                     "email": ValidationError(

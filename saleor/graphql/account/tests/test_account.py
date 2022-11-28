@@ -1384,6 +1384,7 @@ ACCOUNT_REGISTER_MUTATION = """
             }
             user {
                 id
+                email
             }
         }
     }
@@ -1486,6 +1487,22 @@ def test_customer_register_no_redirect_url(mocked_notify, api_client):
     errors = response.json()["data"]["accountRegister"]["errors"]
     assert "redirectUrl" in map(lambda error: error["field"], errors)
     mocked_notify.assert_not_called()
+
+
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
+def test_customer_register_upper_case_email(api_client):
+    # given
+    email = "CUSTOMER@example.com"
+    variables = {"email": email, "password": "Password"}
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    assert not data["errors"]
+    assert data["user"]["email"].lower()
 
 
 CUSTOMER_CREATE_MUTATION = """
@@ -4892,6 +4909,45 @@ def test_account_reset_password(
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_reset_password_with_upper_case_email(
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
+):
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email.upper(),
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestPasswordReset"]
+    assert not data["errors"]
+    token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "reset_url": reset_url,
+        "token": token,
+        "recipient_email": customer_user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
+
+
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation(
@@ -6357,6 +6413,52 @@ mutation requestEmailChange(
   }
 }
 """
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_request_email_change_with_upper_case_email(
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    site_settings,
+    channel_PLN,
+):
+    # given
+    new_email = "NEW_EMAIL@example.com"
+    redirect_url = "https://www.example.com"
+    variables = {
+        "new_email": new_email,
+        "redirect_url": redirect_url,
+        "password": "password",
+    }
+
+    # when
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["requestEmailChange"]
+    assert not data["errors"]
+    token = user_api_client.token
+    params = urlencode({"token": token})
+    redirect_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "recipient_email": new_email.lower(),
+        "token": token,
+        "redirect_url": redirect_url,
+        "old_email": customer_user.email,
+        "new_email": new_email.lower(),
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_CHANGE_EMAIL_REQUEST,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
 
 
 def test_request_email_change(user_api_client, customer_user, channel_PLN):
