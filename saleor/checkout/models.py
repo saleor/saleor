@@ -301,6 +301,8 @@ class CheckoutLine(ModelWithMetadata):
         return self.variant.is_shipping_required()
 
 
+# Checkout metadata is moved to separate model so it can be used when checkout model is
+# locked by select_for_update during complete_checkout.
 class CheckoutMetadata(ModelWithMetadata):
     checkout = models.OneToOneField(
         Checkout, related_name="metadata_storage", on_delete=models.CASCADE

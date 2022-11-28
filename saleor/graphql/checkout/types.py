@@ -849,8 +849,6 @@ class Checkout(ModelObjectType):
         return item_type
 
 
-# Checkout metadata is moved to separate model so it can be used when checkout model is
-# locked by select_for_update during complete_checkout.
 class CheckoutCountableConnection(CountableConnection):
     class Meta:
         node = Checkout
