@@ -17389,9 +17389,30 @@ input AttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.9.
+  """
+  dropdown: AttributeValueSelectableTypeInput
+
+  """
+  List of attribute value IDs.
+  
+  Added in Saleor 3.9.
+  """
+  multiselect: [AttributeValueSelectableTypeInput!]
+
+  """
+  Numeric value of an attribute.
+  
+  Added in Saleor 3.9.
+  """
+  numeric: String
 
   """URL of the file attribute. Every time, a new value is created."""
   file: String
@@ -17416,6 +17437,21 @@ input AttributeValueInput {
 
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
+}
+
+"""
+Represents attribute value. If no ID provided, value will be resolved. 
+
+Added in Saleor 3.9.
+"""
+input AttributeValueSelectableTypeInput {
+  """ID of an attribute value."""
+  id: ID
+
+  """
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  """
+  value: String
 }
 
 """
