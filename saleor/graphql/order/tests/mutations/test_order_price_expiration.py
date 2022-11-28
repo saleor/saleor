@@ -1,8 +1,8 @@
 import pytest
 from graphene import Node
 
-from ....order import OrderStatus
-from ...tests.utils import get_graphql_content
+from .....order import OrderStatus
+from ....tests.utils import get_graphql_content
 
 DRAFT_ORDER_UPDATE_MUTATION = """
 mutation draftUpdate(

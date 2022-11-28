@@ -1,5 +1,5 @@
-from ....core import JobStatus
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....core import JobStatus
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDERS_WITH_INVOICES_QUERY = """
     query OrdersQuery {

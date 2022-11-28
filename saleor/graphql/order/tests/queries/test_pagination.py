@@ -6,15 +6,15 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from ....core.postgres import FlatConcatSearchVector
-from ....discount.models import OrderDiscount
-from ....order.models import Order, OrderStatus
-from ....order.search import (
+from .....core.postgres import FlatConcatSearchVector
+from .....discount.models import OrderDiscount
+from .....order.models import Order, OrderStatus
+from .....order.search import (
     prepare_order_search_vector_value,
     update_order_search_vector,
 )
-from ....payment import ChargeStatus
-from ...tests.utils import get_graphql_content
+from .....payment import ChargeStatus
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture()
