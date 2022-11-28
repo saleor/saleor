@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 
 import graphene
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
@@ -6432,6 +6433,12 @@ def test_account_request_email_change_with_upper_case_email(
         "redirect_url": redirect_url,
         "password": "password",
     }
+    token_payload = {
+        "old_email": customer_user.email,
+        "new_email": new_email.lower(),
+        "user_pk": customer_user.pk,
+    }
+    token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
 
     # when
     response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
@@ -6440,7 +6447,7 @@ def test_account_request_email_change_with_upper_case_email(
     # then
     data = content["data"]["requestEmailChange"]
     assert not data["errors"]
-    token = user_api_client.token
+
     params = urlencode({"token": token})
     redirect_url = prepare_url(params, redirect_url)
     expected_payload = {
