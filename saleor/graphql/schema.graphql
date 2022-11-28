@@ -15522,6 +15522,7 @@ enum WebhookErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DELETE_FAILED
 }
 
 input WebhookCreateInput {
