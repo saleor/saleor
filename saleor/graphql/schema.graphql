@@ -8240,6 +8240,13 @@ type Shop {
   """
   version: String!
 
+  """
+  Minor Saleor API version.
+  
+  Added in Saleor 3.5.
+  """
+  schemaVersion: String!
+
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
 
