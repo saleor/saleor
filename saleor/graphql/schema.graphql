@@ -4803,6 +4803,16 @@ type Product implements Node & ObjectWithMetadata {
   """A type of tax. Assigned by enabled tax gateway"""
   taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
 
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.9.
+  """
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute
+
   """List of attributes assigned to this product."""
   attributes: [SelectedAttribute!]!
 
@@ -4826,12 +4836,32 @@ type Product implements Node & ObjectWithMetadata {
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
   """
+  Get a single variant by SKU or ID. 
+  
+  Added in Saleor 3.9.
+  """
+  variant(
+    """ID of the variant."""
+    id: ID
+
+    """SKU of the variant."""
+    sku: String
+  ): ProductVariant
+
+  """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   variants: [ProductVariant!]
 
   """List of media for the product."""
-  media: [ProductMedia!]
+  media(
+    """
+    Sort media. 
+    
+    Added in Saleor 3.9.
+    """
+    sortBy: MediaSortingInput
+  ): [ProductMedia!]
 
   """List of images for the product."""
   images: [ProductImage!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
@@ -6305,6 +6335,19 @@ type ProductChannelListing implements Node {
 type Margin {
   start: Int
   stop: Int
+}
+
+input MediaSortingInput {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Sort media by the selected field."""
+  field: MediaChoicesSortField!
+}
+
+enum MediaChoicesSortField {
+  """Sort media by ID."""
+  ID
 }
 
 """Represents a collection of products."""

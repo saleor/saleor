@@ -301,3 +301,22 @@ class ProductTypeSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = ProductTypeSortField
         type_name = "product types"
+
+
+class MediaChoicesSortField(graphene.Enum):
+    ID = ["id"]
+
+    @property
+    def description(self):
+        descriptions = {
+            MediaChoicesSortField.ID.name: "Sort media by ID.",
+        }
+        if self.name in descriptions:
+            return descriptions[self.name]
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class MediaSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = MediaChoicesSortField
+        type_name = "media"

@@ -25,6 +25,9 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
 
 ### Other changes
 

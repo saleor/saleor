@@ -79,6 +79,7 @@ from ...core.types import (
     Weight,
 )
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_one_of_args_is_in_query
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
@@ -137,6 +138,7 @@ from ..dataloaders import (
 )
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
 from ..resolvers import resolve_product_variants, resolve_products
+from ..sorters import MediaSortingInput
 from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
 
@@ -847,6 +849,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         description="A type of tax. Assigned by enabled tax gateway",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
     )
+    attribute = graphene.Field(
+        SelectedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description=(
+            f"Get a single attribute attached to product by attribute slug."
+            f"{ADDED_IN_39}"
+        ),
+    )
     attributes = NonNullList(
         SelectedAttribute,
         required=True,
@@ -870,6 +884,12 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `mediaById` field instead."
         ),
     )
+    variant = graphene.Field(
+        ProductVariant,
+        id=graphene.Argument(graphene.ID, description="ID of the variant."),
+        sku=graphene.Argument(graphene.String, description="SKU of the variant."),
+        description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+    )
     variants = NonNullList(
         ProductVariant,
         description=(
@@ -880,6 +900,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     media = NonNullList(
         lambda: ProductMedia,
+        sort_by=graphene.Argument(
+            MediaSortingInput, description=f"Sort media. {ADDED_IN_39}"
+        ),
         description="List of media for the product.",
     )
     images = NonNullList(
@@ -1220,6 +1243,22 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
+    def resolve_attribute(root: ChannelContext[models.Product], info, slug):
+        def get_selected_attribute_by_slug(
+            attributes: List[SelectedAttribute],
+        ) -> Optional[SelectedAttribute]:
+            return next(
+                (atr for atr in attributes if atr["attribute"].slug == slug),
+                None,
+            )
+
+        return (
+            SelectedAttributesByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(get_selected_attribute_by_slug)
+        )
+
+    @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
 
@@ -1234,12 +1273,61 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return root.node.media.filter(pk=pk).first()
 
     @staticmethod
-    def resolve_media(root: ChannelContext[models.Product], info):
-        return MediaByProductIdLoader(info.context).load(root.node.id)
+    def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
+        if sort_by is None:
+            sort_by = {
+                "field": ["sort_order"],
+                "direction": "",
+            }
+
+        def sort_media(media) -> list[ProductMedia]:
+            reversed = sort_by["direction"] == "-"
+            media_sorted = sorted(
+                media,
+                key=lambda x: tuple(getattr(x, field) for field in sort_by["field"]),
+                reverse=reversed,
+            )
+            return media_sorted
+
+        return MediaByProductIdLoader(info.context).load(root.node.id).then(sort_media)
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.Product], info):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
+        validate_one_of_args_is_in_query("id", id, "sku", sku)
+
+        def get_product_variant(
+            product_variants,
+        ) -> Optional[ProductVariant]:
+            if id:
+                id_type, variant_id = graphene.Node.from_global_id(id)
+                if id_type != "ProductVariant":
+                    return None
+
+                return next(
+                    (
+                        variant
+                        for variant in product_variants
+                        if variant.node.id == int(variant_id)
+                    ),
+                    None,
+                )
+            if sku:
+                return next(
+                    (
+                        variant
+                        for variant in product_variants
+                        if variant.node.sku == sku
+                    ),
+                    None,
+                )
+            return None
+
+        variants = Product.resolve_variants(root, info)
+        return variants.then(get_product_variant)
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
