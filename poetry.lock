@@ -2732,7 +2732,7 @@ types-urllib3 = "<1.27"
 
 [[package]]
 name = "types-six"
-version = "1.16.21.3"
+version = "1.16.21.4"
 description = "Typing stubs for six"
 category = "dev"
 optional = false
@@ -2952,7 +2952,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "5d165da11ceda2ddf2955a9768d8ae3db73c50fcbbfc724e49ad4a25dd49bf60"
+content-hash = "1158f1d5cd1d52412bb72f2397dac170208dc13a5acd76b176b735ae6c81726c"
 
 [metadata.files]
 adyen = [
@@ -3368,6 +3368,7 @@ coverage = [
 cryptography = [
     {file = "cryptography-38.0.3-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:984fe150f350a3c91e84de405fe49e688aa6092b3525f407a18b9646f6612320"},
     {file = "cryptography-38.0.3-cp36-abi3-macosx_10_10_x86_64.whl", hash = "sha256:ed7b00096790213e09eb11c97cc6e2b757f15f3d2f85833cd2d3ec3fe37c1722"},
+    {file = "cryptography-38.0.3-cp36-abi3-macosx_10_12_universal2.whl", hash = "sha256:726e3a1bfee0e919b278c8f766fdcf1fe30f8e6feea590e3f248d3636b58ffb3"},
     {file = "cryptography-38.0.3-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:bbf203f1a814007ce24bd4d51362991d5cb90ba0c177a9c08825f2cc304d871f"},
     {file = "cryptography-38.0.3-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:554bec92ee7d1e9d10ded2f7e92a5d70c1f74ba9524947c0ba0c850c7b011828"},
     {file = "cryptography-38.0.3-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b1b52c9e5f8aa2b802d48bd693190341fae201ea51c7a167d69fc48b60e8a959"},
@@ -4574,8 +4575,8 @@ types-requests = [
     {file = "types_requests-2.28.11.4-py3-none-any.whl", hash = "sha256:bdb1f9811e53d0642c8347b09137363eb25e1a516819e190da187c29595a1df3"},
 ]
 types-six = [
-    {file = "types-six-1.16.21.3.tar.gz", hash = "sha256:5af96a017d6a4550a1c0efabed2abe7110bedf5afa5feb62aba4a6722ee0c851"},
-    {file = "types_six-1.16.21.3-py3-none-any.whl", hash = "sha256:0f231cc67813264a733d2aca3b588fa74a2cea827e08ce2532b974a2ddafe5b0"},
+    {file = "types-six-1.16.21.4.tar.gz", hash = "sha256:daaf1b506137d37257fad7a747857c57d5331611919d0d94b8195a06bdbc02af"},
+    {file = "types_six-1.16.21.4-py3-none-any.whl", hash = "sha256:3849354bd07b9274436aaa7d5d834594d8f0aa74581f88c632188c58f2abed23"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.25.3.tar.gz", hash = "sha256:1807b87b8ee1ae0226813ba2c52330eff20fb2bf6359b1de24df08eb3090e442"},
