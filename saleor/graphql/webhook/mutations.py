@@ -245,35 +245,30 @@ class WebhookDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = data["id"]
-        object_id = cls.get_global_id_or_error(node_id)
-
         app = load_app(info.context)
-        webhook = None
-        if app:
-            if not app.is_active:
-                raise ValidationError(
-                    "App needs to be active to delete webhook",
-                    code=WebhookErrorCode.INVALID,
-                )
-            try:
-                webhook = app.webhooks.get(id=object_id)
-            except models.Webhook.DoesNotExist:
-                raise ValidationError(
-                    f"Couldn't resolve to a node: {node_id}",
-                    code=WebhookErrorCode.GRAPHQL_ERROR,
-                )
+        if app and not app.is_active:
+            raise ValidationError(
+                "App needs to be active to delete webhook",
+                code=WebhookErrorCode.INVALID,
+            )
+        webhook = cls.get_node_or_error(info, data.get("id"), only_type=Webhook)
+        if app and webhook.app.id != app.id:
+            raise ValidationError(
+                f"Couldn't resolve to a node: {webhook.app.id}",
+                code=WebhookErrorCode.GRAPHQL_ERROR,
+            )
+        webhook.is_active = False
+        webhook.save(update_fields=["is_active"])
+
         try:
-            webhook = webhook or models.Webhook.objects.get(object_id)
-            webhook.is_active = False
-            webhook.save(update_fields=["is_active"])
             response = super().perform_mutation(_root, info, **data)
         except IntegrityError:
             raise ValidationError(
                 "Webhook couldn't be deleted at this time due to running task."
                 "Webhook deactivated. Try deleting Webhook later",
-                code=WebhookErrorCode.GRAPHQL_ERROR,
+                code=WebhookErrorCode.DELETE_FAILED,
             )
+
         return response
 
 
