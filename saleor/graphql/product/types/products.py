@@ -6,6 +6,7 @@ from typing import List, Optional
 import graphene
 from django_countries.fields import Country
 from graphene import relay
+from promise import Promise
 
 from ....attribute import models as attribute_models
 from ....core.permissions import (
@@ -78,7 +79,7 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise, load_plugin_manager
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -558,9 +559,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
-        manager = load_plugin_manager(info.context)
 
-        def calculate_pricing_info(discounts):
+        def calculate_pricing_info(data):
+            discounts, manager = data
+
             def calculate_pricing_with_channel(channel):
                 def calculate_pricing_with_product_variant_channel_listings(
                     variant_channel_listing,
@@ -580,7 +582,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                                     address_country or channel.default_country.code
                                 )
 
-                                local_currency = None
                                 local_currency = get_currency_for_country(country_code)
 
                                 availability = get_variant_availability(
@@ -611,11 +612,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
 
             return channel.then(calculate_pricing_with_channel)
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
+        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
+        manager = get_plugin_manager_promise(info.context)
+
+        return Promise.all([discounts, manager]).then(calculate_pricing_info)
 
     @staticmethod
     def resolve_product(root: ChannelContext[models.ProductVariant], info):
