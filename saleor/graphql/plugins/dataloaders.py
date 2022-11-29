@@ -1,8 +1,9 @@
 from collections import defaultdict
+from functools import partial, wraps
 
 from ...plugins.manager import get_plugins_manager
 from ...plugins.models import EmailTemplate
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise, load_app
 from ..core.dataloaders import DataLoader
 
 
@@ -44,3 +45,25 @@ def load_plugin_manager(request):
     if requestor is None:
         return AnonymousPluginManagerLoader(request).load("Anonymous").get()
     return PluginManagerByRequestorDataloader(request).load(requestor).get()
+
+
+def plugin_manager_promise(request, app):
+    user = request.user
+    requestor = app or user
+    if requestor is None:
+        return AnonymousPluginManagerLoader(request).load("Anonymous")
+    return PluginManagerByRequestorDataloader(request).load(requestor)
+
+
+def get_plugin_manager_promise(request):
+    return get_app_promise(request).then(partial(plugin_manager_promise, request))
+
+
+def plugin_manager_promise_callback(func):
+    @wraps(func)
+    def _wrapper(root, info, *args, **kwargs):
+        return get_plugin_manager_promise(info.context).then(
+            partial(func, root, info, *args, **kwargs)
+        )
+
+    return _wrapper
