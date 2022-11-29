@@ -2,9 +2,9 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import graphene
-from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 
+from ....account import models
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, get_permissions
@@ -57,7 +57,7 @@ class PermissionGroupCreate(ModelMutation):
             "Create new permission group. "
             "Apps are not allowed to perform this mutation."
         )
-        model = auth_models.Group
+        model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
@@ -97,7 +97,7 @@ class PermissionGroupCreate(ModelMutation):
     def clean_permissions(
         cls,
         requestor: "User",
-        group: auth_models.Group,
+        group: models.Group,
         errors: Dict[Optional[str], List[ValidationError]],
         cleaned_input: dict,
     ):
@@ -145,7 +145,7 @@ class PermissionGroupCreate(ModelMutation):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         user_items = cleaned_input.get("add_users")
         if user_items:
@@ -208,7 +208,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = (
             "Update permission group. Apps are not allowed to perform this mutation."
         )
-        model = auth_models.Group
+        model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
@@ -256,9 +256,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cleaned_input
 
     @classmethod
-    def ensure_requestor_can_manage_group(
-        cls, requestor: "User", group: auth_models.Group
-    ):
+    def ensure_requestor_can_manage_group(cls, requestor: "User", group: models.Group):
         """Check if requestor can manage group.
 
         Requestor cannot manage group with wider scope of permissions.
@@ -272,7 +270,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def clean_permissions(
         cls,
         requestor: "User",
-        group: auth_models.Group,
+        group: models.Group,
         errors: Dict[Optional[str], List[ValidationError]],
         cleaned_input: dict,
     ):
@@ -291,7 +289,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def ensure_permissions_can_be_removed(
         cls,
         errors: dict,
-        group: auth_models.Group,
+        group: models.Group,
         permissions: List["str"],
     ):
         missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
@@ -314,7 +312,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         super().clean_users(requestor, errors, cleaned_input, group)
         remove_users = cleaned_input.get("remove_users")
@@ -357,7 +355,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         cls.check_if_removing_user_last_group(requestor, errors, cleaned_input)
         cls.check_if_users_can_be_removed(requestor, errors, cleaned_input, group)
@@ -381,7 +379,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         """Check if after removing users from group all permissions will be manageable.
 
@@ -438,7 +436,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
         description = (
             "Delete permission group. Apps are not allowed to perform this mutation."
         )
-        model = auth_models.Group
+        model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError

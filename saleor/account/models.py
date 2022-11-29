@@ -7,7 +7,6 @@ from django.contrib.auth.models import _user_has_perm  # type: ignore
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
-    Group,
     PermissionsMixin,
 )
 from django.contrib.postgres.indexes import GinIndex
@@ -357,3 +356,51 @@ class StaffNotificationRecipient(models.Model):
 
     def get_email(self):
         return self.user.email if self.user else self.staff_email
+
+
+class GroupManager(models.Manager):
+    """The manager for the auth's Group model."""
+
+    use_in_migrations = True
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
+class Group(models.Model):
+    """The system provides a way to group users.
+
+    Groups are a generic way of categorizing users to apply permissions, or
+    some other label, to those users. A user can belong to any number of
+    groups.
+
+    A user in a group automatically has all the permissions granted to that
+    group. For example, if the group 'Site editors' has the permission
+    can_edit_home_page, any user in that group will have that permission.
+
+    Beyond permissions, groups are a convenient way to categorize users to
+    apply some label, or extended functionality, to them. For example, you
+    could create a group 'Special users', and you could write code that would
+    do special things to those users -- such as giving them access to a
+    members-only portion of your site, or sending them members-only email
+    messages.
+    """
+
+    name = models.CharField("name", max_length=150, unique=True)
+    permissions = models.ManyToManyField(
+        Permission,
+        verbose_name="permissions",
+        blank=True,
+    )
+
+    objects = GroupManager()
+
+    class Meta:
+        verbose_name = "group"
+        verbose_name_plural = "groups"
+
+    def __str__(self):
+        return self.name
+
+    def natural_key(self):
+        return (self.name,)

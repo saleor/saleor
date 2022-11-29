@@ -1,7 +1,6 @@
 from itertools import chain
 from typing import Optional
 
-from django.contrib.auth import models as auth_models
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
@@ -43,11 +42,11 @@ def resolve_customers(_info):
 
 
 def resolve_permission_group(id):
-    return auth_models.Group.objects.filter(id=id).first()
+    return models.Group.objects.filter(id=id).first()
 
 
 def resolve_permission_groups(_info):
-    return auth_models.Group.objects.all()
+    return models.Group.objects.all()
 
 
 def resolve_staff_users(_info):

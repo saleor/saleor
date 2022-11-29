@@ -11,40 +11,35 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
-                migrations.AlterField(
-                    model_name="app",
-                    name="permissions",
-                    field=models.ManyToManyField(
-                        blank=True,
-                        help_text="Specific permissions for this app.",
-                        related_name="app_set",
-                        related_query_name="app",
-                        to="permission.Permission",
-                    ),
-                ),
-                migrations.AlterField(
-                    model_name="appextension",
-                    name="permissions",
-                    field=models.ManyToManyField(
-                        blank=True,
-                        help_text="Specific permissions for this app extension.",
-                        to="permission.Permission",
-                    ),
-                ),
-                migrations.AlterField(
-                    model_name="appinstallation",
-                    name="permissions",
-                    field=models.ManyToManyField(
-                        blank=True,
-                        help_text="Specific permissions which will be assigned to app.",
-                        related_name="app_installation_set",
-                        related_query_name="app_installation",
-                        to="permission.Permission",
-                    ),
-                ),
-            ],
-        )
+        migrations.AlterField(
+            model_name="app",
+            name="permissions",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Specific permissions for this app.",
+                related_name="app_set",
+                related_query_name="app",
+                to="permission.Permission",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="appextension",
+            name="permissions",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Specific permissions for this app extension.",
+                to="permission.Permission",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="appinstallation",
+            name="permissions",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Specific permissions which will be assigned to app.",
+                related_name="app_installation_set",
+                related_query_name="app_installation",
+                to="permission.Permission",
+            ),
+        ),
     ]

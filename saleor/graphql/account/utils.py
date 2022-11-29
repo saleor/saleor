@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Set, Union
 
 import graphene
-from django.contrib.auth.models import Group
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Value
@@ -11,7 +10,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
-from ...account.models import User
+from ...account.models import User, Group
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,

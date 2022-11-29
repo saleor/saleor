@@ -12,7 +12,6 @@ from typing import Type, Union
 from unittest.mock import patch
 
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.core.files import File
 from django.db import connection
 from django.db.models import F
@@ -23,7 +22,7 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, User
+from ...account.models import Address, Group, User
 from ...account.search import (
     generate_address_search_document_value,
     generate_user_fields_search_document_value,
