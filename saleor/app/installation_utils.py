@@ -1,9 +1,12 @@
 import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.urls import reverse
 from requests import HTTPError, Response
 
+from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..core.permissions import get_permission_names
+from ..core.utils import build_absolute_uri
 from ..plugins.manager import PluginsManager
 from ..webhook.models import Webhook, WebhookEvent
 from .manifest_validations import clean_manifest_data
@@ -33,8 +36,9 @@ def send_app_token(target_url: str, token: str):
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-        "x-saleor-domain": domain,
-        "saleor-domain": domain,
+        DeprecatedAppHeaders.DOMAIN: domain,
+        AppHeaders.DOMAIN: domain,
+        AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
     json_data = {"auth_token": token}
     response = requests.post(

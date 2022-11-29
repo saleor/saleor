@@ -14,8 +14,8 @@ from ...product import models as product_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import MenuError, NonNullList
-from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
+from ..core.validators import validate_slug_and_generate_if_needed
 from ..page.types import Page
 from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection

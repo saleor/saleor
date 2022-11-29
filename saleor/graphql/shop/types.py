@@ -17,6 +17,7 @@ from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_35,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -293,6 +294,10 @@ class Shop(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
     )
+    schema_version = graphene.String(
+        description="Minor Saleor API version." + ADDED_IN_35,
+        required=True,
+    )
 
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
@@ -505,6 +510,11 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_version(_, _info):
         return __version__
+
+    @staticmethod
+    def resolve_schema_version(_, _info):
+        major, minor, _ = __version__.split(".", 2)
+        return f"{major}.{minor}"
 
     # deprecated
 

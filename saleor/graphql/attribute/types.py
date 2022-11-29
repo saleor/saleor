@@ -15,7 +15,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_39, DEPRECATED_IN_3X_FIELD
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.types import (
@@ -368,6 +368,23 @@ class AttributeInput(graphene.InputObjectType):
     )
 
 
+class AttributeValueSelectableTypeInput(graphene.InputObjectType):
+    id = graphene.ID(required=False, description="ID of an attribute value.")
+    value = graphene.String(
+        required=False,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+
+    class Meta:
+        description = (
+            "Represents attribute value. If no ID provided, value will be resolved. "
+            + ADDED_IN_39
+        )
+
+
 class AttributeValueInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = NonNullList(
@@ -375,8 +392,22 @@ class AttributeValueInput(graphene.InputObjectType):
         required=False,
         description=(
             "The value or slug of an attribute to resolve. "
-            "If the passed value is non-existent, it will be created."
+            "If the passed value is non-existent, it will be created. "
+            + DEPRECATED_IN_3X_FIELD
         ),
+    )
+    dropdown = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_39,
+    )
+    multiselect = NonNullList(
+        AttributeValueSelectableTypeInput,
+        required=False,
+        description="List of attribute value IDs." + ADDED_IN_39,
+    )
+    numeric = graphene.String(
+        required=False,
+        description="Numeric value of an attribute." + ADDED_IN_39,
     )
     file = graphene.String(
         required=False,

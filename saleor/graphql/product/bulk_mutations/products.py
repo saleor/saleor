@@ -29,6 +29,7 @@ from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
 from ...app.dataloaders import load_app
+from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_38
@@ -52,11 +53,10 @@ from ...warehouse.dataloaders import (
 )
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
-from ..mutations.products import (
-    AttributeAssignmentMixin,
+from ..mutations.product.product_create import StockInput
+from ..mutations.product_variant.product_variant_create import (
     ProductVariantCreate,
     ProductVariantInput,
-    StockInput,
 )
 from ..types import (
     Category,

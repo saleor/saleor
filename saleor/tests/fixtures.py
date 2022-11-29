@@ -926,6 +926,44 @@ def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_f
 
 
 @pytest.fixture
+def orders(customer_user, channel_USD, channel_PLN):
+    return Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                status=OrderStatus.CANCELED,
+                channel=channel_USD,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.UNFULFILLED,
+                channel=channel_USD,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.PARTIALLY_FULFILLED,
+                channel=channel_USD,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.FULFILLED,
+                channel=channel_PLN,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.DRAFT,
+                channel=channel_PLN,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.UNCONFIRMED,
+                channel=channel_PLN,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
 def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     order = Order.objects.create(
@@ -3193,6 +3231,13 @@ def order_list(customer_user, channel_USD):
 @pytest.fixture
 def product_with_image(product, image, media_root):
     ProductMedia.objects.create(product=product, image=image)
+    return product
+
+
+@pytest.fixture
+def product_with_image_list(product, image_list, media_root):
+    ProductMedia.objects.create(product=product, image=image_list[0])
+    ProductMedia.objects.create(product=product, image=image_list[1])
     return product
 
 

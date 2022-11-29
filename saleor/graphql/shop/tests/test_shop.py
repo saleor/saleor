@@ -1,3 +1,4 @@
+import re
 from unittest.mock import ANY
 
 import graphene
@@ -1557,6 +1558,27 @@ def test_version_query_as_staff_user(staff_api_client):
     response = staff_api_client.post_graphql(API_VERSION_QUERY)
     content = get_graphql_content(response)
     assert content["data"]["shop"]["version"] == __version__
+
+
+def test_schema_version_query(api_client):
+    # given
+    query = """
+        query {
+            shop {
+                schemaVersion
+            }
+        }
+    """
+    m = re.match(r"^(\d+)\.(\d+)\.\d+", __version__)
+    assert m is not None
+    major, minor = m.groups()
+
+    # when
+    response = api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["shop"]["schemaVersion"] == f"{major}.{minor}"
 
 
 def test_cannot_get_shop_limit_info_when_not_staff(user_api_client):

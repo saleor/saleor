@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -488,6 +488,8 @@ def test_create_collection(
     permission_manage_products,
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
@@ -512,9 +514,7 @@ def test_create_collection(
     )
 
     # when
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
     data = content["data"]["collectionCreate"]["collection"]
 
@@ -741,6 +741,8 @@ def test_update_collection_with_background_image(
     site_settings,
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
@@ -769,9 +771,7 @@ def test_update_collection_with_background_image(
     )
 
     # when
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
 
     # then
     content = get_graphql_content(response)
@@ -790,7 +790,7 @@ def test_update_collection_with_background_image(
 
 
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
-def test_update_collection_invalid_background_image(
+def test_update_collection_invalid_background_image_content_type(
     delete_from_storage_task_mock,
     staff_api_client,
     collection,
@@ -830,6 +830,60 @@ def test_update_collection_invalid_background_image(
     data = content["data"]["collectionUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
     assert data["errors"][0]["message"] == "Invalid file type."
+    # ensure that thumbnails for old background image hasn't been deleted
+    assert Thumbnail.objects.filter(collection_id=collection.id)
+    delete_from_storage_task_mock.assert_not_called()
+
+
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
+def test_update_collection_invalid_background_image(
+    delete_from_storage_task_mock,
+    monkeypatch,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file, image_name = create_image()
+    image_alt = "Alt text for an image."
+
+    error_msg = "Test syntax error"
+    image_file_mock = Mock(side_effect=SyntaxError(error_msg))
+    monkeypatch.setattr(
+        "saleor.graphql.core.validators.file.Image.open", image_file_mock
+    )
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(collection=collection, size=size, image=thumbnail_mock)
+
+    variables = {
+        "name": "new-name",
+        "slug": "new-slug",
+        "id": to_global_id("Collection", collection.id),
+        "backgroundImage": image_name,
+        "backgroundImageAlt": image_alt,
+    }
+    body = get_multipart_request_body(
+        MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE,
+        variables,
+        image_file,
+        image_name,
+    )
+
+    # when
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collectionUpdate"]
+    assert data["errors"][0]["field"] == "backgroundImage"
+    assert error_msg in data["errors"][0]["message"]
+
     # ensure that thumbnails for old background image hasn't been deleted
     assert Thumbnail.objects.filter(collection_id=collection.id)
     delete_from_storage_task_mock.assert_not_called()

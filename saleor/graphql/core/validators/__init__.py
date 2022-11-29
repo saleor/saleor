@@ -1,14 +1,18 @@
 from typing import TYPE_CHECKING, Optional
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
 
+from ....core.utils import generate_unique_slug
 from ....product.models import ProductVariantChannelListing
 
 if TYPE_CHECKING:
     from decimal import Decimal
+
+    from django.db.models import Model
 
 
 def validate_one_of_args_is_in_mutation(error_class, *args):
@@ -102,3 +106,65 @@ def validate_end_is_after_start(start_date, end_date):
 
     if start_date > end_date:
         raise ValidationError("End date cannot be before the start date.")
+
+
+def validate_slug_and_generate_if_needed(
+    instance: "Model",
+    slugable_field: str,
+    cleaned_input: dict,
+    slug_field_name: str = "slug",
+) -> dict:
+    """Validate slug from input and generate in create mutation if is not given."""
+
+    # update mutation - just check if slug value is not empty
+    # _state.adding is True only when it's new not saved instance.
+    if not instance._state.adding:  # type: ignore
+        validate_slug_value(cleaned_input)
+        return cleaned_input
+
+    # create mutation - generate slug if slug value is empty
+    slug = cleaned_input.get(slug_field_name)
+    if not slug and slugable_field in cleaned_input:
+        slug = generate_unique_slug(instance, cleaned_input[slugable_field])
+        cleaned_input[slug_field_name] = slug
+    return cleaned_input
+
+
+def validate_slug_value(cleaned_input, slug_field_name: str = "slug"):
+    if slug_field_name in cleaned_input:
+        slug = cleaned_input[slug_field_name]
+        if not slug:
+            raise ValidationError(
+                f"{slug_field_name.capitalize()} value cannot be blank."
+            )
+
+
+def clean_seo_fields(data):
+    """Extract and assign seo fields to given dictionary."""
+    seo_fields = data.pop("seo", None)
+    if seo_fields:
+        data["seo_title"] = seo_fields.get("title")
+        data["seo_description"] = seo_fields.get("description")
+
+
+def validate_required_string_field(cleaned_input, field_name: str):
+    """Strip and validate field value."""
+    field_value = cleaned_input.get(field_name)
+    field_value = field_value.strip() if field_value else ""
+    if field_value:
+        cleaned_input[field_name] = field_value
+    else:
+        raise ValidationError(f"{field_name.capitalize()} is required.")
+    return cleaned_input
+
+
+def validate_if_int_or_uuid(id):
+    result = True
+    try:
+        int(id)
+    except ValueError:
+        try:
+            UUID(id)
+        except (AttributeError, ValueError):
+            result = False
+    return result

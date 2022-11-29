@@ -1017,38 +1017,54 @@ class BasePlugin:
         config_structure: dict = (
             cls.CONFIG_STRUCTURE if cls.CONFIG_STRUCTURE is not None else {}
         )
+        configuration_to_update_dict = {
+            c_field["name"]: c_field.get("value") for c_field in configuration_to_update
+        }
         for config_item in current_config:
-            for config_item_to_update in configuration_to_update:
-                config_item_name = config_item_to_update.get("name")
-                if config_item["name"] == config_item_name:
-                    new_value = config_item_to_update.get("value")
-                    item_type = config_structure.get(config_item_name, {}).get("type")
-                    if (
-                        item_type == ConfigurationTypeField.BOOLEAN
-                        and new_value
-                        and not isinstance(new_value, bool)
-                    ):
-                        new_value = new_value.lower() == "true"
-                    if item_type == ConfigurationTypeField.OUTPUT:
-                        # OUTPUT field is read only. No need to update it
-                        continue
-                    config_item.update([("value", new_value)])
+            new_value = configuration_to_update_dict.get(config_item["name"])
+            if new_value is None:
+                continue
+            item_type = config_structure.get(config_item["name"], {}).get("type")
+            new_value = cls._clean_configuration_value(item_type, new_value)
+            if new_value is not None:
+                config_item.update([("value", new_value)])
 
         # Get new keys that don't exist in current_config and extend it.
         current_config_keys = set(c_field["name"] for c_field in current_config)
-        configuration_to_update_dict = {
-            c_field["name"]: c_field["value"] for c_field in configuration_to_update
-        }
         missing_keys = set(configuration_to_update_dict.keys()) - current_config_keys
         for missing_key in missing_keys:
             if not config_structure.get(missing_key):
                 continue
+            item_type = config_structure.get(missing_key, {}).get("type")
+            new_value = cls._clean_configuration_value(
+                item_type, configuration_to_update_dict[missing_key]
+            )
+            if new_value is None:
+                continue
             current_config.append(
                 {
                     "name": missing_key,
-                    "value": configuration_to_update_dict[missing_key],
+                    "value": new_value,
                 }
             )
+
+    @classmethod
+    def _clean_configuration_value(cls, item_type, new_value):
+        """Clean the value that is saved in plugin configuration.
+
+        Change the string provided as boolean into the bool value.
+        Return None for Output type, as it's read only field.
+        """
+        if (
+            item_type == ConfigurationTypeField.BOOLEAN
+            and new_value
+            and not isinstance(new_value, bool)
+        ):
+            new_value = new_value.lower() == "true"
+        if item_type == ConfigurationTypeField.OUTPUT:
+            # OUTPUT field is read only. No need to update it
+            return
+        return new_value
 
     @classmethod
     def validate_plugin_configuration(
@@ -1082,11 +1098,12 @@ class BasePlugin:
 
         cls.validate_plugin_configuration(plugin_configuration)
         cls.pre_save_plugin_configuration(plugin_configuration)
-        plugin_configuration.save()
 
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
+
+        plugin_configuration.save()
         return plugin_configuration
 
     @classmethod
