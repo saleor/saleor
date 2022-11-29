@@ -389,6 +389,9 @@ type Query {
     """Slug of the product."""
     slug: String
 
+    """External ID of the product."""
+    externalReference: String
+
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
@@ -4892,6 +4895,9 @@ type Product implements Node & ObjectWithMetadata {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   taxClass: TaxClass
+
+  """External id of this product."""
+  externalReference: String
 }
 
 """
@@ -12417,8 +12423,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productDelete(
-    """ID of a product to delete."""
-    id: ID!
+    """External ID of a product to delete."""
+    externalReference: String
+
+    """Internal ID of a product to delete."""
+    id: ID
   ): ProductDelete
 
   """
@@ -12437,8 +12446,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productUpdate(
-    """ID of a product to update."""
-    id: ID!
+    """External ID of a product to update."""
+    externalReference: String
+
+    """Internal ID of a product to update."""
+    id: ID
 
     """Fields required to update a product."""
     input: ProductInput!

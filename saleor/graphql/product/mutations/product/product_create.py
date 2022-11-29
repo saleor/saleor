@@ -166,24 +166,6 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation."""
-        # If we are updating an instance and want to update its attributes,
-        # prefetch them.
-
-        object_id = data.get("id")
-        if object_id and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes__values",
-                "product_type__attributeproduct",
-            )
-            return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
-
-        return super().get_instance(info, **data)
-
-    @classmethod
     def save(cls, info, instance, cleaned_input):
         with traced_atomic_transaction():
             instance.save()

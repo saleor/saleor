@@ -949,6 +949,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         required=False,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
+    external_reference = graphene.String(
+        description="External id of this product.",
+        required=False,
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -1741,6 +1745,10 @@ class ProductType(ModelObjectType):
         return resolve_federation_references(
             ProductType, roots, models.ProductType.objects
         )
+
+    @staticmethod
+    def resolve_external_reference(root: models.Product, _info):
+        return root.external_reference
 
 
 class ProductTypeCountableConnection(CountableConnection):

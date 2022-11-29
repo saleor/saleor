@@ -80,6 +80,18 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
     )
 
 
+def resolve_product_by_external_reference(
+    info, external_reference, channel_slug, requestor
+):
+    database_connection_name = get_database_connection_name(info.context)
+    return (
+        models.Product.objects.using(database_connection_name)
+        .visible_to_user(requestor, channel_slug=channel_slug)
+        .filter(external_reference=external_reference)
+        .first()
+    )
+
+
 @traced_resolver
 def resolve_products(info, requestor, channel_slug=None) -> ChannelQsContext:
     database_connection_name = get_database_connection_name(info.context)

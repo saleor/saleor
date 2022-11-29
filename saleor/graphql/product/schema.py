@@ -97,6 +97,7 @@ from .resolvers import (
     resolve_collections,
     resolve_digital_content_by_id,
     resolve_digital_contents,
+    resolve_product_by_external_reference,
     resolve_product_by_id,
     resolve_product_by_slug,
     resolve_product_type_by_id,
@@ -209,6 +210,9 @@ class ProductQueries(graphene.ObjectType):
             description="ID of the product.",
         ),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        external_reference=graphene.Argument(
+            graphene.String, description="External ID of the product."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -371,9 +375,17 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_product(
-        _root, info: graphene.ResolveInfo, *, id=None, slug=None, channel=None
+        _root,
+        info: graphene.ResolveInfo,
+        *,
+        id=None,
+        slug=None,
+        external_reference=None,
+        channel=None
     ):
-        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         requestor = get_user_or_app_from_context(info.context)
 
         has_required_permissions = has_one_of_permissions(
@@ -387,10 +399,18 @@ class ProductQueries(graphene.ObjectType):
             product = resolve_product_by_id(
                 info, id, channel_slug=channel, requestor=requestor
             )
-        else:
+        elif slug:
             product = resolve_product_by_slug(
                 info, product_slug=slug, channel_slug=channel, requestor=requestor
             )
+        else:
+            product = resolve_product_by_external_reference(
+                info,
+                external_reference=external_reference,
+                channel_slug=channel,
+                requestor=requestor,
+            )
+
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
     @staticmethod

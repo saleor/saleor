@@ -92,3 +92,16 @@ def add_hash_to_file_name(file):
     hash = secrets.token_hex(nbytes=4)
     new_name = f"{file_name}_{hash}{format}"
     file._name = new_name
+
+
+def ext_ref_to_global_id_or_error(model, ext_ref):
+    """Convert external reference to graphen global id."""
+    internal_id = (
+        model.objects.filter(external_reference=ext_ref)
+        .values_list("id", flat=True)
+        .first()
+    )
+    if internal_id:
+        return graphene.Node.to_global_id(model.__name__, internal_id)
+    else:
+        raise GraphQLError(f"Can't find external reference '{ext_ref}'.")

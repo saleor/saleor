@@ -433,6 +433,13 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         on_delete=models.SET_NULL,
     )
+    external_reference = models.CharField(
+        max_length=250,
+        unique=True,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
 
     objects = models.Manager.from_queryset(ProductsQueryset)()
     translated = TranslationProxy()
