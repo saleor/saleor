@@ -20,14 +20,14 @@ class Migration(migrations.Migration):
                     model_name="checkout",
                     name="private_metadata",
                 ),
+                migrations.RemoveIndex(
+                    model_name="checkout",
+                    name="checkout_p_meta_idx",
+                ),
+                migrations.RemoveIndex(
+                    model_name="checkout",
+                    name="checkout_meta_idx",
+                ),
             ],
-        ),
-        migrations.RemoveIndex(
-            model_name="checkout",
-            name="checkout_p_meta_idx",
-        ),
-        migrations.RemoveIndex(
-            model_name="checkout",
-            name="checkout_meta_idx",
         ),
     ]
