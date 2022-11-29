@@ -9,9 +9,5 @@ def resolve_stocks():
     return models.Stock.objects.all()
 
 
-def resolve_warehouse(id):
-    return models.Warehouse.objects.filter(id=id).first()
-
-
 def resolve_warehouses():
     return models.Warehouse.objects.all()

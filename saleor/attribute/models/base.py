@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import F, Q
 
 from ...core.db.fields import SanitizedJSONField
-from ...core.models import ModelWithMetadata, SortableModel
+from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.permissions import (
     PageTypePermissions,
     ProductTypePermissions,
@@ -112,7 +112,7 @@ class AttributeQuerySet(BaseAttributeQuerySet):
         return self.filter(type=AttributeType.PAGE_TYPE)
 
 
-class Attribute(ModelWithMetadata):
+class Attribute(ModelWithMetadata, ModelWithExternalReference):
     slug = models.SlugField(max_length=250, unique=True, allow_unicode=True)
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=50, choices=AttributeType.CHOICES)
@@ -205,7 +205,7 @@ class AttributeTranslation(Translation):
         return {"name": self.name}
 
 
-class AttributeValue(SortableModel):
+class AttributeValue(SortableModel, ModelWithExternalReference):
     name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
     value = models.CharField(max_length=100, blank=True, default="")

@@ -15,19 +15,24 @@ from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_38
-from ....core.mutations import ModelDeleteMutation
+from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
+from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 from ...utils import get_draft_order_lines_data_for_variants
 
 
-class ProductVariantDelete(ModelDeleteMutation):
+class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(
             required=False, description="ID of a product variant to delete."
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product variant to update. {ADDED_IN_310}",
         )
         sku = graphene.String(
             required=False,
@@ -57,10 +62,24 @@ class ProductVariantDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        sku = data.get("sku")
+        ext_ref = data.get("external_reference")
+
         validate_one_of_args_is_in_mutation(
-            ProductErrorCode, "sku", data.get("sku"), "id", data.get("id")
+            ProductErrorCode,
+            "sku",
+            sku,
+            "id",
+            node_id,
+            "external_reference",
+            ext_ref,
         )
-        if node_id := data.get("id"):
+
+        if ext_ref:
+            node_id = ext_ref_to_global_id_or_error(models.ProductVariant, ext_ref)
+
+        if node_id:
             instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
         if node_sku := data.get("sku"):

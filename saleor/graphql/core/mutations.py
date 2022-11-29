@@ -18,7 +18,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
-from ...core.error_codes import MetadataErrorCode
+from ...core.error_codes import CoreErrorCode, MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AuthorizationFilters,
@@ -26,6 +26,8 @@ from ...core.permissions import (
     one_of_permissions_or_auth_filter_required,
 )
 from ...core.utils.events import call_event
+from ..core.utils import ext_ref_to_global_id_or_error
+from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
 from ..plugins.dataloaders import get_plugin_manager_promise
@@ -649,6 +651,36 @@ class ModelMutation(BaseMutation):
         return cls.success_response(instance)
 
 
+class ModelWithExtRefMutation(ModelMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def get_object_id(cls, **data):
+        """Resolve object id by given id or external reference."""
+        object_id, ext_ref = data.get("id"), data.get("external_reference")
+        validate_one_of_args_is_in_mutation(
+            CoreErrorCode, "id", object_id, "external_reference", ext_ref
+        )
+
+        if ext_ref and not object_id:
+            object_id = ext_ref_to_global_id_or_error(cls._meta.model, ext_ref)
+
+        return object_id
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        """Retrieve an instance from the supplied global id.
+
+        The expected graphene type can be lazy (str).
+        """
+        object_id = cls.get_object_id(**data)
+        qs = data.get("qs")
+        if object_id:
+            model_type = cls.get_type_for_model()
+            return cls.get_node_or_error(info, object_id, only_type=model_type, qs=qs)
+
+
 class ModelDeleteMutation(ModelMutation):
     class Meta:
         abstract = True
@@ -664,13 +696,9 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        node_id = data.get("id")
-        model_type = cls.get_type_for_model()
-        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        instance = cls.get_instance(info, **data)
 
-        if instance:
-            cls.clean_instance(info, instance)
-
+        cls.clean_instance(info, instance)
         db_id = instance.id
         instance.delete()
 

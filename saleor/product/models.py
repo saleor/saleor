@@ -40,7 +40,12 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
+from ..core.models import (
+    ModelWithExternalReference,
+    ModelWithMetadata,
+    PublishableModel,
+    SortableModel,
+)
 from ..core.permissions import (
     DiscountPermissions,
     OrderPermissions,
@@ -390,7 +395,7 @@ class ProductsQueryset(models.QuerySet):
         return self.prefetch_related("collections", "category", *common_fields)
 
 
-class Product(SeoModel, ModelWithMetadata):
+class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
@@ -585,7 +590,7 @@ class ProductChannelListing(PublishableModel):
         )
 
 
-class ProductVariant(SortableModel, ModelWithMetadata):
+class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReference):
     sku = models.CharField(max_length=255, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     product = models.ForeignKey(

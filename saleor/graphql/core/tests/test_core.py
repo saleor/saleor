@@ -18,9 +18,14 @@ from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
 from ..filters import EnumFilter
-from ..mutations import BaseMutation
+from ..mutations import BaseMutation, ModelWithExtRefMutation
 from ..types import FilterInputObjectType
-from ..utils import add_hash_to_file_name, get_duplicated_values, snake_to_camel_case
+from ..utils import (
+    add_hash_to_file_name,
+    ext_ref_to_global_id_or_error,
+    get_duplicated_values,
+    snake_to_camel_case,
+)
 from . import ErrorTest
 
 
@@ -297,3 +302,40 @@ def test_add_hash_to_file_name(image, media_root):
     file_name, format = os.path.splitext(image._name)
     assert image._name.startswith(file_name)
     assert image._name.endswith(format)
+
+
+def test_external_reference_to_global_id(product):
+    # given
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+    model = product.__class__
+    # when
+    global_id = ext_ref_to_global_id_or_error(model, product.external_reference)
+    # then
+    assert global_id == graphene.Node.to_global_id(model.__name__, product.id)
+
+
+def test_external_reference_to_global_id_non_existing(product):
+    # given
+    product.external_reference = None
+    product.save(update_fields=["external_reference"])
+    non_existing_id = "non-existing-ext-ref"
+    model = product.__class__
+    # when
+    with pytest.raises(ValidationError) as e:
+        ext_ref_to_global_id_or_error(model, non_existing_id)
+    # then
+    assert e.value.messages[0] == f"Couldn't resolve to a node: {non_existing_id}"
+
+
+def test_get_instance_by_both_id_and_external_reference():
+    # given
+    data = {"id": "test-id", "external_reference": "test-ext-id"}
+    # when
+    with pytest.raises(ValidationError) as e:
+        ModelWithExtRefMutation.get_object_id(**data)
+    # then
+    assert (
+        e.value.messages[0]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )

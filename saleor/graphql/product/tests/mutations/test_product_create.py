@@ -73,6 +73,7 @@ CREATE_PRODUCT_MUTATION = """
                                     }
                                 }
                             }
+                            externalReference
                           }
                           errors {
                             field
@@ -111,6 +112,7 @@ def test_create_product(
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
     tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
+    external_reference = "test-ext-ref"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -147,6 +149,7 @@ def test_create_product(
             ],
             "metadata": [{"key": metadata_key, "value": metadata_value}],
             "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+            "externalReference": external_reference,
         }
     }
 
@@ -167,6 +170,7 @@ def test_create_product(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert data["product"]["taxClass"]["id"] == tax_class_id
+    assert data["product"]["externalReference"] == external_reference
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],

@@ -13,7 +13,12 @@ from .....product.search import update_product_search_vector
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ....core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_INPUT,
+    RICH_CONTENT,
+)
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
@@ -69,6 +74,9 @@ class ProductInput(graphene.InputObjectType):
             "Fields required to update the product private metadata." + ADDED_IN_38
         ),
         required=False,
+    )
+    external_reference = graphene.String(
+        description="External ID of this product." + ADDED_IN_310, required=False
     )
 
 
@@ -164,24 +172,6 @@ class ProductCreate(ModelMutation):
 
         clean_seo_fields(cleaned_input)
         return cleaned_input
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation."""
-        # If we are updating an instance and want to update its attributes,
-        # prefetch them.
-
-        object_id = data.get("id")
-        if object_id and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes__values",
-                "product_type__attributeproduct",
-            )
-            return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
-
-        return super().get_instance(info, **data)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):

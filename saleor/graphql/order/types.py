@@ -62,6 +62,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_38,
     ADDED_IN_39,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -1131,6 +1132,9 @@ class Order(ModelObjectType):
             "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
         ),
         required=True,
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this order. {ADDED_IN_310}", required=False
     )
 
     class Meta:

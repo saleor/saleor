@@ -55,7 +55,7 @@ def resolve_staff_users(_info):
 
 
 @traced_resolver
-def resolve_user(info, id=None, email=None):
+def resolve_user(info, id=None, email=None, external_reference=None):
     requester = get_user_or_app_from_context(info.context)
     if requester:
         filter_kwargs = {}
@@ -63,6 +63,8 @@ def resolve_user(info, id=None, email=None):
             _model, filter_kwargs["pk"] = from_global_id_or_error(id, User)
         if email:
             filter_kwargs["email"] = email
+        if external_reference:
+            filter_kwargs["external_reference"] = external_reference
         if requester.has_perms(
             [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
         ):

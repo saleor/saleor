@@ -37,6 +37,7 @@ CREATE_ATTRIBUTE_MUTATION = """
                 filterableInDashboard
                 availableInGrid
                 storefrontSearchPosition
+                externalReference
                 choices(first: 10) {
                     edges {
                         node {
@@ -73,9 +74,11 @@ def test_create_attribute_and_attribute_values(
 
     attribute_name = "Example name"
     name = "Value name"
+    external_reference = "test-ext-ref"
     variables = {
         "input": {
             "name": attribute_name,
+            "externalReference": external_reference,
             "values": [{"name": name}],
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
         }
@@ -104,6 +107,7 @@ def test_create_attribute_and_attribute_values(
     assert (
         data["attribute"]["productTypes"]["edges"] == []
     ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["externalReference"] == external_reference
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]) == 1

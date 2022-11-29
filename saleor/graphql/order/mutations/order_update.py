@@ -10,6 +10,8 @@ from ....order.error_codes import OrderErrorCode
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import invalidate_order_prices
 from ...account.types import AddressInput
+from ...core.descriptions import ADDED_IN_310
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
@@ -20,11 +22,18 @@ class OrderUpdateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user_email = graphene.String(description="Email address of the customer.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
+    external_reference = graphene.String(
+        description="External ID of this order." + ADDED_IN_310, required=False
+    )
 
 
-class OrderUpdate(DraftOrderCreate):
+class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an order to update.")
+        id = graphene.ID(required=False, description="ID of an order to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of an order to update. {ADDED_IN_310}",
+        )
         input = OrderUpdateInput(
             required=True, description="Fields required to update an order."
         )
@@ -42,7 +51,12 @@ class OrderUpdate(DraftOrderCreate):
         draft_order_cleaned_input = super().clean_input(info, instance, data)
 
         # We must to filter out field added by DraftOrderUpdate
-        editable_fields = ["billing_address", "shipping_address", "user_email"]
+        editable_fields = [
+            "billing_address",
+            "shipping_address",
+            "user_email",
+            "external_reference",
+        ]
         cleaned_input = {}
         for key in draft_order_cleaned_input:
             if key in editable_fields:

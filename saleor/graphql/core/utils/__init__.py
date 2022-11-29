@@ -4,6 +4,7 @@ import secrets
 from typing import Union
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphene import ObjectType
 from graphql.error import GraphQLError
 
@@ -92,3 +93,23 @@ def add_hash_to_file_name(file):
     hash = secrets.token_hex(nbytes=4)
     new_name = f"{file_name}_{hash}{format}"
     file._name = new_name
+
+
+def ext_ref_to_global_id_or_error(model, external_reference):
+    """Convert external reference to graphen global id."""
+    internal_id = (
+        model.objects.filter(external_reference=external_reference)
+        .values_list("id", flat=True)
+        .first()
+    )
+    if internal_id:
+        return graphene.Node.to_global_id(model.__name__, internal_id)
+    else:
+        raise ValidationError(
+            {
+                "externalReference": ValidationError(
+                    f"Couldn't resolve to a node: {external_reference}",
+                    code="not_found",
+                )
+            }
+        )

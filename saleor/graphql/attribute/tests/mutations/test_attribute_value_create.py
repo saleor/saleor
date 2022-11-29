@@ -35,12 +35,13 @@ def test_validate_value_is_unique(color_attribute):
 
 CREATE_ATTRIBUTE_VALUE_MUTATION = """
     mutation createAttributeValue(
-        $attributeId: ID!, $name: String!,
+        $attributeId: ID!, $name: String!, $externalReference: String,
         $value: String, $fileUrl: String, $contentType: String
     ) {
     attributeValueCreate(
         attribute: $attributeId, input: {
-            name: $name, value: $value, fileUrl: $fileUrl, contentType: $contentType
+            name: $name, value: $value, fileUrl: $fileUrl,
+            contentType: $contentType, externalReference: $externalReference
         }) {
         errors {
             field
@@ -64,6 +65,7 @@ CREATE_ATTRIBUTE_VALUE_MUTATION = """
         attributeValue {
             name
             slug
+            externalReference
         }
     }
 }
@@ -78,7 +80,12 @@ def test_create_attribute_value(
     query = CREATE_ATTRIBUTE_VALUE_MUTATION
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
     name = "test name"
-    variables = {"name": name, "attributeId": attribute_id}
+    external_reference = "test-ext-ref"
+    variables = {
+        "name": name,
+        "attributeId": attribute_id,
+        "externalReference": external_reference,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -93,6 +100,7 @@ def test_create_attribute_value(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
+    assert attr_data["externalReference"] == external_reference
     assert name in [
         value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
     ]
