@@ -38,7 +38,6 @@ from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
-from ....tests.consts import TEST_SERVER_DOMAIN
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
@@ -790,7 +789,7 @@ USER_AVATAR_QUERY = """
 
 
 def test_query_user_avatar_with_size_and_format_proxy_url_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -813,14 +812,15 @@ def test_query_user_avatar_with_size_and_format_proxy_url_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
+    domain = site_settings.site.domain
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{user_uuid}/128/{format.lower()}/"
+        == f"http://{domain}/thumbnail/{user_uuid}/128/{format.lower()}/"
     )
 
 
 def test_query_user_avatar_with_size_proxy_url_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -843,12 +843,12 @@ def test_query_user_avatar_with_size_proxy_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/thumbnail/{user_uuid}/128/"
+        == f"http://{site_settings.site.domain}/thumbnail/{user_uuid}/128/"
     )
 
 
 def test_query_user_avatar_with_size_thumbnail_url_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -874,12 +874,12 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/thumbnails/{thumbnail_mock.name}"
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_query_user_avatar_only_format_provided_original_image_returned(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -903,12 +903,12 @@ def test_query_user_avatar_only_format_provided_original_image_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/{avatar_mock.name}"
+        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
     )
 
 
 def test_query_user_avatar_no_size_value(
-    staff_api_client, media_root, permission_manage_staff
+    staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
     user = staff_api_client.user
@@ -930,7 +930,7 @@ def test_query_user_avatar_no_size_value(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/{avatar_mock.name}"
+        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
     )
 
 
@@ -1225,7 +1225,7 @@ def test_me_checkout_tokens_without_channel_param_inactive_channel(
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert str(checkouts[0].token) in data["checkoutTokens"]
-    assert not str(checkouts[1].token) in data["checkoutTokens"]
+    assert str(checkouts[1].token) not in data["checkoutTokens"]
 
 
 def test_me_checkout_tokens_with_channel(
@@ -1243,7 +1243,7 @@ def test_me_checkout_tokens_with_channel(
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert str(checkouts[0].token) in data["checkoutTokens"]
-    assert not str(checkouts[1].token) in data["checkoutTokens"]
+    assert str(checkouts[1].token) not in data["checkoutTokens"]
 
 
 def test_me_checkout_tokens_with_inactive_channel(
@@ -5435,8 +5435,9 @@ def test_user_avatar_update_mutation_permission(api_client):
     assert_no_permission(response)
 
 
-def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
-    # given
+def test_user_avatar_update_mutation(
+    monkeypatch, staff_api_client, media_root, site_settings
+):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -5456,7 +5457,7 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
 
     assert user.avatar
     assert data["user"]["avatar"]["url"].startswith(
-        f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/avatar"
+        f"http://{site_settings.site.domain}/media/user-avatars/avatar"
     )
     img_name, format = os.path.splitext(image_file._name)
     file_name = user.avatar.name
@@ -5465,8 +5466,9 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
     assert file_name.endswith(format)
 
 
-def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
-    # given
+def test_user_avatar_update_mutation_image_exists(
+    staff_api_client, media_root, site_settings
+):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -5494,7 +5496,7 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
 
     assert user.avatar != avatar_mock
     assert data["user"]["avatar"]["url"].startswith(
-        f"http://{TEST_SERVER_DOMAIN}/media/user-avatars/new_image"
+        f"http://{site_settings.site.domain}/media/user-avatars/new_image"
     )
     assert not user.thumbnails.exists()
 

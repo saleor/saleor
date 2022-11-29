@@ -17,11 +17,10 @@ from typing import (
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
-from django_countries.fields import Country
 from graphene import Mutation
 from graphql import GraphQLError, ResolveInfo
 from graphql.execution import ExecutionResult
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 from promise.promise import Promise
 
 from ..core.models import EventDelivery
@@ -36,7 +35,6 @@ from ..payment.interface import (
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ..account.models import Address, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
@@ -46,13 +44,14 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
-    from ..discount import DiscountInfo, Voucher
-    from ..discount.models import Sale
+    from ..discount import DiscountInfo
+    from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
+    from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
         Collection,
@@ -62,10 +61,10 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..tax.models import TaxClass
     from ..warehouse.models import Warehouse
 
 PluginConfigurationType = List[dict]
-NoneType = type(None)
 RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
 
 
@@ -144,363 +143,367 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
-    #  Trigger when address is created.
+    # Trigger when address is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after an address is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after an address is
+    # created.
     address_created: Callable[["Address", None], None]
 
-    #  Trigger when address is deleted.
+    # Trigger when address is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after an address is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after an address is
+    # deleted.
     address_deleted: Callable[["Address", None], None]
 
-    #  Trigger when address is updated.
+    # Trigger when address is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after an address is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after an address is
+    # updated.
     address_updated: Callable[["Address", None], None]
 
-    #  Trigger when app is installed.
+    # Trigger when app is installed.
     #
-    #  Overwrite this method if you need to trigger specific logic after an app is
-    #  installed.
+    # Overwrite this method if you need to trigger specific logic after an app is
+    # installed.
     app_installed: Callable[["App", None], None]
 
-    #  Trigger when app is deleted.
+    # Trigger when app is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after an app is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after an app is
+    # deleted.
     app_deleted: Callable[["App", None], None]
 
-    #  Trigger when app is updated.
+    # Trigger when app is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after an app is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after an app is
+    # updated.
     app_updated: Callable[["App", None], None]
 
-    #  Trigger when channel status is changed.
+    # Trigger when channel status is changed.
     #
-    #  Overwrite this method if you need to trigger specific logic after an app
-    #  status is changed.
+    # Overwrite this method if you need to trigger specific logic after an app
+    # status is changed.
     app_status_changed: Callable[["App", None], None]
 
-    #  Apply taxes to the product price based on the customer country.
-    #
-    #  Overwrite this method if you want to show products with taxes.
-    apply_taxes_to_product: Callable[
-        ["Product", Money, Country, TaxedMoney], TaxedMoney
-    ]
+    # Assign tax code dedicated to plugin.
+    assign_tax_code_to_object_meta: Callable[["TaxClass", Union[str, None], Any], Any]
 
-    #  Assign tax code dedicated to plugin.
-    assign_tax_code_to_object_meta: Callable[
-        [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
-    ]
-
-    #  Trigger when attribute is created.
+    # Trigger when attribute is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after an attribute is
-    #  installed.
+    # Overwrite this method if you need to trigger specific logic after an attribute is
+    # installed.
     attribute_created: Callable[["Attribute", None], None]
 
-    #  Trigger when attribute is deleted.
+    # Trigger when attribute is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after an attribute is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after an attribute is
+    # deleted.
     attribute_deleted: Callable[["Attribute", None], None]
 
-    #  Trigger when attribute is updated.
+    # Trigger when attribute is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after an attribute is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after an attribute is
+    # updated.
     attribute_updated: Callable[["Attribute", None], None]
 
-    #  Trigger when attribute value is created.
+    # Trigger when attribute value is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after an attribute
-    #  value is installed.
+    # Overwrite this method if you need to trigger specific logic after an attribute
+    # value is installed.
     attribute_value_created: Callable[["AttributeValue", None], None]
 
-    #  Trigger when attribute value is deleted.
+    # Trigger when attribute value is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after an attribute
-    #  value is deleted.
+    # Overwrite this method if you need to trigger specific logic after an attribute
+    # value is deleted.
     attribute_value_deleted: Callable[["AttributeValue", None], None]
 
-    #  Trigger when attribute value is updated.
+    # Trigger when attribute value is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after an attribute
-    #  value is updated.
+    # Overwrite this method if you need to trigger specific logic after an attribute
+    # value is updated.
     attribute_value_updated: Callable[["AttributeValue", None], None]
 
-    #  Authenticate user which should be assigned to the request.
+    # Authenticate user which should be assigned to the request.
     #
-    #  Overwrite this method if the plugin handles authentication flow.
-    authenticate_user: Callable[
-        [WSGIRequest, Optional["User"]], Union["User", NoneType]
-    ]
+    # Overwrite this method if the plugin handles authentication flow.
+    authenticate_user: Callable[[WSGIRequest, Optional["User"]], Union["User", None]]
 
     authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
 
-    #  Update order lines taxes.
+    # Calculate checkout line total.
     #
-    #  Overwrite this method if you need to apply specific logic for applying taxes on
-    #  order lines. Return Iterable["OrderLine"].
-    update_taxes_for_order_lines: Callable[
-        ["Order", List["OrderLine"], List["OrderLine"]], List["OrderLine"]
-    ]
-
-    #  Calculate checkout line total.
-    #
-    #  Overwrite this method if you need to apply specific logic for the calculation
-    #  of a checkout line total. Return TaxedMoney.
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a checkout line total. Return TaxedMoney.
     calculate_checkout_line_total: Callable[
         [
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
-            Union["Address", NoneType],
+            Union["Address", None],
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
     ]
 
-    #  Calculate checkout line unit price.
+    # Calculate checkout line unit price.
     calculate_checkout_line_unit_price: Callable[
         [
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
-            Union["Address", NoneType],
+            Union["Address", None],
             Iterable["DiscountInfo"],
             Any,
         ],
         TaxedMoney,
     ]
 
-    #  Calculate the shipping costs for checkout.
+    # Calculate the shipping costs for checkout.
     #
-    #  Overwrite this method if you need to apply specific logic for the calculation
-    #  of shipping costs. Return TaxedMoney.
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of shipping costs. Return TaxedMoney.
     calculate_checkout_shipping: Callable[
         [
             "CheckoutInfo",
             List["CheckoutLineInfo"],
-            Union["Address", NoneType],
+            Union["Address", None],
             List["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
     ]
 
-    #  Calculate the total for checkout.
+    # Calculate the total for checkout.
     #
-    #  Overwrite this method if you need to apply specific logic for the calculation
-    #  of a checkout total. Return TaxedMoney.
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a checkout total. Return TaxedMoney.
     calculate_checkout_total: Callable[
         [
             "CheckoutInfo",
             List["CheckoutLineInfo"],
-            Union["Address", NoneType],
+            Union["Address", None],
             List["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
     ]
 
-    #  Calculate order line total.
+    # Calculate order line total.
     #
-    #  Overwrite this method if you need to apply specific logic for the calculation
-    #  of a order line total. Return TaxedMoney.
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a order line total. Return TaxedMoney.
     calculate_order_line_total: Callable[
         ["Order", "OrderLine", "ProductVariant", "Product", TaxedMoney], TaxedMoney
     ]
 
-    #  Calculate order line unit price.
+    # Calculate order line unit price.
     #
-    #  Update order line unit price in the order in case of changes in draft order.
-    #  Return TaxedMoney.
-    #  Overwrite this method if you need to apply specific logic for the calculation
-    #  of an order line unit price.
+    # Update order line unit price in the order in case of changes in draft order.
+    # Return TaxedMoney.
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of an order line unit price.
     calculate_order_line_unit: Callable[
         ["Order", "OrderLine", "ProductVariant", "Product", TaxedMoney], TaxedMoney
     ]
 
-    #  Calculate the shipping costs for the order.
+    # Calculate the shipping costs for the order.
     #
-    #  Update shipping costs in the order in case of changes in shipping address or
-    #  changes in draft order. Return TaxedMoney.
+    # Update shipping costs in the order in case of changes in shipping address or
+    # changes in draft order. Return TaxedMoney.
     calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
 
-    #  Calculate order total.
+    # Calculate order total.
     #
-    #  Overwrite this method if you need to apply specific logic for the calculation
-    #  of a order total. Return TaxedMoney.
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a order total. Return TaxedMoney.
     calculate_order_total: Callable[
         ["Order", List["OrderLine"], TaxedMoney], TaxedMoney
     ]
 
     capture_payment: Callable[["PaymentData", Any], GatewayResponse]
 
-    #  Trigger when category is created.
+    # Trigger when category is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a category is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a category is
+    # created.
     category_created: Callable[["Category", None], None]
 
-    #  Trigger when category is deleted.
+    # Trigger when category is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a category is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a category is
+    # deleted.
     category_deleted: Callable[["Category", None], None]
 
-    #  Trigger when category is updated.
+    # Trigger when category is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a category is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a category is
+    # updated.
     category_updated: Callable[["Category", None], None]
 
-    #  Trigger when channel is created.
+    # Trigger when channel is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a channel is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a channel is
+    # created.
     channel_created: Callable[["Channel", None], None]
 
-    #  Trigger when channel is deleted.
+    # Trigger when channel is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a channel is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a channel is
+    # deleted.
     channel_deleted: Callable[["Channel", None], None]
 
-    #  Trigger when channel is updated.
+    # Trigger when channel is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a channel is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a channel is
+    # updated.
     channel_updated: Callable[["Channel", None], None]
 
-    #  Trigger when channel status is changed.
+    # Trigger when channel status is changed.
     #
-    #  Overwrite this method if you need to trigger specific logic after a channel
-    #  status is changed.
+    # Overwrite this method if you need to trigger specific logic after a channel
+    # status is changed.
     channel_status_changed: Callable[["Channel", None], None]
 
     change_user_address: Callable[
-        ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
+        ["Address", Union[str, None], Union["User", None], "Address"], "Address"
     ]
 
-    #  Retrieves the balance remaining on a shopper's gift card
+    # Retrieves the balance remaining on a shopper's gift card
     check_payment_balance: Callable[[dict, str], dict]
 
-    #  Trigger when checkout is created.
+    # Trigger when checkout is created.
     #
-    #  Overwrite this method if you need to trigger specific logic when a checkout is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic when a checkout is
+    # created.
     checkout_created: Callable[["Checkout", Any], Any]
 
-    #  Trigger when checkout is updated.
+    # Trigger when checkout is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic when a checkout is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic when a checkout is
+    # updated.
     checkout_updated: Callable[["Checkout", Any], Any]
 
-    #  Trigger when collection is created.
+    # Trigger when checkout metadata is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a collection is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic when a checkout
+    # metadata is updated.
+    checkout_metadata_updated: Callable[["Checkout", Any], Any]
+
+    # Trigger when collection is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a collection is
+    # created.
     collection_created: Callable[["Collection", Any], Any]
 
-    #  Trigger when collection is deleted.
+    # Trigger when collection is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a collection is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a collection is
+    # deleted.
     collection_deleted: Callable[["Collection", Any], Any]
 
-    #  Trigger when collection is updated.
+    # Trigger when collection is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a collection is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a collection is
+    # updated.
     collection_updated: Callable[["Collection", Any], Any]
+
+    # Trigger when collection metadata is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a collection
+    # metadata is updated.
+    collection_metadata_updated: Callable[["Collection", Any], Any]
 
     confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
 
-    #  Trigger when user is created.
+    # Trigger when user is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a user is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a user is
+    # created.
     customer_created: Callable[["User", Any], Any]
 
-    #  Trigger when user is deleted.
+    # Trigger when user is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a user is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a user is
+    # deleted.
     customer_deleted: Callable[["User", Any], Any]
 
-    #  Trigger when user is updated.
+    # Trigger when user is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a user is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a user is
+    # updated.
     customer_updated: Callable[["User", Any], Any]
 
-    #  Handle authentication request.
+    # Trigger when user metadata is updated.
     #
-    #  Overwrite this method if the plugin handles authentication flow.
+    # Overwrite this method if you need to trigger specific logic after a user
+    # metadata is updated.
+    customer_metadata_updated: Callable[["User", Any], Any]
+
+    # Handle authentication request.
+    #
+    # Overwrite this method if the plugin handles authentication flow.
     external_authentication_url: Callable[[dict, WSGIRequest, dict], dict]
 
-    #  Handle logout request.
+    # Handle logout request.
     #
-    #  Overwrite this method if the plugin handles logout flow.
+    # Overwrite this method if the plugin handles logout flow.
     external_logout: Callable[[dict, WSGIRequest, dict], Any]
 
-    #  Handle authentication request responsible for obtaining access tokens.
+    # Handle authentication request responsible for obtaining access tokens.
     #
-    #  Overwrite this method if the plugin handles authentication flow.
+    # Overwrite this method if the plugin handles authentication flow.
     external_obtain_access_tokens: Callable[
         [dict, WSGIRequest, ExternalAccessTokens], ExternalAccessTokens
     ]
 
-    #  Handle authentication refresh request.
+    # Handle authentication refresh request.
     #
-    #  Overwrite this method if the plugin handles authentication flow and supports
-    #  refreshing the access.
+    # Overwrite this method if the plugin handles authentication flow and supports
+    # refreshing the access.
     external_refresh: Callable[
         [dict, WSGIRequest, ExternalAccessTokens], ExternalAccessTokens
     ]
 
-    #  Verify the provided authentication data.
+    # Verify the provided authentication data.
     #
-    #  Overwrite this method if the plugin should validate the authentication data.
+    # Overwrite this method if the plugin should validate the authentication data.
     external_verify: Callable[
-        [dict, WSGIRequest, Tuple[Union["User", NoneType], dict]],
-        Tuple[Union["User", NoneType], dict],
+        [dict, WSGIRequest, Tuple[Union["User", None], dict]],
+        Tuple[Union["User", None], dict],
     ]
 
-    #  Triggered when ShopFetchTaxRates mutation is called.
-    fetch_taxes_data: Callable[[Any], Any]
-
-    #  Trigger when fulfillemnt is created.
+    # Trigger when fulfillment is created.
     #
-    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic when a fulfillment is
+    # created.
     fulfillment_created: Callable[["Fulfillment", Any], Any]
 
-    #  Trigger when fulfillemnt is cancelled.
-    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
-    #  cancelled.
+    # Trigger when fulfillment is cancelled.
+    #
+    # Overwrite this method if you need to trigger specific logic when a fulfillment is
+    # cancelled.
     fulfillment_canceled: Callable[["Fulfillment", Any], Any]
 
-    #  Trigger when fulfillemnt is approved.
-    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
-    #  approved.
+    # Trigger when fulfillment is approved.
+    #
+    # Overwrite this method if you need to trigger specific logic when a fulfillment is
+    # approved.
     fulfillment_approved: Callable[["Fulfillment", Any], Any]
+
+    # Trigger when fulfillment metadata is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic when a fulfillment
+    # metadata is updated.
+    fulfillment_metadata_updated: Callable[["Fulfillment", Any], Any]
 
     get_checkout_line_tax_rate: Callable[
         [
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
-            Union["Address", NoneType],
+            Union["Address", None],
             Iterable["DiscountInfo"],
             Decimal,
         ],
@@ -511,7 +514,7 @@ class BasePlugin:
         [
             "CheckoutInfo",
             Iterable["CheckoutLineInfo"],
-            Union["Address", NoneType],
+            Union["Address", None],
             Iterable["DiscountInfo"],
             Any,
         ],
@@ -528,7 +531,7 @@ class BasePlugin:
     get_client_token: Callable[[Any, Any], Any]
 
     get_order_line_tax_rate: Callable[
-        ["Order", "Product", "ProductVariant", Union["Address", NoneType], Decimal],
+        ["Order", "Product", "ProductVariant", Union["Address", None], Decimal],
         Decimal,
     ]
 
@@ -541,210 +544,215 @@ class BasePlugin:
 
     get_supported_currencies: Callable[[Any], Any]
 
-    #  Return tax code from object meta.
+    # Return tax code from object meta.
     get_tax_code_from_object_meta: Callable[
-        [Union["Product", "ProductType"], "TaxType"], "TaxType"
+        [Union["Product", "ProductType", "TaxClass"], "TaxType"], "TaxType"
     ]
 
-    #  Return tax rate percentage value for a given tax rate type in a country.
+    # Return list of all tax categories.
     #
-    #  It is used only by the old storefront.
-    get_tax_rate_percentage_value: Callable[
-        [Union["Product", "ProductType"], Country, Any], Decimal
-    ]
-
-    #  Return list of all tax categories.
-    #
-    #  The returned list will be used to provide staff users with the possibility to
-    #  assign tax categories to a product. It can be used by tax plugins to properly
-    #  calculate taxes for products.
-    #  Overwrite this method in case your plugin provides a list of tax categories.
+    # The returned list will be used to provide staff users with the possibility to
+    # assign tax categories to a product. It can be used by tax plugins to properly
+    # calculate taxes for products.
+    # Overwrite this method in case your plugin provides a list of tax categories.
     get_tax_rate_type_choices: Callable[[List["TaxType"]], List["TaxType"]]
 
-    #  Trigger when gift card is created.
+    # Trigger when gift card is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a gift card is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a gift card is
+    # created.
     gift_card_created: Callable[["GiftCard", None], None]
 
-    #  Trigger when gift card is deleted.
+    # Trigger when gift card is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a gift card is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a gift card is
+    # deleted.
     gift_card_deleted: Callable[["GiftCard", None], None]
 
-    #  Trigger when gift card is updated.
+    # Trigger when gift card is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a gift card is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a gift card is
+    # updated.
     gift_card_updated: Callable[["GiftCard", None], None]
 
-    #  Trigger when gift card status is changed.
+    # Trigger when gift card metadata is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a gift card
-    #  status is changed.
+    # Overwrite this method if you need to trigger specific logic after a gift card
+    # metadata is updated.
+    gift_card_metadata_updated: Callable[["GiftCard", None], None]
+
+    # Trigger when gift card status is changed.
+    #
+    # Overwrite this method if you need to trigger specific logic after a gift card
+    # status is changed.
     gift_card_status_changed: Callable[["GiftCard", None], None]
 
     initialize_payment: Callable[[dict], InitializedPaymentResponse]
 
-    #  Trigger before invoice is deleted.
+    # Trigger before invoice is deleted.
     #
-    #  Perform any extra logic before the invoice gets deleted.
-    #  Note there is no need to run invoice.delete() as it will happen in mutation.
+    # Perform any extra logic before the invoice gets deleted.
+    # Note there is no need to run invoice.delete() as it will happen in mutation.
     invoice_delete: Callable[["Invoice", Any], Any]
 
-    #  Trigger when invoice creation starts.
-    #  May return Invoice object.
-    #  Overwrite to create invoice with proper data, call invoice.update_invoice.
+    # Trigger when invoice creation starts.
+    # May return Invoice object.
+    # Overwrite to create invoice with proper data, call invoice.update_invoice.
     invoice_request: Callable[
-        ["Order", "Invoice", Union[str, NoneType], Any], Optional["Invoice"]
+        ["Order", "Invoice", Union[str, None], Any], Optional["Invoice"]
     ]
 
-    #  Trigger after invoice is sent.
+    # Trigger after invoice is sent.
     invoice_sent: Callable[["Invoice", str, Any], Any]
 
     list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
 
-    #  Trigger when menu is created.
+    # Trigger when menu is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a menu is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a menu is
+    # created.
     menu_created: Callable[["Menu", None], None]
 
-    #  Trigger when menu is deleted.
+    # Trigger when menu is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a menu is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a menu is
+    # deleted.
     menu_deleted: Callable[["Menu", None], None]
 
-    #  Trigger when menu is updated.
+    # Trigger when menu is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a menu is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a menu is
+    # updated.
     menu_updated: Callable[["Menu", None], None]
 
-    #  Trigger when menu item is created.
+    # Trigger when menu item is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a menu item is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a menu item is
+    # created.
     menu_item_created: Callable[["MenuItem", None], None]
 
-    #  Trigger when menu item is deleted.
+    # Trigger when menu item is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a menu item is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a menu item is
+    # deleted.
     menu_item_deleted: Callable[["MenuItem", None], None]
 
-    #  Trigger when menu item is updated.
+    # Trigger when menu item is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a menu item is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a menu item is
+    # updated.
     menu_item_updated: Callable[["MenuItem", None], None]
 
-    #  Handle notification request.
+    # Handle notification request.
     #
-    #  Overwrite this method if the plugin is responsible for sending notifications.
+    # Overwrite this method if the plugin is responsible for sending notifications.
     notify: Callable[["NotifyEventType", dict, Any], Any]
 
-    #  Trigger when order is cancelled.
+    # Trigger when order is cancelled.
     #
-    #  Overwrite this method if you need to trigger specific logic when an order is
-    #  canceled.
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # canceled.
     order_cancelled: Callable[["Order", Any], Any]
 
-    #  Trigger when order is confirmed by staff.
+    # Trigger when order is confirmed by staff.
     #
-    #  Overwrite this method if you need to trigger specific logic after an order is
-    #  confirmed.
+    # Overwrite this method if you need to trigger specific logic after an order is
+    # confirmed.
     order_confirmed: Callable[["Order", Any], Any]
 
-    #  Trigger when order is created.
+    # Trigger when order is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after an order is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after an order is
+    # created.
     order_created: Callable[["Order", Any], Any]
 
-    #  Trigger when order is fulfilled.
+    # Trigger when order is fulfilled.
     #
-    #  Overwrite this method if you need to trigger specific logic when an order is
-    #  fulfilled.
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # fulfilled.
     order_fulfilled: Callable[["Order", Any], Any]
 
-    #  Trigger when order is fully paid.
+    # Trigger when order is fully paid.
     #
-    #  Overwrite this method if you need to trigger specific logic when an order is
-    #  fully paid.
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # fully paid.
     order_fully_paid: Callable[["Order", Any], Any]
 
-    #  Trigger when order is updated.
+    # Trigger when order is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic when an order is
-    #  changed.
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # changed.
     order_updated: Callable[["Order", Any], Any]
 
-    #  Trigger when page is created.
+    # Trigger when order metadata is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic when a page is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic when an order
+    # metadata is changed.
+    order_metadata_updated: Callable[["Order", Any], Any]
+
+    # Trigger when page is created.
+    #
+    # Overwrite this method if you need to trigger specific logic when a page is
+    # created.
     page_created: Callable[["Page", Any], Any]
 
-    #  Trigger when page is deleted.
+    # Trigger when page is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic when a page is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic when a page is
+    # deleted.
     page_deleted: Callable[["Page", Any], Any]
 
-    #  Trigger when page is updated.
+    # Trigger when page is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic when a page is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic when a page is
+    # updated.
     page_updated: Callable[["Page", Any], Any]
 
-    #  Trigger when page type is created.
+    # Trigger when page type is created.
     #
-    #  Overwrite this method if you need to trigger specific logic when a page type is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic when a page type is
+    # created.
     page_type_created: Callable[["PageType", Any], Any]
 
-    #  Trigger when page type is deleted.
+    # Trigger when page type is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic when a page type is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic when a page type is
+    # deleted.
     page_type_deleted: Callable[["PageType", Any], Any]
 
-    #  Trigger when page type is updated.
+    # Trigger when page type is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic when a page type is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic when a page type is
+    # updated.
     page_type_updated: Callable[["PageType", Any], Any]
 
-    #  Trigger when permission group is created.
+    # Trigger when permission group is created.
     #
-    #  Overwrite this method if you need to trigger specific logic when a permission
-    #  group is created.
+    # Overwrite this method if you need to trigger specific logic when a permission
+    # group is created.
     permission_group_created: Callable[["Group", Any], Any]
 
-    #  Trigger when permission group type is deleted.
+    # Trigger when permission group type is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic when a permission
-    #  group is deleted.
+    # Overwrite this method if you need to trigger specific logic when a permission
+    # group is deleted.
     permission_group_deleted: Callable[["Group", Any], Any]
 
-    #  Trigger when permission group is updated.
+    # Trigger when permission group is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic when a permission
-    #  group is updated.
+    # Overwrite this method if you need to trigger specific logic when a permission
+    # group is updated.
     permission_group_updated: Callable[["Group", Any], Any]
 
-    #  Trigger directly before order creation.
+    # Trigger directly before order creation.
     #
-    #  Overwrite this method if you need to trigger specific logic before an order is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic before an order is
+    # created.
     preprocess_order_creation: Callable[
         [
             "CheckoutInfo",
             List["DiscountInfo"],
-            Union[Iterable["CheckoutLineInfo"], NoneType],
+            Union[Iterable["CheckoutLineInfo"], None],
             Any,
         ],
         Any,
@@ -754,165 +762,203 @@ class BasePlugin:
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
 
-    #  Trigger when product is created.
+    # Trigger when transaction item metadata is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a product is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic when a transaction
+    # item metadata is updated.
+    transaction_item_metadata_updated: Callable[["TransactionItem", Any], Any]
+
+    # Trigger when product is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product is
+    # created.
     product_created: Callable[["Product", Any], Any]
 
-    #  Trigger when product is deleted.
+    # Trigger when product is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a product is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a product is
+    # deleted.
     product_deleted: Callable[["Product", List[int], Any], Any]
 
-    #  Trigger when product is updated.
+    # Trigger when product is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a product is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a product is
+    # updated.
     product_updated: Callable[["Product", Any], Any]
 
-    #  Trigger when product variant is created.
+    # Trigger when product metadata is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a product
-    #  variant is created.
+    # Overwrite this method if you need to trigger specific logic after a product
+    # metadata is updated.
+    product_metadata_updated: Callable[["Product", Any], Any]
+
+    # Trigger when product variant is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant is created.
     product_variant_created: Callable[["ProductVariant", Any], Any]
 
-    #  Trigger when product variant is deleted.
+    # Trigger when product variant is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a product
-    #  variant is deleted.
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant is deleted.
     product_variant_deleted: Callable[["ProductVariant", Any], Any]
 
-    #  Trigger when product variant is updated.
+    # Trigger when product variant is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a product
-    #  variant is updated.
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant is updated.
     product_variant_updated: Callable[["ProductVariant", Any], Any]
+
+    # Trigger when product variant metadata is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant metadata is updated.
+    product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
 
     refund_payment: Callable[["PaymentData", Any], GatewayResponse]
 
-    #  Trigger when sale is created.
+    # Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
     sale_created: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
 
-    #  Trigger when sale is deleted.
+    # Trigger when sale is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after sale is deleted.
+    # Overwrite this method if you need to trigger specific logic after
+    # a sale is deleted.
     sale_deleted: Callable[["Sale", DefaultDict[str, Set[str]], Any], Any]
 
-    #  Trigger when sale is updated.
+    # Trigger when sale is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after sale is updated.
+    # Overwrite this method if you need to trigger specific logic after
+    # a sale is updated.
     sale_updated: Callable[
         ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
     ]
 
-    #  Trigger when shipping price is created.
+    # Trigger when shipping price is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a shipping
-    #  price is created.
+    # Overwrite this method if you need to trigger specific logic after a shipping
+    # price is created.
     shipping_price_created: Callable[["ShippingMethod", None], None]
 
-    #  Trigger when shipping price is deleted.
+    # Trigger when shipping price is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a shipping
-    #  price is deleted.
+    # Overwrite this method if you need to trigger specific logic after a shipping
+    # price is deleted.
     shipping_price_deleted: Callable[["ShippingMethod", None], None]
 
-    #  Trigger when shipping price is updated.
+    # Trigger when shipping price is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a shipping
-    #  price is updated.
+    # Overwrite this method if you need to trigger specific logic after a shipping
+    # price is updated.
     shipping_price_updated: Callable[["ShippingMethod", None], None]
 
-    #  Trigger when shipping zone is created.
+    # Trigger when shipping zone is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a shipping zone
-    #  is created.
+    # Overwrite this method if you need to trigger specific logic after a shipping zone
+    # is created.
     shipping_zone_created: Callable[["ShippingZone", None], None]
 
-    #  Trigger when shipping zone is deleted.
+    # Trigger when shipping zone is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a shipping zone
-    #  is deleted.
+    # Overwrite this method if you need to trigger specific logic after a shipping zone
+    # is deleted.
     shipping_zone_deleted: Callable[["ShippingZone", None], None]
 
-    #  Trigger when shipping zone is updated.
+    # Trigger when shipping zone is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a shipping zone
-    #  is updated.
+    # Overwrite this method if you need to trigger specific logic after a shipping zone
+    # is updated.
     shipping_zone_updated: Callable[["ShippingZone", None], None]
 
-    #  Define if storefront should add info about taxes to the price.
+    # Trigger when shipping zone metadata is updated.
     #
-    #  It is used only by the old storefront. The returned value determines if
-    #  storefront should append info to the price about "including/excluding X% VAT".
+    # Overwrite this method if you need to trigger specific logic after a shipping zone
+    # metadata is updated.
+    shipping_zone_metadata_updated: Callable[["ShippingZone", None], None]
+
+    # Define if storefront should add info about taxes to the price.
+    #
+    # It is used only by the old storefront. The returned value determines if
+    # storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
-    #  Trigger when staff user is created.
+    # Trigger when staff user is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a staff user is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a staff user is
+    # created.
     staff_created: Callable[["User", Any], Any]
 
-    #  Trigger when staff user is updated.
+    # Trigger when staff user is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a staff user is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a staff user is
+    # updated.
     staff_updated: Callable[["User", Any], Any]
 
-    #  Trigger when staff user is deleted.
+    # Trigger when staff user is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a staff user is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a staff user is
+    # deleted.
     staff_deleted: Callable[["User", Any], Any]
 
-    #  Trigger when tracking number is updated.
+    # Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]
 
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
-    #  Trigger when warehouse is created.
+    # Trigger when warehouse is created.
     #
-    #  Overwrite this method if you need to trigger specific logic after a warehouse is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a warehouse is
+    # created.
     warehouse_created: Callable[["Warehouse", None], None]
 
-    #  Trigger when warehouse is deleted.
+    # Trigger when warehouse is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a warehouse is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a warehouse is
+    # deleted.
     warehouse_deleted: Callable[["Warehouse", None], None]
 
-    #  Trigger when warehouse is updated.
+    # Trigger when warehouse is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a warehouse is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a warehouse is
+    # updated.
     warehouse_updated: Callable[["Warehouse", None], None]
 
-    #  Trigger when voucher is created.
+    # Trigger when warehouse metadata is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a voucher is
-    #  created.
+    # Overwrite this method if you need to trigger specific logic after a warehouse
+    # metadata is updated.
+    warehouse_metadata_updated: Callable[["Warehouse", None], None]
+
+    # Trigger when voucher is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a voucher is
+    # created.
     voucher_created: Callable[["Voucher", None], None]
 
-    #  Trigger when voucher is deleted.
+    # Trigger when voucher is deleted.
     #
-    #  Overwrite this method if you need to trigger specific logic after a voucher is
-    #  deleted.
+    # Overwrite this method if you need to trigger specific logic after a voucher is
+    # deleted.
     voucher_deleted: Callable[["Voucher", None], None]
 
-    #  Trigger when voucher is updated.
+    # Trigger when voucher is updated.
     #
-    #  Overwrite this method if you need to trigger specific logic after a voucher is
-    #  updated.
+    # Overwrite this method if you need to trigger specific logic after a voucher is
+    # updated.
     voucher_updated: Callable[["Voucher", None], None]
 
-    #  Handle received http request.
+    # Trigger when voucher metadata is updated.
     #
-    #  Overwrite this method if the plugin expects the incoming requests.
+    # Overwrite this method if you need to trigger specific logic after a voucher
+    # metadata is updated.
+    voucher_metadata_updated: Callable[["Voucher", None], None]
+
+    # Handle received http request.
+    #
+    # Overwrite this method if the plugin expects the incoming requests.
     webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
 
     # Triggers retry mechanism for event delivery
@@ -924,9 +970,9 @@ class BasePlugin:
     # but only once the permissions are checked.
     #
     # Returns one of:
-    #     - null if the execution shall continue
-    #     - an execution result
-    #     - graphql.GraphQLError
+    #    - null if the execution shall continue
+    #    - an execution result
+    #    - graphql.GraphQLError
     perform_mutation: Callable[
         [
             Optional[Union[ExecutionResult, GraphQLError]],  # previous value
@@ -971,38 +1017,54 @@ class BasePlugin:
         config_structure: dict = (
             cls.CONFIG_STRUCTURE if cls.CONFIG_STRUCTURE is not None else {}
         )
+        configuration_to_update_dict = {
+            c_field["name"]: c_field.get("value") for c_field in configuration_to_update
+        }
         for config_item in current_config:
-            for config_item_to_update in configuration_to_update:
-                config_item_name = config_item_to_update.get("name")
-                if config_item["name"] == config_item_name:
-                    new_value = config_item_to_update.get("value")
-                    item_type = config_structure.get(config_item_name, {}).get("type")
-                    if (
-                        item_type == ConfigurationTypeField.BOOLEAN
-                        and new_value
-                        and not isinstance(new_value, bool)
-                    ):
-                        new_value = new_value.lower() == "true"
-                    if item_type == ConfigurationTypeField.OUTPUT:
-                        # OUTPUT field is read only. No need to update it
-                        continue
-                    config_item.update([("value", new_value)])
+            new_value = configuration_to_update_dict.get(config_item["name"])
+            if new_value is None:
+                continue
+            item_type = config_structure.get(config_item["name"], {}).get("type")
+            new_value = cls._clean_configuration_value(item_type, new_value)
+            if new_value is not None:
+                config_item.update([("value", new_value)])
 
         # Get new keys that don't exist in current_config and extend it.
         current_config_keys = set(c_field["name"] for c_field in current_config)
-        configuration_to_update_dict = {
-            c_field["name"]: c_field["value"] for c_field in configuration_to_update
-        }
         missing_keys = set(configuration_to_update_dict.keys()) - current_config_keys
         for missing_key in missing_keys:
             if not config_structure.get(missing_key):
                 continue
+            item_type = config_structure.get(missing_key, {}).get("type")
+            new_value = cls._clean_configuration_value(
+                item_type, configuration_to_update_dict[missing_key]
+            )
+            if new_value is None:
+                continue
             current_config.append(
                 {
                     "name": missing_key,
-                    "value": configuration_to_update_dict[missing_key],
+                    "value": new_value,
                 }
             )
+
+    @classmethod
+    def _clean_configuration_value(cls, item_type, new_value):
+        """Clean the value that is saved in plugin configuration.
+
+        Change the string provided as boolean into the bool value.
+        Return None for Output type, as it's read only field.
+        """
+        if (
+            item_type == ConfigurationTypeField.BOOLEAN
+            and new_value
+            and not isinstance(new_value, bool)
+        ):
+            new_value = new_value.lower() == "true"
+        if item_type == ConfigurationTypeField.OUTPUT:
+            # OUTPUT field is read only. No need to update it
+            return
+        return new_value
 
     @classmethod
     def validate_plugin_configuration(
@@ -1036,11 +1098,12 @@ class BasePlugin:
 
         cls.validate_plugin_configuration(plugin_configuration)
         cls.pre_save_plugin_configuration(plugin_configuration)
-        plugin_configuration.save()
 
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
+
+        plugin_configuration.save()
         return plugin_configuration
 
     @classmethod

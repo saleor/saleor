@@ -1,7 +1,8 @@
 from dataclasses import asdict
+from decimal import Decimal
 
 import graphene
-from django_countries.fields import Country
+from promise import Promise
 
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_resolver
@@ -12,6 +13,11 @@ from ....product.utils.availability import get_product_availability
 from ....product.utils.costs import (
     get_margin_for_variant_channel_listing,
     get_product_costs_data,
+)
+from ....tax.utils import (
+    get_display_gross_prices,
+    get_tax_calculation_strategy,
+    get_tax_rate_for_tax_class,
 )
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
@@ -25,7 +31,13 @@ from ...core.descriptions import (
 from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...plugins.dataloaders import load_plugin_manager
+from ...tax.dataloaders import (
+    TaxClassByProductIdLoader,
+    TaxClassCountryRateByTaxClassIDLoader,
+    TaxClassDefaultRateByCountryLoader,
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
 from ..dataloaders import (
     CollectionsByProductIdLoader,
     ProductByIdLoader,
@@ -195,79 +207,114 @@ class ProductChannelListing(ModelObjectType):
     @staticmethod
     def resolve_pricing(root: models.ProductChannelListing, info, *, address=None):
         context = info.context
-
         address_country = address.country if address is not None else None
-        manager = load_plugin_manager(info.context)
 
-        def calculate_pricing_info(discounts):
-            def calculate_pricing_with_channel(channel):
-                def calculate_pricing_with_product(product):
-                    def calculate_pricing_with_variants(variants):
-                        def calculate_pricing_with_variants_channel_listings(
-                            variants_channel_listing,
-                        ):
-                            def calculate_pricing_with_collections(collections):
-                                if not variants_channel_listing:
-                                    return None
+        channel = ChannelByIdLoader(context).load(root.channel_id)
+        product = ProductByIdLoader(context).load(root.product_id)
+        variants = ProductVariantsByProductIdLoader(context).load(root.product_id)
+        collections = CollectionsByProductIdLoader(context).load(root.product_id)
+        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
 
-                                country_code = (
-                                    address_country or channel.default_country.code
-                                )
-                                local_currency = None
-                                local_currency = get_currency_for_country(country_code)
+        def load_tax_configuration(data):
+            channel, product, variants, collections, discounts = data
+            country_code = address_country or channel.default_country.code
 
-                                availability = get_product_availability(
-                                    product=product,
-                                    product_channel_listing=root,
-                                    variants=variants,
-                                    variants_channel_listing=variants_channel_listing,
-                                    collections=collections,
-                                    discounts=discounts,
-                                    channel=channel,
-                                    manager=manager,
-                                    country=Country(country_code),
-                                    local_currency=local_currency,
-                                )
-                                from .products import ProductPricingInfo
+            def load_tax_country_exceptions(tax_config):
+                tax_class = TaxClassByProductIdLoader(info.context).load(product.id)
+                tax_configs_per_country = (
+                    TaxConfigurationPerCountryByTaxConfigurationIDLoader(context).load(
+                        tax_config.id
+                    )
+                )
 
-                                return ProductPricingInfo(**asdict(availability))
+                def load_variant_channel_listings(data):
+                    tax_class, tax_configs_per_country = data
 
-                            return (
-                                CollectionsByProductIdLoader(context)
-                                .load(root.product_id)
-                                .then(calculate_pricing_with_collections)
+                    def load_default_tax_rate(variants_channel_listing):
+                        if not variants_channel_listing:
+                            return None
+
+                        def calculate_pricing_info(data):
+                            country_rates, default_country_rate_obj = data
+                            local_currency = None
+                            local_currency = get_currency_for_country(country_code)
+
+                            tax_config_country = next(
+                                (
+                                    tc
+                                    for tc in tax_configs_per_country
+                                    if tc.country.code == country_code
+                                ),
+                                None,
                             )
-
-                        return (
-                            VariantsChannelListingByProductIdAndChannelSlugLoader(
-                                context
+                            display_gross_prices = get_display_gross_prices(
+                                tax_config,
+                                tax_config_country,
                             )
-                            .load((root.product_id, channel.slug))
-                            .then(calculate_pricing_with_variants_channel_listings)
+                            tax_calculation_strategy = get_tax_calculation_strategy(
+                                tax_config, tax_config_country
+                            )
+                            default_tax_rate = (
+                                default_country_rate_obj.rate
+                                if default_country_rate_obj
+                                else Decimal(0)
+                            )
+                            tax_rate = get_tax_rate_for_tax_class(
+                                tax_class, country_rates, default_tax_rate, country_code
+                            )
+                            prices_entered_with_tax = tax_config.prices_entered_with_tax
+
+                            availability = get_product_availability(
+                                product=product,
+                                product_channel_listing=root,
+                                variants=variants,
+                                variants_channel_listing=variants_channel_listing,
+                                collections=collections,
+                                discounts=discounts,
+                                channel=channel,
+                                local_currency=local_currency,
+                                prices_entered_with_tax=prices_entered_with_tax,
+                                tax_calculation_strategy=tax_calculation_strategy,
+                                tax_rate=tax_rate,
+                            )
+                            from .products import ProductPricingInfo
+
+                            pricing_info = asdict(availability)
+                            pricing_info["display_gross_prices"] = display_gross_prices
+                            return ProductPricingInfo(**pricing_info)
+
+                        country_rates = (
+                            TaxClassCountryRateByTaxClassIDLoader(context).load(
+                                tax_class.pk
+                            )
+                            if tax_class
+                            else []
+                        )
+                        default_country_rate = TaxClassDefaultRateByCountryLoader(
+                            context
+                        ).load(country_code)
+                        return Promise.all([country_rates, default_country_rate]).then(
+                            calculate_pricing_info
                         )
 
                     return (
-                        ProductVariantsByProductIdLoader(context)
-                        .load(root.product_id)
-                        .then(calculate_pricing_with_variants)
+                        VariantsChannelListingByProductIdAndChannelSlugLoader(context)
+                        .load((root.product_id, channel.slug))
+                        .then(load_default_tax_rate)
                     )
 
-                return (
-                    ProductByIdLoader(context)
-                    .load(root.product_id)
-                    .then(calculate_pricing_with_product)
+                return Promise.all([tax_class, tax_configs_per_country]).then(
+                    load_variant_channel_listings
                 )
 
             return (
-                ChannelByIdLoader(context)
-                .load(root.channel_id)
-                .then(calculate_pricing_with_channel)
+                TaxConfigurationByChannelId(context)
+                .load(channel.id)
+                .then(load_tax_country_exceptions)
             )
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
+        return Promise.all([channel, product, variants, collections, discounts]).then(
+            load_tax_configuration
         )
 
 

@@ -1,11 +1,12 @@
-from urllib.parse import urljoin
+from urllib.parse import unquote, urlparse
 
 import graphene
-from django.conf import settings
+from django.core.files.storage import default_storage
 
 from ....core.tracing import traced_resolver
+from ....core.utils import build_absolute_uri
 from ...account.enums import AddressTypeEnum
-from ..descriptions import ADDED_IN_36, PREVIEW_FEATURE
+from ..descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -64,7 +65,14 @@ class NonNullList(graphene.List):
 class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description="Country code.", required=True)
     country = graphene.String(description="Country name.", required=True)
-    vat = graphene.Field(VAT, description="Country tax.")
+    vat = graphene.Field(
+        VAT,
+        description="Country tax.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `TaxClassCountryRate` type to manage tax "
+            "rates per country."
+        ),
+    )
 
 
 class LanguageDisplay(graphene.ObjectType):
@@ -422,9 +430,10 @@ class Image(graphene.ObjectType):
     class Meta:
         description = "Represents an image."
 
-    @staticmethod
     def resolve_url(root, info):
-        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+        if urlparse(root.url).netloc:
+            return root.url
+        return build_absolute_uri(root.url)
 
 
 class File(graphene.ObjectType):
@@ -435,7 +444,11 @@ class File(graphene.ObjectType):
 
     @staticmethod
     def resolve_url(root, info):
-        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+        # check if URL is absolute:
+        if urlparse(root.url).netloc:
+            return root.url
+        # unquote used for preventing double URL encoding
+        return build_absolute_uri(default_storage.url(unquote(root.url)))
 
 
 class PriceInput(graphene.InputObjectType):

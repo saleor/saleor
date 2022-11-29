@@ -1975,15 +1975,20 @@ def test_attribute_update_translation(
 
 
 ATTRIBUTE_VALUE_TRANSLATE_MUTATION = """
-    mutation attributeValueTranslate($attributeValueId: ID!, $name: String) {
+    mutation attributeValueTranslate(
+        $attributeValueId: ID!,
+        $input: AttributeValueTranslationInput!
+    ) {
         attributeValueTranslate(
             id: $attributeValueId,
             languageCode: PL,
-            input: { name: $name }
+            input: $input
         ) {
             attributeValue {
                 translation(languageCode: PL) {
                     name
+                    richText
+                    plainText
                     language {
                         code
                     }
@@ -2014,7 +2019,7 @@ def test_attribute_value_create_translation(
     )
     response = staff_api_client.post_graphql(
         ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
-        {"attributeValueId": attribute_value_id, "name": "Róż PL"},
+        {"attributeValueId": attribute_value_id, "input": {"name": "Róż PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
@@ -2033,6 +2038,73 @@ def test_attribute_value_create_translation(
     )
 
 
+def test_rich_text_attribute_value_create_translation(
+    staff_api_client,
+    product_with_rich_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
+    attribute_value = assigned_attribute.attribute.values.first()
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_base_text = "Nowy Opis"
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"richText": expected_rich_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_base_text
+    assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
+
+
+def test_plain_text_attribute_value_create_translation(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_text = "Nowy Opis"
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"plainText": expected_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_text
+    assert data["attributeValue"]["translation"]["plainText"] == expected_text
+
+
 def test_attribute_value_create_translation_by_translatable_content_id(
     staff_api_client, pink_attribute_value, permission_manage_translations
 ):
@@ -2041,7 +2113,7 @@ def test_attribute_value_create_translation_by_translatable_content_id(
     )
     response = staff_api_client.post_graphql(
         ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
-        {"attributeValueId": translatable_content_id, "name": "Róż PL"},
+        {"attributeValueId": translatable_content_id, "input": {"name": "Róż PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
@@ -2073,7 +2145,7 @@ def test_attribute_value_update_translation(
     )
     response = staff_api_client.post_graphql(
         ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
-        {"attributeValueId": attribute_value_id, "name": "Róż PL"},
+        {"attributeValueId": attribute_value_id, "input": {"name": "Róż PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
@@ -2090,6 +2162,387 @@ def test_attribute_value_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+
+def test_rich_text_attribute_value_update_translation_only_rich_text(
+    staff_api_client,
+    product_with_rich_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    base_text = "Base Text"
+    rich_text = dummy_editorjs(base_text)
+    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
+    attribute_value = assigned_attribute.attribute.values.first()
+    attribute_value.translations.create(
+        language_code="pl", name=base_text, rich_text=rich_text
+    )
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_base_text = "Nowy Opis"
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"richText": expected_rich_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_base_text
+    assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
+
+
+def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
+    staff_api_client,
+    product_with_rich_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    base_text = "Base Text"
+    rich_text = dummy_editorjs(base_text)
+    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
+    attribute_value = assigned_attribute.attribute.values.first()
+    attribute_value.translations.create(
+        language_code="pl", name=base_text, rich_text=rich_text
+    )
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_base_text = "Nowy Opis. " * 100
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"richText": expected_rich_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert (
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+    )
+    assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
+
+
+def test_rich_text_attribute_value_update_translation_only_rich_text_name_set_manually(
+    staff_api_client,
+    product_with_rich_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    base_text = "Base Text"
+    rich_text = dummy_editorjs(base_text)
+    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
+    attribute_value = assigned_attribute.attribute.values.first()
+    attribute_value.translations.create(
+        language_code="pl", name=base_text, rich_text=rich_text
+    )
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_name = "Moja nazwa attrybutu"
+    expected_base_text = "Nowy Opis"
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"name": expected_name, "richText": expected_rich_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_name
+    assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
+
+
+def test_rich_text_attribute_value_update_translation_only_rich_text_empty_name(
+    staff_api_client,
+    product_with_rich_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    base_text = "Base Text"
+    rich_text = dummy_editorjs(base_text)
+    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
+    attribute_value = assigned_attribute.attribute.values.first()
+    attribute_value.translations.create(
+        language_code="pl", name=base_text, rich_text=rich_text
+    )
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_base_text = "Nowy Opis"
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"name": "", "richText": expected_rich_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == ""
+    assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
+
+
+def test_rich_text_attribute_value_update_translation_only_rich_text_name_null(
+    staff_api_client,
+    product_with_rich_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    base_text = "Base Text"
+    rich_text = dummy_editorjs(base_text)
+    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
+    attribute_value = assigned_attribute.attribute.values.first()
+    attribute_value.translations.create(
+        language_code="pl", name=base_text, rich_text=rich_text
+    )
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_base_text = "Nowy Opis"
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"name": None, "richText": expected_rich_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_base_text
+    assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
+
+
+def test_plain_text_attribute_value_update_translation_only_plain_text(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Jakiś bazowy opis"
+    attribute_value.translations.create(language_code="pl", plain_text=text)
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_text = "Nowy Opis"
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"plainText": expected_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_text
+    assert data["attributeValue"]["translation"]["plainText"] == expected_text
+
+
+def test_plain_text_attribute_value_update_translation_only_plain_text_long_text(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Jakiś bazowy opis"
+    attribute_value.translations.create(language_code="pl", plain_text=text)
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_base_text = "Nowy Opis. " * 100
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"plainText": expected_base_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert (
+        data["attributeValue"]["translation"]["name"] == expected_base_text[:99] + "…"
+    )
+    assert data["attributeValue"]["translation"]["plainText"] == expected_base_text
+
+
+def test_plain_text_attribute_value_update_translation_name_set_manually(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Jakiś bazowy opis"
+    attribute_value.translations.create(language_code="pl", plain_text=text)
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_name = "Moja nazwa attrybutu"
+    expected_text = "Nowy Opis"
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"name": expected_name, "plainText": expected_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_name
+    assert data["attributeValue"]["translation"]["plainText"] == expected_text
+
+
+def test_plain_text_attribute_value_update_translation_empty_name(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Jakiś bazowy opis"
+    attribute_value.translations.create(language_code="pl", plain_text=text)
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_text = "Nowy Opis"
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"name": "", "plainText": expected_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == ""
+    assert data["attributeValue"]["translation"]["plainText"] == expected_text
+
+
+def test_plain_text_attribute_value_update_translation_name_null(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Jakiś bazowy opis"
+    attribute_value.translations.create(language_code="pl", plain_text=text)
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.id
+    )
+    expected_text = "Nowy Opis"
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_TRANSLATE_MUTATION,
+        {
+            "attributeValueId": attribute_value_id,
+            "input": {"name": None, "plainText": expected_text},
+        },
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueTranslate"]
+    assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
+    assert data["attributeValue"]["translation"]["name"] == expected_text
+    assert data["attributeValue"]["translation"]["plainText"] == expected_text
 
 
 SHIPPING_PRICE_TRANSLATE = """
@@ -3134,6 +3587,12 @@ PRODUCT_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
                             richText
                             plainText
                         }
+                        attribute {
+                            name
+                            translation(languageCode: $languageCode) {
+                                name
+                            }
+                        }
                     }
                 }
             }
@@ -3218,6 +3677,46 @@ def test_product_attribute_value_plain_text_translation(
     assert attribute_value_response["translation"]["plainText"] == text
 
 
+def test_nested_product_attribute_translation(
+    staff_api_client,
+    plain_text_attribute,
+    product,
+    permission_manage_translations,
+):
+    # given
+    product_type = product.product_type
+    product_type.product_attributes.set([plain_text_attribute])
+
+    product_attr_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        product, plain_text_attribute, product_attr_value
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute.translations.create(language_code="pl", name=text)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    query = PRODUCT_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": product_id,
+        "kind": TranslatableKinds.PRODUCT.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute.name
+    assert attribute_response["translation"]["name"] == text
+
+
 PRODUCT_VARIANT_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
     query translation(
         $kind: TranslatableKinds!
@@ -3235,6 +3734,12 @@ PRODUCT_VARIANT_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
                         name
                         richText
                         plainText
+                    }
+                    attribute {
+                        name
+                        translation(languageCode: $languageCode) {
+                            name
+                        }
                     }
                 }
             }
@@ -3321,6 +3826,46 @@ def test_product_variant_attribute_value_plain_text_translation(
     assert translations_response["translation"]["plainText"] == text
 
 
+def test_nested_product_variant_attribute_translation(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute.translations.create(language_code="pl", name=text)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    query = PRODUCT_VARIANT_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": variant_id,
+        "kind": TranslatableKinds.VARIANT.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute.name
+    assert attribute_response["translation"]["name"] == text
+
+
 PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
     query translation(
         $kind: TranslatableKinds!
@@ -3337,6 +3882,12 @@ PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
                         name
                         richText
                         plainText
+                    }
+                    attribute {
+                        name
+                        translation(languageCode: $languageCode) {
+                            name
+                        }
                     }
                 }
             }
@@ -3418,3 +3969,44 @@ def test_page_attribute_value_plain_text_translation(
     assert attribute_value_response["name"] == attribute_value.name
     assert attribute_value_response["plainText"] == attribute_value.plain_text
     assert attribute_value_response["translation"]["plainText"] == text
+
+
+def test_nested_page_attribute_translation(
+    staff_api_client,
+    plain_text_attribute_page_type,
+    page,
+    permission_manage_translations,
+    permission_manage_pages,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([plain_text_attribute_page_type])
+    attribute_value = plain_text_attribute_page_type.values.first()
+
+    associate_attribute_values_to_instance(
+        page, plain_text_attribute_page_type, attribute_value
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute_page_type.translations.create(language_code="pl", name=text)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    query = PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": page_id,
+        "kind": TranslatableKinds.PAGE.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute_page_type.name
+    assert attribute_response["translation"]["name"] == text

@@ -67,7 +67,7 @@ class GiftCard(ModelWithMetadata):
     expiry_date = models.DateField(null=True, blank=True)
 
     tags = models.ManyToManyField(GiftCardTag, "gift_cards")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey(
         "product.Product",

@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import DefaultDict, Iterable, List, Optional, Tuple
 from uuid import UUID
 
+from django.contrib.sites.models import Site
 from django.db.models import Exists, OuterRef, Q
 from django.db.models.aggregates import Sum
 from django.db.models.functions import Coalesce
@@ -21,7 +22,7 @@ from ...warehouse.models import (
 )
 from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
-from ..site.dataloaders import load_site
+from ..site.dataloaders import get_site_promise
 
 CountryCode = Optional[str]
 VariantIdCountryCodeChannelSlug = Tuple[int, CountryCode, str]
@@ -41,7 +42,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
 
     def batch_load(self, keys):
         # Split the list of keys by country first. A typical query will only touch
-        # a handful of unique countries but may access thousands of product variants
+        # a handful of unique countries but may access thousands of product variants,
         # so it's cheaper to execute one query per country.
         variants_by_country_and_channel: DefaultDict[
             Tuple[CountryCode, str], List[int]
@@ -55,10 +56,15 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         quantity_by_variant_and_country: DefaultDict[
             VariantIdCountryCodeChannelSlug, int
         ] = defaultdict(int)
+
+        site = None
+        if variants_by_country_and_channel:
+            site = get_site_promise(self.context).get()
+
         for key, variant_ids in variants_by_country_and_channel.items():
             country_code, channel_slug = key
             quantities = self.batch_load_quantities_by_country(
-                country_code, channel_slug, variant_ids
+                country_code, channel_slug, variant_ids, site
             )
             for variant_id, quantity in quantities:
                 quantity_by_variant_and_country[
@@ -72,10 +78,10 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         country_code: Optional[CountryCode],
         channel_slug: Optional[str],
         variant_ids: Iterable[int],
+        site: Site,
     ) -> Iterable[Tuple[int, int]]:
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
-        site = load_site(self.context)
         stocks = (
             Stock.objects.all()
             .using(self.database_connection_name)
@@ -105,19 +111,22 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         stocks_reservations = self.prepare_stocks_reservations_map(variant_ids)
 
         # A single country code (or a missing country code) can return results from
-        # multiple shipping zones. We want to combine all quantities within a single
-        # zone and then find out which zone contains the highest total.
+        # multiple shipping zones. We want to prepare warehouse by shipping zone map
+        # and quantity by warehouse map. To be able to calculate max quantity available
+        # in any shipping zones combination without duplicating warehouse quantity.
         (
-            quantity_by_shipping_zone_by_variant,
+            warehouse_ids_by_shipping_zone_by_variant,
             variants_with_global_cc_warehouses,
-        ) = self.prepare_quantity_by_shipping_zone_and_variant_map(
+            available_quantity_by_warehouse_id,
+        ) = self.prepare_warehouse_ids_by_shipping_zone_and_variant_map(
             stocks, stocks_reservations, warehouse_shipping_zones_map, cc_warehouses
         )
 
         quantity_map = self.prepare_quantity_map(
             country_code,
-            quantity_by_shipping_zone_by_variant,
+            warehouse_ids_by_shipping_zone_by_variant,
             variants_with_global_cc_warehouses,
+            available_quantity_by_warehouse_id,
         )
 
         # Return the quantities after capping them at the maximum quantity allowed in
@@ -210,7 +219,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     def prepare_stocks_reservations_map(self, variant_ids):
         """Prepare stock id to quantity reserved map for provided variant ids."""
         stocks_reservations = defaultdict(int)
-        site = load_site(self.context)
+        site = get_site_promise(self.context).get()
         if is_reservation_enabled(site.settings):  # type: ignore
             # Can't do second annotation on same queryset because it made
             # available_quantity annotated value incorrect thanks to how
@@ -225,15 +234,17 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 stocks_reservations[stock_id] = quantity_reserved
         return stocks_reservations
 
-    def prepare_quantity_by_shipping_zone_and_variant_map(
+    def prepare_warehouse_ids_by_shipping_zone_and_variant_map(
         self, stocks, stocks_reservations, warehouse_shipping_zones_map, cc_warehouses
     ):
         """Combine all quantities within a single zone.
 
-        Prepare the map in the following format:
+        Prepare `warehouse_ids_by_shipping_zone_by_variant` map in the following format:
             {
                 variant_id: {
-                    shipping_zone_id/warehouse_id: quantity
+                    shipping_zone_id/warehouse_id: [
+                        warehouse_id
+                    ]
                 }
             }
 
@@ -242,10 +253,11 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         as a magic single-warehouse shipping zone.
         """
         cc_warehouses_in_bulk = cc_warehouses.in_bulk()
-        quantity_by_shipping_zone_by_variant: DefaultDict[
-            int, DefaultDict[int, int]
-        ] = defaultdict(lambda: defaultdict(int))
+        warehouse_ids_by_shipping_zone_by_variant: DefaultDict[
+            int, DefaultDict[int, List[UUID]]
+        ] = defaultdict(lambda: defaultdict(list))
         variants_with_global_cc_warehouses = []
+        available_quantity_by_warehouse_id: DefaultDict[UUID, int] = defaultdict(int)
         for stock in stocks:
             reserved_quantity = stocks_reservations[stock.id]
             quantity = stock.available_quantity - reserved_quantity
@@ -255,31 +267,37 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 quantity = max(0, quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
+            available_quantity_by_warehouse_id[warehouse_id] += quantity
             if shipping_zone_ids := warehouse_shipping_zones_map[warehouse_id]:
                 for shipping_zone_id in shipping_zone_ids:
-                    quantity_by_shipping_zone_by_variant[variant_id][
+                    warehouse_ids_by_shipping_zone_by_variant[variant_id][
                         shipping_zone_id
-                    ] += quantity
+                    ].append(warehouse_id)
             else:
                 cc_option = cc_warehouses_in_bulk[warehouse_id].click_and_collect_option
                 # every stock of a collection point warehouse should treat as a magic
                 # single-warehouse shipping zone
-                quantity_by_shipping_zone_by_variant[variant_id][
+                warehouse_ids_by_shipping_zone_by_variant[variant_id][warehouse_id] = [
                     warehouse_id
-                ] = quantity
+                ]
                 # in case of global warehouses the quantity available will be the sum
                 # of the available quantity for that variant from all stocks,
                 # so we need to keep information for which variant there is a warehouse
                 # with the global stock
                 if cc_option == WarehouseClickAndCollectOption.ALL_WAREHOUSES:
                     variants_with_global_cc_warehouses.append(variant_id)
-        return quantity_by_shipping_zone_by_variant, variants_with_global_cc_warehouses
+        return (
+            warehouse_ids_by_shipping_zone_by_variant,
+            variants_with_global_cc_warehouses,
+            available_quantity_by_warehouse_id,
+        )
 
     def prepare_quantity_map(
         self,
         country_code,
-        quantity_by_shipping_zone_by_product_variant,
+        warehouse_ids_by_shipping_zone_by_variant,
         variants_with_global_cc_warehouses,
+        available_quantity_by_warehouse_id,
     ):
         """Prepare the variant id to quantity map.
 
@@ -297,16 +315,31 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         quantity_map: DefaultDict[int, int] = defaultdict(int)
         for (
             variant_id,
-            quantity_by_shipping_zone,
-        ) in quantity_by_shipping_zone_by_product_variant.items():
-            quantity_values = quantity_by_shipping_zone.values()
+            warehouse_ids_shipping_zone,
+        ) in warehouse_ids_by_shipping_zone_by_variant.items():
             if country_code or variant_id in variants_with_global_cc_warehouses:
+                used_warehouse_ids = []
+                for warehouse_ids in warehouse_ids_shipping_zone.values():
+                    used_warehouse_ids.extend(warehouse_ids)
+                used_warehouse_ids = set(used_warehouse_ids)
                 # When country code is known or the global collection point warehouse
                 # for this variant exists, return the sum of quantities from all
                 # shipping zones supporting given country.
-                quantity_map[variant_id] = sum(quantity_values)
+                quantity = 0
+                for warehouse_id in used_warehouse_ids:
+                    quantity += available_quantity_by_warehouse_id[warehouse_id]
+                quantity_map[variant_id] = quantity
             else:
                 # When country code is unknown, return the highest known quantity.
+                quantity_values = []
+                for (
+                    warehouse_ids_per_shipping_zones
+                ) in warehouse_ids_shipping_zone.values():
+                    quantity = 0
+                    for warehouse_id in warehouse_ids_per_shipping_zones:
+                        quantity += available_quantity_by_warehouse_id[warehouse_id]
+                    quantity_values.append(quantity)
+
                 quantity_map[variant_id] = max(quantity_values)
 
         return quantity_map

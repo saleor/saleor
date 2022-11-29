@@ -17,9 +17,11 @@ from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
     change_order_line_quantity,
+    get_order_country,
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
+    update_order_display_gross_prices,
 )
 
 
@@ -279,7 +281,6 @@ def test_add_variant_to_order(
         customer_user,
         None,
         manager,
-        site_settings,
         [discount_info],
     )
 
@@ -471,9 +472,60 @@ def test_get_total_order_discount_excluding_shipping_no_shipping_discounts(
     )
 
 
+def test_update_order_display_gross_prices_use_default_tax_settings(order):
+    # given
+    tax_config = order.channel.tax_configuration
+    tax_config.display_gross_prices = True
+    tax_config.save()
+    tax_config.country_exceptions.all().delete()
+
+    order.display_gross_prices = False
+    order.save(update_fields=["display_gross_prices"])
+
+    # when
+    update_order_display_gross_prices(order)
+
+    # then
+    assert order.display_gross_prices
+
+
+def test_update_order_display_gross_prices_use_country_specific_tax_settings(order):
+    # given
+    country_code = "PT"
+    tax_config = order.channel.tax_configuration
+    tax_config.display_gross_prices = False
+    tax_config.save()
+    tax_config.country_exceptions.create(
+        country=country_code, display_gross_prices=True
+    )
+
+    order.display_gross_prices = False
+    order.save(update_fields=["display_gross_prices"])
+    order.shipping_address.country = country_code
+    order.shipping_address.save()
+
+    # when
+    update_order_display_gross_prices(order)
+
+    # then
+    assert order.display_gross_prices
+
+
 def test_get_total_order_discount_excluding_shipping_no_discounts(order):
     # when
     discount_amount = get_total_order_discount_excluding_shipping(order)
 
     # then
     assert discount_amount == Money("0", order.currency)
+
+
+def test_get_order_country_use_channel_country(order):
+    # given
+    order.shipping_address = order.billing_address = None
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    # when
+    country = get_order_country(order)
+
+    # then
+    assert country == order.channel.default_country

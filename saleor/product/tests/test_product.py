@@ -18,6 +18,7 @@ from ...graphql.product.filters import (
 )
 from .. import ProductTypeKind, models
 from ..models import DigitalContentUrl
+from ..tasks import update_variants_names
 from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
 
@@ -244,27 +245,6 @@ def test_get_price(
     assert price.amount == expected_price
 
 
-def test_product_get_price_do_not_charge_taxes(
-    product_type, category, discount_info, channel_USD
-):
-    product = models.Product.objects.create(
-        product_type=product_type,
-        category=category,
-        charge_taxes=False,
-    )
-    variant = product.variants.create()
-    channel_listing = models.ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    price = variant.get_price(
-        product, [], channel_USD, channel_listing, discounts=[discount_info]
-    )
-    assert price == Money("5.00", "USD")
-
-
 def test_digital_product_view(client, digital_content_url):
     """Ensure a user (anonymous or not) can download a non-expired digital good
     using its associated token and that all associated events
@@ -276,7 +256,7 @@ def test_digital_product_view(client, digital_content_url):
 
     assert response.status_code == 200
     assert response["content-type"] == "image/jpeg"
-    assert response["content-disposition"] == 'attachment; filename="%s"' % filename
+    assert response["content-disposition"] == f'attachment; filename="{filename}"'
 
     # Ensure an event was generated from downloading a digital good.
     # The validity of this event is checked in test_digital_product_increment_download
@@ -381,3 +361,11 @@ def test_product_media_delete(delete_from_storage_task_mock, product_with_image)
 
     # then
     delete_from_storage_task_mock.assert_called_once_with(media.image.name)
+
+
+@patch("saleor.product.tasks._update_variants_names")
+def test_product_update_variants_names(mock__update_variants_names, product_type):
+    variant_attributes = [product_type.variant_attributes.first()]
+    variant_attr_ids = [attr.pk for attr in variant_attributes]
+    update_variants_names(product_type.pk, variant_attr_ids)
+    assert mock__update_variants_names.call_count == 1

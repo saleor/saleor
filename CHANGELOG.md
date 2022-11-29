@@ -2,31 +2,103 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.8.0 [Unreleased]
+# 3.9.0 [Unreleased]
+
+### Highlights
+
+- Flat tax rates - #9784 by @maarcingebala
+
+### Breaking changes
+
+- Drop Vatlayer plugin - #9784 by @maarcingebala
+  - The following fields are no longer used:
+    - `Product.chargeTaxes` - from now on, presence of `Product.taxClass` instance decides whether to charge taxes for a product. As a result, the "Charge Taxes" column in CSV product exports returns empty values.
+    - `Shop.chargeTaxesOnShipping` - from now on, presence of `ShippingMethod.taxClass` decides whether to charge taxes for a shipping method.
+    - `Shop.includeTaxesInPrices`, `Shop.displayGrossPrices` - configuration moved to `Channel.taxConfiguration`.
+  - Removed the following plugin manager methods:
+    - `assign_tax_code_to_object_meta`
+    - `apply_taxes_to_product`
+    - `fetch_taxes_data`
+    - `get_tax_rate_percentage_value`
+    - `update_taxes_for_order_lines`
 
 ### GraphQL API
-- Add ability to filter by slug. #10578 by @kadewu
+
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
+
+### Other changes
+
+- Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
+  <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
+- Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
+- Add exif image validation - #11224 by @IKarbowiak
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
+...
+
+# 3.8.0
+
+### Highlights
+
+- Add tax exemption API for checkouts (`taxExemptionManage` mutation) - #10344 by @SzymJ
+- Switch GraphQL Playground to GraphiQL V2
+
+### Breaking changes
+
+- Verify JWT tokens whenever they are provided with the request. Before, they were only validated when an operation required any permissions. For example: when refreshing a token, the request shouldn't include the expired one.
+
+### GraphQL API
+
+- Add the ability to filter by slug. #10578 by @kadewu
   - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
   - Deprecated `slug` in filter for `menus`. Use `slugs` instead
-- Add ability to filter payments by list of ids. #10821 by @kadewu
-- Add ability to filter customers by ids. #10694 by @kadewu
+- Add new `products` filters. #10784 by @kadewu
+  - `isAvailable`
+  - `publishedFrom`
+  - `availableFrom`
+  - `isVisibleInListing`
+- Add the ability to filter payments by a list of ids. #10821 by @kadewu
+- Add the ability to filter customers by ids. #10694 by @kadewu
 - Add `User.checkouts` field. #10862 by @zedzior
 - Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
-- Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multiselect attributes. - #10881 by @jakubkuc
+- Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multi-select attributes. - #10881 by @jakubkuc
 - Allow sorting products by `CREATED_AT` field. #10900 by @zedzior
 - Add ability to pass metadata directly in create/update mutations for product app models - #10689 by @SzymJ
+- Add ability to use SKU argument in `productVariantUpdate`, `productVariantDelete`, `productVariantBulkDelete`, `productVariantStocksUpdate`, `productVariantStocksDelete`, `productVariantChannelListingUpdate` mutations - #10861 by @SzymJ
+- Add sorting by `CREATED_AT` field. #10911 by @zedzior
+  - Affected types: GiftCard, Page.
+  - Deprecated `CREATION_DATE` sort field on Page type. Use `CREATED_AT` instead.
 
 ### Other changes
 
 - Reference attribute linking to product variants - #10468 by @IKarbowiak
 - Add base shipping price to `Order` - #10771 by @fowczarek
-- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
 - GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
 - Add `iss` field to JWT tokens - #10842 by @korycins
+- Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
 
-### GraphQL API
 
-- Add `taxExemptionManage` mutation - #10344 by @SzymJ
+### Saleor Apps
+
+- Add `iss` field to JWT tokens - #10842 by @korycins
+- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
+- Add new asynchronous events for objects metadata updates - #10520 by @rafalp
+  - `CHECKOUT_METADATA_UPDATED`
+  - `COLLECTION_METADATA_UPDATED`
+  - `CUSTOMER_METADATA_UPDATED`
+  - `FULFILLMENT_METADATA_UPDATED`
+  - `GIFT_CARD_METADATA_UPDATED`
+  - `ORDER_METADATA_UPDATED`
+  - `PRODUCT_METADATA_UPDATED`
+  - `PRODUCT_VARIANT_METADATA_UPDATED`
+  - `SHIPPING_ZONE_METADATA_UPDATED`
+  - `TRANSACTION_ITEM_METADATA_UPDATED`
+  - `WAREHOUSE_METADATA_UPDATED`
+  - `VOUCHER_METADATA_UPDATED`
 
 # 3.7.0
 
@@ -170,6 +242,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose manifest in the `App` type (#10055) (f0f944066)
 - Deprecate `configurationUrl` and `dataPrivacy` fields in apps (#10046) (68bd7c8a2)
 - Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
 
 ### Saleor Apps
 

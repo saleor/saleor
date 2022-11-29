@@ -23,7 +23,7 @@ from .plugins.schema import PluginsMutations, PluginsQueries
 from .product.schema import ProductMutations, ProductQueries
 from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
-from .tax.schema import TaxMutations
+from .tax.schema import TaxMutations, TaxQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
@@ -51,6 +51,7 @@ class Query(
     ShippingQueries,
     ShopQueries,
     StockQueries,
+    TaxQueries,
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,

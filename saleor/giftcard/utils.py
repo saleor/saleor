@@ -33,8 +33,13 @@ def add_gift_card_code_to_checkout(
 ):
     """Add gift card data to checkout by code.
 
+    Raise ValidationError if email is not provided.
     Raise InvalidPromoCode if gift card cannot be applied.
     """
+    from ..checkout.checkout_cleaner import validate_checkout_email
+
+    validate_checkout_email(checkout)
+
     try:
         # only active gift card with currency the same as channel currency can be used
         gift_card = (

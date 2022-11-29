@@ -40,7 +40,7 @@ class CategorySortField(graphene.Enum):
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort categories by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
@@ -92,7 +92,7 @@ class CollectionSortField(graphene.Enum):
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
@@ -184,7 +184,7 @@ class ProductOrderField(graphene.Enum):
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_price(queryset: QuerySet, channel_slug: str) -> QuerySet:
@@ -270,7 +270,7 @@ class ProductVariantSortField(graphene.Enum):
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort products variants by {sort_name}."
 
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ProductVariantSortingInput(SortInputObjectType):
@@ -294,10 +294,29 @@ class ProductTypeSortField(graphene.Enum):
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ProductTypeSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = ProductTypeSortField
         type_name = "product types"
+
+
+class MediaChoicesSortField(graphene.Enum):
+    ID = ["id"]
+
+    @property
+    def description(self):
+        descriptions = {
+            MediaChoicesSortField.ID.name: "Sort media by ID.",
+        }
+        if self.name in descriptions:
+            return descriptions[self.name]
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class MediaSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = MediaChoicesSortField
+        type_name = "media"

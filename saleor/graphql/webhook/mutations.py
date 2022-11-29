@@ -258,7 +258,7 @@ class WebhookDelete(ModelDeleteMutation):
                 app.webhooks.get(id=object_id)
             except models.Webhook.DoesNotExist:
                 raise ValidationError(
-                    "Couldn't resolve to a node: %s" % node_id,
+                    f"Couldn't resolve to a node: {node_id}",
                     code=WebhookErrorCode.GRAPHQL_ERROR,
                 )
 

@@ -22,7 +22,7 @@ class ExportScope(graphene.Enum):
         }
         if self.name in description_mapping:
             return description_mapping[self.name]
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ProductFieldEnum(graphene.Enum):
@@ -32,7 +32,7 @@ class ProductFieldEnum(graphene.Enum):
     CATEGORY = "category"
     PRODUCT_WEIGHT = "product weight"
     COLLECTIONS = "collections"
-    CHARGE_TAXES = "charge taxes"
+    CHARGE_TAXES = "charge taxes"  # deprecated; remove in Saleor 4.0
     PRODUCT_MEDIA = "product media"
     VARIANT_ID = "variant id"
     VARIANT_SKU = "variant sku"

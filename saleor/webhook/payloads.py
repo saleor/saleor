@@ -17,7 +17,6 @@ from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
-from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -36,6 +35,8 @@ from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product
 from ..shipping.interface import ShippingMethodData
+from ..tax.models import TaxClassCountryRate
+from ..tax.utils import get_charge_taxes_for_order
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -131,6 +132,28 @@ def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs)
     return meta
 
 
+@traced_payload_generator
+def generate_metadata_updated_payload(
+    instance: Any, requestor: Optional["RequestorOrLazyObject"] = None
+):
+    serializer = PayloadSerializer()
+
+    if isinstance(instance, Checkout):
+        pk_field_name = "token"
+    else:
+        pk_field_name = "id"
+
+    return serializer.serialize(
+        [instance],
+        fields=[],
+        pk_field_name=pk_field_name,
+        extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+        },
+        dump_type_name=False,
+    )
+
+
 def prepare_order_lines_allocations_payload(line):
     warehouse_id_quantity_allocated_map = list(
         line.allocations.values(  # type: ignore
@@ -190,10 +213,10 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
-            "product_variant_id": (lambda l: l.product_variant_id),
-            "total_price_net_amount": (lambda l: l.total_price.net.amount),
-            "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
-            "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
+            "product_variant_id": (lambda line: line.product_variant_id),
+            "total_price_net_amount": (lambda line: line.total_price.net.amount),
+            "total_price_gross_amount": (lambda line: line.total_price.gross.amount),
+            "allocations": (lambda line: prepare_order_lines_allocations_payload(line)),
         },
     )
 
@@ -624,7 +647,6 @@ PRODUCT_FIELDS = (
     "description",
     "currency",
     "updated_at",
-    "charge_taxes",
     "weight",
     "publication_date",
     "is_published",
@@ -655,19 +677,16 @@ def serialize_product_channel_listing_payload(channel_listings):
     return channel_listing_payload
 
 
-def serialize_refund_data(refund_data):
-    if order_lines_to_refund := refund_data.get("order_lines_to_refund"):
-        for line_data in order_lines_to_refund:
-            line = line_data["line"]
-            line_data["line"] = str(line.pk)
-            line_data["variant"] = line.variant.pk
-        refund_data["order_lines_to_refund"] = order_lines_to_refund
-    if fulfillment_lines_to_refund := refund_data.get("fulfillment_lines_to_refund"):
-        for line_data in fulfillment_lines_to_refund:
-            line = line_data["line"]
-            line_data["line"] = line.pk
-        refund_data["fulfillment_lines_to_refund"] = fulfillment_lines_to_refund
-    return refund_data
+def _get_charge_taxes_for_product(product: "Product") -> bool:
+    charge_taxes = False
+    tax_class_id = product.tax_class_id or product.product_type.tax_class_id
+    if tax_class_id:
+        charge_taxes = (
+            TaxClassCountryRate.objects.filter(tax_class_id=tax_class_id)
+            .exclude(rate=Decimal("0"))
+            .exists()
+        )
+    return charge_taxes
 
 
 @traced_payload_generator
@@ -698,6 +717,7 @@ def generate_product_payload(
                 }
                 for media_obj in product.media.all()
             ],
+            "charge_taxes": _get_charge_taxes_for_product(product),
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
                     product.channel_listings.all()  # type: ignore
@@ -724,6 +744,7 @@ def generate_product_deleted_payload(
         [product],
         fields=product_fields,
         extra_dict_data={
+            "charge_taxes": _get_charge_taxes_for_product(product),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "variants": list(product_variant_ids),
         },
@@ -970,13 +991,39 @@ def generate_page_payload(
     return page_payload
 
 
+def _generate_refund_data_payload(data):
+    data["order_lines_to_refund"] = [
+        {
+            "line_id": graphene.Node.to_global_id("OrderLine", line_data["line"].pk),
+            "quantity": line_data["quantity"],
+            "variant_id": graphene.Node.to_global_id(
+                "ProductVariant", line_data["variant"].pk
+            ),
+        }
+        for line_data in data["order_lines_to_refund"]
+    ]
+    data["fulfillment_lines_to_refund"] = [
+        {
+            "line_id": graphene.Node.to_global_id(
+                "FulfillmentLine", line_data["line"].pk
+            ),
+            "quantity": line_data["quantity"],
+            "replace": line_data["replace"],
+        }
+        for line_data in data["fulfillment_lines_to_refund"]
+    ]
+    return data
+
+
 @traced_payload_generator
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
     data = asdict(payment_data)
+
     if refund_data := data.get("refund_data"):
-        data["refund_data"] = serialize_refund_data(refund_data)
+        data["refund_data"] = _generate_refund_data_payload(refund_data)
+
     data["amount"] = quantize_price(data["amount"], data["currency"])
     if payment_app_data := from_payment_app_id(data["gateway"]):
         data["payment_method"] = payment_app_data.name
@@ -1164,10 +1211,10 @@ def generate_excluded_shipping_methods_for_order_payload(
 
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
-    checkout_info: "CheckoutInfo",
+    checkout: "Checkout",
     available_shipping_methods: List[ShippingMethodData],
 ):
-    checkout_data = json.loads(generate_checkout_payload(checkout_info.checkout))[0]
+    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
@@ -1184,7 +1231,8 @@ def generate_checkout_payload_for_tax_calculation(
     lines: Iterable["CheckoutLineInfo"],
 ):
     checkout = checkout_info.checkout
-    included_taxes_in_prices = include_taxes_in_prices()
+    tax_configuration = checkout_info.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     discount_infos = fetch_active_discounts()
 
     serializer = PayloadSerializer()
@@ -1256,7 +1304,7 @@ def generate_checkout_payload_for_tax_calculation(
         extra_dict_data={
             "user_id": user_id,
             "user_public_metadata": user_public_metadata,
-            "included_taxes_in_prices": included_taxes_in_prices,
+            "included_taxes_in_prices": prices_entered_with_tax,
             "total_amount": total_amount,
             "shipping_amount": shipping_method_amount,
             "shipping_name": shipping_method_name,
@@ -1267,31 +1315,37 @@ def generate_checkout_payload_for_tax_calculation(
     return checkout_data
 
 
-def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]):
-
+def _generate_order_lines_payload_for_tax_calculation(lines: QuerySet[OrderLine]):
     serializer = PayloadSerializer()
+
+    charge_taxes = False
+    if lines:
+        charge_taxes = get_charge_taxes_for_order(lines[0].order)
+
     return serializer.serialize(
         lines,
         fields=("product_name", "variant_name", "quantity"),
         extra_dict_data={
-            "variant_id": (lambda l: l.product_variant_id),
-            "full_name": (lambda l: l.variant.display_product() if l.variant else None),
+            "variant_id": (lambda line: line.product_variant_id),
+            "full_name": (
+                lambda line: line.variant.display_product() if line.variant else None
+            ),
             "product_metadata": (
-                lambda l: l.variant.product.metadata if l.variant else {}
+                lambda line: line.variant.product.metadata if line.variant else {}
             ),
             "product_type_metadata": (
-                lambda l: l.variant.product.product_type.metadata if l.variant else {}
+                lambda line: line.variant.product.product_type.metadata
+                if line.variant
+                else {}
             ),
-            "charge_taxes": (
-                lambda l: l.variant.product.charge_taxes if l.variant else None
-            ),
-            "sku": (lambda l: l.product_sku),
+            "charge_taxes": (lambda _line: charge_taxes),
+            "sku": (lambda line: line.product_sku),
             "unit_amount": (
-                lambda l: quantize_price(l.base_unit_price_amount, l.currency)
+                lambda line: quantize_price(line.base_unit_price_amount, line.currency)
             ),
             "total_amount": (
-                lambda l: quantize_price(
-                    l.base_unit_price_amount * l.quantity, l.currency
+                lambda line: quantize_price(
+                    line.base_unit_price_amount * line.quantity, line.currency
                 )
             ),
         },
@@ -1301,7 +1355,9 @@ def _generate_order_lines_payload_for_tax_calculation(lines: Iterable[OrderLine]
 @traced_payload_generator
 def generate_order_payload_for_tax_calculation(order: "Order"):
     serializer = PayloadSerializer()
-    included_taxes_in_prices = include_taxes_in_prices()
+
+    tax_configuration = order.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # Prepare Order data
     address = order.shipping_address or order.billing_address
@@ -1341,7 +1397,7 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
             "user_id": user_id,
             "user_public_metadata": user_public_metadata,
             "discounts": discounts_dict,
-            "included_taxes_in_prices": included_taxes_in_prices,
+            "included_taxes_in_prices": prices_entered_with_tax,
             "shipping_amount": shipping_method_amount,
             "shipping_name": shipping_method_name,
             "lines": json.loads(

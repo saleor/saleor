@@ -202,8 +202,11 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
 def test_checkout_add_voucher_code_with_display_gross_prices(
     api_client, checkout_with_item, voucher, site_settings, monkeypatch
 ):
-    site_settings.display_gross_prices = True
-    site_settings.save()
+    channel = checkout_with_item.channel
+    tc = channel.tax_configuration
+    tc.display_gross_prices = True
+    tc.save(update_fields=["display_gross_prices"])
+    tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
 
@@ -233,8 +236,11 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
 def test_checkout_add_voucher_code_without_display_gross_prices(
     api_client, checkout_with_item, voucher, site_settings, monkeypatch
 ):
-    site_settings.display_gross_prices = False
-    site_settings.save()
+    channel = checkout_with_item.channel
+    tc = channel.tax_configuration
+    tc.display_gross_prices = False
+    tc.save(update_fields=["display_gross_prices"])
+    tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
 
@@ -866,9 +872,10 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
 
 
-def test_checkout_add_promo_code_no_checkout_email(
+def test_checkout_add_promo_code_without_checkout_email(
     api_client, checkout_with_item, voucher
 ):
+    # given
     checkout_with_item.email = None
     checkout_with_item.save(update_fields=["email"])
 
@@ -876,8 +883,34 @@ def test_checkout_add_promo_code_no_checkout_email(
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
+
+    # when
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_gift_card_without_checkout_email(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    checkout_with_item.email = None
+    checkout_with_item.save(update_fields=["email"])
+
+    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
     assert data["errors"]
     assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
 

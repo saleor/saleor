@@ -9,6 +9,7 @@ from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
 from ..discount import DiscountInfo
 from ..product.models import Product
+from ..tax.utils import get_charge_taxes_for_checkout
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -63,7 +64,6 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, 
         "sku": variant.sku,
         "variant_id": variant.get_global_id(),
         "quantity": line_info.line.quantity,
-        "charge_taxes": product.charge_taxes,
         "full_name": variant.display_product(),
         "product_name": product.name,
         "variant_name": variant.name,
@@ -78,10 +78,11 @@ def serialize_checkout_lines_for_tax_calculation(
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[dict]:
     channel = checkout_info.channel
-
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     return [
         {
             **_get_checkout_line_payload_data(line_info),
+            "charge_taxes": charge_taxes,
             "unit_amount": quantize_price(
                 base_calculations.calculate_base_line_unit_price(
                     line_info, channel, discounts

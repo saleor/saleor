@@ -14,8 +14,9 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
+from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.descriptions import ADDED_IN_39, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
@@ -76,31 +77,6 @@ class AttributeValueTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class AttributeValueTranslatableContent(ModelObjectType):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
-    rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
-    plain_text = graphene.String(description="Attribute plain text value.")
-    translation = TranslationField(
-        AttributeValueTranslation, type_name="attribute value"
-    )
-    attribute_value = graphene.Field(
-        "saleor.graphql.attribute.types.AttributeValue",
-        description="Represents a value of an attribute.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
-    )
-
-    class Meta:
-        model = attribute_models.AttributeValue
-        interfaces = [graphene.relay.Node]
-
-    @staticmethod
-    def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
-        return root
-
-
 class AttributeTranslation(BaseTranslationType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
@@ -129,6 +105,39 @@ class AttributeTranslatableContent(ModelObjectType):
     @staticmethod
     def resolve_attribute(root: attribute_models.Attribute, _info):
         return root
+
+
+class AttributeValueTranslatableContent(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
+    plain_text = graphene.String(description="Attribute plain text value.")
+    translation = TranslationField(
+        AttributeValueTranslation, type_name="attribute value"
+    )
+    attribute_value = graphene.Field(
+        "saleor.graphql.attribute.types.AttributeValue",
+        description="Represents a value of an attribute.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
+        ),
+    )
+    attribute = graphene.Field(
+        AttributeTranslatableContent,
+        description="Associated attribute that can be translated." + ADDED_IN_39,
+    )
+
+    class Meta:
+        model = attribute_models.AttributeValue
+        interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
+        return root
+
+    @staticmethod
+    def resolve_attribute(root: attribute_models.AttributeValue, info):
+        return AttributesByAttributeId(info.context).load(root.attribute_id)
 
 
 class ProductVariantTranslation(BaseTranslationType):
@@ -292,7 +301,7 @@ class CollectionTranslatableContent(ModelObjectType):
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
-        "saleor.graphql.product.types.products.Collection",
+        "saleor.graphql.product.types.collections.Collection",
         description="Represents a collection of products.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
@@ -355,7 +364,7 @@ class CategoryTranslatableContent(ModelObjectType):
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
-        "saleor.graphql.product.types.products.Category",
+        "saleor.graphql.product.types.categories.Category",
         description="Represents a single category of products.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."

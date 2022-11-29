@@ -37,7 +37,6 @@ from .stripe_api import (
 from .webhooks import handle_webhook
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ....plugins.models import PluginConfiguration
 
 from .consts import (

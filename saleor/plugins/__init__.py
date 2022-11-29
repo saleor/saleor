@@ -10,9 +10,7 @@ def discover_plugins_modules(plugins: List[str]):
         try:
             module_path, class_name = dotted_path.rsplit(".", 1)
         except ValueError as err:
-            raise ImportError(
-                "%s doesn't look like a module path" % dotted_path
-            ) from err
+            raise ImportError(f"{dotted_path} doesn't look like a module path") from err
 
         module = importlib.import_module(module_path)
         plugins_modules.append(module.__package__)
