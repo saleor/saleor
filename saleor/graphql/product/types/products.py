@@ -86,7 +86,7 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise, load_plugin_manager
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -570,6 +570,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
         discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
+        manager = get_plugin_manager_promise(info.context)
 
         address_country = address.country if address is not None else None
 
@@ -582,6 +583,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                 channel,
                 tax_class,
                 discounts,
+                manager,
             ) = data
 
             if not variant_channel_listing or not product_channel_listing:
@@ -666,6 +668,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                 channel,
                 tax_class,
                 discounts,
+                manager,
             ]
         ).then(load_tax_configuration)
 
