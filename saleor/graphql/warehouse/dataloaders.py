@@ -106,7 +106,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         (
             warehouse_ids_by_shipping_zone_by_variant,
             variants_with_global_cc_warehouses,
-            available_quantity_by_warehouse_id,
+            available_quantity_by_warehouse_id_and_variant_id,
         ) = self.prepare_warehouse_ids_by_shipping_zone_and_variant_map(
             stocks, stocks_reservations, warehouse_shipping_zones_map, cc_warehouses
         )
@@ -115,7 +115,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             country_code,
             warehouse_ids_by_shipping_zone_by_variant,
             variants_with_global_cc_warehouses,
-            available_quantity_by_warehouse_id,
+            available_quantity_by_warehouse_id_and_variant_id,
         )
 
         # Return the quantities after capping them at the maximum quantity allowed in
@@ -245,7 +245,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             int, DefaultDict[int, List[UUID]]
         ] = defaultdict(lambda: defaultdict(list))
         variants_with_global_cc_warehouses = []
-        available_quantity_by_warehouse_id: DefaultDict[UUID, int] = defaultdict(int)
+        available_quantity_by_warehouse_id_and_variant_id: DefaultDict[
+            UUID, dict(int, int)
+        ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
             reserved_quantity = stocks_reservations[stock.id]
             quantity = stock.available_quantity - reserved_quantity
@@ -255,7 +257,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 quantity = max(0, quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
-            available_quantity_by_warehouse_id[warehouse_id] += quantity
+            available_quantity_by_warehouse_id_and_variant_id[warehouse_id][
+                variant_id
+            ] += quantity
             if shipping_zone_ids := warehouse_shipping_zones_map[warehouse_id]:
                 for shipping_zone_id in shipping_zone_ids:
                     warehouse_ids_by_shipping_zone_by_variant[variant_id][
@@ -277,7 +281,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         return (
             warehouse_ids_by_shipping_zone_by_variant,
             variants_with_global_cc_warehouses,
-            available_quantity_by_warehouse_id,
+            available_quantity_by_warehouse_id_and_variant_id,
         )
 
     def prepare_quantity_map(
@@ -285,7 +289,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         country_code,
         warehouse_ids_by_shipping_zone_by_variant,
         variants_with_global_cc_warehouses,
-        available_quantity_by_warehouse_id,
+        available_quantity_by_warehouse_id_and_variant_id,
     ):
         """Prepare the variant id to quantity map.
 
@@ -315,7 +319,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 # shipping zones supporting given country.
                 quantity = 0
                 for warehouse_id in used_warehouse_ids:
-                    quantity += available_quantity_by_warehouse_id[warehouse_id]
+                    quantity += available_quantity_by_warehouse_id_and_variant_id[
+                        warehouse_id
+                    ][variant_id]
                 quantity_map[variant_id] = quantity
             else:
                 # When country code is unknown, return the highest known quantity.
@@ -325,7 +331,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 ) in warehouse_ids_shipping_zone.values():
                     quantity = 0
                     for warehouse_id in warehouse_ids_per_shipping_zones:
-                        quantity += available_quantity_by_warehouse_id[warehouse_id]
+                        quantity += available_quantity_by_warehouse_id_and_variant_id[
+                            warehouse_id
+                        ][variant_id]
                     quantity_values.append(quantity)
 
                 quantity_map[variant_id] = max(quantity_values)
