@@ -407,3 +407,28 @@ def test_install_app_webhook_incorrect_query(
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
     assert error_dict["webhooks"][0].message == "Subscription query is not valid."
+
+
+def test_install_app_lack_of_token_target_url_in_manifest_data(
+    app_manifest, app_installation, monkeypatch, permission_manage_products
+):
+    # given
+    app_manifest.pop("tokenTargetUrl")
+
+    app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    mocked_post = Mock()
+    monkeypatch.setattr(requests, "post", mocked_post)
+
+    app_installation.permissions.set([permission_manage_products])
+
+    # when & then
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "tokenTargetUrl" in error_dict
+    assert error_dict["tokenTargetUrl"][0].message == "Field required."
