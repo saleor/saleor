@@ -43,7 +43,7 @@ def assert_graphql_error_with_message(response, message):
 def get_multipart_request_body(query, variables, file, file_name):
     """Create request body for multipart GraphQL requests.
 
-    Multipart requests are different than standard GraphQL requests, because
+    Multipart requests are different from standard GraphQL requests, because
     of additional 'operations' and 'map' keys.
     """
     return {
@@ -52,4 +52,20 @@ def get_multipart_request_body(query, variables, file, file_name):
         ),
         "map": json.dumps({file_name: ["variables.file"]}, cls=DjangoJSONEncoder),
         file_name: file,
+    }
+
+
+def get_multipart_request_body_with_multiple_files(query, variables, files, map_dict):
+    """Create request body for multipart GraphQL requests to send multiple files.
+
+    Multipart requests are different from standard GraphQL requests, because
+    of additional 'operations' and 'map' keys.
+    """
+
+    return {
+        "operations": json.dumps(
+            {"query": query, "variables": variables}, cls=DjangoJSONEncoder
+        ),
+        "map": json.dumps(map_dict, cls=DjangoJSONEncoder),
+        **{index: file for index, file in enumerate(files)},
     }
