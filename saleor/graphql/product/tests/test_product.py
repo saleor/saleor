@@ -159,6 +159,28 @@ QUERY_FETCH_ALL_PRODUCTS = """
 """
 
 
+QUERY_PRODUCTS_AVAILABILITY = """
+    query ($channel:String){
+        products(first: 10, channel: $channel) {
+            totalCount
+            edges {
+                node {
+                    id
+                    name
+                    isAvailable
+                    variants {
+                        quantityAvailable
+                        stocks {
+                            quantity
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
 QUERY_PRODUCT = """
     query ($id: ID, $slug: String, $channel:String){
         product(
@@ -1838,6 +1860,84 @@ def test_fetch_all_products_visible_in_listings_by_app_without_manage_products(
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
     assert len(product_data) == product_count - 1  # invisible doesn't count
+
+
+def test_fetch_all_products_with_availability_data(
+    staff_api_client, permission_manage_products, product_list, channel_USD, order_line
+):
+    # given
+    product_1, product_2, product_3 = product_list
+    allocations = []
+
+    product_1_qty = 0
+    product_1_qty_allocated = 1
+    product_1_stock = product_1.variants.first().stocks.first()
+    product_1_stock.quantity = product_1_qty
+    product_1_stock.save(update_fields=["quantity"])
+    allocations.append(
+        Allocation(
+            order_line=order_line,
+            stock=product_1_stock,
+            quantity_allocated=product_1_qty_allocated,
+        )
+    )
+
+    product_2_qty = 15
+    product_2_qty_allocated = 2
+    product_2_stock = product_2.variants.first().stocks.first()
+    product_2_stock.quantity = product_2_qty
+    product_2_stock.save(update_fields=["quantity"])
+    allocations.append(
+        Allocation(
+            order_line=order_line,
+            stock=product_2_stock,
+            quantity_allocated=product_2_qty_allocated,
+        )
+    )
+
+    product_3_qty = 10
+    product_3_qty_allocated = 0
+    product_3_stock = product_3.variants.first().stocks.first()
+    product_3_stock.quantity = product_3_qty
+    product_3_stock.save(update_fields=["quantity"])
+
+    Allocation.objects.bulk_create(allocations)
+
+    variables = {"channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_AVAILABILITY,
+        variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    num_products = Product.objects.count()
+    assert content["data"]["products"]["totalCount"] == num_products
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == num_products
+    for product, quantity, quantity_allocated in zip(
+        product_list,
+        [product_1_qty, product_2_qty, product_3_qty],
+        [product_1_qty_allocated, product_2_qty_allocated, product_3_qty_allocated],
+    ):
+        data = {
+            "node": {
+                "id": graphene.Node.to_global_id("Product", product.id),
+                "name": product.name,
+                "isAvailable": quantity > 0,
+                "variants": [
+                    {
+                        "quantityAvailable": max(quantity - quantity_allocated, 0),
+                        "stocks": [{"quantity": quantity}],
+                    }
+                ],
+            }
+        }
+        assert data in product_data
 
 
 def test_fetch_product_from_category_query(
