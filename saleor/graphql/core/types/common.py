@@ -48,6 +48,7 @@ from ..enums import (
 )
 from ..scalars import PositiveDecimal
 from .money import VAT
+from .upload import Upload
 
 # deprecated - this is temporary constant that contains the graphql types
 # which has double id available - uuid and old int id
@@ -534,3 +535,13 @@ class ThumbnailField(graphene.Field):
         kwargs["size"] = self.size
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
+
+
+class MediaInput(graphene.InputObjectType):
+    alt = graphene.String(description="Alt text for a product media.")
+    image = Upload(
+        required=False, description="Represents an image file in a multipart request."
+    )
+    media_url = graphene.String(
+        required=False, description="Represents an URL to an external media."
+    )

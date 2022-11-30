@@ -101,6 +101,18 @@ VolumeUnitsEnum = to_enum(VolumeUnits)
 WeightUnitsEnum = to_enum(WeightUnits)
 unit_enums = [DistanceUnitsEnum, AreaUnitsEnum, VolumeUnitsEnum, WeightUnitsEnum]
 
+
+class ErrorPolicy:
+    IGNORE_FAILED = "ignore_failed"
+    REJECT_EVERYTHING = "reject_everything"
+
+    CHOICES = [
+        (IGNORE_FAILED, "Ignore failed"),
+        (REJECT_EVERYTHING, "Reject_everything"),
+    ]
+
+
+ErrorPolicyEnum = to_enum(ErrorPolicy)
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
