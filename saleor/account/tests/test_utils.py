@@ -195,14 +195,16 @@ def test_remove_the_oldest_user_address_if_address_limit_is_reached_limit_reache
 
 @pytest.fixture
 def users_with_similar_emails():
-    users = [
-        User.objects.create_user("andrew@example.com", "password"),
-        User.objects.create_user("Andrew@example.com", "password"),
-        User.objects.create_user("john@example.com", "password"),
-        User.objects.create_user("Susan@example.com", "password"),
-        User.objects.create_user("Cindy@example.com", "password"),
-        User.objects.create_user("CINDY@example.com", "password"),
-    ]
+    users = User.objects.bulk_create(
+        [
+            User(email="andrew@example.com"),
+            User(email="Andrew@example.com"),
+            User(email="john@example.com"),
+            User(email="Susan@example.com"),
+            User(email="Cindy@example.com"),
+            User(email="CINDY@example.com"),
+        ]
+    )
     return users
 
 
