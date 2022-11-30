@@ -1,8 +1,13 @@
 import graphene
 import pytest
 
-from ....product.models import Category, Product, ProductChannelListing
-from ....warehouse.models import Allocation, Stock, Warehouse
+from ....product.models import (
+    Category,
+    Product,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
+from ....warehouse.models import Stock, Warehouse
 from ...tests.utils import get_graphql_content
 
 
@@ -71,28 +76,22 @@ def test_categories_with_filtering(
 
 
 GET_FILTERED_PRODUCTS_CATEGORY_QUERY = """
-    query ($channel: String, $filters: ProductFilterInput){
-      categories(first: 5) {
-        edges {
-          node {
-            id
-            name
-            products(first: 5, channel: $channel, filter: $filters) {
-              edges {
-                node {
-                  id
-                  name
-                  channel
-                  attributes {
-                    attribute {
-                      choices(first: 10) {
-                        edges {
-                          node {
-                            slug
-                          }
-                        }
-                      }
-                    }
+query ($id: ID!, $channel: String, $filters: ProductFilterInput) {
+  category(id: $id) {
+    id
+    name
+    products(first: 5, channel: $channel, filter: $filters) {
+      edges {
+        node {
+          id
+          name
+          channel
+          attributes {
+            attribute {
+              choices(first: 10) {
+                edges {
+                  node {
+                    slug
                   }
                 }
               }
@@ -101,91 +100,145 @@ GET_FILTERED_PRODUCTS_CATEGORY_QUERY = """
         }
       }
     }
-    """
+  }
+}
+"""
 
 
+@pytest.mark.parametrize(
+    "channel, filter_channel, count, indexes_of_products_in_result",
+    [
+        ("channel_USD.slug", "channel_USD.slug", 2, [1, 2]),
+        ("channel_USD.slug", "channel_PLN.slug", 2, [1, 2]),
+        ("channel_PLN.slug", "channel_USD.slug", 1, [0]),
+        ("channel_PLN.slug", "channel_PLN.slug", 1, [0]),
+    ],
+)
 def test_category_filter_products_by_channel(
+    channel,
+    filter_channel,
+    count,
+    indexes_of_products_in_result,
     user_api_client,
+    category,
     product_list,
     channel_USD,
     channel_PLN,
 ):
+    # given
+    first_product = product_list[0]
+
     ProductChannelListing.objects.filter(
-        product=product_list[0],
+        product=first_product,
     ).update(channel=channel_PLN)
 
+    ProductVariantChannelListing.objects.filter(
+        variant=first_product.variants.first(),
+    ).update(channel=channel_PLN)
+
+    product_ids = [
+        graphene.Node.to_global_id("Product", product_list[index].pk)
+        for index in indexes_of_products_in_result
+    ]
+
     variables = {
-        "channel": channel_USD.slug,
-        "filters": {"channel": channel_PLN.slug},
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": eval(channel),
+        "filters": {"channel": eval(filter_channel)},
     }
 
+    # when
     response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
     )
 
+    # then
     content = get_graphql_content(response)
-    for edge in content["data"]["categories"]["edges"]:
-        for inner_edge in edge["node"]["products"]["edges"]:
-            assert inner_edge["node"]["channel"] == channel_USD.slug
+    products = content["data"]["category"]["products"]["edges"]
+    assert len(products) == count
+    assert [product["node"]["id"] for product in products] == product_ids
 
 
+@pytest.mark.parametrize(
+    "is_published, count, indexes_of_products_in_result",
+    [
+        (True, 2, [1, 2]),
+        (False, 1, [0]),
+    ],
+)
 def test_category_filter_products_by_is_published(
-    user_api_client,
+    is_published,
+    count,
+    indexes_of_products_in_result,
+    staff_api_client,
+    permission_manage_products,
+    category,
     product_list_published,
     channel_USD,
 ):
-    """
-    Products created with published collections and expect to see no products after
-    filter.
-    """
+    # given
+    ProductChannelListing.objects.filter(
+        product=product_list_published[0],
+    ).update(is_published=False)
+
+    product_ids = [
+        graphene.Node.to_global_id("Product", product_list_published[index].pk)
+        for index in indexes_of_products_in_result
+    ]
 
     variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
         "channel": channel_USD.slug,
-        "filters": {"isPublished": False},
+        "filters": {"isPublished": is_published},
     }
 
-    response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
+    # when
+    response = staff_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
 
+    # then
     content = get_graphql_content(response)
-    for edge in content["data"]["categories"]["edges"]:
-        assert edge["node"]["products"]["edges"] == []
+    products = content["data"]["category"]["products"]["edges"]
+    assert len(products) == count
+    assert [product["node"]["id"] for product in products] == product_ids
 
 
-def test_category_filter_products_by_attributes(
+def test_category_filter_products_by_multiple_attributes(
     user_api_client,
+    category,
     product_with_two_variants,
     product_with_multiple_values_attributes,
-    published_collection,
     channel_USD,
 ):
-    published_collection.products.set(
-        [product_with_two_variants, product_with_multiple_values_attributes]
+    # given
+    product_with_multiple_values_attributes_id = graphene.Node.to_global_id(
+        "Product", product_with_multiple_values_attributes.pk
     )
 
     variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
         "channel": channel_USD.slug,
         "filters": {"attributes": [{"slug": "modes", "values": ["eco"]}]},
     }
 
+    # when
     response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
     )
 
+    # then
     content = get_graphql_content(response)
-    products_data = content["data"]["categories"]["edges"][0]["node"]["products"][
-        "edges"
-    ]
-    product = products_data[0]["node"]
+    products = content["data"]["category"]["products"]["edges"]
 
-    _, _id = graphene.Node.from_global_id(product["id"])
-
-    assert len(products_data) == 1
-    assert product["id"] == graphene.Node.to_global_id(
-        "Product", product_with_multiple_values_attributes.pk
-    )
-    assert product["attributes"] == [
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_with_multiple_values_attributes_id
+    assert products[0]["node"]["attributes"] == [
         {
             "attribute": {
                 "choices": {
@@ -199,42 +252,54 @@ def test_category_filter_products_by_attributes(
     ]
 
 
+@pytest.mark.parametrize(
+    "stock_availability, count, indexes_of_products_in_result",
+    [
+        ("OUT_OF_STOCK", 2, [1, 2]),
+        ("IN_STOCK", 1, [0]),
+    ],
+)
 def test_category_filter_products_by_stock_availability(
+    stock_availability,
+    count,
+    indexes_of_products_in_result,
     user_api_client,
+    category,
     product_list,
-    order_line,
     channel_USD,
 ):
-    for product in product_list:
+    # given
+    for index, product in enumerate(product_list):
+        if index == 0:
+            continue
         stock = product.variants.first().stocks.first()
-        Allocation.objects.create(
-            order_line=order_line, stock=stock, quantity_allocated=stock.quantity
-        )
-    product = product_list[0]
-    product.variants.first().channel_listings.filter(channel=channel_USD).update(
-        price_amount=None
-    )
-    variables = {
-        "channel": channel_USD.slug,
-        "filters": {"stockAvailability": "OUT_OF_STOCK"},
-    }
-    response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
-    )
+        stock.quantity_allocated = stock.quantity
+        stock.quantity = 0
+        stock.save(update_fields=["quantity", "quantity_allocated"])
 
-    content = get_graphql_content(response)
-
-    products_data = content["data"]["categories"]["edges"][0]["node"]["products"][
-        "edges"
+    product_ids = [
+        graphene.Node.to_global_id("Product", product_list[index].pk)
+        for index in indexes_of_products_in_result
     ]
-    product_id = graphene.Node.to_global_id("Product", product_list[1].id)
-    second_product_id = graphene.Node.to_global_id("Product", product_list[2].id)
 
-    assert len(products_data) == 2
-    assert products_data[0]["node"]["id"] == product_id
-    assert products_data[0]["node"]["name"] == product_list[1].name
-    assert products_data[1]["node"]["id"] == second_product_id
-    assert products_data[1]["node"]["name"] == product_list[2].name
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+        "filters": {"stockAvailability": stock_availability},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["category"]["products"]["edges"]
+
+    assert len(products) == count
+    assert [product["node"]["id"] for product in products] == product_ids
 
 
 @pytest.mark.parametrize(
@@ -257,27 +322,31 @@ def test_category_filter_products_by_stocks(
     count,
     indexes_of_products_in_result,
     user_api_client,
+    category,
     product_with_single_variant,
     product_with_two_variants,
     warehouse,
     channel_USD,
 ):
-    product1 = product_with_single_variant
-    product2 = product_with_two_variants
-    products = [product1, product2]
+    # given
+    first_product = product_with_single_variant
+    second_product = product_with_two_variants
+    products = [first_product, second_product]
 
-    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
-    second_warehouse.slug = "second warehouse"
+    first_warehouse = warehouse
+
+    second_warehouse = Warehouse.objects.get(pk=first_warehouse.pk)
+    second_warehouse.slug = "second-warehouse"
     second_warehouse.pk = None
     second_warehouse.save()
 
-    third_warehouse = Warehouse.objects.get(pk=warehouse.pk)
-    third_warehouse.slug = "third warehouse"
+    third_warehouse = Warehouse.objects.get(pk=first_warehouse.pk)
+    third_warehouse.slug = "third-warehouse"
     third_warehouse.pk = None
     third_warehouse.save()
 
-    warehouses = [warehouse, second_warehouse, third_warehouse]
-    warehouse_pks = [
+    warehouses = [first_warehouse, second_warehouse, third_warehouse]
+    warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", warehouses[index].pk)
         for index in warehouse_indexes
     ]
@@ -286,140 +355,171 @@ def test_category_filter_products_by_stocks(
         [
             Stock(
                 warehouse=third_warehouse,
-                product_variant=product1.variants.first(),
+                product_variant=first_product.variants.first(),
                 quantity=100,
             ),
             Stock(
                 warehouse=second_warehouse,
-                product_variant=product2.variants.first(),
+                product_variant=second_product.variants.first(),
                 quantity=10,
             ),
             Stock(
                 warehouse=third_warehouse,
-                product_variant=product2.variants.first(),
+                product_variant=second_product.variants.first(),
                 quantity=25,
             ),
             Stock(
                 warehouse=third_warehouse,
-                product_variant=product2.variants.last(),
+                product_variant=second_product.variants.last(),
                 quantity=30,
             ),
         ]
     )
+
     variables = {
-        "filters": {
-            "stocks": {"quantity": quantity_input, "warehouseIds": warehouse_pks}
-        },
+        "id": graphene.Node.to_global_id("Category", category.pk),
         "channel": channel_USD.slug,
+        "filters": {
+            "stocks": {"quantity": quantity_input, "warehouseIds": warehouse_ids}
+        },
     }
 
+    # when
     response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
     )
+
+    # then
     content = get_graphql_content(response)
-    products_data = content["data"]["categories"]["edges"][0]["node"]["products"][
-        "edges"
-    ]
+    products_result = content["data"]["category"]["products"]["edges"]
     product_ids = {
         graphene.Node.to_global_id("Product", products[index].pk)
         for index in indexes_of_products_in_result
     }
 
-    assert len(products_data) == count
-    assert {node["node"]["id"] for node in products_data} == product_ids
+    assert len(products_result) == count
+    assert {node["node"]["id"] for node in products_result} == product_ids
 
 
-@pytest.mark.parametrize("is_published", [(True)])
+@pytest.mark.parametrize(
+    "is_published, count, indexes_of_products_in_result",
+    [
+        (True, 1, [1]),
+        (False, 0, []),
+    ],
+)
 def test_category_filter_products_search_by_sku(
     is_published,
+    count,
+    indexes_of_products_in_result,
     user_api_client,
+    category,
     product_with_two_variants,
     product_with_default_variant,
     channel_USD,
 ):
+    # given
+    products = [product_with_two_variants, product_with_default_variant]
+
     ProductChannelListing.objects.filter(
         product=product_with_default_variant, channel=channel_USD
     ).update(is_published=is_published)
 
     variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
         "filters": {"search": "1234"},
-        "channel": channel_USD.slug,
-    }
-    response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
-    )
-
-    content = get_graphql_content(response)
-    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.id)
-    products = content["data"]["categories"]["edges"][0]["node"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == product_id
-    assert products[0]["node"]["name"] == product_with_default_variant.name
-
-
-def test_category_filter_products_by_price(
-    user_api_client,
-    product_list,
-    permission_manage_products,
-    channel_USD,
-):
-    product = product_list[0]
-    product.variants.first().channel_listings.filter().update(price_amount=None)
-    second_product_id = graphene.Node.to_global_id("Product", product_list[1].id)
-    third_product_id = graphene.Node.to_global_id("Product", product_list[2].id)
-    variables = {
-        "filters": {"price": {"gte": 9, "lte": 31}, "channel": channel_USD.slug},
-        "channel": channel_USD.slug,
-    }
-    response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
-    )
-    content = get_graphql_content(response)
-    products = content["data"]["categories"]["edges"][0]["node"]["products"]["edges"]
-
-    assert len(products) == 2
-    assert products[0]["node"]["id"] == second_product_id
-    assert products[1]["node"]["id"] == third_product_id
-
-
-def test_category_filter_products_by_ids(
-    user_api_client,
-    product_list,
-    channel_USD,
-):
-    product_ids = [
-        graphene.Node.to_global_id("Product", product.id) for product in product_list
-    ][:2]
-    variables = {
-        "filters": {"ids": product_ids},
-        "channel": channel_USD.slug,
     }
 
+    # when
     response = user_api_client.post_graphql(
-        GET_FILTERED_PRODUCTS_CATEGORY_QUERY, variables
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
     )
 
     # then
     content = get_graphql_content(response)
-    products = content["data"]["categories"]["edges"][0]["node"]["products"]["edges"]
+    products_result = content["data"]["category"]["products"]["edges"]
+    product_ids = {
+        graphene.Node.to_global_id("Product", products[index].pk)
+        for index in indexes_of_products_in_result
+    }
+
+    assert len(products_result) == count
+    assert {node["node"]["id"] for node in products_result} == product_ids
+
+
+def test_category_filter_products_by_price(
+    user_api_client,
+    category,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    product_list[0].variants.first().channel_listings.filter().update(price_amount=None)
+    second_product_id = graphene.Node.to_global_id("Product", product_list[1].pk)
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+        "filters": {"price": {"gte": 5, "lte": 25}, "channel": channel_USD.slug},
+    }
+
+    response = user_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["category"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == second_product_id
+
+
+def test_category_filter_products_by_ids(
+    user_api_client,
+    category,
+    product_list,
+    channel_USD,
+):
+    # given
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ][:2]
+
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+        "filters": {"ids": product_ids},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["category"]["products"]["edges"]
 
     assert len(products) == 2
     assert [node["node"]["id"] for node in products] == product_ids
 
 
 GET_SORTED_PRODUCTS_CATEGORY_QUERY = """
-query ($channel: String, $sortBy: ProductOrder, $filters: ProductFilterInput) {
-  categories(first:10) {
-    edges {
-      node {
-        id
-        products(first: 10, channel: $channel, sortBy: $sortBy, filter: $filters) {
-          edges {
-            node {
-              id
-            }
-          }
+query ($id: ID!, $channel: String, $filters: ProductFilterInput, $sortBy: ProductOrder){
+  category(id: $id) {
+    id
+    products(first: 10, channel: $channel, sortBy: $sortBy, filter: $filters) {
+      edges {
+        node {
+          id
         }
       }
     }
@@ -429,27 +529,30 @@ query ($channel: String, $sortBy: ProductOrder, $filters: ProductFilterInput) {
 
 
 def test_category_sort_products_by_name(
-    user_api_client, published_collection, product_list, channel_USD
+    user_api_client,
+    category,
+    product_list,
+    channel_USD,
 ):
-    for product in product_list:
-        published_collection.products.add(product)
-
+    # given
     variables = {
-        "sortBy": {"direction": "DESC", "field": "NAME"},
-        "filters": {"channel": channel_USD.slug},
+        "id": graphene.Node.to_global_id("Category", category.pk),
         "channel": channel_USD.slug,
+        "filters": {"channel": channel_USD.slug},
+        "sortBy": {"direction": "DESC", "field": "NAME"},
     }
 
     # when
     response = user_api_client.post_graphql(
-        GET_SORTED_PRODUCTS_CATEGORY_QUERY, variables
+        GET_SORTED_PRODUCTS_CATEGORY_QUERY,
+        variables,
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["categories"]["edges"][0]["node"]["products"]["edges"]
+    products = content["data"]["category"]["products"]["edges"]
 
-    assert [node["node"]["id"] for node in data] == [
+    assert [node["node"]["id"] for node in products] == [
         graphene.Node.to_global_id("Product", product.pk)
         for product in Product.objects.order_by("-name")
     ]
