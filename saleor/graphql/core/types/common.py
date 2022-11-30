@@ -51,6 +51,7 @@ from ..enums import (
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
 from .money import VAT
+from .upload import Upload
 
 if TYPE_CHECKING:
     from .. import ResolveInfo
@@ -545,3 +546,13 @@ class ThumbnailField(graphene.Field):
         kwargs["size"] = self.size
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
+
+
+class MediaInput(graphene.InputObjectType):
+    alt = graphene.String(description="Alt text for a product media.")
+    image = Upload(
+        required=False, description="Represents an image file in a multipart request."
+    )
+    media_url = graphene.String(
+        required=False, description="Represents an URL to an external media."
+    )
