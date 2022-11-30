@@ -510,21 +510,3 @@ def check_is_owner_or_has_one_of_perms(
     """
     if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
         raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])
-
-
-def retrieve_user_by_email(email):
-    """Retrieve user by email.
-
-    Email lookup is case-insensitive, unless the query returns more than one user. In
-    such a case, function return case-sensitive result.
-    """
-    users = User.objects.filter(email__iexact=email)
-
-    if len(users) > 1:
-        users_exact = [user for user in users if user.email == email]
-        users_iexact = [user for user in users if user.email == email.lower()]
-        users = users_exact or users_iexact  # type: ignore
-
-    if users:
-        return users[0]
-    return None

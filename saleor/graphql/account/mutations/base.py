@@ -11,6 +11,7 @@ from ....account.notifications import (
     send_set_password_notification,
 )
 from ....account.search import prepare_user_search_document_value
+from ....account.utils import retrieve_user_by_email
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
@@ -33,7 +34,6 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError
 from ...plugins.dataloaders import load_plugin_manager
-from ..utils import retrieve_user_by_email
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"

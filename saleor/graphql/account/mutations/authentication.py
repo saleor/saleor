@@ -14,6 +14,7 @@ from graphene.types.generic import GenericScalar
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import retrieve_user_by_email
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -30,7 +31,6 @@ from ...core.mutations import BaseMutation
 from ...core.types import AccountError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import User
-from ..utils import retrieve_user_by_email
 
 
 def get_payload(token):
