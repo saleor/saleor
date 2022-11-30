@@ -10,7 +10,7 @@ from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
-from ...bulk_mutations.products import ProductVariantStocksUpdate
+from ...bulk_mutations import ProductVariantStocksUpdate
 from ...utils import create_stocks
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
