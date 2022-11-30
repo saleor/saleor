@@ -21,7 +21,7 @@ from ..translations.mutations import (
     ProductVariantTranslate,
 )
 from ..utils import get_user_or_app_from_context
-from .bulk_mutations.products import (
+from .bulk_mutations import (
     CategoryBulkDelete,
     CollectionBulkDelete,
     ProductBulkDelete,
