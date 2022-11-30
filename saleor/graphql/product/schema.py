@@ -24,6 +24,7 @@ from ..utils import get_user_or_app_from_context
 from .bulk_mutations import (
     CategoryBulkDelete,
     CollectionBulkDelete,
+    ProductBulkCreate,
     ProductBulkDelete,
     ProductMediaBulkDelete,
     ProductTypeBulkDelete,
@@ -527,6 +528,7 @@ class ProductMutations(graphene.ObjectType):
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
+    product_bulk_create = ProductBulkCreate.Field()
     product_bulk_delete = ProductBulkDelete.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()

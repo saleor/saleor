@@ -12422,6 +12422,19 @@ type Mutation {
   ): ProductDelete
 
   """
+  Creates products. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productBulkCreate(
+    """Policies of error handling."""
+    errorPolicy: ErrorPolicyEnum = REJECT_EVERYTHING
+
+    """Input list of products to create."""
+    products: [ProductBulkCreateInput!]!
+  ): ProductBulkCreate
+
+  """
   Deletes products. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -17466,6 +17479,277 @@ type ProductDelete {
 }
 
 """
+Creates products. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductBulkCreate {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created products."""
+  results: [ProductBulkResult!]!
+  bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [BulkProductError!]!
+}
+
+type ProductBulkResult {
+  product: Product!
+  errors: BulkProductError
+}
+
+type BulkProductError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductErrorCode!
+
+  """List of attributes IDs which causes the error."""
+  attributes: [ID!]
+
+  """List of attribute values IDs which causes the error."""
+  values: [ID!]
+
+  """Index of an input list item that caused the error."""
+  index: Int
+
+  """List of warehouse IDs which causes the error."""
+  warehouses: [ID!]
+
+  """List of channel IDs which causes the error."""
+  channels: [ID!]
+}
+
+"""An enumeration."""
+enum ErrorPolicyEnum {
+  IGNORE_FAILED
+  REJECT_EVERYTHING
+}
+
+input ProductBulkCreateInput {
+  """List of attributes."""
+  attributes: [AttributeValueInput!]
+
+  """ID of the product's category."""
+  category: ID
+
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
+  chargeTaxes: Boolean
+
+  """List of IDs of collections that the product belongs to."""
+  collections: [ID!]
+
+  """
+  Product description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Product name."""
+  name: String
+
+  """Product slug."""
+  slug: String
+
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
+  taxCode: String
+
+  """Search engine optimization fields."""
+  seo: SeoInput
+
+  """Weight of the Product."""
+  weight: WeightScalar
+
+  """Defines the product rating value."""
+  rating: Float
+
+  """
+  Fields required to update the product metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """ID of the type that product belongs to."""
+  productType: ID!
+  media: [MediaInput!]
+  channelListings: [ProductChannelListingCreateInput!]
+
+  """Input list of product variants to create."""
+  variants: [ProductVariantBulkCreateInput!]
+}
+
+input MediaInput {
+  """Alt text for a product media."""
+  alt: String
+
+  """Represents an image file in a multipart request."""
+  image: Upload
+
+  """Represents an URL to an external media."""
+  mediaUrl: String
+}
+
+input ProductChannelListingCreateInput {
+  """ID of a channel."""
+  channelId: ID!
+
+  """Determines if object is visible to customers."""
+  isPublished: Boolean
+
+  """Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
+
+  """
+  Determines if product is visible in product listings (doesn't apply to product collections).
+  """
+  visibleInListings: Boolean
+
+  """Determine if product should be available for purchase."""
+  isAvailableForPurchase: Boolean
+
+  """
+  A start date time from which a product will be available for purchase. When not set and `isAvailable` is set to True, the current day is assumed.
+  """
+  availableForPurchaseAt: DateTime
+}
+
+input ProductVariantBulkCreateInput {
+  """List of attributes specific to this variant."""
+  attributes: [BulkAttributeValueInput!]!
+
+  """Stock keeping unit."""
+  sku: String
+
+  """Variant name."""
+  name: String
+
+  """
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  """
+  trackInventory: Boolean
+
+  """Weight of the Product Variant."""
+  weight: WeightScalar
+
+  """
+  Determines if variant is in preorder.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  preorder: PreorderSettingsInput
+
+  """
+  Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  quantityLimitPerCustomer: Int
+
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """Stocks of a product available for sale."""
+  stocks: [StockInput!]
+
+  """List of prices assigned to channels."""
+  channelListings: [ProductVariantChannelListingAddInput!]
+}
+
+input BulkAttributeValueInput {
+  """ID of the selected attribute."""
+  id: ID
+
+  """
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  """
+  values: [String!]
+
+  """
+  The boolean value of an attribute to resolve. If the passed value is non-existent, it will be created.
+  """
+  boolean: Boolean
+}
+
+input PreorderSettingsInput {
+  """The global threshold for preorder variant."""
+  globalThreshold: Int
+
+  """The end date for preorder."""
+  endDate: DateTime
+}
+
+input StockInput {
+  """Warehouse in which stock is located."""
+  warehouse: ID!
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+input ProductVariantChannelListingAddInput {
+  """ID of a channel."""
+  channelId: ID!
+
+  """Price of the particular variant in channel."""
+  price: PositiveDecimal!
+
+  """Cost price of the variant in channel."""
+  costPrice: PositiveDecimal
+
+  """
+  The threshold for preorder variant in channel.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  preorderThreshold: Int
+}
+
+"""
 Deletes products. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -18060,22 +18344,6 @@ input ProductVariantCreateInput {
   stocks: [StockInput!]
 }
 
-input PreorderSettingsInput {
-  """The global threshold for preorder variant."""
-  globalThreshold: Int
-
-  """The end date for preorder."""
-  endDate: DateTime
-}
-
-input StockInput {
-  """Warehouse in which stock is located."""
-  warehouse: ID!
-
-  """Quantity of items available for sell."""
-  quantity: Int!
-}
-
 """
 Deletes a product variant. 
 
@@ -18100,126 +18368,6 @@ type ProductVariantBulkCreate {
   productVariants: [ProductVariant!]!
   bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [BulkProductError!]!
-}
-
-type BulkProductError {
-  """
-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
-  """
-  field: String
-
-  """The error message."""
-  message: String
-
-  """The error code."""
-  code: ProductErrorCode!
-
-  """List of attributes IDs which causes the error."""
-  attributes: [ID!]
-
-  """List of attribute values IDs which causes the error."""
-  values: [ID!]
-
-  """Index of an input list item that caused the error."""
-  index: Int
-
-  """List of warehouse IDs which causes the error."""
-  warehouses: [ID!]
-
-  """List of channel IDs which causes the error."""
-  channels: [ID!]
-}
-
-input ProductVariantBulkCreateInput {
-  """List of attributes specific to this variant."""
-  attributes: [BulkAttributeValueInput!]!
-
-  """Stock keeping unit."""
-  sku: String
-
-  """Variant name."""
-  name: String
-
-  """
-  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
-  """
-  trackInventory: Boolean
-
-  """Weight of the Product Variant."""
-  weight: WeightScalar
-
-  """
-  Determines if variant is in preorder.
-  
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  preorder: PreorderSettingsInput
-
-  """
-  Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
-  
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  quantityLimitPerCustomer: Int
-
-  """
-  Fields required to update the product variant metadata.
-  
-  Added in Saleor 3.8.
-  """
-  metadata: [MetadataInput!]
-
-  """
-  Fields required to update the product variant private metadata.
-  
-  Added in Saleor 3.8.
-  """
-  privateMetadata: [MetadataInput!]
-
-  """Stocks of a product available for sale."""
-  stocks: [StockInput!]
-
-  """List of prices assigned to channels."""
-  channelListings: [ProductVariantChannelListingAddInput!]
-}
-
-input BulkAttributeValueInput {
-  """ID of the selected attribute."""
-  id: ID
-
-  """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
-  """
-  values: [String!]
-
-  """
-  The boolean value of an attribute to resolve. If the passed value is non-existent, it will be created.
-  """
-  boolean: Boolean
-}
-
-input ProductVariantChannelListingAddInput {
-  """ID of a channel."""
-  channelId: ID!
-
-  """Price of the particular variant in channel."""
-  price: PositiveDecimal!
-
-  """Cost price of the variant in channel."""
-  costPrice: PositiveDecimal
-
-  """
-  The threshold for preorder variant in channel.
-  
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  preorderThreshold: Int
 }
 
 """

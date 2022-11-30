@@ -68,6 +68,32 @@ class PublishableChannelListingInput(graphene.InputObjectType):
     )
 
 
+class ProductChannelListingCreateInput(graphene.InputObjectType):
+    channel_id = graphene.ID(required=True, description="ID of a channel.")
+    is_published = graphene.Boolean(
+        description="Determines if object is visible to customers."
+    )
+    published_at = graphene.types.datetime.DateTime(
+        description="Publication date time. ISO 8601 standard."
+    )
+    visible_in_listings = graphene.Boolean(
+        description=(
+            "Determines if product is visible in product listings "
+            "(doesn't apply to product collections)."
+        )
+    )
+    is_available_for_purchase = graphene.Boolean(
+        description="Determine if product should be available for purchase.",
+    )
+    available_for_purchase_at = graphene.DateTime(
+        description=(
+            "A start date time from which a product will be available "
+            "for purchase. When not set and `isAvailable` is set to True, "
+            "the current day is assumed."
+        )
+    )
+
+
 class ProductChannelListingAddInput(PublishableChannelListingInput):
     visible_in_listings = graphene.Boolean(
         description=(
