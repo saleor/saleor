@@ -10,7 +10,7 @@ from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ..types import Voucher
 
@@ -119,5 +119,5 @@ class VoucherCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.voucher_created, instance)

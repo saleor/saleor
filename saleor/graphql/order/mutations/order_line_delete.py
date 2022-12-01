@@ -14,7 +14,7 @@ from ....order.utils import (
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
 from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
 
@@ -36,7 +36,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         line = cls.get_node_or_error(
             info,
             id,

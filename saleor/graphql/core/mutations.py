@@ -28,7 +28,7 @@ from ...core.permissions import (
 from ...core.utils.events import call_event
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .context import set_mutation_flag_in_context, setup_context_user
 from .descriptions import DEPRECATED_IN_3X_FIELD
@@ -381,7 +381,7 @@ class BaseMutation(graphene.Mutation):
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         result = manager.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
         )
@@ -781,7 +781,7 @@ class BaseBulkMutation(BaseMutation):
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         result = manager.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
         )
