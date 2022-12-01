@@ -12,6 +12,7 @@ from ....channel import ChannelContext
 from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
+from ....core.scalars import Date
 from ....core.types import CollectionError, NonNullList, SeoInput, Upload
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
@@ -32,7 +33,7 @@ class CollectionInput(graphene.InputObjectType):
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
-    publication_date = graphene.Date(
+    publication_date = Date(
         description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
     )
     metadata = NonNullList(
