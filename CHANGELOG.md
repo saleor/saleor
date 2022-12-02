@@ -28,7 +28,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add new properties in the `Product` type - #10537 by @kadewu
   - Add new fields: `Product.attribute`, `Product.variant`
   - Add `sortBy` argument to `Product.media`
-- Add default `tax_calculation_strategy` to `TaxConfiguration` - #11375 by @jakubkuc
 
 ### Other changes
 
