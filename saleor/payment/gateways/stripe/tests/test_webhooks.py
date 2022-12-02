@@ -1320,7 +1320,7 @@ def test_handle_webhook_events(
     )
 
 
-def test_handle_webhook_events(stripe_plugin, rf):
+def test_handle_webhook_events_when_secret_is_missing(stripe_plugin, rf):
     # given
     webhook_type = WEBHOOK_SUCCESS_EVENT
 
