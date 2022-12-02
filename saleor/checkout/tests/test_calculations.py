@@ -236,7 +236,7 @@ def test_fetch_checkout_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
     tc.country_exceptions.all().delete()
     tc.prices_entered_with_tax = True
     tc.tax_calculation_strategy = None
-    tc.save()
+    tc.save(update_fields=["prices_entered_with_tax", "tax_calculation_strategy"])
 
     country_code = checkout.shipping_address.country.code
     for line in checkout.lines.all():
