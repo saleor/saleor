@@ -4,13 +4,14 @@ from django.core.exceptions import ValidationError
 from ...core import JobStatus
 from ...core.permissions import OrderPermissions
 from ...invoice import events, models
-from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
-from ...order import OrderStatus, events as order_events
+from ...invoice.notifications import send_invoice
+from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import InvoiceError
-from ..invoice.types import Invoice
+from ..core.types import InvoiceError
 from ..order.types import Order
+from .types import Invoice
+from .utils import is_event_active_for_any_plugin
 
 
 class InvoiceRequest(ModelMutation):
@@ -19,6 +20,7 @@ class InvoiceRequest(ModelMutation):
     class Meta:
         description = "Request an invoice for the order using plugin."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -34,11 +36,11 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.status == OrderStatus.DRAFT:
+        if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft order.",
+                        "Cannot request an invoice for draft or unconfirmed order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -61,22 +63,44 @@ class InvoiceRequest(ModelMutation):
         )
         cls.clean_order(order)
 
+        if not is_event_active_for_any_plugin(
+            "invoice_request", info.context.plugins.all_plugins
+        ):
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "No app or plugin is configured to handle invoice requests.",
+                        code=InvoiceErrorCode.NO_INVOICE_PLUGIN,
+                    )
+                }
+            )
+
         shallow_invoice = models.Invoice.objects.create(
-            order=order, number=data.get("number"),
+            order=order,
+            number=data.get("number"),
         )
+
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
 
-        if invoice.status == JobStatus.SUCCESS:
+        if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
-                order=order, user=info.context.user, invoice_number=invoice.number,
+                order=order,
+                user=info.context.user,
+                app=info.context.app,
+                invoice_number=invoice.number,
             )
         else:
-            order_events.invoice_requested_event(user=info.context.user, order=order)
+            order_events.invoice_requested_event(
+                user=info.context.user, app=info.context.app, order=order
+            )
 
         events.invoice_requested_event(
-            user=info.context.user, order=order, number=data.get("number")
+            user=info.context.user,
+            app=info.context.app,
+            order=order,
+            number=data.get("number"),
         )
         return InvoiceRequest(invoice=invoice, order=order)
 
@@ -98,6 +122,7 @@ class InvoiceCreate(ModelMutation):
     class Meta:
         description = "Creates a ready to send invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -108,7 +133,8 @@ class InvoiceCreate(ModelMutation):
         for field in ["url", "number"]:
             if data["input"][field] == "":
                 validation_errors[field] = ValidationError(
-                    f"{field} cannot be empty.", code=InvoiceErrorCode.REQUIRED,
+                    f"{field} cannot be empty.",
+                    code=InvoiceErrorCode.REQUIRED,
                 )
         if validation_errors:
             raise ValidationError(validation_errors)
@@ -116,11 +142,11 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info, order):
-        if order.status == OrderStatus.DRAFT:
+        if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft order.",
+                        "Cannot create an invoice for draft or unconfirmed order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -130,7 +156,7 @@ class InvoiceCreate(ModelMutation):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for order without billing address.",
+                        "Cannot create an invoice for order without billing address.",
                         code=InvoiceErrorCode.NOT_READY,
                     )
                 }
@@ -149,12 +175,16 @@ class InvoiceCreate(ModelMutation):
         invoice.save()
         events.invoice_created_event(
             user=info.context.user,
+            app=info.context.app,
             invoice=invoice,
             number=cleaned_input["number"],
             url=cleaned_input["url"],
         )
         order_events.invoice_generated_event(
-            order=order, user=info.context.user, invoice_number=cleaned_input["number"],
+            order=order,
+            user=info.context.user,
+            app=info.context.app,
+            invoice_number=cleaned_input["number"],
         )
         return InvoiceCreate(invoice=invoice)
 
@@ -168,6 +198,7 @@ class InvoiceRequestDelete(ModelMutation):
     class Meta:
         description = "Requests deletion of an invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -178,7 +209,9 @@ class InvoiceRequestDelete(ModelMutation):
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
         info.context.plugins.invoice_delete(invoice)
-        events.invoice_requested_deletion_event(user=info.context.user, invoice=invoice)
+        events.invoice_requested_deletion_event(
+            user=info.context.user, app=info.context.app, invoice=invoice
+        )
         return InvoiceRequestDelete(invoice=invoice)
 
 
@@ -189,6 +222,7 @@ class InvoiceDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes an invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -197,7 +231,9 @@ class InvoiceDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
-        events.invoice_deleted_event(user=info.context.user, invoice_id=invoice.pk)
+        events.invoice_deleted_event(
+            user=info.context.user, app=info.context.app, invoice_id=invoice.pk
+        )
         return response
 
 
@@ -216,6 +252,7 @@ class InvoiceUpdate(ModelMutation):
     class Meta:
         description = "Updates an invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -254,6 +291,7 @@ class InvoiceUpdate(ModelMutation):
         order_events.invoice_updated_event(
             order=instance.order,
             user=info.context.user,
+            app=info.context.app,
             invoice_number=instance.number,
             url=instance.url,
             status=instance.status,
@@ -261,13 +299,14 @@ class InvoiceUpdate(ModelMutation):
         return InvoiceUpdate(invoice=instance)
 
 
-class InvoiceSendEmail(ModelMutation):
+class InvoiceSendNotification(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to be sent.")
 
     class Meta:
-        description = "Send an invoice by email."
+        description = "Send an invoice notification to the customer."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -303,10 +342,7 @@ class InvoiceSendEmail(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
-        send_invoice.delay(instance.pk, info.context.user.pk)
-        order_events.invoice_sent_event(
-            order=instance.order,
-            user=info.context.user,
-            email=instance.order.get_customer_email(),
+        send_invoice(
+            instance, info.context.user, info.context.app, info.context.plugins
         )
-        return InvoiceSendEmail(invoice=instance)
+        return InvoiceSendNotification(invoice=instance)

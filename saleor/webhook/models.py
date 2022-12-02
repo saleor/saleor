@@ -1,12 +1,12 @@
-from django.core import validators
 from django.db import models
 
 from ..app.models import App
+from ..app.validators import AppURLValidator
 
 
 class WebhookURLField(models.URLField):
     default_validators = [
-        validators.URLValidator(schemes=["http", "https", "awssqs", "gcpubsub"])
+        AppURLValidator(schemes=["http", "https", "awssqs", "gcpubsub"])
     ]
 
 
@@ -16,6 +16,13 @@ class Webhook(models.Model):
     target_url = WebhookURLField(max_length=255)
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
+    subscription_query = models.TextField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("pk",)
+
+    def __str__(self):
+        return self.name
 
 
 class WebhookEvent(models.Model):

@@ -1,10 +1,18 @@
 import warnings
 from typing import TYPE_CHECKING, List
 
-from django.conf import settings
-
 if TYPE_CHECKING:
     from ..interface import GatewayConfig
+
+
+def require_active_plugin(fn):
+    def wrapped(self, *args, **kwargs):
+        previous = kwargs.get("previous_value", None)
+        if not self.active:
+            return previous
+        return fn(self, *args, **kwargs)
+
+    return wrapped
 
 
 def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List[str]:
@@ -15,10 +23,9 @@ def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List
     """
     supp_currencies = config.supported_currencies
     if not supp_currencies:
-        currencies = [settings.DEFAULT_CURRENCY]
+        currencies: List[str] = []
         warnings.warn(
-            f"Default currency used for {gateway_name}. "
-            "DEFAULT_CURRENCY setting is deprecated, "
+            f"Supported currencies not configured for {gateway_name}, "
             "please configure supported currencies for this gateway."
         )
     else:

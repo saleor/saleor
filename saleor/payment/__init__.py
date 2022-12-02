@@ -57,6 +57,7 @@ class TransactionKind:
     - REFUND - full or partial return of captured funds to the customer.
     """
 
+    EXTERNAL = "external"
     AUTH = "auth"
     CAPTURE = "capture"
     CAPTURE_FAILED = "capture_failed"
@@ -73,6 +74,7 @@ class TransactionKind:
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
     CHOICES = [
+        (EXTERNAL, "External reference"),
         (AUTH, "Authorization"),
         (PENDING, "Pending"),
         (ACTION_TO_CONFIRM, "Action to confirm"),
@@ -117,3 +119,53 @@ class ChargeStatus:
         (REFUSED, "Refused"),
         (CANCELLED, "Cancelled"),
     ]
+
+
+class StorePaymentMethod:
+    """Represents if and how a payment should be stored in a payment gateway.
+
+    The following store types are possible:
+    - ON_SESSION - the payment is stored only to be reused when
+    the customer is present in the checkout flow
+    - OFF_SESSION - the payment is stored to be reused even if
+    the customer is absent
+    - NONE - the payment is not stored.
+    """
+
+    ON_SESSION = "on_session"
+    OFF_SESSION = "off_session"
+    NONE = "none"
+
+    CHOICES = [
+        (ON_SESSION, "On session"),
+        (OFF_SESSION, "Off session"),
+        (NONE, "None"),
+    ]
+
+
+class TransactionAction:
+    """Represents possible actions on payment transaction.
+
+    The following actions are possible:
+    CHARGE - Represents the charge action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+    """
+
+    CHARGE = "charge"
+    REFUND = "refund"
+    VOID = "void"
+
+    CHOICES = [
+        (CHARGE, "Charge payment"),
+        (REFUND, "Refund payment"),
+        (VOID, "Void payment"),
+    ]
+
+
+class TransactionStatus:
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+    CHOICES = [(PENDING, "Pending"), (SUCCESS, "Success"), (FAILURE, "Failure")]

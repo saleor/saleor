@@ -1,27 +1,6 @@
-from django.db.models import Q
 from django.utils import timezone
 
 from ..core.enums import ReportingPeriod
-
-
-def filter_by_query_param(queryset, query, search_fields):
-    """Filter queryset according to given parameters.
-
-    Keyword Arguments:
-        queryset - queryset to be filtered
-        query - search string
-        search_fields - fields considered in filtering
-
-    """
-    if query:
-        query_by = {
-            "{0}__{1}".format(field, "icontains"): query for field in search_fields
-        }
-        query_objects = Q()
-        for q in query_by:
-            query_objects |= Q(**{q: query_by[q]})
-        return queryset.filter(query_objects).distinct()
-    return queryset
 
 
 def reporting_period_to_date(period):
@@ -49,3 +28,15 @@ def filter_range_field(qs, field, value):
         lookup = {f"{field}__lte": lte}
         qs = qs.filter(**lookup)
     return qs
+
+
+def filter_by_id(object_type):
+    from . import resolve_global_ids_to_primary_keys
+
+    def inner(qs, _, value):
+        if not value:
+            return qs
+        _, obj_pks = resolve_global_ids_to_primary_keys(value, object_type)
+        return qs.filter(id__in=obj_pks)
+
+    return inner

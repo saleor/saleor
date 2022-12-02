@@ -1,8 +1,8 @@
 {
   "name": "saleor",
   "description": "An e-commerce storefront for Python and Django",
-  "repository": "https://github.com/mirumee/saleor",
-  "website": "http://getsaleor.com/",
+  "repository": "https://github.com/saleor/saleor",
+  "website": "https://saleor.io/",
   "logo": "https://mirumee.com/img/opensource_saleor.jpg",
   "keywords": [
     "saleor",

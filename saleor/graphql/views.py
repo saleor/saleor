@@ -1,37 +1,35 @@
 import fnmatch
+import hashlib
+import importlib
 import json
-import logging
-import traceback
+from inspect import isclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing
 import opentracing.tags
 from django.conf import settings
+from django.core.cache import cache
 from django.db import connection
 from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
-from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
-from graphene_django.settings import graphene_settings
-from graphene_django.views import instantiate_middleware
 from graphql import GraphQLDocument, get_default_backend
-from graphql.error import (
-    GraphQLError,
-    GraphQLSyntaxError,
-    format_error as format_graphql_error,
-)
+from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 
+from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from ..webhook import observability
+from .api import API_PATH, schema
+from .context import get_context_value
+from .core.validators.query_cost import validate_query_cost
+from .query_cost_map import COST_MAP
+from .utils import format_error, query_fingerprint
 
-API_PATH = SimpleLazyObject(lambda: reverse("api"))
-
-unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
-handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -42,6 +40,10 @@ def tracing_wrapper(execute, sql, params, many, context):
         span.set_tag(opentracing.tags.COMPONENT, "db")
         span.set_tag(opentracing.tags.DATABASE_STATEMENT, sql)
         span.set_tag(opentracing.tags.DATABASE_TYPE, conn.display_name)
+        span.set_tag(opentracing.tags.PEER_HOSTNAME, conn.settings_dict.get("HOST"))
+        span.set_tag(opentracing.tags.PEER_PORT, conn.settings_dict.get("PORT"))
+        span.set_tag("service.name", "postgres")
+        span.set_tag("span.type", "sql")
         return execute(sql, params, many, context)
 
 
@@ -66,12 +68,14 @@ class GraphQLView(View):
         self, schema=None, executor=None, middleware=None, root_value=None, backend=None
     ):
         super().__init__()
-        if schema is None:
-            schema = graphene_settings.SCHEMA
         if backend is None:
             backend = get_default_backend()
         if middleware is None:
-            middleware = graphene_settings.MIDDLEWARE
+            if middleware := settings.GRAPHENE.get("MIDDLEWARE"):
+                middleware = [
+                    self.import_middleware(middleware_name)
+                    for middleware_name in middleware
+                ]
         self.schema = self.schema or schema
         if middleware is not None:
             self.middleware = list(instantiate_middleware(middleware))
@@ -79,6 +83,19 @@ class GraphQLView(View):
         self.root_value = root_value
         self.backend = backend
 
+    @staticmethod
+    def import_middleware(middleware_name):
+        try:
+            parts = middleware_name.split(".")
+            module_path, class_name = ".".join(parts[:-1]), parts[-1]
+            module = importlib.import_module(module_path)
+            return getattr(module, class_name)
+        except (ImportError, AttributeError):
+            raise ImportError(
+                "Cannot import '%s' graphene middleware!" % middleware_name
+            )
+
+    @observability.report_view
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
@@ -99,15 +116,23 @@ class GraphQLView(View):
                         "HTTP_ORIGIN"
                     ]
                     response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-                    response[
-                        "Access-Control-Allow-Headers"
-                    ] = "Origin, Content-Type, Accept, Authorization"
+                    response["Access-Control-Allow-Headers"] = (
+                        "Origin, Content-Type, Accept, Authorization, "
+                        "Authorization-Bearer"
+                    )
                     response["Access-Control-Allow-Credentials"] = "true"
                     break
         return response
 
     def render_playground(self, request):
-        return render(request, "graphql/playground.html", {})
+        return render(
+            request,
+            "graphql/playground.html",
+            {
+                "api_url": request.build_absolute_uri(str(API_PATH)),
+                "plugins_url": request.build_absolute_uri("/plugins/"),
+            },
+        )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
@@ -129,7 +154,18 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with opentracing.global_tracer().start_active_span("http") as scope:
+        tracer = opentracing.global_tracer()
+
+        # Disable extending spans from header due to:
+        # https://github.com/DataDog/dd-trace-py/issues/2030
+
+        # span_context = tracer.extract(
+        #     format=Format.HTTP_HEADERS, carrier=dict(request.headers)
+        # )
+        # We should:
+        # Add `from opentracing.propagation import Format` to imports
+        # Add `child_of=span_ontext` to `start_active_span`
+        with tracer.start_active_span("http") as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
@@ -137,8 +173,13 @@ class GraphQLView(View):
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
+            span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
+            span.set_tag("span.type", "web")
 
-            request_ips = request.META.get(settings.REAL_IP_ENVIRON, "")
+            main_ip_header = settings.REAL_IP_ENVIRON[0]
+            additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
+
+            request_ips = request.META.get(main_ip_header, "")
             for ip in request_ips.split(","):
                 if is_valid_ipv4(ip):
                     span.set_tag(opentracing.tags.PEER_HOST_IPV4, ip)
@@ -146,9 +187,10 @@ class GraphQLView(View):
                     span.set_tag(opentracing.tags.PEER_HOST_IPV6, ip)
                 else:
                     continue
-                span.set_tag("http.client_ip", ip)
-                span.set_tag("http.client_ip_originated_from", settings.REAL_IP_ENVIRON)
                 break
+            for additional_ip_header in additional_ip_headers:
+                if request_ips := request.META.get(additional_ip_header):
+                    span.set_tag(f"ip_{additional_ip_header}", request_ips[:100])
 
             response = self._handle_query(request)
             span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
@@ -157,28 +199,34 @@ class GraphQLView(View):
             # we can calculate the RAW UTF-8 size using the length of
             # response.content of type 'bytes'
             span.set_tag("http.content_length", len(response.content))
-
+            with observability.report_api_call(request) as api_call:
+                api_call.response = response
+                api_call.report()
             return response
 
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
-        if execution_result:
-            response = {}
-            if execution_result.errors:
-                response["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-            if execution_result.invalid:
-                status_code = 400
+        with observability.report_gql_operation() as operation:
+            execution_result = self.execute_graphql_request(request, data)
+            status_code = 200
+            if execution_result:
+                response = {}
+                if execution_result.errors:
+                    response["errors"] = [
+                        self.format_error(e) for e in execution_result.errors
+                    ]
+                if execution_result.invalid:
+                    status_code = 400
+                else:
+                    response["data"] = execution_result.data
+                if execution_result.extensions:
+                    response["extensions"] = execution_result.extensions
+                result: Optional[Dict[str, List[Any]]] = response
             else:
-                response["data"] = execution_result.data
-            result: Optional[Dict[str, List[Any]]] = response
-        else:
-            result = None
-
+                result = None
+            operation.result = result
+            operation.result_invalid = execution_result.invalid
         return result, status_code
 
     def get_root_value(self):
@@ -204,30 +252,68 @@ class GraphQLView(View):
         # Attempt to parse the query, if it fails, return the error
         try:
             return (
-                self.backend.document_from_string(  # type: ignore
-                    self.schema, query
-                ),
+                self.backend.document_from_string(self.schema, query),  # type: ignore
                 None,
             )
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
+    def check_if_query_contains_only_schema(self, document: GraphQLDocument):
+        query_with_schema = False
+        for definition in document.document_ast.definitions:
+            selections = definition.selection_set.selections
+            selection_count = len(selections)
+            for selection in selections:
+                selection_name = str(selection.name.value)
+                if selection_name == "__schema":
+                    query_with_schema = True
+                    if selection_count > 1:
+                        msg = "`__schema` must be fetched in separate query"
+                        raise GraphQLError(msg)
+        return query_with_schema
+
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "GraphQL")
+            span.set_tag(opentracing.tags.COMPONENT, "graphql")
+            span.set_tag(
+                opentracing.tags.HTTP_URL,
+                request.build_absolute_uri(request.get_full_path()),
+            )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
+            query_cost = 0
 
             document, error = self.parse_query(query)
+            with observability.report_gql_operation() as operation:
+                operation.query = document
+                operation.name = operation_name
+                operation.variables = variables
             if error:
                 return error
 
             if document is not None:
-                raw_query_string = document.document_string[
-                    : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
-                ]
+                raw_query_string = document.document_string
                 span.set_tag("graphql.query", raw_query_string)
+                span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
+                try:
+                    query_contains_schema = self.check_if_query_contains_only_schema(
+                        document
+                    )
+                except GraphQLError as e:
+                    return ExecutionResult(errors=[e], invalid=True)
+
+                query_cost, cost_errors = validate_query_cost(
+                    schema,
+                    document,
+                    variables,
+                    COST_MAP,
+                    settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                )
+                span.set_tag("graphql.query_cost", query_cost)
+                if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
+                    result = ExecutionResult(errors=cost_errors, invalid=True)
+                    return set_query_cost_on_result(result, query_cost)
 
             extra_options: Dict[str, Optional[Any]] = {}
 
@@ -237,16 +323,39 @@ class GraphQLView(View):
                 extra_options["executor"] = self.executor
             try:
                 with connection.execute_wrapper(tracing_wrapper):
-                    return document.execute(  # type: ignore
-                        root=self.get_root_value(),
-                        variables=variables,
-                        operation_name=operation_name,
-                        context=request,
-                        middleware=self.middleware,
-                        **extra_options,
+                    response = None
+                    should_use_cache_for_scheme = query_contains_schema & (
+                        not settings.DEBUG
                     )
+                    if should_use_cache_for_scheme:
+                        key = generate_cache_key(raw_query_string)
+                        response = cache.get(key)
+
+                    if not response:
+                        response = document.execute(  # type: ignore
+                            root=self.get_root_value(),
+                            variables=variables,
+                            operation_name=operation_name,
+                            context=get_context_value(request),
+                            middleware=self.middleware,
+                            **extra_options,
+                        )
+                        if should_use_cache_for_scheme:
+                            cache.set(key, response)
+
+                    if app := getattr(request, "app", None):
+                        span.set_tag("app.name", app.name)
+
+                    return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
+                if app := getattr(request, "app", None):
+                    span.set_tag("app.name", app.name)
+                # In the graphql-core version that we are using,
+                # the Exception is raised for too big integers value.
+                # As it's a validation error we want to raise GraphQLError instead.
+                if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
+                    e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
 
     @staticmethod
@@ -283,31 +392,7 @@ class GraphQLView(View):
 
     @classmethod
     def format_error(cls, error):
-        if isinstance(error, GraphQLError):
-            result = format_graphql_error(error)
-        else:
-            result = {"message": str(error)}
-
-        exc = error
-        while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
-            exc = exc.original_error
-
-        if isinstance(exc, cls.HANDLED_EXCEPTIONS):
-            handled_errors_logger.info("A query had an error", exc_info=exc)
-        else:
-            unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
-
-        result["extensions"] = {"exception": {"code": type(exc).__name__}}
-        if settings.DEBUG:
-            lines = []
-
-            if isinstance(exc, BaseException):
-                for line in traceback.format_exception(
-                    type(exc), exc, exc.__traceback__
-                ):
-                    lines.extend(line.rstrip().splitlines())
-            result["extensions"]["exception"]["stacktrace"] = lines
-        return result
+        return format_error(error, cls.HANDLED_EXCEPTIONS)
 
 
 def get_key(key):
@@ -353,3 +438,29 @@ def obj_set(obj, path, value, do_not_replace):
         except IndexError:
             pass
     return obj_set(obj[current_path], path[1:], value, do_not_replace)
+
+
+def instantiate_middleware(middlewares):
+    for middleware in middlewares:
+        if isclass(middleware):
+            yield middleware()
+            continue
+        yield middleware
+
+
+def generate_cache_key(raw_query: str) -> str:
+    hashed_query = hashlib.sha256(str(raw_query).encode("utf-8")).hexdigest()
+    return f"{saleor_version}-{hashed_query}"
+
+
+def set_query_cost_on_result(execution_result: ExecutionResult, query_cost):
+    if settings.GRAPHQL_QUERY_MAX_COMPLEXITY:
+        execution_result.extensions.update(
+            {
+                "cost": {
+                    "requestedQueryCost": query_cost,
+                    "maximumAvailable": settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                }
+            }
+        )
+    return execution_result

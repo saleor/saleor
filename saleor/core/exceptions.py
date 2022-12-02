@@ -1,22 +1,45 @@
+from dataclasses import dataclass
+from enum import Enum
+from typing import TYPE_CHECKING, List, Optional, Sequence, Union
+
+from graphql import GraphQLError
+
 from ..checkout.error_codes import CheckoutErrorCode
+
+if TYPE_CHECKING:
+    from ..checkout.models import CheckoutLine
+    from ..order.models import OrderLine
+    from ..product.models import ProductVariant
+
+
+@dataclass
+class InsufficientStockData:
+    variant: Optional["ProductVariant"] = None
+    checkout_line: Optional["CheckoutLine"] = None
+    order_line: Optional["OrderLine"] = None
+    warehouse_pk: Union[str, int, None] = None
+    available_quantity: Optional[int] = None
 
 
 class InsufficientStock(Exception):
-    def __init__(self, item, context=None):
-        super().__init__("Insufficient stock for %r" % (item,))
-        self.item = item
-        self.context = context
+    def __init__(self, items: List[InsufficientStockData]):
+        details = [str(item.variant or item.order_line) for item in items]
+        super().__init__(f"Insufficient stock for {', '.join(details)}")
+        self.items = items
         self.code = CheckoutErrorCode.INSUFFICIENT_STOCK
 
 
 class AllocationError(Exception):
-    def __init__(self, order_line, quantity):
-        super().__init__(
-            f"Can't deallocate {quantity} for variant: {order_line.variant}"
-            f" in order: {order_line.order}"
-        )
+    def __init__(self, order_lines):
+        lines = [str(line) for line in order_lines]
+        super().__init__(f"Unable to deallocate stock for lines {', '.join(lines)}.")
+        self.order_lines = order_lines
+
+
+class PreorderAllocationError(Exception):
+    def __init__(self, order_line):
+        super().__init__(f"Unable to allocate in stock for line {str(order_line)}.")
         self.order_line = order_line
-        self.quantity = quantity
 
 
 class ReadOnlyException(Exception):
@@ -34,8 +57,35 @@ class ProductNotPublished(Exception):
 
 
 class PermissionDenied(Exception):
-    def __init__(self, message=None):
-        default_message = "You do not have permission to perform this action"
-        if message is None:
-            message = default_message
+    def __init__(self, message=None, *, permissions: Sequence[Enum] = None):
+        if not message:
+            if permissions:
+                permission_list = ", ".join(p.name for p in permissions)
+                message = (
+                    f"You need one of the following permissions: {permission_list}"
+                )
+            else:
+                message = "You do not have permission to perform this action"
         super().__init__(message)
+        self.permissions = permissions
+
+
+class GiftCardNotApplicable(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+        self.code = CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
+
+
+class CircularSubscriptionSyncEvent(GraphQLError):
+    pass
+
+
+class SyncEventError(Exception):
+    def __init__(self, message, code=None):
+        super(SyncEventError, self).__init__(message, code)
+        self.message = message
+        self.code = code
+
+    def __str__(self):
+        return self.message

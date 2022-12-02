@@ -1,7 +1,7 @@
 from django import template
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.taxes import get_display_price
+from ..taxes import get_display_price
 
 register = template.Library()
 

@@ -1,0 +1,48 @@
+interactions:
+- request:
+    body: '{"merchantAccount": "SaleorECOM", "originalReference": "852610010025849H",
+      "reference": "UGF5bWVudDoxMTY4", "applicationInfo": {"adyenLibrary": {"name":
+      "adyen-python-api-library", "version": "4.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '202'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/4.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://pal-test.adyen.com/pal/servlet/Payment/v64/cancel
+  response:
+    body:
+      string: '{"pspReference":"852610010936232E","response":"[cancel-received]"}'
+    headers:
+      Adyen-ServerState:
+      - HIGH
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=utf-8
+      Date:
+      - Thu, 07 Jan 2021 09:15:36 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=879F4733269764C93FF1C794B1143DB9.test3e; Path=/pal; Secure; HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 852610010936232E
+    status:
+      code: 200
+      message: OK
+version: 1

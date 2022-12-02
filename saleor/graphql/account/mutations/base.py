@@ -2,45 +2,59 @@ import graphene
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 
-from ....account import events as account_events, models
-from ....account.emails import (
-    send_set_password_email_with_url,
-    send_user_password_reset_email_with_url,
-)
+from ....account import events as account_events
+from ....account import models
 from ....account.error_codes import AccountErrorCode
+from ....account.notifications import (
+    send_password_reset_notification,
+    send_set_password_notification,
+)
+from ....account.search import prepare_user_search_document_value
+from ....checkout import AddressType
+from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, AuthorizationFilters
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....giftcard.utils import assign_user_gift_cards
+from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
+from ...channel.utils import clean_channel, validate_channel
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
     ModelDeleteMutation,
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.types.common import AccountError
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from .jwt import CreateToken
+from ...core.types import AccountError
+from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
 INVALID_TOKEN = "Invalid or expired token."
 
 
-def can_edit_address(user, address):
-    """Determine whether the user can edit the given address.
+def check_can_edit_address(context, address):
+    """Determine whether the user or app can edit the given address.
 
     This method assumes that an address can be edited by:
-    - users with proper permissions (staff)
+    - apps with manage users permission
+    - staff with manage users permission
     - customers associated to the given address.
     """
-    return (
-        user.has_perm(AccountPermissions.MANAGE_USERS)
-        or user.addresses.filter(pk=address.pk).exists()
+    requester = get_user_or_app_from_context(context)
+    if requester.has_perm(AccountPermissions.MANAGE_USERS):
+        return True
+    if not context.app and not context.user.is_anonymous:
+        is_owner = requester.addresses.filter(pk=address.pk).exists()
+        if is_owner:
+            return True
+    raise PermissionDenied(
+        permissions=[AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
     )
 
 
@@ -62,6 +76,13 @@ class SetPassword(CreateToken):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
         email = data["email"]
         password = data["password"]
         token = data["token"]
@@ -69,7 +90,7 @@ class SetPassword(CreateToken):
         try:
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
-            errors = validation_error_to_error_type(e)
+            errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
         return super().mutate(root, info, **data)
 
@@ -94,7 +115,7 @@ class SetPassword(CreateToken):
         except ValidationError as error:
             raise ValidationError({"password": error})
         user.set_password(password)
-        user.save(update_fields=["password"])
+        user.save(update_fields=["password", "updated_at"])
         account_events.customer_password_reset_event(user=user)
 
 
@@ -111,6 +132,12 @@ class RequestPasswordReset(BaseMutation):
                 "reset the password. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used for notify user. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = "Sends an email with the account password modification link."
@@ -118,9 +145,8 @@ class RequestPasswordReset(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        email = data["email"]
-        redirect_url = data["redirect_url"]
+    def clean_user(cls, email, redirect_url):
+
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
@@ -139,7 +165,40 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-        send_user_password_reset_email_with_url(redirect_url, user)
+        if not user.is_active:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email is inactive",
+                        code=AccountErrorCode.INACTIVE,
+                    )
+                }
+            )
+        return user
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        email = data["email"]
+        redirect_url = data["redirect_url"]
+        channel_slug = data.get("channel")
+        user = cls.clean_user(email, redirect_url)
+
+        if not user.is_staff:
+            channel_slug = clean_channel(
+                channel_slug, error_class=AccountErrorCode
+            ).slug
+        elif channel_slug is not None:
+            channel_slug = validate_channel(
+                channel_slug, error_class=AccountErrorCode
+            ).slug
+
+        send_password_reset_notification(
+            redirect_url,
+            user,
+            info.context.plugins,
+            channel_slug=channel_slug,
+            staff=user.is_staff,
+        )
         return RequestPasswordReset()
 
 
@@ -183,8 +242,11 @@ class ConfirmAccount(BaseMutation):
             )
 
         user.is_active = True
-        user.save(update_fields=["is_active"])
+        user.save(update_fields=["is_active", "updated_at"])
+
         match_orders_with_new_user(user)
+        assign_user_gift_cards(user)
+
         return ConfirmAccount(user=user)
 
 
@@ -201,10 +263,7 @@ class PasswordChange(BaseMutation):
         description = "Change the password of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -227,7 +286,7 @@ class PasswordChange(BaseMutation):
             raise ValidationError({"new_password": error})
 
         user.set_password(new_password)
-        user.save(update_fields=["password"])
+        user.save(update_fields=["password", "updated_at"])
         account_events.customer_password_changed_event(user=user)
         return PasswordChange(user=user)
 
@@ -252,22 +311,28 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
     def clean_input(cls, info, instance, data):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context.user, instance):
-            raise PermissionDenied()
+        check_can_edit_address(info.context, instance)
         return super().clean_input(info, instance, data)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
         )
         address = cls.validate_address(cleaned_input, instance=instance)
-        user = address.user_addresses.first()
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
+
+        user = address.user_addresses.first()
+        user.search_document = prepare_user_search_document_value(user)
+        user.save(update_fields=["search_document", "updated_at"])
+
+        info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
+        info.context.plugins.address_updated(address)
+
         success_response = cls.success_response(address)
         success_response.user = user
         success_response.address = address
@@ -291,8 +356,7 @@ class BaseAddressDelete(ModelDeleteMutation):
     def clean_instance(cls, info, instance):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context.user, instance):
-            raise PermissionDenied()
+        check_can_edit_address(info.context, instance)
         return super().clean_instance(info, instance)
 
     @classmethod
@@ -301,7 +365,7 @@ class BaseAddressDelete(ModelDeleteMutation):
             raise PermissionDenied()
 
         node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, Address)
+        instance = cls.get_node_or_error(info, node_id, only_type=Address)
         if instance:
             cls.clean_instance(info, instance)
 
@@ -321,9 +385,14 @@ class BaseAddressDelete(ModelDeleteMutation):
         # an error.
         user.refresh_from_db()
 
+        user.search_document = prepare_user_search_document_value(user)
+        user.save(update_fields=["search_document", "updated_at"])
+
         response = cls.success_response(instance)
 
         response.user = user
+        info.context.plugins.customer_updated(user)
+        info.context.plugins.address_deleted(instance)
         return response
 
 
@@ -345,7 +414,9 @@ class UserAddressInput(graphene.InputObjectType):
 
 
 class CustomerInput(UserInput, UserAddressInput):
-    pass
+    language_code = graphene.Field(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
 
 
 class UserCreateInput(CustomerInput):
@@ -353,6 +424,12 @@ class UserCreateInput(CustomerInput):
         description=(
             "URL of a view where users should be redirected to "
             "set the password. URL in RFC 1808 format."
+        )
+    )
+    channel = graphene.String(
+        description=(
+            "Slug of a channel which will be used for notify user. Optional when "
+            "only one channel exists."
         )
     )
 
@@ -377,6 +454,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if shipping_address_data:
             shipping_address = cls.validate_address(
                 shipping_address_data,
+                address_type=AddressType.SHIPPING,
                 instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
                 info=info,
             )
@@ -385,6 +463,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if billing_address_data:
             billing_address = cls.validate_address(
                 billing_address_data,
+                address_type=AddressType.BILLING,
                 instance=getattr(instance, BILLING_ADDRESS_FIELD),
                 info=info,
             )
@@ -401,9 +480,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        # FIXME: save address in user.addresses as well
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         if default_shipping_address:
             default_shipping_address = info.context.plugins.change_user_address(
@@ -421,33 +499,34 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         is_creation = instance.pk is None
         super().save(info, instance, cleaned_input)
+        if default_billing_address:
+            instance.addresses.add(default_billing_address)
+        if default_shipping_address:
+            instance.addresses.add(default_shipping_address)
+
+        instance.search_document = prepare_user_search_document_value(instance)
+        instance.save(update_fields=["search_document", "updated_at"])
 
         # The instance is a new object in db, create an event
         if is_creation:
             info.context.plugins.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
+        else:
+            info.context.plugins.customer_updated(instance)
 
         if cleaned_input.get("redirect_url"):
-            send_set_password_email_with_url(
-                cleaned_input.get("redirect_url"), instance
+            channel_slug = cleaned_input.get("channel")
+            if not instance.is_staff:
+                channel_slug = clean_channel(
+                    channel_slug, error_class=AccountErrorCode
+                ).slug
+            elif channel_slug is not None:
+                channel_slug = validate_channel(
+                    channel_slug, error_class=AccountErrorCode
+                ).slug
+            send_set_password_notification(
+                cleaned_input.get("redirect_url"),
+                instance,
+                info.context.plugins,
+                channel_slug,
             )
-
-
-class UserUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata for user."
-        model = models.User
-        public = True
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-        permissions = (AccountPermissions.MANAGE_USERS,)
-
-
-class UserClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear metadata for user."
-        model = models.User
-        public = True
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-        permissions = (AccountPermissions.MANAGE_USERS,)

@@ -1,20 +1,5 @@
 from enum import Enum
 
-from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
-from ....app.error_codes import AppErrorCode
-from ....checkout.error_codes import CheckoutErrorCode
-from ....core.error_codes import MetadataErrorCode, ShopErrorCode, TranslationErrorCode
-from ....csv.error_codes import ExportErrorCode
-from ....discount.error_codes import DiscountErrorCode
-from ....giftcard.error_codes import GiftCardErrorCode
-from ....invoice.error_codes import InvoiceErrorCode
-from ....menu.error_codes import MenuErrorCode
-from ....order.error_codes import OrderErrorCode
-from ....payment.error_codes import PaymentErrorCode
-from ....plugins.error_codes import PluginErrorCode
-from ....product.error_codes import ProductErrorCode
-from ....shipping.error_codes import ShippingErrorCode
-
 DJANGO_VALIDATORS_ERROR_CODES = [
     "invalid",
     "invalid_extension",
@@ -43,31 +28,6 @@ DJANGO_FORM_FIELDS_ERROR_CODES = [
 ]
 
 
-SALEOR_ERROR_CODE_ENUMS = [
-    AccountErrorCode,
-    AppErrorCode,
-    CheckoutErrorCode,
-    ExportErrorCode,
-    DiscountErrorCode,
-    PluginErrorCode,
-    GiftCardErrorCode,
-    InvoiceErrorCode,
-    MenuErrorCode,
-    MetadataErrorCode,
-    OrderErrorCode,
-    PaymentErrorCode,
-    PermissionGroupErrorCode,
-    ProductErrorCode,
-    ShippingErrorCode,
-    ShopErrorCode,
-    TranslationErrorCode,
-]
-
-saleor_error_codes = []
-for enum in SALEOR_ERROR_CODE_ENUMS:
-    saleor_error_codes.extend([code.value for code in enum])
-
-
 def get_error_code_from_error(error) -> str:
     """Return valid error code from ValidationError.
 
@@ -79,10 +39,12 @@ def get_error_code_from_error(error) -> str:
         return "required"
     if code in ["unique", "unique_for_date"]:
         return "unique"
-    if code in DJANGO_VALIDATORS_ERROR_CODES or code in DJANGO_FORM_FIELDS_ERROR_CODES:
+    if (
+        code is None
+        or code in DJANGO_VALIDATORS_ERROR_CODES
+        or code in DJANGO_FORM_FIELDS_ERROR_CODES
+    ):
         return "invalid"
     if isinstance(code, Enum):
         code = code.value
-    if code not in saleor_error_codes:
-        return "invalid"
     return code

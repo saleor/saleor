@@ -110,6 +110,8 @@ class Migration(migrations.Migration):
         ("product", "0115_auto_20200221_0257"),
     ]
 
+    run_before = [("attribute", "0001_initial")]
+
     operations = [
         migrations.RunPython(flatten_attributes_metadata),
         migrations.RunPython(flatten_categories_metadata),

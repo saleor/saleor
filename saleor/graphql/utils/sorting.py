@@ -1,11 +1,12 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 from django.db.models import QuerySet
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id
 
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import OrderDirection
 from ..core.types import SortInputObjectType
+from ..core.utils import from_global_id_or_error
 
 REVERSED_DIRECTION = {
     "-": "",
@@ -15,7 +16,9 @@ REVERSED_DIRECTION = {
 
 def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
     if sorting_attribute != "":
-        graphene_type, sorting_attribute = from_global_id(sorting_attribute)
+        graphene_type, sorting_attribute = from_global_id_or_error(
+            sorting_attribute, "Attribute"
+        )
     descending = sorting_direction == OrderDirection.DESC
     queryset = queryset.sort_by_attribute(sorting_attribute, descending=descending)
     return queryset
@@ -25,7 +28,13 @@ def sort_queryset_for_connection(iterable, args):
     sort_by = args.get("sort_by")
     reversed = True if "last" in args else False
     if sort_by:
-        iterable = sort_queryset(queryset=iterable, sort_by=sort_by, reversed=reversed)
+        iterable = sort_queryset(
+            queryset=iterable,
+            sort_by=sort_by,
+            reversed=reversed,
+            channel_slug=args.get("channel")
+            or get_default_channel_slug_or_graphql_error(),
+        )
     else:
         iterable, sort_by = sort_queryset_by_default(
             queryset=iterable, reversed=reversed
@@ -35,7 +44,10 @@ def sort_queryset_for_connection(iterable, args):
 
 
 def sort_queryset(
-    queryset: QuerySet, sort_by: SortInputObjectType, reversed: bool
+    queryset: QuerySet,
+    sort_by: SortInputObjectType,
+    reversed: bool,
+    channel_slug: Optional[str],
 ) -> QuerySet:
     """Sort queryset according to given parameters.
 
@@ -57,7 +69,6 @@ def sort_queryset(
 
     sorting_field = sort_by.field
     sorting_attribute = getattr(sort_by, "attribute_id", None)
-
     if sorting_field is not None and sorting_attribute is not None:
         raise GraphQLError(
             "You must provide either `field` or `attributeId` to sort the products."
@@ -73,7 +84,7 @@ def sort_queryset(
 
     custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
-        queryset = custom_sort_by(queryset)
+        queryset = custom_sort_by(queryset, channel_slug=channel_slug)
 
     sorting_field_value = sorting_fields.value
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]

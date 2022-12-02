@@ -1,10 +1,11 @@
 import graphene
 
-from .types.common import TaxType
+from .mutations import FileUpload
+from .types import NonNullList, TaxType
 
 
 class CoreQueries(graphene.ObjectType):
-    tax_types = graphene.List(
+    tax_types = NonNullList(
         TaxType, description="List of all tax rates available from tax gateway."
     )
 
@@ -14,3 +15,7 @@ class CoreQueries(graphene.ObjectType):
             TaxType(description=tax.description, tax_code=tax.code)
             for tax in manager.get_tax_rate_type_choices()
         ]
+
+
+class CoreMutations(graphene.ObjectType):
+    file_upload = FileUpload.Field()

@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="pagetranslation", options={"ordering": ("language_code", "page")},
+            name="pagetranslation",
+            options={"ordering": ("language_code", "page")},
         ),
     ]

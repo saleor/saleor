@@ -8,7 +8,7 @@ from ...webhooks import get_payment
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.parametrize("payment_id", ["123", "Test payment ID"])
+@pytest.mark.parametrize("payment_id", ["123", "Test payment ID", "ó À È Ì Ò Ù Ỳ"])
 def test_get_payment_invalid_payment_id(payment_id, caplog):
     # given
     caplog.set_level(logging.WARNING)
@@ -41,7 +41,7 @@ def test_get_payment_not_active_payment(payment_dummy, caplog):
     payment_dummy.is_active = False
     payment_dummy.save(update_fields=["is_active"])
 
-    payment_id = graphene.Node.to_global_id("Payemnt", payment_dummy.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment_dummy.pk)
     transaction_id = "psp reference"
 
     # when

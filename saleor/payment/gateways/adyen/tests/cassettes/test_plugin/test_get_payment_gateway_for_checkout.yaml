@@ -1,0 +1,49 @@
+interactions:
+- request:
+    body: '{"merchantAccount": "SaleorECOM", "countryCode": "PL", "channel": "web",
+      "amount": {"value": "1000", "currency": "USD"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '120'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/4.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://checkout-test.adyen.com/v64/paymentMethods
+  response:
+    body:
+      string: '{"groups":[{"name":"Credit Card","types":["visa","mc","amex","diners","discover"]}],"paymentMethods":[{"brands":["visa","mc","amex","diners","discover"],"details":[{"key":"encryptedCardNumber","type":"cardToken"},{"key":"encryptedSecurityCode","type":"cardToken"},{"key":"encryptedExpiryMonth","type":"cardToken"},{"key":"encryptedExpiryYear","type":"cardToken"},{"key":"holderName","optional":true,"type":"text"}],"name":"Credit
+        Card","type":"scheme"},{"configuration":{"intent":"capture"},"name":"PayPal","supportsRecurring":true,"type":"paypal"},{"name":"Paysafecard","supportsRecurring":true,"type":"paysafecard"},{"configuration":{"merchantDisplayName":"SaleorECOM","merchantIdentifier":"1000"},"details":[{"key":"applepay.token","type":"applePayToken"}],"name":"Apple
+        Pay","supportsRecurring":true,"type":"applepay"},{"configuration":{"merchantId":"1000","gatewayMerchantId":"SaleorECOM"},"details":[{"key":"paywithgoogle.token","type":"payWithGoogleToken"}],"name":"Google
+        Pay","supportsRecurring":true,"type":"paywithgoogle"}]}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 07 Jan 2021 08:30:32 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=BF32081F757B98CBB0DD5177B5497D87.test3e; Path=/checkout; Secure;
+        HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 851610008232020A
+    status:
+      code: 200
+      message: OK
+version: 1

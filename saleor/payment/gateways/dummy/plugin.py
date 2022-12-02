@@ -1,10 +1,8 @@
 from typing import TYPE_CHECKING
 
-from django.conf import settings
-
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
-from ..utils import get_supported_currencies
+from ..utils import get_supported_currencies, require_active_plugin
 from . import (
     GatewayConfig,
     authorize,
@@ -22,16 +20,6 @@ if TYPE_CHECKING:
     from ...interface import GatewayResponse, PaymentData, TokenConfig
 
 
-def require_active_plugin(fn):
-    def wrapped(self, *args, **kwargs):
-        previous = kwargs.get("previous_value", None)
-        if not self.active:
-            return previous
-        return fn(self, *args, **kwargs)
-
-    return wrapped
-
-
 class DummyGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.dummy"
     PLUGIN_NAME = GATEWAY_NAME
@@ -39,7 +27,7 @@ class DummyGatewayPlugin(BasePlugin):
     DEFAULT_CONFIGURATION = [
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
-        {"name": "Supported currencies", "value": settings.DEFAULT_CURRENCY},
+        {"name": "Supported currencies", "value": "USD, PLN"},
     ]
     CONFIG_STRUCTURE = {
         "Store customers card": {
@@ -49,7 +37,7 @@ class DummyGatewayPlugin(BasePlugin):
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "help_text": "Determines if Saleor should automatically capture payments.",
             "label": "Automatic payment capture",
         },
         "Supported currencies": {

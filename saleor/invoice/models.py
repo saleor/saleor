@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.utils.timezone import now
 
+from ..app.models import App
 from ..core import JobStatus
 from ..core.models import Job, ModelWithMetadata
 from ..core.utils import build_absolute_uri
@@ -18,13 +19,17 @@ class InvoiceQueryset(models.QuerySet):
 
 class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
-        Order, related_name="invoices", null=True, on_delete=models.SET_NULL
+        Order,
+        related_name="invoices",
+        null=True,
+        on_delete=models.SET_NULL,
     )
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     external_url = models.URLField(null=True, max_length=2048)
     invoice_file = models.FileField(upload_to="invoices")
-    objects = InvoiceQueryset.as_manager()
+
+    objects = models.Manager.from_queryset(InvoiceQueryset)()
 
     @property
     def url(self):
@@ -64,6 +69,7 @@ class InvoiceEvent(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:

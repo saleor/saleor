@@ -1,14 +1,15 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....core.db.utils import set_mutation_flag_in_context
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
+from ...channel import ChannelContext
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import Upload
-from ...core.types.common import ProductError
-from ...decorators import permission_required
-from ..types import DigitalContent, ProductVariant
+from ...core.types import ProductError, Upload
+from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
 
 class DigitalContentInput(graphene.InputObjectType):
@@ -63,9 +64,9 @@ class DigitalContentCreate(BaseMutation):
         )
         error_type_class = ProductError
         error_type_field = "product_errors"
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
 
     @classmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def clean_input(cls, info, data, instance):
         if hasattr(instance, "digital_content"):
             instance.digital_content.delete()
@@ -91,7 +92,6 @@ class DigitalContentCreate(BaseMutation):
         return data
 
     @classmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
             info, variant_id, "id", only_type=ProductVariant
@@ -113,7 +113,9 @@ class DigitalContentCreate(BaseMutation):
 
         variant.digital_content = digital_content
         variant.digital_content.save()
-        return DigitalContentCreate(content=digital_content)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
+        return DigitalContentCreate(content=digital_content, variant=variant)
 
 
 class DigitalContentDelete(BaseMutation):
@@ -121,7 +123,7 @@ class DigitalContentDelete(BaseMutation):
 
     class Arguments:
         variant_id = graphene.ID(
-            description=("ID of a product variant with digital content to remove."),
+            description="ID of a product variant with digital content to remove.",
             required=True,
         )
 
@@ -129,17 +131,28 @@ class DigitalContentDelete(BaseMutation):
         description = "Remove digital content assigned to given variant."
         error_type_class = ProductError
         error_type_field = "product_errors"
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
 
     @classmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def mutate(cls, _root, info, variant_id):
+    def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
+        if not cls.check_permissions(info.context):
+            raise PermissionDenied(permissions=cls._meta.permissions)
+
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
         variant = cls.get_node_or_error(
-            info, variant_id, "id", only_type=ProductVariant
+            info, data["variant_id"], "id", only_type=ProductVariant
         )
 
         if hasattr(variant, "digital_content"):
             variant.digital_content.delete()
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return DigitalContentDelete(variant=variant)
 
 
@@ -149,7 +162,7 @@ class DigitalContentUpdate(BaseMutation):
 
     class Arguments:
         variant_id = graphene.ID(
-            description=("ID of a product variant with digital content to update."),
+            description="ID of a product variant with digital content to update.",
             required=True,
         )
         input = DigitalContentInput(
@@ -160,9 +173,9 @@ class DigitalContentUpdate(BaseMutation):
         description = "Update digital content."
         error_type_class = ProductError
         error_type_field = "product_errors"
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
 
     @classmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def clean_input(cls, info, data):
         use_default_settings = data.get("use_default_settings")
         if use_default_settings:
@@ -185,7 +198,6 @@ class DigitalContentUpdate(BaseMutation):
         return data
 
     @classmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
             info, variant_id, "id", only_type=ProductVariant
@@ -218,6 +230,7 @@ class DigitalContentUpdate(BaseMutation):
         variant.digital_content = digital_content
         variant.digital_content.save()
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return DigitalContentUpdate(content=digital_content, variant=variant)
 
 
@@ -238,10 +251,7 @@ class DigitalContentUrlCreate(ModelMutation):
     class Meta:
         description = "Generate new URL to digital content."
         model = models.DigitalContentUrl
+        object_type = DigitalContentUrl
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-    @classmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def mutate(cls, root, info, **data):
-        return super().mutate(root, info, **data)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)

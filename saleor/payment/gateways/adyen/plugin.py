@@ -1,12 +1,15 @@
 import json
 from typing import List, Optional
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 
-import Adyen
+import opentracing
+import opentracing.tags
 from django.contrib.auth.hashers import make_password
+from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
+from django.urls import reverse
 from requests.exceptions import SSLError
 
 from ....checkout.models import Checkout
@@ -25,7 +28,7 @@ from ...interface import (
     PaymentGateway,
 )
 from ...models import Payment, Transaction
-from ..utils import get_supported_currencies
+from ..utils import get_supported_currencies, require_active_plugin
 from .utils.apple_pay import initialize_apple_pay, make_request_to_initialize_apple_pay
 from .utils.common import (
     AUTH_STATUS,
@@ -33,11 +36,13 @@ from .utils.common import (
     PENDING_STATUSES,
     api_call,
     call_capture,
+    call_refund,
     get_payment_method_info,
+    get_request_data_for_check_payment,
+    initialize_adyen_client,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
-    request_for_payment_refund,
     update_payment_with_action_required_data,
 )
 from .webhooks import handle_additional_actions, handle_webhook
@@ -47,19 +52,10 @@ WEBHOOK_PATH = "/webhooks"
 ADDITIONAL_ACTION_PATH = "/additional-actions"
 
 
-def require_active_plugin(fn):
-    def wrapped(self, *args, **kwargs):
-        previous = kwargs.get("previous_value", None)
-        if not self.active:
-            return previous
-        return fn(self, *args, **kwargs)
-
-    return wrapped
-
-
 class AdyenGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.adyen"
     PLUGIN_NAME = GATEWAY_NAME
+    CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = [
         {"name": "merchant-account", "value": None},
         {"name": "api-key", "value": None},
@@ -87,7 +83,7 @@ class AdyenGatewayPlugin(BasePlugin):
         },
         "merchant-account": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Yout merchant account name.",
+            "help_text": "Your merchant account name.",
             "label": "Merchant Account",
         },
         "supported-currencies": {
@@ -141,8 +137,7 @@ class AdyenGatewayPlugin(BasePlugin):
             "help_text": (
                 "Provide secret key generated on Adyen side."
                 "https://docs.adyen.com/development-resources/webhooks#set-up-notificat"
-                "ions-in-your-customer-area. The Saleor webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
+                "ions-in-your-customer-area."
             ),
             "label": "HMAC secret key",
         },
@@ -152,8 +147,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 "Base User provided on the Adyen side to authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
                 "set-up-notifications-in-your-customer-area "
-                "The Saleor webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "Notification user",
         },
@@ -163,8 +156,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 "User password provided on the Adyen side for authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
                 "set-up-notifications-in-your-customer-area "
-                "The Saleor webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "Notification password",
         },
@@ -190,9 +181,23 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Apple Pay certificate",
         },
+        "webhook-endpoint": {
+            "type": ConfigurationTypeField.OUTPUT,
+            "help_text": (
+                "Endpoint which should be used to activate Adyen's webhooks. "
+                "More details can be find here: "
+                "https://docs.adyen.com/development-resources/webhooks"
+            ),
+            "label": "Webhook endpoint",
+        },
     }
 
     def __init__(self, *args, **kwargs):
+        channel = kwargs["channel"]
+        raw_configuration = kwargs["configuration"].copy()
+        self._insert_webhook_endpoint_to_configuration(raw_configuration, channel)
+        kwargs["configuration"] = raw_configuration
+
         super().__init__(*args, **kwargs)
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
@@ -212,22 +217,57 @@ class AdyenGatewayPlugin(BasePlugin):
                 "apple_pay_cert": configuration["apple-pay-cert"],
             },
         )
-        api_key = self.config.connection_params["api_key"]
+        self.adyen = initialize_adyen_client(self.config)
 
-        live_endpoint = self.config.connection_params["live"] or None
-        platform = "live" if live_endpoint else "test"
-        self.adyen = Adyen.Adyen(
-            xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
+    def _insert_webhook_endpoint_to_configuration(self, raw_configuration, channel):
+        updated = False
+        for config in raw_configuration:
+            if config["name"] == "webhook-endpoint":
+                updated = True
+                config["value"] = self._generate_webhook_url(channel)
+        if not updated:
+            raw_configuration.append(
+                {
+                    "name": "webhook-endpoint",
+                    "value": self._generate_webhook_url(channel),
+                }
+            )
+
+    def _generate_webhook_url(self, channel) -> str:
+        api_path = reverse(
+            "plugins-per-channel",
+            kwargs={"plugin_id": self.PLUGIN_ID, "channel_slug": channel.slug},
         )
+        base_url = build_absolute_uri(api_path)
+        return urljoin(base_url, "webhooks")  # type: ignore
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        """Handle a request received from Adyen.
+
+        The method handles two types of requests:
+            - webhook notification received from Adyen. It is required to properly
+            update the current status of payment and order based on the type of
+            received notification.
+            - additional actions, called when a user is redirected to an external page
+            and after processing a payment is redirecting back to the storefront page.
+            The redirect request comes through the Saleor which calls Adyen API to
+            validate the current status of payment.
+        """
         config = self._get_gateway_config()
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
         elif path.startswith(ADDITIONAL_ACTION_PATH):
-            return handle_additional_actions(
-                request, self.adyen.checkout.payments_details,
-            )
+            with opentracing.global_tracer().start_active_span(
+                "adyen.checkout.payment_details"
+            ) as scope:
+                span = scope.span
+                span.set_tag(opentracing.tags.COMPONENT, "payment")
+                span.set_tag("service.name", "adyen")
+                return handle_additional_actions(
+                    request,
+                    self.adyen.checkout.payments_details,
+                    self.channel.slug,  # type: ignore
+                )
         return HttpResponseNotFound()
 
     def _get_gateway_config(self) -> GatewayConfig:
@@ -241,6 +281,11 @@ class AdyenGatewayPlugin(BasePlugin):
     def initialize_payment(
         self, payment_data, previous_value
     ) -> "InitializedPaymentResponse":
+        """Initialize a payment for ApplePay.
+
+        ApplePay requires an additional action that initializes a payment action. It is
+        done by a separate mutation which calls this method.
+        """
         payment_method = payment_data.get("paymentMethod")
         if payment_method == "applepay":
             # The apple pay on the web requires additional step
@@ -253,32 +298,101 @@ class AdyenGatewayPlugin(BasePlugin):
         return previous_value
 
     @require_active_plugin
-    def get_payment_gateway_for_checkout(
-        self, checkout: "Checkout", previous_value,
-    ) -> Optional["PaymentGateway"]:
+    def get_payment_gateways(
+        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+    ) -> List["PaymentGateway"]:
+        """Fetch current configuration for given checkout.
 
-        config = self._get_gateway_config()
-        request = request_data_for_gateway_config(
-            checkout, config.connection_params["merchant_account"]
-        )
-        response = api_call(request, self.adyen.checkout.payment_methods)
-        return PaymentGateway(
+        It calls an Adyen API to fetch all available payment methods for given checkout.
+        Adyen defines available payment methods based on the data that we send like
+        amount, currency, and country. Some payment methods are only available if the
+        given data matches their conditions. Like to display payment method X, which is
+        available in UK, we need to set GBP as currency, and country-code needs to
+        point to UK. We don't fetch anything if checkout is none, as we don't have
+        enough info to provide the required data in the request.
+        """
+        local_config = self._get_gateway_config()
+        config = [
+            {
+                "field": "client_key",
+                "value": local_config.connection_params["client_key"],
+            }
+        ]
+
+        if checkout:
+            # If checkout is available, fetch available payment methods from Adyen API
+            # and append them to the config object returned for the gateway.
+            request = request_data_for_gateway_config(
+                checkout, local_config.connection_params["merchant_account"]
+            )
+            with opentracing.global_tracer().start_active_span(
+                "adyen.checkout.payment_methods"
+            ) as scope:
+                span = scope.span
+                span.set_tag(opentracing.tags.COMPONENT, "payment")
+                span.set_tag("service.name", "adyen")
+                response = api_call(request, self.adyen.checkout.payment_methods)
+                adyen_payment_methods = json.dumps(response.message)
+                config.append({"field": "config", "value": adyen_payment_methods})
+
+        gateway = PaymentGateway(
             id=self.PLUGIN_ID,
             name=self.PLUGIN_NAME,
-            config=[
-                {
-                    "field": "client_key",
-                    "value": config.connection_params["client_key"],
-                },
-                {"field": "config", "value": json.dumps(response.message)},
-            ],
+            config=config,
             currencies=self.get_supported_currencies([]),
         )
+        return [gateway]
+
+    @require_active_plugin
+    def check_payment_balance(self, data: dict, previous_value=None) -> dict:
+        """Check current payment balance.
+
+        For Adyen, we use it only for checking the balance of the gift cards. It builds
+        a request based on the input and send a request to Adyen's API.
+        """
+        request_data = get_request_data_for_check_payment(
+            data, self.config.connection_params["merchant_account"]
+        )
+
+        with opentracing.global_tracer().start_active_span(
+            "adyen.checkout.payment_methods_balance"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "adyen")
+
+            try:
+                result = api_call(
+                    request_data,
+                    self.adyen.checkout.client.call_checkout_api,
+                    action="paymentMethods/balance",
+                )
+                return result.message
+            except PaymentError as e:
+                return e.message
+
+    @property
+    def order_auto_confirmation(self):
+        site_settings = Site.objects.get_current().settings
+        return site_settings.automatically_confirm_all_new_orders
 
     @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        """Process a payment on Adyen's side.
+
+        This method is called when payment.to_confirm is set to False.
+        It builds a request data required for a given payment method and sends the data
+        to Adyen's side.
+        If Adyen doesn't return any additional action required and the result code is
+        a success, the payment is finalized with success. If auto_capture is set to
+        True, and the payment status is AUTH, it will immediately call capture.
+        If Adyen returns an additional action to process by customer, the payment is
+        not finished yet. In that case, in the response from the method, we set
+        action_required and add to action_required_data all Adyen's data required to
+        finalize payment by the customer.
+        """
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
         except ObjectDoesNotExist:
@@ -296,8 +410,9 @@ class AdyenGatewayPlugin(BasePlugin):
         return_url = prepare_url(
             params,
             build_absolute_uri(
-                f"/plugins/{self.PLUGIN_ID}/additional-actions"
-            ),  # type: ignore
+                f"/plugins/channel/{self.channel.slug}/"  # type: ignore
+                f"{self.PLUGIN_ID}/additional-actions"
+            ),
         )
         request_data = request_data_for_payment(
             payment_information,
@@ -305,7 +420,13 @@ class AdyenGatewayPlugin(BasePlugin):
             merchant_account=self.config.connection_params["merchant_account"],
             native_3d_secure=self.config.connection_params["enable_native_3d_secure"],
         )
-        result = api_call(request_data, self.adyen.checkout.payments)
+        with opentracing.global_tracer().start_active_span(
+            "adyen.checkout.payments"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "adyen")
+            result = api_call(request_data, self.adyen.checkout.payments)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
         adyen_auto_capture = self.config.connection_params["adyen_auto_capture"]
@@ -314,15 +435,21 @@ class AdyenGatewayPlugin(BasePlugin):
             kind = TransactionKind.PENDING
         elif adyen_auto_capture:
             kind = TransactionKind.CAPTURE
-        searchable_key = result.message.get("pspReference", "")
+        psp_reference = result.message.get("pspReference", "")
         action = result.message.get("action")
         error_message = result.message.get("refusalReason")
         if action:
             update_payment_with_action_required_data(
-                payment, action, result.message.get("details", []),
+                payment,
+                action,
+                result.message.get("details", []),
             )
         # If auto capture is enabled, let's make a capture the auth payment
-        elif self.config.auto_capture and result_code == AUTH_STATUS:
+        elif (
+            self.config.auto_capture
+            and result_code == AUTH_STATUS
+            and self.order_auto_confirmation
+        ):
             kind = TransactionKind.CAPTURE
             result = call_capture(
                 payment_information=payment_information,
@@ -342,7 +469,7 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             action_required_data=action,
             payment_method_info=payment_method_info,
-            searchable_key=searchable_key,
+            psp_reference=psp_reference,
         )
 
     @classmethod
@@ -367,15 +494,36 @@ class AdyenGatewayPlugin(BasePlugin):
         config = self._get_gateway_config()
         additional_data = payment_information.data
         if not additional_data:
-            raise PaymentError("Unable to finish the payment.")
+            return GatewayResponse(
+                is_success=False,
+                action_required=False,
+                kind=kind,
+                amount=payment_information.amount,
+                currency=payment_information.currency,
+                transaction_id="",
+                error=f"Unable to finish the payment. "
+                f"Payment ({payment_information.graphql_payment_id}) "
+                f"does not have the additional data.",
+            )
 
-        result = api_call(additional_data, self.adyen.checkout.payments_details)
+        with opentracing.global_tracer().start_active_span(
+            "adyen.checkout.payment_details"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "adyen")
+            result = api_call(additional_data, self.adyen.checkout.payments_details)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
         action_required = "action" in result.message
         if result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
-        elif is_success and config.auto_capture and not action_required:
+        elif (
+            is_success
+            and config.auto_capture
+            and self.order_auto_confirmation
+            and not action_required
+        ):
             # For enabled auto_capture on Saleor side we need to proceed an additional
             # action
             kind = TransactionKind.CAPTURE
@@ -398,7 +546,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
             raw_response=result.message,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
             payment_method_info=payment_method_info,
         )
 
@@ -406,6 +554,22 @@ class AdyenGatewayPlugin(BasePlugin):
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        """Confirm a payment on Adyen side.
+
+        In case when we have a transaction with `ACTION_TO_CONFIRM`, we just need to
+        finalize the payment process on our side. Transaction ACTION_TO_CONFIRM is
+        created only when we receive a webhook with a notification that the payment
+        process has been finished with success.
+        In case when we can't find an ACTION_TO_CONFIRM transaction, we call logic
+        responsible for confirming additional data received as an input. The data
+        comes from the storefront when the customer finishes an additional action,
+        which was requested in process_payment call. We still check the value of the
+        action field in the Adyen's response, as there is a possibility that the given
+        payment method will require more additional actions. In that case, we will
+        return action_required set to True and action_required_data fulfilled with
+        action data received from Adyen and required for the next additional action on
+        the customer side.
+        """
         config = self._get_gateway_config()
         # The additional checks are proceed asynchronously so we try to confirm that
         # the payment is already processed
@@ -434,8 +598,13 @@ class AdyenGatewayPlugin(BasePlugin):
             return self._process_additional_action(payment_information, kind)
 
         result_code = transaction.gateway_response.get("resultCode", "").strip().lower()
+        payment_method = (
+            transaction.gateway_response.get("paymentMethod", "").strip().lower()
+        )
         if result_code and result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
+        elif result_code == AUTH_STATUS and payment_method == "ideal":
+            kind = TransactionKind.CAPTURE
 
         # We already have the ACTION_TO_CONFIRM transaction, it means that
         # payment was processed asynchronous and no additional action is required
@@ -505,20 +674,24 @@ class AdyenGatewayPlugin(BasePlugin):
         if not transaction:
             raise PaymentError("Cannot find a payment reference to refund.")
 
-        request = request_for_payment_refund(
-            payment_information=payment_information,
-            merchant_account=self.config.connection_params["merchant_account"],
-            token=transaction.token,
-        )
-        result = api_call(request, self.adyen.payment.refund)
-
         amount = payment_information.amount
         currency = payment_information.currency
+
+        result = call_refund(
+            amount=amount,
+            currency=currency,
+            graphql_payment_id=payment_information.graphql_payment_id,
+            merchant_account=self.config.connection_params["merchant_account"],
+            token=transaction.token,
+            adyen_client=self.adyen,
+        )
+
         if transaction.payment.order:
             msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
             external_notification_event(
                 order=transaction.payment.order,  # type: ignore
                 user=None,
+                app=None,
                 message=msg,
                 parameters={
                     "service": transaction.payment.gateway,
@@ -534,7 +707,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -564,7 +737,7 @@ class AdyenGatewayPlugin(BasePlugin):
             error="",
             raw_response=result.message,
             payment_method_info=payment_method_info,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -576,7 +749,13 @@ class AdyenGatewayPlugin(BasePlugin):
             merchant_account=self.config.connection_params["merchant_account"],
             token=payment_information.token,  # type: ignore
         )
-        result = api_call(request, self.adyen.payment.cancel)
+        with opentracing.global_tracer().start_active_span(
+            "adyen.payment.cancel"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "adyen")
+            result = api_call(request, self.adyen.payment.cancel)
 
         return GatewayResponse(
             is_success=True,
@@ -587,11 +766,13 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
         )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct."""
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}

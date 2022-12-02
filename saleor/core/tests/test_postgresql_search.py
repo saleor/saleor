@@ -1,9 +1,13 @@
 import pytest
+from django.contrib.postgres.search import SearchVector
+from django.db.models import Value
 from django.utils.text import slugify
 
 from ...account.models import Address
-from ...graphql.product.filters import product_search
-from ...product.models import Product
+from ...product.models import Product, ProductChannelListing
+from ...product.search import search_products
+from ...tests.utils import dummy_editorjs
+from ..postgres import FlatConcat
 
 PRODUCTS = [
     ("Arabica Coffee", "The best grains in galactic"),
@@ -13,15 +17,24 @@ PRODUCTS = [
 
 
 @pytest.fixture
-def named_products(category, product_type):
+def named_products(category, product_type, channel_USD):
     def gen_product(name, description):
         product = Product.objects.create(
             name=name,
             slug=slugify(name),
-            description=description,
+            description=dummy_editorjs(description),
             description_plaintext=description,
             product_type=product_type,
             category=category,
+            search_document=f"{name}{description}",
+            search_vector=(
+                SearchVector(Value(name), weight="A")
+                + SearchVector(Value(description), weight="C")
+            ),
+        )
+        ProductChannelListing.objects.create(
+            product=product,
+            channel=channel_USD,
             is_published=True,
         )
         return product
@@ -30,8 +43,9 @@ def named_products(category, product_type):
 
 
 def execute_search(phrase):
-    """Execute product search."""
-    return product_search(phrase)
+    """Execute storefront search."""
+    qs = Product.objects.all()
+    return search_products(qs, phrase)
 
 
 @pytest.mark.parametrize(
@@ -44,12 +58,6 @@ def test_storefront_product_fuzzy_name_search(named_products, phrase, product_nu
     results = execute_search(phrase)
     assert 1 == len(results)
     assert named_products[product_num] in results
-
-
-def unpublish_product(product):
-    prod_to_unpublish = product
-    prod_to_unpublish.is_published = False
-    prod_to_unpublish.save()
 
 
 USERS = [
@@ -71,3 +79,62 @@ def gen_address_for_user(first_name, last_name):
         postal_code="53-601",
         country="PL",
     )
+
+
+def test_combined_flat_search_vector():
+    """Ensure two FlatConcat can be combined into one object"""
+    flat_vector_1 = FlatConcat(
+        SearchVector(Value("value1"), weight="A"),
+        SearchVector(Value("value2"), weight="C"),
+    )
+    flat_vector_2 = FlatConcat(
+        SearchVector(Value("value3"), weight="A"),
+        SearchVector(Value("value4"), weight="C"),
+    )
+
+    combined_flat_vector = flat_vector_1 + flat_vector_2
+    assert combined_flat_vector.get_source_expressions() == [
+        SearchVector(Value("value1"), weight="A"),
+        SearchVector(Value("value2"), weight="C"),
+        SearchVector(Value("value3"), weight="A"),
+        SearchVector(Value("value4"), weight="C"),
+    ]
+
+
+def test_flat_concat_drop_exceeding_count_no_silently_fail():
+    """
+    Ensure when the maximum allowed value count in FlatConcat is exceeded
+    and it shouldn't fail silently, then an exception is raised once the limit
+    is reached.
+    """
+
+    class LimitedFlatConcat(FlatConcat):
+        max_expression_count = 2
+        silent_drop_expression = False
+
+    # Should not raise an exception and shouldn't truncate
+    concat = LimitedFlatConcat(Value("1"), Value("2"))
+    assert concat.source_expressions == [Value("1"), Value("2")]
+
+    with pytest.raises(ValueError) as error:
+        LimitedFlatConcat(Value("1"), Value("2"), Value("3"))
+
+    assert error.value.args == ("Maximum expression count exceeded",)
+
+
+def test_flat_concat_drop_exceeding_count_silently_truncate():
+    """
+    Ensure when the maximum allowed value count in FlatConcat is exceeded
+    and is set to truncate silently, the values are truncated as expected.
+    """
+
+    class LimitedFlatConcat(FlatConcat):
+        max_expression_count = 2
+        silent_drop_expression = True
+
+    # Should not raise an exception and shouldn't truncate
+    concat = LimitedFlatConcat(Value("1"), Value("2"))
+    assert concat.source_expressions == [Value("1"), Value("2")]
+
+    concat = LimitedFlatConcat(Value("a"), Value("b"), Value("c"))
+    assert concat.source_expressions == [Value("a"), Value("b")]

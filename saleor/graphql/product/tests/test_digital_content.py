@@ -1,9 +1,15 @@
+from unittest.mock import patch
+
 import graphene
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import DigitalContent, ProductVariant
 from ....product.tests.utils import create_image
-from ...tests.utils import get_graphql_content, get_multipart_request_body
+from ...tests.utils import (
+    get_graphql_content,
+    get_graphql_content_from_response,
+    get_multipart_request_body,
+)
 
 
 def test_fetch_all_digital_contents(
@@ -31,25 +37,83 @@ def test_fetch_all_digital_contents(
     assert len(edges) == digital_content_num
 
 
-def test_fetch_single_digital_content(
-    staff_api_client, variant, digital_content, permission_manage_products
-):
-    query = """
-    query {
-        digitalContent(id:"%s"){
+QUERY_DIGITAL_CONTENT = """
+    query DigitalContent($id: ID!){
+        digitalContent(id: $id){
             id
+            productVariant {
+                id
+            }
         }
     }
-    """ % graphene.Node.to_global_id(
-        "DigitalContent", digital_content.id
+"""
+
+
+def test_fetch_single_digital_content(
+    staff_api_client, digital_content, permission_manage_products
+):
+    query = QUERY_DIGITAL_CONTENT
+    variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.id)}
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", digital_content.product_variant.id
     )
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
 
     assert "digitalContent" in content["data"]
     assert "id" in content["data"]["digitalContent"]
+    assert content["data"]["digitalContent"]["productVariant"]["id"] == variant_id
+
+
+def test_digital_content_query_invalid_id(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    digital_content_id = "'"
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert (
+        content["errors"][0]["message"] == f"Couldn't resolve id: {digital_content_id}."
+    )
+    assert content["data"]["digitalContent"] is None
+
+
+def test_digital_content_query_object_with_given_id_does_not_exist(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    digital_content_id = graphene.Node.to_global_id("DigitalContent", -1)
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["digitalContent"] is None
+
+
+def test_digital_content_query_with_invalid_object_type(
+    staff_api_client, product, digital_content, channel_USD, permission_manage_products
+):
+    digital_content_id = graphene.Node.to_global_id("Product", digital_content.pk)
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["digitalContent"] is None
 
 
 def test_digital_content_create_mutation_custom_settings(
@@ -161,10 +225,7 @@ def test_digital_content_create_mutation_removes_old_content(
     assert not DigitalContent.objects.filter(id=d_content.id).exists()
 
 
-def test_digital_content_delete_mutation(
-    monkeypatch, staff_api_client, variant, digital_content, permission_manage_products
-):
-    query = """
+DIGITAL_CONTENT_DELETE_MUTATION = """
     mutation digitalDelete($variant: ID!){
         digitalContentDelete(variantId:$variant){
             variant{
@@ -172,10 +233,24 @@ def test_digital_content_delete_mutation(
             }
         }
     }
-    """
+"""
+
+
+@patch("saleor.product.signals.delete_from_storage_task.delay")
+def test_digital_content_delete_mutation(
+    delete_from_storage_task_mock,
+    monkeypatch,
+    staff_api_client,
+    variant,
+    digital_content,
+    permission_manage_products,
+):
+    query = DIGITAL_CONTENT_DELETE_MUTATION
 
     variant.digital_content = digital_content
     variant.digital_content.save()
+
+    path = digital_content.content_file.name
 
     assert hasattr(variant, "digital_content")
     variables = {"variant": graphene.Node.to_global_id("ProductVariant", variant.id)}
@@ -186,6 +261,7 @@ def test_digital_content_delete_mutation(
     get_graphql_content(response)
     variant = ProductVariant.objects.get(id=variant.id)
     assert not hasattr(variant, "digital_content")
+    delete_from_storage_task_mock.assert_called_once_with(path)
 
 
 def test_digital_content_update_mutation(
@@ -255,7 +331,7 @@ def test_digital_content_update_mutation_missing_content(
                 field
                 message
             }
-            productErrors {
+            errors {
                 field
                 message
                 code
@@ -283,7 +359,7 @@ def test_digital_content_update_mutation_missing_content(
     assert len(errors) == 1
     assert errors[0]["field"] == "variantId"
 
-    product_errors = content["data"]["digitalContentUpdate"]["productErrors"]
+    product_errors = content["data"]["digitalContentUpdate"]["errors"]
     assert product_errors[0]["code"] == ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT.name
 
 

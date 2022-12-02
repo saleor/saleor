@@ -11,7 +11,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
-            model_name="serviceaccount", old_name="meta", new_name="metadata",
+            model_name="serviceaccount",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
             model_name="serviceaccount",
@@ -19,9 +21,13 @@ class Migration(migrations.Migration):
             new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="user", old_name="meta", new_name="metadata",
+            model_name="user",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
-            model_name="user", old_name="private_meta", new_name="private_metadata",
+            model_name="user",
+            old_name="private_meta",
+            new_name="private_metadata",
         ),
     ]

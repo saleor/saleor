@@ -7,7 +7,7 @@ from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import HTMLSafeJSON
 
 if TYPE_CHECKING:
-    from ...order.models import OrderLine, Order
+    from ...order.models import Order, OrderLine
 
 
 def get_organization():
@@ -16,7 +16,7 @@ def get_organization():
 
 
 def get_product_data(line: "OrderLine", organization: dict) -> dict:
-    gross_product_price = line.get_total().gross
+    gross_product_price = line.total_price.gross
     line_name = str(line)
     if line.translated_product_name:
         line_name = (
@@ -26,7 +26,11 @@ def get_product_data(line: "OrderLine", organization: dict) -> dict:
         )
     product_data = {
         "@type": "Offer",
-        "itemOffered": {"@type": "Product", "name": line_name, "sku": line.product_sku},
+        "itemOffered": {
+            "@type": "Product",
+            "name": line_name,
+            "sku": line.product_sku or line.product_variant_id,
+        },
         "price": gross_product_price.amount,
         "priceCurrency": gross_product_price.currency,
         "eligibleQuantity": {"@type": "QuantitativeValue", "value": line.quantity},
@@ -56,7 +60,7 @@ def get_order_confirmation_markup(order: "Order") -> str:
         "price": order.total.gross.amount,
         "acceptedOffer": [],
         "orderStatus": "http://schema.org/OrderProcessing",
-        "orderDate": order.created,
+        "orderDate": order.created_at,
     }
 
     for line in order.lines.all():

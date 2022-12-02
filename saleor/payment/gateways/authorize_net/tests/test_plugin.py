@@ -12,9 +12,9 @@ def test_get_payment_gateway_for_checkout(
 ):
     checkout_with_single_item.billing_address = address
     checkout_with_single_item.save()
-    response = authorize_net_plugin.get_payment_gateway_for_checkout(
-        checkout_with_single_item, None
-    )
+    response = authorize_net_plugin.get_payment_gateways(
+        currency=None, checkout=checkout_with_single_item, previous_value=None
+    )[0]
     assert response.id == authorize_net_plugin.PLUGIN_ID
     assert response.name == authorize_net_plugin.PLUGIN_NAME
     config = response.config
@@ -41,8 +41,9 @@ def test_get_payment_gateway_for_checkout_inactive(
     authorize_net_plugin, checkout_with_single_item
 ):
     authorize_net_plugin.active = False
-    response = authorize_net_plugin.get_payment_gateway_for_checkout(
-        checkout_with_single_item, None
+    currency = checkout_with_single_item.currency
+    response = authorize_net_plugin.get_payment_gateways(
+        currency=currency, checkout=checkout_with_single_item, previous_value=None
     )
     assert not response
 
@@ -97,10 +98,11 @@ def test_payment_gateway_refund_payment(
     )
 
 
+@pytest.mark.parametrize("payment_id", [-1, None])
 def test_payment_gateway_refund_payment_no_payment(
-    authorize_net_plugin, dummy_payment_data
+    payment_id, authorize_net_plugin, dummy_payment_data
 ):
-    dummy_payment_data.payment_id = 100
+    dummy_payment_data.payment_id = payment_id
     with pytest.raises(PaymentError):
         authorize_net_plugin.refund_payment(dummy_payment_data, None)
 

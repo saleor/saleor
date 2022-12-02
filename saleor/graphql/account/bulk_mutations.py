@@ -7,14 +7,14 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...core.permissions import AccountPermissions
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from ..core.types.common import AccountError, StaffError
+from ..core.types import AccountError, NonNullList, StaffError
 from .types import User
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 
 
 class UserBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of user IDs to delete."
         )
 
@@ -26,6 +26,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     class Meta:
         description = "Deletes customers."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -36,11 +37,21 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         cls.post_process(info, count)
         return count, errors
 
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        instances = list(queryset)
+        queryset.delete()
+        for instance in instances:
+            info.context.plugins.customer_deleted(instance)
+
 
 class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:
-        description = "Deletes staff users."
+        description = (
+            "Deletes staff users. Apps are not allowed to perform this mutation."
+        )
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -53,7 +64,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         if not errors and count:
             clean_instance_ids = [instance.pk for instance in instances]
             qs = models.User.objects.filter(pk__in=clean_instance_ids)
-            cls.bulk_action(queryset=qs, **data)
+            cls.bulk_action(info=info, queryset=qs, **data)
         else:
             count = 0
         return count, errors
@@ -61,6 +72,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     @classmethod
     def clean_instances(cls, info, users):
         errors = defaultdict(list)
+
         requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
         cls.check_if_requestor_can_manage_users(requestor, users, "ids", errors)
@@ -69,10 +81,17 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         )
         return ValidationError(errors) if errors else {}
 
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        instances = list(queryset)
+        queryset.delete()
+        for instance in instances:
+            info.context.plugins.staff_deleted(instance)
+
 
 class UserBulkSetActive(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of user IDs to (de)activate)."
         )
         is_active = graphene.Boolean(
@@ -82,6 +101,7 @@ class UserBulkSetActive(BaseBulkMutation):
     class Meta:
         description = "Activate or deactivate users."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -108,5 +128,5 @@ class UserBulkSetActive(BaseBulkMutation):
             )
 
     @classmethod
-    def bulk_action(cls, queryset, is_active):
+    def bulk_action(cls, info, queryset, is_active):
         queryset.update(is_active=is_active)

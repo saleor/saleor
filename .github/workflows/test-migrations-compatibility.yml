@@ -1,0 +1,65 @@
+name: Test migrations compatibility
+
+on:
+  pull_request:
+    branches:
+      - "3.*"
+      - "main"
+    paths:
+      - "**/migrations/**"
+
+env:
+  DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
+  SECRET_KEY: ci-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: python:3.8
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: saleor
+          POSTGRES_USER: saleor
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: apt-get install -y libpq-dev
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install wheel
+          python -m pip install -r requirements_dev.txt
+
+      - name: Migrate
+        run: |
+          export DJANGO_SETTINGS_MODULE=saleor.tests.settings
+          ./manage.py migrate
+
+      - name: Checkout base
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github['base_ref'] }}
+
+      - name: Run tests
+        run: |
+          export PYTEST_DB_URL=$DATABASE_URL
+          pytest -n 0 --reuse-db

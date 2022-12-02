@@ -1,12 +1,13 @@
 import datetime
 from typing import Any
 
-from django.db import models
+import pytz
+from django.contrib.postgres.indexes import GinIndex
+from django.db import models, transaction
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
 
-from . import JobStatus
-from .permissions import ProductPermissions
+from . import EventDeliveryStatus, JobStatus
 from .utils.json_serializer import CustomJsonEncoder
 
 
@@ -31,6 +32,7 @@ class SortableModel(models.Model):
             self.sort_order = 0 if existing_max is None else existing_max + 1
         super().save(*args, **kwargs)
 
+    @transaction.atomic
     def delete(self, *args, **kwargs):
         if self.sort_order is not None:
             qs = self.get_ordering_queryset()
@@ -42,27 +44,18 @@ class SortableModel(models.Model):
 
 class PublishedQuerySet(models.QuerySet):
     def published(self):
-        today = datetime.date.today()
+        today = datetime.datetime.now(pytz.UTC)
         return self.filter(
-            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
+            Q(published_at__lte=today) | Q(published_at__isnull=True),
             is_published=True,
         )
 
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-
-    def visible_to_user(self, user):
-        if self.user_has_access_to_all(user):
-            return self.all()
-        return self.published()
-
 
 class PublishableModel(models.Model):
-    publication_date = models.DateField(blank=True, null=True)
+    published_at = models.DateTimeField(blank=True, null=True)
     is_published = models.BooleanField(default=False)
 
-    objects = PublishedQuerySet.as_manager()
+    objects = models.Manager.from_queryset(PublishedQuerySet)()
 
     class Meta:
         abstract = True
@@ -70,8 +63,8 @@ class PublishableModel(models.Model):
     @property
     def is_visible(self):
         return self.is_published and (
-            self.publication_date is None
-            or self.publication_date <= datetime.date.today()
+            self.published_at is None
+            or self.published_at <= datetime.datetime.now(pytz.UTC)
         )
 
 
@@ -82,6 +75,10 @@ class ModelWithMetadata(models.Model):
     metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
+        indexes = [
+            GinIndex(fields=["private_metadata"], name="%(class)s_p_meta_idx"),
+            GinIndex(fields=["metadata"], name="%(class)s_meta_idx"),
+        ]
         abstract = True
 
     def get_value_from_private_metadata(self, key: str, default: Any = None) -> Any:
@@ -125,3 +122,46 @@ class Job(models.Model):
 
     class Meta:
         abstract = True
+
+
+class EventPayload(models.Model):
+    payload = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class EventDelivery(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=255,
+        choices=EventDeliveryStatus.CHOICES,
+        default=EventDeliveryStatus.PENDING,
+    )
+    event_type = models.CharField(max_length=255)
+    payload = models.ForeignKey(
+        EventPayload, related_name="deliveries", null=True, on_delete=models.CASCADE
+    )
+    webhook = models.ForeignKey("webhook.Webhook", on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+
+class EventDeliveryAttempt(models.Model):
+    delivery = models.ForeignKey(
+        EventDelivery, related_name="attempts", null=True, on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.CharField(max_length=255, null=True)
+    duration = models.FloatField(null=True)
+    response = models.TextField(null=True)
+    response_headers = models.TextField(null=True)
+    response_status_code = models.PositiveSmallIntegerField(null=True)
+    request_headers = models.TextField(null=True)
+    status = models.CharField(
+        max_length=255,
+        choices=EventDeliveryStatus.CHOICES,
+        default=EventDeliveryStatus.PENDING,
+    )
+
+    class Meta:
+        ordering = ("-created_at",)

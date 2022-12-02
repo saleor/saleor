@@ -9,6 +9,8 @@ class UserSortField(graphene.Enum):
     LAST_NAME = ["last_name", "first_name", "pk"]
     EMAIL = ["email"]
     ORDER_COUNT = ["order_count", "email"]
+    CREATED_AT = ["date_joined", "pk"]
+    LAST_MODIFIED_AT = ["updated_at", "pk"]
 
     @property
     def description(self):
@@ -18,7 +20,7 @@ class UserSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_order_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_order_count(queryset: QuerySet, *, channel_slug=None) -> QuerySet:
         return queryset.annotate(order_count=Count("orders__id"))
 
 

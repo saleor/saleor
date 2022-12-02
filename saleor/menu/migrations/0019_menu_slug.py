@@ -48,7 +48,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="menu", name="name", field=models.CharField(max_length=250),
+            model_name="menu",
+            name="name",
+            field=models.CharField(max_length=250),
         ),
         # Temporary set the slug "null" to True to allow slug generation to run.
         migrations.AddField(

@@ -86,5 +86,8 @@ class Migration(migrations.Migration):
                 ON product_product FOR EACH ROW EXECUTE FUNCTION messages_trigger();
             """
         ),
-        migrations.RunPython(parse_description_json_field, migrations.RunPython.noop,),
+        migrations.RunPython(
+            parse_description_json_field,
+            migrations.RunPython.noop,
+        ),
     ]

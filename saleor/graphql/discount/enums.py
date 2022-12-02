@@ -1,6 +1,14 @@
 import graphene
 
-from ...discount import DiscountValueType, VoucherType
+from ...discount import DiscountValueType, OrderDiscountType, VoucherType
+from ..core.enums import to_enum
+
+OrderDiscountTypeEnum = to_enum(OrderDiscountType, type_name="OrderDiscountType")
+
+
+class SaleType(graphene.Enum):
+    FIXED = DiscountValueType.FIXED
+    PERCENTAGE = DiscountValueType.PERCENTAGE
 
 
 class DiscountValueTypeEnum(graphene.Enum):

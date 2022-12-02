@@ -1,20 +1,42 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Dict, Optional
+from typing import Dict, List, Optional, cast
 
 import graphene
-from django.conf import settings
+from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
+from django.db.models import Q
 
 from ..account.models import User
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
+from ..core.prices import quantize_price
+from ..core.tracing import traced_atomic_transaction
+from ..discount.utils import fetch_active_discounts
 from ..order.models import Order
-from ..plugins.manager import get_plugins_manager
-from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from ..order.utils import update_order_authorize_data, update_order_charge_data
+from ..plugins.manager import PluginsManager, get_plugins_manager
+from . import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+    gateway,
+)
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentLineData,
+    PaymentLinesData,
+    PaymentMethodInfo,
+    RefundData,
+    StorePaymentMethodEnum,
+    TransactionData,
+)
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -23,48 +45,195 @@ GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 
 
+def create_payment_lines_information(
+    payment: Payment,
+    manager: PluginsManager,
+) -> PaymentLinesData:
+    checkout = payment.checkout
+    order = payment.order
+
+    if checkout:
+        return create_checkout_payment_lines_information(checkout, manager)
+    elif order:
+        return create_order_payment_lines_information(order)
+
+    return PaymentLinesData(
+        shipping_amount=Decimal("0.00"),
+        voucher_amount=Decimal("0.00"),
+        lines=[],
+    )
+
+
+def create_checkout_payment_lines_information(
+    checkout: Checkout, manager: PluginsManager
+) -> PaymentLinesData:
+    line_items = []
+    lines, _ = fetch_checkout_lines(checkout)
+    discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    address = checkout_info.shipping_address or checkout_info.billing_address
+
+    for line_info in lines:
+        unit_price = manager.calculate_checkout_line_unit_price(
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts,
+        )
+        unit_gross = unit_price.gross.amount
+
+        quantity = line_info.line.quantity
+        product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+        product_sku = line_info.variant.sku
+        line_items.append(
+            PaymentLineData(
+                quantity=quantity,
+                product_name=product_name,
+                product_sku=product_sku,
+                variant_id=line_info.variant.id,
+                amount=unit_gross,
+            )
+        )
+    shipping_amount = manager.calculate_checkout_shipping(
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+    ).gross.amount
+
+    voucher_amount = -checkout.discount_amount
+
+    return PaymentLinesData(
+        shipping_amount=shipping_amount,
+        voucher_amount=voucher_amount,
+        lines=line_items,
+    )
+
+
+def create_order_payment_lines_information(order: Order) -> PaymentLinesData:
+    line_items = []
+    for order_line in order.lines.all():
+        product_name = f"{order_line.product_name}, {order_line.variant_name}"
+
+        variant_id = order_line.variant_id
+        if variant_id is None:
+            continue
+
+        line_items.append(
+            PaymentLineData(
+                quantity=order_line.quantity,
+                product_name=product_name,
+                product_sku=order_line.product_sku,
+                variant_id=variant_id,
+                amount=order_line.unit_price_gross_amount,
+            )
+        )
+
+    shipping_amount = order.shipping_price_gross_amount
+    voucher_amount = order.total_gross_amount - order.undiscounted_total_gross_amount
+
+    return PaymentLinesData(
+        shipping_amount=shipping_amount,
+        voucher_amount=voucher_amount,
+        lines=line_items,
+    )
+
+
+def generate_transactions_data(payment: Payment) -> List[TransactionData]:
+    return [
+        TransactionData(
+            token=t.token,
+            is_success=t.is_success,
+            kind=t.kind,
+            gateway_response=t.gateway_response,
+            amount={
+                "amount": str(quantize_price(t.amount, t.currency)),
+                "currency": t.currency,
+            },
+        )
+        for t in payment.transactions.all()
+    ]
+
+
 def create_payment_information(
     payment: Payment,
     payment_token: str = None,
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
+    refund_data: Optional[RefundData] = None,
     additional_data: Optional[dict] = None,
+    manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    if payment.checkout:
-        billing = payment.checkout.billing_address
-        shipping = payment.checkout.shipping_address
-    elif payment.order:
-        billing = payment.order.billing_address
-        shipping = payment.order.shipping_address
+    if checkout := payment.checkout:
+        billing = checkout.billing_address
+        shipping = checkout.shipping_address
+        email = cast(str, checkout.get_customer_email())
+        user_id = checkout.user_id
+        checkout_token = str(checkout.token)
+        checkout_metadata = checkout.metadata
+    elif order := payment.order:
+        billing = order.billing_address
+        shipping = order.shipping_address
+        email = order.user_email
+        user_id = order.user_id
+        checkout_token = order.checkout_token
+        checkout_metadata = None
     else:
-        billing, shipping = None, None
+        billing = None
+        shipping = None
+        email = payment.billing_email
+        user_id = None
+        checkout_token = ""
+        checkout_metadata = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
-    order_id = payment.order.pk if payment.order else None
+    order = payment.order
+    order_id = order.pk if order else None
+    channel_slug = order.channel.slug if order and order.channel else None
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
+    graphql_customer_id = None
+    if user_id:
+        graphql_customer_id = graphene.Node.to_global_id("User", user_id)
+
     return PaymentData(
+        gateway=payment.gateway,
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,
         billing=billing_address,
         shipping=shipping_address,
         order_id=order_id,
+        order_channel_slug=channel_slug,
         payment_id=payment.pk,
         graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
-        customer_email=payment.billing_email,
+        customer_email=email,
         reuse_source=store_source,
         data=additional_data or {},
+        graphql_customer_id=graphql_customer_id,
+        store_payment_method=StorePaymentMethodEnum[
+            payment.store_payment_method.upper()
+        ],
+        checkout_token=checkout_token,
+        checkout_metadata=checkout_metadata,
+        payment_metadata=payment.metadata,
+        psp_reference=payment.psp_reference,
+        refund_data=refund_data,
+        transactions=generate_transactions_data(payment),
+        _resolve_lines_data=lambda: create_payment_lines_information(
+            payment, manager or get_plugins_manager()
+        ),
     )
 
 
@@ -79,6 +248,9 @@ def create_payment(
     checkout: Checkout = None,
     order: Order = None,
     return_url: str = None,
+    external_reference: Optional[str] = None,
+    store_payment_method: str = StorePaymentMethod.NONE,
+    metadata: Optional[Dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -126,6 +298,10 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "partial": False,
+        "psp_reference": external_reference or "",
+        "store_payment_method": store_payment_method,
+        "metadata": {} if metadata is None else metadata,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
@@ -153,16 +329,17 @@ def create_transaction(
     action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
+    is_success=False,
 ) -> Transaction:
     """Create a transaction based on transaction kind and gateway response."""
     # Default values for token, amount, currency are only used in cases where
-    # response from gateway was invalid or an exception occured
+    # response from gateway was invalid or an exception occurred
     if not gateway_response:
         gateway_response = GatewayResponse(
             kind=kind,
             action_required=False,
-            transaction_id=payment_information.token,
-            is_success=False,
+            transaction_id=payment_information.token or "",
+            is_success=is_success,
             amount=payment_information.amount,
             currency=payment_information.currency,
             error=error_msg,
@@ -181,7 +358,6 @@ def create_transaction(
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
         action_required_data=gateway_response.action_required_data or {},
-        searchable_key=gateway_response.searchable_key or "",
     )
     return txn
 
@@ -236,34 +412,40 @@ def validate_gateway_response(response: GatewayResponse):
             )
         )
 
-    if response.currency != settings.DEFAULT_CURRENCY:
-        logger.warning("Transaction currency is different than Saleor's.")
-
     try:
         json.dumps(response.raw_response, cls=DjangoJSONEncoder)
     except (TypeError, ValueError):
         raise GatewayError("Gateway response needs to be json serializable")
 
 
-@transaction.atomic
+@traced_atomic_transaction()
 def gateway_postprocess(transaction, payment):
-    if not transaction.is_success:
+    changed_fields = []
+
+    if not transaction.is_success or transaction.already_processed:
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
         return
+
     if transaction.action_required:
         payment.to_confirm = True
-        payment.save(update_fields=["to_confirm"])
+        changed_fields.append("to_confirm")
+        payment.save(update_fields=changed_fields)
         return
-    if transaction.already_processed:
-        return
-    changed_fields = []
+
     # to_confirm is defined by the transaction.action_required. Payment doesn't
     # require confirmation when we got action_required == False
     if payment.to_confirm:
         payment.to_confirm = False
         changed_fields.append("to_confirm")
 
-    transaction_kind = transaction.kind
+    update_payment_charge_status(payment, transaction, changed_fields)
 
+
+def update_payment_charge_status(payment, transaction, changed_fields=None):
+    changed_fields = changed_fields or []
+
+    transaction_kind = transaction.kind
     if transaction_kind in {
         TransactionKind.CAPTURE,
         TransactionKind.REFUND_REVERSED,
@@ -275,17 +457,18 @@ def gateway_postprocess(transaction, payment):
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-        changed_fields += ["charge_status", "captured_amount", "modified"]
+        changed_fields += ["charge_status", "captured_amount", "modified_at"]
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["is_active", "modified_at"]
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields += ["captured_amount", "modified"]
+        changed_fields += ["captured_amount", "modified_at"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
+            payment.captured_amount = Decimal("0.0")
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
@@ -294,7 +477,8 @@ def gateway_postprocess(transaction, payment):
         changed_fields += ["charge_status"]
     elif transaction_kind == TransactionKind.CANCEL:
         payment.charge_status = ChargeStatus.CANCELLED
-        changed_fields += ["charge_status"]
+        payment.is_active = False
+        changed_fields += ["charge_status", "is_active"]
     elif transaction_kind == TransactionKind.CAPTURE_FAILED:
         if payment.charge_status in {
             ChargeStatus.PARTIALLY_CHARGED,
@@ -304,11 +488,15 @@ def gateway_postprocess(transaction, payment):
             payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
-            changed_fields += ["charge_status", "captured_amount", "modified"]
+            changed_fields += ["charge_status", "captured_amount", "modified_at"]
     if changed_fields:
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
+    if "captured_amount" in changed_fields and payment.order_id:
+        update_order_charge_data(payment.order)
+    if transaction_kind == TransactionKind.AUTH and payment.order_id:
+        update_order_authorize_data(payment.order)
 
 
 def fetch_customer_id(user: User, gateway: str):
@@ -321,36 +509,50 @@ def store_customer_id(user: User, gateway: str, customer_id: str):
     """Store customer_id in users private meta for desired gateway."""
     meta_key = prepare_key_for_gateway_customer_id(gateway)
     user.store_value_in_private_metadata(items={meta_key: customer_id})
-    user.save(update_fields=["private_metadata"])
+    user.save(update_fields=["private_metadata", "updated_at"])
 
 
 def prepare_key_for_gateway_customer_id(gateway_name: str) -> str:
     return (gateway_name.strip().upper()) + ".customer_id"
 
 
-def update_payment_method_details(
-    payment: "Payment", gateway_response: "GatewayResponse"
-):
+def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
     changed_fields = []
-    if not gateway_response.payment_method_info:
-        return
-    if gateway_response.payment_method_info.brand:
-        payment.cc_brand = gateway_response.payment_method_info.brand
-        changed_fields.append("cc_brand")
-    if gateway_response.payment_method_info.last_4:
-        payment.cc_last_digits = gateway_response.payment_method_info.last_4
-        changed_fields.append("cc_last_digits")
-    if gateway_response.payment_method_info.exp_year:
-        payment.cc_exp_year = gateway_response.payment_method_info.exp_year
-        changed_fields.append("cc_exp_year")
-    if gateway_response.payment_method_info.exp_month:
-        payment.cc_exp_month = gateway_response.payment_method_info.exp_month
-        changed_fields.append("cc_exp_month")
-    if gateway_response.payment_method_info.type:
-        payment.payment_method_type = gateway_response.payment_method_info.type
-        changed_fields.append("payment_method_type")
+    if psp_reference := gateway_response.psp_reference:
+        payment.psp_reference = psp_reference
+        changed_fields.append("psp_reference")
+
+    if gateway_response.payment_method_info:
+        update_payment_method_details(
+            payment, gateway_response.payment_method_info, changed_fields
+        )
+
     if changed_fields:
         payment.save(update_fields=changed_fields)
+
+
+def update_payment_method_details(
+    payment: "Payment",
+    payment_method_info: Optional["PaymentMethodInfo"],
+    changed_fields: List[str],
+):
+    if not payment_method_info:
+        return
+    if payment_method_info.brand:
+        payment.cc_brand = payment_method_info.brand
+        changed_fields.append("cc_brand")
+    if payment_method_info.last_4:
+        payment.cc_last_digits = payment_method_info.last_4
+        changed_fields.append("cc_last_digits")
+    if payment_method_info.exp_year:
+        payment.cc_exp_year = payment_method_info.exp_year
+        changed_fields.append("cc_exp_year")
+    if payment_method_info.exp_month:
+        payment.cc_exp_month = payment_method_info.exp_month
+        changed_fields.append("cc_exp_month")
+    if payment_method_info.type:
+        payment.payment_method_type = payment_method_info.type
+        changed_fields.append("payment_method_type")
 
 
 def get_payment_token(payment: Payment):
@@ -362,7 +564,81 @@ def get_payment_token(payment: Payment):
     return auth_transaction.token
 
 
-def is_currency_supported(currency: str, gateway_id: str):
+def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManager"):
     """Return true if the given gateway supports given currency."""
-    available_gateways = get_plugins_manager().list_payment_gateways(currency=currency)
+    available_gateways = manager.list_payment_gateways(currency=currency)
     return any([gateway.id == gateway_id for gateway in available_gateways])
+
+
+def price_from_minor_unit(value: str, currency: str):
+    """Convert minor unit (smallest unit of currency) to decimal value.
+
+    (value: 1000, currency: USD) will be converted to 10.00
+    """
+
+    value = Decimal(value)
+    precision = get_currency_precision(currency)
+    number_places = Decimal(10) ** -precision
+    return value * number_places
+
+
+def price_to_minor_unit(value: Decimal, currency: str):
+    """Convert decimal value to the smallest unit of currency.
+
+    Take the value, discover the precision of currency and multiply value by
+    Decimal('10.0'), then change quantization to remove the comma.
+    Decimal(10.0) -> str(1000)
+    """
+    value = quantize_price(value, currency=currency)
+    precision = get_currency_precision(currency)
+    number_places = Decimal("10.0") ** precision
+    value_without_comma = value * number_places
+    return str(value_without_comma.quantize(Decimal("1")))
+
+
+def get_channel_slug_from_payment(payment: Payment) -> Optional[str]:
+    channel_slug = None
+
+    if payment.checkout:
+        channel_slug = payment.checkout.channel.slug
+    elif payment.order:
+        channel_slug = payment.order.channel.slug
+
+    return channel_slug
+
+
+def try_void_or_refund_inactive_payment(
+    payment: Payment, transaction: Transaction, manager: "PluginsManager"
+):
+    """Handle refund or void inactive payments.
+
+    In case when we have open multiple payments for single checkout but only one is
+    active. Some payment methods don't required confirmation so we can receive delayed
+    webhook when we have order already paid.
+    """
+    if transaction.is_success:
+        channel_slug = get_channel_slug_from_payment(payment)
+        try:
+            gateway.payment_refund_or_void(
+                payment,
+                manager,
+                channel_slug=channel_slug,
+                transaction_id=transaction.token,
+            )
+        except PaymentError:
+            logger.exception(
+                "Unable to void/refund an inactive payment %s, %s.",
+                payment.id,
+                payment.psp_reference,
+            )
+
+
+def payment_owned_by_user(payment_pk: int, user) -> bool:
+    if user.is_anonymous:
+        return False
+    return (
+        Payment.objects.filter(
+            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
+        ).first()
+        is not None
+    )

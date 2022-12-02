@@ -96,7 +96,11 @@ def test_initialize_payment_for_apple_pay(mocked_request, mocked_tmp_file):
     certificate = "certifiate data"
 
     initialize_apple_pay_session(
-        validation_url, merchant_identifier, domain, display_name, certificate,
+        validation_url,
+        merchant_identifier,
+        domain,
+        display_name,
+        certificate,
     )
 
     expected_data = {
@@ -127,5 +131,9 @@ def test_initialize_payment_for_apple_pay_request_failed(mocked_request):
 
     with pytest.raises(PaymentError):
         initialize_apple_pay_session(
-            validation_url, merchant_identifier, domain, display_name, certificate,
+            validation_url,
+            merchant_identifier,
+            domain,
+            display_name,
+            certificate,
         )

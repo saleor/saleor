@@ -1,15 +1,38 @@
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass, field
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
+from enum import Enum
+from functools import cached_property
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from ..order import FulfillmentLineData
+from ..order.fetch import OrderLineInfo
+from ..payment.models import TransactionItem
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
+class TransactionActionData:
+    action_type: str
+    transaction: TransactionItem
+    action_value: Optional[Decimal] = None
+
+
+@dataclass
+class TransactionData:
+    token: str
+    is_success: bool
+    kind: str
+    gateway_response: JSONType
+    amount: Dict[str, str]
+
+
+@dataclass
 class PaymentMethodInfo:
     """Uniform way to represent payment method information."""
 
+    first_4: Optional[str] = None
     last_4: Optional[str] = None
     exp_year: Optional[int] = None
     exp_month: Optional[int] = None
@@ -31,7 +54,7 @@ class GatewayResponse:
     kind: str  # use "TransactionKind" class
     amount: Decimal
     currency: str
-    transaction_id: Optional[str]
+    transaction_id: str
     error: Optional[str]
     customer_id: Optional[str] = None
     payment_method_info: Optional[PaymentMethodInfo] = None
@@ -40,7 +63,7 @@ class GatewayResponse:
     # Some gateway can process transaction asynchronously. This value define if we
     # should create new transaction based on this response
     transaction_already_processed: bool = False
-    searchable_key: Optional[str] = None
+    psp_reference: Optional[str] = None
 
 
 @dataclass
@@ -58,6 +81,36 @@ class AddressData:
     phone: str
 
 
+class StorePaymentMethodEnum(str, Enum):
+    NONE = "NONE"
+    ON_SESSION = "ON_SESSION"
+    OFF_SESSION = "OFF_SESSION"
+
+
+@dataclass
+class PaymentLineData:
+    amount: Decimal
+    variant_id: int
+    product_name: str
+    product_sku: Optional[str]
+    quantity: int
+
+
+@dataclass
+class PaymentLinesData:
+    shipping_amount: Decimal
+    voucher_amount: Decimal
+    lines: List[PaymentLineData]
+
+
+@dataclass
+class RefundData:
+    order_lines_to_refund: List[OrderLineInfo] = field(default_factory=list)
+    fulfillment_lines_to_refund: List[FulfillmentLineData] = field(default_factory=list)
+    refund_shipping_costs: bool = False
+    refund_amount_is_automatically_calculated: bool = True
+
+
 @dataclass
 class PaymentData:
     """Dataclass for storing all payment information.
@@ -66,6 +119,7 @@ class PaymentData:
     It is required to communicate between Saleor and given payment gateway.
     """
 
+    gateway: str
     amount: Decimal
     currency: str
     billing: Optional[AddressData]
@@ -75,10 +129,30 @@ class PaymentData:
     order_id: Optional[int]
     customer_ip_address: Optional[str]
     customer_email: str
+    order_channel_slug: Optional[str] = None
     token: Optional[str] = None
-    customer_id: Optional[str] = None
-    reuse_source: bool = False
+    customer_id: Optional[str] = None  # stores payment gateway customer ID
+    reuse_source: bool = False  # Note: this field will be removed in 4.0.
     data: Optional[dict] = None
+    graphql_customer_id: Optional[str] = None
+    checkout_token: Optional[str] = None
+    checkout_metadata: Optional[Dict] = None
+    store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
+    payment_metadata: Dict[str, str] = field(default_factory=dict)
+    psp_reference: Optional[str] = None
+    refund_data: Optional[RefundData] = None
+    transactions: List[TransactionData] = field(default_factory=list)
+    # Optional, lazy-evaluated gateway arguments
+    _resolve_lines_data: InitVar[Callable[[], PaymentLinesData]] = None
+
+    def __post_init__(self, _resolve_lines_data: Callable[[], PaymentLinesData]):
+        self.__resolve_lines_data = _resolve_lines_data
+
+    # Note: this field does not appear in webhook payloads,
+    # because it's not visible to dataclasses.asdict
+    @cached_property
+    def lines_data(self) -> PaymentLinesData:
+        return self.__resolve_lines_data()
 
 
 @dataclass
@@ -113,6 +187,7 @@ class CustomerSource:
     id: str
     gateway: str
     credit_card_info: Optional[PaymentMethodInfo] = None
+    metadata: Optional[Dict[str, str]] = None
 
 
 @dataclass

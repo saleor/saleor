@@ -25,6 +25,7 @@ def test_uuid_scalar_wrong_value_passed_as_variable(api_client, checkout):
 
 def test_uuid_scalar_value_passed_in_input(api_client, checkout):
     token = checkout.token
+
     query = f"""
         query{{
             checkout(token: "{token}") {{
@@ -39,6 +40,7 @@ def test_uuid_scalar_value_passed_in_input(api_client, checkout):
 
 def test_uuid_scalar_wrong_value_passed_in_input(api_client, checkout):
     token = "wrong-token"
+
     query = f"""
         query{{
             checkout(token: "{token}") {{

@@ -11,7 +11,7 @@ from .test_token_refresh import MUTATION_TOKEN_REFRESH
 MUTATION_DEACTIVATE_ALL_USER_TOKENS = """
 mutation{
   tokensDeactivateAll{
-    accountErrors{
+    errors{
       field
       message
       code
@@ -48,7 +48,7 @@ def test_deactivate_all_user_tokens_access_token(user_api_client, customer_user)
     user_api_client.token = token
     response = user_api_client.post_graphql(MUTATION_DEACTIVATE_ALL_USER_TOKENS)
     content = get_graphql_content(response)
-    errors = content["data"]["tokensDeactivateAll"]["accountErrors"]
+    errors = content["data"]["tokensDeactivateAll"]["errors"]
     assert not errors
 
     query = "{me { id }}"
@@ -72,7 +72,7 @@ def test_deactivate_all_user_token_refresh_token(
 
     response = user_api_client.post_graphql(MUTATION_DEACTIVATE_ALL_USER_TOKENS)
     content = get_graphql_content(response)
-    errors = content["data"]["tokensDeactivateAll"]["accountErrors"]
+    errors = content["data"]["tokensDeactivateAll"]["errors"]
     assert not errors
 
     variables = {"token": refresh_token, "csrf_token": csrf_token}
@@ -80,7 +80,7 @@ def test_deactivate_all_user_token_refresh_token(
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     assert data["token"] is None
     assert len(errors) == 1

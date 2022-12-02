@@ -141,7 +141,6 @@ class Reordering:
         self.qs.model.objects.bulk_update(batch, ["sort_order"])
 
     def run(self):
-
         for pk, move in self.operations.items():
             # Skip operation if it was deleted in concurrence
             if pk not in self.ordered_node_map:

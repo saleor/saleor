@@ -1,18 +1,12 @@
 import graphene
 
-from ...core.permissions import AppPermission
-from ..core.fields import FilterInputConnectionField
-from ..decorators import permission_required
+from ...core.permissions import AppPermission, AuthorizationFilters
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.fields import JSONString, PermissionsField
+from ..core.types import NonNullList
 from .enums import WebhookSampleEventTypeEnum
-from .filters import WebhookFilterInput
-from .mutations import WebhookCreate, WebhookDelete, WebhookUpdate
-from .resolvers import (
-    resolve_sample_payload,
-    resolve_webhook,
-    resolve_webhook_events,
-    resolve_webhooks,
-)
-from .sorters import WebhookSortingInput
+from .mutations import EventDeliveryRetry, WebhookCreate, WebhookDelete, WebhookUpdate
+from .resolvers import resolve_sample_payload, resolve_webhook, resolve_webhook_events
 from .types import Webhook, WebhookEvent
 
 
@@ -22,24 +16,22 @@ class WebhookQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, required=True, description="ID of the webhook."
         ),
-        description="Look up a webhook by ID.",
-    )
-    webhooks = FilterInputConnectionField(
-        Webhook,
-        description="List of webhooks.",
-        sort_by=WebhookSortingInput(description="Sort webhooks."),
-        filter=WebhookFilterInput(description="Filtering options for webhooks."),
-        deprecation_reason=(
-            "Use webhooks field on app(s) query instead. This field will be removed "
-            "after 2020-07-31."
+        description=(
+            "Look up a webhook by ID. Requires one of the following permissions: "
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
-    webhook_events = graphene.List(
-        WebhookEvent, description="List of all available webhook events."
+    webhook_events = PermissionsField(
+        NonNullList(WebhookEvent),
+        description="List of all available webhook events.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `WebhookEventTypeAsyncEnum` and "
+            "`WebhookEventTypeSyncEnum` to get available event types."
+        ),
+        permissions=[AppPermission.MANAGE_APPS],
     )
-
     webhook_sample_payload = graphene.Field(
-        graphene.JSONString,
+        JSONString,
         event_type=graphene.Argument(
             WebhookSampleEventTypeEnum,
             required=True,
@@ -52,20 +44,15 @@ class WebhookQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_webhook_sample_payload(_, info, **data):
+    def resolve_webhook_sample_payload(_root, info, **data):
         return resolve_sample_payload(info, data["event_type"])
 
     @staticmethod
-    def resolve_webhooks(_, info, **kwargs):
-        return resolve_webhooks(info, **kwargs)
-
-    @staticmethod
-    def resolve_webhook(_, info, **data):
+    def resolve_webhook(_root, info, **data):
         return resolve_webhook(info, data["id"])
 
     @staticmethod
-    @permission_required(AppPermission.MANAGE_APPS)
-    def resolve_webhook_events(_, *_args, **_data):
+    def resolve_webhook_events(_root, _info):
         return resolve_webhook_events()
 
 
@@ -73,3 +60,4 @@ class WebhookMutations(graphene.ObjectType):
     webhook_create = WebhookCreate.Field()
     webhook_delete = WebhookDelete.Field()
     webhook_update = WebhookUpdate.Field()
+    event_delivery_retry = EventDeliveryRetry.Field()

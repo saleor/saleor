@@ -48,7 +48,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(name="stock", options={"ordering": ("pk",)},),
+        migrations.AlterModelOptions(
+            name="stock",
+            options={"ordering": ("pk",)},
+        ),
         migrations.CreateModel(
             name="Allocation",
             fields=[
@@ -85,5 +88,8 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.RunPython(create_allocations),
-        migrations.RemoveField(model_name="stock", name="quantity_allocated",),
+        migrations.RemoveField(
+            model_name="stock",
+            name="quantity_allocated",
+        ),
     ]

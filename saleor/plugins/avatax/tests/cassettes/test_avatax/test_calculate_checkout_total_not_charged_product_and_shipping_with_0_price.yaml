@@ -1,0 +1,63 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [], "code": "af2d109e-8c07-4438-b13e-ff4e21024b8a", "date": "2022-06-10",
+      "customerCode": 0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa
+      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
+      "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
+      "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
+      "USD", "email": "user@email.com"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '535'
+      User-Agent:
+      - python-requests/2.27.1
+    method: POST
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: '{"error":{"code":"MissingLine","message":"Transactions must have at
+        least one line.","target":"HttpRequestHeaders","details":[{"code":"MissingLine","number":311,"message":"Transactions
+        must have at least one line.","description":"The CreateTransactionModel object
+        must have an element called ''lines'', with at least one valid line record.","faultCode":"Client","helpLink":"http://developer.avalara.com/avatax/errors/MissingLine","severity":"Error"}]}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Jun 2022 10:43:49 GMT
+      ServerDuration:
+      - '00:00:00.0004194'
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      cache-control:
+      - private, no-cache, no-store
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - f4bc7115-59ca-4987-850c-bdc3a18b43ce
+      x-correlation-id:
+      - f4bc7115-59ca-4987-850c-bdc3a18b43ce
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 400
+      message: Bad Request
+version: 1

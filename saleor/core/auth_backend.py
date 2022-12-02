@@ -1,7 +1,8 @@
 from django.contrib.auth.backends import ModelBackend
 
 from ..account.models import User
-from .jwt import get_token_from_request, get_user_from_access_token
+from .auth import get_token_from_request
+from .jwt import get_user_from_access_token
 
 
 class JSONWebTokenBackend(ModelBackend):
@@ -45,3 +46,10 @@ class JSONWebTokenBackend(ModelBackend):
                 user_obj, perm_cache_name, {"%s.%s" % (ct, name) for ct, name in perms}
             )
         return getattr(user_obj, perm_cache_name)
+
+
+class PluginBackend(JSONWebTokenBackend):
+    def authenticate(self, request=None, **kwargs):
+        if request is None:
+            return None
+        return request.plugins.authenticate_user(request)

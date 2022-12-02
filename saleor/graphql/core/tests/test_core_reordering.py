@@ -1,9 +1,9 @@
 import pytest
 
-from ....product import models
+from ....attribute import models as attribute_models
 from ..utils.reordering import perform_reordering
 
-SortedModel = models.AttributeValue
+SortedModel = attribute_models.AttributeValue
 
 
 def _sorted_by_order(items):
@@ -18,7 +18,7 @@ def _get_sorted_map():
 
 @pytest.fixture
 def dummy_attribute():
-    return models.Attribute.objects.create(name="Dummy")
+    return attribute_models.Attribute.objects.create(name="Dummy")
 
 
 @pytest.fixture
@@ -169,12 +169,8 @@ def test_reordering_null_sort_orders(dummy_attribute):
     non_null_sorted_entries = list(
         qs.bulk_create(
             [
-                SortedModel(
-                    pk=1, attribute=attribute, slug="1", name="1", sort_order=1
-                ),
-                SortedModel(
-                    pk=2, attribute=attribute, slug="2", name="2", sort_order=0
-                ),
+                SortedModel(attribute=attribute, slug="1", name="1", sort_order=1),
+                SortedModel(attribute=attribute, slug="2", name="2", sort_order=0),
             ]
         )
     )
@@ -182,26 +178,20 @@ def test_reordering_null_sort_orders(dummy_attribute):
     null_sorted_entries = list(
         qs.bulk_create(
             [
-                SortedModel(
-                    pk=5, attribute=attribute, slug="5", name="5", sort_order=None
-                ),
-                SortedModel(
-                    pk=4, attribute=attribute, slug="4", name="4", sort_order=None
-                ),
-                SortedModel(
-                    pk=3, attribute=attribute, slug="3", name="3", sort_order=None
-                ),
+                SortedModel(attribute=attribute, slug="3", name="3", sort_order=None),
+                SortedModel(attribute=attribute, slug="4", name="4", sort_order=None),
+                SortedModel(attribute=attribute, slug="5", name="5", sort_order=None),
             ]
         )
     )
 
-    operations = {null_sorted_entries[0].pk: -2}
+    operations = {null_sorted_entries[2].pk: -2}
 
     expected = [
         (non_null_sorted_entries[1].pk, 0),
         (non_null_sorted_entries[0].pk, 1),
-        (null_sorted_entries[0].pk, 2),
-        (null_sorted_entries[2].pk, 3),
+        (null_sorted_entries[2].pk, 2),
+        (null_sorted_entries[0].pk, 3),
         (null_sorted_entries[1].pk, 4),
     ]
 
@@ -250,12 +240,8 @@ def test_reordering_concurrently(dummy_attribute, assert_num_queries):
     entries = list(
         qs.bulk_create(
             [
-                SortedModel(
-                    pk=1, attribute=attribute, slug="1", name="1", sort_order=0
-                ),
-                SortedModel(
-                    pk=2, attribute=attribute, slug="2", name="2", sort_order=1
-                ),
+                SortedModel(attribute=attribute, slug="1", name="1", sort_order=0),
+                SortedModel(attribute=attribute, slug="2", name="2", sort_order=1),
             ]
         )
     )
@@ -266,18 +252,21 @@ def test_reordering_concurrently(dummy_attribute, assert_num_queries):
         perform_reordering(qs, operations)
 
     assert ctx[0]["sql"] == (
-        'SELECT "product_attributevalue"."id", "product_attributevalue"."sort_order" '
-        'FROM "product_attributevalue" '
+        'SELECT "attribute_attributevalue"."id", '
+        '"attribute_attributevalue"."sort_order" '
+        'FROM "attribute_attributevalue" '
         "ORDER BY "
-        '"product_attributevalue"."sort_order" ASC NULLS LAST, '
-        '"product_attributevalue"."id" ASC FOR UPDATE'
+        '"attribute_attributevalue"."sort_order" ASC NULLS LAST, '
+        '"attribute_attributevalue"."id" ASC FOR UPDATE'
     )
     assert ctx[1]["sql"] == (
-        'UPDATE "product_attributevalue" '
-        'SET "sort_order" = (CASE WHEN ("product_attributevalue"."id" = 1) '
-        'THEN 1 WHEN ("product_attributevalue"."id" = 2) '
-        "THEN 0 ELSE NULL END)::integer "
-        'WHERE "product_attributevalue"."id" IN (1, 2)'
+        'UPDATE "attribute_attributevalue" '
+        'SET "sort_order" = '
+        f'CAST(CASE WHEN ("attribute_attributevalue"."id" = {entries[0].pk}) '
+        f'THEN 1 WHEN ("attribute_attributevalue"."id" = {entries[1].pk}) '
+        "THEN 0 ELSE NULL END AS integer) "
+        'WHERE "attribute_attributevalue"."id" '
+        f"IN ({entries[0].pk}, {entries[1].pk})"
     )
 
 
@@ -293,12 +282,8 @@ def test_reordering_deleted_node_from_concurrent(dummy_attribute, assert_num_que
     entries = list(
         qs.bulk_create(
             [
-                SortedModel(
-                    pk=1, attribute=attribute, slug="1", name="1", sort_order=0
-                ),
-                SortedModel(
-                    pk=2, attribute=attribute, slug="2", name="2", sort_order=1
-                ),
+                SortedModel(attribute=attribute, slug="1", name="1", sort_order=0),
+                SortedModel(attribute=attribute, slug="2", name="2", sort_order=1),
             ]
         )
     )
@@ -309,9 +294,10 @@ def test_reordering_deleted_node_from_concurrent(dummy_attribute, assert_num_que
         perform_reordering(qs, operations)
 
     assert ctx[1]["sql"] == (
-        'UPDATE "product_attributevalue" '
-        'SET "sort_order" = (CASE WHEN ("product_attributevalue"."id" = 1) '
-        'THEN 1 WHEN ("product_attributevalue"."id" = 2) '
-        "THEN 0 ELSE NULL END)::integer "
-        'WHERE "product_attributevalue"."id" IN (1, 2)'
+        'UPDATE "attribute_attributevalue" '
+        'SET "sort_order" = '
+        f'CAST(CASE WHEN ("attribute_attributevalue"."id" = {entries[0].pk}) '
+        f'THEN 1 WHEN ("attribute_attributevalue"."id" = {entries[1].pk}) '
+        "THEN 0 ELSE NULL END AS integer) "
+        f'WHERE "attribute_attributevalue"."id" IN ({entries[0].pk}, {entries[1].pk})'
     )

@@ -9,3 +9,4 @@ class InvoiceErrorCode(Enum):
     NUMBER_NOT_SET = "number_not_set"
     NOT_FOUND = "not_found"
     INVALID_STATUS = "invalid_status"
+    NO_INVOICE_PLUGIN = "no_invoice_plugin"

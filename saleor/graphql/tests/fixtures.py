@@ -1,5 +1,7 @@
 import json
 import logging
+from unittest import mock
+from unittest.mock import Mock
 
 import graphene
 import pytest
@@ -10,8 +12,9 @@ from django.test.client import MULTIPART_CONTENT, Client
 
 from ...account.models import User
 from ...core.jwt import create_access_token
+from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
-from ..views import handled_errors_logger, unhandled_errors_logger
+from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
 API_PATH = reverse("api")
@@ -35,8 +38,8 @@ class ApiClient(Client):
         if not user.is_anonymous:
             self.token = create_access_token(user)
         elif app:
-            token = app.tokens.first()
-            self.app_token = token.auth_token if token else None
+            _, auth_token = app.tokens.create(name="Default")
+            self.app_token = auth_token
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
@@ -91,7 +94,8 @@ class ApiClient(Client):
 
         if permissions:
             if check_no_permissions:
-                response = super().post(API_PATH, data, **kwargs)
+                with mock.patch("saleor.graphql.utils.handled_errors_logger"):
+                    response = super().post(API_PATH, data, **kwargs)
                 assert_no_permission(response)
             if self.app:
                 self.app.permissions.add(*permissions)
@@ -137,14 +141,24 @@ def user_api_client(customer_user):
 
 
 @pytest.fixture
+def user2_api_client(customer_user2):
+    return ApiClient(user=customer_user2)
+
+
+@pytest.fixture
 def api_client():
     return ApiClient(user=AnonymousUser())
 
 
 @pytest.fixture
 def schema_context():
-    params = {"user": AnonymousUser()}
+    params = {"user": AnonymousUser(), "app": None, "plugins": get_plugins_manager()}
     return graphene.types.Context(**params)
+
+
+@pytest.fixture
+def info(schema_context):
+    return Mock(context=schema_context)
 
 
 class LoggingHandler(logging.Handler):

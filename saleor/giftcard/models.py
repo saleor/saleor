@@ -1,40 +1,92 @@
-from datetime import date
+import os
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Q
+from django.db.models import JSONField, Q
+from django.utils import timezone
 from django_prices.models import MoneyField
 
+from ..app.models import App
+from ..core.models import ModelWithMetadata
 from ..core.permissions import GiftcardPermissions
+from ..core.utils.json_serializer import CustomJsonEncoder
+from . import GiftCardEvents
+
+
+class GiftCardTag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        ordering = ("name",)
+        indexes = [
+            GinIndex(
+                name="gift_card_tag_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["name"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
 
 class GiftCardQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=date),
-            start_date__lte=date,
+            Q(expiry_date__isnull=True) | Q(expiry_date__gte=date),
             is_active=True,
         )
 
 
-class GiftCard(models.Model):
+class GiftCard(ModelWithMetadata):
     code = models.CharField(max_length=16, unique=True, db_index=True)
-    user = models.ForeignKey(
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    used_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
         related_name="gift_cards",
     )
-    created = models.DateTimeField(auto_now_add=True)
-    start_date = models.DateField(default=date.today)
-    end_date = models.DateField(null=True, blank=True)
+    created_by_email = models.EmailField(null=True, blank=True)
+    used_by_email = models.EmailField(null=True, blank=True)
+    app = models.ForeignKey(
+        App,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    expiry_date = models.DateField(null=True, blank=True)
+
+    tags = models.ManyToManyField(GiftCardTag, "gift_cards")
+    created_at = models.DateTimeField(auto_now_add=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    product = models.ForeignKey(
+        "product.Product",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="gift_cards",
+    )
+    fulfillment_line = models.ForeignKey(
+        "order.FulfillmentLine",
+        related_name="gift_cards",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
+        default=os.environ.get("DEFAULT_CURRENCY", "USD"),
     )
 
     initial_balance_amount = models.DecimalField(
@@ -53,7 +105,7 @@ class GiftCard(models.Model):
         amount_field="current_balance_amount", currency_field="currency"
     )
 
-    objects = GiftCardQueryset.as_manager()
+    objects = models.Manager.from_queryset(GiftCardQueryset)()
 
     class Meta:
         ordering = ("code",)
@@ -63,4 +115,26 @@ class GiftCard(models.Model):
 
     @property
     def display_code(self):
-        return "****%s" % self.code[-4:]
+        return self.code[-4:]
+
+
+class GiftCardEvent(models.Model):
+    date = models.DateTimeField(default=timezone.now, editable=False)
+    type = models.CharField(max_length=255, choices=GiftCardEvents.CHOICES)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="gift_card_events",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    app = models.ForeignKey(
+        App, related_name="gift_card_events", on_delete=models.SET_NULL, null=True
+    )
+    order = models.ForeignKey("order.Order", null=True, on_delete=models.SET_NULL)
+    gift_card = models.ForeignKey(
+        GiftCard, related_name="events", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ("date",)

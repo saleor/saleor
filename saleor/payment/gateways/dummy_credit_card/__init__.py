@@ -4,12 +4,12 @@ from typing import Optional
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentMethodInfo
 
-TOKEN_PREAUTHORIZE_SUCCESS = "4111111111111112"
-TOKEN_PREAUTHORIZE_DECLINE = "4111111111111111"
-TOKEN_EXPIRED = "4000000000000069"
-TOKEN_INSUFFICIENT_FUNDS = "4000000000009995"
-TOKEN_INCORRECT_CVV = "4000000000000127"
-TOKEN_DECLINE = "4000000000000002"
+TOKEN_PREAUTHORIZE_SUCCESS = "1112"
+TOKEN_PREAUTHORIZE_DECLINE = "1111"
+TOKEN_EXPIRED = "0069"
+TOKEN_INSUFFICIENT_FUNDS = "9995"
+TOKEN_INCORRECT_CVV = "0127"
+TOKEN_DECLINE = "0002"
 
 PREAUTHORIZED_TOKENS = [TOKEN_PREAUTHORIZE_DECLINE, TOKEN_PREAUTHORIZE_SUCCESS]
 
@@ -47,7 +47,7 @@ def authorize(
         kind=TransactionKind.AUTH,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
         payment_method_info=PaymentMethodInfo(
             last_4="1234",
@@ -71,7 +71,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
         kind=TransactionKind.VOID,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
     )
 
@@ -87,7 +87,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
         payment_method_info=PaymentMethodInfo(
             last_4="1234",
@@ -113,7 +113,7 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
     )
 
@@ -129,7 +129,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         kind=TransactionKind.REFUND,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
     )
 

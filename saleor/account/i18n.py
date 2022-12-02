@@ -111,6 +111,7 @@ class AddressForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop("autocomplete_type", None)
+        self.enable_normalization = kwargs.pop("enable_normalization", True)
         super().__init__(*args, **kwargs)
         # countries order was taken as defined in the model,
         # not being sorted accordingly to the selected language
@@ -157,6 +158,8 @@ class CountryAwareAddressForm(AddressForm):
         ("country_code", ["country"]),
     ]
 
+    NOT_REQUIRED_FIELDS = ("street_address_2",)
+
     class Meta:
         model = Address
         exclude = []
@@ -166,6 +169,10 @@ class CountryAwareAddressForm(AddressForm):
         for field_name, error_code in errors.items():
             local_fields = field_mapping[field_name]
             for field in local_fields:
+
+                if field in self.NOT_REQUIRED_FIELDS:
+                    continue
+
                 try:
                     error_msg = self.fields[field].error_messages[error_code]
                 except KeyError:
@@ -180,8 +187,10 @@ class CountryAwareAddressForm(AddressForm):
                     data["street_address_1"],
                     data["street_address_2"],
                 )
-            data = i18naddress.normalize_address(data)
-            del data["sorting_code"]
+            normalized_data = i18naddress.normalize_address(data)
+            if getattr(self, "enable_normalization", True):
+                data = normalized_data
+                del data["sorting_code"]
         except i18naddress.InvalidAddress as exc:
             self.add_field_errors(exc.errors)
         return data
@@ -278,7 +287,7 @@ COUNTRY_CHOICES = [
     if code not in UNKNOWN_COUNTRIES
 ]
 # Sort choices list by country name
-COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])
+COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])  # type: ignore
 
 for country, label in COUNTRY_CHOICES:
     country_rules = i18naddress.get_validation_rules({"country_code": country})

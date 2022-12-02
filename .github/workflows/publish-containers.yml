@@ -6,12 +6,12 @@ on:
       # Matches stable and pre-releases
       - "[0-9]+.[0-9]+.[0-9]+*"
     branches:
-      - master
-      - ci/*
+      - main
+      - ci/**
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,6 +33,8 @@ jobs:
         id: tagged
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
+          set -x
+
           # Remove everything else than the tagged version
           VERSION=${GITHUB_REF#refs/tags/}
 
@@ -54,7 +56,9 @@ jobs:
           # Output the target tags
           echo "
           CONTAINER_TAGS=${TAGS}
-          NAMED_VERSION=${NAMED_VERSION}" >> "${GITHUB_ENV}"
+          NAMED_VERSION=${NAMED_VERSION}
+          VERSION=${VERSION}
+          " >> "${GITHUB_ENV}"
 
       # Outputs the containers tags for staging branches
       # Only publishes them onto Docker Hub
@@ -62,22 +66,26 @@ jobs:
         id: staging
         if: ${{ startsWith(github.ref, 'refs/heads/') }}
         run: |
+          set -x
+
           # Version name is the branch name
           # Slashes are substitued by dashes
-          NAMED_VERSION=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-          SHA=${GITHUB_SHA}
+          CLEAN_BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
 
-          # Target Docker Hub with the SHA value
-          # and branch name
+          # Target GHCR with the branch name as the tag, e.g. unstable-main
           TAGS=$"\
-          ${{ steps.image.outputs.image_name }}:${NAMED_VERSION},\
-          ${{ steps.image.outputs.image_name }}:sha-${SHA}\
+          ghcr.io/${{ steps.image.outputs.image_name }}:unstable-${CLEAN_BRANCH_NAME}
           "
+
+          # Set version name for open-containers version label as:
+          # <branch>-<drift>-g<6-digit-hash>
+          NAMED_VERSION=$(git describe --all --long | tr -d $'\n')
 
           # Output the target tags
           echo "
           CONTAINER_TAGS=${TAGS}
-          NAMED_VERSION=${NAMED_VERSION}" >> "${GITHUB_ENV}"
+          NAMED_VERSION=${NAMED_VERSION}
+          " >> "${GITHUB_ENV}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -94,17 +102,9 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Login to DockerHub
-        if: ${{ startsWith(github.ref, 'refs/heads/') }}
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+            ${{ runner.os }}-buildx-${{ hashFiles('requirements_dev.txt') }}
 
       - name: Login to GitHub Container Registry
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
@@ -117,13 +117,13 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.CONTAINER_TAGS }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: |
-            VERSION=${{ env.NAMED_VERSION }}
+            PROJECT_VERSION=${{ env.NAMED_VERSION }}
             COMMIT_ID=${{ github.sha }}
 
       - name: Image digest
@@ -131,3 +131,18 @@ jobs:
           echo $"\
             Digest: ${{ steps.docker_build.outputs.digest }}
             Tags: ${{ env.CONTAINER_TAGS }}"
+
+      - name: Trigger staging deployments for tagged release
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          curl -f -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
+            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
+            -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"$VERSION\"}}"
+
+          curl -f -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
+            https://api.github.com/repos/saleor/saleor-cloud-deployments/dispatches \
+            -d "{\"event_type\":\"deploy-demo-staging\",\"client_payload\":{\"version\":\"$VERSION\"}}"

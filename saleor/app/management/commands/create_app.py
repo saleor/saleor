@@ -40,7 +40,11 @@ class Command(BaseCommand):
 
     def send_app_data(self, target_url, data: Dict[str, Any]):
         domain = Site.objects.get_current().domain
-        headers = {"x-saleor-domain": domain}
+        headers = {
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "x-saleor-domain": domain,
+            "saleor-domain": domain,
+        }
         try:
             response = requests.post(target_url, json=data, headers=headers, timeout=15)
         except RequestException as e:
@@ -55,9 +59,9 @@ class Command(BaseCommand):
         permissions = clean_permissions(permissions)
         app = App.objects.create(name=name, is_active=is_active)
         app.permissions.set(permissions)
-        token_obj = app.tokens.create()
+        _, auth_token = app.tokens.create()
         data = {
-            "auth_token": token_obj.auth_token,
+            "auth_token": auth_token,
         }
         if target_url:
             self.send_app_data(target_url, data)

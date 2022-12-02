@@ -4,14 +4,19 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from ....attribute.utils import associate_attribute_values_to_instance
+from ....product import ProductTypeKind
 from ....product.models import (
     Category,
     Collection,
+    CollectionChannelListing,
     Product,
+    ProductChannelListing,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
-from ....product.utils.attributes import associate_attribute_values_to_instance
+from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -106,12 +111,18 @@ QUERY_CATEGORIES_PAGINATION = """
     ],
 )
 def test_categories_pagination_with_sorting(
-    sort_by, categories_order, staff_api_client, categories_for_pagination,
+    sort_by,
+    categories_order,
+    staff_api_client,
+    categories_for_pagination,
 ):
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_CATEGORIES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_CATEGORIES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
     assert categories_order[0] == categories_nodes[0]["node"]["name"]
@@ -129,12 +140,18 @@ def test_categories_pagination_with_sorting(
     ],
 )
 def test_categories_pagination_with_filtering(
-    filter_by, categories_order, staff_api_client, categories_for_pagination,
+    filter_by,
+    categories_order,
+    staff_api_client,
+    categories_for_pagination,
 ):
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_CATEGORIES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_CATEGORIES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
     assert categories_order[0] == categories_nodes[0]["node"]["name"]
@@ -143,33 +160,38 @@ def test_categories_pagination_with_filtering(
 
 
 @pytest.fixture
-def collections_for_pagination(product, product_with_single_variant):
+def collections_for_pagination(product, product_with_single_variant, channel_USD):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Collection1", slug="col1", is_published=True),
-            Collection(
-                name="CollectionCollection1", slug="col_col1", is_published=True
-            ),
-            Collection(
-                name="CollectionCollection2", slug="col_col2", is_published=False
-            ),
-            Collection(name="Collection2", slug="col2", is_published=False),
-            Collection(name="Collection3", slug="col3", is_published=True),
+            Collection(name="Collection1", slug="col1"),
+            Collection(name="CollectionCollection1", slug="col_col1"),
+            Collection(name="CollectionCollection2", slug="col_col2"),
+            Collection(name="Collection2", slug="col2"),
+            Collection(name="Collection3", slug="col3"),
         ]
     )
     collections[2].products.add(product)
     collections[4].products.add(product_with_single_variant)
+    published = (True, True, False, False, True)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, is_published=published[num], collection=collection
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
     return collections
 
 
 QUERY_COLLECTIONS_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String, $channel: String,
         $sortBy: CollectionSortingInput, $filter: CollectionFilterInput
     ){
         collections (
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -217,10 +239,15 @@ def test_collections_pagination_with_sorting(
     staff_api_client,
     permission_manage_products,
     collections_for_pagination,
+    channel_USD,
 ):
     page_size = 3
-
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,
         variables,
@@ -253,10 +280,15 @@ def test_collections_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     collections_for_pagination,
+    channel_USD,
 ):
     page_size = 2
-
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,
         variables,
@@ -271,8 +303,12 @@ def test_collections_pagination_with_filtering(
 
 
 @pytest.fixture
-def products_for_pagination(product_type, color_attribute, category, warehouse):
-    product_type2 = ProductType.objects.create(name="Apple")
+def products_for_pagination(
+    product_type, color_attribute, category, warehouse, channel_USD
+):
+    product_type2 = ProductType.objects.create(
+        name="Apple", kind=ProductTypeKind.NORMAL
+    )
     products = Product.objects.bulk_create(
         [
             Product(
@@ -280,38 +316,61 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 slug="prod1",
                 category=category,
                 product_type=product_type2,
-                is_published=True,
-                description="desc1",
+                description=dummy_editorjs("Test description 1."),
             ),
             Product(
                 name="ProductProduct1",
                 slug="prod_prod1",
                 category=category,
                 product_type=product_type,
-                is_published=False,
             ),
             Product(
                 name="ProductProduct2",
                 slug="prod_prod2",
                 category=category,
                 product_type=product_type2,
-                is_published=True,
             ),
             Product(
                 name="Product2",
                 slug="prod2",
                 category=category,
                 product_type=product_type,
-                is_published=False,
-                description="desc2",
+                description=dummy_editorjs("Test description 2."),
             ),
             Product(
                 name="Product3",
                 slug="prod3",
                 category=category,
                 product_type=product_type2,
+                description=dummy_editorjs("Test description 3."),
+            ),
+        ]
+    )
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=products[0],
+                channel=channel_USD,
                 is_published=True,
-                description="desc3",
+                discounted_price_amount=Decimal(5),
+            ),
+            ProductChannelListing(
+                product=products[1],
+                channel=channel_USD,
+                is_published=True,
+                discounted_price_amount=Decimal(15),
+            ),
+            ProductChannelListing(
+                product=products[2],
+                channel=channel_USD,
+                is_published=False,
+                discounted_price_amount=Decimal(4),
+            ),
+            ProductChannelListing(
+                product=products[3],
+                channel=channel_USD,
+                is_published=True,
+                discounted_price_amount=Decimal(7),
             ),
         ]
     )
@@ -330,31 +389,54 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 product=products[0],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=Decimal(10),
             ),
             ProductVariant(
                 product=products[1],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=Decimal(15),
             ),
             ProductVariant(
                 product=products[2],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=Decimal(8),
             ),
             ProductVariant(
                 product=products[3],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=Decimal(7),
             ),
             ProductVariant(
                 product=products[4],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+            ),
+        ]
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
                 price_amount=Decimal(15),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[2],
+                channel=channel_USD,
+                price_amount=Decimal(8),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[3],
+                channel=channel_USD,
+                price_amount=Decimal(7),
+                currency=channel_USD.currency_code,
             ),
         ]
     )
@@ -371,12 +453,12 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
 
 QUERY_PRODUCTS_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String, $channel: String,
         $sortBy: ProductOrder, $filter: ProductFilterInput
     ){
         products (
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -404,16 +486,8 @@ QUERY_PRODUCTS_PAGINATION = """
             ["ProductProduct2", "ProductProduct1", "Product3"],
         ),
         (
-            {"field": "PRICE", "direction": "ASC"},
-            ["Product2", "ProductProduct2", "Product1"],
-        ),
-        (
             {"field": "TYPE", "direction": "ASC"},
             ["Product1", "Product3", "ProductProduct2"],
-        ),
-        (
-            {"field": "PUBLISHED", "direction": "ASC"},
-            ["Product2", "ProductProduct1", "Product1"],
         ),
     ],
 )
@@ -441,11 +515,59 @@ def test_products_pagination_with_sorting(
     assert len(products_nodes) == page_size
 
 
+@pytest.mark.parametrize(
+    "sort_by, products_order",
+    [
+        (
+            {"field": "PUBLISHED", "direction": "ASC"},
+            ["ProductProduct2", "Product1", "Product2"],
+        ),
+        (
+            {"field": "PRICE", "direction": "ASC"},
+            ["Product2", "ProductProduct2", "Product1"],
+        ),
+        (
+            {"field": "MINIMAL_PRICE", "direction": "ASC"},
+            ["ProductProduct2", "Product1", "Product2"],
+        ),
+    ],
+)
+def test_products_pagination_with_sorting_and_channel(
+    sort_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    channel_USD,
+):
+    page_size = 3
+
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert products_order[2] == products_nodes[2]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
 def test_products_pagination_with_sorting_by_attribute(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
     color_attribute,
+    channel_USD,
 ):
     page_size = 3
     products_order = ["Product2", "ProductProduct1", "Product1"]
@@ -468,7 +590,7 @@ def test_products_pagination_with_sorting_by_attribute(
 
 
 def test_products_pagination_for_products_with_the_same_names_two_pages(
-    staff_api_client, permission_manage_products, category, product_type
+    staff_api_client, permission_manage_products, category, product_type, channel_USD
 ):
     products = Product.objects.bulk_create(
         [
@@ -477,21 +599,18 @@ def test_products_pagination_for_products_with_the_same_names_two_pages(
                 slug="prod-1",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-2",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-3",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
         ]
     )
@@ -533,7 +652,7 @@ def test_products_pagination_for_products_with_the_same_names_two_pages(
 
 
 def test_products_pagination_for_products_with_the_same_names_one_page(
-    staff_api_client, permission_manage_products, category, product_type
+    staff_api_client, permission_manage_products, category, product_type, channel_USD
 ):
     products = Product.objects.bulk_create(
         [
@@ -542,21 +661,18 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
                 slug="prod-1",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-2",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-3",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
         ]
     )
@@ -584,9 +700,11 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
 @pytest.mark.parametrize(
     "filter_by, products_order",
     [
-        ({"isPublished": False}, ["Product2", "ProductProduct1"]),
-        ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
-        ({"stockAvailability": "OUT_OF_STOCK"}, ["ProductProduct1", "ProductProduct2"]),
+        ({"hasCategory": True}, ["Product1", "Product2"]),
+        (
+            {"stockAvailability": "OUT_OF_STOCK"},
+            ["Product2", "ProductProduct1"],
+        ),
     ],
 )
 def test_products_pagination_with_filtering(
@@ -595,10 +713,52 @@ def test_products_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
+    channel_USD,
 ):
     page_size = 2
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == page_size
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+
+
+@pytest.mark.parametrize(
+    "filter_by, products_order",
+    [
+        ({"isPublished": True}, ["Product1", "Product2"]),
+        ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
+    ],
+)
+def test_products_pagination_with_filtering_and_channel(
+    filter_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    channel_USD,
+):
+    page_size = 2
+
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,
@@ -613,13 +773,20 @@ def test_products_pagination_with_filtering(
 
 
 def test_products_pagination_with_filtering_by_attribute(
-    staff_api_client, permission_manage_products, products_for_pagination,
+    staff_api_client, permission_manage_products, products_for_pagination, channel_USD
 ):
     page_size = 2
     products_order = ["Product2", "ProductProduct1"]
-    filter_by = {"attributes": [{"slug": "color", "values": ["red", "blue"]}]}
+    filter_by = {
+        "attributes": [{"slug": "color", "values": ["red", "blue"]}],
+    }
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,
@@ -634,7 +801,11 @@ def test_products_pagination_with_filtering_by_attribute(
 
 
 def test_products_pagination_with_filtering_by_product_types(
-    staff_api_client, permission_manage_products, products_for_pagination, product_type
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    product_type,
+    channel_USD,
 ):
     page_size = 2
     products_order = ["Product2", "ProductProduct1"]
@@ -656,7 +827,11 @@ def test_products_pagination_with_filtering_by_product_types(
 
 
 def test_products_pagination_with_filtering_by_stocks(
-    staff_api_client, permission_manage_products, products_for_pagination, warehouse
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    warehouse,
+    channel_USD,
 ):
     page_size = 2
     products_order = ["ProductProduct1", "ProductProduct2"]
@@ -764,7 +939,10 @@ QUERY_PRODUCT_TYPES_PAGINATION = """
     ],
 )
 def test_product_types_pagination_with_sorting(
-    sort_by, product_types_order, staff_api_client, product_types_for_pagination,
+    sort_by,
+    product_types_order,
+    staff_api_client,
+    product_types_for_pagination,
 ):
     page_size = 3
 
@@ -787,19 +965,28 @@ def test_product_types_pagination_with_sorting(
         ),
         ({"search": "ProductType1"}, ["ProductType1", "ProductTypeProductType1"]),
         ({"search": "pt_pt"}, ["ProductTypeProductType1", "ProductTypeProductType2"]),
-        ({"productType": "DIGITAL"}, ["ProductType1", "ProductType3"],),
+        (
+            {"productType": "DIGITAL"},
+            ["ProductType1", "ProductType3"],
+        ),
         ({"productType": "SHIPPABLE"}, ["ProductType2", "ProductTypeProductType2"]),
         ({"configurable": "CONFIGURABLE"}, ["ProductType1", "ProductTypeProductType1"]),
         ({"configurable": "SIMPLE"}, ["ProductType2", "ProductType3"]),
     ],
 )
 def test_product_types_pagination_with_filtering(
-    filter_by, product_types_order, staff_api_client, product_types_for_pagination,
+    filter_by,
+    product_types_order,
+    staff_api_client,
+    product_types_for_pagination,
 ):
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_PRODUCT_TYPES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_TYPES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     product_types_nodes = content["data"]["productTypes"]["edges"]
     assert product_types_order[0] == product_types_nodes[0]["node"]["name"]
