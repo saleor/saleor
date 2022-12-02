@@ -209,3 +209,116 @@ def test_order_update_user_email_existing_user(
     assert order.billing_address.last_name == graphql_address_data["lastName"]
     assert order.user_email == email
     assert order.user == customer_user
+
+
+ORDER_UPDATE_BY_EXTERNAL_REFERENCE = """
+    mutation orderUpdate(
+        $id: ID
+        $externalReference: String
+        $input: OrderUpdateInput!
+    ) {
+        orderUpdate(
+            id: $id
+            externalReference: $externalReference
+            input: $input
+        ) {
+            errors {
+                field
+                message
+                code
+            }
+            order {
+                id
+                externalReference
+                shippingAddress {
+                    firstName
+                }
+            }
+        }
+    }
+    """
+
+
+def test_order_update_by_external_reference(
+    staff_api_client, permission_manage_orders, order, graphql_address_data
+):
+    # given
+    query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+
+    assert not order.shipping_address.first_name == graphql_address_data["firstName"]
+    variables = {
+        "externalReference": ext_ref,
+        "input": {"shippingAddress": graphql_address_data},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["externalReference"] == ext_ref
+    assert data["order"]["id"] == graphene.Node.to_global_id("Order", order.id)
+    assert (
+        data["order"]["shippingAddress"]["firstName"]
+        == graphql_address_data["firstName"]
+    )
+    order.refresh_from_db()
+    assert order.shipping_address.first_name == graphql_address_data["firstName"]
+
+
+def test_order_update_by_both_id_and_external_reference(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    # given
+    query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    variables = {
+        "id": "test-id",
+        "externalReference": "test-ext-ref",
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderUpdate"]
+    assert not data["order"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_order_update_by_external_reference_not_existing(
+    staff_api_client, permission_manage_orders, draft_order, voucher_free_shipping
+):
+    # given
+    query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "externalReference": ext_ref,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderUpdate"]
+    assert not data["order"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"

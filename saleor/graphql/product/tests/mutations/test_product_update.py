@@ -2830,3 +2830,29 @@ def test_update_product_by_both_id_and_external_reference(
         data["errors"][0]["message"]
         == "Argument 'id' cannot be combined with 'external_reference'"
     )
+
+
+def test_update_product_external_reference_not_existing(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "externalReference": ext_ref,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+
+    # then
+    assert data["errors"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"

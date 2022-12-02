@@ -4,6 +4,7 @@ import secrets
 from typing import Union
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphene import ObjectType
 from graphql.error import GraphQLError
 
@@ -104,4 +105,10 @@ def ext_ref_to_global_id_or_error(model, ext_ref):
     if internal_id:
         return graphene.Node.to_global_id(model.__name__, internal_id)
     else:
-        raise GraphQLError(f"Can't find external reference '{ext_ref}'.")
+        raise ValidationError(
+            {
+                "externalReference": ValidationError(
+                    f"Couldn't resolve to a node: {ext_ref}", code="not_found"
+                )
+            }
+        )

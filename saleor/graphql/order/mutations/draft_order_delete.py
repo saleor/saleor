@@ -5,15 +5,18 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
-from ...core.mutations import ModelDeleteMutation
+from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
 
 
-class DraftOrderDelete(ModelDeleteMutation):
+class DraftOrderDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a draft order to delete.")
+        id = graphene.ID(required=False, description="ID of a product to delete.")
+        external_reference = graphene.String(
+            required=False, description="External ID of a product to delete."
+        )
 
     class Meta:
         description = "Deletes a draft order."

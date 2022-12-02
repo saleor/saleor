@@ -606,7 +606,7 @@ class ModelMutation(BaseMutation):
         return cls._meta.object_type
 
     @classmethod
-    def get_object_id(cls, **data):
+    def get_object_by_id_or_ext_ref(cls, **data):
         """Resolve object id by given id or external reference."""
         object_id, ext_ref = data.get("id"), data.get("external_reference")
         validate_one_of_args_is_in_mutation(
@@ -664,7 +664,7 @@ class ModelMutation(BaseMutation):
         return cls.success_response(instance)
 
 
-class ModelWithExtRefUpdateMutation(ModelMutation):
+class ModelWithExtRefMutation(ModelMutation):
     class Meta:
         abstract = True
 
@@ -674,13 +674,11 @@ class ModelWithExtRefUpdateMutation(ModelMutation):
 
         The expected graphene type can be lazy (str).
         """
-        object_id = cls.get_object_id(**data)
+        object_id = cls.get_object_by_id_or_ext_ref(**data)
         qs = data.get("qs")
         if object_id:
             model_type = cls.get_type_for_model()
             return cls.get_node_or_error(info, object_id, only_type=model_type, qs=qs)
-
-        return cls._meta.model()
 
 
 class ModelDeleteMutation(ModelMutation):
@@ -698,7 +696,7 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        node_id = cls.get_object_id(**data)
+        node_id = cls.get_object_by_id_or_ext_ref(**data)
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 

@@ -642,10 +642,13 @@ type Query {
     last: Int
   ): OrderEventCountableConnection
 
-  """Look up an order by ID."""
+  """Look up an order by ID or external reference."""
   order(
     """ID of an order."""
-    id: ID!
+    id: ID
+
+    """External ID of an order."""
+    externalReference: String
   ): Order
 
   """
@@ -9446,6 +9449,13 @@ type Order implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
+
+  """
+  External id of this order. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """An enumeration."""
@@ -12440,7 +12450,7 @@ type Mutation {
     """External ID of a product to delete."""
     externalReference: String
 
-    """Internal ID of a product to delete."""
+    """ID of a product to delete."""
     id: ID
   ): ProductDelete
 
@@ -12463,7 +12473,7 @@ type Mutation {
     """External ID of a product to update."""
     externalReference: String
 
-    """Internal ID of a product to update."""
+    """ID of a product to update."""
     id: ID
 
     """Fields required to update a product."""
@@ -12801,7 +12811,7 @@ type Mutation {
     """External ID of a product to update."""
     externalReference: String
 
-    """Internal ID of a product to update."""
+    """ID of a product to update."""
     id: ID
 
     """Fields required to update a product variant."""
@@ -13226,8 +13236,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderDelete(
-    """ID of a draft order to delete."""
-    id: ID!
+    """External ID of a product to delete."""
+    externalReference: String
+
+    """ID of a product to delete."""
+    id: ID
   ): DraftOrderDelete
 
   """
@@ -13256,8 +13269,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderUpdate(
+    """External ID of a draft order to update."""
+    externalReference: String
+
     """ID of a draft order to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an order."""
     input: DraftOrderInput!
@@ -13519,8 +13535,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderUpdate(
+    """External ID of an order to update."""
+    externalReference: String
+
     """ID of an order to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an order."""
     input: OrderUpdateInput!

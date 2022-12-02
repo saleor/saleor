@@ -91,3 +91,32 @@ def test_draft_order_delete_non_draft_order(
     assert len(account_errors) == 1
     assert account_errors[0]["field"] == "id"
     assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
+def test_draft_order_delete_by_external_reference(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    # given
+    order = draft_order
+    query = """
+        mutation draftDelete($externalReference: String) {
+            draftOrderDelete(externalReference: $externalReference) {
+                order {
+                    id
+                }
+            }
+        }
+        """
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    with pytest.raises(order._meta.model.DoesNotExist):
+        order.refresh_from_db()

@@ -12,7 +12,7 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....core.descriptions import ADDED_IN_38
-from ....core.mutations import ModelWithExtRefUpdateMutation
+from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
@@ -23,11 +23,9 @@ from .product_variant_create import ProductVariantCreate, ProductVariantInput
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefUpdateMutation):
+class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(
-            required=False, description="Internal ID of a product to update."
-        )
+        id = graphene.ID(required=False, description="ID of a product to update.")
         external_reference = graphene.String(
             required=False, description="External ID of a product to update."
         )

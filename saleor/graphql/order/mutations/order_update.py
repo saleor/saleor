@@ -10,6 +10,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import invalidate_order_prices
 from ...account.types import AddressInput
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
@@ -22,9 +23,12 @@ class OrderUpdateInput(graphene.InputObjectType):
     shipping_address = AddressInput(description="Shipping address of the customer.")
 
 
-class OrderUpdate(DraftOrderCreate):
+class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an order to update.")
+        id = graphene.ID(required=False, description="ID of an order to update.")
+        external_reference = graphene.String(
+            required=False, description="External ID of an order to update."
+        )
         input = OrderUpdateInput(
             required=True, description="Fields required to update an order."
         )

@@ -277,18 +277,7 @@ def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
     assert data["errors"][0]["code"] == "NOT_FOUND"
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_update_product_variant_by_external_reference(
-    product_variant_updated_webhook_mock,
-    product_variant_created_webhook_mock,
-    staff_api_client,
-    product,
-    size_attribute,
-    permission_manage_products,
-):
-    #   given
-    query = """
+UPDATE_VARIANT_BY_EXTERNAL_REFERENCE = """
      mutation updateVariant ($id: ID, $externalReference: String, $newSku: String) {
         productVariantUpdate(
             id: $id,
@@ -306,6 +295,20 @@ def test_update_product_variant_by_external_reference(
         }
     }
     """
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_product_variant_by_external_reference(
+    product_variant_updated_webhook_mock,
+    product_variant_created_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    #   given
+    query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
 
     ext_ref = "test-ext-ref"
     new_sku = "new-test-sku"
@@ -338,6 +341,54 @@ def test_update_product_variant_by_external_reference(
         product.variants.last()
     )
     product_variant_created_webhook_mock.assert_not_called()
+
+
+def test_update_product_variant_by_both_id_and_external_reference(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    #   given
+    query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
+
+    variables = {"externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert (
+        errors[0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_product_variant_by_external_reference_not_existing(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    #   given
+    query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
+
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
 
 
 def test_update_product_variant_with_negative_weight(

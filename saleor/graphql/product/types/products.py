@@ -1751,10 +1751,6 @@ class ProductType(ModelObjectType):
             ProductType, roots, models.ProductType.objects
         )
 
-    @staticmethod
-    def resolve_external_reference(root: models.Product, _info):
-        return root.external_reference
-
 
 class ProductTypeCountableConnection(CountableConnection):
     class Meta:
