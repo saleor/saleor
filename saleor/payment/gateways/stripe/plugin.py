@@ -465,12 +465,11 @@ class StripeGatewayPlugin(BasePlugin):
     @classmethod
     def pre_save_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         configuration = plugin_configuration.configuration
-        flat_configuration = {item["name"]: item["value"] for item in configuration}
+        flat_configuration = {item["name"]: item for item in configuration}
 
-        api_key = flat_configuration["secret_api_key"]
-        webhook_id = flat_configuration.get("webhook_endpoint_id")
-        webhook_secret = flat_configuration.get("webhook_secret_key")
-
+        api_key = flat_configuration["secret_api_key"]["value"]
+        webhook_id = flat_configuration.get("webhook_endpoint_id", {}).get("value")
+        webhook_secret_data = flat_configuration.get("webhook_secret_key", {})
         if not plugin_configuration.active:
             if webhook_id:
                 # delete all webhook details when we disable a stripe integration.
@@ -481,12 +480,8 @@ class StripeGatewayPlugin(BasePlugin):
                 ][0]
                 webhook_id_field["value"] = ""
 
-                plugin_configuration.configuration.remove(
-                    {
-                        "name": "webhook_secret_key",
-                        "value": webhook_secret,
-                    }
-                )
+                if webhook_secret_data:
+                    plugin_configuration.configuration.remove(webhook_secret_data)
                 delete_webhook(api_key, webhook_id)
 
             return
@@ -510,7 +505,7 @@ class StripeGatewayPlugin(BasePlugin):
             return
 
         webhook = None
-        if not webhook_id and not webhook_secret:
+        if not webhook_id and not webhook_secret_data.get("value"):
             webhook = subscribe_webhook(
                 api_key, plugin_configuration.channel.slug  # type: ignore
             )
@@ -553,8 +548,8 @@ class StripeGatewayPlugin(BasePlugin):
                             "The parameter is required.",
                             code=PluginErrorCode.REQUIRED.value,
                         )
+                        for field in required_fields
                     }
-                    for field in required_fields
                 )
 
             api_key = configuration["secret_api_key"]
