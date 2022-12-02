@@ -140,6 +140,30 @@ def test_save_plugin_configuration_skips_new_field_when_doesnt_exsist_in_conf_st
     assert not configuration_dict.get("Token")
 
 
+def test_save_plugin_do_not_remove_the_existing_fields(plugin_configuration):
+    # given
+    not_public_field = "not-public-field"
+    not_public_value = "not-public-value"
+    plugin_configuration.configuration.append(
+        {"name": not_public_field, "value": not_public_value}
+    )
+    plugin_configuration.save()
+    cleaned_data = {"configuration": [{"name": "Token", "value": "token-data"}]}
+
+    # when
+    PluginSample.save_plugin_configuration(plugin_configuration, cleaned_data)
+
+    # then
+    plugin_configuration.refresh_from_db()
+    configuration = plugin_configuration.configuration
+    configuration_dict = {
+        c_field["name"]: c_field["value"] for c_field in configuration
+    }
+
+    assert configuration_dict.get(not_public_field)
+    assert configuration_dict[not_public_field] == not_public_value
+
+
 def test_base_plugin__update_configuration_structure_when_old_config_is_empty(
     plugin_configuration,
 ):
