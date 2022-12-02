@@ -1725,6 +1725,25 @@ def test_customer_create_with_not_allowed_url(
     assert not staff_user
 
 
+def test_customer_create_with_upper_case_email(
+    staff_api_client, permission_manage_users
+):
+    # given
+    email = "UPPERCASE@example.com"
+    variables = {"email": email}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerCreate"]
+    assert not data["errors"]
+    assert data["user"]["email"] == email.lower()
+
+
 def test_customer_update(
     staff_api_client, staff_user, customer_user, address, permission_manage_users
 ):
@@ -3120,6 +3139,25 @@ def test_staff_create_with_not_allowed_url(
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
+
+
+def test_staff_create_with_upper_case_email(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    email = "api_user@example.com"
+    variables = {"email": email}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["staffCreate"]
+    assert not data["errors"]
+    assert data["user"]["email"] == email.lower()
 
 
 STAFF_UPDATE_MUTATIONS = """

@@ -482,6 +482,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                     {"redirect_url": error}, code=AccountErrorCode.INVALID
                 )
 
+        email = cleaned_input.get("email")
+        if email:
+            cleaned_input["email"] = email.lower()
+
         return cleaned_input
 
     @classmethod
