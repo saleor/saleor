@@ -278,48 +278,6 @@ class ProductVariantCreate(ModelMutation):
             )
 
     @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation.
-
-        If we are updating an instance and want to update its attributes,
-        # prefetch them.
-        """
-
-        object_id = data.get("id")
-        object_sku = data.get("sku")
-        attributes = data.get("attributes")
-
-        if attributes:
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product__product_type__variant_attributes__values",
-                "product__product_type__attributevariant",
-            )
-        else:
-            # Use the default queryset.
-            qs = models.ProductVariant.objects.all()
-
-        if object_id:
-            return cls.get_node_or_error(
-                info, object_id, only_type="ProductVariant", qs=qs
-            )
-        elif object_sku:
-            instance = qs.filter(sku=object_sku).first()
-            if not instance:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            f"Couldn't resolve to a node: {object_sku}",
-                            code="not_found",
-                        )
-                    }
-                )
-            return instance
-        else:
-            return cls._meta.model()
-
-    @classmethod
     def save(cls, info, instance, cleaned_input):
         new_variant = instance.pk is None
         with traced_atomic_transaction():

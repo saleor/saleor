@@ -102,6 +102,7 @@ from .resolvers import (
     resolve_product_by_slug,
     resolve_product_type_by_id,
     resolve_product_types,
+    resolve_product_variant_by_external_reference,
     resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
@@ -258,6 +259,9 @@ class ProductQueries(graphene.ObjectType):
         ),
         sku=graphene.Argument(
             graphene.String, description="Sku of the product variant."
+        ),
+        external_reference=graphene.Argument(
+            graphene.String, description="External ID of the product."
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -460,9 +464,12 @@ class ProductQueries(graphene.ObjectType):
         *,
         id=None,
         sku=None,
+        external_reference=None,
         channel=None,
     ):
-        validate_one_of_args_is_in_query("id", id, "sku", sku)
+        validate_one_of_args_is_in_query(
+            "id", id, "sku", sku, "external_reference", external_reference
+        )
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -479,7 +486,7 @@ class ProductQueries(graphene.ObjectType):
                 requestor=requestor,
                 requestor_has_access_to_all=has_required_permissions,
             )
-        else:
+        elif sku:
             variant = resolve_product_variant_by_sku(
                 info,
                 sku=sku,
@@ -487,6 +494,15 @@ class ProductQueries(graphene.ObjectType):
                 requestor=requestor,
                 requestor_has_access_to_all=has_required_permissions,
             )
+        else:
+            variant = resolve_product_variant_by_external_reference(
+                info,
+                external_reference=external_reference,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=has_required_permissions,
+            )
+
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     @staticmethod

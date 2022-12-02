@@ -445,3 +445,52 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
     mocked_recalculate_orders_task.assert_not_called()
     product.refresh_from_db()
     assert product.channel_listings.count() == product_channel_listing_count
+
+
+DELETE_VARIANT_BY_EXTERNAL_REFERENCE = """
+    mutation variantDelete($externalReference: String) {
+        productVariantDelete(externalReference: $externalReference) {
+            productVariant {
+                externalReference
+                id
+            }
+        }
+    }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_variant_by_external_reference(
+    mocked_recalculate_orders_task,
+    product_variant_deleted_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    ext_ref = "test-ext-ref"
+    variant = product.variants.first()
+    variant.external_reference = ext_ref
+    variant.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_VARIANT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantDelete"]
+
+    # then
+    product_variant_deleted_webhook_mock.assert_called_once_with(variant)
+    assert data["productVariant"]["externalReference"] == ext_ref
+    assert data["productVariant"]["id"] == graphene.Node.to_global_id(
+        variant._meta.model.__name__, variant.id
+    )
+    with pytest.raises(variant._meta.model.DoesNotExist):
+        variant.refresh_from_db()
+    mocked_recalculate_orders_task.assert_not_called()

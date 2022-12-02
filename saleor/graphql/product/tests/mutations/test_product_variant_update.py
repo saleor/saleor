@@ -277,6 +277,69 @@ def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
     assert data["errors"][0]["code"] == "NOT_FOUND"
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_product_variant_by_external_reference(
+    product_variant_updated_webhook_mock,
+    product_variant_created_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    #   given
+    query = """
+     mutation updateVariant ($id: ID, $externalReference: String, $newSku: String) {
+        productVariantUpdate(
+            id: $id,
+            externalReference: $externalReference,
+            input: {sku: $newSku}
+            ) {
+            productVariant {
+                id
+                sku
+                externalReference
+            }
+            errors {
+              message
+            }
+        }
+    }
+    """
+
+    ext_ref = "test-ext-ref"
+    new_sku = "new-test-sku"
+    variant = product.variants.first()
+    variant.external_reference = ext_ref
+    variant.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": ext_ref,
+        "newSku": new_sku,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]
+
+    # then
+    assert not data["errors"]
+    assert data["productVariant"]["sku"] == new_sku
+    assert data["productVariant"]["externalReference"] == ext_ref
+    assert data["productVariant"]["id"] == graphene.Node.to_global_id(
+        variant._meta.model.__name__, variant.id
+    )
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_created_webhook_mock.assert_not_called()
+
+
 def test_update_product_variant_with_negative_weight(
     staff_api_client, product, permission_manage_products
 ):

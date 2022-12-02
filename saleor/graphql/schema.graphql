@@ -459,6 +459,9 @@ type Query {
     """Sku of the product variant."""
     sku: String
 
+    """External ID of the product."""
+    externalReference: String
+
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
@@ -4896,7 +4899,11 @@ type Product implements Node & ObjectWithMetadata {
   """
   taxClass: TaxClass
 
-  """External id of this product."""
+  """
+  External id of this product. 
+  
+  Added in Saleor 3.10.
+  """
   externalReference: String
 }
 
@@ -5928,6 +5935,13 @@ type ProductVariant implements Node & ObjectWithMetadata {
   preorder: PreorderData
   created: DateTime!
   updatedAt: DateTime!
+
+  """
+  External id of this product. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """Represents product varaint channel listing."""
@@ -12689,6 +12703,9 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantDelete(
+    """External ID of a product variant to update."""
+    externalReference: String
+
     """ID of a product variant to delete."""
     id: ID
 
@@ -12781,7 +12798,10 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantUpdate(
-    """ID of a product variant to update."""
+    """External ID of a product to update."""
+    externalReference: String
+
+    """Internal ID of a product to update."""
     id: ID
 
     """Fields required to update a product variant."""

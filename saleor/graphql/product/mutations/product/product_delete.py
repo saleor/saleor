@@ -41,7 +41,7 @@ class ProductDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = cls._get_object_id(**data)
+        node_id = cls.get_object_id(**data)
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         with traced_atomic_transaction():

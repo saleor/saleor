@@ -148,6 +148,20 @@ def resolve_product_variant_by_sku(
 
 
 @traced_resolver
+def resolve_product_variant_by_external_reference(
+    _info, external_reference, channel_slug, requestor, requestor_has_access_to_all
+):
+    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    if not requestor_has_access_to_all:
+        visible_products = visible_products.annotate_visible_in_listings(
+            channel_slug
+        ).exclude(visible_in_listings=False)
+        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
+    return qs.filter(external_reference=external_reference).first()
+
+
+@traced_resolver
 def resolve_product_variants(
     _info, requestor_has_access_to_all, requestor, ids=None, channel_slug=None
 ) -> ChannelQsContext:

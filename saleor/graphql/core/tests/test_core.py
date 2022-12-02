@@ -334,7 +334,7 @@ def test_get_instance_by_both_id_and_external_reference():
     data = {"id": "test-id", "external_reference": "test-ext-id"}
     # when
     with pytest.raises(ValidationError) as e:
-        ModelMutation._get_object_id(**data)
+        ModelMutation.get_object_id(**data)
     # then
     assert (
         e.value.message == "Argument 'id' cannot be combined with 'external_reference'"
