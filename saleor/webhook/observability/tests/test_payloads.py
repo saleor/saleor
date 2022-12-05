@@ -219,8 +219,16 @@ def test_serialize_gql_operation_results_when_too_low_bytes_limit(
         ({}, []),
         (None, []),
         (
-            {"Content-Length": "19", "Content-Type": "application/json"},
-            [("Content-Length", "19"), ("Content-Type", "application/json")],
+            {
+                "Authorization": "secret",
+                "Content-Length": "19",
+                "Content-Type": "application/json",
+            },
+            [
+                ("Authorization", MASK),
+                ("Content-Length", "19"),
+                ("Content-Type", "application/json"),
+            ],
         ),
     ],
 )
