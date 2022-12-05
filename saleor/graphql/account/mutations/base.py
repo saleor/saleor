@@ -11,6 +11,7 @@ from ....account.notifications import (
     send_set_password_notification,
 )
 from ....account.search import prepare_user_search_document_value
+from ....account.utils import retrieve_user_by_email
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
@@ -158,9 +159,8 @@ class RequestPasswordReset(BaseMutation):
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
 
-        try:
-            user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
+        user = retrieve_user_by_email(email)
+        if not user:
             raise ValidationError(
                 {
                     "email": ValidationError(
@@ -481,6 +481,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 raise ValidationError(
                     {"redirect_url": error}, code=AccountErrorCode.INVALID
                 )
+
+        email = cleaned_input.get("email")
+        if email:
+            cleaned_input["email"] = email.lower()
 
         return cleaned_input
 

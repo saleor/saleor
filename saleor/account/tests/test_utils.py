@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -11,6 +12,7 @@ from ..utils import (
     remove_staff_member,
     remove_the_oldest_user_address,
     remove_the_oldest_user_address_if_address_limit_is_reached,
+    retrieve_user_by_email,
     store_user_address,
 )
 
@@ -189,3 +191,43 @@ def test_remove_the_oldest_user_address_if_address_limit_is_reached_limit_reache
 
     # then
     remove_the_oldest_user_address_mock.assert_called_with(customer_user)
+
+
+@pytest.fixture
+def users_with_similar_emails():
+    users = User.objects.bulk_create(
+        [
+            User(email="andrew@example.com"),
+            User(email="Andrew@example.com"),
+            User(email="john@example.com"),
+            User(email="Susan@example.com"),
+            User(email="Cindy@example.com"),
+            User(email="CINDY@example.com"),
+        ]
+    )
+    return users
+
+
+@pytest.mark.parametrize(
+    "email,expected_user",
+    [
+        ("andrew@example.com", 0),
+        ("Andrew@example.com", 1),
+        ("ANDREW@example.com", 0),
+        ("john@example.com", 2),
+        ("John@example.com", 2),
+        ("Susan@example.com", 3),
+        ("susan@example.com", 3),
+        ("Cindy@example.com", 4),
+        ("cindy@example.com", None),
+        ("CiNdY@example.com", None),
+        ("non_existing_email@example.com", None),
+    ],
+)
+def test_email_case_sensitivity(email, expected_user, users_with_similar_emails):
+    # given
+    users: List[User] = users_with_similar_emails
+    # when
+    user = retrieve_user_by_email(email=email)
+    # then
+    assert user == users[expected_user] if expected_user is not None else user is None

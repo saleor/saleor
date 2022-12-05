@@ -14,6 +14,7 @@ from graphene.types.generic import GenericScalar
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import retrieve_user_by_email
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -106,7 +107,8 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email).first()
+        user = retrieve_user_by_email(email)
+
         if user and user.check_password(password):
             return user
         return None
