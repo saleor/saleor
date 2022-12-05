@@ -40,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
 - Make email authentication case-insensitive. #11284 by @zedzior
 - Fix the observability reporter to obfuscate URLs. #11282 by @przlada
+- Add HTTP headers filtering to observability reporter. #11285 by @przlada
 
 # 3.8.0
 
