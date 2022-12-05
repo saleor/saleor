@@ -79,13 +79,14 @@ from ...core.types import (
     Weight,
 )
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_one_of_args_is_in_query
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise, load_plugin_manager
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -103,12 +104,7 @@ from ...tax.dataloaders import (
 )
 from ...tax.types import TaxClass
 from ...translations.fields import TranslationField
-from ...translations.types import (
-    CategoryTranslation,
-    CollectionTranslation,
-    ProductTranslation,
-    ProductVariantTranslation,
-)
+from ...translations.types import ProductTranslation, ProductVariantTranslation
 from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
@@ -119,9 +115,7 @@ from ...warehouse.dataloaders import (
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
-    CategoryChildrenByCategoryIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
-    CollectionChannelListingByCollectionIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
@@ -136,8 +130,6 @@ from ..dataloaders import (
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
-    ThumbnailByCategoryIdSizeAndFormatLoader,
-    ThumbnailByCollectionIdSizeAndFormatLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
@@ -145,14 +137,9 @@ from ..dataloaders import (
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
-from ..filters import ProductFilterInput
 from ..resolvers import resolve_product_variants, resolve_products
-from ..sorters import ProductOrder
-from .channels import (
-    CollectionChannelListing,
-    ProductChannelListing,
-    ProductVariantChannelListing,
-)
+from ..sorters import MediaSortingInput
+from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
 
 destination_address_argument = graphene.Argument(
@@ -583,6 +570,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
         discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
+        manager = get_plugin_manager_promise(info.context)
 
         address_country = address.country if address is not None else None
 
@@ -595,6 +583,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                 channel,
                 tax_class,
                 discounts,
+                manager,
             ) = data
 
             if not variant_channel_listing or not product_channel_listing:
@@ -679,6 +668,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                 channel,
                 tax_class,
                 discounts,
+                manager,
             ]
         ).then(load_tax_configuration)
 
@@ -819,7 +809,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     description = JSONString(description="Description of the product." + RICH_CONTENT)
     product_type = graphene.Field(lambda: ProductType, required=True)
     slug = graphene.String(required=True)
-    category = graphene.Field(lambda: Category)
+    category = graphene.Field("saleor.graphql.product.types.categories.Category")
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
     charge_taxes = graphene.Boolean(
@@ -862,6 +852,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         description="A type of tax. Assigned by enabled tax gateway",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
     )
+    attribute = graphene.Field(
+        SelectedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description=(
+            f"Get a single attribute attached to product by attribute slug."
+            f"{ADDED_IN_39}"
+        ),
+    )
     attributes = NonNullList(
         SelectedAttribute,
         required=True,
@@ -885,6 +887,12 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `mediaById` field instead."
         ),
     )
+    variant = graphene.Field(
+        ProductVariant,
+        id=graphene.Argument(graphene.ID, description="ID of the variant."),
+        sku=graphene.Argument(graphene.String, description="SKU of the variant."),
+        description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+    )
     variants = NonNullList(
         ProductVariant,
         description=(
@@ -895,6 +903,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     media = NonNullList(
         lambda: ProductMedia,
+        sort_by=graphene.Argument(
+            MediaSortingInput, description=f"Sort media. {ADDED_IN_39}"
+        ),
         description="List of media for the product.",
     )
     images = NonNullList(
@@ -903,7 +914,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
     collections = NonNullList(
-        lambda: Collection,
+        "saleor.graphql.product.types.collections.Collection",
         description=(
             "List of collections for the product. Requires the following permissions "
             "to include the unpublished items: "
@@ -1235,6 +1246,22 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
+    def resolve_attribute(root: ChannelContext[models.Product], info, slug):
+        def get_selected_attribute_by_slug(
+            attributes: List[SelectedAttribute],
+        ) -> Optional[SelectedAttribute]:
+            return next(
+                (atr for atr in attributes if atr["attribute"].slug == slug),
+                None,
+            )
+
+        return (
+            SelectedAttributesByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(get_selected_attribute_by_slug)
+        )
+
+    @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
 
@@ -1249,12 +1276,61 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return root.node.media.filter(pk=pk).first()
 
     @staticmethod
-    def resolve_media(root: ChannelContext[models.Product], info):
-        return MediaByProductIdLoader(info.context).load(root.node.id)
+    def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
+        if sort_by is None:
+            sort_by = {
+                "field": ["sort_order"],
+                "direction": "",
+            }
+
+        def sort_media(media) -> list[ProductMedia]:
+            reversed = sort_by["direction"] == "-"
+            media_sorted = sorted(
+                media,
+                key=lambda x: tuple(getattr(x, field) for field in sort_by["field"]),
+                reverse=reversed,
+            )
+            return media_sorted
+
+        return MediaByProductIdLoader(info.context).load(root.node.id).then(sort_media)
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.Product], info):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
+        validate_one_of_args_is_in_query("id", id, "sku", sku)
+
+        def get_product_variant(
+            product_variants,
+        ) -> Optional[ProductVariant]:
+            if id:
+                id_type, variant_id = graphene.Node.from_global_id(id)
+                if id_type != "ProductVariant":
+                    return None
+
+                return next(
+                    (
+                        variant
+                        for variant in product_variants
+                        if variant.node.id == int(variant_id)
+                    ),
+                    None,
+                )
+            if sku:
+                return next(
+                    (
+                        variant
+                        for variant in product_variants
+                        if variant.node.sku == sku
+                    ),
+                    None,
+                )
+            return None
+
+        variants = Product.resolve_variants(root, info)
+        return variants.then(get_product_variant)
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
@@ -1670,266 +1746,6 @@ class ProductType(ModelObjectType):
 class ProductTypeCountableConnection(CountableConnection):
     class Meta:
         node = ProductType
-
-
-@federated_entity("id channel")
-class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
-    description = JSONString(
-        description="Description of the collection." + RICH_CONTENT
-    )
-    slug = graphene.String(required=True)
-    channel = graphene.String(
-        description=(
-            "Channel given to retrieve this collection. Also used by federation "
-            "gateway to resolve this object in a federated query."
-        ),
-    )
-    description_json = JSONString(
-        description="Description of the collection." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
-    )
-    products = FilterConnectionField(
-        ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
-        sort_by=ProductOrder(description="Sort products."),
-        description="List of products in this collection.",
-    )
-    background_image = ThumbnailField()
-    translation = TranslationField(
-        CollectionTranslation,
-        type_name="collection",
-        resolver=ChannelContextType.resolve_translation,
-    )
-    channel_listings = PermissionsField(
-        NonNullList(CollectionChannelListing),
-        description="List of channels in which the collection is available.",
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-    )
-
-    class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
-        description = "Represents a collection of products."
-        interfaces = [relay.Node, ObjectWithMetadata]
-        model = models.Collection
-
-    @staticmethod
-    def resolve_channel(root: ChannelContext[models.Product], _info):
-        return root.channel_slug
-
-    @staticmethod
-    def resolve_background_image(
-        root: ChannelContext[models.Collection], info, size=None, format=None
-    ):
-        node = root.node
-        if not node.background_image:
-            return
-
-        alt = node.background_image_alt
-        if not size:
-            return Image(url=node.background_image.url, alt=alt)
-
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
-
-        def _resolve_background_image(thumbnail):
-            url = get_image_or_proxy_url(thumbnail, node.id, "Collection", size, format)
-            return Image(url=url, alt=alt)
-
-        return (
-            ThumbnailByCollectionIdSizeAndFormatLoader(info.context)
-            .load((node.id, size, format))
-            .then(_resolve_background_image)
-        )
-
-    @staticmethod
-    def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
-        requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(  # type: ignore
-            requestor, root.channel_slug
-        )
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
-
-        kwargs["channel"] = root.channel_slug
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
-
-    @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.Collection], info):
-        return CollectionChannelListingByCollectionIdLoader(info.context).load(
-            root.node.id
-        )
-
-    @staticmethod
-    def resolve_description_json(root: ChannelContext[models.Collection], _info):
-        description = root.node.description
-        return description if description is not None else {}
-
-    @staticmethod
-    def __resolve_references(roots: List["Collection"], info):
-        from ..resolvers import resolve_collections
-
-        channels = defaultdict(set)
-        roots_ids = []
-        for root in roots:
-            _, root_id = from_global_id_or_error(root.id, Collection, raise_error=True)
-            roots_ids.append(f"{root.channel}_{root_id}")
-            channels[root.channel].add(root_id)
-
-        collections = {}
-        for channel, ids in channels.items():
-            queryset = resolve_collections(info, channel).qs.filter(id__in=ids)
-
-            for collection in queryset:
-                collections[f"{channel}_{collection.id}"] = ChannelContext(
-                    channel_slug=channel, node=collection
-                )
-
-        return [collections.get(root_id) for root_id in roots_ids]
-
-
-class CollectionCountableConnection(CountableConnection):
-    class Meta:
-        node = Collection
-
-
-@federated_entity("id")
-class Category(ModelObjectType):
-    id = graphene.GlobalID(required=True)
-    seo_title = graphene.String()
-    seo_description = graphene.String()
-    name = graphene.String(required=True)
-    description = JSONString(description="Description of the category." + RICH_CONTENT)
-    slug = graphene.String(required=True)
-    parent = graphene.Field(lambda: Category)
-    level = graphene.Int(required=True)
-    description_json = JSONString(
-        description="Description of the category." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
-    )
-    ancestors = ConnectionField(
-        lambda: CategoryCountableConnection,
-        description="List of ancestors of the category.",
-    )
-    products = ConnectionField(
-        ProductCountableConnection,
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description=(
-            "List of products in the category. Requires the following permissions to "
-            "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-    )
-    children = ConnectionField(
-        lambda: CategoryCountableConnection,
-        description="List of children of the category.",
-    )
-    background_image = ThumbnailField()
-    translation = TranslationField(CategoryTranslation, type_name="category")
-
-    class Meta:
-        description = (
-            "Represents a single category of products. Categories allow to organize "
-            "products in a tree-hierarchies which can be used for navigation in the "
-            "storefront."
-        )
-        interfaces = [relay.Node, ObjectWithMetadata]
-        model = models.Category
-
-    @staticmethod
-    def resolve_ancestors(root: models.Category, info, **kwargs):
-        return create_connection_slice(
-            root.get_ancestors(), info, kwargs, CategoryCountableConnection
-        )
-
-    @staticmethod
-    def resolve_description_json(root: models.Category, _info):
-        description = root.description
-        return description if description is not None else {}
-
-    @staticmethod
-    def resolve_background_image(root: models.Category, info, size=None, format=None):
-        if not root.background_image:
-            return
-
-        alt = root.background_image_alt
-        if not size:
-            return Image(url=root.background_image.url, alt=alt)
-
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
-
-        def _resolve_background_image(thumbnail):
-            url = get_image_or_proxy_url(thumbnail, root.id, "Category", size, format)
-            return Image(url=url, alt=alt)
-
-        return (
-            ThumbnailByCategoryIdSizeAndFormatLoader(info.context)
-            .load((root.id, size, format))
-            .then(_resolve_background_image)
-        )
-
-    @staticmethod
-    def resolve_children(root: models.Category, info, **kwargs):
-        def slice_children_categories(children):
-            return create_connection_slice(
-                children, info, kwargs, CategoryCountableConnection
-            )
-
-        return (
-            CategoryChildrenByCategoryIdLoader(info.context)
-            .load(root.pk)
-            .then(slice_children_categories)
-        )
-
-    @staticmethod
-    def resolve_url(root: models.Category, _info):
-        return ""
-
-    @staticmethod
-    @traced_resolver
-    def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
-        requestor = get_user_or_app_from_context(info.context)
-        has_required_permissions = has_one_of_permissions(
-            requestor, ALL_PRODUCTS_PERMISSIONS
-        )
-        tree = root.get_descendants(include_self=True)
-        if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
-        qs = models.Product.objects.all()
-        if not has_required_permissions:
-            qs = (
-                qs.visible_to_user(requestor, channel)
-                .annotate_visible_in_listings(channel)
-                .exclude(
-                    visible_in_listings=False,
-                )
-            )
-        if channel and has_required_permissions:
-            qs = qs.filter(channel_listings__channel__slug=channel)
-        qs = qs.filter(category__in=tree)
-        qs = ChannelQsContext(qs=qs, channel_slug=channel)
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
-
-    @staticmethod
-    def __resolve_references(roots: List["Category"], _info):
-        return resolve_federation_references(Category, roots, models.Category.objects)
-
-
-class CategoryCountableConnection(CountableConnection):
-    class Meta:
-        node = Category
 
 
 @federated_entity("id")

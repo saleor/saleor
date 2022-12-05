@@ -33,9 +33,18 @@ if TYPE_CHECKING:
 
 
 @dataclass
+class AttrValuesForSelectableFieldInput:
+    id: Optional[str] = None
+    value: Optional[str] = None
+
+
+@dataclass
 class AttrValuesInput:
     global_id: str
-    values: List[str]
+    values: Optional[List[str]] = None
+    dropdown: Optional[AttrValuesForSelectableFieldInput] = None
+    multiselect: Optional[List[AttrValuesForSelectableFieldInput]] = None
+    numeric: Optional[str] = None
     references: Union[List[str], List[page_models.Page], None] = None
     file_url: Optional[str] = None
     content_type: Optional[str] = None
@@ -178,7 +187,6 @@ class AttributeAssignmentMixin:
 
         # Temporary storage of the passed ID for error reporting
         global_ids = []
-
         for attribute_input in raw_input:
             global_id = attribute_input.pop("id", None)
             if global_id is None:
@@ -303,22 +311,33 @@ class AttributeAssignmentMixin:
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
         pre_save_methods_mapping = {
-            AttributeInputType.FILE: cls._pre_save_file_value,
-            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
-            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
-            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
-            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
             AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
             AttributeInputType.DATE: cls._pre_save_date_time_values,
             AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
+            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
         clean_assignment = []
         for attribute, attr_values in cleaned_input:
-            if (input_type := attribute.input_type) in pre_save_methods_mapping:
-                pre_save_func = pre_save_methods_mapping[input_type]
-                attribute_values = pre_save_func(instance, attribute, attr_values)
-            else:
+            is_handled_by_values_field = (
+                attr_values.values
+                and attribute.input_type
+                in (
+                    AttributeInputType.DROPDOWN,
+                    AttributeInputType.MULTISELECT,
+                    AttributeInputType.SWATCH,
+                )
+            )
+            if is_handled_by_values_field:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
+            else:
+                pre_save_func = pre_save_methods_mapping[attribute.input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
 
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
@@ -333,16 +352,60 @@ class AttributeAssignmentMixin:
             ).delete()
 
     @classmethod
-    def _pre_save_values(
-        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
+    def _pre_save_dropdown_value(
+        cls,
+        _,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
     ):
-        """Lazy-retrieve or create the database objects from the supplied raw values."""
-        if not attr_values.values:
+        if not attr_values.dropdown:
             return tuple()
 
-        result = prepare_attribute_values(attribute, attr_values)
+        if id := attr_values.dropdown.id:
+            _, attr_value_id = from_global_id_or_error(id)
+            model = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
+            if not model:
+                raise ValidationError("Attribute value with given ID can't be found")
+            return (model,)
 
-        return tuple(result)
+        if attr_value := attr_values.dropdown.value:
+            model = prepare_attribute_values(attribute, [attr_value])
+            return model
+
+        return tuple()
+
+    @classmethod
+    def _pre_save_multiselect_values(
+        cls,
+        _,
+        attribute: attribute_models.Attribute,
+        attr_values_input: AttrValuesInput,
+    ):
+        if not attr_values_input.multiselect:
+            return tuple()
+
+        attribute_values: List[attribute_models.AttributeValue] = []
+        for attr_value in attr_values_input.multiselect:
+            if attr_value.id:
+                _, attr_value_id = from_global_id_or_error(attr_value.id)
+                attr_value_model = attribute_models.AttributeValue.objects.get(
+                    pk=attr_value_id
+                )
+                if not attr_value_model:
+                    raise ValidationError(
+                        "Attribute value with given ID can't be found"
+                    )
+                if attr_value_model.id not in [a.id for a in attribute_values]:
+                    attribute_values.append(attr_value_model)
+
+            if attr_value.value:
+                attr_value_model = prepare_attribute_values(
+                    attribute, [attr_value.value]
+                )[0]
+                if attr_value_model.id not in [a.id for a in attribute_values]:
+                    attribute_values.append(attr_value_model)
+
+        return attribute_values
 
     @classmethod
     def _pre_save_numeric_values(
@@ -351,12 +414,33 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
-        if not attr_values.values:
+        if attr_values.values:
+            value = attr_values.values[0]
+        elif attr_values.numeric:
+            value = attr_values.numeric
+        else:
             return tuple()
+
         defaults = {
-            "name": attr_values.values[0],
+            "name": value,
         }
         return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_values(
+        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
+    ):
+        """To be deprecated together with `AttributeValueInput.values` field.
+
+        Lazy-retrieve or create the database objects from the supplied raw values.
+        """
+
+        if not attr_values.values:
+            return tuple()
+
+        result = prepare_attribute_values(attribute, attr_values.values)
+
+        return tuple(result)
 
     @classmethod
     def _pre_save_rich_text_values(
@@ -525,10 +609,7 @@ def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     )
 
 
-def prepare_attribute_values(
-    attribute: attribute_models.Attribute, attr_values: AttrValuesInput
-):
-    values = attr_values.values
+def prepare_attribute_values(attribute: attribute_models.Attribute, values: List[str]):
     slug_to_value_map = {}
     name_to_value_map = {}
     for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
@@ -595,7 +676,10 @@ class AttributeInputErrors:
         "Duplicated attribute values are provided.",
         "DUPLICATED_INPUT_ITEM",
     )
-
+    ERROR_ID_AND_VALUE = (
+        "Attribute values cannot be assigned by both id and value.",
+        "INVALID",
+    )
     # file errors
     ERROR_NO_FILE_GIVEN = (
         "Attribute file url cannot be blank.",
@@ -640,28 +724,38 @@ def validate_attributes_input(
 
     error_code_enum = PageErrorCode if is_page_attributes else ProductErrorCode
     attribute_errors: T_ERROR_DICT = defaultdict(list)
+    input_type_to_validation_func_mapping = {
+        AttributeInputType.BOOLEAN: validate_boolean_input,
+        AttributeInputType.DATE: validate_date_time_input,
+        AttributeInputType.DATE_TIME: validate_date_time_input,
+        AttributeInputType.DROPDOWN: validate_dropdown_input,
+        AttributeInputType.FILE: validate_file_attributes_input,
+        AttributeInputType.NUMERIC: validate_numeric_input,
+        AttributeInputType.MULTISELECT: validate_multiselect_input,
+        AttributeInputType.PLAIN_TEXT: validate_plain_text_attributes_input,
+        AttributeInputType.REFERENCE: validate_reference_attributes_input,
+        AttributeInputType.RICH_TEXT: validate_rich_text_attributes_input,
+    }
+
     for attribute, attr_values in input_data:
         attrs = (
             attribute,
             attr_values,
             attribute_errors,
         )
-        input_type_to_validation_func_mapping = {
-            AttributeInputType.FILE: validate_file_attributes_input,
-            AttributeInputType.REFERENCE: validate_reference_attributes_input,
-            AttributeInputType.RICH_TEXT: validate_rich_text_attributes_input,
-            AttributeInputType.PLAIN_TEXT: validate_plain_text_attributes_input,
-            AttributeInputType.BOOLEAN: validate_boolean_input,
-            AttributeInputType.DATE: validate_date_time_input,
-            AttributeInputType.DATE_TIME: validate_date_time_input,
-        }
-        if validation_func := input_type_to_validation_func_mapping.get(
-            attribute.input_type
-        ):
-            validation_func(*attrs)
-        # validation for other input types
-        else:
+        is_handled_by_values_field = attr_values.values and attribute.input_type in (
+            AttributeInputType.DROPDOWN,
+            AttributeInputType.MULTISELECT,
+            AttributeInputType.NUMERIC,
+            AttributeInputType.SWATCH,
+        )
+        if is_handled_by_values_field:
             validate_standard_attributes_input(*attrs)
+        else:
+            validation_func = input_type_to_validation_func_mapping[
+                attribute.input_type
+            ]
+            validation_func(*attrs)
 
     errors = prepare_error_list_from_error_attribute_mapping(
         attribute_errors, error_code_enum
@@ -672,7 +766,6 @@ def validate_attributes_input(
         errors = validate_required_attributes(
             input_data, attribute_qs, errors, error_code_enum
         )
-
     return errors
 
 
@@ -750,6 +843,7 @@ def validate_standard_attributes_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
+    """To be deprecated together with `AttributeValueInput.values` field."""
     attribute_id = attr_values.global_id
 
     if not attr_values.values:
@@ -771,6 +865,129 @@ def validate_standard_attributes_input(
             attribute,
             attr_values.values,
             attribute_errors,
+        )
+
+
+def validate_single_selectable_field(
+    attribute: "Attribute",
+    attr_value: AttrValuesForSelectableFieldInput,
+    attribute_errors: T_ERROR_DICT,
+    attribute_id: str,
+):
+    id = attr_value.id
+    value = attr_value.value
+
+    if id and value:
+        attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(attribute_id)
+        return
+
+    if not id and not value and attribute.value_required:
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
+        return
+
+    if value:
+        max_length = attribute.values.model.name.field.max_length  # type: ignore
+        if not value.strip():
+            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
+                attribute_id
+            )
+        elif len(value) > max_length:
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
+
+    if id:
+        if not id.strip():
+            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
+                attribute_id
+            )
+
+
+def validate_dropdown_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+):
+    attribute_id = attr_values.global_id
+    if not attr_values.dropdown:
+        if attribute.value_required:
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+                attribute_id
+            )
+    else:
+        validate_single_selectable_field(
+            attribute,
+            attr_values.dropdown,
+            attribute_errors,
+            attribute_id,
+        )
+
+
+def validate_multiselect_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+):
+    attribute_id = attr_values.global_id
+    multi_values = attr_values.multiselect
+    if not multi_values:
+        if attribute.value_required:
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+                attribute_id
+            )
+    else:
+        ids = [value.id for value in multi_values if value.id is not None]
+        values = [value.value for value in multi_values if value.value is not None]
+
+        if ids and values:
+            attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(
+                attribute_id
+            )
+            return
+
+        if not ids and not values and attribute.value_required:
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+                attribute_id
+            )
+            return
+
+        if len(ids) > len(set(ids)) or len(values) > len(set(values)):
+            attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
+                attribute_id
+            )
+            return
+
+        for attr_value in multi_values:
+            validate_single_selectable_field(
+                attribute,
+                attr_value,
+                attribute_errors,
+                attribute_id,
+            )
+
+
+def validate_numeric_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+):
+    attribute_id = attr_values.global_id
+    if attr_values.numeric is None:
+        if attribute.value_required:
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+                attribute_id
+            )
+            return
+        return
+
+    try:
+        float(attr_values.numeric)  # type: ignore
+    except ValueError:
+        attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
+            attribute_id
+        )
+
+    if isinstance(attr_values.numeric, bool):
+        attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
+            attribute_id
         )
 
 
@@ -799,6 +1016,7 @@ def validate_values(
     values: list,
     attribute_errors: T_ERROR_DICT,
 ):
+    """To be deprecated together with `AttributeValueInput.values` field."""
     name_field = attribute.values.model.name.field  # type: ignore
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
     if get_duplicated_values(values):

@@ -25,6 +25,9 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
 
 ### Other changes
 
@@ -33,6 +36,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
 - Add exif image validation - #11224 by @IKarbowiak
 - Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
+- Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
 - Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 
 # 3.8.0
@@ -237,6 +243,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose manifest in the `App` type (#10055) (f0f944066)
 - Deprecate `configurationUrl` and `dataPrivacy` fields in apps (#10046) (68bd7c8a2)
 - Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
 
 ### Saleor Apps
 
