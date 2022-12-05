@@ -122,6 +122,8 @@ def test_draft_order_query_with_filter_customer_fields(
         ({"created": {"lte": str(date.today())}}, 2),
         ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1),
         ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
+        ({"created": {"gte": None}}, 2),
+        ({"created": {"lte": None}}, 2),
     ],
 )
 def test_draft_order_query_with_filter_created_(
