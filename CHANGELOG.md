@@ -39,7 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
 - Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
 - Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
-...
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 
 # 3.8.0
 
