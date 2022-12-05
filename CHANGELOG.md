@@ -50,6 +50,12 @@ All notable, unreleased changes to this project will be documented in this file.
     - `fetch_taxes_data`
     - `get_tax_rate_percentage_value`
     - `update_taxes_for_order_lines`
+- Add exif image validation - #11224 by @IKarbowiak
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
+- Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 
 # 3.8.0
 

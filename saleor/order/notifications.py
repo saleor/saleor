@@ -135,6 +135,7 @@ def get_order_line_payload(line: "OrderLine"):
         "unit_discount_reason": line.unit_discount_reason,
         "unit_discount_type": line.unit_discount_type,
         "unit_discount_amount": line.unit_discount_amount,
+        "metadata": line.metadata,
     }
 
 

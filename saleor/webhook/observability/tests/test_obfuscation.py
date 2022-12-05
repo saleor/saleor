@@ -7,6 +7,7 @@ from ..obfuscation import (
     anonymize_event_payload,
     anonymize_gql_operation_response,
     hide_sensitive_headers,
+    obfuscate_url,
     validate_sensitive_fields_map,
 )
 
@@ -33,6 +34,30 @@ from ..obfuscation import (
 )
 def test_hide_sensitive_headers(headers, sensitive, expected):
     assert hide_sensitive_headers(headers, sensitive_headers=sensitive) == expected
+
+
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        ("http://example.com/test", "http://example.com/test"),
+        (
+            "https://example.com:8000/test/path?q=val&k=val",
+            "https://example.com:8000/test/path?q=val&k=val",
+        ),
+        ("https://user@example.com/test", "https://user@example.com/test"),
+        ("https://:password@example.com/test", f"https://:{MASK}@example.com/test"),
+        (
+            "http://user:password@example.com:8000/test",
+            f"http://user:{MASK}@example.com:8000/test",
+        ),
+        (
+            "awssqs://key:secret@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",
+            f"awssqs://key:{MASK}@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",
+        ),
+    ],
+)
+def test_obfuscate_url(url, expected):
+    assert obfuscate_url(url) == expected
 
 
 def test_anonymize_gql_operation_response(gql_operation_factory):
