@@ -241,6 +241,10 @@ class StaffCreate(ModelMutation):
         cls.clean_groups(requestor, cleaned_input, errors)
         cls.clean_is_active(cleaned_input, instance, info.context.user, errors)
 
+        email = cleaned_input.get("email")
+        if email:
+            cleaned_input["email"] = email.lower()
+
         if errors:
             raise ValidationError(errors)
 

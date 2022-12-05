@@ -221,3 +221,22 @@ def test_create_token_active_user_logged_before(api_client, customer_user, setti
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["iss"] == build_absolute_uri(reverse("api"))
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_create_token_email_case_insensitive(api_client, customer_user, settings):
+    # given
+    variables = {
+        "email": customer_user.email.upper(),
+        "password": customer_user._password,
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenCreate"]
+    assert customer_user.email == data["user"]["email"]
+    assert not data["errors"]
+    assert data["token"]
