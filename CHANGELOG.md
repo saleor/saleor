@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
 - Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
 - Make email authentication case-insensitive. #11284 by @zedzior
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 
 # 3.8.0
 
