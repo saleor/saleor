@@ -24,21 +24,32 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
-- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add `attribute` field to `AttributeValueTranslatableContent` type - #11028 by @zedzior
 - Add new properties in the `Product` type - #10537 by @kadewu
   - Add new fields: `Product.attribute`, `Product.variant`
   - Add `sortBy` argument to `Product.media`
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type - #11206 by @zedzior
+- Add new queries - #10537 by @kadewu
+    - `attribute` - allow fetching the single attribute by `slug`
+    - `variant`- allow fetching the single variant by the product variant `id` or `sku`
+- Allow sorting media of the product - #10537 by @kadewu
 
 ### Other changes
 
 - Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
-  <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
+  - Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
-- Add exif image validation - #11224 by @IKarbowiak
-- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
-- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
-- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
-...
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps - #11223 by @przlada
+
+### Saleor Apps
+
+- Drop Vatlayer plugin - #9784 by @maarcingebala
+  - Removed the following plugin manager methods:
+    - `assign_tax_code_to_object_meta`
+    - `apply_taxes_to_product`
+    - `fetch_taxes_data`
+    - `get_tax_rate_percentage_value`
+    - `update_taxes_for_order_lines`
 
 # 3.8.0
 
