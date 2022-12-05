@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import Attribute, AttributeValue
@@ -33,12 +34,15 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
-class AttributeValueUpdate(AttributeValueCreate):
+class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of an AttributeValue to update."
+            required=False, description="ID of an AttributeValue to update."
+        )
+        external_reference = graphene.String(
+            required=False, description="External ID of an AttributeValue to update."
         )
         input = AttributeValueUpdateInput(
             required=True, description="Fields required to update an AttributeValue."

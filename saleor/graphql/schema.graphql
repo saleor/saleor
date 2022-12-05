@@ -1170,13 +1170,16 @@ type Query {
     last: Int
   ): AttributeCountableConnection
 
-  """Look up an attribute by ID."""
+  """Look up an attribute by ID, slug or external reference."""
   attribute(
     """ID of the attribute."""
     id: ID
 
     """Slug of the attribute."""
     slug: String
+
+    """External ID of the attribute."""
+    externalReference: String
   ): Attribute
 
   """
@@ -5292,6 +5295,13 @@ type Attribute implements Node & ObjectWithMetadata {
     """Return the last n elements from the list."""
     last: Int
   ): ProductTypeCountableConnection!
+
+  """
+  External id of this attribute. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """An enumeration."""
@@ -5423,6 +5433,13 @@ type AttributeValue implements Node {
 
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
+
+  """
+  External id of this attribute value. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 type AttributeValueTranslation implements Node {
@@ -14826,8 +14843,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeDelete(
+    """External ID of an attribute to delete."""
+    externalReference: String
+
     """ID of an attribute to delete."""
-    id: ID!
+    id: ID
   ): AttributeDelete
 
   """
@@ -14836,8 +14856,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeUpdate(
+    """External ID of an attribute to update."""
+    externalReference: String
+
     """ID of an attribute to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an attribute."""
     input: AttributeUpdateInput!
@@ -14896,8 +14919,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeValueDelete(
+    """External ID of a value to delete."""
+    externalReference: String
+
     """ID of a value to delete."""
-    id: ID!
+    id: ID
   ): AttributeValueDelete
 
   """
@@ -14906,8 +14932,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeValueUpdate(
+    """External ID of an AttributeValue to update."""
+    externalReference: String
+
     """ID of an AttributeValue to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!

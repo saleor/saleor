@@ -448,11 +448,15 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
 
 
 DELETE_VARIANT_BY_EXTERNAL_REFERENCE = """
-    mutation variantDelete($externalReference: String) {
-        productVariantDelete(externalReference: $externalReference) {
+    mutation variantDelete($id: ID, $externalReference: String) {
+        productVariantDelete(id: $id, externalReference: $externalReference) {
             productVariant {
                 externalReference
                 id
+            }
+            errors {
+                field
+                message
             }
         }
     }
@@ -469,6 +473,7 @@ def test_delete_variant_by_external_reference(
     permission_manage_products,
 ):
     # given
+    query = DELETE_VARIANT_BY_EXTERNAL_REFERENCE
     ext_ref = "test-ext-ref"
     variant = product.variants.first()
     variant.external_reference = ext_ref
@@ -477,7 +482,7 @@ def test_delete_variant_by_external_reference(
 
     # when
     response = staff_api_client.post_graphql(
-        DELETE_VARIANT_BY_EXTERNAL_REFERENCE,
+        query,
         variables,
         permissions=[permission_manage_products],
     )
@@ -494,3 +499,43 @@ def test_delete_variant_by_external_reference(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
+
+
+def test_delete_product_by_both_id_and_external_reference(
+    staff_api_client, permission_manage_products
+):
+    # given
+    query = DELETE_VARIANT_BY_EXTERNAL_REFERENCE
+    variables = {"externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productVariantDelete"]["errors"]
+    assert (
+        errors[0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_delete_product_by_external_reference_not_existing(
+    staff_api_client, permission_manage_products
+):
+    # given
+    query = DELETE_VARIANT_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productVariantDelete"]["errors"]
+    assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"

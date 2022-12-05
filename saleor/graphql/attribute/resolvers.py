@@ -14,3 +14,7 @@ def resolve_attribute_by_id(id):
 
 def resolve_attribute_by_slug(slug):
     return models.Attribute.objects.filter(slug=slug).first()
+
+
+def resolve_attribute_by_ext_ref(ext_ref):
+    return models.Attribute.objects.filter(external_reference=ext_ref).first()

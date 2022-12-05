@@ -429,15 +429,14 @@ DELETE_PRODUCT_BY_EXTERNAL_REFERENCE = """
         productDelete(id: $id, externalReference: $externalReference) {
             product {
                 id
-                name
                 externalReference
             }
             errors {
                 field
                 message
             }
-            }
         }
+    }
 """
 
 
@@ -462,7 +461,6 @@ def test_delete_product_by_external_reference(
     data = content["data"]["productDelete"]
 
     # then
-    assert data["product"]["name"] == product.name
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert (
@@ -474,9 +472,7 @@ def test_delete_product_by_external_reference(
 
 
 def test_delete_product_by_both_id_and_external_reference(
-    staff_api_client,
-    product,
-    permission_manage_products,
+    staff_api_client, permission_manage_products
 ):
     # given
     query = DELETE_PRODUCT_BY_EXTERNAL_REFERENCE
@@ -497,9 +493,7 @@ def test_delete_product_by_both_id_and_external_reference(
 
 
 def test_delete_product_by_external_reference_not_existing(
-    staff_api_client,
-    product,
-    permission_manage_products,
+    staff_api_client, permission_manage_products
 ):
     # given
     query = DELETE_PRODUCT_BY_EXTERNAL_REFERENCE

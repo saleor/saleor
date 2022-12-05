@@ -3,6 +3,7 @@ import graphene
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
+from ..core.validators import validate_one_of_args_is_in_query
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
 from .filters import AttributeFilterInput
@@ -16,6 +17,7 @@ from .mutations import (
     AttributeValueUpdate,
 )
 from .resolvers import (
+    resolve_attribute_by_ext_ref,
     resolve_attribute_by_id,
     resolve_attribute_by_slug,
     resolve_attributes,
@@ -38,7 +40,10 @@ class AttributeQueries(graphene.ObjectType):
         Attribute,
         id=graphene.Argument(graphene.ID, description="ID of the attribute."),
         slug=graphene.Argument(graphene.String, description="Slug of the attribute."),
-        description="Look up an attribute by ID.",
+        external_reference=graphene.Argument(
+            graphene.String, description="External ID of the attribute."
+        ),
+        description="Look up an attribute by ID, slug or external reference.",
     )
 
     def resolve_attributes(self, info, **kwargs):
@@ -46,11 +51,16 @@ class AttributeQueries(graphene.ObjectType):
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
-    def resolve_attribute(self, _info, *, id=None, slug=None):
+    def resolve_attribute(self, _info, *, id=None, slug=None, external_reference=None):
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         if id:
             _, id = from_global_id_or_error(id, Attribute)
             return resolve_attribute_by_id(id)
-        return resolve_attribute_by_slug(slug=slug)
+        if slug:
+            return resolve_attribute_by_slug(slug=slug)
+        return resolve_attribute_by_ext_ref(external_reference)
 
 
 class AttributeMutations(graphene.ObjectType):

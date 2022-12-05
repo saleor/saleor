@@ -4,17 +4,20 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
-from ...core.mutations import ModelDeleteMutation
+from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import Attribute, AttributeValue
 
 
-class AttributeValueDelete(ModelDeleteMutation):
+class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a value to delete.")
+        id = graphene.ID(required=False, description="ID of a value to delete.")
+        external_reference = graphene.String(
+            required=False, description="External ID of a value to delete."
+        )
 
     class Meta:
         model = models.AttributeValue
@@ -26,8 +29,7 @@ class AttributeValueDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
+        instance = cls.get_instance(info, **data)
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(_root, info, **data)
         product_models.Product.objects.filter(id__in=product_ids).update(

@@ -2,15 +2,18 @@ import graphene
 
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
-from ...core.mutations import ModelDeleteMutation
+from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import Attribute
 
 
-class AttributeDelete(ModelDeleteMutation):
+class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an attribute to delete.")
+        id = graphene.ID(required=False, description="ID of an attribute to delete.")
+        external_reference = graphene.String(
+            required=False, description="External ID of an attribute to delete."
+        )
 
     class Meta:
         model = models.Attribute

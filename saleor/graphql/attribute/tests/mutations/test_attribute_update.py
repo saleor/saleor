@@ -663,3 +663,106 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors
     assert errors[0]["field"] == "removeValues"
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+UPDATE_ATTRIBUTE_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation updateAttribute(
+        $id: ID, $externalReference: String, $input: AttributeUpdateInput!
+    ) {
+    attributeUpdate(
+        id: $id,
+        externalReference: $externalReference
+        input: $input
+    ) {
+        errors {
+            field
+            message
+            code
+        }
+        attribute {
+            name
+            id
+            externalReference
+        }
+    }
+}
+"""
+
+
+def test_update_attribute_by_external_reference(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_BY_EXTERNAL_REFERENCE_MUTATION
+    attribute = color_attribute
+    new_name = "updated name"
+    ext_ref = "test-ext-ref"
+    attribute.external_reference = ext_ref
+    attribute.save(update_fields=["external_reference"])
+
+    variables = {
+        "input": {"name": new_name},
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+    assert data["attribute"]["name"] == new_name == attribute.name
+    assert data["attribute"]["id"] == graphene.Node.to_global_id(
+        "Attribute", attribute.id
+    )
+    assert data["attribute"]["externalReference"] == ext_ref
+
+
+def test_update_attribute_by_both_id_and_external_reference(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_BY_EXTERNAL_REFERENCE_MUTATION
+    variables = {"input": {}, "externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["attributeUpdate"]
+    assert not data["attribute"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_attribute_by_external_reference_not_existing(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_BY_EXTERNAL_REFERENCE_MUTATION
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "input": {},
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["attributeUpdate"]
+    assert not data["attribute"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+    assert data["errors"][0]["field"] == "externalReference"
