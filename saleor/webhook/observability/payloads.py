@@ -18,6 +18,7 @@ from .obfuscation import (
     anonymize_event_payload,
     anonymize_gql_operation_response,
     hide_sensitive_headers,
+    obfuscate_url,
 )
 from .payload_schema import (
     ApiCallPayload,
@@ -230,7 +231,7 @@ def generate_event_delivery_attempt_payload(
         webhook=Webhook(
             id=graphene.Node.to_global_id("Webhook", attempt.delivery.webhook.pk),
             name=attempt.delivery.webhook.name or "",
-            target_url=attempt.delivery.webhook.target_url,
+            target_url=obfuscate_url(attempt.delivery.webhook.target_url),
             subscription_query=TRUNC_PLACEHOLDER,
         ),
         app=App(
