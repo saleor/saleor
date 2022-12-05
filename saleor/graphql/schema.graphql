@@ -12919,12 +12919,31 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkCreate(
+    """Policies of error handling."""
+    errorPolicy: ErrorPolicyEnum = REJECT_EVERYTHING
+
     """ID of the product to create the variants for."""
     product: ID!
 
     """Input list of product variants to create."""
     variants: [ProductVariantBulkCreateInput!]!
   ): ProductVariantBulkCreate
+
+  """
+  Update a given product variants. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productVariantBulkUpdate(
+    """Policies of error handling."""
+    errorPolicy: ErrorPolicyEnum = REJECT_EVERYTHING
+
+    """ID of the product to update the variants for."""
+    product: ID!
+
+    """Input list of product variants to update."""
+    variants: [ProductVariantBulkUpdateInput!]!
+  ): ProductVariantBulkUpdate
 
   """
   Deletes product variants. 
@@ -18512,8 +18531,15 @@ type ProductVariantBulkCreate {
 
   """List of the created variants."""
   productVariants: [ProductVariant!]!
+
+  """List of the created variants."""
+  results: [ProductVariantBulkResult!]!
   bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [BulkProductError!]!
+}
+
+type ProductVariantBulkResult {
+  productVariant: ProductVariant!
 }
 
 type BulkProductError {
@@ -18542,6 +18568,12 @@ type BulkProductError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
+}
+
+"""An enumeration."""
+enum ErrorPolicyEnum {
+  IGNORE_FAILED
+  REJECT_EVERYTHING
 }
 
 input ProductVariantBulkCreateInput {
@@ -18641,6 +18673,84 @@ input ProductVariantChannelListingAddInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorderThreshold: Int
+}
+
+"""
+Update a given product variants. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductVariantBulkUpdate {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the created variants."""
+  productVariants: [ProductVariant!]!
+
+  """List of the updated variants."""
+  results: [ProductVariantBulkResult!]!
+  bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [BulkProductError!]!
+}
+
+input ProductVariantBulkUpdateInput {
+  """List of attributes specific to this variant."""
+  attributes: [BulkAttributeValueInput!]
+
+  """Stock keeping unit."""
+  sku: String
+
+  """Variant name."""
+  name: String
+
+  """
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  """
+  trackInventory: Boolean
+
+  """Weight of the Product Variant."""
+  weight: WeightScalar
+
+  """
+  Determines if variant is in preorder.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  preorder: PreorderSettingsInput
+
+  """
+  Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  quantityLimitPerCustomer: Int
+
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """Stocks of a product available for sale."""
+  stocks: [StockInput!]
+
+  """List of prices assigned to channels."""
+  channelListings: [ProductVariantChannelListingAddInput!]
+
+  """ID of the product variant to update."""
+  id: ID!
 }
 
 """
