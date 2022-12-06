@@ -8,6 +8,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
+
 ### Other changes
 
 # 3.9.0
@@ -37,7 +41,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new fields: `Product.attribute`, `Product.variant`
   - Add `sortBy` argument to `Product.media`
 - Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
-- Add ability to sort and filter with categories.products - #10917 by @yemeksepeti-cihankarluk, @ogunheper
 
 ### Other changes
 
