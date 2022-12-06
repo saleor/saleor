@@ -6,7 +6,7 @@ from graphql import GraphQLError
 from ...core.permissions import OrderPermissions
 from ...order import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
 from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
@@ -89,7 +89,7 @@ class OrderQueries(graphene.ObjectType):
         description="Look up an order by ID or external reference.",
         id=graphene.Argument(graphene.ID, description="ID of an order."),
         external_reference=graphene.Argument(
-            graphene.String, description="External ID of an order."
+            graphene.String, description=f"External ID of an order. {ADDED_IN_310}"
         ),
     )
     orders = FilterConnectionField(

@@ -2,6 +2,7 @@ import graphene
 
 from ...attribute import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
@@ -36,7 +37,7 @@ class AttributeQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the attribute."),
         slug=graphene.Argument(graphene.String, description="Slug of the attribute."),
         external_reference=graphene.Argument(
-            graphene.String, description="External ID of the attribute."
+            graphene.String, description=f"External ID of the attribute. {ADDED_IN_310}"
         ),
         description="Look up an attribute by ID, slug or external reference.",
     )
@@ -47,7 +48,7 @@ class AttributeQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(self, _info, *, id=None, slug=None, external_reference=None):
-        resolve_by_global_id_slug_or_ext_ref(
+        return resolve_by_global_id_slug_or_ext_ref(
             models.Attribute, id, slug, external_reference
         )
 

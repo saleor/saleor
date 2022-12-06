@@ -8,7 +8,6 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
-from graphql.error import GraphQLError
 from micawber import ProviderException, ProviderRegistry
 
 from ....core.utils.validators import get_oembed_data
@@ -19,7 +18,7 @@ from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
 from ..filters import EnumFilter
-from ..mutations import BaseMutation, ModelMutation
+from ..mutations import BaseMutation, ModelWithExtRefMutation
 from ..types import FilterInputObjectType
 from ..utils import (
     add_hash_to_file_name,
@@ -323,10 +322,10 @@ def test_external_reference_to_global_id_non_existing(product):
     non_existing_id = "non-existing-ext-ref"
     model = product.__class__
     # when
-    with pytest.raises(GraphQLError) as e:
+    with pytest.raises(ValidationError) as e:
         ext_ref_to_global_id_or_error(model, non_existing_id)
     # then
-    assert e.value.message == f"Can't find external reference '{non_existing_id}'."
+    assert e.value.messages[0] == f"Couldn't resolve to a node: {non_existing_id}"
 
 
 def test_get_instance_by_both_id_and_external_reference():
@@ -334,8 +333,9 @@ def test_get_instance_by_both_id_and_external_reference():
     data = {"id": "test-id", "external_reference": "test-ext-id"}
     # when
     with pytest.raises(ValidationError) as e:
-        ModelMutation.get_object_by_id_or_ext_ref(**data)
+        ModelWithExtRefMutation.get_object_id(**data)
     # then
     assert (
-        e.value.message == "Argument 'id' cannot be combined with 'external_reference'"
+        e.value.messages[0]
+        == "Argument 'id' cannot be combined with 'external_reference'"
     )

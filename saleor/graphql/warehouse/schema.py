@@ -7,6 +7,7 @@ from ...core.permissions import (
 )
 from ...warehouse import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
@@ -34,7 +35,7 @@ class WarehouseQueries(graphene.ObjectType):
         description="Look up a warehouse by ID.",
         id=graphene.Argument(graphene.ID, description="ID of a warehouse."),
         external_reference=graphene.Argument(
-            graphene.String, description="External ID of a warehouse."
+            graphene.String, description=f"External ID of a warehouse. {ADDED_IN_310}"
         ),
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,

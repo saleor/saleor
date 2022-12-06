@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
+from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import load_plugin_manager
@@ -16,7 +17,8 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a value to delete.")
         external_reference = graphene.String(
-            required=False, description="External ID of a value to delete."
+            required=False,
+            description=f"External ID of a value to delete. {ADDED_IN_310}",
         )
 
     class Meta:

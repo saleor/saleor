@@ -15,8 +15,8 @@ from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task
 from ....app.dataloaders import load_app
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_38
-from ....core.mutations import ModelDeleteMutation
+from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
@@ -25,13 +25,14 @@ from ...types import ProductVariant
 from ...utils import get_draft_order_lines_data_for_variants
 
 
-class ProductVariantDelete(ModelDeleteMutation):
+class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(
             required=False, description="ID of a product variant to delete."
         )
         external_reference = graphene.String(
-            required=False, description="External ID of a product variant to update."
+            required=False,
+            description=f"External ID of a product variant to update. {ADDED_IN_310}",
         )
         sku = graphene.String(
             required=False,

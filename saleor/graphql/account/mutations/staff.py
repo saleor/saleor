@@ -24,6 +24,7 @@ from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import load_app
+from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import (
     BaseMutation,
     ModelDeleteMutation,
@@ -93,7 +94,8 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(description="ID of a customer to update.", required=False)
         external_reference = graphene.String(
-            required=False, description="External ID of a customer to update."
+            required=False,
+            description=f"External ID of a customer to update. {ADDED_IN_310}",
         )
         input = CustomerInput(
             description="Fields required to update a customer.", required=True
@@ -192,7 +194,8 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a customer to delete.")
         external_reference = graphene.String(
-            required=False, description="External ID of a customer to update."
+            required=False,
+            description=f"External ID of a customer to update. {ADDED_IN_310}",
         )
 
     @classmethod

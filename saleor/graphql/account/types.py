@@ -325,7 +325,7 @@ class User(ModelObjectType):
     default_shipping_address = graphene.Field(Address)
     default_billing_address = graphene.Field(Address)
     external_reference = graphene.String(
-        description=f"External id of this user. {ADDED_IN_310}", required=False
+        description=f"External ID of this user. {ADDED_IN_310}", required=False
     )
 
     last_login = graphene.DateTime()

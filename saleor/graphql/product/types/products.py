@@ -363,7 +363,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
     external_reference = graphene.String(
-        description=f"External id of this product. {ADDED_IN_310}",
+        description=f"External ID of this product. {ADDED_IN_310}",
         required=False,
     )
 
@@ -955,7 +955,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
     external_reference = graphene.String(
-        description=f"External id of this product. {ADDED_IN_310}",
+        description=f"External ID of this product. {ADDED_IN_310}",
         required=False,
     )
 

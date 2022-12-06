@@ -10,6 +10,7 @@ from .....order.tasks import recalculate_orders_task
 from .....product import models
 from ....app.dataloaders import load_app
 from ....channel import ChannelContext
+from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import load_plugin_manager
@@ -21,7 +22,8 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a product to delete.")
         external_reference = graphene.String(
-            required=False, description="External ID of a product to delete."
+            required=False,
+            description=f"External ID of a product to delete. {ADDED_IN_310}",
         )
 
     class Meta:

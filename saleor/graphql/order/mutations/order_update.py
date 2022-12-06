@@ -10,6 +10,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import invalidate_order_prices
 from ...account.types import AddressInput
+from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
@@ -27,7 +28,8 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of an order to update.")
         external_reference = graphene.String(
-            required=False, description="External ID of an order to update."
+            required=False,
+            description=f"External ID of an order to update. {ADDED_IN_310}",
         )
         input = OrderUpdateInput(
             required=True, description="Fields required to update an order."

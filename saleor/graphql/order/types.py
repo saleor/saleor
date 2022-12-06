@@ -1132,7 +1132,7 @@ class Order(ModelObjectType):
         required=True,
     )
     external_reference = graphene.String(
-        description=f"External id of this order. {ADDED_IN_310}", required=False
+        description=f"External ID of this order. {ADDED_IN_310}", required=False
     )
 
     class Meta:

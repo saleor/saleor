@@ -9,6 +9,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.enums import ReportingPeriod
 from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
@@ -208,7 +209,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
         external_reference=graphene.Argument(
-            graphene.String, description="External ID of the product."
+            graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -257,7 +258,7 @@ class ProductQueries(graphene.ObjectType):
             graphene.String, description="Sku of the product variant."
         ),
         external_reference=graphene.Argument(
-            graphene.String, description="External ID of the product."
+            graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."

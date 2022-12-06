@@ -7,6 +7,7 @@ from .....core.permissions import ProductPermissions
 from .....product import models
 from .....product.search import update_product_search_vector
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types.common import ProductError
 from ....plugins.dataloaders import load_plugin_manager
@@ -20,7 +21,8 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a product to update.")
         external_reference = graphene.String(
-            required=False, description="External ID of a product to update."
+            required=False,
+            description=f"External ID of a product to update. {ADDED_IN_310}",
         )
         input = ProductInput(
             required=True, description="Fields required to update a product."
@@ -58,7 +60,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         """Prefetch related fields that are needed to process the mutation."""
         # If we are updating an instance and want to update its attributes,
         # prefetch them.
-        object_id = cls.get_object_by_id_or_ext_ref(**data)
+        object_id = cls.get_object_id(**data)
         if object_id and data.get("attributes"):
             # Prefetches needed by AttributeAssignmentMixin and
             # associate_attribute_values_to_instance

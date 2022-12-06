@@ -70,7 +70,7 @@ class AttributeValue(ModelObjectType):
         description=AttributeValueDescriptions.DATE_TIME, required=False
     )
     external_reference = graphene.String(
-        description=f"External id of this attribute value. {ADDED_IN_310}",
+        description=f"External ID of this attribute value. {ADDED_IN_310}",
         required=False,
     )
 
@@ -240,7 +240,7 @@ class Attribute(ModelObjectType):
         required=True,
     )
     external_reference = graphene.String(
-        description=f"External id of this attribute. {ADDED_IN_310}",
+        description=f"External ID of this attribute. {ADDED_IN_310}",
         required=False,
     )
 

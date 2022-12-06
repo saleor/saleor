@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.permissions import ProductTypePermissions
+from ...core.descriptions import ADDED_IN_310
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError, NonNullList
@@ -63,7 +64,8 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of an attribute to update.")
         external_reference = graphene.String(
-            required=False, description="External ID of an attribute to update."
+            required=False,
+            description=f"External ID of an attribute to update. {ADDED_IN_310}",
         )
         input = AttributeUpdateInput(
             required=True, description="Fields required to update an attribute."

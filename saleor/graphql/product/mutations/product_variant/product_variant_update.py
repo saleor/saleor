@@ -11,7 +11,7 @@ from .....core.permissions import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
-from ....core.descriptions import ADDED_IN_38
+from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error
@@ -27,7 +27,8 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a product to update.")
         external_reference = graphene.String(
-            required=False, description="External ID of a product to update."
+            required=False,
+            description=f"External ID of a product variant to update. {ADDED_IN_310}",
         )
         sku = graphene.String(
             required=False,

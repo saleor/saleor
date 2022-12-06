@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
+from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...plugins.dataloaders import load_plugin_manager
@@ -42,7 +43,8 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
             required=False, description="ID of an AttributeValue to update."
         )
         external_reference = graphene.String(
-            required=False, description="External ID of an AttributeValue to update."
+            required=False,
+            description=f"External ID of an AttributeValue to update. {ADDED_IN_310}",
         )
         input = AttributeValueUpdateInput(
             required=True, description="Fields required to update an AttributeValue."
