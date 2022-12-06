@@ -622,10 +622,11 @@ def test_query_staff_user_with_orders_and_manage_orders_perm(
 
 
 USER_QUERY = """
-    query User($id: ID $email: String) {
-        user(id: $id, email: $email) {
+    query User($id: ID $email: String, $externalReference: String) {
+        user(id: $id, email: $email, externalReference: $externalReference) {
             id
             email
+            externalReference
         }
     }
 """
@@ -642,6 +643,27 @@ def test_query_user_by_email_address(
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert customer_user.email == data["email"]
+
+
+def test_query_user_by_external_reference(
+    user_api_client, customer_user, permission_manage_users
+):
+    # given
+    user = customer_user
+    ext_ref = "test-ext-ref"
+    user.external_reference = ext_ref
+    user.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = user_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["user"]
+    assert data["externalReference"] == user.external_reference
 
 
 def test_query_user_by_id_and_email(
@@ -1859,6 +1881,102 @@ def test_customer_update(
     )
 
 
+UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE = """
+    mutation UpdateCustomer(
+        $id: ID, $externalReference: String, $input: CustomerInput!
+    ) {
+        customerUpdate(id: $id, externalReference: $externalReference, input: $input) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                externalReference
+                firstName
+            }
+        }
+    }
+    """
+
+
+def test_customer_update_by_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+    user = customer_user
+    new_name = "updated name"
+    ext_ref = "test-ext-ref"
+    user.external_reference = ext_ref
+    user.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": ext_ref,
+        "input": {"firstName": new_name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    user.refresh_from_db()
+    data = content["data"]["customerUpdate"]
+    assert not data["errors"]
+    assert data["user"]["firstName"] == new_name == user.first_name
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", user.id)
+    assert data["user"]["externalReference"] == ext_ref
+
+
+def test_update_customer_by_both_id_and_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+    variables = {"input": {}, "externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerUpdate"]
+    assert not data["user"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_customer_by_external_reference_not_existing(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "input": {},
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerUpdate"]
+    assert not data["user"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+    assert data["errors"][0]["field"] == "externalReference"
+
+
 UPDATE_CUSTOMER_EMAIL_MUTATION = """
     mutation UpdateCustomer(
             $id: ID!, $firstName: String, $lastName: String, $email: String) {
@@ -2560,14 +2678,15 @@ def test_account_delete_other_customer_token(user_api_client):
 
 
 CUSTOMER_DELETE_MUTATION = """
-    mutation CustomerDelete($id: ID!) {
-        customerDelete(id: $id){
+    mutation CustomerDelete($id: ID, $externalReference: String) {
+        customerDelete(id: $id, externalReference: $externalReference) {
             errors {
                 field
                 message
             }
             user {
                 id
+                externalReference
             }
         }
     }
@@ -2696,6 +2815,72 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
     # should not raise any errors
     CustomerDelete.clean_instance(info, customer_user)
+
+
+def test_customer_delete_by_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    user = customer_user
+    query = CUSTOMER_DELETE_MUTATION
+    ext_ref = "test-ext-ref"
+    user.external_reference = ext_ref
+    user.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerDelete"]
+    with pytest.raises(user._meta.model.DoesNotExist):
+        user.refresh_from_db()
+    assert not data["errors"]
+    assert data["user"]["externalReference"] == ext_ref
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", user.id)
+
+
+def test_delete_customer_by_both_id_and_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = CUSTOMER_DELETE_MUTATION
+    variables = {"externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["customerDelete"]["errors"]
+    assert (
+        errors[0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_delete_customer_by_external_reference_not_existing(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = CUSTOMER_DELETE_MUTATION
+    ext_ref = "non-existing-ext-ref"
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["customerDelete"]["errors"]
+    assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
 
 
 STAFF_CREATE_MUTATION = """

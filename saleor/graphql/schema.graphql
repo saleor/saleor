@@ -1387,6 +1387,9 @@ type Query {
 
     """Email address of the user."""
     email: String
+
+    """External ID of the user."""
+    externalReference: String
   ): User
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
@@ -8560,6 +8563,13 @@ type User implements Node & ObjectWithMetadata {
   languageCode: LanguageCodeEnum!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+
+  """
+  External id of this user. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
   lastLogin: DateTime
   dateJoined: DateTime!
   updatedAt: DateTime!
@@ -15433,8 +15443,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   customerUpdate(
+    """External ID of a customer to update."""
+    externalReference: String
+
     """ID of a customer to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a customer."""
     input: CustomerInput!
@@ -15446,8 +15459,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   customerDelete(
+    """External ID of a customer to update."""
+    externalReference: String
+
     """ID of a customer to delete."""
-    id: ID!
+    id: ID
   ): CustomerDelete
 
   """

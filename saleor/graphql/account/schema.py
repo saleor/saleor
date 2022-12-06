@@ -154,6 +154,9 @@ class AccountQueries(graphene.ObjectType):
         email=graphene.Argument(
             graphene.String, description="Email address of the user."
         ),
+        external_reference=graphene.Argument(
+            graphene.String, description="External ID of the user."
+        ),
         permissions=[
             AccountPermissions.MANAGE_STAFF,
             AccountPermissions.MANAGE_USERS,
@@ -203,9 +206,11 @@ class AccountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
-    def resolve_user(_root, info, *, id=None, email=None):
-        validate_one_of_args_is_in_query("id", id, "email", email)
-        return resolve_user(info, id, email)
+    def resolve_user(_root, info, *, id=None, email=None, external_reference=None):
+        validate_one_of_args_is_in_query(
+            "id", id, "email", email, "external_reference", external_reference
+        )
+        return resolve_user(info, id, email, external_reference)
 
     @staticmethod
     def resolve_address(_root, info, *, id):
