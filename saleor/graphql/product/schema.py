@@ -97,17 +97,13 @@ from .resolvers import (
     resolve_collections,
     resolve_digital_content_by_id,
     resolve_digital_contents,
-    resolve_product_by_external_reference,
-    resolve_product_by_id,
-    resolve_product_by_slug,
+    resolve_product_by_id_slug_or_ext_ref,
     resolve_product_type_by_id,
     resolve_product_types,
-    resolve_product_variant_by_external_reference,
-    resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
-    resolve_variant_by_id,
+    resolve_variant_by_id_sku_or_ext_ref,
 )
 from .sorters import (
     CategorySortingInput,
@@ -398,22 +394,15 @@ class ProductQueries(graphene.ObjectType):
 
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        if id:
-            _type, id = from_global_id_or_error(id, Product)
-            product = resolve_product_by_id(
-                info, id, channel_slug=channel, requestor=requestor
-            )
-        elif slug:
-            product = resolve_product_by_slug(
-                info, product_slug=slug, channel_slug=channel, requestor=requestor
-            )
-        else:
-            product = resolve_product_by_external_reference(
-                info,
-                external_reference=external_reference,
-                channel_slug=channel,
-                requestor=requestor,
-            )
+
+        product = resolve_product_by_id_slug_or_ext_ref(
+            info,
+            id=id,
+            slug=slug,
+            ext_ref=external_reference,
+            channel_slug=channel,
+            requestor=requestor,
+        )
 
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
@@ -477,31 +466,16 @@ class ProductQueries(graphene.ObjectType):
 
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        if id:
-            _, id = from_global_id_or_error(id, ProductVariant)
-            variant = resolve_variant_by_id(
-                info,
-                id,
-                channel_slug=channel,
-                requestor=requestor,
-                requestor_has_access_to_all=has_required_permissions,
-            )
-        elif sku:
-            variant = resolve_product_variant_by_sku(
-                info,
-                sku=sku,
-                channel_slug=channel,
-                requestor=requestor,
-                requestor_has_access_to_all=has_required_permissions,
-            )
-        else:
-            variant = resolve_product_variant_by_external_reference(
-                info,
-                external_reference=external_reference,
-                channel_slug=channel,
-                requestor=requestor,
-                requestor_has_access_to_all=has_required_permissions,
-            )
+
+        variant = resolve_variant_by_id_sku_or_ext_ref(
+            info,
+            id,
+            sku,
+            external_reference,
+            channel_slug=channel,
+            requestor=requestor,
+            requestor_has_access_to_all=has_required_permissions,
+        )
 
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 

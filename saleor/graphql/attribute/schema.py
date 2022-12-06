@@ -1,9 +1,9 @@
 import graphene
 
+from ...attribute import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.fields import FilterConnectionField
-from ..core.utils import from_global_id_or_error
-from ..core.validators import validate_one_of_args_is_in_query
+from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
 from .filters import AttributeFilterInput
@@ -16,12 +16,7 @@ from .mutations import (
     AttributeValueDelete,
     AttributeValueUpdate,
 )
-from .resolvers import (
-    resolve_attribute_by_ext_ref,
-    resolve_attribute_by_id,
-    resolve_attribute_by_slug,
-    resolve_attributes,
-)
+from .resolvers import resolve_attributes
 from .sorters import AttributeSortingInput
 from .types import Attribute, AttributeCountableConnection
 
@@ -52,15 +47,9 @@ class AttributeQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(self, _info, *, id=None, slug=None, external_reference=None):
-        validate_one_of_args_is_in_query(
-            "id", id, "slug", slug, "external_reference", external_reference
+        resolve_by_global_id_slug_or_ext_ref(
+            models.Attribute, id, slug, external_reference
         )
-        if id:
-            _, id = from_global_id_or_error(id, Attribute)
-            return resolve_attribute_by_id(id)
-        if slug:
-            return resolve_attribute_by_slug(slug=slug)
-        return resolve_attribute_by_ext_ref(external_reference)
 
 
 class AttributeMutations(graphene.ObjectType):
