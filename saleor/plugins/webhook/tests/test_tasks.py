@@ -431,7 +431,6 @@ def test_handle_transaction_request_task_with_result_event(
     event_type = TransactionEventActionType.CHARGE
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
-    event_name = "Charge event"
     event_cause = "No cause"
     event_psp_reference = "psp:111:111"
 
@@ -444,8 +443,7 @@ def test_handle_transaction_request_task_with_result_event(
             "type": event_type.upper(),
             "time": event_time,
             "externalUrl": event_url,
-            "name": event_name,
-            "cause": event_cause,
+            "message": event_cause,
         },
     }
     mocked_webhook_response.text = json.dumps(response_payload)
@@ -509,8 +507,7 @@ def test_handle_transaction_request_task_with_result_event(
     assert success_event.amount_value == event_amount
     assert success_event.created_at.isoformat() == event_time
     assert success_event.external_url == event_url
-    assert success_event.name == event_name
-    assert success_event.cause == event_cause
+    assert success_event.message == event_cause
 
     mocked_post_request.assert_called_once_with(
         target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
@@ -599,7 +596,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     assert success_event.created_at == timezone.now()
     assert success_event.external_url == ""
     assert success_event.name == ""
-    assert success_event.cause == ""
+    assert success_event.message == ""
 
     mocked_post_request.assert_called_once_with(
         target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY

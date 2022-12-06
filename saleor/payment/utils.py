@@ -729,8 +729,7 @@ def parse_transaction_action_data(
             parsed_event_data["time"] = timezone.now()
 
         parsed_event_data["external_url"] = event_data.get("externalUrl", "")
-        parsed_event_data["name"] = event_data.get("name", "")
-        parsed_event_data["cause"] = event_data.get("cause", "")
+        parsed_event_data["message"] = event_data.get("message", "")
 
     if not error_fields:
         return TransactionRequestResponse(
@@ -749,7 +748,7 @@ def create_failed_transaction_event(request_event: TransactionEvent, cause: str)
         amount_value=request_event.amount_value,
         currency=request_event.currency,
         transaction_id=request_event.transaction_id,
-        cause=cause,
+        message=cause,
     )
 
 
@@ -782,6 +781,6 @@ def create_transaction_event_from_request_and_webhook_response(
             external_url=response_event.external_url,
             currency=request_event.currency,
             transaction_id=request_event.transaction_id,
-            cause=response_event.cause,
+            message=response_event.message,
             name=response_event.name,
         )

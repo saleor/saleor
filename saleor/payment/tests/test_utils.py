@@ -257,7 +257,6 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     event_type = TransactionEventActionType.CHARGE
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
-    event_name = "Charge event"
     event_cause = "No cause"
     event_psp_reference = "psp:111:111"
 
@@ -270,8 +269,7 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
             "type": event_type.upper(),
             "time": event_time,
             "externalUrl": event_url,
-            "name": event_name,
-            "cause": event_cause,
+            "message": event_cause,
         },
     }
 
@@ -288,8 +286,7 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     assert parsed_data.event.amount == event_amount
     assert parsed_data.event.time == datetime.fromisoformat(event_time)
     assert parsed_data.event.external_url == event_url
-    assert parsed_data.event.name == event_name
-    assert parsed_data.event.cause == event_cause
+    assert parsed_data.event.message == event_cause
     assert parsed_data.event.type == event_type
 
 
@@ -321,7 +318,7 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     assert parsed_data.event.time == timezone.now()
     assert parsed_data.event.external_url == ""
     assert parsed_data.event.name == ""
-    assert parsed_data.event.cause == ""
+    assert parsed_data.event.message == ""
     assert parsed_data.event.type is None
 
 
@@ -440,7 +437,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert event.created_at == timezone.now()
     assert event.external_url == ""
     assert event.name == ""
-    assert event.cause == ""
+    assert event.message == ""
     assert event.type == request_event.type
 
 
@@ -461,7 +458,6 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     event_type = TransactionEventActionType.CHARGE
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
-    event_name = "Charge event"
     event_cause = "No cause"
 
     expected_psp_reference = "psp:122:222"
@@ -476,8 +472,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
             "type": event_type.upper(),
             "time": event_time,
             "externalUrl": event_url,
-            "name": event_name,
-            "cause": event_cause,
+            "message": event_cause,
         },
     }
 
@@ -495,8 +490,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     assert event.amount_value == event_amount
     assert event.created_at == datetime.fromisoformat(event_time)
     assert event.external_url == event_url
-    assert event.name == event_name
-    assert event.cause == event_cause
+    assert event.message == event_cause
     assert event.type == request_event.type
 
 

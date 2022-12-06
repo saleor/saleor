@@ -120,7 +120,7 @@ class TransactionEvent(models.Model):
     )
     psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
     name = models.CharField(max_length=512, blank=True, default="")
-    cause = models.CharField(max_length=512, blank=True, default="")
+    message = models.CharField(max_length=512, blank=True, default="")
 
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE

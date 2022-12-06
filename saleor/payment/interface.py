@@ -31,7 +31,7 @@ class TransactionRequestEventResponse:
     time: Optional[datetime] = None
     external_url: Optional[str] = ""
     name: Optional[str] = ""
-    cause: Optional[str] = ""
+    message: Optional[str] = ""
 
 
 @dataclass
