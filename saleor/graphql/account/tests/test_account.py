@@ -4460,7 +4460,7 @@ def test_customer_address_update_trigger_webhook(
 
     # then
     assert content["data"]["accountAddressUpdate"]
-    mocked_webhook_trigger.assert_called_with(
+    mocked_webhook_trigger.assert_called_once_with(
         *generate_address_webhook_call_args(
             address,
             WebhookEventAsyncType.ADDRESS_UPDATED,
