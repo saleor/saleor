@@ -30,7 +30,7 @@ def mocked_webhook_response():
     mocked_post_response.status_code = 200
     mocked_post_response.ok = True
     mocked_post_response.content = json.dumps({"pspReference": "123"})
-    mocked_post_response.elapsed.total_seconds = lambda: 1
+    mocked_post_response.elapsed.total_seconds = lambda: 1  # noqa: E731
     return mocked_post_response
 
 
@@ -49,7 +49,7 @@ def test_trigger_transaction_request(
     webhook = app.webhooks.create(
         name="webhook", is_active=True, target_url="http://localhost:3000/"
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -59,7 +59,9 @@ def test_trigger_transaction_request(
     )
 
     # when
-    trigger_transaction_request(transaction_data, staff_user)
+    trigger_transaction_request(
+        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
+    )
 
     # then
     flush_post_commit_hooks()
@@ -70,7 +72,10 @@ def test_trigger_transaction_request(
         transaction_data, staff_user
     )
     assert generated_delivery.status == EventDeliveryStatus.PENDING
-    assert generated_delivery.event_type == WebhookEventSyncType.TRANSACTION_REQUEST
+    assert (
+        generated_delivery.event_type
+        == WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
     assert generated_delivery.webhook == webhook
     assert generated_delivery.payload == generated_payload
 
@@ -86,7 +91,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
     subscription = """
     subscription{
         event{
-            ...on TransactionRequest{
+            ...on TransactionRefundRequested{
                 transaction{
                     id
                     status
@@ -111,7 +116,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
         target_url="http://localhost:3000/",
         subscription_query=subscription,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -121,7 +126,9 @@ def test_trigger_transaction_request_with_webhook_subscription(
     )
 
     # when
-    trigger_transaction_request(transaction_data, staff_user)
+    trigger_transaction_request(
+        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
+    )
 
     # then
     flush_post_commit_hooks()
@@ -136,7 +143,10 @@ def test_trigger_transaction_request_with_webhook_subscription(
         "action": {"amount": 10.0, "actionType": "REFUND"},
     }
     assert generated_delivery.status == EventDeliveryStatus.PENDING
-    assert generated_delivery.event_type == WebhookEventSyncType.TRANSACTION_REQUEST
+    assert (
+        generated_delivery.event_type
+        == WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
     assert generated_delivery.webhook == webhook
 
     assert generated_delivery.payload == generated_payload
@@ -174,7 +184,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -187,7 +197,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )
@@ -236,7 +246,7 @@ def test_handle_transaction_request_task_with_server_error(
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -249,7 +259,7 @@ def test_handle_transaction_request_task_with_server_error(
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )
@@ -288,7 +298,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -301,7 +311,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )
@@ -363,7 +373,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -376,7 +386,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )
@@ -455,7 +465,7 @@ def test_handle_transaction_request_task_with_result_event(
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -468,7 +478,7 @@ def test_handle_transaction_request_task_with_result_event(
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )
@@ -544,7 +554,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -557,7 +567,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )

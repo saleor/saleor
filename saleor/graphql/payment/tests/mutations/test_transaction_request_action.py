@@ -616,7 +616,7 @@ def transaction_request_webhook(permission_manage_payments):
     webhook = app.webhooks.create(
         name="Request", is_active=True, target_url="http://localhost:8000/endpoint/"
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REQUEST)
+
     return webhook
 
 
@@ -629,7 +629,7 @@ def transaction_request_webhook(permission_manage_payments):
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
 def test_transaction_request_charge_for_order(
     mocked_payment_action_request,
     mocked_is_active,
@@ -641,6 +641,9 @@ def test_transaction_request_charge_for_order(
     transaction_request_webhook,
 ):
     # given
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
     mocked_is_active.return_value = False
 
     transaction = TransactionItem.objects.create(
@@ -682,7 +685,7 @@ def test_transaction_request_charge_for_order(
             action_value=expected_called_charge_amount,
             event=request_event,
         ),
-        channel_slug=order_with_lines.channel.slug,
+        order_with_lines.channel.slug,
     )
 
     event = order_with_lines.events.first()
@@ -707,7 +710,7 @@ def test_transaction_request_charge_for_order(
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_transaction_request_refund_for_order(
     mocked_payment_action_request,
     mocked_is_active,
@@ -720,6 +723,10 @@ def test_transaction_request_refund_for_order(
 ):
     # given
     mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -758,7 +765,7 @@ def test_transaction_request_refund_for_order(
             action_value=expected_called_refund_amount,
             event=request_event,
         ),
-        channel_slug=order_with_lines.channel.slug,
+        order_with_lines.channel.slug,
     )
 
     event = order_with_lines.events.first()
@@ -775,8 +782,8 @@ def test_transaction_request_refund_for_order(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
-def test_transaction_request_void_for_order(
+@patch("saleor.plugins.manager.PluginsManager.transaction_cancelation_requested")
+def test_transaction_request_cancelation_for_order(
     mocked_payment_action_request,
     mocked_is_active,
     order_with_lines,
@@ -786,6 +793,10 @@ def test_transaction_request_void_for_order(
 ):
     # given
     mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -820,11 +831,11 @@ def test_transaction_request_void_for_order(
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.VOID,
+            action_type=TransactionAction.CANCEL,
             action_value=None,
             event=request_event,
         ),
-        channel_slug=order_with_lines.channel.slug,
+        order_with_lines.channel.slug,
     )
 
     event = order_with_lines.events.first()
@@ -840,8 +851,8 @@ def test_transaction_request_void_for_order(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
-def test_transaction_request_void_for_checkout(
+@patch("saleor.plugins.manager.PluginsManager.transaction_cancelation_requested")
+def test_transaction_request_cancelation_for_checkout(
     mocked_payment_action_request,
     mocked_is_active,
     checkout,
@@ -851,6 +862,10 @@ def test_transaction_request_void_for_checkout(
 ):
     # given
     mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -885,11 +900,11 @@ def test_transaction_request_void_for_checkout(
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.VOID,
+            action_type=TransactionAction.CANCEL,
             action_value=None,
             event=request_event,
         ),
-        channel_slug=checkout.channel.slug,
+        checkout.channel.slug,
     )
 
     assert TransactionEvent.objects.get(
@@ -909,7 +924,7 @@ def test_transaction_request_void_for_checkout(
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
 def test_transaction_request_charge_for_checkout(
     mocked_payment_action_request,
     mocked_is_active,
@@ -922,6 +937,10 @@ def test_transaction_request_charge_for_checkout(
 ):
     # given
     mocked_is_active.side_effect = [True, False]
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -961,7 +980,7 @@ def test_transaction_request_charge_for_checkout(
             action_value=expected_called_charge_amount,
             event=request_event,
         ),
-        channel_slug=checkout.channel.slug,
+        checkout.channel.slug,
     )
 
     assert TransactionEvent.objects.get(
@@ -981,7 +1000,7 @@ def test_transaction_request_charge_for_checkout(
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_transaction_request_refund_for_checkout(
     mocked_payment_action_request,
     mocked_is_active,
@@ -994,6 +1013,10 @@ def test_transaction_request_refund_for_checkout(
 ):
     # given
     mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -1033,7 +1056,7 @@ def test_transaction_request_refund_for_checkout(
             action_value=expected_called_refund_amount,
             event=request_event,
         ),
-        channel_slug=checkout.channel.slug,
+        checkout.channel.slug,
     )
 
     assert TransactionEvent.objects.get(
@@ -1045,7 +1068,7 @@ def test_transaction_request_refund_for_checkout(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_transaction_request_uses_handle_payment_permission(
     mocked_payment_action_request,
     mocked_is_active,
@@ -1056,6 +1079,10 @@ def test_transaction_request_uses_handle_payment_permission(
 ):
     # given
     mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -1096,7 +1123,7 @@ def test_transaction_request_uses_handle_payment_permission(
             action_value=refund_amount,
             event=request_event,
         ),
-        channel_slug=checkout.channel.slug,
+        checkout.channel.slug,
     )
 
 
@@ -1104,6 +1131,10 @@ def test_transaction_request_missing_permission(
     app_api_client, order_with_lines, transaction_request_webhook
 ):
     # given
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
+    )
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -1184,6 +1215,6 @@ def test_transaction_request_missing_event(
     assert mocked_is_active.called
     assert mocked_get_webhooks.called
     mocked_get_webhooks.assert_called_once_with(
-        WebhookEventSyncType.TRANSACTION_REQUEST,
+        event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
         apps_ids=[app.id],
     )

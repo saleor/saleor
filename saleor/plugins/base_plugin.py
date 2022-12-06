@@ -762,7 +762,11 @@ class BasePlugin:
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
 
-    transaction_request: Callable[["TransactionActionData", None], None]
+    transaction_charge_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_cancelation_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_refund_requested: Callable[["TransactionActionData", None], None]
 
     # Trigger when transaction item metadata is updated.
     #
