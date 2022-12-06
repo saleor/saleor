@@ -112,6 +112,16 @@ query warehouse($id: ID!){
 """
 
 
+QUERY_WAREHOUSE_BY_EXTERNAL_REFERENCE = """
+query warehouse($id: ID, $externalReference: String){
+    warehouse(id: $id, externalReference: $externalReference) {
+        id
+        externalReference
+    }
+}
+"""
+
+
 MUTATION_CREATE_WAREHOUSE = """
 mutation createWarehouse($input: WarehouseCreateInput!) {
     createWarehouse(input: $input){
@@ -1488,3 +1498,26 @@ def test_shipping_zone_unassign_from_warehouse(
     warehouse.refresh_from_db()
     shipping_zone.refresh_from_db()
     assert not warehouse.shipping_zones.all()
+
+
+def test_warehouse_query_by_external_reference(
+    staff_api_client, warehouse, permission_manage_products
+):
+    # given
+    ext_ref = "test-ext-ref"
+    warehouse.external_reference = ext_ref
+    warehouse.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["warehouse"]
+    assert data["externalReference"] == ext_ref
+    assert data["id"] == graphene.Node.to_global_id("Warehouse", warehouse.id)

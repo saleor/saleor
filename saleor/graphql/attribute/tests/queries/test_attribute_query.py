@@ -732,7 +732,7 @@ def test_get_attribute_by_external_reference(
     ext_ref = "test-ext-id"
     attribute.external_reference = ext_ref
     attribute.save(update_fields=["external_reference"])
-    variables = {}
+    variables = {"externalReference": ext_ref}
 
     # when
     response = staff_api_client.post_graphql(

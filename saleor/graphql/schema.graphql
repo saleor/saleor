@@ -34,8 +34,11 @@ type Query {
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS, MANAGE_SHIPPING.
   """
   warehouse(
-    """ID of an warehouse"""
-    id: ID!
+    """ID of a warehouse."""
+    id: ID
+
+    """External ID of a warehouse."""
+    externalReference: String
   ): Warehouse
 
   """
@@ -3036,6 +3039,13 @@ type Warehouse implements Node & ObjectWithMetadata {
     """Return the last n elements from the list."""
     last: Int
   ): ShippingZoneCountableConnection!
+
+  """
+  External ID of this warehouse. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """Represents user address data."""

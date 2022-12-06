@@ -5,9 +5,11 @@ from ...core.permissions import (
     ProductPermissions,
     ShippingPermissions,
 )
+from ...warehouse import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
+from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -16,12 +18,7 @@ from .mutations import (
     WarehouseShippingZoneUnassign,
     WarehouseUpdate,
 )
-from .resolvers import (
-    resolve_stock,
-    resolve_stocks,
-    resolve_warehouse,
-    resolve_warehouses,
-)
+from .resolvers import resolve_stock, resolve_stocks, resolve_warehouses
 from .sorters import WarehouseSortingInput
 from .types import (
     Stock,
@@ -35,8 +32,9 @@ class WarehouseQueries(graphene.ObjectType):
     warehouse = PermissionsField(
         Warehouse,
         description="Look up a warehouse by ID.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of an warehouse", required=True
+        id=graphene.Argument(graphene.ID, description="ID of a warehouse."),
+        external_reference=graphene.Argument(
+            graphene.String, description="External ID of a warehouse."
         ),
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
@@ -57,10 +55,8 @@ class WarehouseQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_warehouse(_root, _info, **data):
-        warehouse_pk = data.get("id")
-        _, id = from_global_id_or_error(warehouse_pk, Warehouse)
-        return resolve_warehouse(id)
+    def resolve_warehouse(_root, _info, id=None, external_reference=None):
+        return resolve_by_global_id_or_ext_ref(models.Warehouse, id, external_reference)
 
     @staticmethod
     def resolve_warehouses(_root, info, **kwargs):

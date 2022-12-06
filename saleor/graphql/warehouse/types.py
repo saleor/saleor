@@ -11,6 +11,7 @@ from ..channel import ChannelContext
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -90,6 +91,9 @@ class Warehouse(ModelObjectType):
     shipping_zones = ConnectionField(
         "saleor.graphql.shipping.types.ShippingZoneCountableConnection",
         required=True,
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this warehouse. {ADDED_IN_310}", required=False
     )
 
     class Meta:
