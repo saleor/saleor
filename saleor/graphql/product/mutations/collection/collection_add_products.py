@@ -10,7 +10,7 @@ from .....product.utils import get_products_ids_without_variants
 from ....channel import ChannelContext
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection, Product
 
 
@@ -45,7 +45,7 @@ class CollectionAddProducts(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         cls.clean_products(products)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             collection.products.add(*products)
             if collection.sale_set.exists():

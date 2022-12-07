@@ -3,7 +3,7 @@ from functools import partial, wraps
 
 from ...plugins.manager import get_plugins_manager
 from ...plugins.models import EmailTemplate
-from ..app.dataloaders import get_app_promise, load_app
+from ..app.dataloaders import get_app_promise
 from ..core.dataloaders import DataLoader
 
 
@@ -36,15 +36,6 @@ class AnonymousPluginManagerLoader(DataLoader):
 
     def batch_load(self, keys):
         return [get_plugins_manager() for key in keys]
-
-
-def load_plugin_manager(request):
-    app = load_app(request)
-    user = request.user
-    requestor = app or user
-    if requestor is None:
-        return AnonymousPluginManagerLoader(request).load("Anonymous").get()
-    return PluginManagerByRequestorDataloader(request).load(requestor).get()
 
 
 def plugin_manager_promise(request, app):

@@ -10,7 +10,7 @@ from ....core.inputs import ReorderInput
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, ProductError
 from ....core.utils.reordering import perform_reordering
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductVariant
 
 
@@ -74,7 +74,7 @@ class ProductVariantReorder(BaseMutation):
                     }
                 )
             operations[m2m_info.pk] = move_info.sort_order
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
             product.save(update_fields=["updated_at"])
