@@ -1288,15 +1288,36 @@ class TransactionActionRequest(TransactionActionBase):
             "Event sent when transaction action is requested."
             + ADDED_IN_34
             + "\n\nDEPRECATED: This subscription will be removed in 3.10 "
-            + "release. Use TransactionRequest instead."
+            + "release. Use `TransactionRequestCapture`, `TransactionRequestRefund`, "
+            "`TransactionRequestCancel` instead."
         )
 
 
-class TransactionRequest(TransactionActionBase):
+class TransactionChargeRequested(TransactionActionBase):
     class Meta:
         interfaces = (Event,)
         description = (
-            "Event sent when transaction action is requested."
+            "Event sent when transaction charge is requested."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        )
+
+
+class TransactionRefundRequested(TransactionActionBase):
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction refund is requested."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        )
+
+
+class TransactionCancelationRequested(TransactionActionBase):
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction cancelation is requested."
             + ADDED_IN_39
             + PREVIEW_FEATURE
         )
@@ -1512,6 +1533,7 @@ class CalculateTaxes(ObjectType):
             + PREVIEW_FEATURE
         )
 
+    @staticmethod
     def resolve_tax_base(root, info):
         _, tax_base = root
         return tax_base
@@ -1728,7 +1750,11 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
     WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
     WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
-    WebhookEventSyncType.TRANSACTION_REQUEST: TransactionRequest,
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
+        TransactionCancelationRequested
+    ),
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
     WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (OrderFilterShippingMethods),
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
         CheckoutFilterShippingMethods

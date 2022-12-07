@@ -1286,8 +1286,11 @@ class WebhookPlugin(BasePlugin):
                 requestor=self.requestor,
             )
 
-    def transaction_request(
-        self, transaction_data: "TransactionActionData", previous_value: Any
+    def _request_transaction_action(
+        self,
+        transaction_data: "TransactionActionData",
+        event_type: str,
+        previous_value: Any,
     ) -> None:
         if not self.active:
             return previous_value
@@ -1308,8 +1311,35 @@ class WebhookPlugin(BasePlugin):
             )
             return None
 
-        trigger_transaction_request(transaction_data, self.requestor)
+        trigger_transaction_request(transaction_data, event_type, self.requestor)
         return None
+
+    def transaction_charge_requested(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ):
+        return self._request_transaction_action(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+            previous_value,
+        )
+
+    def transaction_refund_requested(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ):
+        return self._request_transaction_action(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+            previous_value,
+        )
+
+    def transaction_cancelation_requested(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ):
+        return self._request_transaction_action(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
+            previous_value,
+        )
 
     def __run_payment_webhook(
         self,

@@ -43,9 +43,9 @@ from ...payment.error_codes import (
     TransactionUpdateErrorCode,
 )
 from ...payment.gateway import (
+    request_cancelation_action,
     request_charge_action,
     request_refund_action,
-    request_void_action,
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -1197,12 +1197,14 @@ class TransactionRequestAction(BaseMutation):
     def handle_transaction_action(
         cls, action, action_kwargs, action_value: Optional[Decimal]
     ):
-        if action == TransactionAction.VOID:
+        if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             request_event = cls.create_transaction_event_requested(
-                transaction, 0, TransactionAction.VOID
+                transaction, 0, action
             )
-            request_void_action(**action_kwargs, request_event=request_event)
+            request_cancelation_action(
+                **action_kwargs, cancel_value=action_value, request_event=request_event
+            )
         elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value

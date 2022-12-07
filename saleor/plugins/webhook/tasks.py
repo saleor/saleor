@@ -700,7 +700,9 @@ def observability_reporter_task():
                     send_observability_events(webhooks, events)
 
 
-def trigger_transaction_request(transaction_data: "TransactionActionData", requestor):
+def trigger_transaction_request(
+    transaction_data: "TransactionActionData", event_type: str, requestor
+):
     if not transaction_data.event:
         logger.warning(
             "The transaction request for transaction: %s doesn't have a "
@@ -708,7 +710,6 @@ def trigger_transaction_request(transaction_data: "TransactionActionData", reque
             transaction_data.transaction.id,
         )
         return None
-    event_type = WebhookEventSyncType.TRANSACTION_REQUEST
     if not transaction_data.transaction.app_id:
         create_failed_transaction_event(
             transaction_data.event,
