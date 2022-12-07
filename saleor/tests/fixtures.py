@@ -40,7 +40,7 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
-from ..checkout.utils import add_variant_to_checkout
+from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
@@ -5462,6 +5462,20 @@ def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
         checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
     )
     return checkout_for_cc
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_specific_products(
+    checkout_with_item, voucher_specific_product_type
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher_specific_product_type
+    )
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
 
 
 @pytest.fixture
