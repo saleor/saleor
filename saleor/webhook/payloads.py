@@ -16,6 +16,7 @@ from ..attribute.models import AttributeValueTranslation
 from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
+from ..checkout.utils import get_or_create_checkout_metadata
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -574,12 +575,12 @@ def generate_checkout_payload(
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
             "metadata": (
-                lambda c=checkout: c.metadata_storage.metadata
+                lambda c=checkout: get_or_create_checkout_metadata(c).metadata
                 if hasattr(c, "metadata_storage")
                 else {}
             ),
             "private_metadata": (
-                lambda c=checkout: c.metadata_storage.private_metadata
+                lambda c=checkout: get_or_create_checkout_metadata(c).private_metadata
                 if hasattr(c, "metadata_storage")
                 else {}
             ),
@@ -1316,7 +1317,7 @@ def generate_checkout_payload_for_tax_calculation(
             "discounts": discounts,
             "lines": lines_dict_data,
             "metadata": (
-                lambda c=checkout: c.metadata_storage.metadata
+                lambda c=checkout: get_or_create_checkout_metadata(c).metadata
                 if hasattr(c, "metadata_storage")
                 else {}
             ),

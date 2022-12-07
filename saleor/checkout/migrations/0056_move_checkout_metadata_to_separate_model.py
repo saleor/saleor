@@ -24,11 +24,6 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
-def clear_checkout_metadata(checkout):
-    checkout.metadata = None
-    checkout.private_metadata = None
-
-
 def move_all_checkout_metadata(apps, schema_editor):
     Checkout = apps.get_model("checkout", "Checkout")
     CheckoutMetadata = apps.get_model("checkout", "CheckoutMetadata")

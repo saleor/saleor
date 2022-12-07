@@ -12,6 +12,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import (
     delete_external_shipping_id,
+    get_or_create_checkout_metadata,
     invalidate_checkout_prices,
     is_shipping_required,
     set_external_shipping_id,
@@ -236,7 +237,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        checkout.metadata_storage.save(
+        get_or_create_checkout_metadata(checkout).save(
             update_fields=[
                 "private_metadata",
             ]

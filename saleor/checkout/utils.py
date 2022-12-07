@@ -840,7 +840,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    checkout.metadata_storage.save(
+    get_or_create_checkout_metadata(checkout).save(
         update_fields=[
             "private_metadata",
         ]
