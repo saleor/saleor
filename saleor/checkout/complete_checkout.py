@@ -182,13 +182,16 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
+    # the price with sale discount - base price that is used for total price calculation
     base_unit_price = calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=checkout_info.channel, discounts=discounts
     )
+    # the unit price before applying any discount (sale or voucher)
     undiscounted_base_unit_price = calculate_undiscounted_base_line_unit_price(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
+    # the total price before applying any discount (sale or voucher)
     undiscounted_base_total_price = calculate_undiscounted_base_line_total_price(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
@@ -199,6 +202,7 @@ def _create_line_for_order(
     undiscounted_total_price = TaxedMoney(
         net=undiscounted_base_total_price, gross=undiscounted_base_total_price
     )
+    # total price after applying all discounts - sales and vouchers
     total_line_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -206,6 +210,7 @@ def _create_line_for_order(
         checkout_line_info=checkout_line_info,
         discounts=discounts,
     )
+    # unit price after applying all discounts - sales and vouchers
     unit_price = calculations.checkout_line_unit_price(
         manager=manager,
         checkout_info=checkout_info,
@@ -349,7 +354,6 @@ def _create_lines_for_order(
         replace=True,
         check_reservations=check_reservations,
     )
-
     return [
         _create_line_for_order(
             manager,
@@ -391,6 +395,7 @@ def _prepare_order_data(
         address=address,
         discounts=discounts,
     )
+    # checkout.discount contains only discounts applied on entire order
     undiscounted_total = taxed_total + checkout.discount
 
     shipping_total = calculations.checkout_shipping_price(
@@ -411,15 +416,6 @@ def _prepare_order_data(
         _process_shipping_data_for_order(checkout_info, shipping_total, manager, lines)
     )
     order_data.update(_process_user_data_for_order(checkout_info, manager))
-    order_data.update(
-        {
-            "language_code": checkout.language_code,
-            "tracking_client_id": checkout.tracking_code or "",
-            "total": taxed_total,
-            "undiscounted_total": undiscounted_total,
-            "shipping_tax_rate": shipping_tax_rate,
-        }
-    )
 
     order_data["lines"] = _create_lines_for_order(
         manager,
@@ -428,6 +424,25 @@ def _prepare_order_data(
         discounts,
         check_reservations,
         taxes_included_in_prices,
+    )
+    # Calculate the discount that was applied for each lines - the sales and voucher
+    # discounts on specific products are included on the line level and are not included
+    # in the checkout.discount amount.
+    line_discounts = zero_taxed_money(checkout.currency)
+    for line in order_data["lines"]:
+        line_discounts += line.line.undiscounted_total_price - line.line.total_price
+
+    # include discounts applied on lines, in order undiscounted total price
+    undiscounted_total += line_discounts
+
+    order_data.update(
+        {
+            "language_code": checkout.language_code,
+            "tracking_client_id": checkout.tracking_code or "",
+            "total": taxed_total,
+            "undiscounted_total": undiscounted_total,
+            "shipping_tax_rate": shipping_tax_rate,
+        }
     )
 
     # validate checkout gift cards
