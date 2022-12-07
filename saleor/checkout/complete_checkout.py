@@ -338,7 +338,6 @@ def _create_lines_for_order(
         replace=True,
         check_reservations=check_reservations,
     )
-
     return [
         _create_line_for_order(
             manager,
@@ -385,6 +384,7 @@ def _prepare_order_data(
     taxed_total.net -= cards_total
 
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
+    # checkout.discount contains only discounts applied on entire order
     undiscounted_total = taxed_total + checkout.discount
 
     shipping_total = manager.calculate_checkout_shipping(
@@ -397,15 +397,6 @@ def _prepare_order_data(
         _process_shipping_data_for_order(checkout_info, shipping_total, manager, lines)
     )
     order_data.update(_process_user_data_for_order(checkout_info, manager))
-    order_data.update(
-        {
-            "language_code": checkout.language_code,
-            "tracking_client_id": checkout.tracking_code or "",
-            "total": taxed_total,
-            "undiscounted_total": undiscounted_total,
-            "shipping_tax_rate": shipping_tax_rate,
-        }
-    )
 
     order_data["lines"] = _create_lines_for_order(
         manager,
@@ -414,6 +405,25 @@ def _prepare_order_data(
         discounts,
         check_reservations,
         taxes_included_in_prices,
+    )
+    # Calculate the discount that was applied for each lines - the sales and voucher
+    # discounts on specific products are included on the line level and are not included
+    # in the checkout.discount amount.
+    line_discounts = zero_taxed_money(checkout.currency)
+    for line in order_data["lines"]:
+        line_discounts += line.line.undiscounted_total_price - line.line.total_price
+
+    # include discounts applied on lines, in order undiscounted total price
+    undiscounted_total += line_discounts
+
+    order_data.update(
+        {
+            "language_code": checkout.language_code,
+            "tracking_client_id": checkout.tracking_code or "",
+            "total": taxed_total,
+            "undiscounted_total": undiscounted_total,
+            "shipping_tax_rate": shipping_tax_rate,
+        }
     )
 
     # validate checkout gift cards
