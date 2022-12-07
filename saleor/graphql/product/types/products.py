@@ -79,7 +79,10 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...plugins.dataloaders import get_plugin_manager_promise, load_plugin_manager
+from ...plugins.dataloaders import (
+    get_plugin_manager_promise,
+    plugin_manager_promise_callback,
+)
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -557,6 +560,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
+        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
+        manager = get_plugin_manager_promise(info.context)
 
         address_country = address.country if address is not None else None
 
@@ -611,9 +616,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                 )
 
             return channel.then(calculate_pricing_with_channel)
-
-        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
-        manager = get_plugin_manager_promise(info.context)
 
         return Promise.all([discounts, manager]).then(calculate_pricing_info)
 
@@ -900,8 +902,8 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_tax_type(root: ChannelContext[models.Product], info):
-        manager = load_plugin_manager(info.context)
+    @plugin_manager_promise_callback
+    def resolve_tax_type(root: ChannelContext[models.Product], info, manager):
         tax_data = manager.get_tax_code_from_object_meta(root.node)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
@@ -963,11 +965,14 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
+        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
+        manager = get_plugin_manager_promise(info.context)
 
         address_country = address.country if address is not None else None
-        manager = load_plugin_manager(info.context)
 
-        def calculate_pricing_info(discounts):
+        def calculate_pricing_info(data):
+            discounts, manager = data
+
             def calculate_pricing_with_channel(channel):
                 def calculate_pricing_with_product_channel_listings(
                     product_channel_listing,
@@ -980,7 +985,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                                 if not variants_channel_listing:
                                     return None
 
-                                local_currency = None
                                 country_code = (
                                     address_country or channel.default_country.code
                                 )
@@ -1014,11 +1018,12 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
             return channel.then(calculate_pricing_with_channel)
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
+        return Promise.all(
+            [
+                discounts,
+                manager,
+            ]
+        ).then(calculate_pricing_info)
 
     @staticmethod
     @traced_resolver
@@ -1335,8 +1340,8 @@ class ProductType(ModelObjectType):
         model = models.ProductType
 
     @staticmethod
-    def resolve_tax_type(root: models.ProductType, info):
-        manager = load_plugin_manager(info.context)
+    @plugin_manager_promise_callback
+    def resolve_tax_type(root: models.ProductType, info, manager):
         tax_data = manager.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 

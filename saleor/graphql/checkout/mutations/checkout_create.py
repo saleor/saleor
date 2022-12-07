@@ -26,7 +26,7 @@ from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
@@ -350,7 +350,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if channel:
             data["input"]["channel"] = channel
         response = super().perform_mutation(_root, info, **data)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.checkout_created, response.checkout)
         response.created = True
         return response

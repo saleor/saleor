@@ -6,7 +6,7 @@ from ....order import events
 from ....order.utils import invalidate_order_prices, remove_discount_from_order_line
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon
@@ -44,7 +44,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         )
         order = order_line.order
         cls.validate(info, order)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             remove_discount_from_order_line(
                 order_line,

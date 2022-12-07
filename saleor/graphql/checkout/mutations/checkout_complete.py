@@ -31,7 +31,7 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
@@ -219,7 +219,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
 
         validate_checkout_email(checkout)
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             not_available_variants_ids = {

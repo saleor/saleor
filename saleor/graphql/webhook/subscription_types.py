@@ -37,6 +37,7 @@ from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
+from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
@@ -1474,9 +1475,10 @@ class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
     )
 
     @staticmethod
-    def resolve_shipping_methods(root, info):
+    @plugin_manager_promise_callback
+    def resolve_shipping_methods(root, info, manager):
         _, checkout = root
-        return resolve_shipping_methods_for_checkout(info, checkout)
+        return resolve_shipping_methods_for_checkout(info, checkout, manager)
 
     class Meta:
         interfaces = (Event,)
@@ -1512,9 +1514,10 @@ class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
     )
 
     @staticmethod
-    def resolve_shipping_methods(root, info):
+    @plugin_manager_promise_callback
+    def resolve_shipping_methods(root, info, manager):
         _, checkout = root
-        return resolve_shipping_methods_for_checkout(info, checkout)
+        return resolve_shipping_methods_for_checkout(info, checkout, manager)
 
     class Meta:
         interfaces = (Event,)

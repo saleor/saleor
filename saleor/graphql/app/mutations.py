@@ -19,7 +19,7 @@ from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AppError, NonNullList
 from ..decorators import staff_member_required
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppInstallation, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
@@ -178,7 +178,7 @@ class AppCreate(ModelMutation):
         cls._save_m2m(info, instance, cleaned_input)
         response = cls.success_response(instance)
         response.auth_token = auth_token
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_installed, instance)
         return response
 
@@ -225,7 +225,7 @@ class AppUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_updated, instance)
 
 
@@ -253,7 +253,7 @@ class AppDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_deleted, instance)
 
 
@@ -274,7 +274,7 @@ class AppActivate(ModelMutation):
         app = cls.get_instance(info, **data)
         app.is_active = True
         cls.save(info, app, cleaned_input=None)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)
 
@@ -296,7 +296,7 @@ class AppDeactivate(ModelMutation):
         app = cls.get_instance(info, **data)
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)
 

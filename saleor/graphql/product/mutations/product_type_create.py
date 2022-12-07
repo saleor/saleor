@@ -9,7 +9,7 @@ from ...core.mutations import ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import NonNullList, ProductError
 from ...core.validators import validate_slug_and_generate_if_needed
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import ProductTypeKindEnum
 from ..types import ProductType
 
@@ -96,7 +96,7 @@ class ProductTypeCreate(ModelMutation):
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             manager.assign_tax_code_to_object_meta(instance, tax_code)
 
         cls.validate_attributes(cleaned_input)

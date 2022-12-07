@@ -11,7 +11,7 @@ from ..app.dataloaders import load_app
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import InvoiceError
 from ..order.types import Order
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Invoice
 from .utils import is_event_active_for_any_plugin
 
@@ -64,7 +64,7 @@ class InvoiceRequest(ModelMutation):
             info, data["order_id"], only_type=Order, field="orderId"
         )
         cls.clean_order(order)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         if not is_event_active_for_any_plugin("invoice_request", manager.all_plugins):
             raise ValidationError(
                 {
@@ -209,7 +209,7 @@ class InvoiceRequestDelete(ModelMutation):
         invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.invoice_delete, invoice)
         app = load_app(info.context)
         events.invoice_requested_deletion_event(
@@ -348,7 +348,7 @@ class InvoiceSendNotification(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         send_invoice(
             invoice=instance,
             staff_user=info.context.user,

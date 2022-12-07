@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 import graphene
 from django_countries.fields import Country
+from promise import Promise
 
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_resolver
@@ -25,7 +26,7 @@ from ...core.descriptions import (
 from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..dataloaders import (
     CollectionsByProductIdLoader,
     ProductByIdLoader,
@@ -197,9 +198,10 @@ class ProductChannelListing(ModelObjectType):
         context = info.context
 
         address_country = address.country if address is not None else None
-        manager = load_plugin_manager(info.context)
 
-        def calculate_pricing_info(discounts):
+        def calculate_pricing_info(data):
+            discounts, manager = data
+
             def calculate_pricing_with_channel(channel):
                 def calculate_pricing_with_product(product):
                     def calculate_pricing_with_variants(variants):
@@ -213,7 +215,6 @@ class ProductChannelListing(ModelObjectType):
                                 country_code = (
                                     address_country or channel.default_country.code
                                 )
-                                local_currency = None
                                 local_currency = get_currency_for_country(country_code)
 
                                 availability = get_product_availability(
@@ -264,11 +265,10 @@ class ProductChannelListing(ModelObjectType):
                 .then(calculate_pricing_with_channel)
             )
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
+        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
+        manager = get_plugin_manager_promise(context)
+
+        return Promise.all([discounts, manager]).then(calculate_pricing_info)
 
 
 class PreorderThreshold(graphene.ObjectType):

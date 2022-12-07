@@ -13,7 +13,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
@@ -60,7 +60,7 @@ class CheckoutAddPromoCode(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 
