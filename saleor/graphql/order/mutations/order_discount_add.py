@@ -9,7 +9,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -52,7 +52,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)

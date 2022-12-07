@@ -9,7 +9,7 @@ from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale
 from .sale_create import SaleInput, SaleUpdateDiscountedPriceMixin
 from .utils import convert_catalogue_info_to_global_ids
@@ -36,7 +36,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         previous_catalogue = fetch_catalogue_info(instance)
         previous_end_date = instance.end_date
         data = data.get("input")
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cleaned_input = cls.clean_input(info, instance, data)
         with traced_atomic_transaction():
             instance = cls.construct_instance(instance, cleaned_input)

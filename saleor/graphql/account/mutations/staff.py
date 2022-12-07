@@ -27,7 +27,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.validators.file import clean_image_file
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..utils import (
     CustomerDeleteMixin,
@@ -192,7 +192,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.customer_deleted, instance)
 
 
@@ -294,7 +294,7 @@ class StaffCreate(ModelMutation):
             )
         user.save()
         if cleaned_input.get("redirect_url") and send_notification:
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             send_set_password_notification(
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
@@ -313,7 +313,7 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.staff_created, instance)
 
     @classmethod
@@ -488,7 +488,7 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.staff_updated, instance)
 
 
@@ -519,7 +519,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         instance.id = db_id
 
         response = cls.success_response(instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.staff_deleted, instance)
 
         return response
@@ -553,7 +553,7 @@ class AddressCreate(ModelMutation):
         with traced_atomic_transaction():
             response = super().perform_mutation(root, info, **data)
             if not response.errors:
-                manager = load_plugin_manager(info.context)
+                manager = get_plugin_manager_promise(info.context).get()
                 address = manager.change_user_address(response.address, None, user)
                 remove_the_oldest_user_address_if_address_limit_is_reached(user)
                 user.addresses.add(address)
@@ -564,7 +564,7 @@ class AddressCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.address_created, instance)
 
 
@@ -625,7 +625,7 @@ class AddressSetDefault(BaseMutation):
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         utils.change_user_default_address(user, address, address_type, manager)
         cls.call_event(manager.customer_updated, user)
         return cls(user=user)

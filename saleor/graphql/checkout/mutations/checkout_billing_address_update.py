@@ -18,7 +18,7 @@ from ...core.descriptions import (
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
@@ -92,7 +92,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 "enable_fields_normalization", True
             ),
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             billing_address.save()
             change_address_updated_fields = change_billing_address_in_checkout(

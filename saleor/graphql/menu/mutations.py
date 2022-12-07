@@ -17,7 +17,7 @@ from ..core.types import MenuError, NonNullList
 from ..core.utils.reordering import perform_reordering
 from ..core.validators import validate_slug_and_generate_if_needed
 from ..page.types import Page
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.types import Category, Collection
 from ..site.dataloaders import get_site_promise
 from .dataloaders import MenuItemsByParentMenuLoader
@@ -133,7 +133,7 @@ class MenuCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_created, instance)
 
     @classmethod
@@ -164,7 +164,7 @@ class MenuUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_updated, instance)
 
     @classmethod
@@ -187,7 +187,7 @@ class MenuDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_deleted, instance)
 
     @classmethod
@@ -236,7 +236,7 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_item_created, instance)
 
     @classmethod
@@ -298,7 +298,7 @@ class MenuItemUpdate(MenuItemCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_item_updated, instance)
 
 
@@ -316,7 +316,7 @@ class MenuItemDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_item_deleted, instance)
 
     @classmethod
@@ -472,7 +472,7 @@ class MenuItemMove(BaseMutation):
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
         operations = cls.clean_moves(info, menu, moves)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             for operation in operations:
                 cls.perform_change_parent_operation(operation)
