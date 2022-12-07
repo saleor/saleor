@@ -23,7 +23,7 @@ from ....core.scalars import WeightScalar
 from ....core.types import NonNullList, ProductError
 from ....core.utils import get_duplicated_values
 from ....meta.mutations import MetadataInput
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ....warehouse.types import Warehouse
 from ...types import ProductVariant
 from ...utils import (
@@ -340,7 +340,7 @@ class ProductVariantCreate(ModelMutation):
             if not instance.name:
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             update_product_search_vector(instance.product)
             event_to_call = (
                 manager.product_variant_created

@@ -14,7 +14,7 @@ from ....payment.gateway import request_charge_action
 from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order
 
@@ -65,7 +65,7 @@ class OrderConfirm(ModelMutation):
         order.save(update_fields=["status", "updated_at", "display_gross_prices"])
         order_info = fetch_order_info(order)
         payment = order_info.payment
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         app = load_app(info.context)
         with traced_atomic_transaction():
             if payment_transactions := list(order.payment_transactions.all()):

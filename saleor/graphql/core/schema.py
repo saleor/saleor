@@ -1,6 +1,6 @@
 import graphene
 
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .mutations import FileUpload
 from .types import NonNullList, TaxType
 
@@ -11,7 +11,7 @@ class CoreQueries(graphene.ObjectType):
     )
 
     def resolve_tax_types(self, info):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         return [
             TaxType(description=tax.description, tax_code=tax.code)
             for tax in manager.get_tax_rate_type_choices()

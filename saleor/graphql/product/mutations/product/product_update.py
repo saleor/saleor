@@ -9,7 +9,7 @@ from .....product import models
 from .....product.search import update_product_search_vector
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....core.types.common import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from .product_create import ProductCreate, ProductInput
 
@@ -55,5 +55,5 @@ class ProductUpdate(ProductCreate):
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)

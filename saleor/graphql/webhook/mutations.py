@@ -8,7 +8,7 @@ from ..app.dataloaders import load_app
 from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from . import enums
 from .subscription_payload import validate_query
 from .types import EventDelivery, Webhook
@@ -285,6 +285,6 @@ class EventDeliveryRetry(BaseMutation):
             data["id"],
             only_type=EventDelivery,
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         manager.event_delivery_retry(delivery)
         return EventDeliveryRetry(delivery=delivery)

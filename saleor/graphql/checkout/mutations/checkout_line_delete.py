@@ -8,7 +8,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout, CheckoutLine
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
@@ -58,7 +58,7 @@ class CheckoutLineDelete(BaseMutation):
         if line and line in checkout.lines.all():
             line.delete()
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         lines, _ = fetch_checkout_lines(checkout)
         discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)

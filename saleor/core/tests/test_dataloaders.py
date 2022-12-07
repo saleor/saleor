@@ -1,6 +1,6 @@
 from django.core.handlers.base import BaseHandler
 
-from ...graphql.plugins.dataloaders import load_plugin_manager
+from ...graphql.plugins.dataloaders import get_plugin_manager_promise
 
 
 def test_plugins_manager_loader_loads_requestor_in_plugin(rf, customer_user, settings):
@@ -12,7 +12,7 @@ def test_plugins_manager_loader_loads_requestor_in_plugin(rf, customer_user, set
     handler = BaseHandler()
     handler.load_middleware()
     handler.get_response(request)
-    manager = load_plugin_manager(request)
+    manager = get_plugin_manager_promise(request).get()
     plugin = manager.all_plugins.pop()
 
     assert isinstance(plugin.requestor, type(customer_user))
@@ -30,7 +30,7 @@ def test_plugins_manager_loader_requestor_in_plugin_when_no_app_and_user_in_req_
     handler = BaseHandler()
     handler.load_middleware()
     handler.get_response(request)
-    manager = load_plugin_manager(request)
+    manager = get_plugin_manager_promise(request).get()
     plugin = manager.all_plugins.pop()
 
     assert not plugin.requestor

@@ -8,7 +8,7 @@ from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
 from ...app.dataloaders import load_app
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -41,7 +41,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
