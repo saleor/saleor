@@ -116,8 +116,8 @@ def order_created(
                 payment=payment,
                 manager=manager,
             )
-    site_settings = Site.objects.get_current().settings
-    if site_settings.automatically_confirm_all_new_orders or from_draft:
+    channel = order_info.channel
+    if channel.automatically_confirm_all_new_orders or from_draft:
         order_confirmed(order, user, app, manager)
 
 
@@ -162,7 +162,7 @@ def handle_fully_paid_order(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
+    if order_info.channel.automatically_fulfill_non_shippable_gift_card:
         order_lines = [line.line for line in order_info.lines_data]
         fulfill_non_shippable_gift_cards(
             order, order_lines, site_settings, user, app, manager
