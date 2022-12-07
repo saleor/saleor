@@ -20,7 +20,7 @@ from ....core.scalars import WeightScalar
 from ....core.types import NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....meta.mutations import MetadataInput
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 
 
@@ -201,7 +201,7 @@ class ProductCreate(ModelMutation):
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 
     @classmethod

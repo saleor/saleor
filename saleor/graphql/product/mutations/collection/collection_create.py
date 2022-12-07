@@ -16,7 +16,7 @@ from ....core.types import CollectionError, NonNullList, SeoInput, Upload
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
 from ....meta.mutations import MetadataInput
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection
 
 
@@ -98,7 +98,7 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_created, instance)
 
         products = instance.products.prefetched_for_webhook(single_object=False)

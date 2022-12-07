@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import ChannelPermissions
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError, ChannelErrorCode
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 
 
@@ -38,6 +38,6 @@ class ChannelDeactivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = False
         channel.save(update_fields=["is_active"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_status_changed, channel)
         return ChannelDeactivate(channel=channel)

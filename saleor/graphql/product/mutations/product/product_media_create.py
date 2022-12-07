@@ -16,7 +16,7 @@ from ....core.validators.file import (
     is_image_url,
     validate_image_url,
 )
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 
 
@@ -119,7 +119,7 @@ class ProductMediaCreate(BaseMutation):
                     type=media_type,
                     oembed_data=oembed_data,
                 )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)

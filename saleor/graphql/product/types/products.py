@@ -86,7 +86,7 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...plugins.dataloaders import get_plugin_manager_promise, load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
@@ -994,17 +994,15 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        def with_tax_class(tax_class):
-            manager = load_plugin_manager(info.context)
+        def with_tax_class(data):
+            tax_class, manager = data
             tax_data = manager.get_tax_code_from_object_meta(tax_class)
             return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
         if root.node.tax_class_id:
-            return (
-                TaxClassByIdLoader(info.context)
-                .load(root.node.tax_class_id)
-                .then(with_tax_class)
-            )
+            tax_class = TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
+            manager = get_plugin_manager_promise(info.context)
+            return Promise.all([tax_class, manager]).then(with_tax_class)
 
         return None
 
@@ -1090,22 +1088,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
                         country_rates, default_country_rate_obj = data
-                        local_currency = None
                         local_currency = get_currency_for_country(country_code)
-
-                        tax_config_country = next(
-                            (
-                                tc
-                                for tc in tax_configs_per_country
-                                if tc.country.code == country_code
-                            ),
-                            None,
-                        )
-                        display_gross_prices = get_display_gross_prices(
-                            tax_config,
-                            tax_config_country,
-                        )
-
                         tax_config_country = next(
                             (
                                 tc
@@ -1624,17 +1607,15 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        def with_tax_class(tax_class):
-            manager = load_plugin_manager(info.context)
+        def with_tax_class(data):
+            tax_class, manager = data
             tax_data = manager.get_tax_code_from_object_meta(tax_class)
             return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
         if root.tax_class_id:
-            return (
-                TaxClassByIdLoader(info.context)
-                .load(root.tax_class_id)
-                .then(with_tax_class)
-            )
+            tax_class = TaxClassByIdLoader(info.context).load(root.tax_class_id)
+            manager = get_plugin_manager_promise(info.context)
+            return Promise.all([tax_class, manager]).then(with_tax_class)
 
         return None
 

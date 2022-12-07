@@ -16,7 +16,7 @@ from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.validators import validate_price_precision
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .mutations import GiftCardCreate
 from .types import GiftCard
 
@@ -72,7 +72,7 @@ class GiftCardBulkCreate(BaseMutation):
         instances = cls.create_instances(input_data, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         transaction.on_commit(
             lambda: cls.call_gift_card_created_on_plugins(instances, manager)
         )
@@ -176,7 +176,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info, queryset):
         instances = [card for card in queryset]
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
             manager.gift_card_deleted(instance)
 
@@ -212,7 +212,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=app
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
             manager.gift_card_status_changed(card)
 
@@ -242,6 +242,6 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         events.gift_cards_deactivated_event(
             gift_card_ids, user=info.context.user, app=app
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
             manager.gift_card_status_changed(card)

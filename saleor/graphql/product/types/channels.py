@@ -236,7 +236,6 @@ class ProductChannelListing(ModelObjectType):
 
                         def calculate_pricing_info(data):
                             country_rates, default_country_rate_obj = data
-                            local_currency = None
                             local_currency = get_currency_for_country(country_code)
 
                             tax_config_country = next(

@@ -10,7 +10,7 @@ from ...app.dataloaders import load_app
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -62,7 +62,7 @@ class FulfillmentApprove(BaseMutation):
         cls.clean_input(info, fulfillment)
 
         order = fulfillment.order
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         app = load_app(info.context)
         site = get_site_promise(info.context).get()
         try:

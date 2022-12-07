@@ -4,7 +4,7 @@ from .....core.permissions import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
 from ....core.types import CollectionError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection
 from .collection_create import CollectionCreate, CollectionInput
 
@@ -39,5 +39,5 @@ class CollectionUpdate(CollectionCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         """Override this method with `pass` to avoid triggering product webhook."""
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_updated, instance)
