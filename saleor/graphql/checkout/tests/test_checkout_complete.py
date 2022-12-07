@@ -788,7 +788,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
     orders_count = Order.objects.count()
     variables = {
-        "id": to_global_id_or_none(checkout),
+        "token": checkout.token,
         "redirectUrl": "https://www.example.com",
     }
 
@@ -875,7 +875,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
 
     orders_count = Order.objects.count()
     variables = {
-        "id": to_global_id_or_none(checkout),
+        "token": checkout.token,
         "redirectUrl": "https://www.example.com",
     }
 
@@ -966,7 +966,7 @@ def test_checkout_complete_product_on_sale(
 
     orders_count = Order.objects.count()
     variables = {
-        "id": to_global_id_or_none(checkout),
+        "token": checkout.token,
         "redirectUrl": "https://www.example.com",
     }
 
@@ -1059,7 +1059,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale
 
     orders_count = Order.objects.count()
     variables = {
-        "id": to_global_id_or_none(checkout),
+        "token": checkout.token,
         "redirectUrl": "https://www.example.com",
     }
 
