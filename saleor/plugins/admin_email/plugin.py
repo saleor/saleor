@@ -169,7 +169,7 @@ class AdminEmailPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = EmailConfig(
             host=configuration["host"] or settings.EMAIL_HOST,
-            port=configuration["port"] or settings.EMAIL_PORT,
+            port=configuration["port"] or str(settings.EMAIL_PORT),
             username=configuration["username"] or settings.EMAIL_HOST_USER,
             password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
             sender_name=configuration["sender_name"],
