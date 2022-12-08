@@ -240,6 +240,29 @@ def test_clean_editor_js_for_complex_description():
                     ],
                 },
             },
+            {
+                "type": "image",
+                "data": {
+                    "file": {
+                        "url": "https://codex.so/public/app/img/external/codex2x.png"
+                    },
+                    "caption": "Test caption",
+                    "withBorder": False,
+                    "stretched": False,
+                    "withBackground": False,
+                },
+            },
+            {
+                "type": "embed",
+                "data": {
+                    "service": "youtube",
+                    "source": "https://www.youtube.com/erz",
+                    "embed": "https://www.youtube.com/embed/erz",
+                    "width": 580,
+                    "height": 320,
+                    "caption": "How To Use",
+                },
+            },
         ]
     }
 
@@ -265,4 +288,9 @@ def test_clean_editor_js_for_complex_description():
         " warm clothes"
         " test item"
         " item test"
+        " https://codex.so/public/app/img/external/codex2x.png"
+        " Test caption"
+        " https://www.youtube.com/erz"
+        " https://www.youtube.com/embed/erz"
+        " How To Use"
     )

@@ -1806,6 +1806,110 @@ def test_validate_numeric_attributes_value_required(
     assert errors[0].code == ProductErrorCode.REQUIRED.value
 
 
+@pytest.mark.parametrize("creation", [True, False])
+def test_validate_rich_text_attributes_input_for_product_only_embed_block(
+    creation, rich_text_attribute, product_type
+):
+    # given
+    rich_text_attribute.value_required = True
+    rich_text_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            rich_text_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id(
+                    "Attribute", rich_text_attribute.pk
+                ),
+                values=["12.34"],
+                file_url=None,
+                content_type=None,
+                references=[],
+                rich_text={
+                    "time": 1670422589533,
+                    "blocks": [
+                        {
+                            "id": "6sWdDeIffS",
+                            "type": "embed",
+                            "data": {
+                                "service": "youtube",
+                                "source": "https://www.youtube.com/watch?v=xyz",
+                                "embed": "https://www.youtube.com/embed/xyz",
+                                "width": 580,
+                                "height": 320,
+                                "caption": "How To Use",
+                            },
+                        }
+                    ],
+                    "version": "2.22.2",
+                },
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        creation=creation,
+    )
+
+    # then
+    assert not errors
+
+
+@pytest.mark.parametrize("creation", [True, False])
+def test_validate_rich_text_attributes_input_for_product_only_image_block(
+    creation, rich_text_attribute, product_type
+):
+    # given
+    rich_text_attribute.value_required = True
+    rich_text_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            rich_text_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id(
+                    "Attribute", rich_text_attribute.pk
+                ),
+                values=["12.34"],
+                file_url=None,
+                content_type=None,
+                references=[],
+                rich_text={
+                    "time": 1670422589533,
+                    "blocks": [
+                        {
+                            "id": "6n7TFTMU8y",
+                            "type": "image",
+                            "data": {
+                                "file": {"url": "https://codex.so/public/codex2x.png"},
+                                "caption": "",
+                                "withBorder": False,
+                                "stretched": False,
+                                "withBackground": False,
+                            },
+                        }
+                    ],
+                },
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        creation=creation,
+    )
+
+    # then
+    assert not errors
+
+
 def test_clean_file_url_in_attribute_assignment_mixin(site_settings):
     # given
     name = "Test.jpg"
