@@ -288,6 +288,7 @@ COST_MAP = {
     },
     "SelectedAttribute": {
         "attribute": {"complexity": 1},
+        "values": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ShippingMethodChannelListing": {
         "channel": {"complexity": 1},
