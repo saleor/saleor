@@ -15,7 +15,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.descriptions import ADDED_IN_39, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.types import Image, ModelObjectType, ThumbnailField
@@ -55,9 +55,9 @@ class Category(ModelObjectType):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(
-            description="Filtering options for products." + ADDED_IN_39
+            description="Filtering options for products." + ADDED_IN_310
         ),
-        sort_by=ProductOrder(description="Sort products." + ADDED_IN_39),
+        sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),

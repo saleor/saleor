@@ -5651,14 +5651,14 @@ type Category implements Node & ObjectWithMetadata {
     """
     Filtering options for products.
     
-    Added in Saleor 3.9.
+    Added in Saleor 3.10.
     """
     filter: ProductFilterInput
 
     """
     Sort products.
     
-    Added in Saleor 3.9.
+    Added in Saleor 3.10.
     """
     sortBy: ProductOrder
 
