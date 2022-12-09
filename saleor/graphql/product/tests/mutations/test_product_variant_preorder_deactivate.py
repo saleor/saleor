@@ -84,7 +84,10 @@ def test_product_variant_deactivate_preorder_non_preorder_variant(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-@patch("saleor.graphql.product.mutations.products.deactivate_preorder_for_variant")
+@patch(
+    "saleor.graphql.product.mutations.product_variant"
+    ".product_variant_preorder_deactivate.deactivate_preorder_for_variant"
+)
 def test_product_variant_deactivate_preorder_cannot_deactivate(
     mock_deactivate_preorder_for_variant,
     staff_api_client,

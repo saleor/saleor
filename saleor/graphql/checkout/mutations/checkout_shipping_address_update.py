@@ -16,7 +16,6 @@ from ....checkout.utils import (
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
-from ....product import models as product_models
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -30,7 +29,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
@@ -90,13 +89,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         channel_slug: str,
         delivery_method_info: "DeliveryMethodBase",
     ) -> None:
-        variant_ids = [line_info.variant.id for line_info in lines]
-        variants = list(
-            product_models.ProductVariant.objects.filter(
-                id__in=variant_ids
-            ).prefetch_related("product__product_type")
-        )  # FIXME: is this prefetch needed?
-        quantities = [line_info.line.quantity for line_info in lines]
+        variants = []
+        quantities = []
+        for line_info in lines:
+            variants.append(line_info.variant)
+            quantities.append(line_info.line.quantity)
         site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
@@ -157,7 +154,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 "enable_fields_normalization", True
             ),
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(

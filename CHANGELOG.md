@@ -2,7 +2,17 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.9.0 [Unreleased]
+# 3.10.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+### Other changes
+
+- Deactivate Webhook before deleting and handle IntegrityErrors - #11239 @jakubkuc
+
+# 3.9.0
 
 ### Highlights
 
@@ -25,13 +35,22 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
 
 ### Other changes
 
 - Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
   <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
-- Deactivate Webhook before deleting and handle IntegrityErrors - #11239 @jakubkuc
+- Add exif image validation - #11224 by @IKarbowiak
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
+- Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
+- Make email authentication case-insensitive. #11284 by @zedzior
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
+- Add HTTP headers filtering to observability reporter. #11285 by @przlada
 
 # 3.8.0
 
@@ -73,7 +92,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
 - Add `iss` field to JWT tokens - #10842 by @korycins
 - Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
-
 
 ### Saleor Apps
 
@@ -235,6 +253,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose manifest in the `App` type (#10055) (f0f944066)
 - Deprecate `configurationUrl` and `dataPrivacy` fields in apps (#10046) (68bd7c8a2)
 - Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
 
 ### Saleor Apps
 

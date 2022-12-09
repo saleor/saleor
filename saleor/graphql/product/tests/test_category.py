@@ -1,6 +1,6 @@
 import json
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -404,6 +404,8 @@ def test_category_create_mutation(
     monkeypatch, staff_api_client, permission_manage_products, media_root
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
     category_name = "Test category"
     description = "description"
     category_slug = slugify(category_name)
@@ -427,9 +429,7 @@ def test_category_create_mutation(
     body = get_multipart_request_body(
         CATEGORY_CREATE_MUTATION, variables, image_file, image_name
     )
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
 
@@ -478,6 +478,8 @@ def test_category_create_trigger_webhook(
     media_root,
     settings,
 ):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
     query = CATEGORY_CREATE_MUTATION
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -498,9 +500,7 @@ def test_category_create_trigger_webhook(
         "slug": category_slug,
     }
     body = get_multipart_request_body(query, variables, image_file, image_name)
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
     category = Category.objects.first()
@@ -631,6 +631,7 @@ def test_category_update_mutation(
     monkeypatch, staff_api_client, category, permission_manage_products, media_root
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
 
     # create child category and test that the update mutation won't change
     # it's parent
@@ -668,9 +669,7 @@ def test_category_update_mutation(
     )
 
     # when
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
 
@@ -704,6 +703,8 @@ def test_category_update_trigger_webhook(
     media_root,
     settings,
 ):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
@@ -726,9 +727,7 @@ def test_category_update_trigger_webhook(
     body = get_multipart_request_body(
         MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
     )
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
     assert data["errors"] == []
@@ -763,6 +762,8 @@ def test_category_update_background_image_mutation(
     site_settings,
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
     alt_text = "Alt text for an image."
     background_mock = MagicMock(spec=File)
     background_mock.name = "image.jpg"
@@ -797,9 +798,7 @@ def test_category_update_background_image_mutation(
     )
 
     # when
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_multipart(body)
 
     # then
     content = get_graphql_content(response)
@@ -820,7 +819,7 @@ def test_category_update_background_image_mutation(
 
 
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
-def test_category_update_mutation_invalid_background_image(
+def test_category_update_mutation_invalid_background_image_content_type(
     delete_from_storage_task_mock,
     staff_api_client,
     category,
@@ -857,6 +856,58 @@ def test_category_update_mutation_invalid_background_image(
     data = content["data"]["categoryUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
     assert data["errors"][0]["message"] == "Invalid file type."
+
+    # ensure that thumbnails for old background image hasn't been deleted
+    assert Thumbnail.objects.filter(category_id=category.id)
+    delete_from_storage_task_mock.assert_not_called()
+
+
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
+def test_category_update_mutation_invalid_background_image(
+    delete_from_storage_task_mock,
+    monkeypatch,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    image_file, image_name = create_image()
+    image_alt = "Alt text for an image."
+
+    error_msg = "Test syntax error"
+    image_file_mock = Mock(side_effect=SyntaxError(error_msg))
+    monkeypatch.setattr(
+        "saleor.graphql.core.validators.file.Image.open", image_file_mock
+    )
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(category=category, size=size, image=thumbnail_mock)
+
+    variables = {
+        "name": "new-name",
+        "slug": "new-slug",
+        "id": to_global_id("Category", category.id),
+        "backgroundImage": image_name,
+        "backgroundImageAlt": image_alt,
+        "isPublished": True,
+    }
+    body = get_multipart_request_body(
+        MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+    assert data["errors"][0]["field"] == "backgroundImage"
+    assert error_msg in data["errors"][0]["message"]
 
     # ensure that thumbnails for old background image hasn't been deleted
     assert Thumbnail.objects.filter(category_id=category.id)

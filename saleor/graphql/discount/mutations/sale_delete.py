@@ -6,7 +6,7 @@ from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.core.mutations import ModelDeleteMutation
 from ...core.types import DiscountError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale
 from .sale_create import SaleUpdateDiscountedPriceMixin
 from .utils import convert_catalogue_info_to_global_ids
@@ -29,7 +29,7 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Sale)
         previous_catalogue = fetch_catalogue_info(instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
             cls.call_event(

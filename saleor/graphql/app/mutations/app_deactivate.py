@@ -4,7 +4,7 @@ from ....app import models
 from ....core.permissions import AppPermission
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import App
 
 
@@ -25,6 +25,6 @@ class AppDeactivate(ModelMutation):
         app = cls.get_instance(info, **data)
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)

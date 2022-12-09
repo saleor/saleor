@@ -12,7 +12,7 @@ from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -72,7 +72,7 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
         app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
             # provide way of handling multiple transaction here

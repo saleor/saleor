@@ -110,7 +110,9 @@ def test_reorder_not_existing_media(
             media.delete()
 
     with before_after.before(
-        "saleor.graphql.product.mutations.products.update_ordered_media", delete_media
+        "saleor.graphql.product.mutations.product.product_media_reorder"
+        ".update_ordered_media",
+        delete_media,
     ):
         variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}
         response = staff_api_client.post_graphql(

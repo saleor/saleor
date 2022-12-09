@@ -9,7 +9,7 @@ from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import AttributeError, NonNullList
 from ...core.utils.reordering import perform_reordering
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 
 
@@ -77,7 +77,7 @@ class AttributeReorderValues(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         events_list = [v for v in values_m2m if v.id in operations.keys()]
         for value in events_list:
             cls.call_event(manager.attribute_value_updated, value)
