@@ -112,13 +112,13 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
     )
 
     attributes_map: Dict[str, int] = {}
-    values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
+    values_map: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(list))
     for value_data in values.values_list(
         "attribute_id", "attribute__slug", "pk", "numeric_value"
     ):
         attr_pk, attr_slug, pk, numeric_value = value_data
         attributes_map[attr_slug] = attr_pk
-        values_map[attr_slug][numeric_value] = pk
+        values_map[attr_slug][numeric_value].append(pk)
 
     for attr_name, val_range in filter_value:
         if attr_name not in attributes_map:
@@ -129,8 +129,9 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         matching_values = [
             value for value in attr_values.keys() if gte <= value and lte >= value
         ]
-        attr_val_pks = [attr_values[value] for value in matching_values]
-        queries[attr_pk] += attr_val_pks
+        queries[attr_pk] = []
+        for value in matching_values:
+            queries[attr_pk] += attr_values[value]
 
 
 def _clean_product_attributes_date_time_range_filter_input(filter_value):
