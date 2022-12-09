@@ -15,6 +15,7 @@ from ..core.connection import (
 from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
+from ..core.scalars import Date
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -99,7 +100,7 @@ class Page(ModelObjectType):
     seo_description = graphene.String()
     title = graphene.String(required=True)
     content = JSONString(description="Content of the page." + RICH_CONTENT)
-    publication_date = graphene.Date(
+    publication_date = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `publishedAt` field to fetch the publication date."

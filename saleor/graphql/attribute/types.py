@@ -18,6 +18,7 @@ from ..core.connection import (
 from ..core.descriptions import ADDED_IN_31, ADDED_IN_39, DEPRECATED_IN_3X_FIELD
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
+from ..core.scalars import Date
 from ..core.types import (
     DateRangeInput,
     DateTimeRangeInput,
@@ -60,7 +61,7 @@ class AttributeValue(ModelObjectType):
     boolean = graphene.Boolean(
         description=AttributeValueDescriptions.BOOLEAN, required=False
     )
-    date = graphene.Date(description=AttributeValueDescriptions.DATE, required=False)
+    date = Date(description=AttributeValueDescriptions.DATE, required=False)
     date_time = graphene.DateTime(
         description=AttributeValueDescriptions.DATE_TIME, required=False
     )
@@ -424,7 +425,7 @@ class AttributeValueInput(graphene.InputObjectType):
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )
-    date = graphene.Date(required=False, description=AttributeValueDescriptions.DATE)
+    date = Date(required=False, description=AttributeValueDescriptions.DATE)
     date_time = graphene.DateTime(
         required=False, description=AttributeValueDescriptions.DATE_TIME
     )
