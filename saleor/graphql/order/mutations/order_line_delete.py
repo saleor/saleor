@@ -11,7 +11,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -75,7 +75,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
                     "updated_at",
                 ]
             # Create the removal event
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             events.order_removed_products_event(
                 order=order,
                 user=info.context.user,

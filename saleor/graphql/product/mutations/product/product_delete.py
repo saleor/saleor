@@ -8,7 +8,7 @@ from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
 from .....product import models
-from ....app.dataloaders import load_app
+from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
@@ -54,7 +54,7 @@ class ProductDelete(ModelDeleteMutation):
                 pk__in=draft_order_lines_data.line_pks
             ).delete()
 
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             # run order event for deleted lines
             for (
                 order,

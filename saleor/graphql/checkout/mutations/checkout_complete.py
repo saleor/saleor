@@ -21,7 +21,7 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -267,7 +267,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             store_source=store_source,
             discounts=discounts,
             user=customer,
-            app=load_app(info.context),
+            app=get_app_promise(info.context).get(),
             site_settings=site.settings,
             tracking_code=tracking_code,
             redirect_url=data.get("redirect_url"),

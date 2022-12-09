@@ -13,7 +13,7 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task
-from ....app.dataloaders import load_app
+from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core.descriptions import ADDED_IN_38
 from ....core.mutations import ModelDeleteMutation
@@ -95,7 +95,7 @@ class ProductVariantDelete(ModelDeleteMutation):
             ).delete()
 
             # run order event for deleted lines
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             for (
                 order,
                 order_lines,

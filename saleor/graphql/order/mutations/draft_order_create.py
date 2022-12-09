@@ -22,7 +22,7 @@ from ....order.utils import (
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
@@ -331,7 +331,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         return cls._save_draft_order(
             info,
             instance,
