@@ -9,7 +9,7 @@ from ....core.permissions import OrderPermissions
 from ....order import models as order_models
 from ....order.actions import create_fulfillments
 from ....order.error_codes import OrderErrorCode
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.descriptions import ADDED_IN_36
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
@@ -245,7 +245,7 @@ class OrderFulfill(BaseMutation):
 
         context = info.context
         user = context.user
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
