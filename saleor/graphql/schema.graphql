@@ -5648,6 +5648,20 @@ type Category implements Node & ObjectWithMetadata {
   List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   products(
+    """
+    Filtering options for products.
+    
+    Added in Saleor 3.10.
+    """
+    filter: ProductFilterInput
+
+    """
+    Sort products.
+    
+    Added in Saleor 3.10.
+    """
+    sortBy: ProductOrder
+
     """Slug of a channel for which the data should be returned."""
     channel: String
 
@@ -5716,6 +5730,228 @@ type CategoryCountableEdge {
 
   """A cursor for use in pagination."""
   cursor: String!
+}
+
+input ProductFilterInput {
+  isPublished: Boolean
+  collections: [ID!]
+  categories: [ID!]
+  hasCategory: Boolean
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+  stocks: ProductStockFilterInput
+  search: String
+  metadata: [MetadataFilter!]
+
+  """
+  Filter by the publication date. 
+  
+  Added in Saleor 3.8.
+  """
+  publishedFrom: DateTime
+
+  """
+  Filter by availability for purchase. 
+  
+  Added in Saleor 3.8.
+  """
+  isAvailable: Boolean
+
+  """
+  Filter by the date of availability for purchase. 
+  
+  Added in Saleor 3.8.
+  """
+  availableFrom: DateTime
+
+  """
+  Filter by visibility in product listings. 
+  
+  Added in Saleor 3.8.
+  """
+  isVisibleInListing: Boolean
+  price: PriceRangeInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: PriceRangeInput
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+  productTypes: [ID!]
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+  ids: [ID!]
+  hasPreorderedVariants: Boolean
+  slugs: [String!]
+
+  """
+  Specifies the channel by which the data should be filtered. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
+  """
+  channel: String
+}
+
+input AttributeInput {
+  """Internal representation of an attribute name."""
+  slug: String!
+
+  """Internal representation of a value (unique per attribute)."""
+  values: [String!]
+
+  """The range that the returned values should be in."""
+  valuesRange: IntRangeInput
+
+  """The date/time range that the returned values should be in."""
+  dateTime: DateTimeRangeInput
+
+  """
+  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used.
+  """
+  date: DateRangeInput
+
+  """The boolean value of the attribute."""
+  boolean: Boolean
+}
+
+input IntRangeInput {
+  """Value greater than or equal to."""
+  gte: Int
+
+  """Value less than or equal to."""
+  lte: Int
+}
+
+input DateTimeRangeInput {
+  """Start date."""
+  gte: DateTime
+
+  """End date."""
+  lte: DateTime
+}
+
+input DateRangeInput {
+  """Start date."""
+  gte: Date
+
+  """End date."""
+  lte: Date
+}
+
+enum StockAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
+}
+
+input ProductStockFilterInput {
+  warehouseIds: [ID!]
+  quantity: IntRangeInput
+}
+
+input PriceRangeInput {
+  """Price greater than or equal to."""
+  gte: Float
+
+  """Price less than or equal to."""
+  lte: Float
+}
+
+input ProductOrder {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """
+  Specifies the channel in which to sort the data.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
+  """
+  channel: String
+
+  """
+  Sort product by the selected attribute's values.
+  Note: this doesn't take translations into account yet.
+  """
+  attributeId: ID
+
+  """Sort products by the selected field."""
+  field: ProductOrderField
+}
+
+enum ProductOrderField {
+  """Sort products by name."""
+  NAME
+
+  """
+  Sort products by rank. Note: This option is available only with the `search` filter.
+  """
+  RANK
+
+  """
+  Sort products by price.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PRICE
+
+  """
+  Sort products by a minimal price of a product's variant.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  MINIMAL_PRICE
+
+  """Sort products by update date."""
+  LAST_MODIFIED
+
+  """Sort products by update date."""
+  DATE
+
+  """Sort products by type."""
+  TYPE
+
+  """
+  Sort products by publication status.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLISHED
+
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLICATION_DATE
+
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLISHED_AT
+
+  """Sort products by update date."""
+  LAST_MODIFIED_AT
+
+  """
+  Sort products by collection. Note: This option is available only for the `Collection.products` query.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  COLLECTION
+
+  """Sort products by rating."""
+  RATING
+
+  """
+  Sort products by creation date.
+  
+  Added in Saleor 3.8.
+  """
+  CREATED_AT
 }
 
 """Represents an image."""
@@ -6471,228 +6707,6 @@ type Collection implements Node & ObjectWithMetadata {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   channelListings: [CollectionChannelListing!]
-}
-
-input ProductFilterInput {
-  isPublished: Boolean
-  collections: [ID!]
-  categories: [ID!]
-  hasCategory: Boolean
-  attributes: [AttributeInput!]
-
-  """Filter by variants having specific stock status."""
-  stockAvailability: StockAvailability
-  stocks: ProductStockFilterInput
-  search: String
-  metadata: [MetadataFilter!]
-
-  """
-  Filter by the publication date. 
-  
-  Added in Saleor 3.8.
-  """
-  publishedFrom: DateTime
-
-  """
-  Filter by availability for purchase. 
-  
-  Added in Saleor 3.8.
-  """
-  isAvailable: Boolean
-
-  """
-  Filter by the date of availability for purchase. 
-  
-  Added in Saleor 3.8.
-  """
-  availableFrom: DateTime
-
-  """
-  Filter by visibility in product listings. 
-  
-  Added in Saleor 3.8.
-  """
-  isVisibleInListing: Boolean
-  price: PriceRangeInput
-
-  """Filter by the lowest variant price after discounts."""
-  minimalPrice: PriceRangeInput
-
-  """Filter by when was the most recent update."""
-  updatedAt: DateTimeRangeInput
-  productTypes: [ID!]
-
-  """Filter on whether product is a gift card or not."""
-  giftCard: Boolean
-  ids: [ID!]
-  hasPreorderedVariants: Boolean
-  slugs: [String!]
-
-  """
-  Specifies the channel by which the data should be filtered. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
-  """
-  channel: String
-}
-
-input AttributeInput {
-  """Internal representation of an attribute name."""
-  slug: String!
-
-  """Internal representation of a value (unique per attribute)."""
-  values: [String!]
-
-  """The range that the returned values should be in."""
-  valuesRange: IntRangeInput
-
-  """The date/time range that the returned values should be in."""
-  dateTime: DateTimeRangeInput
-
-  """
-  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used.
-  """
-  date: DateRangeInput
-
-  """The boolean value of the attribute."""
-  boolean: Boolean
-}
-
-input IntRangeInput {
-  """Value greater than or equal to."""
-  gte: Int
-
-  """Value less than or equal to."""
-  lte: Int
-}
-
-input DateTimeRangeInput {
-  """Start date."""
-  gte: DateTime
-
-  """End date."""
-  lte: DateTime
-}
-
-input DateRangeInput {
-  """Start date."""
-  gte: Date
-
-  """End date."""
-  lte: Date
-}
-
-enum StockAvailability {
-  IN_STOCK
-  OUT_OF_STOCK
-}
-
-input ProductStockFilterInput {
-  warehouseIds: [ID!]
-  quantity: IntRangeInput
-}
-
-input PriceRangeInput {
-  """Price greater than or equal to."""
-  gte: Float
-
-  """Price less than or equal to."""
-  lte: Float
-}
-
-input ProductOrder {
-  """Specifies the direction in which to sort products."""
-  direction: OrderDirection!
-
-  """
-  Specifies the channel in which to sort the data.
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
-  """
-  channel: String
-
-  """
-  Sort product by the selected attribute's values.
-  Note: this doesn't take translations into account yet.
-  """
-  attributeId: ID
-
-  """Sort products by the selected field."""
-  field: ProductOrderField
-}
-
-enum ProductOrderField {
-  """Sort products by name."""
-  NAME
-
-  """
-  Sort products by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
-
-  """
-  Sort products by price.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PRICE
-
-  """
-  Sort products by a minimal price of a product's variant.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  MINIMAL_PRICE
-
-  """Sort products by update date."""
-  LAST_MODIFIED
-
-  """Sort products by update date."""
-  DATE
-
-  """Sort products by type."""
-  TYPE
-
-  """
-  Sort products by publication status.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLISHED
-
-  """
-  Sort products by publication date.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLICATION_DATE
-
-  """
-  Sort products by publication date.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLISHED_AT
-
-  """Sort products by update date."""
-  LAST_MODIFIED_AT
-
-  """
-  Sort products by collection. Note: This option is available only for the `Collection.products` query.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  COLLECTION
-
-  """Sort products by rating."""
-  RATING
-
-  """
-  Sort products by creation date.
-  
-  Added in Saleor 3.8.
-  """
-  CREATED_AT
 }
 
 type CollectionTranslation implements Node {
