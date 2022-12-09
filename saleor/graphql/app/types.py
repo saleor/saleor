@@ -27,7 +27,7 @@ from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
-from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader, load_app
+from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader, app_promise_callback
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
@@ -44,20 +44,19 @@ def has_required_permission(app: models.App, context):
         )
 
 
-def check_permission_for_access_to_meta(app: models.App, info):
-    has_access = has_access_to_app_public_meta(app, info)
+def check_permission_for_access_to_meta(root: models.App, info, app):
+    has_access = has_access_to_app_public_meta(root, info, app)
     if not has_access:
         raise PermissionDenied(
             permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
         )
 
 
-def has_access_to_app_public_meta(root, info) -> bool:
+def has_access_to_app_public_meta(root, info, app) -> bool:
     auth_token = info.context.decoded_auth_token or {}
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:
-        app = load_app(info.context)
         app_id = app.id if app else None
     if app_id is not None and int(app_id) == root.id:
         return True
@@ -125,9 +124,9 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         return root.target
 
     @staticmethod
-    def resolve_app(root, info):
+    @app_promise_callback
+    def resolve_app(root, info, app):
         app_id = None
-        app = load_app(info.context)
         if app and app.id == root.app_id:
             app_id = root.app_id
         else:
@@ -363,18 +362,21 @@ class App(ModelObjectType):
         return resolve_federation_references(App, roots, qs)
 
     @staticmethod
-    def resolve_metadata(root: models.App, info):
-        check_permission_for_access_to_meta(root, info)
+    @app_promise_callback
+    def resolve_metadata(root: models.App, info, app):
+        check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metadata(root, info)
 
     @staticmethod
-    def resolve_metafield(root: models.App, info, *, key: str):
-        check_permission_for_access_to_meta(root, info)
+    @app_promise_callback
+    def resolve_metafield(root: models.App, info, app, *, key: str):
+        check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metafield(root, info, key=key)
 
     @staticmethod
-    def resolve_metafields(root: models.App, info, *, keys=None):
-        check_permission_for_access_to_meta(root, info)
+    @app_promise_callback
+    def resolve_metafields(root: models.App, info, app, *, keys=None):
+        check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 
 

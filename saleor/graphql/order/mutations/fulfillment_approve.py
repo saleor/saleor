@@ -6,7 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order.actions import approve_fulfillment
 from ....order.error_codes import OrderErrorCode
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -63,7 +63,7 @@ class FulfillmentApprove(BaseMutation):
 
         order = fulfillment.order
         manager = get_plugin_manager_promise(info.context).get()
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         site = get_site_promise(info.context).get()
         try:
             fulfillment = approve_fulfillment(
