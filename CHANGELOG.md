@@ -2,7 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.9.0 [Unreleased]
+# 3.9.0
 
 ### Highlights
 
@@ -34,6 +34,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - `variant`- allow fetching the single variant by the product variant `id` or `sku`
 - Allow sorting media of the product - #10537 by @kadewu
 - Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
 
 ### Saleor Apps
 
