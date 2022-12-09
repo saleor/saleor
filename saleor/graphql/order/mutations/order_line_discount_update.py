@@ -6,7 +6,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
@@ -63,7 +63,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         site = get_site_promise(info.context).get()
         order_line_before_update = copy.deepcopy(order_line)
         tax_included = site.settings.include_taxes_in_prices
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
             update_discount_for_order_line(
                 order_line,

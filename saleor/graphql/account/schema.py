@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import AccountPermissions, OrderPermissions
+from ..app.dataloaders import app_promise_callback
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
@@ -208,8 +209,9 @@ class AccountQueries(graphene.ObjectType):
         return resolve_user(info, id, email)
 
     @staticmethod
-    def resolve_address(_root, info, *, id):
-        return resolve_address(info, id)
+    @app_promise_callback
+    def resolve_address(_root, info, app, *, id):
+        return resolve_address(info, id, app)
 
 
 class AccountMutations(graphene.ObjectType):

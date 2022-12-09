@@ -32,7 +32,7 @@ from ....product.utils import delete_categories, get_products_ids_without_varian
 from ....product.utils.variants import generate_and_set_variant_name
 from ....thumbnail import models as thumbnail_models
 from ....warehouse.management import deactivate_preorder_for_variant
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
@@ -821,7 +821,7 @@ class ProductDelete(ModelDeleteMutation):
                 pk__in=draft_order_lines_data.line_pks
             ).delete()
 
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             # run order event for deleted lines
             for (
                 order,
@@ -1313,7 +1313,7 @@ class ProductVariantDelete(ModelDeleteMutation):
             ).delete()
 
             # run order event for deleted lines
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             for (
                 order,
                 order_lines,

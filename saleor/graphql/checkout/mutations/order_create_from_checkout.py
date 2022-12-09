@@ -8,7 +8,7 @@ from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
@@ -126,7 +126,7 @@ class OrderCreateFromCheckout(BaseMutation):
             discounts=discounts,
             manager=manager,
         )
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
 from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
@@ -112,7 +112,7 @@ class WebhookCreate(ModelMutation):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         instance.app = app
         return instance
 
@@ -247,7 +247,7 @@ class WebhookDelete(ModelDeleteMutation):
         node_id = data["id"]
         object_id = cls.get_global_id_or_error(node_id)
 
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         if app:
             if not app.is_active:
                 raise ValidationError(
