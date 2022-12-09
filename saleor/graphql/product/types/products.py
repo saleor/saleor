@@ -68,6 +68,7 @@ from ...core.fields import (
     JSONString,
     PermissionsField,
 )
+from ...core.scalars import Date
 from ...core.types import (
     Image,
     ModelObjectType,
@@ -926,7 +927,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         type_name="product",
         resolver=ChannelContextType.resolve_translation,
     )
-    available_for_purchase = graphene.Date(
+    available_for_purchase = Date(
         description="Date when product is available for purchase.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
