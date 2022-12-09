@@ -29,7 +29,7 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ...core.mutations import BaseMutation
-from ...core.scalars import PositiveDecimal
+from ...core.scalars import Date, PositiveDecimal
 from ...core.types import (
     CollectionChannelListingError,
     NonNullList,
@@ -57,7 +57,7 @@ class PublishableChannelListingInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
     )
-    publication_date = graphene.types.datetime.Date(
+    publication_date = Date(
         description=(
             f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
             "Use `publishedAt` field instead."
@@ -78,7 +78,7 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
     is_available_for_purchase = graphene.Boolean(
         description="Determine if product should be available for purchase.",
     )
-    available_for_purchase_date = graphene.Date(
+    available_for_purchase_date = Date(
         description=(
             "A start date from which a product will be available for purchase. "
             "When not set and isAvailable is set to True, "

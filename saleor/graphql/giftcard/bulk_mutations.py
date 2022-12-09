@@ -14,6 +14,7 @@ from ...giftcard.utils import is_gift_card_expired
 from ..app.dataloaders import load_app
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
+from ..core.scalars import Date
 from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.validators import validate_price_precision
 from ..plugins.dataloaders import get_plugin_manager_promise
@@ -30,7 +31,7 @@ class GiftCardBulkCreateInput(graphene.InputObjectType):
         graphene.String,
         description="The gift card tags.",
     )
-    expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
+    expiry_date = Date(description="The gift card expiry date.")
     is_active = graphene.Boolean(
         required=True, description="Determine if gift card is active."
     )
