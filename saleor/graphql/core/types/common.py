@@ -46,7 +46,7 @@ from ..enums import (
     WebhookErrorCode,
     WeightUnitsEnum,
 )
-from ..scalars import PositiveDecimal
+from ..scalars import Date, PositiveDecimal
 from .money import VAT
 
 # deprecated - this is temporary constant that contains the graphql types
@@ -455,8 +455,8 @@ class PriceRangeInput(graphene.InputObjectType):
 
 
 class DateRangeInput(graphene.InputObjectType):
-    gte = graphene.Date(description="Start date.", required=False)
-    lte = graphene.Date(description="End date.", required=False)
+    gte = Date(description="Start date.", required=False)
+    lte = Date(description="End date.", required=False)
 
 
 class DateTimeRangeInput(graphene.InputObjectType):

@@ -46,7 +46,7 @@ from ...core.descriptions import (
 from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import WeightScalar
+from ...core.scalars import Date, WeightScalar
 from ...core.types import CollectionError, NonNullList, ProductError, SeoInput, Upload
 from ...core.utils import get_duplicated_values
 from ...core.utils.reordering import perform_reordering
@@ -224,7 +224,7 @@ class CollectionInput(graphene.InputObjectType):
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
-    publication_date = graphene.Date(
+    publication_date = Date(
         description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
     )
     metadata = NonNullList(
