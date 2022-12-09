@@ -321,7 +321,7 @@ zstd = ["zstandard"]
 
 [[package]]
 name = "certifi"
-version = "2022.5.18.1"
+version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
@@ -2998,8 +2998,8 @@ celery = [
     {file = "celery-5.2.4.tar.gz", hash = "sha256:12a899bf8580545e62b2c662e37709c336052941b133e416d3cba7aca4068e0b"},
 ]
 certifi = [
-    {file = "certifi-2022.5.18.1-py3-none-any.whl", hash = "sha256:f1d53542ee8cbedbe2118b5686372fb33c297fcd6379b050cca0ef13a597382a"},
-    {file = "certifi-2022.5.18.1.tar.gz", hash = "sha256:9c5705e395cd70084351dd8ad5c41e65655e08ce46f2ec9cf6c2c08390f71eb7"},
+    {file = "certifi-2022.12.7-py3-none-any.whl", hash = "sha256:4ad3232f5e926d6718ec31cfc1fcadfde020920e278684144551c91769c7bc18"},
+    {file = "certifi-2022.12.7.tar.gz", hash = "sha256:35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3"},
 ]
 cffi = [
     {file = "cffi-1.15.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:c2502a1a03b6312837279c8c1bd3ebedf6c12c4228ddbad40912d671ccc8a962"},
