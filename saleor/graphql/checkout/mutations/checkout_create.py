@@ -11,7 +11,7 @@ from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core.descriptions import (
     ADDED_IN_31,
@@ -179,7 +179,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def clean_checkout_lines(
         cls, info, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List["CheckoutLineData"]]:
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         site = get_site_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
         variant_ids = [line["variant_id"] for line in lines]

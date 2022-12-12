@@ -5,7 +5,7 @@ from ....order import FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import create_refund_fulfillment
 from ....payment import PaymentError
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -135,7 +135,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         order = cleaned_input["order"]
         manager = get_plugin_manager_promise(info.context).get()
         try:
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             refund_fulfillment = create_refund_fulfillment(
                 info.context.user,
                 app,

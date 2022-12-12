@@ -12,7 +12,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -64,7 +64,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             if instance.order.is_unconfirmed()
             else None
         )
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
             line_info = OrderLineInfo(
                 line=instance,
