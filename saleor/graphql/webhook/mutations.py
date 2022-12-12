@@ -233,7 +233,8 @@ class WebhookDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of a webhook to delete.")
 
     class Meta:
-        description = "Deletes a webhook subscription."
+        description = "Deletes a webhook subscription. Deletion might fail due to " \
+                      "webhook delivery in progress. In this case deactivates webhook"
         model = models.Webhook
         object_type = Webhook
         permissions = (
@@ -252,7 +253,7 @@ class WebhookDelete(ModelDeleteMutation):
                 code=WebhookErrorCode.INVALID,
             )
         webhook = cls.get_node_or_error(info, data.get("id"), only_type=Webhook)
-        if app and webhook.app.id != app.id:
+        if app and webhook.app_id != app.id:
             raise ValidationError(
                 f"Couldn't resolve to a node: {webhook.app.id}",
                 code=WebhookErrorCode.GRAPHQL_ERROR,
