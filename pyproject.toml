@@ -49,7 +49,7 @@ documentation = "https://docs.saleor.io/"
   oauthlib = "^3.1"
   jaeger-client = "^4.5.0"
   openpyxl = "^3.0.3"
-  django-cache-url = "^3.1.2"
+  django-cache-url = "^3.4.4"
   pyjwt = "2.5.0" # Version 2.6.0 changed iat validation which causes tests to fail: https://github.com/saleor/saleor/issues/11047
   python-json-logger = ">=0.1.11,<2.1.0"
   pytimeparse = "^1.1.8"
