@@ -1,5 +1,6 @@
 from functools import wraps
 from json import JSONDecodeError
+from typing import List, Optional, TypedDict
 
 import graphene
 from graphene.relay import Connection, is_node
@@ -10,8 +11,33 @@ from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 
 
-class PermissionsField(graphene.Field):
-    def __init__(self, *args, **kwargs):
+class FieldCost(TypedDict, total=False):
+    complexity: int
+    multipliers: List[str]
+    use_multipliers: bool
+
+
+class CostField(graphene.Field):
+    def __init__(
+        self,
+        *args,
+        cost: Optional[FieldCost],
+        sensitive: bool = False,
+        **kwargs,
+    ):
+        self.sensitive = sensitive
+        self.cost = cost
+        super().__init__(*args, **kwargs)
+
+
+class PermissionsField(CostField):
+    def __init__(
+        self,
+        *args,
+        cost: Optional[FieldCost] = None,
+        sensitive: bool = False,
+        **kwargs,
+    ):
         self.permissions = kwargs.pop("permissions", [])
         auto_permission_message = kwargs.pop("auto_permission_message", True)
         assert isinstance(self.permissions, list), (
@@ -19,10 +45,10 @@ class PermissionsField(graphene.Field):
             f"{self.permissions}"
         )
 
-        super(PermissionsField, self).__init__(*args, **kwargs)
+        super().__init__(*args, sensitive=sensitive, cost=cost, **kwargs)
         if auto_permission_message and self.permissions:
             permissions_msg = message_one_of_permissions_required(self.permissions)
-            description = self.description or ""
+            description = getattr(self, "description") or ""
             self.description = description + permissions_msg
 
     def get_resolver(self, parent_resolver):
@@ -33,7 +59,14 @@ class PermissionsField(graphene.Field):
 
 
 class ConnectionField(PermissionsField):
-    def __init__(self, type_, *args, **kwargs):
+    def __init__(
+        self,
+        type_,
+        *args,
+        cost: Optional[FieldCost] = None,
+        sensitive: bool = False,
+        **kwargs,
+    ):
         kwargs.setdefault(
             "before",
             graphene.String(
@@ -60,7 +93,7 @@ class ConnectionField(PermissionsField):
             "last",
             graphene.Int(description="Return the last n elements from the list."),
         )
-        super().__init__(type_, *args, **kwargs)
+        super().__init__(type_, *args, sensitive=sensitive, cost=cost, **kwargs)
 
     @property
     def type(self):
@@ -83,13 +116,20 @@ class ConnectionField(PermissionsField):
 
 
 class FilterConnectionField(ConnectionField):
-    def __init__(self, type_, *args, **kwargs):
+    def __init__(
+        self,
+        type_,
+        *args,
+        cost: Optional[FieldCost] = None,
+        sensitive: bool = False,
+        **kwargs,
+    ):
         self.filter_field_name = kwargs.pop("filter_field_name", "filter")
         self.filter_input = kwargs.get(self.filter_field_name)
         self.filterset_class = None
         if self.filter_input:
             self.filterset_class = self.filter_input.filterset_class
-        super().__init__(type_, *args, **kwargs)
+        super().__init__(type_, *args, sensitive=sensitive, cost=cost, **kwargs)
 
     def get_resolver(self, parent_resolver):
         wrapped_resolver = super().get_resolver(parent_resolver)
