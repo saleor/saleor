@@ -4389,6 +4389,34 @@ def test_address_update_mutation_trigger_webhook(
     )
 
 
+@patch("saleor.graphql.account.mutations.base.prepare_user_search_document_value")
+def test_address_update_mutation_no_user_assigned(
+    prepare_user_search_document_value_mock,
+    staff_api_client,
+    address,
+    permission_manage_users,
+    graphql_address_data,
+):
+    # given
+    query = ADDRESS_UPDATE_MUTATION
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address.id),
+        "address": graphql_address_data,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["addressUpdate"]
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
+    prepare_user_search_document_value_mock.assert_not_called()
+
+
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
     mutation updateAccountAddress($addressId: ID!, $address: AddressInput!) {
         accountAddressUpdate(id: $addressId, input: $address) {
@@ -6470,6 +6498,7 @@ def test_account_request_email_change_with_upper_case_email(
         "new_email": new_email,
         "redirect_url": redirect_url,
         "password": "password",
+        "channel": channel_PLN.slug,
     }
     token_payload = {
         "old_email": customer_user.email,
