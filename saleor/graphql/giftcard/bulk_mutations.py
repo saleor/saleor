@@ -11,7 +11,7 @@ from ...core.utils.validators import is_date_in_future
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import is_gift_card_expired
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.scalars import Date
@@ -131,7 +131,7 @@ class GiftCardBulkCreate(BaseMutation):
     def create_instances(cleaned_input, info):
         count = cleaned_input.pop("count")
         balance = cleaned_input.pop("balance")
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         gift_cards = models.GiftCard.objects.bulk_create(
             [
                 models.GiftCard(code=generate_promo_code(), **cleaned_input)
@@ -208,7 +208,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
     def bulk_action(cls, info, queryset):
         queryset = queryset.filter(is_active=False)
         gift_card_ids = [gift_card.id for gift_card in queryset]
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         queryset.update(is_active=True)
         events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=app
@@ -236,7 +236,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
     @classmethod
     @traced_atomic_transaction()
     def bulk_action(cls, info, queryset):
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         queryset = queryset.filter(is_active=True)
         gift_card_ids = [gift_card.id for gift_card in queryset]
         queryset.update(is_active=False)

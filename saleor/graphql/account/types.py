@@ -20,7 +20,7 @@ from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.utils import check_is_owner_or_has_one_of_perms
-from ..app.dataloaders import AppByIdLoader
+from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
@@ -140,15 +140,18 @@ class Address(ModelObjectType):
     def __resolve_references(roots: List["Address"], info):
         from .resolvers import resolve_addresses
 
+        app = get_app_promise(info.context).get()
+
         root_ids = [root.id for root in roots]
         addresses = {
-            address.id: address for address in resolve_addresses(info, root_ids)
+            address.id: address for address in resolve_addresses(info, root_ids, app)
         }
 
         result = []
         for root_id in root_ids:
             _, root_id = from_global_id_or_error(root_id, Address)
             result.append(addresses.get(int(root_id)))
+
         return result
 
 
