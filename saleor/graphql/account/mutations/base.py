@@ -22,7 +22,7 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core.context import set_mutation_flag_in_context
 from ...core.enums import LanguageCodeEnum
@@ -52,7 +52,7 @@ def check_can_edit_address(context, address):
     requester = get_user_or_app_from_context(context)
     if requester and requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
-    app = load_app(context)
+    app = get_app_promise(context).get()
     if not app and context.user:
         is_owner = requester.addresses.filter(pk=address.pk).exists()
         if is_owner:

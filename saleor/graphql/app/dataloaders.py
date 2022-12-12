@@ -1,4 +1,5 @@
 from collections import defaultdict
+from functools import partial, wraps
 
 from django.contrib.auth.hashers import check_password
 from promise import Promise
@@ -74,23 +75,22 @@ class AppByTokenLoader(DataLoader):
 def promise_app(context):
     auth_token = get_token_from_request(context)
     if not auth_token or len(auth_token) != 30:
-        return None
+        return Promise.resolve(None)
     return AppByTokenLoader(context).load(auth_token)
-
-
-def load_app(context):
-    if hasattr(context, "app"):
-        return context.app
-    promise = promise_app(context)
-    return None if promise is None else promise.get()
 
 
 def get_app_promise(context):
     if hasattr(context, "app"):
         return Promise.resolve(context.app)
 
-    promise = promise_app(context)
-    if promise is None:
-        return Promise.resolve(None)
+    return Promise.resolve(promise_app(context))
 
-    return promise
+
+def app_promise_callback(func):
+    @wraps(func)
+    def _wrapper(root, info, *args, **kwargs):
+        return get_app_promise(info.context).then(
+            partial(func, root, info, *args, **kwargs)
+        )
+
+    return _wrapper
