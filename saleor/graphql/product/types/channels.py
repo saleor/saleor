@@ -24,6 +24,7 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ...core.fields import PermissionsField
+from ...core.scalars import Date
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -43,7 +44,7 @@ class Margin(graphene.ObjectType):
 
 class ProductChannelListing(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    publication_date = graphene.Date(
+    publication_date = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `publishedAt` field to fetch the publication date."
@@ -55,7 +56,7 @@ class ProductChannelListing(ModelObjectType):
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
     visible_in_listings = graphene.Boolean(required=True)
-    available_for_purchase = graphene.Date(
+    available_for_purchase = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `availableForPurchaseAt` field to fetch "
@@ -326,7 +327,7 @@ class ProductVariantChannelListing(ModelObjectType):
 
 class CollectionChannelListing(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    publication_date = graphene.Date(
+    publication_date = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `publishedAt` field to fetch the publication date."
