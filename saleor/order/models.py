@@ -529,7 +529,7 @@ class OrderLine(ModelWithMetadata):
     unit_discount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     unit_price_net = MoneyField(
         amount_field="unit_price_net_amount", currency_field="currency"
