@@ -40,8 +40,6 @@ from .fetch import (
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import Address
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
