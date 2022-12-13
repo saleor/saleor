@@ -4,16 +4,23 @@ from django.db import IntegrityError
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
-from ...webhook.error_codes import WebhookErrorCode
+from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import NonNullList, WebhookError
+from ..core.types import NonNullList, WebhookDryRunError, WebhookError
+from ..core.utils import raise_validation_error
 from ..plugins.dataloaders import get_plugin_manager_promise
 from . import enums
-from .subscription_payload import validate_query
+from .subscription_payload import (
+    generate_payload_from_subscription,
+    initialize_request,
+    validate_query,
+)
 from .types import EventDelivery, Webhook
+from .utils import get_event_type_from_subscription
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -306,3 +313,69 @@ class EventDeliveryRetry(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         manager.event_delivery_retry(delivery)
         return EventDeliveryRetry(delivery=delivery)
+
+
+class WebhookDryRunInput(graphene.InputObjectType):
+    object_id = graphene.ID(
+        description="The ID of an object to serialize.", required=True
+    )
+    query = graphene.String(
+        description="The subscription query that defines the webhook event and its "
+        "payload.",
+        required=True,
+    )
+
+
+class WebhookDryRun(BaseMutation):
+    payload = JSONString(
+        description="JSON payload, that would be sent out to webhook's target URL."
+    )
+
+    class Arguments:
+        input = WebhookDryRunInput(
+            description="Fields required to perform dry run of a webhook event.",
+            required=True,
+        )
+
+    class Meta:
+        description = "Performs a dry run of a webhook event."
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = WebhookDryRunError
+
+    @classmethod
+    def validate_input(cls, info, **data):
+        query = data.get("input", {}).get("query")
+        object_id = data.get("input", {}).get("object_id")
+
+        event_type = get_event_type_from_subscription(query)
+        if not event_type:
+            raise_validation_error(
+                field="query",
+                message="Can't parse an event type from query.",
+                code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
+            )
+
+        # TODO check if object_id match event_type
+        # if ... :
+        #     raise_validation_error(
+        #         field="objectId",
+        #         message="ObjectId doesn't match event type.",
+        #         code=WebhookDryRunErrorCode.INVALID_ID,
+        #     )
+
+        instance = cls.get_node_or_error(info, object_id, field="objectId")
+
+        return event_type, instance, query
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        event_type, instance, query = cls.validate_input(info, **data)
+
+        payload = None
+        if all([event_type, instance, query]):
+            request = initialize_request()
+            payload = generate_payload_from_subscription(
+                event_type, instance, query, request
+            )
+
+        return WebhookDryRun(payload=payload)
