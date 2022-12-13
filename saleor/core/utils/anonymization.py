@@ -6,6 +6,7 @@ from faker import Faker
 
 from ...account.models import Address, User
 from .random_data import create_address, create_fake_user
+from ...checkout.utils import get_or_create_checkout_metadata
 
 if TYPE_CHECKING:
     from ...checkout.models import Checkout
@@ -80,6 +81,7 @@ def anonymize_checkout(checkout: "Checkout") -> "Checkout":
     anonymized_checkout.shipping_address = generate_fake_address()
     anonymized_checkout.billing_address = generate_fake_address()
     anonymized_checkout.note = fake.paragraph()
-    anonymized_checkout.metadata_storage.metadata = generate_fake_metadata()
-    anonymized_checkout.metadata_storage.private_metadata = generate_fake_metadata()
+    anonymized_checkout_metadata = get_or_create_checkout_metadata(anonymized_checkout)
+    anonymized_checkout_metadata.metadata = generate_fake_metadata()
+    anonymized_checkout_metadata.private_metadata = generate_fake_metadata()
     return anonymized_checkout

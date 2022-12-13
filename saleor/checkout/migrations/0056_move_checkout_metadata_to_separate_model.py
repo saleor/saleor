@@ -29,7 +29,7 @@ def move_all_checkout_metadata(apps, schema_editor):
     CheckoutMetadata = apps.get_model("checkout", "CheckoutMetadata")
     checkouts_with_meta = (
         Checkout.objects.filter(
-            Q(metadata__isnull=False) | Q(private_metadata__isnull=False)
+            ~Q(metadata={}) | ~Q(private_metadata={})
         )
         .order_by("pk")
         .distinct("token")

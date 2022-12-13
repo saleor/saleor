@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `sortBy` argument to `Category.products`
 
 ### Other changes
+- Move checkout metadata to separate model - #11264  by @jakubkuc
 
 # 3.9.0
 
@@ -47,7 +48,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
   <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 - Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
-- Move checkout metadata to separate model - #11264  by @jakubkuc
 - Add exif image validation - #11224 by @IKarbowiak
 - Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
 - Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
