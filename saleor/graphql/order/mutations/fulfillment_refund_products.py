@@ -91,14 +91,8 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             info, order_id, field="order", only_type=Order, qs=qs
         )
         payment = order.get_last_payment()
-        transactions = list(order.payment_transactions.all())
-        if transactions:
-            # For know we handle refunds only for last transaction. We need to add an
-            # interface to process a refund requests on multiple transactions
-            charged_value = transactions[-1].charged_value
-        else:
-            cls.clean_order_payment(payment, cleaned_input)
-            charged_value = payment.captured_amount
+        cls.clean_order_payment(payment, cleaned_input)
+        charged_value = payment.captured_amount
         cls.clean_amount_to_refund(
             order, amount_to_refund, charged_value, cleaned_input
         )
@@ -107,7 +101,6 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             {
                 "include_shipping_costs": include_shipping_costs,
                 "order": order,
-                "transactions": transactions,
                 "payment": payment,
             }
         )
@@ -141,7 +134,6 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 app,
                 order,
                 cleaned_input["payment"],
-                cleaned_input["transactions"],
                 cleaned_input.get("order_lines", []),
                 cleaned_input.get("fulfillment_lines", []),
                 manager,
@@ -149,5 +141,5 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 cleaned_input["include_shipping_costs"],
             )
         except PaymentError:
-            cls.raise_error_for_payment_error(cleaned_input.get("transactions"))
+            cls.raise_error_for_payment_error()
         return cls(order=order, fulfillment=refund_fulfillment)

@@ -6,8 +6,7 @@ from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
 from ....order.actions import order_refunded
 from ....order.error_codes import OrderErrorCode
-from ....payment import PaymentError, TransactionKind, gateway
-from ....payment.gateway import request_refund_action
+from ....payment import TransactionKind, gateway
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -73,49 +72,31 @@ class OrderRefund(BaseMutation):
         clean_order_refund(order)
         app = load_app(info.context)
         manager = load_plugin_manager(info.context)
-        if payment_transactions := list(order.payment_transactions.all()):
-            # We use the last transaction as we don't have a possibility to
-            # provide way of handling multiple transaction here
-            try:
-                request_refund_action(
-                    payment_transactions[-1],
-                    manager,
-                    refund_value=amount,
-                    channel_slug=order.channel.slug,
-                    user=info.context.user,
-                    app=app,
-                )
-            except PaymentError as e:
-                raise ValidationError(
-                    str(e),
-                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
-                )
-        else:
-            payment = order.get_last_payment()
-            clean_payment(payment)
-            clean_refund_payment(payment)
-            transaction = try_payment_action(
+        payment = order.get_last_payment()
+        clean_payment(payment)
+        clean_refund_payment(payment)
+        transaction = try_payment_action(
+            order,
+            info.context.user,
+            app,
+            payment,
+            gateway.refund,
+            payment,
+            manager,
+            amount=amount,
+            channel_slug=order.channel.slug,
+        )
+        # Confirm that we changed the status to refund. Some payment can receive
+        # asynchronous webhook with update status
+        if transaction.kind == TransactionKind.REFUND:
+            order_refunded(
                 order,
                 info.context.user,
                 app,
-                payment,
-                gateway.refund,
+                amount,
                 payment,
                 manager,
-                amount=amount,
-                channel_slug=order.channel.slug,
             )
-            # Confirm that we changed the status to refund. Some payment can receive
-            # asynchronous webhook with update status
-            if transaction.kind == TransactionKind.REFUND:
-                order_refunded(
-                    order,
-                    info.context.user,
-                    app,
-                    amount,
-                    payment,
-                    manager,
-                )
 
         order.fulfillments.create(
             status=FulfillmentStatus.REFUNDED, total_refund_amount=amount

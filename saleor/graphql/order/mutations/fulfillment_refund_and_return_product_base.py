@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -8,7 +6,6 @@ from ....order import FulfillmentLineData
 from ....order import models as order_models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
-from ....payment.models import TransactionItem
 from ...core.mutations import BaseMutation
 from ..types import FulfillmentLine, OrderLine
 
@@ -78,13 +75,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         )
 
     @classmethod
-    def raise_error_for_payment_error(cls, transactions: Optional[TransactionItem]):
-        if transactions:
-            code = OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
-            msg = "No app or plugin is configured to handle payment action requests."
-        else:
-            msg = "The refund operation is not available yet."
-            code = OrderErrorCode.CANNOT_REFUND.value
+    def raise_error_for_payment_error(cls):
+        msg = "The refund operation is not available yet."
+        code = OrderErrorCode.CANNOT_REFUND.value
         raise ValidationError(
             msg,
             code=code,
