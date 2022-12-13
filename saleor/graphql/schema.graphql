@@ -11758,7 +11758,7 @@ type Mutation {
   ): WebhookCreate
 
   """
-  Deletes a webhook subscription. 
+  Deletes a webhook subscription. Deletion might fail due to webhook delivery in progress. In this case deactivates webhook 
   
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
@@ -15569,7 +15569,7 @@ input WebhookCreateInput {
 }
 
 """
-Deletes a webhook subscription. 
+Deletes a webhook subscription. Deletion might fail due to webhook delivery in progress. In this case deactivates webhook 
 
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
