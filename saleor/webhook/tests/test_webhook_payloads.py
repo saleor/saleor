@@ -1942,12 +1942,9 @@ def test_generate_excluded_shipping_methods_for_checkout(checkout):
         maximum_delivery_days=10,
         minimum_delivery_days=2,
     )
-    lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     response = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout_info, [shipping_method]
+            checkout, [shipping_method]
         )
     )
 

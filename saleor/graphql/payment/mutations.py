@@ -35,7 +35,7 @@ from ...payment.gateway import (
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
@@ -51,7 +51,7 @@ from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -247,7 +247,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.validate_gateway(manager, gateway, checkout)
         cls.validate_return_url(data)
 
@@ -375,7 +375,7 @@ class PaymentCapture(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.capture(
                 payment,
@@ -406,7 +406,7 @@ class PaymentRefund(PaymentCapture):
             if payment.order
             else payment.checkout.channel.slug
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.refund(
                 payment,
@@ -442,7 +442,7 @@ class PaymentVoid(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.void(payment, manager, channel_slug=channel_slug)
             payment.refresh_from_db()
@@ -501,7 +501,7 @@ class PaymentInitialize(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, gateway, channel, payment_data):
         cls.validate_channel(channel_slug=channel)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         try:
             response = manager.initialize_payment(
                 gateway, payment_data, channel_slug=channel
@@ -563,7 +563,7 @@ class PaymentCheckBalance(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         gateway_id = data["input"]["gateway_id"]
         money = data["input"]["card"].get("money", {})
 
@@ -839,7 +839,7 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
-                app = load_app(info.context)
+                app = get_app_promise(info.context).get()
                 transaction_event(
                     order=order_or_checkout_instance,
                     user=info.context.user,
@@ -951,7 +951,7 @@ class TransactionUpdate(TransactionCreate):
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
-                app = load_app(info.context)
+                app = get_app_promise(info.context).get()
                 transaction_event(
                     order=instance.order,
                     user=info.context.user,
@@ -1032,8 +1032,8 @@ class TransactionRequestAction(BaseMutation):
             if transaction.order_id
             else transaction.checkout.channel.slug
         )
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": info.context.user,

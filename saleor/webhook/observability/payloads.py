@@ -17,7 +17,8 @@ from .exceptions import ApiCallTruncationError, EventDeliveryAttemptTruncationEr
 from .obfuscation import (
     anonymize_event_payload,
     anonymize_gql_operation_response,
-    hide_sensitive_headers,
+    filter_and_hide_headers,
+    obfuscate_url,
 )
 from .payload_schema import (
     ApiCallPayload,
@@ -84,7 +85,7 @@ GQL_OPERATION_PLACEHOLDER_SIZE = len(dump_payload(GQL_OPERATION_PLACEHOLDER))
 
 def serialize_headers(headers: Optional[Dict[str, str]]) -> HttpHeaders:
     if headers:
-        return list(hide_sensitive_headers(headers).items())
+        return list(filter_and_hide_headers(headers).items())
     return []
 
 
@@ -230,7 +231,7 @@ def generate_event_delivery_attempt_payload(
         webhook=Webhook(
             id=graphene.Node.to_global_id("Webhook", attempt.delivery.webhook.pk),
             name=attempt.delivery.webhook.name or "",
-            target_url=attempt.delivery.webhook.target_url,
+            target_url=obfuscate_url(attempt.delivery.webhook.target_url),
             subscription_query=TRUNC_PLACEHOLDER,
         ),
         app=App(

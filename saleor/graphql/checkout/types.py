@@ -42,7 +42,10 @@ from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
 from ..payment.types import TransactionItem
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import (
+    get_plugin_manager_promise,
+    plugin_manager_promise_callback,
+)
 from ..product.dataloaders import (
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
@@ -145,9 +148,8 @@ class CheckoutLine(ModelObjectType):
     @staticmethod
     @prevent_sync_event_circular_query
     def resolve_unit_price(root, info):
-        manager = load_plugin_manager(info.context)
-
-        def with_checkout(checkout):
+        def with_checkout(data):
+            checkout, manager = data
             discounts = DiscountsByDateTimeLoader(info.context).load(
                 info.context.request_time
             )
@@ -183,11 +185,12 @@ class CheckoutLine(ModelObjectType):
                 ]
             ).then(calculate_line_unit_price)
 
-        return (
-            CheckoutByTokenLoader(info.context)
-            .load(root.checkout_id)
-            .then(with_checkout)
-        )
+        return Promise.all(
+            [
+                CheckoutByTokenLoader(info.context).load(root.checkout_id),
+                get_plugin_manager_promise(info.context),
+            ]
+        ).then(with_checkout)
 
     @staticmethod
     def resolve_undiscounted_unit_price(root, info):
@@ -229,9 +232,8 @@ class CheckoutLine(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_total_price(root, info):
-        manager = load_plugin_manager(info.context)
-
-        def with_checkout(checkout):
+        def with_checkout(data):
+            checkout, manager = data
             discounts = DiscountsByDateTimeLoader(info.context).load(
                 info.context.request_time
             )
@@ -259,11 +261,12 @@ class CheckoutLine(ModelObjectType):
                 calculate_line_total_price
             )
 
-        return (
-            CheckoutByTokenLoader(info.context)
-            .load(root.checkout_id)
-            .then(with_checkout)
-        )
+        return Promise.all(
+            [
+                CheckoutByTokenLoader(info.context).load(root.checkout_id),
+                get_plugin_manager_promise(info.context),
+            ]
+        ).then(with_checkout)
 
     @staticmethod
     def resolve_undiscounted_total_price(root, info):
@@ -548,10 +551,8 @@ class Checkout(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_total_price(root: models.Checkout, info):
-        manager = load_plugin_manager(info.context)
-
         def calculate_total_price(data):
-            address, lines, checkout_info, discounts = data
+            address, lines, checkout_info, discounts, manager = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -570,7 +571,8 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, checkout_info, discounts]).then(
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([address, lines, checkout_info, discounts, manager]).then(
             calculate_total_price
         )
 
@@ -578,10 +580,8 @@ class Checkout(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_subtotal_price(root: models.Checkout, info):
-        manager = load_plugin_manager(info.context)
-
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, discounts = data
+            address, lines, checkout_info, discounts, manager = data
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -599,8 +599,9 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
+        manager = get_plugin_manager_promise(info.context)
 
-        return Promise.all([address, lines, checkout_info, discounts]).then(
+        return Promise.all([address, lines, checkout_info, discounts, manager]).then(
             calculate_subtotal_price
         )
 
@@ -608,10 +609,8 @@ class Checkout(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Checkout, info):
-        manager = load_plugin_manager(info.context)
-
         def calculate_shipping_price(data):
-            address, lines, checkout_info, discounts = data
+            address, lines, checkout_info, discounts, manager = data
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -630,8 +629,9 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
+        manager = get_plugin_manager_promise(info.context)
 
-        return Promise.all([address, lines, checkout_info, discounts]).then(
+        return Promise.all([address, lines, checkout_info, discounts, manager]).then(
             calculate_shipping_price
         )
 
@@ -663,8 +663,8 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @prevent_sync_event_circular_query
-    def resolve_available_payment_gateways(root: models.Checkout, info):
-        manager = load_plugin_manager(info.context)
+    @plugin_manager_promise_callback
+    def resolve_available_payment_gateways(root: models.Checkout, _info, manager):
         return manager.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )

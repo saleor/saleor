@@ -11,7 +11,7 @@ from ....channel import ChannelContext
 from ....core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 
 
@@ -60,7 +60,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                     str(error),
                     code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
                 )
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             variant = ChannelContext(node=variant, channel_slug=None)
             cls.call_event(manager.product_variant_updated, variant.node)
         return ProductVariantPreorderDeactivate(product_variant=variant)

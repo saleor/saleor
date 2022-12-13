@@ -9,7 +9,7 @@ from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_37, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AllocationStrategyEnum
 from ..types import Channel
 
@@ -106,5 +106,5 @@ class ChannelCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         TaxConfiguration.objects.create(channel=instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_created, instance)

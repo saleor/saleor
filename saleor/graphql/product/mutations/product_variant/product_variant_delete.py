@@ -13,13 +13,13 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task
-from ....app.dataloaders import load_app
+from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core.descriptions import ADDED_IN_38
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
 from ....core.validators import validate_one_of_args_is_in_mutation
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 from ...utils import get_draft_order_lines_data_for_variants
 
@@ -95,7 +95,7 @@ class ProductVariantDelete(ModelDeleteMutation):
             ).delete()
 
             # run order event for deleted lines
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             for (
                 order,
                 order_lines,
@@ -103,7 +103,7 @@ class ProductVariantDelete(ModelDeleteMutation):
                 order_events.order_line_variant_removed_event(
                     order, info.context.user, app, order_lines
                 )
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
 
             order_pks = draft_order_lines_data.order_pks
             if order_pks:

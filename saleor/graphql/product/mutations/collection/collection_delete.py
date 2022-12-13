@@ -5,7 +5,7 @@ from .....product import models
 from ....channel import ChannelContext
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import CollectionError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection
 
 
@@ -29,7 +29,7 @@ class CollectionDelete(ModelDeleteMutation):
         products = list(instance.products.prefetched_for_webhook(single_object=False))
 
         result = super().perform_mutation(_root, info, **kwargs)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_deleted, instance)
         for product in products:
             cls.call_event(manager.product_updated, product)

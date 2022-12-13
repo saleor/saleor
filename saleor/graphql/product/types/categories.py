@@ -10,10 +10,14 @@ from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ...channel import ChannelQsContext
 from ...channel.utils import get_default_channel_slug_or_graphql_error
-from ...core.connection import CountableConnection, create_connection_slice
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.connection import (
+    CountableConnection,
+    create_connection_slice,
+    filter_connection_queryset,
+)
+from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ...core.federation import federated_entity, resolve_federation_references
-from ...core.fields import ConnectionField, JSONString
+from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -23,6 +27,8 @@ from ..dataloaders import (
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
+from ..filters import ProductFilterInput
+from ..sorters import ProductOrder
 from .products import ProductCountableConnection
 
 
@@ -46,8 +52,12 @@ class Category(ModelObjectType):
         lambda: CategoryCountableConnection,
         description="List of ancestors of the category.",
     )
-    products = ConnectionField(
+    products = FilterConnectionField(
         ProductCountableConnection,
+        filter=ProductFilterInput(
+            description="Filtering options for products." + ADDED_IN_310
+        ),
+        sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -146,6 +156,9 @@ class Category(ModelObjectType):
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
+
+        kwargs["channel"] = channel
+        qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod

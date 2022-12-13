@@ -2,7 +2,19 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.9.0 [Unreleased]
+# 3.10.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
+
+### Other changes
+
+# 3.9.0
 
 ### Highlights
 
@@ -28,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add new properties in the `Product` type - #10537 by @kadewu
   - Add new fields: `Product.attribute`, `Product.variant`
   - Add `sortBy` argument to `Product.media`
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
 
 ### Other changes
 
@@ -37,9 +50,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move checkout metadata to separate model - #11264  by @jakubkuc
 - Add exif image validation - #11224 by @IKarbowiak
 - Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
-- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
-- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
-...
+- Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
+- Make email authentication case-insensitive. #11284 by @zedzior
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
+- Add HTTP headers filtering to observability reporter. #11285 by @przlada
 
 # 3.8.0
 
@@ -81,7 +95,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
 - Add `iss` field to JWT tokens - #10842 by @korycins
 - Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
-
 
 ### Saleor Apps
 
