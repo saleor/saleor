@@ -27,11 +27,7 @@ from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
-from ...payment import (
-    TransactionAction,
-    TransactionEventActionType,
-    TransactionEventStatus,
-)
+from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
@@ -2045,9 +2041,8 @@ def test_generate_transaction_action_request_payload_for_order(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
 
     # when
@@ -2101,16 +2096,24 @@ def test_generate_transaction_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_type, action_value",
+    "action_type, request_type, action_value",
     [
-        (TransactionAction.CHARGE, Decimal("5.000")),
-        (TransactionAction.REFUND, Decimal("9.000")),
-        (TransactionAction.VOID, None),
+        (
+            TransactionAction.CHARGE,
+            TransactionEventType.CHARGE_REQUEST,
+            Decimal("5.000"),
+        ),
+        (
+            TransactionAction.REFUND,
+            TransactionEventType.REFUND_REQUEST,
+            Decimal("9.000"),
+        ),
+        (TransactionAction.VOID, TransactionEventType.CANCEL_REQUEST, None),
     ],
 )
 @freeze_time("1914-06-28 10:50")
 def test_generate_transaction_action_request_payload_for_checkout(
-    action_type, action_value, checkout, app, rf
+    action_type, request_type, action_value, checkout, app, rf
 ):
     # given
     request = rf.request()
@@ -2128,9 +2131,8 @@ def test_generate_transaction_action_request_payload_for_checkout(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         currency=transaction.currency,
-        type=type,
+        type=request_type,
     )
 
     # when

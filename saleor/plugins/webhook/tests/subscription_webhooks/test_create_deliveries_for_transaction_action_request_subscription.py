@@ -5,11 +5,7 @@ import graphene
 from freezegun import freeze_time
 
 from .....core.prices import quantize_price
-from .....payment import (
-    TransactionAction,
-    TransactionEventActionType,
-    TransactionEventStatus,
-)
+from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
 from .....webhook.event_types import WebhookEventAsyncType
@@ -79,10 +75,9 @@ def test_transaction_refund_action_request(
     )
     action_value = Decimal("5.00")
     request_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -151,10 +146,9 @@ def test_transaction_charge_action_request(
         authorized_value=authorized_value,
     )
     request_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=authorized_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -224,10 +218,9 @@ def test_transaction_void_action_request(
         authorized_value=authorized_value,
     )
     request_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=authorized_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        type=TransactionEventType.CANCEL_REQUEST,
     )
     webhook = Webhook.objects.create(
         name="Webhook",

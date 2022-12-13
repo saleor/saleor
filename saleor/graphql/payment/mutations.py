@@ -4,10 +4,8 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 from django.db import transaction
 from django.db.models import F
-from django.db.utils import IntegrityError
 
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
@@ -32,7 +30,7 @@ from ...payment import (
     PaymentError,
     StorePaymentMethod,
     TransactionAction,
-    TransactionEventStatus,
+    TransactionEventType,
     gateway,
 )
 from ...payment import models as payment_models
@@ -53,7 +51,6 @@ from ..app.dataloaders import load_app
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
-from ..core import scalars
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
@@ -72,7 +69,6 @@ from ..utils import get_user_or_app_from_context
 from .enums import (
     StorePaymentMethodEnum,
     TransactionActionEnum,
-    TransactionEventActionTypeEnum,
     TransactionEventStatusEnum,
 )
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -676,12 +672,6 @@ class TransactionUpdateInput(graphene.InputObjectType):
         description="Payment private metadata.",
         required=False,
     )
-    external_url = graphene.String(
-        description=(
-            "The url that will allow to redirect user to "
-            "payment provider page with transaction details." + ADDED_IN_38
-        )
-    )
 
 
 class TransactionCreateInput(TransactionUpdateInput):
@@ -700,36 +690,15 @@ class TransactionEventInput(graphene.InputObjectType):
     reference = graphene.String(
         description=(
             "Reference of the transaction. "
-            "The reference and PSP reference must be unique across all "
-            "`transactionEvent` objects. "
             "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). "
             "Use `pspReference` instead."
         )
     )
 
     psp_reference = graphene.String(
-        description=(
-            "PSP Reference related to this action. "
-            "The PSP reference must be unique across all `transactionEvent` objects."
-            + ADDED_IN_38
-        )
+        description=("PSP Reference related to this action." + ADDED_IN_38)
     )
     name = graphene.String(description="Name of the transaction.")
-    type = graphene.Field(
-        TransactionEventActionTypeEnum,
-        description=(
-            "The transaction action that is related to this event." + ADDED_IN_38
-        ),
-    )
-    amount = scalars.Decimal(
-        description=("The amount related to this event." + ADDED_IN_38)
-    )
-    external_url = graphene.String(
-        description=(
-            "The url that will allow to redirect user to "
-            "payment provider page with transaction event details." + ADDED_IN_38
-        )
-    )
 
 
 class TransactionCreate(BaseMutation):
@@ -769,24 +738,6 @@ class TransactionCreate(BaseMutation):
                     "transaction": ValidationError(
                         f"{field_name} key cannot be empty.",
                         code=error_code,
-                    )
-                }
-            )
-
-    @classmethod
-    def validate_external_url(
-        cls, external_url: Optional[str], parent_field_name: str, error_code: str
-    ):
-        if external_url is None:
-            return
-        validator = URLValidator()
-        try:
-            validator(external_url)
-        except ValidationError:
-            raise ValidationError(
-                {
-                    parent_field_name: ValidationError(
-                        "Invalid format of `externalUrl`.", code=error_code
                     )
                 }
             )
@@ -874,16 +825,6 @@ class TransactionCreate(BaseMutation):
             field_name="privateMetadata",
             error_code=TransactionCreateErrorCode.METADATA_KEY_REQUIRED.value,
         )
-        cls.validate_external_url(
-            transaction_data.get("external_url"),
-            parent_field_name="transaction",
-            error_code=TransactionCreateErrorCode.INVALID.value,
-        )
-        cls.validate_external_url(
-            input_data.get("transaction_event", {}).get("external_url"),
-            parent_field_name="transactionEvent",
-            error_code=TransactionCreateErrorCode.INVALID.value,
-        )
 
     @classmethod
     def create_transaction(
@@ -896,21 +837,11 @@ class TransactionCreate(BaseMutation):
         transaction_input["psp_reference"] = transaction_input.get(
             "psp_reference", reference
         )
-        try:
-            return payment_models.TransactionItem.objects.create(
-                **transaction_input,
-                user=user if user and user.is_authenticated else None,
-                app=app,
-            )
-        except IntegrityError:
-            raise ValidationError(
-                {
-                    "transaction": ValidationError(
-                        "Transaction with provided `pspReference` already exists.",
-                        code=TransactionCreateErrorCode.UNIQUE.value,
-                    )
-                }
-            )
+        return payment_models.TransactionItem.objects.create(
+            **transaction_input,
+            user=user if user and user.is_authenticated else None,
+            app=app,
+        )
 
     @classmethod
     def create_transaction_event(
@@ -918,26 +849,12 @@ class TransactionCreate(BaseMutation):
     ) -> payment_models.TransactionEvent:
         reference = transaction_event_input.pop("reference", None)
         psp_reference = transaction_event_input.get("psp_reference", reference)
-        try:
-            return transaction.events.create(
-                status=transaction_event_input["status"],
-                psp_reference=psp_reference,
-                name=transaction_event_input.get("name", ""),
-                transaction=transaction,
-                external_url=transaction_event_input.get("external_url"),
-                type=transaction_event_input.get("type"),
-                currency=transaction.currency,
-                amount_value=transaction_event_input.get("amount", 0),
-            )
-        except IntegrityError:
-            raise ValidationError(
-                {
-                    "transactionEvent": ValidationError(
-                        "TransactionEvent with provided `pspReference` already exists.",
-                        code=TransactionCreateErrorCode.UNIQUE.value,
-                    )
-                }
-            )
+        return transaction.events.create(
+            status=transaction_event_input["status"],
+            psp_reference=psp_reference,
+            message=transaction_event_input.get("name", ""),
+            transaction=transaction,
+        )
 
     @classmethod
     def add_amounts_to_order(cls, order_id: uuid.UUID, transaction_data: dict):
@@ -977,7 +894,7 @@ class TransactionCreate(BaseMutation):
                     app=app,
                     reference=psp_reference or "",
                     status=transaction_event_data["status"],
-                    name=transaction_event_data.get("name", ""),
+                    message=transaction_event_data.get("name", ""),
                 )
         transaction = cls.create_transaction(transaction_data, user=user, app=app)
         if order_id := transaction_data.get("order_id"):
@@ -1059,11 +976,6 @@ class TransactionUpdate(TransactionCreate):
             field_name="privateMetadata",
             error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
         )
-        cls.validate_external_url(
-            transaction_data.get("external_url"),
-            parent_field_name="transaction",
-            error_code=TransactionUpdateErrorCode.INVALID.value,
-        )
 
     @classmethod
     def update_amounts_for_order(
@@ -1096,21 +1008,24 @@ class TransactionUpdate(TransactionCreate):
     def update_transaction(cls, instance, transaction_data):
         if instance.order_id:
             cls.update_amounts_for_order(instance, instance.order_id, transaction_data)
-        transaction_data["psp_reference"] = transaction_data.get(
+        psp_reference = transaction_data.get(
             "psp_reference", transaction_data.pop("reference", None)
         )
+        if psp_reference and instance.psp_reference != psp_reference:
+            if payment_models.TransactionItem.objects.filter(
+                psp_reference=psp_reference
+            ).exists():
+                raise ValidationError(
+                    {
+                        "transaction": ValidationError(
+                            "Transaction with provided `pspReference` already exists.",
+                            code=TransactionCreateErrorCode.UNIQUE.value,
+                        )
+                    }
+                )
+        transaction_data["psp_reference"] = psp_reference
         instance = cls.construct_instance(instance, transaction_data)
-        try:
-            instance.save()
-        except IntegrityError:
-            raise ValidationError(
-                {
-                    "transaction": ValidationError(
-                        "Transaction with provided `pspReference` already exists.",
-                        code=TransactionCreateErrorCode.UNIQUE.value,
-                    )
-                }
-            )
+        instance.save()
 
     @classmethod
     @traced_atomic_transaction()
@@ -1134,11 +1049,6 @@ class TransactionUpdate(TransactionCreate):
             cls.update_transaction(instance, transaction_data)
 
         if transaction_event_data := data.get("transaction_event"):
-            cls.validate_external_url(
-                transaction_event_data.get("external_url"),
-                parent_field_name="transactionEvent",
-                error_code=TransactionUpdateErrorCode.INVALID.value,
-            )
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
                 app = load_app(info.context)
@@ -1150,7 +1060,7 @@ class TransactionUpdate(TransactionCreate):
                     app=app,
                     reference=psp_reference or "",
                     status=transaction_event_data["status"],
-                    name=transaction_event_data.get("name", ""),
+                    message=transaction_event_data.get("name", ""),
                 )
         return TransactionUpdate(transaction=instance)
 
@@ -1203,7 +1113,10 @@ class TransactionRequestAction(BaseMutation):
                 transaction, 0, action
             )
             request_cancelation_action(
-                **action_kwargs, cancel_value=action_value, request_event=request_event
+                **action_kwargs,
+                cancel_value=action_value,
+                request_event=request_event,
+                action=action,
             )
         elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
@@ -1227,9 +1140,23 @@ class TransactionRequestAction(BaseMutation):
             )
 
     @classmethod
-    def create_transaction_event_requested(cls, transaction, action_value, type):
+    def create_transaction_event_requested(cls, transaction, action_value, action):
+        if action in (TransactionAction.CANCEL, TransactionAction.VOID):
+            type = TransactionEventType.CANCEL_REQUEST
+        elif action == TransactionAction.CHARGE:
+            type = TransactionEventType.CHARGE_REQUEST
+        elif action == TransactionAction.REFUND:
+            type = TransactionEventType.REFUND_REQUEST
+        else:
+            raise ValidationError(
+                {
+                    "actionType": ValidationError(
+                        "Incorrect action.",
+                        code=TransactionRequestActionErrorCode.INVALID.value,
+                    )
+                }
+            )
         return transaction.events.create(
-            status=TransactionEventStatus.REQUEST,
             amount_value=action_value,
             currency=transaction.currency,
             type=type,

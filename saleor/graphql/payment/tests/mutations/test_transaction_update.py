@@ -9,11 +9,7 @@ from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import (
-    TransactionActionEnum,
-    TransactionEventActionTypeEnum,
-    TransactionEventStatusEnum,
-)
+from ...enums import TransactionActionEnum, TransactionEventStatusEnum
 
 TEST_SERVER_DOMAIN = "testserver.com"
 
@@ -255,61 +251,6 @@ def test_transaction_update_private_metadata_incorrect_key_by_app(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.name
-
-
-def test_transaction_update_external_url_by_app(
-    transaction_item_created_by_app, permission_manage_payments, app_api_client
-):
-    # given
-    transaction = transaction_item_created_by_app
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "transaction": {
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["externalUrl"] == external_url
-    assert transaction_item_created_by_app.external_url == external_url
-
-
-def test_transaction_update_external_url_incorrect_url_format_by_app(
-    transaction_item_created_by_app, permission_manage_payments, app_api_client
-):
-    # given
-    transaction = transaction_item_created_by_app
-    external_url = "incorrect"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "transaction": {
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert not content["data"]["transactionUpdate"]["transaction"]
-    errors = content["data"]["transactionUpdate"]["errors"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionUpdateErrorCode.INVALID.name
 
 
 def test_transaction_update_type_by_app(
@@ -909,17 +850,12 @@ def test_creates_transaction_event_for_order_by_app(
     event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
-    amount_value = Decimal("10")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
             "name": event_name,
-            "externalUrl": external_url,
-            "amount": amount_value,
-            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -938,20 +874,12 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
-    assert event_data["externalUrl"] == external_url
-    assert event_data["amount"]["currency"] == transaction.currency
-    assert event_data["amount"]["amount"] == amount_value
-    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.name == event_name
+    assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
-    assert event.external_url == external_url
-    assert event.amount_value == amount_value
-    assert event.currency == transaction.currency
-    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_only_owner_can_update_its_transaction_by_staff(
@@ -1004,61 +932,6 @@ def test_transaction_update_status_by_staff(
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["status"] == status
     assert transaction_item_created_by_user.status == status
-
-
-def test_transaction_update_external_url_by_staff(
-    transaction_item_created_by_user, permission_manage_payments, staff_api_client
-):
-    # given
-    transaction = transaction_item_created_by_user
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "transaction": {
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["externalUrl"] == external_url
-    assert transaction_item_created_by_user.external_url == external_url
-
-
-def test_transaction_update_external_url_incorrect_url_format_by_staff(
-    transaction_item_created_by_user, permission_manage_payments, staff_api_client
-):
-    # given
-    transaction = transaction_item_created_by_user
-    external_url = "incorrect"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "transaction": {
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert not content["data"]["transactionUpdate"]["transaction"]
-    errors = content["data"]["transactionUpdate"]["errors"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionUpdateErrorCode.INVALID.name
 
 
 def test_transaction_update_metadata_by_staff(
@@ -1776,17 +1649,12 @@ def test_creates_transaction_event_for_order_by_staff(
     event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
-    amount_value = Decimal("10")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
             "name": event_name,
-            "externalUrl": external_url,
-            "amount": amount_value,
-            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -1805,20 +1673,12 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
-    assert event_data["externalUrl"] == external_url
-    assert event_data["amount"]["currency"] == transaction.currency
-    assert event_data["amount"]["amount"] == amount_value
-    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.name == event_name
+    assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
-    assert event.external_url == external_url
-    assert event.amount_value == amount_value
-    assert event.currency == transaction.currency
-    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
@@ -1829,7 +1689,6 @@ def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
     staff_api_client,
 ):
     # given
-
     transaction = transaction_item_created_by_user
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -1893,83 +1752,3 @@ def test_transaction_raises_error_when_psp_reference_already_exists_by_app(
 
     assert order_with_lines.payment_transactions.count() == 2
     assert TransactionEvent.objects.count() == 0
-
-
-def test_transaction_raises_error_when_event_psp_reference_already_exists_by_staff(
-    transaction_item_created_by_user,
-    order_with_lines,
-    permission_manage_payments,
-    staff_api_client,
-):
-    # given
-
-    event_psp_reference = "event-psp-reference"
-    transaction = transaction_item_created_by_user
-    transaction_item_created_by_user.events.create(psp_reference=event_psp_reference)
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": "Event name",
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    transaction = content["data"]["transactionUpdate"]["transaction"]
-    errors = content["data"]["transactionUpdate"]["errors"]
-
-    assert not transaction
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionUpdateErrorCode.UNIQUE.name
-    assert error["field"] == "transactionEvent"
-
-    assert order_with_lines.payment_transactions.count() == 1
-    assert TransactionEvent.objects.count() == 1
-
-
-def test_transaction_raises_error_when_event_psp_reference_already_exists_by_app(
-    transaction_item_created_by_app,
-    order_with_lines,
-    permission_manage_payments,
-    app_api_client,
-):
-    # given
-
-    event_psp_reference = "event-psp-reference"
-    transaction = transaction_item_created_by_app
-    transaction_item_created_by_app.events.create(psp_reference=event_psp_reference)
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": "Event name",
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    transaction = content["data"]["transactionUpdate"]["transaction"]
-    errors = content["data"]["transactionUpdate"]["errors"]
-
-    assert not transaction
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionUpdateErrorCode.UNIQUE.name
-    assert error["field"] == "transactionEvent"
-
-    assert order_with_lines.payment_transactions.count() == 1
-    assert TransactionEvent.objects.count() == 1

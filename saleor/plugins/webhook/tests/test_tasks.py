@@ -9,11 +9,7 @@ from graphene import Node
 
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
-from ....payment import (
-    TransactionEventActionType,
-    TransactionEventReportResult,
-    TransactionEventStatus,
-)
+from ....payment import TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionEvent
 from ....tests.utils import flush_post_commit_hooks
@@ -41,7 +37,7 @@ def test_trigger_transaction_request(
 ):
     # given
     event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -105,7 +101,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
     }
     """
     event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -174,7 +170,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     target_url = "http://localhost:3000/"
 
     event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -236,7 +232,7 @@ def test_handle_transaction_request_task_with_server_error(
     target_url = "http://localhost:3000/"
 
     event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CHARGE_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -288,7 +284,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     target_url = "http://localhost:3000/"
 
     event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -321,19 +317,22 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
 
     # then
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.FAILURE).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_FAILURE
+        ).count()
         == 1
     )
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.REQUEST).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_REQUEST
+        ).count()
         == 1
     )
     failure_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.FAILURE
+        type=TransactionEventType.REFUND_FAILURE
     ).first()
     event.refresh_from_db()
     assert event.psp_reference is None
-    assert failure_event.type == event.type
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
@@ -363,7 +362,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     target_url = "http://localhost:3000/"
 
     event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -396,19 +395,22 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
 
     # then
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.FAILURE).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_FAILURE
+        ).count()
         == 1
     )
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.REQUEST).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_REQUEST
+        ).count()
         == 1
     )
     failure_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.FAILURE
+        type=TransactionEventType.REFUND_FAILURE
     ).first()
     event.refresh_from_db()
     assert event.psp_reference is None
-    assert failure_event.type == event.type
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
@@ -428,17 +430,14 @@ def test_handle_transaction_request_task_with_result_event(
     # given
     request_psp_reference = "psp:123:111"
     event_amount = 12.00
-    event_type = TransactionEventActionType.CHARGE
+    event_type = TransactionEventType.CHARGE_SUCCESS
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
     event_cause = "No cause"
-    event_psp_reference = "psp:111:111"
 
     response_payload = {
         "pspReference": request_psp_reference,
         "event": {
-            "pspReference": event_psp_reference,
-            "result": TransactionEventReportResult.SUCCESS.upper(),
             "amount": event_amount,
             "type": event_type.upper(),
             "time": event_time,
@@ -453,7 +452,7 @@ def test_handle_transaction_request_task_with_result_event(
     target_url = "http://localhost:3000/"
 
     request_event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CHARGE_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -463,7 +462,7 @@ def test_handle_transaction_request_task_with_result_event(
         is_active=True,
         target_url=target_url,
     )
-    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED)
 
     transaction_data = TransactionActionData(
         transaction=transaction_item_created_by_app,
@@ -476,7 +475,7 @@ def test_handle_transaction_request_task_with_result_event(
     event_payload = EventPayload.objects.create(payload=payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
-        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
         payload=event_payload,
         webhook=webhook,
     )
@@ -485,25 +484,25 @@ def test_handle_transaction_request_task_with_result_event(
     handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
 
     # then
+    assert TransactionEvent.objects.all().count() == 2
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.FAILURE).count()
-        == 0
-    )
-    assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.REQUEST).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.CHARGE_REQUEST
+        ).count()
         == 1
     )
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.SUCCESS).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.CHARGE_SUCCESS
+        ).count()
         == 1
     )
     success_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.SUCCESS
+        type=TransactionEventType.CHARGE_SUCCESS
     ).first()
     request_event.refresh_from_db()
     assert request_event.psp_reference == request_psp_reference
-    assert success_event.type == event_type
-    assert success_event.psp_reference == event_psp_reference
+    assert success_event.psp_reference == request_psp_reference
     assert success_event.amount_value == event_amount
     assert success_event.created_at.isoformat() == event_time
     assert success_event.external_url == event_url
@@ -525,14 +524,10 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
 ):
     # given
     request_psp_reference = "psp:123:111"
-    event_psp_reference = "psp:111:111"
 
     response_payload = {
         "pspReference": request_psp_reference,
-        "event": {
-            "pspReference": event_psp_reference,
-            "result": TransactionEventReportResult.SUCCESS.upper(),
-        },
+        "event": {"type": TransactionEventType.REFUND_SUCCESS.upper()},
     }
     mocked_webhook_response.text = json.dumps(response_payload)
     mocked_webhook_response.content = json.dumps(response_payload)
@@ -541,7 +536,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     target_url = "http://localhost:3000/"
 
     request_event = transaction_item_created_by_app.events.create(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST
     )
     app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
@@ -573,29 +568,29 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
 
     # then
+    assert TransactionEvent.objects.all().count() == 2
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.FAILURE).count()
-        == 0
-    )
-    assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.REQUEST).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_REQUEST
+        ).count()
         == 1
     )
     assert (
-        TransactionEvent.objects.filter(status=TransactionEventStatus.SUCCESS).count()
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_SUCCESS
+        ).count()
         == 1
     )
     success_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.SUCCESS
+        type=TransactionEventType.REFUND_SUCCESS
     ).first()
     request_event.refresh_from_db()
     assert request_event.psp_reference == request_psp_reference
-    assert success_event.type == request_event.type
-    assert success_event.psp_reference == event_psp_reference
+    assert success_event.type == TransactionEventType.REFUND_SUCCESS
+    assert success_event.psp_reference == request_psp_reference
     assert success_event.amount_value == request_event.amount_value
     assert success_event.created_at == timezone.now()
     assert success_event.external_url == ""
-    assert success_event.name == ""
     assert success_event.message == ""
 
     mocked_post_request.assert_called_once_with(

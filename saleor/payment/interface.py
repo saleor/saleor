@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
 from ..payment.models import TransactionEvent, TransactionItem
-from . import TransactionEventActionType, TransactionEventReportResult
+from . import TransactionEventType
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -25,12 +25,10 @@ class TransactionActionData:
 @dataclass
 class TransactionRequestEventResponse:
     psp_reference: str
-    result: "TransactionEventReportResult"
     amount: Optional[Decimal] = None
-    type: Optional["TransactionEventActionType"] = None
+    type: Optional["TransactionEventType"] = None
     time: Optional[datetime] = None
     external_url: Optional[str] = ""
-    name: Optional[str] = ""
     message: Optional[str] = ""
 
 

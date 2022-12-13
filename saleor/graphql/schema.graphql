@@ -10251,15 +10251,12 @@ Represents a status of payment transaction.
     The following statuses are possible:
     SUCCESS - Represents a sucess action.
     FAILURE - Represents a failure action.
-    PENDING - Represents a pending action. DEPRECATED: this enum value will be removed
-    in Saleor 3.9 (Feature Preview). Saleor automatically marks transaction as pending.
-    REQUEST - Represents a request that was send for the payment transaction.
+    PENDING - Represents a pending action.
 """
 enum TransactionEventStatus {
   PENDING
   SUCCESS
   FAILURE
-  REQUEST
 }
 
 """Contains all details related to the applied discount to the order."""
@@ -10397,7 +10394,7 @@ type TransactionEvent implements Node {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionEventStatus!
+  status: TransactionEventStatus! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `type` instead.")
 
   """Reference of transaction's event."""
   reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
@@ -10410,7 +10407,10 @@ type TransactionEvent implements Node {
   pspReference: String!
 
   """Name of the transaction's event."""
-  name: String
+  name: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `message` instead.")
+
+  """Message related to the transaction's event."""
+  message: String
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
@@ -10431,23 +10431,45 @@ type TransactionEvent implements Node {
   
   Added in Saleor 3.8.
   """
-  type: TransactionEventActionTypeEnum
+  type: TransactionEventTypeEnum
 }
 
 """
-Represents possible event actions.
+Represents possible event types.
 
-    The following actions are possible:
-    AUTHORIZE - Represents a authorize event.
-    CHARGE - Represents a charge event.
-    REFUND - Represents a refund event.
-    CANCEL - Represents a cancel event.
+    The following types are possible:
+    AUTHORIZATION_SUCCESS - represents success authorization.
+    AUTHORIZATION_FAILURE - represents failure authorization.
+    AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
+    AUTHORIZATION_REQUEST - represents authorization request.
+    CHARGE_SUCCESS - represents success charge.
+    CHARGE_FAILURE - represents failure charge.
+    CHARGE_BACK - represents chargeback.
+    CHARGE_REQUEST - represents charge request.
+    REFUND_SUCCESS - represents success refund.
+    REFUND_FAILURE - represents failure refund.
+    REFUND_REVERSE - represents reverse refund.
+    REFUND_REQUEST - represents refund request.
+    CANCEL_SUCCESS - represents success cancel.
+    CANCEL_FAILURE - represents failure cancel.
+    CANCEL_REQUEST - represents cancel request.
 """
-enum TransactionEventActionTypeEnum {
-  AUTHORIZE
-  CHARGE
-  REFUND
-  CANCEL
+enum TransactionEventTypeEnum {
+  AUTHORIZATION_SUCCESS
+  AUTHORIZATION_FAILURE
+  AUTHORIZATION_ADJUSTMENT
+  AUTHORIZATION_REQUEST
+  CHARGE_SUCCESS
+  CHARGE_FAILURE
+  CHARGE_BACK
+  CHARGE_REQUEST
+  REFUND_SUCCESS
+  REFUND_FAILURE
+  REFUND_REVERSE
+  REFUND_REQUEST
+  CANCEL_SUCCESS
+  CANCEL_FAILURE
+  CANCEL_REQUEST
 }
 
 type CheckoutCountableConnection {
@@ -18800,13 +18822,6 @@ input TransactionCreateInput {
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
-
-  """
-  The url that will allow to redirect user to payment provider page with transaction details.
-  
-  Added in Saleor 3.8.
-  """
-  externalUrl: String
 }
 
 input TransactionEventInput {
@@ -18814,12 +18829,12 @@ input TransactionEventInput {
   status: TransactionEventStatus!
 
   """
-  Reference of the transaction. The reference and PSP reference must be unique across all `transactionEvent` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
   """
   reference: String
 
   """
-  PSP Reference related to this action. The PSP reference must be unique across all `transactionEvent` objects.
+  PSP Reference related to this action.
   
   Added in Saleor 3.8.
   """
@@ -18827,36 +18842,7 @@ input TransactionEventInput {
 
   """Name of the transaction."""
   name: String
-
-  """
-  The transaction action that is related to this event.
-  
-  Added in Saleor 3.8.
-  """
-  type: TransactionEventActionTypeEnum
-
-  """
-  The amount related to this event.
-  
-  Added in Saleor 3.8.
-  """
-  amount: Decimal
-
-  """
-  The url that will allow to redirect user to payment provider page with transaction event details.
-  
-  Added in Saleor 3.8.
-  """
-  externalUrl: String
 }
-
-"""
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
 
 """
 Create transaction for checkout or order. Requires the following permissions: OWNER and HANDLE_PAYMENTS.
@@ -18932,13 +18918,6 @@ input TransactionUpdateInput {
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
-
-  """
-  The url that will allow to redirect user to payment provider page with transaction details.
-  
-  Added in Saleor 3.8.
-  """
-  externalUrl: String
 }
 
 """
@@ -19756,6 +19735,14 @@ input OrderGrantRefundCreateInput {
   """Reason of the granted refund."""
   reason: String
 }
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
 
 """
 Updates granted refund. 

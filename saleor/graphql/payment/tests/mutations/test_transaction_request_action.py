@@ -6,7 +6,7 @@ from mock import patch
 
 from .....app.models import App
 from .....order import OrderEvents
-from .....payment import TransactionAction, TransactionEventStatus
+from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionEvent, TransactionItem
 from .....webhook.event_types import WebhookEventSyncType
@@ -110,7 +110,7 @@ def test_transaction_request_charge_action_for_order(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CHARGE_REQUEST
     ).first()
 
     assert mocked_is_active.called
@@ -131,8 +131,7 @@ def test_transaction_request_charge_action_for_order(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=expected_called_charge_amount,
     )
 
@@ -186,7 +185,7 @@ def test_transaction_request_refund_action_for_order(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -207,8 +206,7 @@ def test_transaction_request_refund_action_for_order(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
         amount_value=expected_called_refund_amount,
     )
 
@@ -250,7 +248,7 @@ def test_transaction_request_void_action_for_order(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -270,8 +268,7 @@ def test_transaction_request_void_action_for_order(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.VOID,
+        type=TransactionEventType.CANCEL_REQUEST,
         amount_value=0,
     )
 
@@ -313,7 +310,7 @@ def test_transaction_request_void_action_for_checkout(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -329,8 +326,7 @@ def test_transaction_request_void_action_for_checkout(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.VOID,
+        type=TransactionEventType.CANCEL_REQUEST,
         amount_value=0,
     )
 
@@ -384,7 +380,7 @@ def test_transaction_request_charge_action_for_checkout(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CHARGE_REQUEST
     ).first()
 
     assert mocked_is_active.called
@@ -400,8 +396,7 @@ def test_transaction_request_charge_action_for_checkout(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=expected_called_charge_amount,
     )
 
@@ -455,7 +450,7 @@ def test_transaction_request_refund_action_for_checkout(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -471,8 +466,7 @@ def test_transaction_request_refund_action_for_checkout(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
         amount_value=expected_called_refund_amount,
     )
 
@@ -516,7 +510,7 @@ def test_transaction_action_request_uses_handle_payment_permission(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -674,7 +668,7 @@ def test_transaction_request_charge_for_order(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CHARGE_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -695,8 +689,7 @@ def test_transaction_request_charge_for_order(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=expected_called_charge_amount,
     )
 
@@ -755,7 +748,7 @@ def test_transaction_request_refund_for_order(
     # then
     get_graphql_content(response)
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST,
     ).first()
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
@@ -775,8 +768,7 @@ def test_transaction_request_refund_for_order(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
         amount_value=expected_called_refund_amount,
     )
 
@@ -824,7 +816,7 @@ def test_transaction_request_cancelation_for_order(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -844,8 +836,7 @@ def test_transaction_request_cancelation_for_order(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.VOID,
+        type=TransactionEventType.CANCEL_REQUEST,
         amount_value=0,
     )
 
@@ -893,7 +884,7 @@ def test_transaction_request_cancelation_for_checkout(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -909,8 +900,7 @@ def test_transaction_request_cancelation_for_checkout(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.VOID,
+        type=TransactionEventType.CANCEL_REQUEST,
         amount_value=0,
     )
 
@@ -969,7 +959,7 @@ def test_transaction_request_charge_for_checkout(
     # then
     get_graphql_content(response)
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.CHARGE_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -985,8 +975,7 @@ def test_transaction_request_charge_for_checkout(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=expected_called_charge_amount,
     )
 
@@ -1045,7 +1034,7 @@ def test_transaction_request_refund_for_checkout(
     # then
     get_graphql_content(response)
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
     assert mocked_is_active.called
@@ -1061,8 +1050,7 @@ def test_transaction_request_refund_for_checkout(
 
     assert TransactionEvent.objects.get(
         transaction=transaction,
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionAction.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
         amount_value=expected_called_refund_amount,
     )
 
@@ -1112,7 +1100,7 @@ def test_transaction_request_uses_handle_payment_permission(
     get_graphql_content(response)
 
     request_event = TransactionEvent.objects.filter(
-        status=TransactionEventStatus.REQUEST
+        type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
     assert mocked_is_active.called

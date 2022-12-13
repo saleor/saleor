@@ -1035,7 +1035,7 @@ def test_order_query_with_transactions_details(
     TransactionEvent.objects.bulk_create(
         [
             TransactionEvent(
-                name=event_name,
+                message=event_name,
                 status=event_status,
                 psp_reference=f"{event_reference}{to_global_id_or_none(transaction)}",
                 transaction=transaction,

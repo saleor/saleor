@@ -18,6 +18,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_38,
+    DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.fields import JSONString, PermissionsField
@@ -35,8 +36,8 @@ from .enums import (
     OrderAction,
     PaymentChargeStatusEnum,
     TransactionActionEnum,
-    TransactionEventActionTypeEnum,
     TransactionEventStatusEnum,
+    TransactionEventTypeEnum,
     TransactionKindEnum,
 )
 
@@ -264,6 +265,7 @@ class TransactionEvent(ModelObjectType):
         TransactionEventStatusEnum,
         description="Status of transaction's event.",
         required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `type` instead.",
     )
     reference = graphene.String(
         description="Reference of transaction's event.",
@@ -276,8 +278,13 @@ class TransactionEvent(ModelObjectType):
     psp_reference = graphene.String(
         description="PSP reference of transaction." + ADDED_IN_38, required=True
     )
-    name = graphene.String(description="Name of the transaction's event.")
-
+    name = graphene.String(
+        description="Name of the transaction's event.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `message` instead."),
+    )
+    message = graphene.String(
+        description="Message related to the transaction's event.",
+    )
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
@@ -291,7 +298,7 @@ class TransactionEvent(ModelObjectType):
         description="The amount related to this event." + ADDED_IN_38,
     )
     type = graphene.Field(
-        TransactionEventActionTypeEnum,
+        TransactionEventTypeEnum,
         description="The type of action related to this event." + ADDED_IN_38,
     )
 
@@ -309,8 +316,12 @@ class TransactionEvent(ModelObjectType):
         return root.psp_reference or ""
 
     @staticmethod
-    def resolve_external_url(root: models.TransactionItem, info):
+    def resolve_external_url(root: models.TransactionEvent, info):
         return root.external_url or ""
+
+    @staticmethod
+    def resolve_name(root: models.TransactionEvent, info):
+        return root.message
 
 
 class TransactionItem(ModelObjectType):

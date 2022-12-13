@@ -26,8 +26,7 @@ from . import (
     GatewayError,
     PaymentError,
     StorePaymentMethod,
-    TransactionEventActionType,
-    TransactionEventReportResult,
+    TransactionEventType,
     TransactionKind,
 )
 from .error_codes import PaymentErrorCode
@@ -677,26 +676,12 @@ def parse_transaction_action_data(
             "Incorrect value for field: %s, value: %s in "
             "response of transaction action webhook."
         )
-        event_result_types = {
-            str_to_enum(event_results[0]): event_results[0]
-            for event_results in TransactionEventReportResult.CHOICES
-        }
-        result_data = event_data.get("result")
-        if result_data and result_data in event_result_types:
-            parsed_event_data["result"] = event_result_types[result_data]
-        else:
-            logger.warning(missing_msg, "result")
-            error_fields.append("result")
 
-        if event_psp_reference := event_data.get("pspReference"):
-            parsed_event_data["psp_reference"] = event_psp_reference
-        else:
-            logger.warning(missing_msg, "pspReference")
-            error_fields.append("pspReference")
+        parsed_event_data["psp_reference"] = psp_reference
 
         event_type_types = {
             str_to_enum(event_results[0]): event_results[0]
-            for event_results in TransactionEventActionType.CHOICES
+            for event_results in TransactionEventType.CHOICES
         }
         type_data = event_data.get("type")
         if type_data:
@@ -706,7 +691,8 @@ def parse_transaction_action_data(
                 logger.warning(invalid_msg, "type", type_data)
                 error_fields.append("type")
         else:
-            parsed_event_data["type"] = None
+            logger.warning(missing_msg, "type")
+            error_fields.append("type")
 
         if amount_data := event_data.get("amount"):
             try:
@@ -741,10 +727,23 @@ def parse_transaction_action_data(
     return None
 
 
+def get_failed_transaction_event_type_for_request_event(
+    request_event: TransactionEvent,
+):
+    if request_event.type == TransactionEventType.AUTHORIZATION_REQUEST:
+        return TransactionEventType.AUTHORIZATION_FAILURE
+    elif request_event.type == TransactionEventType.CHARGE_REQUEST:
+        return TransactionEventType.CHARGE_FAILURE
+    elif request_event.type == TransactionEventType.REFUND_REQUEST:
+        return TransactionEventType.REFUND_FAILURE
+    elif request_event.type == TransactionEventType.CANCEL_REQUEST:
+        return TransactionEventType.CANCEL_FAILURE
+    return None
+
+
 def create_failed_transaction_event(request_event: TransactionEvent, cause: str):
     return TransactionEvent.objects.create(
-        status=TransactionEventReportResult.FAILURE,
-        type=request_event.type,
+        type=get_failed_transaction_event_type_for_request_event(request_event),
         amount_value=request_event.amount_value,
         currency=request_event.currency,
         transaction_id=request_event.transaction_id,
@@ -774,13 +773,11 @@ def create_transaction_event_from_request_and_webhook_response(
     if response_event := transaction_request_response.event:
         return TransactionEvent.objects.create(
             psp_reference=response_event.psp_reference,
-            status=response_event.result,  # type: ignore
             created_at=response_event.time or timezone.now(),
-            type=response_event.type or request_event.type,
+            type=response_event.type,  # type:ignore
             amount_value=response_event.amount or request_event.amount_value,
             external_url=response_event.external_url,
             currency=request_event.currency,
             transaction_id=request_event.transaction_id,
             message=response_event.message,
-            name=response_event.name,
         )

@@ -6,11 +6,7 @@ from freezegun import freeze_time
 
 from .....core.prices import quantize_price
 from .....graphql.tests.queries import fragments
-from .....payment import (
-    TransactionAction,
-    TransactionEventActionType,
-    TransactionEventStatus,
-)
+from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
 from .....webhook.event_types import WebhookEventSyncType
@@ -53,9 +49,8 @@ def test_transaction_void_request(order, webhook_app, permission_manage_payments
     )
 
     request_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        type=TransactionEventType.CANCEL_REQUEST,
     )
 
     webhook = Webhook.objects.create(

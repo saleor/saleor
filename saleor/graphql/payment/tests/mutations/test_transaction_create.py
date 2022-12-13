@@ -7,13 +7,9 @@ from .....order import OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionCreateErrorCode
-from .....payment.models import TransactionEvent, TransactionItem
+from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import (
-    TransactionActionEnum,
-    TransactionEventActionTypeEnum,
-    TransactionEventStatusEnum,
-)
+from ...enums import TransactionActionEnum, TransactionEventStatusEnum
 
 TEST_SERVER_DOMAIN = "testserver.com"
 
@@ -90,7 +86,6 @@ def test_transaction_create_for_order_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -104,7 +99,6 @@ def test_transaction_create_for_order_by_app(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
         },
     }
 
@@ -121,7 +115,6 @@ def test_transaction_create_for_order_by_app(
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
-    assert data["externalUrl"] == external_url
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -132,7 +125,6 @@ def test_transaction_create_for_order_by_app(
         private_metadata["key"]: private_metadata["value"]
     }
     assert transaction.app == app_api_client.app
-    assert transaction.external_url == external_url
 
 
 def test_transaction_create_for_order_updates_order_total_authorized_by_app(
@@ -547,7 +539,6 @@ def test_transaction_create_empty_metadata_key_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -561,7 +552,6 @@ def test_transaction_create_empty_metadata_key_by_app(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
         },
     }
 
@@ -593,7 +583,6 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -607,7 +596,6 @@ def test_transaction_create_empty_private_metadata_key_by_app(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
         },
     }
 
@@ -625,103 +613,6 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     assert error["code"] == TransactionCreateErrorCode.METADATA_KEY_REQUIRED.name
 
 
-def test_transaction_create_external_url_incorrect_url_format_by_app(
-    order_with_lines, permission_manage_payments, app_api_client
-):
-    # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
-    psp_reference = "PSP reference - 123"
-    available_actions = [
-        TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
-    ]
-    authorized_value = Decimal("10")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test", "value": "321"}
-    external_url = "incorrect"
-    variables = {
-        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert not content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.INVALID.name
-
-
-def test_creates_transaction_event_incorrect_external_url_by_app(
-    order_with_lines, permission_manage_payments, app_api_client
-):
-    # given
-    status = "Failed authorized for 10$"
-    type = "Credit Card"
-    psp_reference = "PSP reference - 123"
-    available_actions = []
-    authorized_value = Decimal("0")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test-2", "value": "321"}
-
-    event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-    external_url = "incorrect"
-    variables = {
-        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-        },
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": event_name,
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert not content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.INVALID.name
-
-
 def test_creates_transaction_event_for_order_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
@@ -737,7 +628,6 @@ def test_creates_transaction_event_for_order_by_app(
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -757,9 +647,6 @@ def test_creates_transaction_event_for_order_by_app(
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
-            "externalUrl": external_url,
-            "amount": authorized_value,
-            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -779,20 +666,13 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
-    assert event_data["externalUrl"] == external_url
-    assert event_data["amount"]["currency"] == transaction.currency
-    assert event_data["amount"]["amount"] == authorized_value
-    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
+    assert event_data["externalUrl"] == ""
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.name == event_name
+    assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
-    assert event.external_url == external_url
-    assert event.amount_value == authorized_value
-    assert event.currency == transaction.currency
-    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_creates_transaction_event_for_checkout_by_app(
@@ -813,7 +693,6 @@ def test_creates_transaction_event_for_checkout_by_app(
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -833,9 +712,6 @@ def test_creates_transaction_event_for_checkout_by_app(
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
-            "externalUrl": external_url,
-            "amount": authorized_value,
-            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -855,286 +731,12 @@ def test_creates_transaction_event_for_checkout_by_app(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
-    assert event_data["externalUrl"] == external_url
-    assert event_data["amount"]["currency"] == transaction.currency
-    assert event_data["amount"]["amount"] == authorized_value
-    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.name == event_name
+    assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
-    assert event.external_url == external_url
-    assert event.amount_value == authorized_value
-    assert event.currency == transaction.currency
-    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
-
-
-def test_creates_transaction_error_when_psp_reference_already_exists_by_app(
-    checkout_with_items,
-    permission_manage_payments,
-    app_api_client,
-    transaction_item_created_by_user,
-):
-    # given
-    transaction_item_created_by_user.checkout = checkout_with_items
-    transaction_item_created_by_user.order = None
-    transaction_item_created_by_user.save()
-
-    status = "Authorized for 10$"
-    type = "Credit Card"
-    psp_reference = transaction_item_created_by_user.psp_reference
-    available_actions = [
-        TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
-    ]
-    authorized_value = Decimal("10")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test-2", "value": "321"}
-
-    event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-
-    variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-        },
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": event_name,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-
-    content = get_graphql_content(response, ignore_errors=True)
-    transaction = content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-
-    assert not transaction
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.UNIQUE.name
-    assert error["field"] == "transaction"
-    assert checkout_with_items.payment_transactions.count() == 1
-    assert TransactionEvent.objects.count() == 0
-
-
-def test_creates_transaction_error_when_event_psp_reference_already_exists_by_app(
-    checkout_with_items,
-    permission_manage_payments,
-    app_api_client,
-    transaction_item_created_by_user,
-):
-    # given
-    transaction_item_created_by_user.checkout = checkout_with_items
-    transaction_item_created_by_user.order = None
-    transaction_item_created_by_user.save()
-
-    status = "Authorized for 10$"
-    type = "Credit Card"
-    psp_reference = "PSP-ref"
-    available_actions = [
-        TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
-    ]
-    authorized_value = Decimal("10")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test-2", "value": "321"}
-
-    event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-    transaction_item_created_by_user.events.create(psp_reference=event_psp_reference)
-
-    variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-        },
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": event_name,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction = checkout_with_items.payment_transactions.first()
-    content = get_graphql_content(response, ignore_errors=True)
-    transaction = content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-
-    assert not transaction
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.UNIQUE.name
-    assert error["field"] == "transactionEvent"
-    assert checkout_with_items.payment_transactions.count() == 1
-    assert TransactionEvent.objects.count() == 1
-
-
-def test_creates_transaction_error_when_event_psp_reference_already_exists_by_staff(
-    checkout_with_items,
-    permission_manage_payments,
-    staff_api_client,
-    transaction_item_created_by_user,
-):
-    # given
-    transaction_item_created_by_user.checkout = checkout_with_items
-    transaction_item_created_by_user.order = None
-    transaction_item_created_by_user.save()
-
-    status = "Authorized for 10$"
-    type = "Credit Card"
-    psp_reference = "PSP-ref"
-    available_actions = [
-        TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
-    ]
-    authorized_value = Decimal("10")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test-2", "value": "321"}
-
-    event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-    transaction_item_created_by_user.events.create(psp_reference=event_psp_reference)
-
-    variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-        },
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": event_name,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction = checkout_with_items.payment_transactions.first()
-    content = get_graphql_content(response, ignore_errors=True)
-    transaction = content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-
-    assert not transaction
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.UNIQUE.name
-    assert error["field"] == "transactionEvent"
-    assert checkout_with_items.payment_transactions.count() == 1
-    assert TransactionEvent.objects.count() == 1
-
-
-def test_creates_transaction_error_when_psp_reference_already_exists_by_staff(
-    checkout_with_items,
-    permission_manage_payments,
-    staff_api_client,
-    transaction_item_created_by_user,
-):
-    # given
-    transaction_item_created_by_user.checkout = checkout_with_items
-    transaction_item_created_by_user.order = None
-    transaction_item_created_by_user.save()
-
-    status = "Authorized for 10$"
-    type = "Credit Card"
-    psp_reference = transaction_item_created_by_user.psp_reference
-    available_actions = [
-        TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
-    ]
-    authorized_value = Decimal("10")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test-2", "value": "321"}
-
-    event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-
-    variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-        },
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": event_name,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    transaction = content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-
-    assert not transaction
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.UNIQUE.name
-    assert error["field"] == "transaction"
-
-    assert checkout_with_items.payment_transactions.count() == 1
-    assert TransactionEvent.objects.count() == 0
 
 
 def test_transaction_create_for_order_by_staff(
@@ -1151,7 +753,6 @@ def test_transaction_create_for_order_by_staff(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1166,7 +767,6 @@ def test_transaction_create_for_order_by_staff(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
         },
     }
 
@@ -1183,7 +783,6 @@ def test_transaction_create_for_order_by_staff(
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
-    assert data["externalUrl"] == external_url
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -1193,7 +792,6 @@ def test_transaction_create_for_order_by_staff(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
-    assert transaction.external_url == external_url
     assert transaction.user == staff_api_client.user
     assert not transaction.app
 
@@ -1612,7 +1210,6 @@ def test_transaction_create_empty_metadata_key_by_staff(
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -1626,7 +1223,6 @@ def test_transaction_create_empty_metadata_key_by_staff(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
         },
     }
 
@@ -1658,7 +1254,6 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "", "value": "321"}
-    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -1672,7 +1267,6 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
         },
     }
 
@@ -1688,103 +1282,6 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == TransactionCreateErrorCode.METADATA_KEY_REQUIRED.name
-
-
-def test_transaction_create_external_url_incorrect_url_format_by_staff(
-    order_with_lines, permission_manage_payments, staff_api_client
-):
-    # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
-    psp_reference = "PSP reference - 123"
-    available_actions = [
-        TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
-    ]
-    authorized_value = Decimal("10")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test", "value": "321"}
-    external_url = "incorrect"
-    variables = {
-        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert not content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.INVALID.name
-
-
-def test_creates_transaction_event_incorrect_external_url_by_staff(
-    order_with_lines, permission_manage_payments, staff_api_client
-):
-    # given
-    status = "Failed authorized for 10$"
-    type = "Credit Card"
-    psp_reference = "PSP reference - 123"
-    available_actions = []
-    authorized_value = Decimal("0")
-    metadata = {"key": "test-1", "value": "123"}
-    private_metadata = {"key": "test-2", "value": "321"}
-
-    event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-    external_url = "incorrect"
-    variables = {
-        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "transaction": {
-            "status": status,
-            "type": type,
-            "pspReference": psp_reference,
-            "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "metadata": [metadata],
-            "privateMetadata": [private_metadata],
-        },
-        "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
-            "pspReference": event_psp_reference,
-            "name": event_name,
-            "externalUrl": external_url,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert not content["data"]["transactionCreate"]["transaction"]
-    errors = content["data"]["transactionCreate"]["errors"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["code"] == TransactionCreateErrorCode.INVALID.name
 
 
 def test_creates_transaction_event_for_order_by_staff(
@@ -1820,8 +1317,6 @@ def test_creates_transaction_event_for_order_by_staff(
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
-            "amount": authorized_value,
-            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -1841,18 +1336,12 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
-    assert event_data["amount"]["currency"] == transaction.currency
-    assert event_data["amount"]["amount"] == authorized_value
-    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.name == event_name
+    assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
-    assert event.amount_value == authorized_value
-    assert event.currency == transaction.currency
-    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value
 
 
 def test_creates_transaction_event_for_checkout_by_staff(
@@ -1892,8 +1381,6 @@ def test_creates_transaction_event_for_checkout_by_staff(
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
-            "amount": authorized_value,
-            "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
         },
     }
 
@@ -1913,15 +1400,9 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
-    assert event_data["amount"]["currency"] == transaction.currency
-    assert event_data["amount"]["amount"] == authorized_value
-    assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.name == event_name
+    assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
-    assert event.amount_value == authorized_value
-    assert event.currency == transaction.currency
-    assert event.type == TransactionEventActionTypeEnum.AUTHORIZE.value

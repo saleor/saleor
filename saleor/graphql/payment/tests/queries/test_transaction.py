@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from .....payment import TransactionEventActionType, TransactionEventStatus
+from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.models import TransactionEvent
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -35,6 +35,7 @@ TRANSACTION_QUERY = """
                 status
                 pspReference
                 name
+                message
                 externalUrl
                 amount{
                     currency
@@ -277,11 +278,10 @@ def test_transaction_event_by_user(
     # given
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_user,
-        status=TransactionEventStatus.SUCCESS,
         psp_reference="psp-ref-123",
-        name="Sucesfull charge",
+        message="Sucesfull charge",
         currency="USD",
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
     )
@@ -304,7 +304,8 @@ def test_transaction_event_by_user(
     assert event_data["createdAt"] == event.created_at.isoformat()
     assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.name
+    assert event_data["name"] == event.message
+    assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
     assert event_data["amount"]["currency"] == event.currency
@@ -322,9 +323,9 @@ def test_transaction_event_by_app(
         transaction=transaction_item_created_by_app,
         status=TransactionEventStatus.SUCCESS,
         psp_reference="psp-ref-123",
-        name="Sucesfull charge",
+        message="Sucesfull charge",
         currency="USD",
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
     )
@@ -347,7 +348,8 @@ def test_transaction_event_by_app(
     assert event_data["createdAt"] == event.created_at.isoformat()
     assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.name
+    assert event_data["name"] == event.message
+    assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
     assert event_data["amount"]["currency"] == event.currency

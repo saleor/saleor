@@ -4,8 +4,8 @@ from ...payment import (
     ChargeStatus,
     StorePaymentMethod,
     TransactionAction,
-    TransactionEventActionType,
     TransactionEventStatus,
+    TransactionEventType,
     TransactionKind,
 )
 from ..core.enums import to_enum
@@ -17,8 +17,8 @@ TransactionActionEnum = to_enum(
     type_name="TransactionActionEnum",
     description=TransactionAction.__doc__,
 )
-TransactionEventActionTypeEnum = to_enum(
-    TransactionEventActionType, description=TransactionEventActionType.__doc__
+TransactionEventTypeEnum = to_enum(
+    TransactionEventType, description=TransactionEventType.__doc__
 )
 TransactionEventStatusEnum = to_enum(
     TransactionEventStatus,
