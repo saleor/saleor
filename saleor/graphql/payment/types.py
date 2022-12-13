@@ -8,7 +8,7 @@ from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
-from ..core.fields import JSONString, PermissionsField
+from ..core.fields import JSONString, PermissionsField, SensitiveField
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
@@ -143,7 +143,7 @@ class Payment(ModelObjectType):
         description="Maximum amount of money that can be refunded.",
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
-    credit_card = graphene.Field(
+    credit_card = SensitiveField(
         CreditCard, description="The details of the card used for this payment."
     )
 

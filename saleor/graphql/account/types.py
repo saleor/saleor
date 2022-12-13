@@ -28,7 +28,7 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import ConnectionField, PermissionsField
+from ..core.fields import ConnectionField, PermissionsField, SensitiveString
 from ..core.scalars import UUID
 from ..core.types import (
     CountryDisplay,
@@ -69,11 +69,11 @@ class AddressInput(graphene.InputObjectType):
 @federated_entity("id")
 class Address(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    first_name = graphene.String(required=True)
-    last_name = graphene.String(required=True)
-    company_name = graphene.String(required=True)
-    street_address_1 = graphene.String(required=True)
-    street_address_2 = graphene.String(required=True)
+    first_name = SensitiveString(required=True)
+    last_name = SensitiveString(required=True)
+    company_name = SensitiveString(required=True)
+    street_address_1 = SensitiveString(required=True)
+    street_address_2 = SensitiveString(required=True)
     city = graphene.String(required=True)
     city_area = graphene.String(required=True)
     postal_code = graphene.String(required=True)
@@ -81,7 +81,7 @@ class Address(ModelObjectType):
         CountryDisplay, required=True, description="Shop's default country."
     )
     country_area = graphene.String(required=True)
-    phone = graphene.String()
+    phone = SensitiveString()
     is_default_shipping_address = graphene.Boolean(
         required=False, description="Address is user's default shipping address."
     )
