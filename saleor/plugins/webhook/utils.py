@@ -224,7 +224,6 @@ def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
 ):
-
     attempt.duration = webhook_response.duration
     attempt.response = webhook_response.content
     attempt.response_headers = json.dumps(webhook_response.response_headers)

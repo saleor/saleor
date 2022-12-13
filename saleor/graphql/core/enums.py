@@ -152,3 +152,6 @@ TranslationErrorCode = graphene.Enum.from_enum(core_error_codes.TranslationError
 WebhookDryRunErrorCode = graphene.Enum.from_enum(
     webhook_error_codes.WebhookDryRunErrorCode
 )
+WebhookTriggerErrorCode = graphene.Enum.from_enum(
+    webhook_error_codes.WebhookTriggerErrorCode
+)
