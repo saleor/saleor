@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `sortBy` argument to `Category.products`
 
 ### Other changes
+- Remove unwanted customer event triggers from address mutations - #11395 by @jakubkuc
 
 # 3.9.0
 
