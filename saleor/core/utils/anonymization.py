@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Dict
 from faker import Faker
 
 from ...account.models import Address, User
-from .random_data import create_address, create_fake_user
 from ...checkout.utils import get_or_create_checkout_metadata
+from .random_data import create_address, create_fake_user
 
 if TYPE_CHECKING:
     from ...checkout.models import Checkout

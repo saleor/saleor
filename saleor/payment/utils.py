@@ -177,7 +177,8 @@ def create_payment_information(
         user_id = checkout.user_id
         checkout_token = str(checkout.token)
         from ..checkout.utils import get_or_create_checkout_metadata
-        checkout_metadata = get_or_create_checkout_metadata(checkout)
+
+        checkout_metadata = get_or_create_checkout_metadata(checkout).metadata
     elif order := payment.order:
         billing = order.billing_address
         shipping = order.shipping_address
