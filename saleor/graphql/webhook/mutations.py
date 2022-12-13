@@ -247,15 +247,16 @@ class WebhookDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         app = get_app_promise(info.context).get()
+        node_id = data.get("id")
         if app and not app.is_active:
             raise ValidationError(
                 "App needs to be active to delete webhook",
                 code=WebhookErrorCode.INVALID,
             )
-        webhook = cls.get_node_or_error(info, data.get("id"), only_type=Webhook)
+        webhook = cls.get_node_or_error(info, node_id, only_type=Webhook)
         if app and webhook.app_id != app.id:
             raise ValidationError(
-                f"Couldn't resolve to a node: {webhook.app.id}",
+                f"Couldn't resolve to a node: {node_id}",
                 code=WebhookErrorCode.GRAPHQL_ERROR,
             )
         webhook.is_active = False
