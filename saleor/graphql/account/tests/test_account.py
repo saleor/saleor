@@ -4586,7 +4586,7 @@ def test_address_delete_mutation_trigger_webhook(
 
     # then
     assert content["data"]["addressDelete"]
-    mocked_webhook_trigger.assert_called_with(
+    mocked_webhook_trigger.assert_called_once_with(
         *generate_address_webhook_call_args(
             address,
             WebhookEventAsyncType.ADDRESS_DELETED,

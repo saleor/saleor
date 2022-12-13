@@ -395,7 +395,6 @@ class BaseAddressDelete(ModelDeleteMutation):
 
         response.user = user
         manager = load_plugin_manager(info.context)
-        cls.call_event(manager.customer_updated, user)
         cls.call_event(manager.address_deleted, instance)
         return response
 
