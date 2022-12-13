@@ -8,7 +8,7 @@ from ....core.permissions import ProductPermissions
 from ....core.utils import generate_unique_slug
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_create import AttributeValueCreateInput
 from .mixins import AttributeMixin
@@ -90,6 +90,6 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_created, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)

@@ -10,14 +10,14 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
@@ -172,7 +172,7 @@ class CheckoutLinesAdd(BaseMutation):
     def perform_mutation(
         cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
     ):
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
 
         checkout = get_checkout(
@@ -183,7 +183,7 @@ class CheckoutLinesAdd(BaseMutation):
             id=id,
             error_class=CheckoutErrorCode,
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         variants = cls._get_variants_from_lines_input(lines)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()

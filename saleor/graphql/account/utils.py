@@ -18,7 +18,7 @@ from ...core.permissions import (
     AuthorizationFilters,
     has_one_of_permissions,
 )
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -72,7 +72,7 @@ class CustomerDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def post_process(cls, info, deleted_count=1):
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         account_events.customer_deleted_event(
             staff_user=info.context.user,
             app=app,
@@ -86,7 +86,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if load_app(context):
+        if get_app_promise(context).get():
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

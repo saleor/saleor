@@ -12,7 +12,7 @@ from ....core.types import NonNullList, ProductError, SeoInput, Upload
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
 from ....meta.mutations import MetadataInput
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 
 
@@ -93,5 +93,5 @@ class CategoryCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.category_created, instance)

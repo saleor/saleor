@@ -18,13 +18,13 @@ from ...giftcard.utils import (
     deactivate_gift_card,
     is_gift_card_expired,
 )
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import PositiveDecimal
+from ..core.scalars import Date, PositiveDecimal
 from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.validators import validate_price_precision, validate_required_string_field
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils.validators import check_for_duplicates
 from .types import GiftCard, GiftCardEvent
 
@@ -46,17 +46,17 @@ class GiftCardInput(graphene.InputObjectType):
         graphene.String,
         description="The gift card tags to add." + ADDED_IN_31 + PREVIEW_FEATURE,
     )
-    expiry_date = graphene.types.datetime.Date(
+    expiry_date = Date(
         description="The gift card expiry date." + ADDED_IN_31 + PREVIEW_FEATURE
     )
 
     # DEPRECATED
-    start_date = graphene.types.datetime.Date(
+    start_date = Date(
         description=(
             f"Start date of the gift card in ISO 8601 format. {DEPRECATED_IN_3X_INPUT}"
         )
     )
-    end_date = graphene.types.datetime.Date(
+    end_date = Date(
         description=(
             "End date of the gift card in ISO 8601 format. "
             f"{DEPRECATED_IN_3X_INPUT} Use `expiryDate` from `expirySettings` instead."
@@ -168,7 +168,7 @@ class GiftCardCreate(ModelMutation):
         if user:
             cleaned_input["created_by"] = user
             cleaned_input["created_by_email"] = user.email
-        cleaned_input["app"] = load_app(info.context)
+        cleaned_input["app"] = get_app_promise(info.context).get()
 
     @classmethod
     def clean_expiry_date(cls, cleaned_input, instance):
@@ -220,13 +220,13 @@ class GiftCardCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         user = info.context.user
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         events.gift_card_issued_event(
             gift_card=instance,
             user=user,
             app=app,
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         if note := cleaned_input.get("note"):
             events.gift_card_note_added_event(
                 gift_card=instance, user=user, app=app, message=note
@@ -331,7 +331,7 @@ class GiftCardUpdate(GiftCardCreate):
         cls._save_m2m(info, instance, cleaned_input)
 
         user = info.context.user
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         if "initial_balance_amount" in cleaned_input:
             events.gift_card_balance_reset_event(instance, old_instance, user, app)
         if "expiry_date" in cleaned_input:
@@ -340,7 +340,7 @@ class GiftCardUpdate(GiftCardCreate):
             )
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.gift_card_updated, instance)
         return cls.success_response(instance)
 
@@ -379,7 +379,7 @@ class GiftCardDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.gift_card_deleted, instance)
 
 
@@ -405,13 +405,13 @@ class GiftCardDeactivate(BaseMutation):
         create_event = gift_card.is_active
         deactivate_gift_card(gift_card)
         if create_event:
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             events.gift_card_deactivated_event(
                 gift_card=gift_card,
                 user=info.context.user,
                 app=app,
             )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.gift_card_status_changed, gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
@@ -439,13 +439,13 @@ class GiftCardActivate(BaseMutation):
         create_event = not gift_card.is_active
         activate_gift_card(gift_card)
         if create_event:
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             events.gift_card_activated_event(
                 gift_card=gift_card,
                 user=info.context.user,
                 app=app,
             )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.gift_card_status_changed, gift_card)
         return GiftCardActivate(gift_card=gift_card)
 
@@ -515,8 +515,8 @@ class GiftCardResend(BaseMutation):
         user = info.context.user
         if not user:
             user = None
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         send_gift_card_notification(
             user,
             app,
@@ -571,13 +571,13 @@ class GiftCardAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         gift_card = cls.get_node_or_error(info, data.get("id"), only_type=GiftCard)
         cleaned_input = cls.clean_input(info, gift_card, data)
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         event = events.gift_card_note_added_event(
             gift_card=gift_card,
             user=info.context.user,
             app=app,
             message=cleaned_input["message"],
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.gift_card_updated, gift_card)
         return GiftCardAddNote(gift_card=gift_card, event=event)

@@ -5,7 +5,7 @@ from .....product import models
 from .....product.utils import delete_categories
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 
 
@@ -27,7 +27,7 @@ class CategoryDelete(ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=Category)
 
         db_id = instance.id
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         delete_categories([db_id], manager=manager)
 
         instance.id = db_id

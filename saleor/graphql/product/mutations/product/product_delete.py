@@ -8,11 +8,11 @@ from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
 from .....product import models
-from ....app.dataloaders import load_app
+from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from ...utils import get_draft_order_lines_data_for_variants
 
@@ -54,7 +54,7 @@ class ProductDelete(ModelDeleteMutation):
                 pk__in=draft_order_lines_data.line_pks
             ).delete()
 
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             # run order event for deleted lines
             for (
                 order,
@@ -65,7 +65,7 @@ class ProductDelete(ModelDeleteMutation):
                 )
 
             order_pks = draft_order_lines_data.order_pks
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
             cls.call_event(manager.product_deleted, instance, variants_id)

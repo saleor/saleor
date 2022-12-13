@@ -29,7 +29,7 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ...core.mutations import BaseMutation
-from ...core.scalars import PositiveDecimal
+from ...core.scalars import Date, PositiveDecimal
 from ...core.types import (
     CollectionChannelListingError,
     NonNullList,
@@ -40,7 +40,7 @@ from ...core.validators import (
     validate_one_of_args_is_in_mutation,
     validate_price_precision,
 )
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types.collections import Collection
 from ..types.products import Product, ProductVariant
@@ -57,7 +57,7 @@ class PublishableChannelListingInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
     )
-    publication_date = graphene.types.datetime.Date(
+    publication_date = Date(
         description=(
             f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
             "Use `publishedAt` field instead."
@@ -78,7 +78,7 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
     is_available_for_purchase = graphene.Boolean(
         description="Determine if product should be available for purchase.",
     )
-    available_for_purchase_date = graphene.Date(
+    available_for_purchase_date = Date(
         description=(
             "A start date from which a product will be available for purchase. "
             "When not set and isAvailable is set to True, "
@@ -338,7 +338,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
             product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_updated, product)
 
     @classmethod
@@ -516,7 +516,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     defaults=defaults,
                 )
             update_product_discounted_price_task.delay(variant.product_id)
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_variant_updated, variant)
 
     @classmethod

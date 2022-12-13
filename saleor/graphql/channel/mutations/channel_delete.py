@@ -8,7 +8,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order.models import Order
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import ChannelError, ChannelErrorCode
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 
@@ -100,7 +100,7 @@ class ChannelDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_deleted, instance)
 
     @classmethod

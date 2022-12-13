@@ -5,7 +5,7 @@ from .....product import models
 from ....channel import ChannelContext
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 
 
@@ -39,7 +39,7 @@ class ProductMediaUpdate(BaseMutation):
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaUpdate(product=product, media=media)
