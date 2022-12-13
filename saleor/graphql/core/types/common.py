@@ -45,6 +45,7 @@ from ..enums import (
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
+    WebhookTriggerErrorCode,
     WeightUnitsEnum,
 )
 from ..scalars import Date, PositiveDecimal
@@ -56,7 +57,6 @@ if TYPE_CHECKING:
 
 # deprecated - this is temporary constant that contains the graphql types
 # which has double id available - uuid and old int id
-
 TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine", "OrderDiscount", "CheckoutLine"]
 
 
@@ -414,6 +414,10 @@ class WebhookError(Error):
 
 class WebhookDryRunError(Error):
     code = WebhookDryRunErrorCode(description="The error code.", required=True)
+
+
+class WebhookTriggerError(Error):
+    code = WebhookTriggerErrorCode(description="The error code.", required=True)
 
 
 class TranslationError(Error):
