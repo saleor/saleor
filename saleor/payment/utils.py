@@ -652,6 +652,61 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
     )
 
 
+def parse_transaction_event_data(
+    event_data: dict,
+    parsed_event_data: dict,
+    error_fields: List[str],
+    psp_reference: str,
+):
+    missing_msg = (
+        "Missing value for field: %s in " "response of transaction action webhook."
+    )
+    invalid_msg = (
+        "Incorrect value for field: %s, value: %s in "
+        "response of transaction action webhook."
+    )
+
+    parsed_event_data["psp_reference"] = psp_reference
+
+    event_type_types = {
+        str_to_enum(event_results[0]): event_results[0]
+        for event_results in TransactionEventType.CHOICES
+    }
+    type_data = event_data.get("type")
+    if type_data:
+        if type_data in event_type_types:
+            parsed_event_data["type"] = event_type_types[type_data]
+        else:
+            logger.warning(invalid_msg, "type", type_data)
+            error_fields.append("type")
+    else:
+        logger.warning(missing_msg, "type")
+        error_fields.append("type")
+
+    if amount_data := event_data.get("amount"):
+        try:
+            parsed_event_data["amount"] = decimal.Decimal(amount_data)
+        except decimal.DecimalException:
+            logger.warning(invalid_msg, "amount", amount_data)
+            error_fields.append("amount")
+    else:
+        parsed_event_data["amount"] = None
+
+    if event_time_data := event_data.get("time"):
+        try:
+            parsed_event_data["time"] = (
+                datetime.fromisoformat(event_time_data) if event_time_data else None
+            )
+        except ValueError:
+            logger.warning(invalid_msg, "time", event_time_data)
+            error_fields.append("time")
+    else:
+        parsed_event_data["time"] = timezone.now()
+
+    parsed_event_data["external_url"] = event_data.get("externalUrl", "")
+    parsed_event_data["message"] = event_data.get("message", "")
+
+
 def parse_transaction_action_data(
     response_data: Any,
 ) -> Optional["TransactionRequestResponse"]:
@@ -667,55 +722,14 @@ def parse_transaction_action_data(
         return None
     event_data = response_data.get("event")
     parsed_event_data: dict = {}
-    error_fields = []
+    error_fields: List[str] = []
     if event_data:
-        missing_msg = (
-            "Missing value for field: %s in " "response of transaction action webhook."
+        parse_transaction_event_data(
+            event_data=event_data,
+            parsed_event_data=parsed_event_data,
+            error_fields=error_fields,
+            psp_reference=psp_reference,
         )
-        invalid_msg = (
-            "Incorrect value for field: %s, value: %s in "
-            "response of transaction action webhook."
-        )
-
-        parsed_event_data["psp_reference"] = psp_reference
-
-        event_type_types = {
-            str_to_enum(event_results[0]): event_results[0]
-            for event_results in TransactionEventType.CHOICES
-        }
-        type_data = event_data.get("type")
-        if type_data:
-            if type_data in event_type_types:
-                parsed_event_data["type"] = event_type_types[type_data]
-            else:
-                logger.warning(invalid_msg, "type", type_data)
-                error_fields.append("type")
-        else:
-            logger.warning(missing_msg, "type")
-            error_fields.append("type")
-
-        if amount_data := event_data.get("amount"):
-            try:
-                parsed_event_data["amount"] = decimal.Decimal(amount_data)
-            except decimal.DecimalException:
-                logger.warning(invalid_msg, "amount", amount_data)
-                error_fields.append("amount")
-        else:
-            parsed_event_data["amount"] = None
-
-        if event_time_data := event_data.get("time"):
-            try:
-                parsed_event_data["time"] = (
-                    datetime.fromisoformat(event_time_data) if event_time_data else None
-                )
-            except ValueError:
-                logger.warning(invalid_msg, "time", event_time_data)
-                error_fields.append("time")
-        else:
-            parsed_event_data["time"] = timezone.now()
-
-        parsed_event_data["external_url"] = event_data.get("externalUrl", "")
-        parsed_event_data["message"] = event_data.get("message", "")
 
     if not error_fields:
         return TransactionRequestResponse(
