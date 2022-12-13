@@ -31,10 +31,14 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
-from ....payment import TransactionAction
+from ....payment import (
+    TransactionAction,
+    TransactionEventActionType,
+    TransactionEventStatus,
+)
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
-from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
     generate_collection_payload,
@@ -1440,11 +1444,21 @@ def test_transaction_action_request(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
+
     action_value = Decimal("5.00")
+
+    request_event = transaction.events.create(
+        status=TransactionEventStatus.REQUEST,
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventActionType.CHARGE,
+    )
+
     transaction_action_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
+        event=request_event,
     )
 
     # when
@@ -1462,6 +1476,163 @@ def test_transaction_action_request(
         [any_webhook],
         subscribable_object=transaction_action_data,
         requestor=ANY,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
+def test_transaction_charge_requested(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order,
+    channel_USD,
+    app,
+):
+    # given
+    any_webhook.app = app
+    any_webhook.save()
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app=app,
+    )
+    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    action_value = Decimal("5.00")
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.CHARGE,
+        action_value=action_value,
+        event=event,
+    )
+
+    # when
+    manager.transaction_charge_requested(
+        transaction_action_data, channel_slug=channel_USD.slug
+    )
+
+    # then
+    mocked_webhook_trigger.assert_called_once_with(
+        transaction_action_data,
+        WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
+def test_transaction_refund_requested(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order,
+    channel_USD,
+    app,
+):
+    # given
+    any_webhook.app = app
+    any_webhook.save()
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        psp_reference="PSP ref",
+        available_actions=[
+            "refund",
+        ],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app=app,
+    )
+    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    action_value = Decimal("5.00")
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.REFUND,
+        action_value=action_value,
+        event=event,
+    )
+
+    # when
+    manager.transaction_refund_requested(
+        transaction_action_data, channel_slug=channel_USD.slug
+    )
+
+    # then
+    mocked_webhook_trigger.assert_called_once_with(
+        transaction_action_data,
+        WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
+def test_transaction_cancelation_requested(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order,
+    channel_USD,
+    app,
+):
+    # given
+    any_webhook.app = app
+    any_webhook.save()
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        psp_reference="PSP ref",
+        available_actions=[
+            "refund",
+        ],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+        app=app,
+    )
+    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    action_value = Decimal("5.00")
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.CANCEL,
+        action_value=action_value,
+        event=event,
+    )
+
+    # when
+    manager.transaction_cancelation_requested(
+        transaction_action_data, channel_slug=channel_USD.slug
+    )
+
+    # then
+    mocked_webhook_trigger.assert_called_once_with(
+        transaction_action_data,
+        WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
+        None,
     )
 
 

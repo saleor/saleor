@@ -27,7 +27,11 @@ from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
-from ...payment import TransactionAction
+from ...payment import (
+    TransactionAction,
+    TransactionEventActionType,
+    TransactionEventStatus,
+)
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
@@ -2040,6 +2044,11 @@ def test_generate_transaction_action_request_payload_for_order(
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
+    requested_event = transaction.events.create(
+        status=TransactionEventStatus.REQUEST,
+        currency=transaction.currency,
+        type=TransactionEventActionType.CHARGE,
+    )
 
     # when
     payload = json.loads(
@@ -2048,6 +2057,7 @@ def test_generate_transaction_action_request_payload_for_order(
                 transaction=transaction,
                 action_type=action_type,
                 action_value=action_value,
+                event=requested_event,
             ),
             requestor=requestor,
         )
@@ -2117,6 +2127,11 @@ def test_generate_transaction_action_request_payload_for_checkout(
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
     )
+    requested_event = transaction.events.create(
+        status=TransactionEventStatus.REQUEST,
+        currency=transaction.currency,
+        type=type,
+    )
 
     # when
     payload = json.loads(
@@ -2125,6 +2140,7 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 transaction=transaction,
                 action_type=action_type,
                 action_value=action_value,
+                event=requested_event,
             ),
             requestor=requestor,
         )

@@ -43,9 +43,9 @@ from ...payment.error_codes import (
     TransactionUpdateErrorCode,
 )
 from ...payment.gateway import (
+    request_cancelation_action,
     request_charge_action,
     request_refund_action,
-    request_void_action,
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -1180,10 +1180,7 @@ class TransactionRequestAction(BaseMutation):
             "Request an action for payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionRequestActionError
-        permissions = (
-            PaymentPermissions.HANDLE_PAYMENTS,
-            OrderPermissions.MANAGE_ORDERS,
-        )
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
@@ -1200,34 +1197,39 @@ class TransactionRequestAction(BaseMutation):
     def handle_transaction_action(
         cls, action, action_kwargs, action_value: Optional[Decimal]
     ):
-        if action == TransactionAction.VOID:
+        if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
-            request_void_action(**action_kwargs)
-            cls.create_transaction_event_requested(
-                transaction, 0, TransactionAction.VOID
+            request_event = cls.create_transaction_event_requested(
+                transaction, 0, action
+            )
+            request_cancelation_action(
+                **action_kwargs, cancel_value=action_value, request_event=request_event
             )
         elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
-            request_charge_action(**action_kwargs, charge_value=action_value)
-            cls.create_transaction_event_requested(
+            request_event = cls.create_transaction_event_requested(
                 transaction, action_value, TransactionAction.CHARGE
+            )
+            request_charge_action(
+                **action_kwargs, charge_value=action_value, request_event=request_event
             )
         elif action == TransactionAction.REFUND:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
-            request_refund_action(**action_kwargs, refund_value=action_value)
-            cls.create_transaction_event_requested(
+            request_event = cls.create_transaction_event_requested(
                 transaction, action_value, TransactionAction.REFUND
+            )
+            request_refund_action(
+                **action_kwargs, refund_value=action_value, request_event=request_event
             )
 
     @classmethod
     def create_transaction_event_requested(cls, transaction, action_value, type):
-        transaction.events.create(
+        return transaction.events.create(
             status=TransactionEventStatus.REQUEST,
-            transaction=transaction,
             amount_value=action_value,
             currency=transaction.currency,
             type=type,

@@ -903,6 +903,39 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
+    def transaction_charge_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_charge_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def transaction_refund_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_refund_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def transaction_cancelation_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_cancelation_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):
         default_value = None
         return self.__run_method_on_plugins(

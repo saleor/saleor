@@ -22,7 +22,6 @@ from ..payment import (
     TransactionKind,
     gateway,
 )
-from ..payment.gateway import request_refund_action
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction, TransactionItem
 from ..payment.utils import create_payment
@@ -1522,14 +1521,17 @@ def _process_refund(
             # to provide list of transactions.
             transaction_item = transactions[-1]
             amount = min(transaction_item.charged_value, amount)
-            request_refund_action(
-                transaction_item,
-                manager,
-                refund_value=amount,
-                channel_slug=order.channel.slug,
-                user=user,
-                app=app,
-            )
+            # FIXME: In future PRs, the refund action will be dropped from logic that
+            # handles returns.
+            # request_refund_action(
+            #     transaction_item,
+            #     manager,
+            #     refund_value=amount,
+            #     channel_slug=order.channel.slug,
+            #     user=user,
+            #     app=app,
+            #     request_event=None
+            # )
         elif payment:
             amount = min(payment.captured_amount, amount)
             gateway.refund(

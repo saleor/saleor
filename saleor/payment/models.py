@@ -8,6 +8,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
+from django.utils import timezone
 from django_prices.models import MoneyField
 from prices import Money
 
@@ -111,7 +112,7 @@ class TransactionItem(ModelWithMetadata):
 
 
 class TransactionEvent(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(
         max_length=128,
         choices=TransactionEventStatus.CHOICES,
@@ -119,6 +120,7 @@ class TransactionEvent(models.Model):
     )
     psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
     name = models.CharField(max_length=512, blank=True, default="")
+    message = models.CharField(max_length=512, blank=True, default="")
 
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE

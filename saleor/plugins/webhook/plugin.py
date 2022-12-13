@@ -46,6 +46,7 @@ from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_re
 from .tasks import (
     send_webhook_request_async,
     trigger_all_webhooks_sync,
+    trigger_transaction_request,
     trigger_webhook_sync,
     trigger_webhooks_async,
 )
@@ -1285,6 +1286,61 @@ class WebhookPlugin(BasePlugin):
                 requestor=self.requestor,
             )
 
+    def _request_transaction_action(
+        self,
+        transaction_data: "TransactionActionData",
+        event_type: str,
+        previous_value: Any,
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        if not transaction_data.transaction.app_id:
+            logger.warning(
+                f"Transaction request skipped for "
+                f"{transaction_data.transaction.psp_reference}. "
+                f"Missing relation to App."
+            )
+            return None
+
+        if not transaction_data.event:
+            logger.warning(
+                f"Transaction request skipped for "
+                f"{transaction_data.transaction.psp_reference}. "
+                f"Missing relation to TransactionEvent."
+            )
+            return None
+
+        trigger_transaction_request(transaction_data, event_type, self.requestor)
+        return None
+
+    def transaction_charge_requested(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ):
+        return self._request_transaction_action(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+            previous_value,
+        )
+
+    def transaction_refund_requested(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ):
+        return self._request_transaction_action(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+            previous_value,
+        )
+
+    def transaction_cancelation_requested(
+        self, transaction_data: "TransactionActionData", previous_value: Any
+    ):
+        return self._request_transaction_action(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
+            previous_value,
+        )
+
     def __run_payment_webhook(
         self,
         event_type: str,
@@ -1577,5 +1633,7 @@ class WebhookPlugin(BasePlugin):
                 WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
             ),
         }
-        webhooks = get_webhooks_for_event(event_type=map_event[event])
-        return any(webhooks)
+
+        if event in map_event:
+            return any(get_webhooks_for_event(event_type=map_event[event]))
+        return False

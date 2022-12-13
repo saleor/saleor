@@ -212,3 +212,20 @@ class TransactionEventStatus:
         (FAILURE, "Failure"),
         (REQUEST, "Request"),
     ]
+
+
+class TransactionEventReportResult:
+    """Represents a result of reported event.
+
+    The following statuses are possible:
+    SUCCESS - Represents a sucess action.
+    FAILURE - Represents a failure action.
+    """
+
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+    CHOICES = [
+        (SUCCESS, "Success"),
+        (FAILURE, "Failure"),
+    ]

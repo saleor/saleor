@@ -11,7 +11,7 @@ class TransactionEventByTransactionIdLoader(DataLoader):
         events = (
             TransactionEvent.objects.using(self.database_connection_name)
             .filter(transaction_id__in=keys)
-            .order_by("pk")
+            .order_by("-created_at")
         )
         event_map = defaultdict(list)
         for event in events:

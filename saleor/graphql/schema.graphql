@@ -1862,6 +1862,9 @@ enum WebhookEventTypeEnum {
 
   """Void payment."""
   PAYMENT_VOID
+  TRANSACTION_CHARGE_REQUESTED
+  TRANSACTION_REFUND_REQUESTED
+  TRANSACTION_CANCELATION_REQUESTED
 
   """
   Event called for checkout tax calculation.
@@ -1922,6 +1925,9 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+  TRANSACTION_CHARGE_REQUESTED
+  TRANSACTION_REFUND_REQUESTED
+  TRANSACTION_CANCELATION_REQUESTED
 
   """
   Event called for checkout tax calculation.
@@ -13112,7 +13118,7 @@ type Mutation {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
-  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionRequestAction(
     """Determines the action type."""
@@ -18942,7 +18948,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
-Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionRequestAction {
   transaction: TransactionItem
@@ -25780,7 +25786,7 @@ Event sent when transaction action is requested.
 
 Added in Saleor 3.4.
 
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+DEPRECATED: This subscription will be removed in 3.10 release. Use `TransactionRequestCapture`, `TransactionRequestRefund`, `TransactionRequestCancel` instead.
 """
 type TransactionActionRequest implements Event {
   """Time of the event."""
@@ -25795,22 +25801,10 @@ type TransactionActionRequest implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a transaction.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a transaction."""
   transaction: TransactionItem
 
-  """
-  Requested action data.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Requested action data."""
   action: TransactionAction!
 }
 
@@ -26270,6 +26264,87 @@ type PaymentListGateways implements Event {
 
   """The checkout the event relates to."""
   checkout: Checkout
+}
+
+"""
+Event sent when transaction cancelation is requested.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionCancelationRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
+}
+
+"""
+Event sent when transaction charge is requested.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionChargeRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
+}
+
+"""
+Event sent when transaction refund is requested.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionRefundRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
 }
 
 """

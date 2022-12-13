@@ -7,7 +7,7 @@ import graphene
 from graphene import ObjectType
 from graphql.error import GraphQLError
 
-from ....plugins.webhook.utils import APP_ID_PREFIX
+from ....plugins.const import APP_ID_PREFIX
 from ..validators import validate_if_int_or_uuid
 
 

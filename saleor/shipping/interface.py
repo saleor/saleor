@@ -7,7 +7,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..graphql.core.utils import from_global_id_or_error
-from ..plugins.webhook.utils import APP_ID_PREFIX
+from ..plugins.const import APP_ID_PREFIX
 
 if TYPE_CHECKING:
     from ..tax.models import TaxClass

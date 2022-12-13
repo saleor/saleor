@@ -5,7 +5,7 @@ from ....core.permissions import OrderPermissions
 from ....order.actions import order_voided
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
-from ....payment.gateway import request_void_action
+from ....payment.gateway import request_cancelation_action
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -49,7 +49,7 @@ class OrderVoid(BaseMutation):
             # We use the last transaction as we don't have a possibility to
             # provide way of handling multiple transaction here
             try:
-                request_void_action(
+                request_cancelation_action(
                     payment_transactions[-1],
                     manager,
                     channel_slug=order.channel.slug,
