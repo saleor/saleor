@@ -234,8 +234,10 @@ class WebhookDelete(ModelDeleteMutation):
 
     class Meta:
         description = (
-            "Deletes a webhook subscription. Deletion might fail due to "
-            "webhook delivery in progress. In this case deactivates webhook"
+            "Delete a webhook. Before the deletion, the webhook is deactivated to "
+            "pause any deliveries that are already scheduled. The deletion might fail "
+            "if delivery is in progress. In such a case, the webhook is not deleted "
+            "but remains deactivated."
         )
         model = models.Webhook
         object_type = Webhook
