@@ -66,7 +66,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import PermissionsField
+from ..core.fields import CostField, PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
 from ..core.types import (
@@ -845,7 +845,7 @@ class Order(ModelObjectType):
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
     status = OrderStatusEnum(required=True)
-    user = graphene.Field(
+    user = CostField(
         User,
         description=(
             "User who placed the order. This field is set only for orders placed by "
@@ -855,9 +855,10 @@ class Order(ModelObjectType):
             f"{OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
+        cost={"complexity": 1},
     )
     tracking_client_id = graphene.String(required=True)
-    billing_address = graphene.Field(
+    billing_address = CostField(
         "saleor.graphql.account.types.Address",
         description=(
             "Billing address. The full data can be access for orders created "
@@ -865,8 +866,9 @@ class Order(ModelObjectType):
             f"permissions: {OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
+        cost={"complexity": 1},
     )
-    shipping_address = graphene.Field(
+    shipping_address = CostField(
         "saleor.graphql.account.types.Address",
         description=(
             "Shipping address. The full data can be access for orders created "
@@ -874,15 +876,22 @@ class Order(ModelObjectType):
             f"permissions: {OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
+        cost={"complexity": 1},
     )
     shipping_method_name = graphene.String()
     collection_point_name = graphene.String()
-    channel = graphene.Field(Channel, required=True)
-    fulfillments = NonNullList(
-        Fulfillment, required=True, description="List of shipments for the order."
+    channel = CostField(Channel, required=True, cost={"complexity": 1})
+    fulfillments = CostField(
+        NonNullList(Fulfillment),
+        required=True,
+        description="List of shipments for the order.",
+        cost={"complexity": 1},
     )
-    lines = NonNullList(
-        lambda: OrderLine, required=True, description="List of order lines."
+    lines = CostField(
+        NonNullList(lambda: OrderLine),
+        required=True,
+        description="List of order lines.",
+        cost={"complexity": 1},
     )
     actions = NonNullList(
         OrderAction,
@@ -891,34 +900,38 @@ class Order(ModelObjectType):
         ),
         required=True,
     )
-    available_shipping_methods = NonNullList(
-        ShippingMethod,
+    available_shipping_methods = CostField(
+        NonNullList(ShippingMethod),
         description="Shipping methods that can be used with this order.",
         required=False,
         deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
+        cost={"complexity": 1},
     )
-    shipping_methods = NonNullList(
-        ShippingMethod,
+    shipping_methods = CostField(
+        NonNullList(ShippingMethod),
         description="Shipping methods related to this order.",
         required=True,
+        cost={"complexity": 1},
     )
-    available_collection_points = NonNullList(
-        Warehouse,
+    available_collection_points = CostField(
+        NonNullList(Warehouse),
         description=(
             "Collection points that can be used for this order."
             + ADDED_IN_31
             + PREVIEW_FEATURE
         ),
         required=True,
+        cost={"complexity": 1},
     )
-    invoices = NonNullList(
-        Invoice,
+    invoices = CostField(
+        NonNullList(Invoice),
         description=(
             "List of order invoices. Can be fetched for orders created in Saleor 3.2 "
             "and later, for other orders requires one of the following permissions: "
             f"{OrderPermissions.MANAGE_ORDERS.name}, {AuthorizationFilters.OWNER.name}."
         ),
         required=True,
+        cost={"complexity": 1},
     )
     number = graphene.String(
         description="User-friendly number of an order.", required=True
@@ -954,8 +967,8 @@ class Order(ModelObjectType):
         ),
         required=True,
     )
-    transactions = NonNullList(
-        TransactionItem,
+    transactions = CostField(
+        NonNullList(TransactionItem),
         description=(
             "List of transactions for the order. Requires one of the "
             "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS."
@@ -963,9 +976,13 @@ class Order(ModelObjectType):
             + PREVIEW_FEATURE
         ),
         required=True,
+        cost={"complexity": 1},
     )
-    payments = NonNullList(
-        Payment, description="List of payments for the order.", required=True
+    payments = CostField(
+        NonNullList(Payment),
+        description="List of payments for the order.",
+        required=True,
+        cost={"complexity": 1},
     )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
@@ -976,10 +993,11 @@ class Order(ModelObjectType):
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
-    shipping_method = graphene.Field(
+    shipping_method = CostField(
         ShippingMethod,
         description="Shipping method for this order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+        cost={"complexity": 1},
     )
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
@@ -1025,9 +1043,12 @@ class Order(ModelObjectType):
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
     )
-    voucher = graphene.Field(Voucher)
-    gift_cards = NonNullList(
-        GiftCard, description="List of user gift cards.", required=True
+    voucher = CostField(Voucher, cost={"complexity": 1})
+    gift_cards = CostField(
+        NonNullList(GiftCard),
+        description="List of user gift cards.",
+        required=True,
+        cost={"complexity": 1},
     )
     customerNote = graphene.Boolean(required=True)
     customer_note = graphene.String(required=True)
@@ -1059,6 +1080,7 @@ class Order(ModelObjectType):
         description="List of events associated with the order.",
         permissions=[OrderPermissions.MANAGE_ORDERS],
         required=True,
+        cost={"complexity": 1},
     )
     total_balance = graphene.Field(
         Money,
@@ -1077,13 +1099,14 @@ class Order(ModelObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
-    delivery_method = graphene.Field(
+    delivery_method = CostField(
         DeliveryMethod,
         description=(
             "The delivery method selected for this order."
             + ADDED_IN_31
             + PREVIEW_FEATURE
         ),
+        cost={"complexity": 1},
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -1114,10 +1137,11 @@ class Order(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
         ),
     )
-    discounts = NonNullList(
-        "saleor.graphql.discount.types.OrderDiscount",
+    discounts = CostField(
+        NonNullList("saleor.graphql.discount.types.OrderDiscount"),
         description="List of all discounts assigned to the order.",
         required=True,
+        cost={"complexity": 1},
     )
     errors = NonNullList(
         OrderError,

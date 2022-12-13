@@ -14,7 +14,7 @@ from ..core.connection import (
 )
 from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import FilterConnectionField, JSONString, PermissionsField
+from ..core.fields import CostField, FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -33,8 +33,10 @@ class PageType(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     slug = graphene.String(required=True)
-    attributes = NonNullList(
-        Attribute, description="Page attributes of that page type."
+    attributes = CostField(
+        NonNullList(Attribute),
+        description="Page attributes of that page type.",
+        cost={"complexity": 1},
     )
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
@@ -43,6 +45,7 @@ class PageType(ModelObjectType):
         permissions=[
             PagePermissions.MANAGE_PAGES,
         ],
+        cost={"complexity": 1, "multipliers": ["first", "last"]},
     )
     has_pages = PermissionsField(
         graphene.Boolean,
@@ -111,7 +114,7 @@ class Page(ModelObjectType):
     )
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)
-    page_type = graphene.Field(PageType, required=True)
+    page_type = CostField(PageType, required=True, cost={"complexity": 1})
     created = graphene.DateTime(required=True)
     content_json = JSONString(
         description="Content of the page." + RICH_CONTENT,
@@ -119,10 +122,11 @@ class Page(ModelObjectType):
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")
-    attributes = NonNullList(
-        SelectedAttribute,
+    attributes = CostField(
+        NonNullList(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this product.",
+        cost={"complexity": 1},
     )
 
     class Meta:
