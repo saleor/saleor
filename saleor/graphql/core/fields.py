@@ -1,4 +1,4 @@
-from functools import wraps
+from functools import partial, wraps
 from json import JSONDecodeError
 from typing import List, Optional, TypedDict
 
@@ -28,6 +28,10 @@ class CostField(graphene.Field):
         self.sensitive = sensitive
         self.cost = cost
         super().__init__(*args, **kwargs)
+
+
+SensitiveField = partial(CostField, cost=None, sensitive=True)
+SensitiveString = partial(CostField, graphene.String, cost=None, sensitive=True)
 
 
 class PermissionsField(CostField):
