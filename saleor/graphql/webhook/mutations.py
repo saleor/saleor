@@ -233,8 +233,10 @@ class WebhookDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of a webhook to delete.")
 
     class Meta:
-        description = "Deletes a webhook subscription. Deletion might fail due to " \
-                      "webhook delivery in progress. In this case deactivates webhook"
+        description = (
+            "Deletes a webhook subscription. Deletion might fail due to "
+            "webhook delivery in progress. In this case deactivates webhook"
+        )
         model = models.Webhook
         object_type = Webhook
         permissions = (
