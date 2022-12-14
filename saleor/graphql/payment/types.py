@@ -18,6 +18,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_38,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -337,14 +338,46 @@ class TransactionItem(ModelObjectType):
     authorized_amount = graphene.Field(
         Money, required=True, description="Total amount authorized for this payment."
     )
+    authorize_pending_amount = graphene.Field(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing authorization requests for the transaction."
+            + ADDED_IN_310
+        ),
+    )
     refunded_amount = graphene.Field(
         Money, required=True, description="Total amount refunded for this payment."
+    )
+    refund_pending_amount = graphene.Field(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing refund requests for the transaction."
+            + ADDED_IN_310
+        ),
     )
     voided_amount = graphene.Field(
         Money, required=True, description="Total amount voided for this payment."
     )
+    cancel_pending_amount = graphene.Field(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing cancel requests for the transaction."
+            + ADDED_IN_310
+        ),
+    )
     charged_amount = graphene.Field(
         Money, description="Total amount charged for this payment.", required=True
+    )
+    charge_pending_amount = graphene.Field(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing charge requests for the transaction."
+            + ADDED_IN_310
+        ),
     )
     status = graphene.String(description="Status of transaction.", required=True)
     type = graphene.String(description="Type of transaction.", required=True)
@@ -412,16 +445,32 @@ class TransactionItem(ModelObjectType):
         return root.amount_charged
 
     @staticmethod
+    def resolve_charge_pending_amount(root: models.TransactionItem, _info):
+        return root.amount_charge_pending
+
+    @staticmethod
     def resolve_authorized_amount(root: models.TransactionItem, _info):
         return root.amount_authorized
+
+    @staticmethod
+    def resolve_authorize_pending_amount(root: models.TransactionItem, _info):
+        return root.amount_authorize_pending
 
     @staticmethod
     def resolve_voided_amount(root: models.TransactionItem, _info):
         return root.amount_voided
 
     @staticmethod
+    def resolve_cancel_pending_amount(root: models.TransactionItem, _info):
+        return root.amount_cancel_pending
+
+    @staticmethod
     def resolve_refunded_amount(root: models.TransactionItem, _info):
         return root.amount_refunded
+
+    @staticmethod
+    def resolve_refund_pending_amount(root: models.TransactionItem, _info):
+        return root.amount_refund_pending
 
     @staticmethod
     def resolve_order(root: models.TransactionItem, info):
