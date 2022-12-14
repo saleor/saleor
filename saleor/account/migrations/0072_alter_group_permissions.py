@@ -12,6 +12,12 @@ ALTER TABLE account_group_permissions
 
 ALTER TABLE account_group_permissions
     DROP CONSTRAINT auth_group_permissions_group_id_permission_id_0cd325b0_uniq;
+
+ALTER TABLE account_user_groups
+    DROP CONSTRAINT userprofile_user_groups_group_id_c7eec74e_fk_auth_group_id;
+
+ALTER TABLE account_user_user_permissions
+    DROP CONSTRAINT userprofile_user_use_permission_id_1caa8a71_fk_auth_perm;
 """
 
 CREATE_NEW_CONSTRAINTS = """
@@ -25,6 +31,15 @@ ALTER TABLE account_group_permissions
 
 ALTER TABLE account_group_permissions
     ADD CONSTRAINT account_group_permis_permission_id_f654f978_fk_permissio
+    FOREIGN KEY (permission_id) REFERENCES permission_permission (id)
+    DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE account_user_groups
+    ADD CONSTRAINT account_user_groups_group_id_6c71f749_fk_account_group_id
+    FOREIGN KEY (group_id) REFERENCES account_group (id) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE account_user_user_permissions
+    ADD CONSTRAINT account_user_user_pe_permission_id_66c44191_fk_permissio
     FOREIGN KEY (permission_id) REFERENCES permission_permission (id)
     DEFERRABLE INITIALLY DEFERRED;
 """
@@ -51,6 +66,12 @@ ALTER TABLE account_group_permissions
 
 ALTER TABLE account_group_permissions
     DROP CONSTRAINT account_group_permissions_group_id_permission_id_745742e5_uniq;
+
+ALTER TABLE account_user_groups
+    DROP CONSTRAINT account_user_groups_group_id_6c71f749_fk_account_group_id;
+
+ALTER TABLE account_user_user_permissions
+    DROP CONSTRAINT account_user_user_pe_permission_id_66c44191_fk_permissio;
 """
 
 RENAME_CONSTRAINTS_AND_INDEX_REVERSE = """
@@ -97,6 +118,30 @@ class Migration(migrations.Migration):
                         blank=True,
                         to="permission.Permission",
                         verbose_name="permissions",
+                    ),
+                ),
+                migrations.AlterField(
+                    model_name="user",
+                    name="groups",
+                    field=models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",  # noqa: E501
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="account.Group",
+                        verbose_name="groups",
+                    ),
+                ),
+                migrations.AlterField(
+                    model_name="user",
+                    name="user_permissions",
+                    field=models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="permission.Permission",
+                        verbose_name="user permissions",
                     ),
                 ),
             ],

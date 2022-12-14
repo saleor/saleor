@@ -71,6 +71,15 @@ ALTER TABLE auth_group_permissions
     ADD CONSTRAINT auth_group_permissio_permission_id_84c5c92e_fk_auth_perm
     FOREIGN KEY (permission_id) REFERENCES auth_permission (id)
     DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE account_user_groups
+    ADD CONSTRAINT userprofile_user_groups_group_id_c7eec74e_fk_auth_group_id
+    FOREIGN KEY (group_id) REFERENCES auth_group (id) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE account_user_user_permissions
+    ADD CONSTRAINT userprofile_user_use_permission_id_1caa8a71_fk_auth_perm
+    FOREIGN KEY (permission_id) REFERENCES auth_permission (id)
+    DEFERRABLE INITIALLY DEFERRED;
 """
 
 DROP_OLD_CONSTRAINTS_REVERSE_FROM_APP_0018 = """
