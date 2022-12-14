@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `sortBy` argument to `Category.products`
 
 ### Other changes
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
 
 # 3.9.0
 
