@@ -9,6 +9,8 @@ from ...payment.models import Payment
 from ..channel.types import Channel
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
 )
@@ -88,11 +90,27 @@ def filter_checkout_search(qs, _, value):
     return qs.filter(filter_option)
 
 
+def filter_checkout_metadata(qs, _, value):
+    for metadata_item in value:
+        if metadata_item.value:
+            qs = qs.filter(
+                metadata_storage__metadata__contains={
+                    metadata_item.key: metadata_item.value
+                }
+            )
+        else:
+            qs = qs.filter(metadata_storage__metadata__has_key=metadata_item.key)
+    return qs
+
+
 class CheckoutFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_checkout_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    metadata = ListObjectTypeFilter(
+        input_class=MetadataFilter, method=filter_checkout_metadata
+    )
 
     class Meta:
         model = Checkout

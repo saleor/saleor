@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `sortBy` argument to `Category.products`
 
 ### Other changes
+- Move checkout metadata to separate model - #11264  by @jakubkuc
 
 # 3.9.0
 
