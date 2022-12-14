@@ -27,8 +27,15 @@ def queryset_in_batches(queryset):
 def move_all_checkout_metadata(apps, schema_editor):
     Checkout = apps.get_model("checkout", "Checkout")
     CheckoutMetadata = apps.get_model("checkout", "CheckoutMetadata")
+
+    query_empty_meta = (
+        Q(metadata={})
+        | Q(private_metadata={})
+        | Q(metadata__isnull=True)
+        | Q(private_metadata__isnull=True)
+    )
     checkouts_with_meta = (
-        Checkout.objects.filter(~Q(metadata={}) | ~Q(private_metadata={}))
+        Checkout.objects.exclude(query_empty_meta)
         .order_by("pk")
         .distinct("token")
         .only("pk", "metadata", "private_metadata")
