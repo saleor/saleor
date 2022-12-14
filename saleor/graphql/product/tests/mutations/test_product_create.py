@@ -2408,3 +2408,41 @@ def test_create_product_with_weight_input(
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
     assert result_weight["unit"] == site_settings.default_weight_unit.upper()
+
+
+def test_create_product_with_non_unique_external_reference(
+    staff_api_client,
+    product_type,
+    category,
+    product,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_PRODUCT_MUTATION
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    ext_ref = "test-ext-ref"
+    product.external_reference = ext_ref
+    product.save(update_fields=["external_reference"])
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "externalReference": ext_ref,
+            "name": "test prod",
+            "slug": "test-prod",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["productCreate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["message"] == "Product with this External reference already exists."

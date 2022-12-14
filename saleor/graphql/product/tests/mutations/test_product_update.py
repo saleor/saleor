@@ -2842,7 +2842,6 @@ def test_update_product_by_both_id_and_external_reference(
 
 def test_update_product_external_reference_not_existing(
     staff_api_client,
-    product,
     permission_manage_products,
 ):
     # given
@@ -2864,3 +2863,36 @@ def test_update_product_external_reference_not_existing(
     # then
     assert data["errors"]
     assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_update_product_with_non_unique_external_reference(
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+):
+    # given
+    product_1 = product_list[0]
+    product_2 = product_list[1]
+    ext_ref = "test-ext-ref"
+    product_1.external_reference = ext_ref
+    product_1.save(update_fields=["external_reference"])
+    product_2_id = graphene.Node.to_global_id("Product", product_2.id)
+
+    variables = {
+        "id": product_2_id,
+        "input": {"externalReference": ext_ref},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["productUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["message"] == "Product with this External reference already exists."

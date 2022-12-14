@@ -579,3 +579,39 @@ def test_update_attribute_value_by_external_reference_not_existing(
     assert not data["attributeValue"]
     assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
     assert data["errors"][0]["field"] == "externalReference"
+
+
+def test_update_attribute_value_with_non_unique_external_reference(
+    staff_api_client,
+    color_attribute,
+    numeric_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_BY_EXTERNAL_REFERENCE_MUTATION
+    value_1 = color_attribute.values.first()
+    ext_ref = "test-ext-ref"
+    value_1.external_reference = ext_ref
+    value_1.save(update_fields=["external_reference"])
+    value_2 = numeric_attribute.values.first()
+    value_2_id = graphene.Node.to_global_id("AttributeValue", value_2.id)
+
+    variables = {
+        "input": {"externalReference": ext_ref},
+        "id": value_2_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["attributeValueUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AttributeErrorCode.UNIQUE.name
+    assert (
+        error["message"]
+        == "Attribute value with this External reference already exists."
+    )

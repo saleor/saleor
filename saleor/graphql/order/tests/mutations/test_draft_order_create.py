@@ -1183,3 +1183,32 @@ def test_draft_order_create_update_display_gross_prices(
 
     order = Order.objects.get(id=order_pk)
     assert not order.display_gross_prices
+
+
+def test_draft_order_create_with_non_unique_external_reference(
+    staff_api_client,
+    permission_manage_orders,
+    channel_USD,
+    order,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+
+    variables = {"channel": channel_id, "externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == OrderErrorCode.UNIQUE.name
+    assert error["message"] == "Order with this External reference already exists."

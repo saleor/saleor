@@ -1773,6 +1773,29 @@ def test_customer_create_with_upper_case_email(
     assert data["user"]["email"] == email.lower()
 
 
+def test_customer_create_with_non_unique_external_reference(
+    staff_api_client, permission_manage_users, customer_user
+):
+    # given
+    ext_ref = "test-ext-ref"
+    customer_user.external_reference = ext_ref
+    customer_user.save(update_fields=["external_reference"])
+
+    variables = {"email": "mail.test@exampale.com", "externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["customerCreate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AccountErrorCode.UNIQUE.name
+    assert error["message"] == "User with this External reference already exists."
+
+
 def test_customer_update(
     staff_api_client, staff_user, customer_user, address, permission_manage_users
 ):
@@ -1906,6 +1929,7 @@ UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE = """
             errors {
                 field
                 message
+                code
             }
             user {
                 id
@@ -1992,6 +2016,33 @@ def test_update_customer_by_external_reference_not_existing(
     assert not data["user"]
     assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
     assert data["errors"][0]["field"] == "externalReference"
+
+
+def test_update_customer_with_non_unique_external_reference(
+    staff_api_client, permission_manage_users, user_list
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+
+    ext_ref = "test-ext-ref"
+    user_1 = user_list[0]
+    user_1.external_reference = ext_ref
+    user_1.save(update_fields=["external_reference"])
+    user_2_id = graphene.Node.to_global_id("User", user_list[1].id)
+
+    variables = {"input": {"externalReference": ext_ref}, "id": user_2_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["customerUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AccountErrorCode.UNIQUE.name
+    assert error["message"] == "User with this External reference already exists."
 
 
 UPDATE_CUSTOMER_EMAIL_MUTATION = """

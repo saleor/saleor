@@ -284,12 +284,14 @@ def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
 
 
 UPDATE_VARIANT_BY_EXTERNAL_REFERENCE = """
-     mutation updateVariant ($id: ID, $externalReference: String, $newSku: String) {
+     mutation updateVariant (
+        $id: ID, $externalReference: String, $input: ProductVariantInput!
+    ) {
         productVariantUpdate(
             id: $id,
             externalReference: $externalReference,
-            input: {sku: $newSku}
-            ) {
+            input: $input
+        ) {
             productVariant {
                 id
                 sku
@@ -297,6 +299,8 @@ UPDATE_VARIANT_BY_EXTERNAL_REFERENCE = """
             }
             errors {
               message
+              field
+              code
             }
         }
     }
@@ -324,7 +328,7 @@ def test_update_product_variant_by_external_reference(
 
     variables = {
         "externalReference": ext_ref,
-        "newSku": new_sku,
+        "input": {"sku": new_sku},
     }
 
     # when
@@ -356,8 +360,7 @@ def test_update_product_variant_by_both_id_and_external_reference(
 ):
     #   given
     query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
-
-    variables = {"externalReference": "whatever", "id": "whatever"}
+    variables = {"externalReference": "whatever", "id": "whatever", "input": {}}
 
     # when
     response = staff_api_client.post_graphql(
@@ -380,11 +383,8 @@ def test_update_product_variant_by_external_reference_not_existing(
 ):
     #   given
     query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
-
     ext_ref = "non-existing-ext-ref"
-    variables = {
-        "externalReference": ext_ref,
-    }
+    variables = {"externalReference": ext_ref, "input": {}}
 
     # when
     response = staff_api_client.post_graphql(
@@ -395,6 +395,42 @@ def test_update_product_variant_by_external_reference_not_existing(
     # then
     errors = content["data"]["productVariantUpdate"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_update_product_variant_with_non_unique_external_reference(
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+):
+    #   given
+    query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
+    ext_ref = "test-ext-ref"
+
+    product_1 = product_list[0]
+    variant_1 = product_1.variants.first()
+    variant_1.external_reference = ext_ref
+    variant_1.save(update_fields=["external_reference"])
+
+    product_2 = product_list[1]
+    variant_2 = product_2.variants.first()
+    variant_2_id = graphene.Node.to_global_id("ProductVariant", variant_2.pk)
+
+    variables = {"id": variant_2_id, "input": {"externalReference": ext_ref}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["productVariantUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert (
+        error["message"]
+        == "Product variant with this External reference already exists."
+    )
 
 
 def test_update_product_variant_with_negative_weight(

@@ -1259,3 +1259,42 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
     assert errors[0]["code"] == error_code.name
+
+
+def test_create_attribute_with_non_unique_external_reference(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    color_attribute,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    ext_ref = "test-ext-ref"
+    color_attribute.external_reference = ext_ref
+    color_attribute.save(update_fields=["external_reference"])
+
+    variables = {
+        "input": {
+            "name": "some test name",
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "externalReference": ext_ref,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["attributeCreate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AttributeErrorCode.UNIQUE.name
+    assert error["message"] == "Attribute with this External reference already exists."

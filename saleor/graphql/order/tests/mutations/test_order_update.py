@@ -296,7 +296,7 @@ def test_order_update_by_external_reference(
 
 
 def test_order_update_by_both_id_and_external_reference(
-    staff_api_client, permission_manage_orders, draft_order
+    staff_api_client, permission_manage_orders
 ):
     # given
     query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
@@ -323,7 +323,7 @@ def test_order_update_by_both_id_and_external_reference(
 
 
 def test_order_update_by_external_reference_not_existing(
-    staff_api_client, permission_manage_orders, draft_order, voucher_free_shipping
+    staff_api_client, permission_manage_orders, voucher_free_shipping
 ):
     # given
     query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
@@ -343,3 +343,30 @@ def test_order_update_by_external_reference_not_existing(
     data = content["data"]["orderUpdate"]
     assert not data["order"]
     assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_order_update_with_non_unique_external_reference(
+    staff_api_client, permission_manage_orders, order, order_list
+):
+    # given
+    query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    ext_ref = "test-ext-ref"
+    order_1 = order_list[0]
+    order_1.external_reference = ext_ref
+    order_1.save(update_fields=["external_reference"])
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {"id": order_id, "input": {"externalReference": ext_ref}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["orderUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == OrderErrorCode.UNIQUE.name
+    assert error["message"] == "Order with this External reference already exists."
