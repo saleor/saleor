@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import transaction
 from django.db.models import F
 
@@ -55,6 +56,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
     ADDED_IN_38,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -672,6 +674,12 @@ class TransactionUpdateInput(graphene.InputObjectType):
         description="Payment private metadata.",
         required=False,
     )
+    external_url = graphene.String(
+        description=(
+            "The url that will allow to redirect user to "
+            "payment provider page with transaction event details." + ADDED_IN_310
+        )
+    )
 
 
 class TransactionCreateInput(TransactionUpdateInput):
@@ -727,6 +735,22 @@ class TransactionCreate(BaseMutation):
         )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+
+    @classmethod
+    def validate_external_url(cls, external_url: Optional[str], error_code: str):
+        if external_url is None:
+            return
+        validator = URLValidator()
+        try:
+            validator(external_url)
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "transaction": ValidationError(
+                        "Invalid format of `externalUrl`.", code=error_code
+                    )
+                }
+            )
 
     @classmethod
     def validate_metadata_keys(  # type: ignore
@@ -824,6 +848,10 @@ class TransactionCreate(BaseMutation):
             transaction_data.get("private_metadata", []),
             field_name="privateMetadata",
             error_code=TransactionCreateErrorCode.METADATA_KEY_REQUIRED.value,
+        )
+        cls.validate_external_url(
+            transaction_data.get("external_url"),
+            error_code=TransactionCreateErrorCode.INVALID.value,
         )
 
     @classmethod
@@ -976,6 +1004,10 @@ class TransactionUpdate(TransactionCreate):
             transaction_data.get("private_metadata", []),
             field_name="privateMetadata",
             error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+        )
+        cls.validate_external_url(
+            transaction_data.get("external_url"),
+            error_code=TransactionCreateErrorCode.INVALID.value,
         )
 
     @classmethod
