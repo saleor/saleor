@@ -5,13 +5,13 @@ import saleor.account.models
 
 # Forward helpers
 def rename_group_tables(apps, schema_editor):
-    Permission = apps.get_model("auth", "Group")
+    Group = apps.get_model("auth", "Group")
     schema_editor.alter_db_table(
-        Permission,
+        Group,
         "auth_group",
         "account_group",
     )
-    PermissionGroup = Permission.permissions.through
+    PermissionGroup = Group.permissions.through
     schema_editor.alter_db_table(
         PermissionGroup,
         "auth_group_permissions",
@@ -33,13 +33,13 @@ ALTER INDEX IF EXISTS auth_group_name_a6ea08ec_like
 
 # Reverse helpers
 def rename_group_tables_reverse(apps, schema_editor):
-    Permission = apps.get_model("auth", "Group")
+    Group = apps.get_model("auth", "Group")
     schema_editor.alter_db_table(
-        Permission,
+        Group,
         "account_group",
         "auth_group",
     )
-    PermissionGroup = Permission.permissions.through
+    PermissionGroup = Group.permissions.through
     schema_editor.alter_db_table(
         PermissionGroup,
         "account_group_permissions",

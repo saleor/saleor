@@ -9,8 +9,9 @@ from django.apps import apps as registry
 
 def assing_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Group = apps.get_model("auth", "Group")
-        Permission = apps.get_model("auth", "Permission")
+        apps = kwargs["apps"]
+        Group = apps.get_model("account", "Group")
+        Permission = apps.get_model("permission", "Permission")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
         ct, _ = ContentType.objects.get_or_create(app_label="channel", model="channel")

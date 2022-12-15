@@ -8,9 +8,10 @@ from django.db.models.signals import post_migrate
 
 def assign_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Permission = apps.get_model("auth", "Permission")
+        apps = kwargs["apps"]
+        Permission = apps.get_model("permission", "Permission")
         App = apps.get_model("app", "App")
-        Group = apps.get_model("auth", "Group")
+        Group = apps.get_model("account", "Group")
 
         handle_taxes = Permission.objects.filter(
             codename="handle_taxes", content_type__app_label="checkout"

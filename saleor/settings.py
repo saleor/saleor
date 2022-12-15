@@ -220,11 +220,11 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sites",
     "django.contrib.staticfiles",
-    "django.contrib.auth",
     "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
     "saleor.permission",
+    "saleor.auth",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",

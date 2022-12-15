@@ -7,8 +7,9 @@ from django.apps import apps as registry
 
 def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Group = apps.get_model("auth", "Group")
-        Permission = apps.get_model("auth", "Permission")
+        apps = kwargs["apps"]
+        Group = apps.get_model("account", "Group")
+        Permission = apps.get_model("permission", "Permission")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
         ct, _ = ContentType.objects.get_or_create(

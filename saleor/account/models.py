@@ -3,8 +3,7 @@ from typing import Iterable, Union
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.auth.models import _user_has_perm  # type: ignore
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField  # type: ignore
@@ -21,7 +20,7 @@ from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
-from ..permission.models import Permission, PermissionsMixin
+from ..permission.models import Permission, PermissionsMixin, _user_has_perm
 from . import CustomerEvents
 from .validators import validate_possible_number
 

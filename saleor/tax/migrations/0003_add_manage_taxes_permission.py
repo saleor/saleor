@@ -6,8 +6,9 @@ from django.db.models.signals import post_migrate
 
 def assign_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Permission = apps.get_model("auth", "Permission")
-        Group = apps.get_model("auth", "Group")
+        apps = kwargs["apps"]
+        Permission = apps.get_model("permission", "Permission")
+        Group = apps.get_model("account", "Group")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
         ct, _ = ContentType.objects.get_or_create(
