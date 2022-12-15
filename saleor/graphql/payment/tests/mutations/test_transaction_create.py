@@ -86,6 +86,8 @@ def test_transaction_create_for_order_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -99,6 +101,7 @@ def test_transaction_create_for_order_by_app(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
         },
     }
 
@@ -115,6 +118,7 @@ def test_transaction_create_for_order_by_app(
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["externalUrl"] == external_url
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -125,6 +129,7 @@ def test_transaction_create_for_order_by_app(
         private_metadata["key"]: private_metadata["value"]
     }
     assert transaction.app == app_api_client.app
+    assert transaction.external_url == external_url
 
 
 def test_transaction_create_for_order_updates_order_total_authorized_by_app(
@@ -234,6 +239,7 @@ def test_transaction_create_for_checkout_by_app(
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -248,6 +254,7 @@ def test_transaction_create_for_checkout_by_app(
             },
             "metadata": [metadata],
             "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
         },
     }
 
@@ -264,6 +271,7 @@ def test_transaction_create_for_checkout_by_app(
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["externalUrl"] == external_url
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -273,6 +281,7 @@ def test_transaction_create_for_checkout_by_app(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
+    assert transaction.external_url == external_url
 
 
 @pytest.mark.parametrize(
@@ -1406,3 +1415,49 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+
+
+def test_transaction_create_external_url_incorrect_url_format_by_app(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.VOID.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test", "value": "321"}
+    external_url = "incorrect"
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert not content["data"]["transactionCreate"]["transaction"]
+    errors = content["data"]["transactionCreate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionCreateErrorCode.INVALID.name

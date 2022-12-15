@@ -1752,3 +1752,113 @@ def test_transaction_raises_error_when_psp_reference_already_exists_by_app(
 
     assert order_with_lines.payment_transactions.count() == 2
     assert TransactionEvent.objects.count() == 0
+
+
+def test_transaction_update_external_url_by_app(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["externalUrl"] == external_url
+    assert transaction_item_created_by_app.external_url == external_url
+
+
+def test_transaction_update_external_url_incorrect_url_format_by_app(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    external_url = "incorrect"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert not content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.INVALID.name
+
+
+def test_transaction_update_external_url_by_staff(
+    transaction_item_created_by_user, permission_manage_payments, staff_api_client
+):
+    # given
+    transaction = transaction_item_created_by_user
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["externalUrl"] == external_url
+    assert transaction_item_created_by_user.external_url == external_url
+
+
+def test_transaction_update_external_url_incorrect_url_format_by_staff(
+    transaction_item_created_by_user, permission_manage_payments, staff_api_client
+):
+    # given
+    transaction = transaction_item_created_by_user
+    external_url = "incorrect"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert not content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.INVALID.name
