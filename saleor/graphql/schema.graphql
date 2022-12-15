@@ -24906,6 +24906,9 @@ type InvoiceRequested implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """Order related to the invoice."""
+  order: Order!
 }
 
 """
@@ -24930,6 +24933,9 @@ type InvoiceDeleted implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """Order related to the invoice."""
+  order: Order
 }
 
 """
@@ -24954,6 +24960,9 @@ type InvoiceSent implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """Order related to the invoice."""
+  order: Order
 }
 
 """

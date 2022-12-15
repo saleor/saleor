@@ -790,14 +790,29 @@ class InvoiceBase(AbstractType):
         "saleor.graphql.invoice.types.Invoice",
         description="The invoice the event relates to.",
     )
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="Order related to the invoice.",
+    )
 
     @staticmethod
     def resolve_invoice(root, _info):
         _, invoice = root
         return invoice
 
+    @staticmethod
+    def resolve_order(root, _info):
+        _, invoice = root
+        return invoice.order
+
 
 class InvoiceRequested(ObjectType, InvoiceBase):
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        required=True,
+        description="Order related to the invoice.",
+    )
+
     class Meta:
         interfaces = (Event,)
         description = (
