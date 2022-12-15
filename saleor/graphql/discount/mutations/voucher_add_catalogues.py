@@ -4,7 +4,7 @@ from ....core.permissions import DiscountPermissions
 from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_31
 from ...core.types import DiscountError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Voucher
 from .sale_base_discount_catalogue import BaseDiscountCatalogueMutation
 
@@ -69,7 +69,7 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         cls.add_catalogues_to_node(voucher, input_data)
 
         if input_data:
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.voucher_updated, voucher)
 
         return VoucherAddCatalogues(voucher=voucher)

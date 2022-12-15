@@ -7,7 +7,7 @@ from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 
 
@@ -38,7 +38,7 @@ class DraftOrderDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_instance(info, **data)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
             cls.call_event(manager.draft_order_deleted, order)

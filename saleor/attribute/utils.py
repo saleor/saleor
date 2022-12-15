@@ -30,7 +30,7 @@ def associate_attribute_values_to_instance(
 ) -> AttributeAssignmentType:
     """Assign given attribute values to a product or variant.
 
-    Note: be award this function invokes the ``set`` method on the instance's
+    Note: be aware this function invokes the ``set`` method on the instance's
     attribute association. Meaning any values already assigned or concurrently
     assigned will be overridden by this call.
     """

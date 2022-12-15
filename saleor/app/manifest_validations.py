@@ -99,7 +99,8 @@ def clean_manifest_data(manifest_data):
 
     validate_required_fields(manifest_data, errors)
     try:
-        _clean_app_url(manifest_data["tokenTargetUrl"])
+        if "tokenTargetUrl" in manifest_data:
+            _clean_app_url(manifest_data["tokenTargetUrl"])
     except (ValidationError, AttributeError):
         errors["tokenTargetUrl"].append(
             ValidationError(

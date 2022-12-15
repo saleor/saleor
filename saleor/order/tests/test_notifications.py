@@ -177,6 +177,7 @@ def test_get_order_line_payload(order_line):
         "unit_discount_reason": order_line.unit_discount_reason,
         "unit_discount_type": order_line.unit_discount_type,
         "unit_discount_value": order_line.unit_discount_value,
+        "metadata": order_line.metadata,
     }
 
 

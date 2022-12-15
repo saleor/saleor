@@ -5,10 +5,10 @@ from ....core.permissions import OrderPermissions
 from ....order.actions import order_voided
 from ....order.error_codes import OrderErrorCode
 from ....payment import TransactionKind, gateway
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -42,8 +42,8 @@ class OrderVoid(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         payment = order.get_last_payment()
         clean_void_payment(payment)
         transaction = try_payment_action(

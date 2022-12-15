@@ -1837,8 +1837,8 @@ def test_generate_checkout_payload(
         ),
         "discount_name": checkout.discount_name,
         "language_code": checkout.language_code,
-        "private_metadata": checkout.private_metadata,
-        "metadata": checkout.metadata,
+        "private_metadata": checkout.metadata_storage.private_metadata,
+        "metadata": checkout.metadata_storage.metadata,
         "channel": {
             "type": "Channel",
             "id": graphene.Node.to_global_id("Channel", checkout.channel_id),
@@ -1946,12 +1946,9 @@ def test_generate_excluded_shipping_methods_for_checkout(checkout):
         maximum_delivery_days=10,
         minimum_delivery_days=2,
     )
-    lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     response = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout_info, [shipping_method]
+            checkout, [shipping_method]
         )
     )
 

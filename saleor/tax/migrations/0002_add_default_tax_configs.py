@@ -73,10 +73,16 @@ def populate_tax_calculation_strategy(apps, schema_editor):
         tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
 
         override_global_tax = config_dict.get("override_global_tax")
-        if override_global_tax:
+        # There might be a situation that the value is a string `true` or `false`,
+        # so we need to handle such situation too
+        if override_global_tax is True or override_global_tax == "true":
             include_taxes_in_prices = config_dict.get("include_taxes_in_prices")
             if include_taxes_in_prices is not None:
-                tc.prices_entered_with_tax = include_taxes_in_prices
+                tc.prices_entered_with_tax = (
+                    include_taxes_in_prices
+                    if isinstance(include_taxes_in_prices, bool)
+                    else include_taxes_in_prices.lower() == "true"
+                )
 
         avatax_tax_configs.append(tc)
     TaxConfiguration.objects.bulk_update(

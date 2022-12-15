@@ -21,7 +21,7 @@ from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList
 from ...meta.mutations import MetadataInput
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User
@@ -121,6 +121,8 @@ class AccountRegister(ModelMutation):
             data.get("channel"), error_class=AccountErrorCode
         ).slug
 
+        data["email"] = data["email"].lower()
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
@@ -137,7 +139,7 @@ class AccountRegister(ModelMutation):
         user.search_document = search.prepare_user_search_document_value(
             user, attach_addresses_data=False
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
                 user.is_active = False
@@ -223,7 +225,7 @@ class AccountRequestDeletion(BaseMutation):
         channel_slug = clean_channel(
             data.get("channel"), error_class=AccountErrorCode
         ).slug
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         notifications.send_account_delete_confirmation_notification(
             redirect_url, user, manager, channel_slug=channel_slug
         )
@@ -316,7 +318,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
             cls.save(info, address, cleaned_input)
             cls._save_m2m(info, address, cleaned_input)
             if address_type:
-                manager = load_plugin_manager(info.context)
+                manager = get_plugin_manager_promise(info.context).get()
                 utils.change_user_default_address(user, address, address_type, manager)
         return AccountAddressCreate(user=user, address=address)
 
@@ -328,7 +330,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         instance.user_addresses.add(user)
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.customer_updated, user)
         cls.call_event(manager.address_created, instance)
 
@@ -393,7 +395,7 @@ class AccountSetDefaultAddress(BaseMutation):
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         utils.change_user_default_address(user, address, address_type, manager)
         cls.call_event(manager.customer_updated, user)
         return cls(user=user)
@@ -429,7 +431,7 @@ class RequestEmailChange(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         password = data["password"]
-        new_email = data["new_email"]
+        new_email = data["new_email"].lower()
         redirect_url = data["redirect_url"]
 
         if not user.check_password(password):
@@ -466,7 +468,7 @@ class RequestEmailChange(BaseMutation):
             "user_pk": user.pk,
         }
         token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         notifications.send_request_user_change_email_notification(
             redirect_url,
             user,
@@ -519,7 +521,7 @@ class ConfirmEmailChange(BaseMutation):
         token = data["token"]
 
         payload = cls.get_token_payload(token)
-        new_email = payload["new_email"]
+        new_email = payload["new_email"].lower()
         old_email = payload["old_email"]
 
         if models.User.objects.filter(email=new_email).exists():
@@ -541,7 +543,7 @@ class ConfirmEmailChange(BaseMutation):
 
         assign_user_gift_cards(user)
         match_orders_with_new_user(user)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         notifications.send_user_change_email_notification(
             old_email, user, manager, channel_slug=channel_slug
         )

@@ -6,7 +6,7 @@ from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import AttributeError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 
 
@@ -33,7 +33,7 @@ class AttributeValueDelete(ModelDeleteMutation):
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_deleted, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
         return response

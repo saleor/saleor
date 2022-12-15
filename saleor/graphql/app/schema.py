@@ -7,7 +7,7 @@ from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType, NonNullList
 from ..core.utils import from_global_id_or_error
-from .dataloaders import AppByIdLoader, AppExtensionByIdLoader, load_app
+from .dataloaders import AppByIdLoader, AppExtensionByIdLoader, app_promise_callback
 from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
     AppActivate,
@@ -119,8 +119,9 @@ class AppQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, AppCountableConnection)
 
     @staticmethod
-    def resolve_app(_root, info, *, id=None):
-        if app := load_app(info.context):
+    @app_promise_callback
+    def resolve_app(_root, info, app, *, id=None):
+        if app:
             if not id:
                 return app
             _, app_id = from_global_id_or_error(id, only_type="App")

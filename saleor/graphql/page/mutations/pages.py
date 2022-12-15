@@ -19,7 +19,7 @@ from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
 from ...core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Page, PageType
 
@@ -134,7 +134,7 @@ class PageCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_created, instance)
 
 
@@ -164,7 +164,7 @@ class PageUpdate(PageCreate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_updated, instance)
 
 
@@ -183,7 +183,7 @@ class PageDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         page = cls.get_instance(info, **data)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(page)
             response = super().perform_mutation(_root, info, **data)
@@ -285,7 +285,7 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_type_created, instance)
 
 
@@ -346,7 +346,7 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_type_updated, instance)
 
 
@@ -381,5 +381,5 @@ class PageTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_type_deleted, instance)

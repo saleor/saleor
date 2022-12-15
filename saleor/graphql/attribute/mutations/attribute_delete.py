@@ -4,7 +4,7 @@ from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import AttributeError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute
 
 
@@ -22,5 +22,5 @@ class AttributeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_deleted, instance)
