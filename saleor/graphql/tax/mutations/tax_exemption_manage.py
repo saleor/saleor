@@ -13,7 +13,7 @@ from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 
 TaxExemptionManageErrorCode = graphene.Enum.from_enum(
     error_codes.TaxExemptionManageErrorCode
@@ -72,7 +72,7 @@ class TaxExemptionManage(BaseMutation):
 
     @classmethod
     def _invalidate_checkout_prices(cls, info, checkout):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)

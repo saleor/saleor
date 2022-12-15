@@ -10,7 +10,7 @@ from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
 from .utils import EditableOrderValidationMixin, clean_order_update_shipping
@@ -150,7 +150,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             method,
             shipping_channel_listing,
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         clean_order_update_shipping(order, shipping_method_data, manager)
 
         order.shipping_method = method

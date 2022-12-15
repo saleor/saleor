@@ -54,7 +54,11 @@ class TaxConfiguration(ModelWithMetadata):
     )
     charge_taxes = models.BooleanField(default=True)
     tax_calculation_strategy = models.CharField(
-        max_length=20, choices=TaxCalculationStrategy.CHOICES, blank=True, null=True
+        max_length=20,
+        choices=TaxCalculationStrategy.CHOICES,
+        blank=True,
+        null=True,
+        default=TaxCalculationStrategy.FLAT_RATES,
     )
     display_gross_prices = models.BooleanField(default=True)
     prices_entered_with_tax = models.BooleanField(default=True)

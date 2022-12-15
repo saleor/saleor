@@ -7,6 +7,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     delete_external_shipping_id,
+    get_or_create_checkout_metadata,
     invalidate_checkout_prices,
     is_shipping_required,
     set_external_shipping_id,
@@ -21,7 +22,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Checkout
 from .utils import ERROR_DOES_NOT_SHIP, clean_delivery_method, get_checkout
@@ -86,7 +87,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
@@ -180,10 +181,14 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
             ]
             + invalidate_prices_updated_fields
+        )
+        get_or_create_checkout_metadata(checkout).save(
+            update_fields=[
+                "private_metadata",
+            ]
         )
 
         cls.call_event(manager.checkout_updated, checkout)
@@ -211,10 +216,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
             ]
             + invalidate_prices_updated_fields
+        )
+        get_or_create_checkout_metadata(checkout).save(
+            update_fields=["private_metadata"]
         )
         cls.call_event(manager.checkout_updated, checkout)
 

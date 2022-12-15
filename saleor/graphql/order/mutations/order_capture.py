@@ -6,11 +6,11 @@ from ....order.actions import order_captured
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import TransactionKind, gateway
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order
 from .utils import clean_payment, try_payment_action
@@ -58,8 +58,8 @@ class OrderCapture(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         order_info = fetch_order_info(order)
         payment = order_info.payment
         clean_order_capture(payment)

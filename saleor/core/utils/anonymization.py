@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict
 from faker import Faker
 
 from ...account.models import Address, User
+from ...checkout.utils import get_or_create_checkout_metadata
 from .random_data import create_address, create_fake_user
 
 if TYPE_CHECKING:
@@ -80,6 +81,7 @@ def anonymize_checkout(checkout: "Checkout") -> "Checkout":
     anonymized_checkout.shipping_address = generate_fake_address()
     anonymized_checkout.billing_address = generate_fake_address()
     anonymized_checkout.note = fake.paragraph()
-    anonymized_checkout.metadata = generate_fake_metadata()
-    anonymized_checkout.private_metadata = generate_fake_metadata()
+    anonymized_checkout_metadata = get_or_create_checkout_metadata(anonymized_checkout)
+    anonymized_checkout_metadata.metadata = generate_fake_metadata()
+    anonymized_checkout_metadata.private_metadata = generate_fake_metadata()
     return anonymized_checkout

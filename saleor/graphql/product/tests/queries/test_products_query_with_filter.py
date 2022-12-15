@@ -89,14 +89,15 @@ def test_products_query_with_filter_attributes(
 @pytest.mark.parametrize(
     "gte, lte, expected_products_index",
     [
-        (None, 8, [1]),
-        (0, 8, [1]),
+        (None, 8, [1, 2]),
+        (0, 8, [1, 2]),
         (7, 8, []),
-        (5, None, [0, 1]),
+        (5, None, [0, 1, 2]),
         (8, 10, [0]),
         (12, None, [0]),
         (20, None, []),
         (20, 8, []),
+        (5, 5, [1, 2]),
     ],
 )
 def test_products_query_with_filter_numeric_attributes(
@@ -131,15 +132,28 @@ def test_products_query_with_filter_numeric_attributes(
         category=category,
     )
     attr_value = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="5.2", slug="5_2"
+        attribute=numeric_attribute, name="5", slug="5"
     )
 
     associate_attribute_values_to_instance(
         second_product, numeric_attribute, attr_value
     )
 
+    third_product = Product.objects.create(
+        name="Third product",
+        slug="third-product",
+        product_type=product_type,
+        category=category,
+    )
+    attr_value = AttributeValue.objects.create(
+        attribute=numeric_attribute, name="5", slug="5_X"
+    )
+
+    associate_attribute_values_to_instance(third_product, numeric_attribute, attr_value)
+
     second_product.refresh_from_db()
-    products_instances = [product, second_product]
+    third_product.refresh_from_db()
+    products_instances = [product, second_product, third_product]
     products_ids = [
         graphene.Node.to_global_id("Product", p.pk) for p in products_instances
     ]

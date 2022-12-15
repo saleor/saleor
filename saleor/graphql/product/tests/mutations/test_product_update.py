@@ -17,6 +17,7 @@ from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product
+from ....attribute.utils import AttributeInputErrors
 
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
@@ -1941,3 +1942,799 @@ def test_update_product_slug_with_existing_value(
     assert errors
     assert errors[0]["field"] == "slug"
     assert errors[0]["message"] == "Product with this Slug already exists."
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_numeric_attribute_value_by_numeric_field(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    numeric_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+
+    new_value = "45.2"
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "numeric": new_value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": numeric_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": new_value,
+                "slug": slugify(
+                    f"{product.id}_{numeric_attribute.id}", allow_unicode=True
+                ),
+                "reference": None,
+                "file": None,
+                "boolean": None,
+                "plainText": None,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+def test_update_product_with_numeric_attribute_by_numeric_field_null_value(
+    staff_api_client,
+    numeric_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    value = AttributeValue.objects.create(
+        attribute=numeric_attribute, slug=slug_value, name="20.0"
+    )
+    associate_attribute_values_to_instance(product, numeric_attribute, value)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "numeric": None}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+    assert not data["product"]["attributes"][1]["values"]
+
+
+def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_created(
+    staff_api_client,
+    numeric_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    value = AttributeValue.objects.create(
+        attribute=numeric_attribute, slug=slug_value, name="20.0"
+    )
+    associate_attribute_values_to_instance(product, numeric_attribute, value)
+
+    value_count = AttributeValue.objects.count()
+
+    new_value = "45.2"
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "numeric": new_value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": numeric_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": new_value,
+                "slug": slug_value,
+                "reference": None,
+                "file": None,
+                "boolean": None,
+                "plainText": None,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
+
+    assert AttributeValue.objects.count() == value_count
+    value.refresh_from_db()
+    assert value.name == new_value
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_dropdown_attribute_non_existing_value(
+    updated_webhook_mock,
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    product_type.product_attributes.add(color_attribute)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {
+                        "value": "new color",
+                    },
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["product"]["attributes"][0]["values"][0]["name"] == "new color"
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_dropdown_attribute_existing_value(
+    updated_webhook_mock,
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    attribute_value = color_attribute.values.model.objects.first()
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.pk
+    )
+    attribute_value_name = color_attribute.values.model.objects.first().name
+    product_type.product_attributes.add(color_attribute)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {
+                        "id": attribute_value_id,
+                    },
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["product"]["attributes"][0]["values"][0]["name"] == attribute_value_name
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_dropdown_attribute_existing_value_passed_as_new_value(
+    updated_webhook_mock,
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    attribute_value = color_attribute.values.model.objects.first()
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.pk
+    )
+    attribute_value_name = color_attribute.values.model.objects.first().name
+    product_type.product_attributes.add(color_attribute)
+
+    value_count = AttributeValue.objects.count()
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {
+                        "value": attribute_value_name,
+                    },
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["product"]["attributes"][0]["values"][0]["id"] == attribute_value_id
+    assert AttributeValue.objects.count() == value_count
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_dropdown_attribute_null_value(
+    updated_webhook_mock,
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    product_type.product_attributes.add(color_attribute)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {
+                        "value": None,
+                    },
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    assert not data["product"]["attributes"][0]["values"]
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_multiselect_attribute_non_existing_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_with_multiple_values_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product.attributes.first().attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    value_count = AttributeValue.objects.count()
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "multiselect": [{"value": "new mode 1"}, {"value": "new mode 2"}],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 2
+    assert values[0]["name"] == "new mode 1"
+    assert values[1]["name"] == "new mode 2"
+    updated_webhook_mock.assert_called_once_with(product)
+
+    assert AttributeValue.objects.count() == value_count + 2
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_multiselect_attribute_existing_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_with_multiple_values_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product.attributes.first().attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value_1 = product.attributes.first().values.all()[0]
+    attr_value_id_1 = graphene.Node.to_global_id("AttributeValue", attr_value_1.pk)
+    attr_value_name_1 = product.attributes.first().values.all()[0].name
+    attr_value_2 = product.attributes.first().values.all()[1]
+    attr_value_id_2 = graphene.Node.to_global_id("AttributeValue", attr_value_2.pk)
+    attr_value_name_2 = product.attributes.first().values.all()[1].name
+
+    associate_attribute_values_to_instance(product, attribute, attr_value_1)
+    assert len(product.attributes.first().values.all()) == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "multiselect": [{"id": attr_value_id_1}, {"id": attr_value_id_2}],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 2
+    assert values[0]["name"] == attr_value_name_1
+    assert values[1]["name"] == attr_value_name_2
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_multiselect_attribute_new_values_not_created(
+    updated_webhook_mock,
+    staff_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_with_multiple_values_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product.attributes.first().attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value_1 = product.attributes.first().values.all()[0]
+    attr_value_id_1 = graphene.Node.to_global_id("AttributeValue", attr_value_1.pk)
+    attr_value_name_1 = product.attributes.first().values.all()[0].name
+    attr_value_2 = product.attributes.first().values.all()[1]
+    attr_value_id_2 = graphene.Node.to_global_id("AttributeValue", attr_value_2.pk)
+    attr_value_name_2 = product.attributes.first().values.all()[1].name
+
+    value_count = AttributeValue.objects.count()
+
+    assert len(product.attributes.first().values.all()) == 2
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "multiselect": [
+                        {"value": attr_value_name_1},
+                        {"value": attr_value_name_2},
+                    ],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not errors
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 2
+    assert values[0]["id"] == attr_value_id_1
+    assert values[1]["id"] == attr_value_id_2
+    assert AttributeValue.objects.count() == value_count
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+def test_update_product_with_selectable_attribute_by_both_id_and_value(
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    attribute_value_id = color_attribute.values.model.objects.first().id
+    product_type.product_attributes.add(color_attribute)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {"id": attribute_value_id, "value": "new color"},
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == AttributeInputErrors.ERROR_ID_AND_VALUE[0]
+
+
+@pytest.mark.parametrize(
+    "value,expected_result",
+    [
+        ("", AttributeInputErrors.ERROR_NO_VALUE_GIVEN),
+        ("  ", AttributeInputErrors.ERROR_BLANK_VALUE),
+        (None, AttributeInputErrors.ERROR_NO_VALUE_GIVEN),
+    ],
+)
+def test_update_product_with_selectable_attribute_value_required(
+    value,
+    expected_result,
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    product_type.product_attributes.add(color_attribute)
+
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required"])
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {
+                        "value": value,
+                    },
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_result[0]
+
+
+def test_update_product_with_selectable_attribute_exceed_max_length(
+    staff_api_client,
+    color_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    product_type.product_attributes.add(color_attribute)
+    max_length = color_attribute.values.model.name.field.max_length
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {"value": "a" * max_length + "a"},
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == AttributeInputErrors.ERROR_MAX_LENGTH[0]
+
+
+def test_update_product_with_multiselect_attribute_by_both_id_and_value(
+    staff_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_with_multiple_values_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product.attributes.first().attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value = product.attributes.first().values.all()[0]
+    attr_value_id = graphene.Node.to_global_id("AttributeValue", attr_value.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "multiselect": [{"id": attr_value_id}, {"value": "new mode"}],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == AttributeInputErrors.ERROR_ID_AND_VALUE[0]
+
+
+def test_update_product_with_multiselect_attribute_by_id_duplicated(
+    staff_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_with_multiple_values_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product.attributes.first().attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value = product.attributes.first().values.all()[0]
+    attr_value_id = graphene.Node.to_global_id("AttributeValue", attr_value.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "multiselect": [{"id": attr_value_id}, {"id": attr_value_id}],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == AttributeInputErrors.ERROR_DUPLICATED_VALUES[0]
+
+
+def test_update_product_with_multiselect_attribute_by_name_duplicated(
+    staff_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_with_multiple_values_attributes
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product.attributes.first().attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value_name = product.attributes.first().values.all()[0].name
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "multiselect": [
+                        {"value": attr_value_name},
+                        {"value": attr_value_name},
+                    ],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["errors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == AttributeInputErrors.ERROR_DUPLICATED_VALUES[0]

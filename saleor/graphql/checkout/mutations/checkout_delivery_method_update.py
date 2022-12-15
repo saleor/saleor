@@ -12,6 +12,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import (
     delete_external_shipping_id,
+    get_or_create_checkout_metadata,
     invalidate_checkout_prices,
     is_shipping_required,
     set_external_shipping_id,
@@ -33,7 +34,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
 from ..types import Checkout
@@ -231,11 +232,15 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
                 "collection_point",
             ]
             + invalidate_prices_updated_fields
+        )
+        get_or_create_checkout_metadata(checkout).save(
+            update_fields=[
+                "private_metadata",
+            ]
         )
         cls.call_event(manager.checkout_updated, checkout)
 
@@ -278,7 +283,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             not_available_variants_ids = {

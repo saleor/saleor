@@ -6,7 +6,7 @@ from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
 from ...core.types import AttributeError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_update import AttributeValueUpdateInput
 from .attribute_value_create import AttributeValueCreate
@@ -102,6 +102,6 @@ class AttributeValueUpdate(AttributeValueCreate):
                     search_index_dirty=True
                 )
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_updated, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)

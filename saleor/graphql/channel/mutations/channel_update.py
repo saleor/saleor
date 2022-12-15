@@ -12,7 +12,7 @@ from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, ChannelErrorCode, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
@@ -137,5 +137,5 @@ class ChannelUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_updated, instance)

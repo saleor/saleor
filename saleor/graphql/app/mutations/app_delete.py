@@ -7,7 +7,7 @@ from ....core.permissions import AppPermission
 from ...account.utils import can_manage_app
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import App
 
@@ -36,5 +36,5 @@ class AppDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_deleted, instance)

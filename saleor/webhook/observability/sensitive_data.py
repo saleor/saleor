@@ -1,6 +1,8 @@
 """Definitions of sensitive data for observability obfuscation methods.
 
-SENSITIVE_HEADERS is a tuple of sensitive HTTP headers to anonymize before reporting.
+ALLOWED_HEADERS is a set of lowercase HTTP headers allowed for reporting.
+
+SENSITIVE_HEADERS is a set of lowercase HTTP headers to anonymize before reporting.
 
 SENSITIVE_GQL_FIELDS is a dict of sets representing fields of GraphGL types to anonymize
 - Type
@@ -8,16 +10,38 @@ SENSITIVE_GQL_FIELDS is a dict of sets representing fields of GraphGL types to a
 """
 from typing import Dict, Set
 
-from ...core.auth import DEFAULT_AUTH_HEADER, SALEOR_AUTH_HEADER
+from ...app.headers import AppHeaders, DeprecatedAppHeaders
 
-SENSITIVE_HEADERS = (
-    SALEOR_AUTH_HEADER,
-    DEFAULT_AUTH_HEADER,
-    "COOKIE",
-)
-SENSITIVE_HEADERS = tuple(
-    x[5:] if x.startswith("HTTP_") else x for x in SENSITIVE_HEADERS
-)
+ALLOWED_HEADERS = {
+    header.lower()
+    for header in {
+        "Content-Length",
+        "Content-Type",
+        "Host",
+        "Origin",
+        "Referer",
+        "Content-Encoding",
+        "User-Agent",
+        "Cookie",
+        "Authorization",
+        "Authorization-Bearer",
+        DeprecatedAppHeaders.DOMAIN,
+        DeprecatedAppHeaders.EVENT_TYPE,
+        DeprecatedAppHeaders.SIGNATURE,
+        AppHeaders.DOMAIN,
+        AppHeaders.EVENT_TYPE,
+        AppHeaders.SIGNATURE,
+        AppHeaders.API_URL,
+    }
+}
+SENSITIVE_HEADERS = {
+    header.lower()
+    for header in {
+        "Cookie",
+        "Authorization",
+        "Authorization-Bearer",
+    }
+}
 
 SensitiveFieldsMap = Dict[str, Set[str]]
 SENSITIVE_GQL_FIELDS: SensitiveFieldsMap = {

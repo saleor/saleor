@@ -10,7 +10,7 @@ from ...checkout.fetch import (
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
 )
-from ...checkout.models import Checkout, CheckoutLine
+from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...discount import VoucherType
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -20,7 +20,7 @@ from ..discount.dataloaders import (
     VoucherInfoByVoucherCodeLoader,
     load_discounts,
 )
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -208,7 +208,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_checkout(data):
-            checkouts, checkout_line_infos = data
+            checkouts, checkout_line_infos, manager = data
             from ..channel.dataloaders import ChannelByIdLoader
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
@@ -322,7 +322,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             all_shipping_methods=[],
                             voucher=voucher,
                         )
-                        manager = load_plugin_manager(self.context)
                         discounts = load_discounts(self.context)
                         shipping_method_listings = [
                             listing
@@ -366,7 +365,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
         checkout_line_infos = CheckoutLinesInfoByCheckoutTokenLoader(
             self.context
         ).load_many(keys)
-        return Promise.all([checkouts, checkout_line_infos]).then(with_checkout)
+        manager = get_plugin_manager_promise(self.context)
+        return Promise.all([checkouts, checkout_line_infos, manager]).then(
+            with_checkout
+        )
 
 
 class CheckoutLineByIdLoader(DataLoader):
@@ -405,3 +407,13 @@ class TransactionItemsByCheckoutIDLoader(DataLoader):
         for transaction in transactions:
             transactions_map[transaction.checkout_id].append(transaction)
         return [transactions_map[checkout_id] for checkout_id in keys]
+
+
+class CheckoutMetadataByCheckoutIdLoader(DataLoader):
+    context_key = "checkout_metadata_by_checkout_id"
+
+    def batch_load(self, keys):
+        checkout_metadata = CheckoutMetadata.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys, field_name="checkout_id")
+        return [checkout_metadata.get(checkout_id) for checkout_id in keys]
