@@ -16,11 +16,11 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
@@ -151,8 +151,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         lines_to_add = cls.validate_lines(info, data, existing_lines_info)
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         with traced_atomic_transaction():
             added_lines = cls.add_lines_to_order(

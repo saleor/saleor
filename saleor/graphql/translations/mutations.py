@@ -25,7 +25,7 @@ from ..core.types import TranslationError
 from ..core.utils import from_global_id_or_error
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
@@ -130,7 +130,7 @@ class BaseTranslateMutation(ModelMutation):
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
 
         if created:
             cls.call_event(manager.translation_created, translation)
@@ -208,7 +208,7 @@ class ProductTranslate(BaseTranslateMutation):
         node_id = cls.clean_node_id(**data)[0]
         product = cls.get_node_or_error(info, node_id, only_type=Product)
         cls.validate_input(data["input"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             translation, created = product.translations.update_or_create(
                 language_code=data["language_code"], defaults=data["input"]
@@ -275,7 +275,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
             pk=variant_pk
         )
         cls.validate_input(data["input"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             translation, created = variant.translations.update_or_create(
                 language_code=data["language_code"], defaults=data["input"]
@@ -504,7 +504,7 @@ class ShopSettingsTranslate(BaseMutation):
         site = get_site_promise(info.context).get()
         instance = site.settings
         validate_input_against_model(SiteSettings, data["input"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             translation, created = instance.translations.update_or_create(
                 language_code=language_code, defaults=data.get("input")

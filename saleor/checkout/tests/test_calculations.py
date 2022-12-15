@@ -221,6 +221,44 @@ def test_fetch_checkout_prices_if_expired_flat_rates(
     assert checkout.shipping_tax_rate == Decimal("0.2300")
 
 
+@patch(
+    "saleor.checkout.calculations.update_checkout_prices_with_flat_rates",
+    wraps=update_checkout_prices_with_flat_rates,
+)
+def test_fetch_checkout_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
+    mocked_update_checkout_prices_with_flat_rates,
+    checkout_with_items_and_shipping,
+    fetch_kwargs,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = True
+    tc.tax_calculation_strategy = None
+    tc.save(update_fields=["prices_entered_with_tax", "tax_calculation_strategy"])
+
+    country_code = checkout.shipping_address.country.code
+    for line in checkout.lines.all():
+        line.variant.product.tax_class.country_rates.update_or_create(
+            country=country_code, rate=23
+        )
+
+    checkout.shipping_method.tax_class.country_rates.update_or_create(
+        country=country_code, rate=23
+    )
+
+    # when
+    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    checkout.refresh_from_db()
+    line = checkout.lines.first()
+
+    # then
+    mocked_update_checkout_prices_with_flat_rates.assert_called_once()
+    assert line.tax_rate == Decimal("0.2300")
+    assert checkout.shipping_tax_rate == Decimal("0.2300")
+
+
 @freeze_time("2020-12-12 12:00:00")
 def test_fetch_checkout_prices_if_expired_webhooks_success(
     plugins_manager,

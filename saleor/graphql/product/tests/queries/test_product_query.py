@@ -11,10 +11,14 @@ from measurement.measures import Weight
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.units import WeightUnits
-from .....product.models import ProductChannelListing, ProductVariantChannelListing
+from .....product.models import (
+    Product,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from .....tests.utils import dummy_editorjs
 from .....thumbnail.models import Thumbnail
-from .....warehouse.models import Stock
+from .....warehouse.models import Allocation, Stock
 from ....core.enums import ThumbnailFormatEnum
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
@@ -1970,3 +1974,384 @@ def test_query_product_media_for_federation(
             "url": f"http://{site_settings.site.domain}/media/products/product.jpg",
         }
     ]
+
+
+QUERY_PRODUCT_WITH_VARIANT = """
+    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
+        product(id: $id, channel: $channel){
+           variant(id: $variant_id, sku: $sku){
+            id
+            sku
+           }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "variant_id, sku, result",
+    ((False, "123", "123"), (True, None, "123")),
+)
+def test_product_variant_field_filtering(
+    staff_api_client,
+    product,
+    variant_id,
+    sku,
+    result,
+    channel_USD,
+):
+    # given
+    variant = product.variants.first()
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": (
+            graphene.Node.to_global_id("ProductVariant", variant.pk)
+            if variant_id
+            else None
+        ),
+        "sku": sku,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["variant"]["sku"] == result
+
+
+def test_product_variant_field_filtering_null_response(
+    staff_api_client,
+    product,
+    channel_USD,
+):
+    # given
+    sku = "not_existing"
+    variant_id = None
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": variant_id,
+        "sku": sku,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["variant"] is None
+
+
+def test_product_variant_field_filtering_argument_required_error(
+    staff_api_client,
+    product,
+    channel_USD,
+):
+    # given
+    sku = None
+    variant_id = None
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": variant_id,
+        "sku": sku,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    error_message = "At least one of arguments is required"
+    assert error_message in content["errors"][0]["message"]
+
+
+def test_product_variant_field_filtering_argument_cannot_be_combined_error(
+    staff_api_client,
+    product,
+    channel_USD,
+):
+    # given
+    sku = "123"
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "variant_id": variant_id,
+        "sku": sku,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_VARIANT,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    error_message = "Argument 'id' cannot be combined"
+    assert error_message in content["errors"][0]["message"]
+
+
+QUERY_PRODUCT_WITH_SORTED_MEDIA = """
+        query Product($id: ID!, $channel: String, $sort_by: MediaSortingInput){
+            product(id: $id, channel: $channel){
+                media(sortBy: $sort_by){
+                    id
+                    sortOrder
+                }
+            }
+        }
+    """
+
+
+def test_query_product_media_sorting_asc(
+    staff_api_client,
+    product_with_image_list,
+    channel_USD,
+):
+    # given
+    sort_by = {"field": "ID", "direction": "ASC"}
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
+        "channel": channel_USD.slug,
+        "sort_by": sort_by,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    media = content["data"]["product"]["media"]
+    _, media1 = graphene.Node.from_global_id(media[0]["id"])
+    _, media2 = graphene.Node.from_global_id(media[1]["id"])
+    assert media1 < media2
+
+
+def test_query_product_media_sorting_desc(
+    staff_api_client, product_with_image_list, channel_USD
+):
+    # given
+    sort_by = {"field": "ID", "direction": "DESC"}
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
+        "channel": channel_USD.slug,
+        "sort_by": sort_by,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    media = content["data"]["product"]["media"]
+    _, media1 = graphene.Node.from_global_id(media[0]["id"])
+    _, media2 = graphene.Node.from_global_id(media[1]["id"])
+    assert media1 > media2
+
+
+def test_query_product_media_sorting_default(
+    staff_api_client, product_with_image_list, channel_USD
+):
+    # given
+    sort_by = None
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product_with_image_list.pk),
+        "channel": channel_USD.slug,
+        "sort_by": sort_by,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    media = content["data"]["product"]["media"]
+    media1 = media[0]["sortOrder"]
+    media2 = media[1]["sortOrder"]
+    assert media1 <= media2
+
+
+QUERY_PRODUCT_WITH_ATTRIBUTE = """
+query Product($id: ID!, $channel: String, $slug: String!){
+        product(id: $id, channel: $channel){
+           attribute(slug: $slug){
+            attribute{
+                id
+                slug
+            }
+           }
+        }
+    }
+"""
+
+
+def test_product_attribute_field_filtering(staff_api_client, product, channel_USD):
+    # given
+    slug = "color"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "slug": slug,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    expected_slug = "color"
+    content = get_graphql_content(response)
+    queried_slug = content["data"]["product"]["attribute"]["attribute"]["slug"]
+    assert queried_slug == expected_slug
+
+
+def test_product_attribute_field_filtering_not_found(
+    staff_api_client, product, channel_USD
+):
+    # given
+    slug = ""
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "slug": slug,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["attribute"] is None
+
+
+QUERY_PRODUCTS_AVAILABILITY = """
+    query ($channel:String){
+        products(first: 10, channel: $channel) {
+            totalCount
+            edges {
+                node {
+                    id
+                    name
+                    isAvailable
+                    variants {
+                        quantityAvailable
+                        stocks {
+                            quantity
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_fetch_all_products_with_availability_data(
+    staff_api_client, permission_manage_products, product_list, channel_USD, order_line
+):
+    # given
+    product_1, product_2, product_3 = product_list
+    allocations = []
+
+    product_1_qty = 0
+    product_1_qty_allocated = 1
+    product_1_stock = product_1.variants.first().stocks.first()
+    product_1_stock.quantity = product_1_qty
+    product_1_stock.save(update_fields=["quantity"])
+    allocations.append(
+        Allocation(
+            order_line=order_line,
+            stock=product_1_stock,
+            quantity_allocated=product_1_qty_allocated,
+        )
+    )
+
+    product_2_qty = 15
+    product_2_qty_allocated = 2
+    product_2_stock = product_2.variants.first().stocks.first()
+    product_2_stock.quantity = product_2_qty
+    product_2_stock.save(update_fields=["quantity"])
+    allocations.append(
+        Allocation(
+            order_line=order_line,
+            stock=product_2_stock,
+            quantity_allocated=product_2_qty_allocated,
+        )
+    )
+
+    product_3_qty = 10
+    product_3_qty_allocated = 0
+    product_3_stock = product_3.variants.first().stocks.first()
+    product_3_stock.quantity = product_3_qty
+    product_3_stock.save(update_fields=["quantity"])
+
+    Allocation.objects.bulk_create(allocations)
+
+    variables = {"channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_AVAILABILITY,
+        variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    num_products = Product.objects.count()
+    assert content["data"]["products"]["totalCount"] == num_products
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == num_products
+    for product, quantity, quantity_allocated in zip(
+        product_list,
+        [product_1_qty, product_2_qty, product_3_qty],
+        [product_1_qty_allocated, product_2_qty_allocated, product_3_qty_allocated],
+    ):
+        data = {
+            "node": {
+                "id": graphene.Node.to_global_id("Product", product.id),
+                "name": product.name,
+                "isAvailable": quantity > 0,
+                "variants": [
+                    {
+                        "quantityAvailable": max(quantity - quantity_allocated, 0),
+                        "stocks": [{"quantity": quantity}],
+                    }
+                ],
+            }
+        }
+        assert data in product_data

@@ -80,7 +80,7 @@ from .checkout_cleaner import (
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
-from .utils import get_voucher_for_checkout_info
+from .utils import get_or_create_checkout_metadata, get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -205,13 +205,16 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
+    # the price with sale discount - base price that is used for total price calculation
     base_unit_price = calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=checkout_info.channel, discounts=discounts
     )
+    # the unit price before applying any discount (sale or voucher)
     undiscounted_base_unit_price = calculate_undiscounted_base_line_unit_price(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
+    # the total price before applying any discount (sale or voucher)
     undiscounted_base_total_price = calculate_undiscounted_base_line_total_price(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
@@ -222,6 +225,7 @@ def _create_line_for_order(
     undiscounted_total_price = TaxedMoney(
         net=undiscounted_base_total_price, gross=undiscounted_base_total_price
     )
+    # total price after applying all discounts - sales and vouchers
     total_line_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -229,6 +233,7 @@ def _create_line_for_order(
         checkout_line_info=checkout_line_info,
         discounts=discounts,
     )
+    # unit price after applying all discounts - sales and vouchers
     unit_price = calculations.checkout_line_unit_price(
         manager=manager,
         checkout_info=checkout_info,
@@ -378,7 +383,6 @@ def _create_lines_for_order(
         replace=True,
         check_reservations=True,
     )
-
     return [
         _create_line_for_order(
             manager,
@@ -419,6 +423,7 @@ def _prepare_order_data(
         address=address,
         discounts=discounts,
     )
+    # checkout.discount contains only discounts applied on entire order
     undiscounted_total = taxed_total + checkout.discount
 
     base_shipping_price = base_checkout_delivery_price(checkout_info, lines)
@@ -442,6 +447,24 @@ def _prepare_order_data(
         )
     )
     order_data.update(_process_user_data_for_order(checkout_info, manager))
+
+    order_data["lines"] = _create_lines_for_order(
+        manager,
+        checkout_info,
+        lines,
+        discounts,
+        prices_entered_with_tax,
+    )
+    # Calculate the discount that was applied for each lines - the sales and voucher
+    # discounts on specific products are included on the line level and are not included
+    # in the checkout.discount amount.
+    line_discounts = zero_taxed_money(checkout.currency)
+    for line in order_data["lines"]:
+        line_discounts += line.line.undiscounted_total_price - line.line.total_price
+
+    # include discounts applied on lines, in order undiscounted total price
+    undiscounted_total += line_discounts
+
     order_data.update(
         {
             "language_code": checkout.language_code,
@@ -450,14 +473,6 @@ def _prepare_order_data(
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
         }
-    )
-
-    order_data["lines"] = _create_lines_for_order(
-        manager,
-        checkout_info,
-        lines,
-        discounts,
-        prices_entered_with_tax,
     )
 
     # validate checkout gift cards
@@ -592,18 +607,19 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+    checkout_metadata = get_or_create_checkout_metadata(checkout)
 
     # store current tax configuration
     update_order_display_gross_prices(order)
 
     # copy metadata from the checkout into the new order
-    order.metadata = checkout.metadata
+    order.metadata = checkout_metadata.metadata
     if metadata_list:
         order.store_value_in_metadata({data.key: data.value for data in metadata_list})
 
     order.redirect_url = checkout.redirect_url
 
-    order.private_metadata = checkout.private_metadata
+    order.private_metadata = checkout_metadata.private_metadata
     if private_metadata_list:
         order.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
@@ -1087,14 +1103,15 @@ def _create_order_from_checkout(
         if site_settings.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
+    checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)
 
     # update metadata
     if metadata_list:
-        checkout_info.checkout.store_value_in_metadata(
+        checkout_metadata.store_value_in_metadata(
             {data.key: data.value for data in metadata_list}
         )
     if private_metadata_list:
-        checkout_info.checkout.store_value_in_private_metadata(
+        checkout_metadata.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
         )
 
@@ -1110,8 +1127,8 @@ def _create_order_from_checkout(
         checkout_token=str(checkout_info.checkout.token),
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
-        metadata=checkout_info.checkout.metadata,
-        private_metadata=checkout_info.checkout.private_metadata,
+        metadata=checkout_metadata.metadata,
+        private_metadata=checkout_metadata.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,

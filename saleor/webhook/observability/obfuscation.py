@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union, cast
+from urllib.parse import urlparse, urlunparse
 
 from graphql import (
     GraphQLError,
@@ -21,7 +22,7 @@ from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
 from ...graphql.api import schema
-from .sensitive_data import SENSITIVE_HEADERS, SensitiveFieldsMap
+from .sensitive_data import ALLOWED_HEADERS, SENSITIVE_HEADERS, SensitiveFieldsMap
 
 if TYPE_CHECKING:
     from graphql import GraphQLDocument
@@ -38,13 +39,31 @@ GraphQLNode = Union[
 MASK = "***"
 
 
-def hide_sensitive_headers(
-    headers: Dict[str, str], sensitive_headers: Tuple[str, ...] = SENSITIVE_HEADERS
+def filter_and_hide_headers(
+    headers: Dict[str, str],
+    allowed=ALLOWED_HEADERS,
+    sensitive=SENSITIVE_HEADERS,
 ) -> Dict[str, str]:
-    return {
-        key: val if key.upper().replace("-", "_") not in sensitive_headers else MASK
-        for key, val in headers.items()
-    }
+    filtered_headers = {}
+    for key, val in headers.items():
+        lowered = key.lower()
+        if lowered in allowed:
+            if lowered in sensitive:
+                filtered_headers[key] = MASK
+            else:
+                filtered_headers[key] = val
+    return filtered_headers
+
+
+def obfuscate_url(url: str) -> str:
+    parts = urlparse(url)
+    # If parts.username returns None there are no credentials in the URL
+    if parts.username is None:
+        return url
+    password = "" if parts.password is None else f":{MASK}"
+    port = "" if parts.port is None else f":{parts.port}"
+    netloc = f"{parts.username}{password}@{parts.hostname}{port}"
+    return urlunparse([parts[0], netloc, *parts[2:]])
 
 
 class SensitiveFieldError(GraphQLError):

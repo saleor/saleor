@@ -16,7 +16,7 @@ from ..core.validators import (
     validate_required_string_field,
     validate_slug_and_generate_if_needed,
 )
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..shipping.types import ShippingZone
 from .types import Warehouse, WarehouseCreateInput, WarehouseUpdateInput
 
@@ -108,7 +108,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.warehouse_created, instance)
 
 
@@ -269,7 +269,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.warehouse_updated, instance)
 
 
@@ -287,7 +287,7 @@ class WarehouseDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
@@ -323,5 +323,5 @@ class WarehouseDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.warehouse_deleted, instance)

@@ -7,7 +7,7 @@ from ....core.permissions import ProductTypePermissions
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
@@ -120,5 +120,5 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_updated, instance)

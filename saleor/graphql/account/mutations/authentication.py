@@ -14,6 +14,7 @@ from graphene.types.generic import GenericScalar
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import retrieve_user_by_email
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -28,7 +29,7 @@ from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import User
 
 
@@ -106,7 +107,8 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email).first()
+        user = retrieve_user_by_email(email)
+
         if user and user.check_password(password):
             return user
         return None
@@ -374,7 +376,7 @@ class ExternalAuthenticationUrl(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         return cls(
             authentication_data=manager.external_authentication_url(
                 plugin_id, input_data, request
@@ -413,7 +415,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         access_tokens_response = manager.external_obtain_access_tokens(
             plugin_id, input_data, request
         )
@@ -463,7 +465,7 @@ class ExternalRefresh(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         access_tokens_response = manager.external_refresh(
             plugin_id, input_data, request
         )
@@ -503,7 +505,7 @@ class ExternalLogout(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         return cls(logout_data=manager.external_logout(plugin_id, input_data, request))
 
 
@@ -535,6 +537,6 @@ class ExternalVerify(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         user, data = manager.external_verify(plugin_id, input_data, request)
         return cls(user=user, is_valid=bool(user), verify_data=data)

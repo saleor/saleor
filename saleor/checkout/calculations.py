@@ -348,7 +348,7 @@ def _calculate_and_add_tax(
         # Get the taxes calculated with apps and apply to checkout.
         tax_data = manager.get_taxes_for_checkout(checkout_info, lines)
         _apply_tax_data(checkout, lines, tax_data)
-    elif tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
+    else:
         # Get taxes calculated with flat rates and apply to checkout.
         update_checkout_prices_with_flat_rates(
             checkout, checkout_info, lines, prices_entered_with_tax, address, discounts

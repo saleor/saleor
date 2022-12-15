@@ -5,7 +5,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.search import update_order_search_vector
 from ....order.utils import invalidate_order_prices, remove_order_discount_from_order
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.types import OrderError
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon
@@ -31,7 +31,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
         order = order_discount.order
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
 
         cls.validate_order(info, order)
         with traced_atomic_transaction():

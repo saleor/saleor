@@ -23,7 +23,7 @@ from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import NonNullList, ShippingError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product import types as product_types
 from ...shipping import types as shipping_types
 from ...utils import resolve_global_ids_to_primary_keys
@@ -372,7 +372,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_zone_created, instance)
 
     @classmethod
@@ -400,7 +400,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_zone_updated, instance)
 
     @classmethod
@@ -425,7 +425,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_zone_deleted, instance)
 
     @classmethod
@@ -636,7 +636,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_created, instance)
 
     @classmethod
@@ -675,7 +675,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
 
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, instance)
 
     @classmethod
@@ -716,7 +716,7 @@ class ShippingPriceDelete(BaseMutation):
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()
         shipping_method.id = shipping_method_id
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_deleted, shipping_method)
 
         return ShippingPriceDelete(
@@ -772,7 +772,7 @@ class ShippingPriceExcludeProducts(BaseMutation):
         shipping_method.excluded_products.set(
             (current_excluded_products | product_to_exclude).distinct()
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(
@@ -814,7 +814,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
             shipping_method.excluded_products.set(
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)
             )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(

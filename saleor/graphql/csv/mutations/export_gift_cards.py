@@ -4,7 +4,7 @@ from ....core.permissions import GiftcardPermissions
 from ....csv import models as csv_models
 from ....csv.events import export_started_event
 from ....csv.tasks import export_gift_cards_task
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ...core.types import ExportError, NonNullList
 from ...giftcard.filters import GiftCardFilterInput
@@ -45,7 +45,7 @@ class ExportGiftCards(BaseExportMutation):
         scope = cls.get_scope(input, GiftCard)
         file_type = input["file_type"]
 
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         kwargs = {"app": app} if app else {"user": info.context.user}
 
         export_file = csv_models.ExportFile.objects.create(**kwargs)

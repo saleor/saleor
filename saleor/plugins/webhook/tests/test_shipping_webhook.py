@@ -4,7 +4,6 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
 from ....webhook.event_types import WebhookEventSyncType
@@ -14,7 +13,6 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ...base_plugin import ExcludedShippingMethod
-from ...manager import get_plugins_manager
 from ..const import (
     CACHE_EXCLUDED_SHIPPING_KEY,
     CACHE_EXCLUDED_SHIPPING_TIME,
@@ -529,7 +527,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
 )
-def test_excluded_shipping_methods_for_checkout(
+def test_excluded_shipping_methods_for_checkout_webhook(
     mocked_payload,
     mocked_webhook,
     mocked_cache_set,
@@ -589,6 +587,51 @@ def test_excluded_shipping_methods_for_checkout(
         (payload, expected_excluded_shipping_method),
         CACHE_EXCLUDED_SHIPPING_TIME,
     )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_excluded_shipping_methods_for_checkout(
+    mocked_webhook,
+    webhook_plugin,
+    checkout_with_items,
+    available_shipping_methods_factory,
+    shipping_app_factory,
+):
+    # given
+    shipping_app_factory()
+    webhook_reason = "Order contains dangerous products."
+    other_reason = "Shipping is not applicable for this order."
+
+    mocked_webhook.return_value = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_reason,
+            }
+        ]
+    }
+
+    plugin = webhook_plugin()
+    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
+    previous_value = [
+        ExcludedShippingMethod(id="1", reason=other_reason),
+        ExcludedShippingMethod(id="2", reason=other_reason),
+    ]
+
+    # when
+    excluded_methods = plugin.excluded_shipping_methods_for_checkout(
+        checkout_with_items,
+        available_shipping_methods=available_shipping_methods,
+        previous_value=previous_value,
+    )
+
+    # then
+    assert len(excluded_methods) == 2
+    em = excluded_methods[0]
+    assert em.id == "1"
+    assert webhook_reason in em.reason
+    assert other_reason in em.reason
+    mocked_webhook.assert_called_once()
 
 
 @mock.patch("saleor.plugins.webhook.shipping.cache.set")
@@ -819,14 +862,11 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
 ):
     # given
     methods = available_shipping_methods_factory(num_methods=3)
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
 
     # when
     json_payload = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout_info, available_shipping_methods=methods
+            checkout_with_items, available_shipping_methods=methods
         )
     )
     # then

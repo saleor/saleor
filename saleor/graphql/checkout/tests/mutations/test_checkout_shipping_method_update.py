@@ -144,7 +144,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
-    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

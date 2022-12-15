@@ -1,4 +1,5 @@
 import uuid
+from functools import partial
 from typing import List
 
 import graphene
@@ -19,7 +20,7 @@ from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.utils import check_is_owner_or_has_one_of_perms
-from ..app.dataloaders import AppByIdLoader
+from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
@@ -41,6 +42,7 @@ from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_n
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
     CustomerEventsByUserLoader,
@@ -138,15 +140,18 @@ class Address(ModelObjectType):
     def __resolve_references(roots: List["Address"], info):
         from .resolvers import resolve_addresses
 
+        app = get_app_promise(info.context).get()
+
         root_ids = [root.id for root in roots]
         addresses = {
-            address.id: address for address in resolve_addresses(info, root_ids)
+            address.id: address for address in resolve_addresses(info, root_ids, app)
         }
 
         result = []
         for root_id in root_ids:
             _, root_id = from_global_id_or_error(root_id, Address)
             result.append(addresses.get(int(root_id)))
+
         return result
 
 
@@ -490,7 +495,10 @@ class User(ModelObjectType):
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
-            return resolve_payment_sources(info, root, channel_slug=channel)
+            return get_plugin_manager_promise(info.context).then(
+                partial(resolve_payment_sources, info, root, channel_slug=channel)
+            )
+
         raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
     @staticmethod

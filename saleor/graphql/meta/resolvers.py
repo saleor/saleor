@@ -48,6 +48,7 @@ def resolve_object_with_metadata_type(instance):
             app_models.App: app_types.App,
             attribute_models.Attribute: attribute_types.Attribute,
             checkout_models.Checkout: checkout_types.Checkout,
+            checkout_models.CheckoutMetadata: checkout_types.Checkout,
             checkout_models.CheckoutLine: checkout_types.CheckoutLine,
             discount_models.Sale: discount_types.Sale,
             discount_models.Voucher: discount_types.Voucher,

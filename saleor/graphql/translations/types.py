@@ -301,7 +301,7 @@ class CollectionTranslatableContent(ModelObjectType):
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
-        "saleor.graphql.product.types.products.Collection",
+        "saleor.graphql.product.types.collections.Collection",
         description="Represents a collection of products.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
@@ -364,7 +364,7 @@ class CategoryTranslatableContent(ModelObjectType):
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
-        "saleor.graphql.product.types.products.Category",
+        "saleor.graphql.product.types.categories.Category",
         description="Represents a single category of products.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."

@@ -11,18 +11,18 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
+from ...account.models import User
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
     AuthorizationFilters,
     has_one_of_permissions,
 )
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ...account.models import User
     from ...app.models import App
 
 
@@ -72,7 +72,7 @@ class CustomerDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def post_process(cls, info, deleted_count=1):
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         account_events.customer_deleted_event(
             staff_user=info.context.user,
             app=app,
@@ -86,7 +86,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if load_app(context):
+        if get_app_promise(context).get():
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
