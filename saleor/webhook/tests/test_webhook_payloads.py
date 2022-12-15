@@ -1833,8 +1833,8 @@ def test_generate_checkout_payload(
         ),
         "discount_name": checkout.discount_name,
         "language_code": checkout.language_code,
-        "private_metadata": checkout.private_metadata,
-        "metadata": checkout.metadata,
+        "private_metadata": checkout.metadata_storage.private_metadata,
+        "metadata": checkout.metadata_storage.metadata,
         "channel": {
             "type": "Channel",
             "id": graphene.Node.to_global_id("Channel", checkout.channel_id),

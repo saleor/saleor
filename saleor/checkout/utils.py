@@ -37,7 +37,7 @@ from .fetch import (
     update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
 )
-from .models import Checkout, CheckoutLine
+from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
     from ..account.models import Address
@@ -835,8 +835,12 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         update_fields=[
             "shipping_method",
             "collection_point",
-            "private_metadata",
             "last_change",
+        ]
+    )
+    get_or_create_checkout_metadata(checkout).save(
+        update_fields=[
+            "private_metadata",
         ]
     )
 
@@ -905,14 +909,27 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
-    checkout.store_value_in_private_metadata(
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    if type(container) == Checkout:
+        container = get_or_create_checkout_metadata(container)
+    return container.get_value_from_private_metadata(  # type:ignore
+        PRIVATE_META_APP_SHIPPING_ID
+    )
 
 
 def delete_external_shipping_id(checkout: Checkout):
-    checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+def get_or_create_checkout_metadata(checkout: "Checkout"):
+    if hasattr(checkout, "metadata_storage"):
+        return checkout.metadata_storage
+    else:
+        return CheckoutMetadata.objects.create(checkout=checkout)

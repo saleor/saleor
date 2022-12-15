@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
+- Move checkout metadata to separate model - #11264  by @jakubkuc
 
 # 3.9.0
 

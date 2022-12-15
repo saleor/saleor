@@ -80,7 +80,7 @@ from .checkout_cleaner import (
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
-from .utils import get_voucher_for_checkout_info
+from .utils import get_or_create_checkout_metadata, get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -607,18 +607,19 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+    checkout_metadata = get_or_create_checkout_metadata(checkout)
 
     # store current tax configuration
     update_order_display_gross_prices(order)
 
     # copy metadata from the checkout into the new order
-    order.metadata = checkout.metadata
+    order.metadata = checkout_metadata.metadata
     if metadata_list:
         order.store_value_in_metadata({data.key: data.value for data in metadata_list})
 
     order.redirect_url = checkout.redirect_url
 
-    order.private_metadata = checkout.private_metadata
+    order.private_metadata = checkout_metadata.private_metadata
     if private_metadata_list:
         order.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
@@ -1102,14 +1103,15 @@ def _create_order_from_checkout(
         if site_settings.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
+    checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)
 
     # update metadata
     if metadata_list:
-        checkout_info.checkout.store_value_in_metadata(
+        checkout_metadata.store_value_in_metadata(
             {data.key: data.value for data in metadata_list}
         )
     if private_metadata_list:
-        checkout_info.checkout.store_value_in_private_metadata(
+        checkout_metadata.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
         )
 
@@ -1125,8 +1127,8 @@ def _create_order_from_checkout(
         checkout_token=str(checkout_info.checkout.token),
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
-        metadata=checkout_info.checkout.metadata,
-        private_metadata=checkout_info.checkout.private_metadata,
+        metadata=checkout_metadata.metadata,
+        private_metadata=checkout_metadata.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,

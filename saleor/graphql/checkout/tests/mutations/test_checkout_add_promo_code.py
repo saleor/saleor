@@ -185,7 +185,8 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
     checkout = checkout_with_item
     checkout.shipping_address = address
     set_external_shipping_id(checkout, external_shipping_method_id)
-    checkout.save(update_fields=["shipping_address", "private_metadata"])
+    checkout.save(update_fields=["shipping_address"])
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
 
     variables = {
         "id": to_global_id_or_none(checkout_with_item),

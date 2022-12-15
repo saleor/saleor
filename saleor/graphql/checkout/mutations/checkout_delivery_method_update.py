@@ -12,6 +12,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import (
     delete_external_shipping_id,
+    get_or_create_checkout_metadata,
     invalidate_checkout_prices,
     is_shipping_required,
     set_external_shipping_id,
@@ -231,11 +232,15 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                "private_metadata",
                 "shipping_method",
                 "collection_point",
             ]
             + invalidate_prices_updated_fields
+        )
+        get_or_create_checkout_metadata(checkout).save(
+            update_fields=[
+                "private_metadata",
+            ]
         )
         cls.call_event(manager.checkout_updated, checkout)
 

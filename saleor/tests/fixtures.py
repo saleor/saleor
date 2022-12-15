@@ -39,7 +39,7 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ..checkout.models import Checkout, CheckoutLine
+from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
@@ -286,6 +286,7 @@ def checkout(db, channel_USD, settings):
         email="user@email.com",
     )
     checkout.set_country("US", commit=True)
+    CheckoutMetadata.objects.create(checkout=checkout)
     return checkout
 
 
@@ -415,10 +416,13 @@ def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gif
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
     checkout_with_item.gift_cards.add(gift_card)
     checkout.save()
+    checkout.metadata_storage.save()
     return checkout
 
 
@@ -497,9 +501,12 @@ def checkout_with_variant_without_inventory_tracking(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
     checkout.save()
+    checkout.metadata_storage.save()
     return checkout
 
 
@@ -854,6 +861,7 @@ def user_checkout(customer_user, channel_USD):
         note="Test notes",
         currency="USD",
     )
+    CheckoutMetadata.objects.create(checkout=checkout)
     return checkout
 
 
@@ -5984,7 +5992,7 @@ def stocks_for_cc(warehouses_for_cc, product_variant_list, product_with_two_vari
 
 @pytest.fixture
 def checkout_for_cc(channel_USD, customer_user):
-    return Checkout.objects.create(
+    checkout = Checkout.objects.create(
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
@@ -5992,6 +6000,8 @@ def checkout_for_cc(channel_USD, customer_user):
         currency="USD",
         email=customer_user.email,
     )
+    CheckoutMetadata.objects.create(checkout=checkout)
+    return checkout
 
 
 @pytest.fixture
