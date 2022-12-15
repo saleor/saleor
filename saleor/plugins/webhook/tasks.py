@@ -78,6 +78,7 @@ def create_deliveries_for_subscriptions(
 
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
+    :param webhooks: sequence of async webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
@@ -186,7 +187,7 @@ def trigger_webhooks_async(
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
             create_event_delivery_list_for_webhooks(
-                webhooks=webhooks,
+                webhooks=regular_webhooks,
                 event_payload=payload,
                 event_type=event_type,
             )
