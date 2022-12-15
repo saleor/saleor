@@ -1966,7 +1966,7 @@ class Order(ModelObjectType):
             transactions, total_granted_refund
         ):
             total_pending_refund = sum(
-                [transaction.amount_pending_refund for transaction in transactions],
+                [transaction.amount_refund_pending for transaction in transactions],
                 zero_money(root.currency),
             )
             total_refund = sum(
