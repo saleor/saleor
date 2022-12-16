@@ -107,6 +107,16 @@ fragment InvoiceDetails on Invoice {
   id
   status
   number
+  orderId
+}
+"""
+
+INVOICE_ORDER_DETAILS = """
+fragment InvoiceOrderDetails on Order {
+  id
+  number
+  userEmail
+  isPaid
 }
 """
 

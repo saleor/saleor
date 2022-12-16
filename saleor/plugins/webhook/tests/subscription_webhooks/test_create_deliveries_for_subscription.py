@@ -1227,7 +1227,7 @@ def test_invoice_requested(fulfilled_order, subscription_invoice_requested_webho
     webhooks = [subscription_invoice_requested_webhook]
     event_type = WebhookEventAsyncType.INVOICE_REQUESTED
     invoice = fulfilled_order.invoices.first()
-    expected_payload = generate_invoice_payload(invoice)
+    expected_payload = generate_invoice_payload(invoice, fulfilled_order)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, invoice, webhooks)
@@ -1243,7 +1243,7 @@ def test_invoice_deleted(fulfilled_order, subscription_invoice_deleted_webhook):
     webhooks = [subscription_invoice_deleted_webhook]
     event_type = WebhookEventAsyncType.INVOICE_DELETED
     invoice = fulfilled_order.invoices.first()
-    expected_payload = generate_invoice_payload(invoice)
+    expected_payload = generate_invoice_payload(invoice, fulfilled_order)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, invoice, webhooks)
@@ -1259,7 +1259,7 @@ def test_invoice_sent(fulfilled_order, subscription_invoice_sent_webhook):
     webhooks = [subscription_invoice_sent_webhook]
     event_type = WebhookEventAsyncType.INVOICE_SENT
     invoice = fulfilled_order.invoices.first()
-    expected_payload = generate_invoice_payload(invoice)
+    expected_payload = generate_invoice_payload(invoice, fulfilled_order)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, invoice, webhooks)
