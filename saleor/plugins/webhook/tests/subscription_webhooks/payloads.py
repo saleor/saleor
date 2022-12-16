@@ -234,8 +234,8 @@ def generate_permission_group_payload(group):
 
 def generate_invoice_payload(invoice, order=None):
     order_id = None
-    if invoice.order:
-        order_id = graphene.Node.to_global_id("Order", invoice.order.id)
+    if invoice.order_id:
+        order_id = graphene.Node.to_global_id("Order", invoice.order_id)
     payload = {
         "invoice": {
             "id": graphene.Node.to_global_id("Invoice", invoice.pk),
