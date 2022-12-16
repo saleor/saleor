@@ -111,7 +111,7 @@ def order_created(
                 manager=manager,
             )
     site_settings = Site.objects.get_current().settings
-    if site_settings.automatically_confirm_all_new_orders:
+    if site_settings.automatically_confirm_all_new_orders or from_draft:
         order_confirmed(order, user, app, manager)
 
 
