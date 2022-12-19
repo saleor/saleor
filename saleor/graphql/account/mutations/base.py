@@ -334,7 +334,6 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
             user.search_document = prepare_user_search_document_value(user)
             user.save(update_fields=["search_document", "updated_at"])
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.customer_updated, user)
         address = manager.change_user_address(address, None, user)
         cls.call_event(manager.address_updated, address)
 
@@ -397,7 +396,6 @@ class BaseAddressDelete(ModelDeleteMutation):
 
         response.user = user
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.customer_updated, user)
         cls.call_event(manager.address_deleted, instance)
         return response
 
