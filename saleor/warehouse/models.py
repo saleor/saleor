@@ -89,7 +89,6 @@ class WarehouseQueryset(models.QuerySet):
         For `WarehouseClickAndCollect.LOCAL` all `CheckoutLine`s must be available from
         a single warehouse.
         """
-
         if all(
             line.variant.is_preorder_active()
             for line in lines_qs.select_related("variant").only("variant_id")
@@ -98,8 +97,10 @@ class WarehouseQueryset(models.QuerySet):
 
         lines_quantity = (
             lines_qs.filter(variant_id=OuterRef("product_variant_id"))
+            .order_by("variant_id")
+            .values("variant_id")
             .annotate(prod_sum=Sum("quantity"))
-            .values_list("prod_sum")
+            .values("prod_sum")
         )
 
         stocks_qs = (
@@ -123,13 +124,17 @@ class WarehouseQueryset(models.QuerySet):
     ) -> QuerySet["Warehouse"]:
         warehouse_cc_option_enum = WarehouseClickAndCollectOption
 
+        number_of_variants = (
+            lines_qs.order_by("variant_id").distinct("variant_id").count()
+        )
+
         return (
             self.for_channel(channel_id)
             .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
             .filter(stock__in=stocks_qs)
             .annotate(stock_num=Count("stock__id", distinct=True))
             .filter(
-                Q(stock_num=lines_qs.count())
+                Q(stock_num=number_of_variants)
                 & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
                 | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
             )

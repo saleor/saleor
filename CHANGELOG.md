@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `sortBy` argument to `Category.products`
 
 ### Other changes
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
 - Move checkout metadata to separate model - #11264  by @jakubkuc
 - Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
 
