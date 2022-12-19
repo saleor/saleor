@@ -453,6 +453,7 @@ def send_webhook_using_scheme_method(
 
 
 @app.task(
+    queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},

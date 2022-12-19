@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Move checkout metadata to separate model - #11264  by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
 
 # 3.9.0
 

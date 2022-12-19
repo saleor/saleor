@@ -794,6 +794,12 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
 
+# Optional queue names for Celery tasks.
+# Set None to route to the default queue, or a string value to use a separate one
+#
+# Queue name for update search vector
 UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
     "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
 )
+# Queue name for "async webhook" events
+WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
