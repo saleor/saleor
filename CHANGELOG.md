@@ -13,7 +13,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `sortBy` argument to `Category.products`
 
 ### Other changes
-- Remove unwanted customer event triggers from address mutations - #11395 by @jakubkuc
+- Move checkout metadata to separate model - #11264  by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
+- Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
 
 # 3.9.0
 
@@ -54,6 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make email authentication case-insensitive. #11284 by @zedzior
 - Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 - Add HTTP headers filtering to observability reporter. #11285 by @przlada
+- Deactivate Webhook before deleting and handle IntegrityErrors - #11239 @jakubkuc
 
 # 3.8.0
 

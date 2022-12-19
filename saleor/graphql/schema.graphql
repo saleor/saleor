@@ -11758,7 +11758,7 @@ type Mutation {
   ): WebhookCreate
 
   """
-  Deletes a webhook subscription. 
+  Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
   
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
@@ -15522,6 +15522,7 @@ enum WebhookErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DELETE_FAILED
 }
 
 input WebhookCreateInput {
@@ -15568,7 +15569,7 @@ input WebhookCreateInput {
 }
 
 """
-Deletes a webhook subscription. 
+Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
 
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """

@@ -187,8 +187,8 @@ QUERY_CHECKOUT_PUBLIC_META = """
 
 def test_query_public_meta_for_checkout_as_anonymous_user(api_client, checkout):
     # given
-    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.metadata_storage.save(update_fields=["metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -206,8 +206,9 @@ def test_query_public_meta_for_other_customer_checkout_as_anonymous_user(
 ):
     # given
     checkout.user = customer_user
-    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["user"])
+    checkout.metadata_storage.save(update_fields=["metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -221,8 +222,9 @@ def test_query_public_meta_for_other_customer_checkout_as_anonymous_user(
 def test_query_public_meta_for_checkout_as_customer(user_api_client, checkout):
     # given
     checkout.user = user_api_client.user
-    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["user"])
+    checkout.metadata_storage.save(update_fields=["metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -240,8 +242,9 @@ def test_query_public_meta_for_checkout_as_staff(
 ):
     # given
     checkout.user = customer_user
-    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["user"])
+    checkout.metadata_storage.save(update_fields=["metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -264,8 +267,9 @@ def test_query_public_meta_for_checkout_as_app(
 ):
     # given
     checkout.user = customer_user
-    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "metadata"])
+    checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["user"])
+    checkout.metadata_storage.save(update_fields=["metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -2006,8 +2010,11 @@ def test_query_private_meta_for_checkout_as_staff(
 ):
     # given
     checkout.user = customer_user
-    checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.save(update_fields=["user", "private_metadata"])
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.save(update_fields=["user"])
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -2030,8 +2037,11 @@ def test_query_private_meta_for_checkout_as_app(
 ):
     # given
     checkout.user = customer_user
-    checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.save(update_fields=["user", "private_metadata"])
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.save(update_fields=["user"])
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
     variables = {"token": checkout.pk}
 
     # when

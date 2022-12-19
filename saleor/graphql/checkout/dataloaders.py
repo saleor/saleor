@@ -10,7 +10,7 @@ from ...checkout.fetch import (
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
 )
-from ...checkout.models import Checkout, CheckoutLine
+from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...discount import VoucherType
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -407,3 +407,13 @@ class TransactionItemsByCheckoutIDLoader(DataLoader):
         for transaction in transactions:
             transactions_map[transaction.checkout_id].append(transaction)
         return [transactions_map[checkout_id] for checkout_id in keys]
+
+
+class CheckoutMetadataByCheckoutIdLoader(DataLoader):
+    context_key = "checkout_metadata_by_checkout_id"
+
+    def batch_load(self, keys):
+        checkout_metadata = CheckoutMetadata.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys, field_name="checkout_id")
+        return [checkout_metadata.get(checkout_id) for checkout_id in keys]

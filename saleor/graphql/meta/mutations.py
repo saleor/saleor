@@ -7,6 +7,7 @@ from django.db import DatabaseError
 from graphql.error.base import GraphQLError
 
 from ...checkout import models as checkout_models
+from ...checkout.models import Checkout
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
@@ -26,7 +27,7 @@ from .permissions import (
     PUBLIC_META_PERMISSION_MAP,
     AccountPermissions,
 )
-from .types import ObjectWithMetadata
+from .types import ObjectWithMetadata, get_valid_metadata_instance
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class BaseMetadataMutation(BaseMutation):
 
     @classmethod
     def validate_model_is_model_with_metadata(cls, model, object_id):
-        if not issubclass(model, models.ModelWithMetadata):
+        if not issubclass(model, models.ModelWithMetadata) and not model == Checkout:
             raise ValidationError(
                 {
                     "id": ValidationError(
@@ -295,11 +296,12 @@ class UpdateMetadata(BaseMetadataMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_list = data.pop("input")
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
-            instance.store_value_in_metadata(items=items)
-            _save_instance(instance, "metadata")
+            meta_instance.store_value_in_metadata(items=items)
+            _save_instance(meta_instance, "metadata")
 
         return cls.success_response(instance)
 
@@ -329,10 +331,11 @@ class DeleteMetadata(BaseMetadataMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
-                instance.delete_value_from_metadata(key)
-            _save_instance(instance, "metadata")
+                meta_instance.delete_value_from_metadata(key)
+            _save_instance(meta_instance, "metadata")
         return cls.success_response(instance)
 
 
@@ -361,11 +364,12 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_list = data.pop("input")
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
-            instance.store_value_in_private_metadata(items=items)
-            _save_instance(instance, "private_metadata")
+            meta_instance.store_value_in_private_metadata(items=items)
+            _save_instance(meta_instance, "private_metadata")
         return cls.success_response(instance)
 
 
@@ -392,10 +396,13 @@ class DeletePrivateMetadata(BaseMetadataMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+
         instance = cls.get_instance(info, **data)
+
         if instance:
+            meta_instance = get_valid_metadata_instance(instance)
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
-                instance.delete_value_from_private_metadata(key)
-            _save_instance(instance, "private_metadata")
+                meta_instance.delete_value_from_private_metadata(key)
+            _save_instance(meta_instance, "private_metadata")
         return cls.success_response(instance)

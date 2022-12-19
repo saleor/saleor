@@ -56,8 +56,10 @@ def checkout_with_prices(
     ).amount
     checkout_with_items.shipping_price_net_amount = shipping_amount
     checkout_with_items.shipping_price_gross_amount = shipping_amount * Decimal("1.08")
-    checkout_with_items.metadata = {"meta_key": "meta_value"}
-    checkout_with_items.private_metadata = {"priv_meta_key": "priv_meta_value"}
+    checkout_with_items.metadata_storage.metadata = {"meta_key": "meta_value"}
+    checkout_with_items.metadata_storage.private_metadata = {
+        "priv_meta_key": "priv_meta_value"
+    }
 
     checkout_with_items.lines.bulk_update(
         lines,
@@ -81,9 +83,10 @@ def checkout_with_prices(
             "total_gross_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
-            "metadata",
-            "private_metadata",
         ]
+    )
+    checkout_with_items.metadata_storage.save(
+        update_fields=["metadata", "private_metadata"]
     )
 
     user = checkout_with_items.user

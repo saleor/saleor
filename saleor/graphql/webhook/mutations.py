@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
@@ -232,7 +233,12 @@ class WebhookDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of a webhook to delete.")
 
     class Meta:
-        description = "Deletes a webhook subscription."
+        description = (
+            "Delete a webhook. Before the deletion, the webhook is deactivated to "
+            "pause any deliveries that are already scheduled. The deletion might fail "
+            "if delivery is in progress. In such a case, the webhook is not deleted "
+            "but remains deactivated."
+        )
         model = models.Webhook
         object_type = Webhook
         permissions = (
@@ -244,25 +250,32 @@ class WebhookDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = data["id"]
-        object_id = cls.get_global_id_or_error(node_id)
-
         app = get_app_promise(info.context).get()
-        if app:
-            if not app.is_active:
-                raise ValidationError(
-                    "App needs to be active to delete webhook",
-                    code=WebhookErrorCode.INVALID,
-                )
-            try:
-                app.webhooks.get(id=object_id)
-            except models.Webhook.DoesNotExist:
-                raise ValidationError(
-                    f"Couldn't resolve to a node: {node_id}",
-                    code=WebhookErrorCode.GRAPHQL_ERROR,
-                )
+        node_id = data.get("id")
+        if app and not app.is_active:
+            raise ValidationError(
+                "App needs to be active to delete webhook",
+                code=WebhookErrorCode.INVALID,
+            )
+        webhook = cls.get_node_or_error(info, node_id, only_type=Webhook)
+        if app and webhook.app_id != app.id:
+            raise ValidationError(
+                f"Couldn't resolve to a node: {node_id}",
+                code=WebhookErrorCode.GRAPHQL_ERROR,
+            )
+        webhook.is_active = False
+        webhook.save(update_fields=["is_active"])
 
-        return super().perform_mutation(_root, info, **data)
+        try:
+            response = super().perform_mutation(_root, info, **data)
+        except IntegrityError:
+            raise ValidationError(
+                "Webhook couldn't be deleted at this time due to running task."
+                "Webhook deactivated. Try deleting Webhook later",
+                code=WebhookErrorCode.DELETE_FAILED,
+            )
+
+        return response
 
 
 class EventDeliveryRetry(BaseMutation):

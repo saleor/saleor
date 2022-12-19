@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, List, Union
 
 from django.conf import settings
@@ -264,7 +265,7 @@ class ShippingMethodChannelListing(models.Model):
     minimum_order_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
         blank=True,
         null=True,
     )
@@ -287,7 +288,7 @@ class ShippingMethodChannelListing(models.Model):
     price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
 
     def get_total(self):
