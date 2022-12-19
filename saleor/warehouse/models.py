@@ -12,7 +12,7 @@ from django.utils import timezone
 from ..account.models import Address
 from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
-from ..core.models import ModelWithMetadata, SortableModel
+from ..core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant, ProductVariantChannelListing
 from ..shipping.models import ShippingZone
@@ -165,7 +165,7 @@ class ChannelWarehouse(SortableModel):
         return self.channel.channelwarehouse.all()
 
 
-class Warehouse(ModelWithMetadata):
+class Warehouse(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)

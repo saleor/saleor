@@ -19,7 +19,7 @@ from measurement.measures import Weight
 
 from ..app.models import App
 from ..channel.models import Channel
-from ..core.models import ModelWithMetadata
+from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.permissions import OrderPermissions
 from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -97,7 +97,7 @@ def get_order_number():
         return result[0]
 
 
-class Order(ModelWithMetadata):
+class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)

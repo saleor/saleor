@@ -15,11 +15,18 @@ from ...enums import VariantAttributeScope
 
 VARIANT_QUERY = """
 query variant(
-    $id: ID, $sku: String, $variantSelection: VariantAttributeScope, $channel: String
+    $id: ID,
+    $sku: String,
+    $externalReference: String,
+    $variantSelection: VariantAttributeScope,
+    $channel: String
 ){
-    productVariant(id:$id, sku:$sku, channel: $channel){
+    productVariant(
+        id:$id, sku:$sku, externalReference: $externalReference, channel: $channel
+    ){
         id
         sku
+        externalReference
         attributes(variantSelection: $variantSelection) {
             attribute {
                 slug
@@ -34,7 +41,9 @@ query variant(
 """
 
 
-def test_get_variant_without_id_and_sku(staff_api_client, permission_manage_products):
+def test_get_variant_without_id_sku_and_external_reference(
+    staff_api_client, permission_manage_products
+):
     # given
 
     # when
@@ -46,7 +55,8 @@ def test_get_variant_without_id_and_sku(staff_api_client, permission_manage_prod
 
     # then
     assert_graphql_error_with_message(
-        response, "At least one of arguments is required: 'id', 'sku'."
+        response,
+        "At least one of arguments is required: 'id', 'sku', 'external_reference'.",
     )
 
 
@@ -420,6 +430,29 @@ def test_get_variant_by_sku_as_staff(
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["sku"] == variant.sku
+
+
+def test_get_variant_by_external_reference(
+    staff_api_client, permission_manage_products, variant
+):
+    # given
+    ext_ref = "test-ext-ref"
+    variant.external_reference = ext_ref
+    variant.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["externalReference"] == ext_ref
 
 
 def test_get_variant_by_sku_as_app(app_api_client, permission_manage_products, variant):

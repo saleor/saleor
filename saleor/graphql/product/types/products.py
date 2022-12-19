@@ -55,6 +55,7 @@ from ...core.connection import (
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -362,6 +363,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
+    external_reference = graphene.String(
+        description=f"External ID of this product. {ADDED_IN_310}",
+        required=False,
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -949,6 +954,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ),
         required=False,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this product. {ADDED_IN_310}",
+        required=False,
     )
 
     class Meta:

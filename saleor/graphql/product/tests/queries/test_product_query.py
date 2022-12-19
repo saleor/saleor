@@ -2355,3 +2355,46 @@ def test_fetch_all_products_with_availability_data(
             }
         }
         assert data in product_data
+
+
+QUERY_PRODUCT_BY_EXTERNAL_REFERENCE = """
+    query ($id: ID, $externalReference: String, $slug: String, $channel:String){
+        product(
+            id: $id,
+            slug: $slug,
+            externalReference: $externalReference,
+            channel: $channel
+        ) {
+            id
+            name
+            externalReference
+        }
+    }
+"""
+
+
+def test_product_query_by_external_reference(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    # given
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+    variables = {
+        "externalReference": product.external_reference,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+    assert product_data["externalReference"] == product.external_reference

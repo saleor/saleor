@@ -6,7 +6,7 @@ from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import PageTypePermissions, ProductTypePermissions
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
 from ...core.enums import MeasurementUnitsEnum
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
@@ -37,6 +37,10 @@ class AttributeValueInput(graphene.InputObjectType):
         description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
+    external_reference = graphene.String(
+        description="External ID of this attribute value." + ADDED_IN_310,
+        required=False,
+    )
 
 
 class AttributeValueCreateInput(AttributeValueInput):
@@ -71,6 +75,9 @@ class AttributeCreateInput(graphene.InputObjectType):
     )
     available_in_grid = graphene.Boolean(
         required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
+    )
+    external_reference = graphene.String(
+        description="External ID of this attribute." + ADDED_IN_310, required=False
     )
 
 

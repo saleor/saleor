@@ -24,7 +24,7 @@ from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_36, ADDED_IN_310, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
@@ -83,6 +83,9 @@ class DraftOrderInput(InputObjectType):
             "URL of a view where users should be redirected to "
             "see the order details. URL in RFC 1808 format."
         ),
+    )
+    external_reference = graphene.String(
+        description="External ID of this order." + ADDED_IN_310, required=False
     )
 
 

@@ -112,6 +112,19 @@ class ModelWithMetadata(models.Model):
             del self.metadata[key]
 
 
+class ModelWithExternalReference(models.Model):
+    external_reference = models.CharField(
+        max_length=250,
+        unique=True,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Job(models.Model):
     status = models.CharField(
         max_length=50, choices=JobStatus.CHOICES, default=JobStatus.PENDING

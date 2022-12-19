@@ -11,6 +11,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`
+  - Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models:
+    - `Product`
+    - `ProductVariant`
+    - `Attribute`
+    - `AttributeValue`
+    - `Order`
+    - `User`
+    - `Warehouse`
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak

@@ -4,13 +4,15 @@ import graphene
 from graphql import GraphQLError
 
 from ...core.permissions import OrderPermissions
+from ...order import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
 from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
-from ..core.utils import from_global_id_or_error
+from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
+from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
@@ -84,8 +86,11 @@ class OrderQueries(graphene.ObjectType):
     )
     order = graphene.Field(
         Order,
-        description="Look up an order by ID.",
-        id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
+        description="Look up an order by ID or external reference.",
+        id=graphene.Argument(graphene.ID, description="ID of an order."),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of an order. {ADDED_IN_310}"
+        ),
     )
     orders = FilterConnectionField(
         OrderCountableConnection,
@@ -134,7 +139,13 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_order(_root, _info, **data):
-        _, id = from_global_id_or_error(data.get("id"), Order)
+        node_id = data.get("id")
+        ext_ref = data.get("external_reference")
+        validate_one_of_args_is_in_query("id", node_id, "external_reference", ext_ref)
+
+        if ext_ref:
+            node_id = ext_ref_to_global_id_or_error(models.Order, ext_ref)
+        _, id = from_global_id_or_error(node_id, Order)
         return resolve_order(id)
 
     @staticmethod

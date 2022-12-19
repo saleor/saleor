@@ -24,7 +24,13 @@ from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
-from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.descriptions import ADDED_IN_310
+from ...core.mutations import (
+    BaseMutation,
+    ModelDeleteMutation,
+    ModelMutation,
+    ModelWithExtRefMutation,
+)
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.validators.file import clean_image_file
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -84,9 +90,13 @@ class CustomerCreate(BaseCustomerCreate):
         error_type_field = "account_errors"
 
 
-class CustomerUpdate(CustomerCreate):
+class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(description="ID of a customer to update.", required=True)
+        id = graphene.ID(description="ID of a customer to update.", required=False)
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a customer to update. {ADDED_IN_310}",
+        )
         input = CustomerInput(
             description="Fields required to update a customer.", required=True
         )
@@ -167,7 +177,7 @@ class CustomerUpdate(CustomerCreate):
         return cls.success_response(new_instance)
 
 
-class UserDelete(UserDeleteMixin, ModelDeleteMutation):
+class UserDelete(UserDeleteMixin, ModelDeleteMutation, ModelWithExtRefMutation):
     class Meta:
         abstract = True
 
@@ -182,7 +192,11 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         error_type_field = "account_errors"
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a customer to delete.")
+        id = graphene.ID(required=False, description="ID of a customer to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a customer to update. {ADDED_IN_310}",
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):

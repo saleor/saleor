@@ -25,7 +25,7 @@ from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
@@ -329,6 +329,9 @@ class User(ModelObjectType):
     )
     default_shipping_address = graphene.Field(Address)
     default_billing_address = graphene.Field(Address)
+    external_reference = graphene.String(
+        description=f"External ID of this user. {ADDED_IN_310}", required=False
+    )
 
     last_login = graphene.DateTime()
     date_joined = graphene.DateTime(required=True)

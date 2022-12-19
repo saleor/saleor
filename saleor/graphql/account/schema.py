@@ -3,6 +3,7 @@ import graphene
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ..app.dataloaders import app_promise_callback
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -155,6 +156,9 @@ class AccountQueries(graphene.ObjectType):
         email=graphene.Argument(
             graphene.String, description="Email address of the user."
         ),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of the user. {ADDED_IN_310}"
+        ),
         permissions=[
             AccountPermissions.MANAGE_STAFF,
             AccountPermissions.MANAGE_USERS,
@@ -204,9 +208,11 @@ class AccountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
-    def resolve_user(_root, info, *, id=None, email=None):
-        validate_one_of_args_is_in_query("id", id, "email", email)
-        return resolve_user(info, id, email)
+    def resolve_user(_root, info, *, id=None, email=None, external_reference=None):
+        validate_one_of_args_is_in_query(
+            "id", id, "email", email, "external_reference", external_reference
+        )
+        return resolve_user(info, id, email, external_reference)
 
     @staticmethod
     @app_promise_callback

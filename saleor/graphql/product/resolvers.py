@@ -60,24 +60,18 @@ def resolve_digital_contents(_info):
     return models.DigitalContent.objects.all()
 
 
-def resolve_product_by_id(info, id, channel_slug, requestor):
+def resolve_product(info, id, slug, external_reference, channel_slug, requestor):
     database_connection_name = get_database_connection_name(info.context)
-    return (
-        models.Product.objects.using(database_connection_name)
-        .visible_to_user(requestor, channel_slug=channel_slug)
-        .filter(id=id)
-        .first()
+    qs = models.Product.objects.using(database_connection_name).visible_to_user(
+        requestor, channel_slug=channel_slug
     )
-
-
-def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
-    database_connection_name = get_database_connection_name(info.context)
-    return (
-        models.Product.objects.using(database_connection_name)
-        .visible_to_user(requestor, channel_slug=channel_slug)
-        .filter(slug=product_slug)
-        .first()
-    )
+    if id:
+        _type, id = from_global_id_or_error(id, "Product")
+        return qs.filter(id=id).first()
+    elif slug:
+        return qs.filter(slug=slug).first()
+    else:
+        return qs.filter(external_reference=external_reference).first()
 
 
 @traced_resolver
@@ -100,19 +94,6 @@ def resolve_products(info, requestor, channel_slug=None) -> ChannelQsContext:
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
-@traced_resolver
-def resolve_variant_by_id(
-    _info, id, *, channel_slug, requestor, requestor_has_access_to_all
-):
-    visible_products = models.Product.objects.visible_to_user(
-        requestor, channel_slug
-    ).values_list("pk", flat=True)
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
-    if not requestor_has_access_to_all:
-        qs = qs.available_in_channel(channel_slug)
-    return qs.filter(pk=id).first()
-
-
 def resolve_product_type_by_id(id):
     return models.ProductType.objects.filter(pk=id).first()
 
@@ -122,17 +103,29 @@ def resolve_product_types(_info):
 
 
 @traced_resolver
-def resolve_product_variant_by_sku(
-    _info, sku, channel_slug, requestor, requestor_has_access_to_all
+def resolve_variant(
+    _info,
+    id,
+    sku,
+    external_reference,
+    *,
+    channel_slug,
+    requestor,
+    requestor_has_access_to_all
 ):
-    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    visible_products = models.Product.objects.visible_to_user(
+        requestor, channel_slug
+    ).values_list("pk", flat=True)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if not requestor_has_access_to_all:
-        visible_products = visible_products.annotate_visible_in_listings(
-            channel_slug
-        ).exclude(visible_in_listings=False)
-        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
-    return qs.filter(sku=sku).first()
+        qs = qs.available_in_channel(channel_slug)
+    if id:
+        _, id = from_global_id_or_error(id, "ProductVariant")
+        return qs.filter(pk=id).first()
+    elif sku:
+        return qs.filter(sku=sku).first()
+    else:
+        return qs.filter(external_reference=external_reference).first()
 
 
 @traced_resolver

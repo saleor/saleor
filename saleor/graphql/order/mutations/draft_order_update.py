@@ -5,15 +5,21 @@ from ....core.permissions import OrderPermissions
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import get_app_promise
+from ...core.descriptions import ADDED_IN_310
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .draft_order_create import DraftOrderCreate, DraftOrderInput
 
 
-class DraftOrderUpdate(DraftOrderCreate):
+class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a draft order to update.")
+        id = graphene.ID(required=False, description="ID of a draft order to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a draft order to update. {ADDED_IN_310}",
+        )
         input = DraftOrderInput(
             required=True, description="Fields required to update an order."
         )

@@ -10,16 +10,21 @@ from .....order.tasks import recalculate_orders_task
 from .....product import models
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
-from ....core.mutations import ModelDeleteMutation
+from ....core.descriptions import ADDED_IN_310
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from ...utils import get_draft_order_lines_data_for_variants
 
 
-class ProductDelete(ModelDeleteMutation):
+class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a product to delete.")
+        id = graphene.ID(required=False, description="ID of a product to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product to delete. {ADDED_IN_310}",
+        )
 
     class Meta:
         description = "Deletes a product."
@@ -36,9 +41,7 @@ class ProductDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-
-        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+        instance = cls.get_instance(info, **data)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(instance)

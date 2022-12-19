@@ -15,7 +15,12 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_39, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_39,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_FIELD,
+)
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.scalars import Date
@@ -64,6 +69,10 @@ class AttributeValue(ModelObjectType):
     date = Date(description=AttributeValueDescriptions.DATE, required=False)
     date_time = graphene.DateTime(
         description=AttributeValueDescriptions.DATE_TIME, required=False
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this attribute value. {ADDED_IN_310}",
+        required=False,
     )
 
     class Meta:
@@ -230,6 +239,10 @@ class Attribute(ModelObjectType):
     product_variant_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this attribute. {ADDED_IN_310}",
+        required=False,
     )
 
     class Meta:

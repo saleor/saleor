@@ -4,8 +4,9 @@ from django.core.exceptions import ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.permissions import ProductTypePermissions
+from ...core.descriptions import ADDED_IN_310
 from ...core.enums import MeasurementUnitsEnum
-from ...core.mutations import ModelMutation
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -51,9 +52,12 @@ class AttributeUpdateInput(graphene.InputObjectType):
     available_in_grid = graphene.Boolean(
         required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
     )
+    external_reference = graphene.String(
+        description="External ID of this product." + ADDED_IN_310, required=False
+    )
 
 
-class AttributeUpdate(AttributeMixin, ModelMutation):
+class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "add_values"
@@ -61,7 +65,11 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an attribute to update.")
+        id = graphene.ID(required=False, description="ID of an attribute to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of an attribute to update. {ADDED_IN_310}",
+        )
         input = AttributeUpdateInput(
             required=True, description="Fields required to update an attribute."
         )
@@ -97,8 +105,8 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
             attribute_value.delete()
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
-        instance = cls.get_node_or_error(info, id, only_type=Attribute)
+    def perform_mutation(cls, _root, info, input, **data):
+        instance = cls.get_instance(info, **data)
 
         # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)

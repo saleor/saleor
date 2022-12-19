@@ -34,8 +34,15 @@ type Query {
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS, MANAGE_SHIPPING.
   """
   warehouse(
-    """ID of an warehouse"""
-    id: ID!
+    """ID of a warehouse."""
+    id: ID
+
+    """
+    External ID of a warehouse. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): Warehouse
 
   """
@@ -389,6 +396,13 @@ type Query {
     """Slug of the product."""
     slug: String
 
+    """
+    External ID of the product. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
@@ -455,6 +469,13 @@ type Query {
 
     """Sku of the product variant."""
     sku: String
+
+    """
+    External ID of the product. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -636,10 +657,17 @@ type Query {
     last: Int
   ): OrderEventCountableConnection
 
-  """Look up an order by ID."""
+  """Look up an order by ID or external reference."""
   order(
     """ID of an order."""
-    id: ID!
+    id: ID
+
+    """
+    External ID of an order. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): Order
 
   """
@@ -1161,13 +1189,20 @@ type Query {
     last: Int
   ): AttributeCountableConnection
 
-  """Look up an attribute by ID."""
+  """Look up an attribute by ID, slug or external reference."""
   attribute(
     """ID of the attribute."""
     id: ID
 
     """Slug of the attribute."""
     slug: String
+
+    """
+    External ID of the attribute. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): Attribute
 
   """
@@ -1372,6 +1407,13 @@ type Query {
 
     """Email address of the user."""
     email: String
+
+    """
+    External ID of the user. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): User
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
@@ -3024,6 +3066,13 @@ type Warehouse implements Node & ObjectWithMetadata {
     """Return the last n elements from the list."""
     last: Int
   ): ShippingZoneCountableConnection!
+
+  """
+  External ID of this warehouse. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """Represents user address data."""
@@ -4892,6 +4941,13 @@ type Product implements Node & ObjectWithMetadata {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   taxClass: TaxClass
+
+  """
+  External ID of this product. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -5276,6 +5332,13 @@ type Attribute implements Node & ObjectWithMetadata {
     """Return the last n elements from the list."""
     last: Int
   ): ProductTypeCountableConnection!
+
+  """
+  External ID of this attribute. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """An enumeration."""
@@ -5407,6 +5470,13 @@ type AttributeValue implements Node {
 
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
+
+  """
+  External ID of this attribute value. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 type AttributeValueTranslation implements Node {
@@ -6158,6 +6228,13 @@ type ProductVariant implements Node & ObjectWithMetadata {
   preorder: PreorderData
   created: DateTime!
   updatedAt: DateTime!
+
+  """
+  External ID of this product. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """Represents product varaint channel listing."""
@@ -8524,6 +8601,13 @@ type User implements Node & ObjectWithMetadata {
   languageCode: LanguageCodeEnum!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+
+  """
+  External ID of this user. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
   lastLogin: DateTime
   dateJoined: DateTime!
   updatedAt: DateTime!
@@ -9440,6 +9524,13 @@ type Order implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
+
+  """
+  External ID of this order. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """An enumeration."""
@@ -12431,8 +12522,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productDelete(
+    """
+    External ID of a product to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a product to delete."""
-    id: ID!
+    id: ID
   ): ProductDelete
 
   """
@@ -12451,8 +12549,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productUpdate(
+    """
+    External ID of a product to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a product to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a product."""
     input: ProductInput!
@@ -12691,6 +12796,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantDelete(
+    """
+    External ID of a product variant to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a product variant to delete."""
     id: ID
 
@@ -12783,7 +12895,14 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantUpdate(
-    """ID of a product variant to update."""
+    """
+    External ID of a product variant to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
+    """ID of a product to update."""
     id: ID
 
     """Fields required to update a product variant."""
@@ -13208,8 +13327,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderDelete(
-    """ID of a draft order to delete."""
-    id: ID!
+    """
+    External ID of a product to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
+    """ID of a product to delete."""
+    id: ID
   ): DraftOrderDelete
 
   """
@@ -13238,8 +13364,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderUpdate(
+    """
+    External ID of a draft order to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a draft order to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an order."""
     input: DraftOrderInput!
@@ -13501,8 +13634,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderUpdate(
+    """
+    External ID of an order to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an order to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an order."""
     input: OrderUpdateInput!
@@ -14789,8 +14929,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeDelete(
+    """
+    External ID of an attribute to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an attribute to delete."""
-    id: ID!
+    id: ID
   ): AttributeDelete
 
   """
@@ -14799,8 +14946,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeUpdate(
+    """
+    External ID of an attribute to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an attribute to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an attribute."""
     input: AttributeUpdateInput!
@@ -14859,8 +15013,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeValueDelete(
+    """
+    External ID of a value to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a value to delete."""
-    id: ID!
+    id: ID
   ): AttributeValueDelete
 
   """
@@ -14869,8 +15030,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeValueUpdate(
+    """
+    External ID of an AttributeValue to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an AttributeValue to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
@@ -15357,8 +15525,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   customerUpdate(
+    """
+    External ID of a customer to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a customer to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a customer."""
     input: CustomerInput!
@@ -15370,8 +15545,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   customerDelete(
+    """
+    External ID of a customer to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a customer to delete."""
-    id: ID!
+    id: ID
   ): CustomerDelete
 
   """
@@ -15688,6 +15870,13 @@ input WarehouseCreateInput {
   """The email address of the warehouse."""
   email: String
 
+  """
+  External ID of the warehouse.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Warehouse name."""
   name: String!
 
@@ -15719,6 +15908,13 @@ input WarehouseUpdateInput {
 
   """The email address of the warehouse."""
   email: String
+
+  """
+  External ID of the warehouse.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Warehouse name."""
   name: String
@@ -17395,6 +17591,13 @@ input ProductCreateInput {
   """
   privateMetadata: [MetadataInput!]
 
+  """
+  External ID of this product.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """ID of the type that product belongs to."""
   productType: ID!
 }
@@ -17567,6 +17770,13 @@ input ProductInput {
   Added in Saleor 3.8.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -18068,6 +18278,13 @@ input ProductVariantCreateInput {
   """
   privateMetadata: [MetadataInput!]
 
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Product ID of which type is the variant."""
   product: ID!
 
@@ -18194,6 +18411,13 @@ input ProductVariantBulkCreateInput {
   Added in Saleor 3.8.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Stocks of a product available for sale."""
   stocks: [StockInput!]
@@ -18390,6 +18614,13 @@ input ProductVariantInput {
   Added in Saleor 3.8.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -19160,6 +19391,13 @@ input DraftOrderCreateInput {
   """
   redirectUrl: String
 
+  """
+  External ID of this order.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Variant line input consisting of variant ID and quantity of products."""
   lines: [OrderLineCreateInput!]
 }
@@ -19259,6 +19497,13 @@ input DraftOrderInput {
   URL of a view where users should be redirected to see the order details. URL in RFC 1808 format.
   """
   redirectUrl: String
+
+  """
+  External ID of this order.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -19705,6 +19950,13 @@ input OrderUpdateInput {
 
   """Shipping address of the customer."""
   shippingAddress: AddressInput
+
+  """
+  External ID of this order.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -21834,6 +22086,13 @@ input AttributeCreateInput {
 
   """Whether the attribute can be displayed in the admin product list."""
   availableInGrid: Boolean
+
+  """
+  External ID of this attribute.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 input AttributeValueCreateInput {
@@ -21863,6 +22122,13 @@ input AttributeValueCreateInput {
 
   """File content type."""
   contentType: String
+
+  """
+  External ID of this attribute value.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Name of a value displayed in the interface."""
   name: String!
@@ -21928,6 +22194,13 @@ input AttributeUpdateInput {
 
   """Whether the attribute can be displayed in the admin product list."""
   availableInGrid: Boolean
+
+  """
+  External ID of this product.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 input AttributeValueUpdateInput {
@@ -21957,6 +22230,13 @@ input AttributeValueUpdateInput {
 
   """File content type."""
   contentType: String
+
+  """
+  External ID of this attribute value.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Name of a value displayed in the interface."""
   name: String
@@ -22806,6 +23086,13 @@ input UserCreateInput {
   languageCode: LanguageCodeEnum
 
   """
+  External ID of the customer.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
+  """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
   """
   redirectUrl: String
@@ -22851,6 +23138,13 @@ input CustomerInput {
 
   """User language code."""
   languageCode: LanguageCodeEnum
+
+  """
+  External ID of the customer.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """

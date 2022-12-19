@@ -9,6 +9,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.enums import ReportingPeriod
 from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
@@ -97,15 +98,13 @@ from .resolvers import (
     resolve_collections,
     resolve_digital_content_by_id,
     resolve_digital_contents,
-    resolve_product_by_id,
-    resolve_product_by_slug,
+    resolve_product,
     resolve_product_type_by_id,
     resolve_product_types,
-    resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
-    resolve_variant_by_id,
+    resolve_variant,
 )
 from .sorters import (
     CategorySortingInput,
@@ -209,6 +208,9 @@ class ProductQueries(graphene.ObjectType):
             description="ID of the product.",
         ),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -254,6 +256,9 @@ class ProductQueries(graphene.ObjectType):
         ),
         sku=graphene.Argument(
             graphene.String, description="Sku of the product variant."
+        ),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -371,9 +376,17 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_product(
-        _root, info: graphene.ResolveInfo, *, id=None, slug=None, channel=None
+        _root,
+        info: graphene.ResolveInfo,
+        *,
+        id=None,
+        slug=None,
+        external_reference=None,
+        channel=None
     ):
-        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         requestor = get_user_or_app_from_context(info.context)
 
         has_required_permissions = has_one_of_permissions(
@@ -382,15 +395,16 @@ class ProductQueries(graphene.ObjectType):
 
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        if id:
-            _type, id = from_global_id_or_error(id, Product)
-            product = resolve_product_by_id(
-                info, id, channel_slug=channel, requestor=requestor
-            )
-        else:
-            product = resolve_product_by_slug(
-                info, product_slug=slug, channel_slug=channel, requestor=requestor
-            )
+
+        product = resolve_product(
+            info,
+            id=id,
+            slug=slug,
+            external_reference=external_reference,
+            channel_slug=channel,
+            requestor=requestor,
+        )
+
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
     @staticmethod
@@ -440,9 +454,12 @@ class ProductQueries(graphene.ObjectType):
         *,
         id=None,
         sku=None,
+        external_reference=None,
         channel=None,
     ):
-        validate_one_of_args_is_in_query("id", id, "sku", sku)
+        validate_one_of_args_is_in_query(
+            "id", id, "sku", sku, "external_reference", external_reference
+        )
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -450,23 +467,17 @@ class ProductQueries(graphene.ObjectType):
 
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        if id:
-            _, id = from_global_id_or_error(id, ProductVariant)
-            variant = resolve_variant_by_id(
-                info,
-                id,
-                channel_slug=channel,
-                requestor=requestor,
-                requestor_has_access_to_all=has_required_permissions,
-            )
-        else:
-            variant = resolve_product_variant_by_sku(
-                info,
-                sku=sku,
-                channel_slug=channel,
-                requestor=requestor,
-                requestor_has_access_to_all=has_required_permissions,
-            )
+
+        variant = resolve_variant(
+            info,
+            id,
+            sku,
+            external_reference,
+            channel_slug=channel,
+            requestor=requestor,
+            requestor_has_access_to_all=has_required_permissions,
+        )
+
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     @staticmethod
