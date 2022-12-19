@@ -20,7 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `User`
     - `Warehouse`
 - Extend invoice object types with `Order` references - #11505 by @przlada
-  - Add `Invoice.orderId` field
+  - Add `Invoice.order` field
   - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
 
 ### Other changes
