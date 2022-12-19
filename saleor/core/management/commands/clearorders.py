@@ -1,8 +1,8 @@
 """Clear the transactions data preserving shop's catalog and configuration.
 
-This command clears the database from data such as orders, checkouts, payments and 
+This command clears the database from data such as orders, checkouts, payments and
 optionally customer accounts. It doesn't remove shop's catalog (products, variants) nor
-configuration, such as: warehouses, shipping zones, staff accounts, plugin configurations etc.
+configuration, such as: warehouses, shipping zones, staff accounts, plugin config etc.
 """
 
 from django.core.management.base import BaseCommand
@@ -13,6 +13,7 @@ from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....payment.models import Payment, Transaction
 from ....warehouse.models import Allocation
+
 
 class Command(BaseCommand):
     help = "Removes transactions data preserving shop's catalog and configuration."
@@ -26,7 +27,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--delete-customers",
             action="store_true",
-            help="Delete cutomers user accounts (doesn't delete staff and superuser accounts).",
+            help="Delete cutomers user accounts (doesn't delete staff accounts).",
         )
 
     def handle(self, **options):
@@ -46,11 +47,10 @@ class Command(BaseCommand):
         if should_delete_customers:
             self.delete_customers()
 
-
     def delete_checkouts(self):
         metadata = CheckoutMetadata.objects.all()
         metadata._raw_delete(metadata.db)
-    
+
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)
 
@@ -75,7 +75,7 @@ class Command(BaseCommand):
     def clear_gift_cards(self):
         GiftCard.objects.all().update(fulfillment_line=None)
         GiftCardEvent.objects.all().update(order=None)
-        
+
     def delete_orders(self):
         fulfillment_lines = FulfillmentLine.objects.all()
         fulfillment_lines._raw_delete(fulfillment_lines.db)
