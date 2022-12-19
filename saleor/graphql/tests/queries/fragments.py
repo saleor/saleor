@@ -107,7 +107,9 @@ fragment InvoiceDetails on Invoice {
   id
   status
   number
-  orderId
+  order {
+    id
+  }
 }
 """
 

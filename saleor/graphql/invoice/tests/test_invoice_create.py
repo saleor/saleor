@@ -22,7 +22,9 @@ INVOICE_CREATE_MUTATION = """
                 status
                 number
                 url
-                orderId
+                order {
+                    id
+                }
             }
             errors {
                 field
@@ -47,7 +49,7 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
     )
     content = get_graphql_content(response)
     invoice = Invoice.objects.get(order=order, status=JobStatus.SUCCESS)
-    assert order_id == content["data"]["invoiceCreate"]["invoice"]["orderId"]
+    assert order_id == content["data"]["invoiceCreate"]["invoice"]["order"]["id"]
     assert invoice.url == content["data"]["invoiceCreate"]["invoice"]["url"]
     assert invoice.number == content["data"]["invoiceCreate"]["invoice"]["number"]
     assert (

@@ -35,6 +35,7 @@ from ..core.descriptions import (
 )
 from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
+from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -803,7 +804,7 @@ class InvoiceBase(AbstractType):
     @staticmethod
     def resolve_order(root, _info):
         _, invoice = root
-        return invoice.order
+        return OrderByIdLoader(_info.context).load(invoice.order_id)
 
 
 class InvoiceRequested(ObjectType, InvoiceBase):

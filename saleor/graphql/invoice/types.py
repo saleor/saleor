@@ -3,6 +3,7 @@ import graphene
 from ...invoice import models
 from ..core.types import Job, ModelObjectType
 from ..meta.types import ObjectWithMetadata
+from ..order.dataloaders import OrderByIdLoader
 
 
 class Invoice(ModelObjectType):
@@ -12,7 +13,10 @@ class Invoice(ModelObjectType):
     updated_at = graphene.DateTime(required=True)
     message = graphene.String()
     url = graphene.String(description="URL to download an invoice.")
-    order_id = graphene.ID()
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="Order related to the invoice.",
+    )
 
     class Meta:
         description = "Represents an Invoice."
@@ -20,6 +24,5 @@ class Invoice(ModelObjectType):
         model = models.Invoice
 
     @staticmethod
-    def resolve_order_id(root: models.Invoice, info):
-        order_id = root.order_id
-        return graphene.Node.to_global_id("Order", order_id) if order_id else None
+    def resolve_order(root: models.Invoice, info):
+        return OrderByIdLoader(info.context).load(root.order_id)

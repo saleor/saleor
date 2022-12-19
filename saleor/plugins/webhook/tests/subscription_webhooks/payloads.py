@@ -232,24 +232,23 @@ def generate_permission_group_payload(group):
     }
 
 
-def generate_invoice_payload(invoice, order=None):
-    order_id = None
-    if invoice.order_id:
-        order_id = graphene.Node.to_global_id("Order", invoice.order_id)
+def generate_invoice_payload(invoice):
     payload = {
         "invoice": {
             "id": graphene.Node.to_global_id("Invoice", invoice.pk),
             "status": invoice.status.upper(),
             "number": invoice.number,
-            "orderId": order_id,
+            "order": None,
         }
     }
-    if order:
+    if invoice.order_id:
+        order_id = graphene.Node.to_global_id("Order", invoice.order_id)
+        payload["invoice"]["order"] = {"id": order_id}
         payload["order"] = {
             "id": order_id,
-            "number": str(order.number),
-            "userEmail": order.user_email,
-            "isPaid": order.is_fully_paid(),
+            "number": str(invoice.order.number),
+            "userEmail": invoice.order.user_email,
+            "isPaid": invoice.order.is_fully_paid(),
         }
     return payload
 

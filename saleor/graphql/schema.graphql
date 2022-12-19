@@ -9887,7 +9887,9 @@ type Invoice implements ObjectWithMetadata & Job & Node {
 
   """URL to download an invoice."""
   url: String
-  orderId: ID
+
+  """Order related to the invoice."""
+  order: Order
 }
 
 interface Job {
