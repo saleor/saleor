@@ -6,8 +6,9 @@ configuration, such as: warehouses, shipping zones, staff accounts, plugin confi
 """
 
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
-from ....account.models import User, CustomerEvent
+from ....account.models import Address, CustomerEvent, CustomerNote, User
 from ....checkout.models import Checkout, CheckoutLine
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
@@ -21,11 +22,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--delete-gift-cards",
-            action="store_true",
-            help="Delete cutomers gift cards.",
-        )
-        parser.add_argument(
             "--delete-customers",
             action="store_true",
             help="Delete cutomers user accounts (doesn't delete staff accounts).",
@@ -35,17 +31,10 @@ class Command(BaseCommand):
         self.delete_checkouts()
         self.delete_payments()
         self.delete_invoices()
-
-        should_delete_gift_cards = options.get("delete_gift_cards")
-        should_delete_customers = options.get("delete_customers")
-
-        if should_delete_gift_cards:
-            self.delete_gift_cards()
-        else:
-            self.clear_gift_cards()
-
+        self.delete_gift_cards()
         self.delete_orders()
-
+        
+        should_delete_customers = options.get("delete_customers")
         if should_delete_customers:
             self.delete_customers()
 
@@ -75,13 +64,15 @@ class Command(BaseCommand):
         self.stdout.write("Removed invoices")
 
     def delete_gift_cards(self):
-        GiftCard.objects.all().delete()
-        GiftCardTag.objects.all().delete()
-        self.stdout.write("Removed gift cards")
+        gift_card_events = GiftCardEvent.objects.all()
+        gift_card_events._raw_delete(gift_card_events.db)
 
-    def clear_gift_cards(self):
-        GiftCard.objects.all().update(fulfillment_line=None)
-        GiftCardEvent.objects.all().update(order=None)
+        gift_card_tags = GiftCardTag.objects.all()
+        gift_card_tags.delete()
+
+        gift_cards = GiftCard.objects.all()
+        gift_cards._raw_delete(gift_cards.db)
+        self.stdout.write("Removed gift cards")
 
     def delete_orders(self):
         fulfillment_lines = FulfillmentLine.objects.all()
@@ -108,7 +99,14 @@ class Command(BaseCommand):
 
     def delete_customers(self):
         customers = User.objects.filter(is_staff=False, is_superuser=False)
-        for user in customers:
-            user.addresses.all().delete()
-            user.delete()
+
+        customer_addresses = Address.objects.filter(user_addresses__in=customers)
+        customer_events = CustomerEvent.objects.all()
+        customer_notes = CustomerNote.objects.all()
+        
+        customer_addresses.delete()
+        customer_events._raw_delete(customer_events.db)
+        customer_notes._raw_delete(customer_notes.db)
+        
+        customers._raw_delete(customers.db)
         self.stdout.write("Removed customers")
