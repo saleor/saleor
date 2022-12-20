@@ -4879,7 +4879,7 @@ def test_plugin_tax_override_setting(
     manager = get_plugins_manager()
 
     # when
-    manager.order_created(order_line.order)
+    manager.order_confirmed(order_line.order)
 
     # then
     transaction = api_post_request_task_mock.call_args[0][1]["createTransactionModel"]
