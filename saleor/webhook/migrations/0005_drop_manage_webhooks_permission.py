@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
     ]
 
     run_before = [
-        ("account", "0071_group"),
+        ("account", "0072_group"),
     ]
 
     operations = [

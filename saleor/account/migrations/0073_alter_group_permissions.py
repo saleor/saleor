@@ -91,14 +91,14 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("permission", "0001_initial"),
-        ("account", "0071_group"),
+        ("account", "0072_group"),
         ("app", "0018_auto_20221122_1148"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             database_operations=[
-                # Those constraints should be reverted after rename table in 0071.
+                # Those constraints should be reverted after rename table in 0072.
                 migrations.RunSQL(
                     DROP_OLD_CONSTRAINTS, reverse_sql=migrations.RunSQL.noop
                 ),

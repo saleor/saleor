@@ -10,7 +10,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
-from ...account.models import User, Group
+from ...account.models import Group, User
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,

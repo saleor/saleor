@@ -58,7 +58,7 @@ ALTER INDEX IF EXISTS account_group_name_034e9f3f_like
     RENAME TO auth_group_name_a6ea08ec_like;
 """
 
-DROP_OLD_CONSTRAINTS_REVERSE_FROM_0072 = """
+DROP_OLD_CONSTRAINTS_REVERSE_FROM_0073 = """
 ALTER TABLE auth_group_permissions
     ADD CONSTRAINT auth_group_permissions_group_id_permission_id_0cd325b0_uniq
     UNIQUE (group_id, permission_id);
@@ -103,7 +103,7 @@ ALTER TABLE app_appinstallation_permissions
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("account", "0070_alter_user_uuid"),
+        ("account", "0071_user_external_reference"),
         ("app", "0017_app_audience"),
     ]
 
@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
             database_operations=[
                 migrations.RunSQL(
                     migrations.RunSQL.noop,
-                    reverse_sql=DROP_OLD_CONSTRAINTS_REVERSE_FROM_0072,
+                    reverse_sql=DROP_OLD_CONSTRAINTS_REVERSE_FROM_0073,
                 ),
                 migrations.RunSQL(
                     migrations.RunSQL.noop,

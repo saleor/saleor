@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
         migrations.SeparateDatabaseAndState(
             database_operations=[
                 # Those constraints should be reverted after rename table in
-                # account 0071 migration.
+                # account 0072 migration.
                 migrations.RunSQL(
                     DROP_OLD_CONSTRAINTS, reverse_sql=migrations.RunSQL.noop
                 ),
