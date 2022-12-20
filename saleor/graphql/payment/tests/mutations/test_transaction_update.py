@@ -8,6 +8,7 @@ from .....order.utils import update_order_authorize_data, update_order_charge_da
 from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventStatusEnum
 
@@ -68,6 +69,14 @@ mutation TransactionUpdate(
                         currency
                     }
                     type
+                    createdBy{
+                        ... on User {
+                            id
+                        }
+                        ... on App {
+                            id
+                        }
+                    }
                 }
         }
         errors{
@@ -874,12 +883,15 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
+    assert event.app == app_api_client.app
+    assert event.user is None
 
 
 def test_only_owner_can_update_its_transaction_by_staff(
@@ -1673,12 +1685,15 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
+    assert event.app is None
+    assert event.user == staff_api_client.user
 
 
 def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(

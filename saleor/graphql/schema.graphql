@@ -9147,26 +9147,11 @@ type TransactionItem implements Node & ObjectWithMetadata {
   events: [TransactionEvent!]!
 
   """
-  User who created the transaction.
+  User or App that created the transaction.
   
-  Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  Added in Saleor 3.10.
   """
-  user: User
-
-  """
-  App that created the transaction.
-  
-  Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  app: App
+  createdBy: UserOrApp
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
@@ -10496,6 +10481,13 @@ type TransactionEvent implements Node {
   Added in Saleor 3.8.
   """
   type: TransactionEventTypeEnum
+
+  """
+  User or App that created the transaction.
+  
+  Added in Saleor 3.10.
+  """
+  createdBy: UserOrApp
 }
 
 """
@@ -10535,6 +10527,8 @@ enum TransactionEventTypeEnum {
   CANCEL_FAILURE
   CANCEL_REQUEST
 }
+
+union UserOrApp = User | App
 
 type CheckoutCountableConnection {
   """Pagination data for this connection."""

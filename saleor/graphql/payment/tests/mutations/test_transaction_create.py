@@ -8,6 +8,7 @@ from .....order.utils import update_order_authorize_data, update_order_charge_da
 from .....payment import TransactionEventStatus
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventStatusEnum
 
@@ -49,6 +50,14 @@ mutation TransactionCreate(
                     currency
                     amount
                 }
+                createdBy{
+                    ... on User {
+                        id
+                    }
+                    ... on App {
+                        id
+                    }
+                }
                 events{
                     status
                     pspReference
@@ -60,6 +69,14 @@ mutation TransactionCreate(
                         currency
                     }
                     type
+                    createdBy{
+                        ... on User {
+                            id
+                        }
+                        ... on App {
+                            id
+                        }
+                    }
                 }
         }
         errors{
@@ -119,6 +136,7 @@ def test_transaction_create_for_order_by_app(
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -129,6 +147,7 @@ def test_transaction_create_for_order_by_app(
         private_metadata["key"]: private_metadata["value"]
     }
     assert transaction.app == app_api_client.app
+    assert transaction.user is None
     assert transaction.external_url == external_url
 
 
@@ -272,6 +291,7 @@ def test_transaction_create_for_checkout_by_app(
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -282,6 +302,8 @@ def test_transaction_create_for_checkout_by_app(
         private_metadata["key"]: private_metadata["value"]
     }
     assert transaction.external_url == external_url
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
 
 
 @pytest.mark.parametrize(
@@ -676,12 +698,15 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["externalUrl"] == ""
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+    assert event.app == app_api_client.app
+    assert event.user is None
 
 
 def test_creates_transaction_event_for_checkout_by_app(
@@ -740,12 +765,15 @@ def test_creates_transaction_event_for_checkout_by_app(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+    assert event.app == app_api_client.app
+    assert event.user is None
 
 
 def test_transaction_create_for_order_by_staff(
@@ -792,6 +820,7 @@ def test_transaction_create_for_order_by_staff(
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -942,6 +971,7 @@ def test_transaction_create_for_checkout_by_staff(
     assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
     assert status == transaction.status
@@ -951,6 +981,8 @@ def test_transaction_create_for_checkout_by_staff(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
+    assert transaction.app is None
+    assert transaction.user == staff_api_client.user
 
 
 @pytest.mark.parametrize(
@@ -1345,12 +1377,15 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+    assert event.user == staff_api_client.user
+    assert event.app is None
 
 
 def test_creates_transaction_event_for_checkout_by_staff(
@@ -1409,12 +1444,15 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
+    assert event.user == staff_api_client.user
+    assert event.app is None
 
 
 def test_transaction_create_external_url_incorrect_url_format_by_app(
