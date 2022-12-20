@@ -7,9 +7,14 @@ from django.db.models.signals import post_migrate
 from django.apps import apps as registry
 
 
-def assing_permissions(apps, schema_editor):
+def assign_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        apps = kwargs["apps"]
+        try:
+            apps = kwargs["apps"]
+        except KeyError:
+            # In test when we use use `@pytest.mark.django_db(transaction=True)`
+            # pytest trigger additional post_migrate signal without `apps` in kwargs.
+            return
         Group = apps.get_model("account", "Group")
         Permission = apps.get_model("permission", "Permission")
         ContentType = apps.get_model("contenttypes", "ContentType")
@@ -106,5 +111,5 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.RunPython(create_default_channel, migrations.RunPython.noop),
-        migrations.RunPython(assing_permissions, migrations.RunPython.noop),
+        migrations.RunPython(assign_permissions, migrations.RunPython.noop),
     ]
