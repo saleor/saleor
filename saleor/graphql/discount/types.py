@@ -1,6 +1,7 @@
 import graphene
 from graphene import relay
 
+from ...core.db.utils import get_database_connection_name
 from ...core.permissions import DiscountPermissions, OrderPermissions
 from ...discount import models
 from ..channel import ChannelQsContext
@@ -140,10 +141,11 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Sale], info, **kwargs):
-        qs = root.node.variants.all()
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        readonly_qs = root.node.variants.using(get_database_connection_name(info)).all()
+
+        readonly_qs = ChannelQsContext(qs=readonly_qs, channel_slug=root.channel_slug)
         return create_connection_slice(
-            qs, info, kwargs, ProductVariantCountableConnection
+            readonly_qs, info, kwargs, ProductVariantCountableConnection
         )
 
     @staticmethod
