@@ -6,7 +6,6 @@ configuration, such as: warehouses, shipping zones, staff accounts, plugin confi
 """
 
 from django.core.management.base import BaseCommand
-from django.db.models import Q
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
 from ....checkout.models import Checkout, CheckoutLine
