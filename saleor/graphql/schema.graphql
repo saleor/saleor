@@ -10483,7 +10483,7 @@ type TransactionEvent implements Node {
   type: TransactionEventTypeEnum
 
   """
-  User or App that created the transaction.
+  User or App that created the transaction event.
   
   Added in Saleor 3.10.
   """

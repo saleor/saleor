@@ -301,7 +301,7 @@ class TransactionEvent(ModelObjectType):
 
     created_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description=("User or App that created the transaction." + ADDED_IN_310),
+        description=("User or App that created the transaction event." + ADDED_IN_310),
     )
 
     class Meta:
