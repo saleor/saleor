@@ -63,6 +63,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_38,
     ADDED_IN_39,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -1200,14 +1201,47 @@ class Order(ModelObjectType):
         + ADDED_IN_38
         + PREVIEW_FEATURE,
     )
-    total_pending_refund = PermissionsField(
+    total_refund_pending = PermissionsField(
         Money,
         required=True,
-        description="Total amount of refund requested for the order."
-        + ADDED_IN_38
-        + PREVIEW_FEATURE,
+        description=(
+            "Total amount of ongoing refund requests for the order's transactions."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
+    total_authorize_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing authorize requests for the order's transactions."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_charge_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing charge requests for the order's transactions."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_cancel_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing cancel requests for the order's transactions."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+
     total_remaining_grant = PermissionsField(
         Money,
         required=True,
@@ -1871,17 +1905,59 @@ class Order(ModelObjectType):
         return Promise.all([payments, transactions]).then(_resolve_total_refund)
 
     @staticmethod
-    def resolve_total_pending_refund(root: models.Order, info):
-        def _resolve_total_pending_refund(transactions):
+    def resolve_total_refund_pending(root: models.Order, info):
+        def _resolve_total_refund_pending(transactions):
             return sum(
-                [transaction.amount_pending_refund for transaction in transactions],
+                [transaction.amount_refund_pending for transaction in transactions],
                 zero_money(root.currency),
             )
 
         return (
             TransactionItemsByOrderIDLoader(info.context)
             .load(root.id)
-            .then(_resolve_total_pending_refund)
+            .then(_resolve_total_refund_pending)
+        )
+
+    @staticmethod
+    def resolve_total_authorize_pending(root: models.Order, info):
+        def _resolve_total_authorize_pending(transactions):
+            return sum(
+                [transaction.amount_authorize_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_authorize_pending)
+        )
+
+    @staticmethod
+    def resolve_total_charge_pending(root: models.Order, info):
+        def _resolve_total_charge_pending(transactions):
+            return sum(
+                [transaction.amount_charge_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_charge_pending)
+        )
+
+    @staticmethod
+    def resolve_total_cancel_pending(root: models.Order, info):
+        def _resolve_total_cancel_pending(transactions):
+            return sum(
+                [transaction.amount_cancel_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_cancel_pending)
         )
 
     @staticmethod
@@ -1890,7 +1966,7 @@ class Order(ModelObjectType):
             transactions, total_granted_refund
         ):
             total_pending_refund = sum(
-                [transaction.amount_pending_refund for transaction in transactions],
+                [transaction.amount_refund_pending for transaction in transactions],
                 zero_money(root.currency),
             )
             total_refund = sum(

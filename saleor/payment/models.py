@@ -68,14 +68,40 @@ class TransactionItem(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
     )
-
-    amount_pending_refund = MoneyField(
-        amount_field="pending_refund_value", currency_field="currency"
+    amount_refund_pending = MoneyField(
+        amount_field="refund_pending_value", currency_field="currency"
     )
-    pending_refund_value = models.DecimalField(
+    refund_pending_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
+    )
+
+    amount_charge_pending = MoneyField(
+        amount_field="charge_pending_value", currency_field="currency"
+    )
+    charge_pending_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
+    amount_authorize_pending = MoneyField(
+        amount_field="authorize_pending_value", currency_field="currency"
+    )
+    authorize_pending_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
+    cancel_pending_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_cancel_pending = MoneyField(
+        amount_field="cancel_pending_value", currency_field="currency"
     )
 
     external_url = models.URLField(blank=True, null=True)

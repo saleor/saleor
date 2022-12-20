@@ -9111,14 +9111,42 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """Total amount authorized for this payment."""
   authorizedAmount: Money!
 
+  """
+  Total amount of ongoing authorization requests for the transaction.
+  
+  Added in Saleor 3.10.
+  """
+  authorizePendingAmount: Money!
+
   """Total amount refunded for this payment."""
   refundedAmount: Money!
+
+  """
+  Total amount of ongoing refund requests for the transaction.
+  
+  Added in Saleor 3.10.
+  """
+  refundPendingAmount: Money!
 
   """Total amount voided for this payment."""
   voidedAmount: Money!
 
+  """
+  Total amount of ongoing cancel requests for the transaction.
+  
+  Added in Saleor 3.10.
+  """
+  cancelPendingAmount: Money!
+
   """Total amount charged for this payment."""
   chargedAmount: Money!
+
+  """
+  Total amount of ongoing charge requests for the transaction.
+  
+  Added in Saleor 3.10.
+  """
+  chargePendingAmount: Money!
 
   """Status of transaction."""
   status: String!
@@ -9518,15 +9546,48 @@ type Order implements Node & ObjectWithMetadata {
   totalRefunded: Money!
 
   """
-  Total amount of refund requested for the order.
+  Total amount of ongoing refund requests for the order's transactions.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.10.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  totalPendingRefund: Money!
+  totalRefundPending: Money!
+
+  """
+  Total amount of ongoing authorize requests for the order's transactions.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalAuthorizePending: Money!
+
+  """
+  Total amount of ongoing charge requests for the order's transactions.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalChargePending: Money!
+
+  """
+  Total amount of ongoing cancel requests for the order's transactions.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalCancelPending: Money!
 
   """
   The difference amount between granted refund and the amounts that are pending and refunded.
