@@ -31,10 +31,12 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_37,
     ADDED_IN_38,
+    ADDED_IN_310,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
 from ..core.types import NonNullList
+from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -790,14 +792,29 @@ class InvoiceBase(AbstractType):
         "saleor.graphql.invoice.types.Invoice",
         description="The invoice the event relates to.",
     )
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="Order related to the invoice." + ADDED_IN_310,
+    )
 
     @staticmethod
     def resolve_invoice(root, _info):
         _, invoice = root
         return invoice
 
+    @staticmethod
+    def resolve_order(root, _info):
+        _, invoice = root
+        return OrderByIdLoader(_info.context).load(invoice.order_id)
+
 
 class InvoiceRequested(ObjectType, InvoiceBase):
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        required=True,
+        description="Order related to the invoice." + ADDED_IN_310,
+    )
+
     class Meta:
         interfaces = (Event,)
         description = (
