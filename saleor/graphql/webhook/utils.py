@@ -7,13 +7,18 @@ def get_event_type_from_subscription(query: str):
         ast = parse(query)
         subscription = None
         for definition in ast.definitions:
-            if definition.operation == "subscription":
+            if (
+                hasattr(definition, "operation")
+                and definition.operation == "subscription"
+            ):
                 subscription = definition
 
         if subscription:
             subscription_string = print_ast(subscription)
             event_type = (
-                subscription_string.replace(" ", "").split("...on")[1].split("{")[0]
+                "".join(subscription_string.split())
+                .split("event{...on")[1]
+                .split("{")[0]
             )
             return to_snake_case(event_type)
         return None
