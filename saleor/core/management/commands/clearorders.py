@@ -12,7 +12,7 @@ from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
-from ....payment.models import Payment, Transaction
+from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
 from ....warehouse.models import Allocation
 
 
@@ -49,13 +49,18 @@ class Command(BaseCommand):
         self.stdout.write("Removed checkouts")
 
     def delete_payments(self):
-        transaction = Transaction.objects.all()
-        transaction._raw_delete(transaction.db)
-        self.stdout.write("Removed transactions")
+        transaction_events = TransactionEvent.objects.all()
+        transaction_events._raw_delete(transaction_events.db)
+
+        transaction_items = TransactionItem.objects.all()
+        transaction_items._raw_delete(transaction_items.db)
+
+        transactions = Transaction.objects.all()
+        transactions._raw_delete(transactions.db)
 
         payments = Payment.objects.all()
         payments._raw_delete(payments.db)
-        self.stdout.write("Removed payments")
+        self.stdout.write("Removed payments and trnsactions")
     
     def delete_invoices(self):
         invoice_events = InvoiceEvent.objects.all()
