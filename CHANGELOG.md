@@ -4,6 +4,34 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.9.0
 
+- Re-enable 5 minute database connection persistence by default - #11073 by @NyanKiyoshi
+### Breaking changes
+
+### GraphQL API
+
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
+  - Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models:
+    - `Product`
+    - `ProductVariant`
+    - `Attribute`
+    - `AttributeValue`
+    - `Order`
+    - `User`
+    - `Warehouse`
+- Extend invoice object types with `Order` references - #11505 by @przlada
+  - Add `Invoice.order` field
+  - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+
+### Other changes
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
+- Move checkout metadata to separate model - #11264  by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
+- Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
+
+# 3.9.0
+
 ### Highlights
 
 - Flat tax rates - #9784 by @maarcingebala
@@ -42,6 +70,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
 - Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
 
 ### Other changes
 
@@ -53,6 +86,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix the observability reporter to obfuscate URLs. #11282 by @przlada
 - Add exif image validation - #11224 by @IKarbowiak
 - Add HTTP headers filtering to observability reporter. #11285 by @przlada
+  <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
 
 # 3.8.0
 

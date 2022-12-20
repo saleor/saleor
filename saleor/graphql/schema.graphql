@@ -9796,6 +9796,13 @@ type Invoice implements ObjectWithMetadata & Job & Node {
 
   """URL to download an invoice."""
   url: String
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order
 }
 
 interface Job {
@@ -24618,6 +24625,13 @@ type InvoiceRequested implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order!
 }
 
 """
@@ -24642,6 +24656,13 @@ type InvoiceDeleted implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order
 }
 
 """
@@ -24666,6 +24687,13 @@ type InvoiceSent implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order
 }
 
 """
