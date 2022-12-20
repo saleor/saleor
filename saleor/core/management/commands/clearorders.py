@@ -7,9 +7,10 @@ configuration, such as: warehouses, shipping zones, staff accounts, plugin confi
 
 from django.core.management.base import BaseCommand
 
-from ....account.models import User
+from ....account.models import User, CustomerEvent
 from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
+from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....payment.models import Payment, Transaction
 from ....warehouse.models import Allocation
@@ -33,6 +34,7 @@ class Command(BaseCommand):
     def handle(self, **options):
         self.delete_checkouts()
         self.delete_payments()
+        self.delete_invoices()
 
         should_delete_gift_cards = options.get("delete_gift_cards")
         should_delete_customers = options.get("delete_customers")
@@ -66,6 +68,14 @@ class Command(BaseCommand):
         payments = Payment.objects.all()
         payments._raw_delete(payments.db)
         self.stdout.write("Removed payments")
+    
+    def delete_invoices(self):
+        invoice_events = InvoiceEvent.objects.all()
+        invoice_events._raw_delete(invoice_events.db)
+
+        invoice = Invoice.objects.all()
+        invoice._raw_delete(invoice.db)
+        self.stdout.write("Removed invoices")
 
     def delete_gift_cards(self):
         GiftCard.objects.all().delete()
@@ -91,6 +101,9 @@ class Command(BaseCommand):
 
         order_events = OrderEvent.objects.all()
         order_events._raw_delete(order_events.db)
+
+        customer_order_events = CustomerEvent.objects.filter(order__isnull=False)
+        customer_order_events._raw_delete(customer_order_events.db)
 
         orders = Order.objects.all()
         orders._raw_delete(orders.db)
