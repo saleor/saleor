@@ -31,11 +31,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
-from ....payment import (
-    TransactionAction,
-    TransactionEventActionType,
-    TransactionEventStatus,
-)
+from ....payment import TransactionAction, TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -1448,10 +1444,9 @@ def test_transaction_action_request(
     action_value = Decimal("5.00")
 
     request_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
 
     transaction_action_data = TransactionActionData(
@@ -1508,7 +1503,7 @@ def test_transaction_charge_requested(
         authorized_value=Decimal("10"),
         app=app,
     )
-    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    event = transaction.events.create(type=TransactionEventType.CHARGE_REQUEST)
     action_value = Decimal("5.00")
     transaction_action_data = TransactionActionData(
         transaction=transaction,
@@ -1561,7 +1556,7 @@ def test_transaction_refund_requested(
         authorized_value=Decimal("10"),
         app=app,
     )
-    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
     action_value = Decimal("5.00")
     transaction_action_data = TransactionActionData(
         transaction=transaction,
@@ -1614,7 +1609,7 @@ def test_transaction_cancelation_requested(
         authorized_value=Decimal("10"),
         app=app,
     )
-    event = transaction.events.create(status=TransactionEventStatus.REQUEST)
+    event = transaction.events.create(type=TransactionEventType.CANCEL_REQUEST)
     action_value = Decimal("5.00")
     transaction_action_data = TransactionActionData(
         transaction=transaction,

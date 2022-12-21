@@ -10,8 +10,7 @@ from .. import (
     CustomPaymentChoices,
     PaymentError,
     TransactionAction,
-    TransactionEventActionType,
-    TransactionEventStatus,
+    TransactionEventType,
     TransactionKind,
     gateway,
 )
@@ -349,10 +348,9 @@ def test_request_charge_action_missing_active_event(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     mocked_is_active.return_value = False
 
@@ -386,10 +384,9 @@ def test_request_charge_action_with_transaction_action_requesy(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     mocked_is_active.side_effect = [True, False]
 
@@ -440,10 +437,9 @@ def test_request_charge_action_on_order(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -494,10 +490,9 @@ def test_request_charge_action_by_app(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -548,10 +543,9 @@ def test_request_charge_action_on_checkout(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -595,10 +589,9 @@ def test_request_refund_action_missing_active_event(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     mocked_is_active.return_value = False
 
@@ -632,10 +625,9 @@ def test_request_refund_action_with_transaction_action_request(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     mocked_is_active.side_effect = [True, False]
 
@@ -686,10 +678,9 @@ def test_request_refund_action_on_order(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -740,10 +731,9 @@ def test_request_refund_action_by_app(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -795,10 +785,9 @@ def test_request_refund_action_on_checkout(
     )
     action_value = Decimal("5.00")
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -841,9 +830,8 @@ def test_request_cancelation_action_missing_active_event(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        type=TransactionEventType.CANCEL_REQUEST,
     )
 
     mocked_is_active.return_value = False
@@ -858,6 +846,7 @@ def test_request_cancelation_action_missing_active_event(
             user=staff_user,
             app=None,
             request_event=requested_event,
+            action=TransactionAction.CANCEL,
         )
 
 
@@ -877,9 +866,8 @@ def test_request_cancelation_action_on_order(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        type=TransactionEventType.CANCEL_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -892,6 +880,7 @@ def test_request_cancelation_action_on_order(
         user=staff_user,
         app=None,
         request_event=requested_event,
+        action=TransactionAction.CANCEL,
     )
 
     # then
@@ -928,9 +917,7 @@ def test_request_cancelation_action_with_transaction_action_request(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
-        currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        currency=transaction.currency, type=TransactionEventType.CANCEL_REQUEST
     )
     mocked_is_active.side_effect = [True, False]
 
@@ -943,6 +930,7 @@ def test_request_cancelation_action_with_transaction_action_request(
         user=staff_user,
         app=None,
         request_event=requested_event,
+        action=TransactionAction.CANCEL,
     )
 
     # then
@@ -979,9 +967,7 @@ def test_request_cancelation_action_by_app(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
-        currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        currency=transaction.currency, type=TransactionEventType.CANCEL_REQUEST
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -994,6 +980,7 @@ def test_request_cancelation_action_by_app(
         user=None,
         app=app,
         request_event=requested_event,
+        action=TransactionAction.CANCEL,
     )
 
     # then
@@ -1031,9 +1018,8 @@ def test_request_cancelation_action_on_checkout(
         authorized_value=Decimal("10"),
     )
     requested_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         currency=transaction.currency,
-        type=TransactionEventActionType.CANCEL,
+        type=TransactionEventType.CANCEL_REQUEST,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -1046,6 +1032,7 @@ def test_request_cancelation_action_on_checkout(
         user=staff_user,
         app=None,
         request_event=requested_event,
+        action=TransactionAction.CANCEL,
     )
 
     # then

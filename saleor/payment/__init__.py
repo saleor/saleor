@@ -167,26 +167,59 @@ class TransactionAction:
     ]
 
 
-class TransactionEventActionType:
-    """Represents possible event actions.
+class TransactionEventType:
+    """Represents possible event types.
 
-    The following actions are possible:
-    AUTHORIZE - Represents a authorize event.
-    CHARGE - Represents a charge event.
-    REFUND - Represents a refund event.
-    CANCEL - Represents a cancel event.
+    The following types are possible:
+    AUTHORIZATION_SUCCESS - represents success authorization.
+    AUTHORIZATION_FAILURE - represents failure authorization.
+    AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
+    AUTHORIZATION_REQUEST - represents authorization request.
+    CHARGE_SUCCESS - represents success charge.
+    CHARGE_FAILURE - represents failure charge.
+    CHARGE_BACK - represents chargeback.
+    CHARGE_REQUEST - represents charge request.
+    REFUND_SUCCESS - represents success refund.
+    REFUND_FAILURE - represents failure refund.
+    REFUND_REVERSE - represents reverse refund.
+    REFUND_REQUEST - represents refund request.
+    CANCEL_SUCCESS - represents success cancel.
+    CANCEL_FAILURE - represents failure cancel.
+    CANCEL_REQUEST - represents cancel request.
     """
 
-    AUTHORIZE = "authorize"
-    CHARGE = "charge"
-    REFUND = "refund"
-    CANCEL = "cancel"
+    AUTHORIZATION_SUCCESS = "authorization_success"
+    AUTHORIZATION_FAILURE = "authorization_failure"
+    AUTHORIZATION_ADJUSTMENT = "authorization_adjustment"
+    AUTHORIZATION_REQUEST = "authorization_request"
+    CHARGE_SUCCESS = "charge_success"
+    CHARGE_FAILURE = "charge_failure"
+    CHARGE_BACK = "charge_back"
+    CHARGE_REQUEST = "charge_request"
+    REFUND_SUCCESS = "refund_success"
+    REFUND_FAILURE = "refund_failure"
+    REFUND_REVERSE = "refund_reverse"
+    REFUND_REQUEST = "refund_request"
+    CANCEL_SUCCESS = "cancel_success"
+    CANCEL_FAILURE = "cancel_failure"
+    CANCEL_REQUEST = "cancel_request"
 
     CHOICES = [
-        (AUTHORIZE, "Authorize event"),
-        (CHARGE, "Charge event"),
-        (REFUND, "Refund event"),
-        (CANCEL, "Cancel event"),
+        (AUTHORIZATION_SUCCESS, "Represents success authorization"),
+        (AUTHORIZATION_FAILURE, "Represents failure authorization"),
+        (AUTHORIZATION_ADJUSTMENT, "Represents authorization adjustment"),
+        (AUTHORIZATION_REQUEST, "Represents authorization request"),
+        (CHARGE_SUCCESS, "Represents success charge"),
+        (CHARGE_FAILURE, "Represents failure charge"),
+        (CHARGE_BACK, "Represents chargeback."),
+        (CHARGE_REQUEST, "Represents charge request"),
+        (REFUND_SUCCESS, "Represents success refund"),
+        (REFUND_FAILURE, "Represents failure refund"),
+        (REFUND_REVERSE, "Represents reverse refund"),
+        (REFUND_REQUEST, "Represents refund request"),
+        (CANCEL_SUCCESS, "Represents success cancel"),
+        (CANCEL_FAILURE, "Represents failure cancel"),
+        (CANCEL_REQUEST, "Represents cancel request"),
     ]
 
 
@@ -196,36 +229,15 @@ class TransactionEventStatus:
     The following statuses are possible:
     SUCCESS - Represents a sucess action.
     FAILURE - Represents a failure action.
-    PENDING - Represents a pending action. DEPRECATED: this enum value will be removed
-    in Saleor 3.9 (Feature Preview). Saleor automatically marks transaction as pending.
-    REQUEST - Represents a request that was send for the payment transaction.
+    PENDING - Represents a pending action.
     """
 
     PENDING = "pending"
     SUCCESS = "success"
     FAILURE = "failure"
-    REQUEST = "request"
 
     CHOICES = [
         (PENDING, "Pending"),
-        (SUCCESS, "Success"),
-        (FAILURE, "Failure"),
-        (REQUEST, "Request"),
-    ]
-
-
-class TransactionEventReportResult:
-    """Represents a result of reported event.
-
-    The following statuses are possible:
-    SUCCESS - Represents a sucess action.
-    FAILURE - Represents a failure action.
-    """
-
-    SUCCESS = "success"
-    FAILURE = "failure"
-
-    CHOICES = [
         (SUCCESS, "Success"),
         (FAILURE, "Failure"),
     ]

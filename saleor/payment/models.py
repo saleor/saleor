@@ -21,8 +21,8 @@ from . import (
     CustomPaymentChoices,
     StorePaymentMethod,
     TransactionAction,
-    TransactionEventActionType,
     TransactionEventStatus,
+    TransactionEventType,
     TransactionKind,
 )
 
@@ -32,7 +32,7 @@ class TransactionItem(ModelWithMetadata):
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, default="")
     type = models.CharField(max_length=512, blank=True, default="")
-    psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
+    psp_reference = models.CharField(max_length=512, blank=True, null=True)
     available_actions = ArrayField(
         models.CharField(max_length=128, choices=TransactionAction.CHOICES),
         default=list,
@@ -68,15 +68,42 @@ class TransactionItem(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
     )
-
-    amount_pending_refund = MoneyField(
-        amount_field="pending_refund_value", currency_field="currency"
+    amount_refund_pending = MoneyField(
+        amount_field="refund_pending_value", currency_field="currency"
     )
-    pending_refund_value = models.DecimalField(
+    refund_pending_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
     )
+
+    amount_charge_pending = MoneyField(
+        amount_field="charge_pending_value", currency_field="currency"
+    )
+    charge_pending_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
+    amount_authorize_pending = MoneyField(
+        amount_field="authorize_pending_value", currency_field="currency"
+    )
+    authorize_pending_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
+    cancel_pending_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_cancel_pending = MoneyField(
+        amount_field="cancel_pending_value", currency_field="currency"
+    )
+
     external_url = models.URLField(blank=True, null=True)
 
     checkout = models.ForeignKey(
@@ -117,9 +144,10 @@ class TransactionEvent(models.Model):
         max_length=128,
         choices=TransactionEventStatus.CHOICES,
         default=TransactionEventStatus.SUCCESS,
+        blank=True,
+        null=True,
     )
-    psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
-    name = models.CharField(max_length=512, blank=True, default="")
+    psp_reference = models.CharField(max_length=512, blank=True, null=True)
     message = models.CharField(max_length=512, blank=True, default="")
 
     transaction = models.ForeignKey(
@@ -129,7 +157,7 @@ class TransactionEvent(models.Model):
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     type = models.CharField(
         max_length=128,
-        choices=TransactionEventActionType.CHOICES,
+        choices=TransactionEventType.CHOICES,
         blank=True,
         null=True,
     )
@@ -138,6 +166,17 @@ class TransactionEvent(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    app = models.ForeignKey(
+        "app.App", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
     )
 
     class Meta:

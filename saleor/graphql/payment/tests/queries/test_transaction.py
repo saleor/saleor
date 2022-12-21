@@ -1,6 +1,8 @@
 from decimal import Decimal
 
-from .....payment import TransactionEventActionType, TransactionEventStatus
+import pytest
+
+from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.models import TransactionEvent
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -29,12 +31,29 @@ TRANSACTION_QUERY = """
                 currency
                 amount
             }
+            authorizePendingAmount{
+                currency
+                amount
+            }
+            chargePendingAmount{
+                currency
+                amount
+            }
+            refundPendingAmount{
+                currency
+                amount
+            }
+            cancelPendingAmount{
+                currency
+                amount
+            }
             events{
                 id
                 createdAt
                 status
                 pspReference
                 name
+                message
                 externalUrl
                 amount{
                     currency
@@ -268,6 +287,45 @@ def test_transaction_create_by_user_query_no_permission(
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize(
+    "db_field, api_field",
+    [
+        ("authorize_pending_value", "authorizePendingAmount"),
+        ("charge_pending_value", "chargePendingAmount"),
+        ("refund_pending_value", "refundPendingAmount"),
+        ("cancel_pending_value", "cancelPendingAmount"),
+    ],
+)
+def test_transaction_with_pending_amount(
+    db_field,
+    api_field,
+    staff_api_client,
+    transaction_item_created_by_user,
+    permission_manage_payments,
+    permission_manage_staff,
+):
+    # given
+    expected_value = Decimal("10.00")
+
+    setattr(transaction_item_created_by_user, db_field, expected_value)
+    transaction_item_created_by_user.save(update_fields=[db_field])
+
+    variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transaction"]
+    pending_money = data[api_field]
+    assert pending_money["amount"] == expected_value
+
+
 def test_transaction_event_by_user(
     transaction_item_created_by_user,
     permission_manage_payments,
@@ -277,11 +335,10 @@ def test_transaction_event_by_user(
     # given
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_user,
-        status=TransactionEventStatus.SUCCESS,
         psp_reference="psp-ref-123",
-        name="Sucesfull charge",
+        message="Sucesfull charge",
         currency="USD",
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
     )
@@ -304,7 +361,8 @@ def test_transaction_event_by_user(
     assert event_data["createdAt"] == event.created_at.isoformat()
     assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.name
+    assert event_data["name"] == event.message
+    assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
     assert event_data["amount"]["currency"] == event.currency
@@ -322,9 +380,9 @@ def test_transaction_event_by_app(
         transaction=transaction_item_created_by_app,
         status=TransactionEventStatus.SUCCESS,
         psp_reference="psp-ref-123",
-        name="Sucesfull charge",
+        message="Sucesfull charge",
         currency="USD",
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
     )
@@ -347,7 +405,8 @@ def test_transaction_event_by_app(
     assert event_data["createdAt"] == event.created_at.isoformat()
     assert event_data["status"] == event.status.upper()
     assert event_data["pspReference"] == event.psp_reference
-    assert event_data["name"] == event.name
+    assert event_data["name"] == event.message
+    assert event_data["message"] == event.message
     assert event_data["externalUrl"] == event.external_url
     assert event_data["amount"]["amount"] == event.amount_value
     assert event_data["amount"]["currency"] == event.currency

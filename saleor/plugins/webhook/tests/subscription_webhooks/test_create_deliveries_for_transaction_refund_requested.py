@@ -6,11 +6,7 @@ from freezegun import freeze_time
 
 from .....core.prices import quantize_price
 from .....graphql.tests.queries import fragments
-from .....payment import (
-    TransactionAction,
-    TransactionEventActionType,
-    TransactionEventStatus,
-)
+from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
 from .....webhook.event_types import WebhookEventSyncType
@@ -54,10 +50,9 @@ def test_transaction_refund_request(order, webhook_app, permission_manage_paymen
 
     action_value = Decimal("5.00")
     request_event = transaction.events.create(
-        status=TransactionEventStatus.REQUEST,
         amount_value=action_value,
         currency=transaction.currency,
-        type=TransactionEventActionType.REFUND,
+        type=TransactionEventType.REFUND_REQUEST,
     )
 
     webhook = Webhook.objects.create(

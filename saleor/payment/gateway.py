@@ -165,10 +165,11 @@ def request_cancelation_action(
     channel_slug: str,
     user: UserType,
     app: AppType,
+    action: str,
 ):
     transaction_action_data = _create_transaction_data(
         transaction=transaction,
-        action_type=request_event.type or TransactionAction.CANCEL,
+        action_type=action,
         action_value=cancel_value,
         request_event=request_event,
     )

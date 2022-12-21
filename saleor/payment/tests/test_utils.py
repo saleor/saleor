@@ -7,11 +7,7 @@ from freezegun import freeze_time
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import get_plugins_manager
-from .. import (
-    TransactionEventActionType,
-    TransactionEventReportResult,
-    TransactionEventStatus,
-)
+from .. import TransactionEventType
 from ..interface import (
     PaymentLineData,
     PaymentLinesData,
@@ -254,17 +250,14 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     # given
     expected_psp_reference = "psp:122:222"
     event_amount = 12.00
-    event_type = TransactionEventActionType.CHARGE
+    event_type = TransactionEventType.CHARGE_SUCCESS
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
     event_cause = "No cause"
-    event_psp_reference = "psp:111:111"
 
     response_data = {
         "pspReference": expected_psp_reference,
         "event": {
-            "pspReference": event_psp_reference,
-            "result": TransactionEventReportResult.SUCCESS.upper(),
             "amount": event_amount,
             "type": event_type.upper(),
             "time": event_time,
@@ -281,8 +274,7 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 
     assert parsed_data.psp_reference == expected_psp_reference
     assert isinstance(parsed_data.event, TransactionRequestEventResponse)
-    assert parsed_data.event.psp_reference == event_psp_reference
-    assert parsed_data.event.result == TransactionEventReportResult.SUCCESS
+    assert parsed_data.event.psp_reference == expected_psp_reference
     assert parsed_data.event.amount == event_amount
     assert parsed_data.event.time == datetime.fromisoformat(event_time)
     assert parsed_data.event.external_url == event_url
@@ -294,14 +286,10 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     # given
     expected_psp_reference = "psp:122:222"
-    event_psp_reference = "psp:111:111"
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "pspReference": event_psp_reference,
-            "result": TransactionEventReportResult.SUCCESS.upper(),
-        },
+        "event": {"type": TransactionEventType.CHARGE_SUCCESS.upper()},
     }
 
     # when
@@ -312,14 +300,12 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
 
     assert parsed_data.psp_reference == expected_psp_reference
     assert isinstance(parsed_data.event, TransactionRequestEventResponse)
-    assert parsed_data.event.psp_reference == event_psp_reference
-    assert parsed_data.event.result == TransactionEventReportResult.SUCCESS
+    assert parsed_data.event.psp_reference == expected_psp_reference
+    assert parsed_data.event.type == TransactionEventType.CHARGE_SUCCESS
     assert parsed_data.event.amount is None
     assert parsed_data.event.time == timezone.now()
     assert parsed_data.event.external_url == ""
-    assert parsed_data.event.name == ""
     assert parsed_data.event.message == ""
-    assert parsed_data.event.type is None
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -357,8 +343,7 @@ def test_create_failed_transaction_event(transaction_item_created_by_app):
     # given
     cause = "Test failure"
     request_event = TransactionEvent.objects.create(
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
         transaction_id=transaction_item_created_by_app.id,
@@ -368,8 +353,7 @@ def test_create_failed_transaction_event(transaction_item_created_by_app):
     failed_event = create_failed_transaction_event(request_event, cause=cause)
 
     # then
-    assert failed_event.status == TransactionEventStatus.FAILURE
-    assert failed_event.type == TransactionEventActionType.CHARGE
+    assert failed_event.type == TransactionEventType.CHARGE_FAILURE
     assert failed_event.amount_value == request_event.amount_value
     assert failed_event.currency == request_event.currency
     assert failed_event.transaction_id == transaction_item_created_by_app.id
@@ -380,8 +364,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
 ):
     # given
     request_event = TransactionEvent.objects.create(
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
         transaction_id=transaction_item_created_by_app.id,
@@ -406,19 +389,16 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
 ):
     # given
     request_event = TransactionEvent.objects.create(
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
         transaction_id=transaction_item_created_by_app.id,
     )
     expected_psp_reference = "psp:122:222"
-    expected_event_psp_reference = "psp:111:111"
     response_data = {
         "pspReference": expected_psp_reference,
         "event": {
-            "pspReference": expected_event_psp_reference,
-            "result": TransactionEventReportResult.SUCCESS.upper(),
+            "type": TransactionEventType.CHARGE_SUCCESS.upper(),
         },
     }
 
@@ -431,14 +411,12 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
-    assert event.psp_reference == expected_event_psp_reference
-    assert event.status == TransactionEventReportResult.SUCCESS
+    assert event.psp_reference == expected_psp_reference
     assert event.amount_value == request_event.amount_value
     assert event.created_at == timezone.now()
     assert event.external_url == ""
-    assert event.name == ""
     assert event.message == ""
-    assert event.type == request_event.type
+    assert event.type == TransactionEventType.CHARGE_SUCCESS
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -447,27 +425,23 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 ):
     # given
     request_event = TransactionEvent.objects.create(
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
         transaction_id=transaction_item_created_by_app.id,
     )
 
     event_amount = 12.00
-    event_type = TransactionEventActionType.CHARGE
+    event_type = TransactionEventType.CHARGE_FAILURE
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
     event_cause = "No cause"
 
     expected_psp_reference = "psp:122:222"
-    expected_event_psp_reference = "psp:111:111"
 
     response_data = {
         "pspReference": expected_psp_reference,
         "event": {
-            "pspReference": expected_event_psp_reference,
-            "result": TransactionEventReportResult.FAILURE.upper(),
             "amount": event_amount,
             "type": event_type.upper(),
             "time": event_time,
@@ -485,13 +459,12 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
-    assert event.psp_reference == expected_event_psp_reference
-    assert event.status == TransactionEventReportResult.FAILURE
+    assert event.psp_reference == expected_psp_reference
     assert event.amount_value == event_amount
     assert event.created_at == datetime.fromisoformat(event_time)
     assert event.external_url == event_url
     assert event.message == event_cause
-    assert event.type == request_event.type
+    assert event.type == event_type
 
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(
@@ -499,8 +472,7 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
 ):
     # given
     request_event = TransactionEvent.objects.create(
-        status=TransactionEventStatus.REQUEST,
-        type=TransactionEventActionType.CHARGE,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
         transaction_id=transaction_item_created_by_app.id,
@@ -516,8 +488,7 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
     request_event.refresh_from_db()
     assert TransactionEvent.objects.count() == 2
 
-    assert failed_event.status == TransactionEventStatus.FAILURE
-    assert failed_event.type == TransactionEventActionType.CHARGE
+    assert failed_event.type == TransactionEventType.CHARGE_FAILURE
     assert failed_event.amount_value == request_event.amount_value
     assert failed_event.currency == request_event.currency
     assert failed_event.transaction_id == transaction_item_created_by_app.id

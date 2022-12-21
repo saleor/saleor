@@ -4,88 +4,100 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDERS_QUERY_WITH_AMOUNT_FIELDS = """
- query OrdersQuery {
-     orders(first: 1) {
-         edges {
-             node {
-                 totalAuthorized{
-                     amount
-                     currency
-                 }
-                 totalCaptured{
-                     amount
-                     currency
-                 }
-                 totalBalance{
-                     amount
-                     currency
-                 }
-                 shippingPrice {
-                     gross {
-                         amount
-                     }
-                 }
-                 totalRefunded{
-                     currency
-                     amount
-                 }
-                 totalRemainingGrant{
-                     currency
-                     amount
-                 }
-                 totalGrantedRefund{
-                     currency
-                     amount
-                 }
-                 totalPendingRefund{
-                     currency
-                     amount
-                 }
-                 transactions{
-                     reference
-                     pspReference
-                     type
-                     status
-                     modifiedAt
-                     createdAt
-                     authorizedAmount{
-                         amount
-                         currency
-                     }
-                     voidedAmount{
-                         currency
-                         amount
-                     }
-                     chargedAmount{
-                         currency
-                         amount
-                     }
-                     refundedAmount{
-                         currency
-                         amount
-                     }
-                     events{
-                        status
-                        pspReference
-                        reference
-                        name
-                        createdAt
-                     }
-                 }
-                 subtotal {
-                     net {
-                         amount
-                     }
-                 }
-                 total {
-                     net {
-                         amount
-                     }
-                 }
-             }
-         }
-     }
- }
+query OrdersQuery {
+    orders(first: 1) {
+        edges {
+            node {
+                totalAuthorized{
+                    amount
+                    currency
+                }
+                totalCaptured{
+                    amount
+                    currency
+                }
+                totalBalance{
+                    amount
+                    currency
+                }
+                shippingPrice {
+                    gross {
+                        amount
+                    }
+                }
+                totalRefunded{
+                    currency
+                    amount
+                }
+                totalRemainingGrant{
+                    currency
+                    amount
+                }
+                totalGrantedRefund{
+                    currency
+                    amount
+                }
+                totalRefundPending{
+                    currency
+                    amount
+                }
+                totalAuthorizePending{
+                    currency
+                    amount
+                }
+                totalChargePending{
+                    currency
+                    amount
+                }
+                totalCancelPending{
+                    currency
+                    amount
+                }
+                transactions{
+                    reference
+                    pspReference
+                    type
+                    status
+                    modifiedAt
+                    createdAt
+                    authorizedAmount{
+                        amount
+                        currency
+                    }
+                    voidedAmount{
+                        currency
+                        amount
+                    }
+                    chargedAmount{
+                        currency
+                        amount
+                    }
+                    refundedAmount{
+                        currency
+                        amount
+                    }
+                    events{
+                    status
+                    pspReference
+                    reference
+                    name
+                    createdAt
+                    }
+                }
+                subtotal {
+                    net {
+                        amount
+                    }
+                }
+                total {
+                    net {
+                        amount
+                    }
+                }
+            }
+        }
+    }
+}
  """
 
 
@@ -244,7 +256,7 @@ def test_order_total_refunded_query_with_payment_by_app(
     assert total_refunded["amount"] == first_refund_amount + second_refund_amount
 
 
-def test_order_total_pending_refund_query_with_transactions_by_staff_user(
+def test_order_total_refund_pending_query_with_transactions_by_staff_user(
     staff_api_client,
     permission_manage_orders,
     fulfilled_order,
@@ -254,11 +266,11 @@ def test_order_total_pending_refund_query_with_transactions_by_staff_user(
     first_pending_refund_amount = Decimal("10.00")
     second_pending_refund_amount = Decimal("12.50")
     order.payment_transactions.create(
-        pending_refund_value=first_pending_refund_amount,
+        refund_pending_value=first_pending_refund_amount,
         currency="USD",
     )
     order.payment_transactions.create(
-        pending_refund_value=second_pending_refund_amount, currency="USD"
+        refund_pending_value=second_pending_refund_amount, currency="USD"
     )
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -269,14 +281,14 @@ def test_order_total_pending_refund_query_with_transactions_by_staff_user(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_pending = order_data["totalPendingRefund"]
+    total_pending = order_data["totalRefundPending"]
     assert (
         total_pending["amount"]
         == first_pending_refund_amount + second_pending_refund_amount
     )
 
 
-def test_order_total_pending_refund_query_by_user(
+def test_order_total_refund_pending_query_by_user(
     user_api_client,
     fulfilled_order,
 ):
@@ -285,7 +297,7 @@ def test_order_total_pending_refund_query_by_user(
     query = """
     query Order($id: ID!) {
     order(id: $id) {
-            totalPendingRefund {
+            totalRefundPending {
                 currency
                 amount
             }
@@ -300,7 +312,7 @@ def test_order_total_pending_refund_query_by_user(
     assert_no_permission(response)
 
 
-def test_order_total_pending_refund_query_with_transactions_by_app(
+def test_order_total_refund_pending_query_with_transactions_by_app(
     app_api_client,
     permission_manage_orders,
     fulfilled_order,
@@ -310,11 +322,11 @@ def test_order_total_pending_refund_query_with_transactions_by_app(
     first_pending_refund_amount = Decimal("10.00")
     second_pending_refund_amount = Decimal("12.50")
     order.payment_transactions.create(
-        pending_refund_value=first_pending_refund_amount,
+        refund_pending_value=first_pending_refund_amount,
         currency="USD",
     )
     order.payment_transactions.create(
-        pending_refund_value=second_pending_refund_amount, currency="USD"
+        refund_pending_value=second_pending_refund_amount, currency="USD"
     )
 
     app_api_client.app.permissions.set([permission_manage_orders])
@@ -325,14 +337,14 @@ def test_order_total_pending_refund_query_with_transactions_by_app(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_pending = order_data["totalPendingRefund"]
+    total_pending = order_data["totalRefundPending"]
     assert (
         total_pending["amount"]
         == first_pending_refund_amount + second_pending_refund_amount
     )
 
 
-def test_order_total_pending_refund_query_with_payment_by_staff_user(
+def test_order_total_refund_pending_query_with_payment_by_staff_user(
     staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
 ):
     # given
@@ -348,11 +360,11 @@ def test_order_total_pending_refund_query_with_payment_by_staff_user(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_pending = order_data["totalPendingRefund"]
+    total_pending = order_data["totalRefundPending"]
     assert total_pending["amount"] == Decimal(0)
 
 
-def test_order_total_pending_refund_query_with_payment_by_app(
+def test_order_total_refund_pending_query_with_payment_by_app(
     app_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
 ):
     # given
@@ -368,7 +380,391 @@ def test_order_total_pending_refund_query_with_payment_by_app(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_pending = order_data["totalPendingRefund"]
+    total_pending = order_data["totalRefundPending"]
+    assert total_pending["amount"] == Decimal(0)
+
+
+def test_order_total_authorize_pending_query_with_transactions_by_staff_user(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    first_pending_authorize_amount = Decimal("10.00")
+    second_pending_authorize_amount = Decimal("12.50")
+    order.payment_transactions.create(
+        authorize_pending_value=first_pending_authorize_amount,
+        currency="USD",
+    )
+    order.payment_transactions.create(
+        authorize_pending_value=second_pending_authorize_amount, currency="USD"
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalAuthorizePending"]
+    assert (
+        total_pending["amount"]
+        == first_pending_authorize_amount + second_pending_authorize_amount
+    )
+
+
+def test_order_total_authorize_pending_query_by_user(
+    user_api_client,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    query = """
+    query Order($id: ID!) {
+    order(id: $id) {
+            totalAuthorizePending {
+                currency
+                amount
+            }
+        }
+    }
+    """
+    # when
+    response = user_api_client.post_graphql(
+        query, variables={"id": to_global_id_or_none(order)}
+    )
+    # then
+    assert_no_permission(response)
+
+
+def test_order_total_authorize_pending_query_with_transactions_by_app(
+    app_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    first_pending_authorize_amount = Decimal("10.00")
+    second_pending_authorize_amount = Decimal("12.50")
+    order.payment_transactions.create(
+        authorize_pending_value=first_pending_authorize_amount,
+        currency="USD",
+    )
+    order.payment_transactions.create(
+        authorize_pending_value=second_pending_authorize_amount, currency="USD"
+    )
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalAuthorizePending"]
+    assert (
+        total_pending["amount"]
+        == first_pending_authorize_amount + second_pending_authorize_amount
+    )
+
+
+def test_order_total_authorize_pending_query_with_payment_by_staff_user(
+    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    payment.is_active = True
+    payment.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalAuthorizePending"]
+    assert total_pending["amount"] == Decimal(0)
+
+
+def test_order_total_authorize_pending_query_with_payment_by_app(
+    app_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    payment.is_active = True
+    payment.save()
+
+    app_api_client.app.permissions.add(permission_manage_orders)
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalAuthorizePending"]
+    assert total_pending["amount"] == Decimal(0)
+
+
+def test_order_total_charge_pending_query_with_transactions_by_staff_user(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    first_pending_charge_amount = Decimal("10.00")
+    second_pending_charge_amount = Decimal("12.50")
+    order.payment_transactions.create(
+        charge_pending_value=first_pending_charge_amount,
+        currency="USD",
+    )
+    order.payment_transactions.create(
+        charge_pending_value=second_pending_charge_amount, currency="USD"
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalChargePending"]
+    assert (
+        total_pending["amount"]
+        == first_pending_charge_amount + second_pending_charge_amount
+    )
+
+
+def test_order_total_charge_pending_query_by_user(
+    user_api_client,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    query = """
+    query Order($id: ID!) {
+    order(id: $id) {
+            totalChargePending {
+                currency
+                amount
+            }
+        }
+    }
+    """
+    # when
+    response = user_api_client.post_graphql(
+        query, variables={"id": to_global_id_or_none(order)}
+    )
+    # then
+    assert_no_permission(response)
+
+
+def test_order_total_charge_pending_query_with_transactions_by_app(
+    app_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    first_pending_charge_amount = Decimal("10.00")
+    second_pending_charge_amount = Decimal("12.50")
+    order.payment_transactions.create(
+        charge_pending_value=first_pending_charge_amount,
+        currency="USD",
+    )
+    order.payment_transactions.create(
+        charge_pending_value=second_pending_charge_amount, currency="USD"
+    )
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalChargePending"]
+    assert (
+        total_pending["amount"]
+        == first_pending_charge_amount + second_pending_charge_amount
+    )
+
+
+def test_order_total_charge_pending_query_with_payment_by_staff_user(
+    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    payment.is_active = True
+    payment.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalChargePending"]
+    assert total_pending["amount"] == Decimal(0)
+
+
+def test_order_total_charge_pending_query_with_payment_by_app(
+    app_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    payment.is_active = True
+    payment.save()
+
+    app_api_client.app.permissions.add(permission_manage_orders)
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalChargePending"]
+    assert total_pending["amount"] == Decimal(0)
+
+
+def test_order_total_cancel_pending_query_with_transactions_by_staff_user(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    first_pending_cancel_amount = Decimal("10.00")
+    second_pending_cancel_amount = Decimal("12.50")
+    order.payment_transactions.create(
+        cancel_pending_value=first_pending_cancel_amount,
+        currency="USD",
+    )
+    order.payment_transactions.create(
+        cancel_pending_value=second_pending_cancel_amount, currency="USD"
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalCancelPending"]
+    assert (
+        total_pending["amount"]
+        == first_pending_cancel_amount + second_pending_cancel_amount
+    )
+
+
+def test_order_total_cancel_pending_query_by_user(
+    user_api_client,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    query = """
+    query Order($id: ID!) {
+    order(id: $id) {
+            totalCancelPending {
+                currency
+                amount
+            }
+        }
+    }
+    """
+    # when
+    response = user_api_client.post_graphql(
+        query, variables={"id": to_global_id_or_none(order)}
+    )
+    # then
+    assert_no_permission(response)
+
+
+def test_order_total_cancel_pending_query_with_transactions_by_app(
+    app_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    first_pending_cancel_amount = Decimal("10.00")
+    second_pending_cancel_amount = Decimal("12.50")
+    order.payment_transactions.create(
+        cancel_pending_value=first_pending_cancel_amount,
+        currency="USD",
+    )
+    order.payment_transactions.create(
+        cancel_pending_value=second_pending_cancel_amount, currency="USD"
+    )
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalCancelPending"]
+    assert (
+        total_pending["amount"]
+        == first_pending_cancel_amount + second_pending_cancel_amount
+    )
+
+
+def test_order_total_cancel_pending_query_with_payment_by_staff_user(
+    staff_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    payment.is_active = True
+    payment.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalCancelPending"]
+    assert total_pending["amount"] == Decimal(0)
+
+
+def test_order_total_cancel_pending_query_with_payment_by_app(
+    app_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    payment.is_active = True
+    payment.save()
+
+    app_api_client.app.permissions.add(permission_manage_orders)
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_pending = order_data["totalCancelPending"]
     assert total_pending["amount"] == Decimal(0)
 
 
@@ -387,7 +783,7 @@ def test_order_total_remaining_grant_query_with_transactions_by_staff_user(
         user=staff_user,
     )
     order.payment_transactions.create(
-        pending_refund_value=pending_refund_amount,
+        refund_pending_value=pending_refund_amount,
         currency="USD",
     )
     order.payment_transactions.create(refunded_value=refund_amount, currency="USD")
@@ -445,7 +841,7 @@ def test_order_total_remaining_grant_query_with_transactions_by_app(
         user=staff_user,
     )
     order.payment_transactions.create(
-        pending_refund_value=pending_refund_amount,
+        refund_pending_value=pending_refund_amount,
         currency="USD",
     )
     order.payment_transactions.create(refunded_value=refund_amount, currency="USD")
