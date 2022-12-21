@@ -60,6 +60,14 @@ TRANSACTION_QUERY = """
                     amount
                 }
                 type
+                createdBy{
+                    ... on User {
+                        id
+                    }
+                    ... on App {
+                        id
+                    }
+                }
             }
             status
             type
@@ -67,11 +75,13 @@ TRANSACTION_QUERY = """
             order {
                 id
             }
-            user {
-                id
-            }
-            app {
-                id
+            createdBy{
+                ... on User {
+                    id
+                }
+                ... on App {
+                    id
+                }
             }
         }
     }
@@ -100,18 +110,10 @@ def _assert_transaction_fields(content, transaction_item, event):
         assert data["order"] is None
 
 
-def _assert_transaction_fields_created_by_app(content, transaction_item, event):
+def _assert_transaction_fields_created_by(content, transaction_item, event, created_by):
     _assert_transaction_fields(content, transaction_item, event)
     data = content["data"]["transaction"]
-    assert data["app"]["id"] == to_global_id_or_none(transaction_item.app)
-    assert not data["user"]
-
-
-def _assert_transaction_fields_created_by_user(content, transaction_item, event):
-    _assert_transaction_fields(content, transaction_item, event)
-    data = content["data"]["transaction"]
-    assert data["user"]["id"] == to_global_id_or_none(transaction_item.user)
-    assert not data["app"]
+    assert data["createdBy"]["id"] == to_global_id_or_none(created_by)
 
 
 def test_transaction_created_by_app_query_by_app(
@@ -129,8 +131,11 @@ def test_transaction_created_by_app_query_by_app(
 
     # then
     content = get_graphql_content(response)
-    _assert_transaction_fields_created_by_app(
-        content, transaction_item_created_by_app, event
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_app,
+        event,
+        transaction_item_created_by_app.app,
     )
 
 
@@ -152,8 +157,11 @@ def test_transaction_creted_by_app_query_no_order(
 
     # then
     content = get_graphql_content(response)
-    _assert_transaction_fields_created_by_app(
-        content, transaction_item_created_by_app, event
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_app,
+        event,
+        transaction_item_created_by_app.app,
     )
 
 
@@ -172,8 +180,11 @@ def test_transaction_created_by_app_query_by_staff(
 
     # then
     content = get_graphql_content(response)
-    _assert_transaction_fields_created_by_app(
-        content, transaction_item_created_by_app, event
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_app,
+        event,
+        transaction_item_created_by_app.app,
     )
 
 
@@ -212,8 +223,11 @@ def test_transaction_created_by_user_query_by_app(
 
     # then
     content = get_graphql_content(response)
-    _assert_transaction_fields_created_by_user(
-        content, transaction_item_created_by_user, event
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_user,
+        event,
+        transaction_item_created_by_user.user,
     )
 
 
@@ -242,8 +256,11 @@ def test_transaction_creted_by_user_query_no_order(
 
     # then
     content = get_graphql_content(response)
-    _assert_transaction_fields_created_by_user(
-        content, transaction_item_created_by_user, event
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_user,
+        event,
+        transaction_item_created_by_user.user,
     )
 
 
@@ -269,8 +286,11 @@ def test_transaction_created_by_user_query_by_staff(
 
     # then
     content = get_graphql_content(response)
-    _assert_transaction_fields_created_by_user(
-        content, transaction_item_created_by_user, event
+    _assert_transaction_fields_created_by(
+        content,
+        transaction_item_created_by_user,
+        event,
+        transaction_item_created_by_user.user,
     )
 
 
@@ -341,6 +361,7 @@ def test_transaction_event_by_user(
         type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
+        user=staff_api_client.user,
     )
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
@@ -367,6 +388,7 @@ def test_transaction_event_by_user(
     assert event_data["amount"]["amount"] == event.amount_value
     assert event_data["amount"]["currency"] == event.currency
     assert event_data["type"] == event.type.upper()
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
 
 def test_transaction_event_by_app(
@@ -385,6 +407,7 @@ def test_transaction_event_by_app(
         type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
+        app=app_api_client.app,
     )
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
@@ -411,3 +434,4 @@ def test_transaction_event_by_app(
     assert event_data["amount"]["amount"] == event.amount_value
     assert event_data["amount"]["currency"] == event.currency
     assert event_data["type"] == event.type.upper()
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)

@@ -2,11 +2,7 @@ import graphene
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AccountPermissions,
-    AuthorizationFilters,
-    OrderPermissions,
-)
+from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..account.dataloaders import UserByUserIdLoader
@@ -303,6 +299,11 @@ class TransactionEvent(ModelObjectType):
         description="The type of action related to this event." + ADDED_IN_38,
     )
 
+    created_by = graphene.Field(
+        "saleor.graphql.core.types.user_or_app.UserOrApp",
+        description=("User or App that created the transaction event." + ADDED_IN_310),
+    )
+
     class Meta:
         description = "Represents transaction's event."
         interfaces = [relay.Node]
@@ -323,6 +324,14 @@ class TransactionEvent(ModelObjectType):
     @staticmethod
     def resolve_name(root: models.TransactionEvent, info):
         return root.message
+
+    @staticmethod
+    def resolve_created_by(root: models.TransactionItem, info):
+        if root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id)
+        if root.user_id:
+            return UserByUserIdLoader(info.context).load(root.user_id)
+        return None
 
 
 class TransactionItem(ModelObjectType):
@@ -399,27 +408,9 @@ class TransactionItem(ModelObjectType):
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
     )
-    user = graphene.Field(
-        "saleor.graphql.account.types.User",
-        description=(
-            "User who created the transaction."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
-            + "\n\nRequires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS.name}, "
-            f"{AccountPermissions.MANAGE_STAFF.name}, "
-            f"{AuthorizationFilters.OWNER.name}."
-        ),
-    )
-    app = PermissionsField(
-        "saleor.graphql.app.types.App",
-        description=(
-            "App that created the transaction." + ADDED_IN_38 + PREVIEW_FEATURE
-        ),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
+    created_by = graphene.Field(
+        "saleor.graphql.core.types.user_or_app.UserOrApp",
+        description=("User or App that created the transaction." + ADDED_IN_310),
     )
     external_url = graphene.String(
         description=(
@@ -483,26 +474,11 @@ class TransactionItem(ModelObjectType):
         return TransactionEventByTransactionIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_user(root: models.TransactionItem, info):
-        def _resolve_user(event_user):
-            requester = get_user_or_app_from_context(info.context)
-            if (
-                requester == event_user
-                or requester.has_perm(AccountPermissions.MANAGE_USERS)
-                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
-            ):
-                return event_user
-            return None
-
-        if not root.user_id:
-            return None
-
-        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
-
-    @staticmethod
-    def resolve_app(root: models.TransactionItem, info):
+    def resolve_created_by(root: models.TransactionItem, info):
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
+        if root.user_id:
+            return UserByUserIdLoader(info.context).load(root.user_id)
         return None
 
     @staticmethod

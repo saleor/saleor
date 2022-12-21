@@ -873,7 +873,11 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def create_transaction_event(
-        cls, transaction_event_input: dict, transaction: payment_models.TransactionItem
+        cls,
+        transaction_event_input: dict,
+        transaction: payment_models.TransactionItem,
+        user,
+        app,
     ) -> payment_models.TransactionEvent:
         reference = transaction_event_input.pop("reference", None)
         psp_reference = transaction_event_input.get("psp_reference", reference)
@@ -882,6 +886,8 @@ class TransactionCreate(BaseMutation):
             psp_reference=psp_reference,
             message=transaction_event_input.get("name", ""),
             transaction=transaction,
+            user=user if user and user.is_authenticated else None,
+            app=app,
         )
 
     @classmethod
@@ -930,7 +936,7 @@ class TransactionCreate(BaseMutation):
             cls.add_amounts_to_order(order_id, transaction_data)
 
         if transaction_event_data:
-            cls.create_transaction_event(transaction_event_data, transaction)
+            cls.create_transaction_event(transaction_event_data, transaction, user, app)
         return TransactionCreate(transaction=transaction)
 
 
@@ -1082,7 +1088,7 @@ class TransactionUpdate(TransactionCreate):
             cls.update_transaction(instance, transaction_data)
 
         if transaction_event_data := data.get("transaction_event"):
-            cls.create_transaction_event(transaction_event_data, instance)
+            cls.create_transaction_event(transaction_event_data, instance, user, app)
             if instance.order_id:
                 reference = transaction_event_data.pop("reference", None)
                 psp_reference = transaction_event_data.get("psp_reference", reference)
