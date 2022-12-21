@@ -32,7 +32,7 @@ class Command(BaseCommand):
         self.delete_invoices()
         self.delete_gift_cards()
         self.delete_orders()
-        
+
         should_delete_customers = options.get("delete_customers")
         if should_delete_customers:
             self.delete_customers()
@@ -58,7 +58,7 @@ class Command(BaseCommand):
         payments = Payment.objects.all()
         payments._raw_delete(payments.db)
         self.stdout.write("Removed payments and trnsactions")
-    
+
     def delete_invoices(self):
         invoice_events = InvoiceEvent.objects.all()
         invoice_events._raw_delete(invoice_events.db)
@@ -107,10 +107,10 @@ class Command(BaseCommand):
         customer_addresses = Address.objects.filter(user_addresses__in=customers)
         customer_events = CustomerEvent.objects.all()
         customer_notes = CustomerNote.objects.all()
-        
+
         customer_addresses.delete()
         customer_events._raw_delete(customer_events.db)
         customer_notes._raw_delete(customer_notes.db)
-        
+
         customers._raw_delete(customers.db)
         self.stdout.write("Removed customers")
