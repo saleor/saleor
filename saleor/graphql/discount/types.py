@@ -13,6 +13,7 @@ from ..channel.types import (
 )
 from ..core import types
 from ..core.connection import CountableConnection, create_connection_slice
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import PositiveDecimal
@@ -140,10 +141,13 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Sale], info, **kwargs):
-        qs = root.node.variants.all()
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        readonly_qs = root.node.variants.using(
+            get_database_connection_name(info.context)
+        ).all()
+
+        readonly_qs = ChannelQsContext(qs=readonly_qs, channel_slug=root.channel_slug)
         return create_connection_slice(
-            qs, info, kwargs, ProductVariantCountableConnection
+            readonly_qs, info, kwargs, ProductVariantCountableConnection
         )
 
     @staticmethod
