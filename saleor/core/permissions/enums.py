@@ -3,7 +3,6 @@ from typing import Iterable, List
 
 from django.db.models import QuerySet
 
-# TODO Owczar: consider move this file to saleor.permissions
 from ...permission.models import Permission
 
 

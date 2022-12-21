@@ -105,6 +105,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("account", "0071_user_external_reference"),
         ("app", "0017_app_audience"),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [

@@ -79,8 +79,7 @@ class Permission(models.Model):
         ContentType,
         models.CASCADE,
         verbose_name=_("content type"),
-        # TODO Owczar: Remove related_name after drop django auth.
-        related_name="saleor_content_type",
+        related_name="content_type",
     )
     codename = models.CharField(_("codename"), max_length=100)
 
