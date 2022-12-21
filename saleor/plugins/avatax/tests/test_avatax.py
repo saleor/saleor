@@ -3505,7 +3505,7 @@ def test_show_taxes_on_storefront(plugin_configuration):
 
 @patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_order_created(
+def test_order_confirmed(
     api_post_request_task_mock, order, order_line, plugin_configuration
 ):
     # given
@@ -3521,7 +3521,7 @@ def test_order_created(
     manager = get_plugins_manager()
 
     # when
-    manager.order_created(order)
+    manager.order_confirmed(order)
 
     # then
     address = order.billing_address
@@ -4879,7 +4879,7 @@ def test_plugin_tax_override_setting(
     manager = get_plugins_manager()
 
     # when
-    manager.order_created(order_line.order)
+    manager.order_confirmed(order_line.order)
 
     # then
     transaction = api_post_request_task_mock.call_args[0][1]["createTransactionModel"]
