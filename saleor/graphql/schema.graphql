@@ -19005,7 +19005,7 @@ input TransactionEventInput {
   """
   PSP Reference related to this action.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.10.
   """
   pspReference: String
 

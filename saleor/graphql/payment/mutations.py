@@ -704,7 +704,7 @@ class TransactionEventInput(graphene.InputObjectType):
     )
 
     psp_reference = graphene.String(
-        description=("PSP Reference related to this action." + ADDED_IN_38)
+        description=("PSP Reference related to this action." + ADDED_IN_310)
     )
     name = graphene.String(description="Name of the transaction.")
 

@@ -19,9 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - `transactionCreate` will store app/user who perform creation action.
   - `[FEATURE PREVIEW BREAKING CHANGE]` - for all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
   - Add new fields `pspReference`, `type`, `amount`, `referenceUrl` to `TransactionEvent`.
-  - Add `pspReference` to `TransactionEventInput`
   - Depreceate `reference` field in `TransactionEventInput`, `TransactionEvent`. Use `pspReference` instead.
-  - Add new field `pspReference` to `TransactionCreateInput`, `TransactionUpdateInput`, and `TransactionItem`.
+  - Add new field `pspReference` to `TransactionCreateInput`, `TransactionUpdateInput`, and `TransactionItem`, `TransactionEventInput`.
   - Add new field `referenceUrl` to `TrnsactionItem`.
   - Depreceate `reference` field in `TransactionCreateInput`, `TransactionUpdateInput`, and `TransactionItem`. Use `pspReference` instead. The field will be removed in Saleor 3.9, as the API is a preview feature.
   - `[FEATURE PREVIEW BREAKING CHANGE]` - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
