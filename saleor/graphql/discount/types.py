@@ -141,7 +141,9 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Sale], info, **kwargs):
-        readonly_qs = root.node.variants.using(get_database_connection_name(info)).all()
+        readonly_qs = root.node.variants.using(
+            get_database_connection_name(info.context)
+        ).all()
 
         readonly_qs = ChannelQsContext(qs=readonly_qs, channel_slug=root.channel_slug)
         return create_connection_slice(
