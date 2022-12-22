@@ -1,3 +1,4 @@
+from typing import Generic, Optional, Type, TypeVar
 from uuid import UUID
 
 from django.db.models import Model, Q
@@ -10,7 +11,10 @@ class ModelObjectOptions(ObjectTypeOptions):
     model = None
 
 
-class ModelObjectType(ObjectType):
+MT = TypeVar("MT", bound=Model)
+
+
+class ModelObjectType(Generic[MT], ObjectType):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
@@ -46,7 +50,7 @@ class ModelObjectType(ObjectType):
         )
 
     @classmethod
-    def get_node(cls, _, id):
+    def get_node(cls, _, id) -> Optional[MT]:
         model = cls._meta.model
         type_name = cls._meta.name
         lookup = Q(pk=id)
@@ -67,5 +71,5 @@ class ModelObjectType(ObjectType):
             return None
 
     @classmethod
-    def get_model(cls):
+    def get_model(cls) -> Type[MT]:
         return cls._meta.model

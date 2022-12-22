@@ -5,6 +5,7 @@ from .....attribute import AttributeType
 from .....core.permissions import ProductTypePermissions
 from .....product import ProductTypeKind, models
 from .....product.error_codes import ProductErrorCode
+from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_INPUT
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
@@ -84,8 +85,8 @@ class ProductTypeCreate(ModelMutation):
         return data.get("kind") or ProductTypeKind.NORMAL
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         cleaned_input["kind"] = cls.clean_product_kind(instance, cleaned_input)
 
         weight = cleaned_input.get("weight")
@@ -94,7 +95,7 @@ class ProductTypeCreate(ModelMutation):
                 {
                     "weight": ValidationError(
                         "Product type can't have negative weight.",
-                        code=ProductErrorCode.INVALID,
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
@@ -133,7 +134,7 @@ class ProductTypeCreate(ModelMutation):
             raise ValidationError(errors)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         product_attributes = cleaned_data.get("product_attributes")
         variant_attributes = cleaned_data.get("variant_attributes")

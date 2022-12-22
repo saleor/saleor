@@ -77,7 +77,7 @@ def test_owner_field_is_missing(prefix, rf, staff_user, settings):
         staff_user,
         JWT_ACCESS_TYPE,
         settings.JWT_TTL_ACCESS,
-        token_owner=None,  # type: ignore
+        token_owner=None,
     )
     token = jwt_encode(payload)
     request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {token}")

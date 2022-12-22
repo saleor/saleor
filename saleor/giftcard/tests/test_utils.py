@@ -487,7 +487,7 @@ def test_fulfill_non_shippable_gift_cards(
 
     # then
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {
                 "order_line": gift_card_non_shippable_order_line,
                 "quantity": gift_card_non_shippable_order_line.quantity,
@@ -533,7 +533,7 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
     )
 
     fulfillment_lines_for_warehouses = {
-        str(stock.warehouse.pk): [
+        stock.warehouse.pk: [
             {
                 "order_line": gift_card_non_shippable_order_line,
                 "quantity": gift_card_non_shippable_order_line.quantity,

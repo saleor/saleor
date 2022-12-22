@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
@@ -59,8 +60,8 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         if cleaned_input.get("value"):
             cleaned_input["file_url"] = ""
             cleaned_input["content_type"] = ""
@@ -69,8 +70,8 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        return super(AttributeValueCreate, cls).perform_mutation(_root, info, **data)
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
+        return super(AttributeValueCreate, cls).perform_mutation(root, info, **data)
 
     @classmethod
     def success_response(cls, instance):
@@ -79,7 +80,7 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         return response
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         with transaction.atomic():
             variants = product_models.ProductVariant.objects.filter(
                 Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))

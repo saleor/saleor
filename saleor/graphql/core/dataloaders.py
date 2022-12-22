@@ -1,4 +1,4 @@
-from typing import Generic, Iterable, List, Optional, TypeVar, Union
+from typing import Generic, Iterable, List, TypeVar, Union
 
 import opentracing
 import opentracing.tags
@@ -14,7 +14,7 @@ R = TypeVar("R")
 
 class DataLoader(BaseLoader, Generic[K, R]):
     context_key: str
-    context: Optional[SaleorContext] = None
+    context: SaleorContext
     database_connection_name: str
 
     def __new__(cls, context: SaleorContext):
@@ -27,12 +27,12 @@ class DataLoader(BaseLoader, Generic[K, R]):
             context.dataloaders[key] = super().__new__(cls)
         loader = context.dataloaders[key]
         assert isinstance(loader, cls)
-        cls.database_connection_name = get_database_connection_name(context)
         return loader
 
-    def __init__(self, context):
-        if self.context != context:
+    def __init__(self, context: SaleorContext) -> None:
+        if getattr(self, "context", None) != context:
             self.context = context
+            self.database_connection_name = get_database_connection_name(context)
             super().__init__()
 
     def batch_load_fn(  # pylint: disable=method-hidden

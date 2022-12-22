@@ -135,6 +135,8 @@ def _clean_extension_permissions(extension, app_permissions, errors):
     try:
         extension_permissions = clean_permissions(permissions_data, app_permissions)
     except ValidationError as e:
+        if e.params is None:
+            e.params = {}
         e.params["label"] = extension.get("label")
         errors["extensions"].append(e)
         return

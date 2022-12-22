@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def get_image_or_proxy_url(
     thumbnail: Optional["Thumbnail"],
-    instance_id: int,
+    instance_id: str,
     object_type: str,
     size: int,
     format: Optional[str],
@@ -29,7 +29,7 @@ def get_image_or_proxy_url(
 
 
 def prepare_image_proxy_url(
-    instance_pk: int, object_type: str, size: int, format: Optional[str]
+    instance_pk: str, object_type: str, size: int, format: Optional[str]
 ):
     instance_id = graphene.Node.to_global_id(object_type, instance_pk)
     kwargs = {"instance_id": instance_id, "size": size}

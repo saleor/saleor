@@ -1,7 +1,6 @@
 import graphene
 
 from ....checkout import AddressType
-from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     change_billing_address_in_checkout,
@@ -9,6 +8,7 @@ from ....checkout.utils import (
 )
 from ....core.tracing import traced_atomic_transaction
 from ...account.types import AddressInput
+from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_35,
@@ -61,24 +61,19 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(
+    def perform_mutation(  # type: ignore[override]
         cls,
         _root,
-        info,
+        info: ResolveInfo,
+        /,
+        *,
         billing_address,
         validation_rules=None,
         checkout_id=None,
         token=None,
         id=None,
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         address_validation_rules = validation_rules or {}
         billing_address = cls.validate_address(

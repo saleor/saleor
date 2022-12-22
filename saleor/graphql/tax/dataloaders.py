@@ -1,5 +1,6 @@
 from collections import defaultdict
 from decimal import Decimal
+from typing import List
 
 from django.db.models import Exists, OuterRef
 from promise import Promise
@@ -34,7 +35,7 @@ class TaxConfigurationPerCountryByTaxConfigurationIDLoader(DataLoader):
         return [one_to_many[key] for key in keys]
 
 
-class TaxConfigurationByChannelId(DataLoader):
+class TaxConfigurationByChannelId(DataLoader[int, TaxConfiguration]):
     context_key = "tax_configuration_by_channel_id"
 
     def batch_load(self, keys):
@@ -44,7 +45,7 @@ class TaxConfigurationByChannelId(DataLoader):
         return [tax_configs[key] for key in keys]
 
 
-class TaxClassCountryRateByTaxClassIDLoader(DataLoader):
+class TaxClassCountryRateByTaxClassIDLoader(DataLoader[int, List[TaxClassCountryRate]]):
     context_key = "tax_class_country_rate_by_tax_class_id"
 
     def batch_load(self, keys):

@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from ..product.models import Collection, Product
     from .models import Voucher
 
-CatalogueInfo = DefaultDict[str, Set[int]]
+CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
@@ -288,7 +288,7 @@ def fetch_categories(
     for sale_pk, category_pks in category_map.items():
         subcategory_map[sale_pk] = set(
             Category.tree.filter(pk__in=category_pks)
-            .get_descendants(include_self=True)  # type: ignore
+            .get_descendants(include_self=True)
             .values_list("pk", flat=True)
         )
     return subcategory_map

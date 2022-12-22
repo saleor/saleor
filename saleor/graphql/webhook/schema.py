@@ -2,6 +2,7 @@ import graphene
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ..app.dataloaders import app_promise_callback
+from ..core import ResolveInfo
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import NonNullList
@@ -46,16 +47,16 @@ class WebhookQueries(graphene.ObjectType):
 
     @staticmethod
     @app_promise_callback
-    def resolve_webhook_sample_payload(_root, info, app, **data):
+    def resolve_webhook_sample_payload(_root, info: ResolveInfo, app, **data):
         return resolve_sample_payload(info, data["event_type"], app)
 
     @staticmethod
     @app_promise_callback
-    def resolve_webhook(_root, info, app, **data):
+    def resolve_webhook(_root, info: ResolveInfo, app, **data):
         return resolve_webhook(info, data["id"], app)
 
     @staticmethod
-    def resolve_webhook_events(_root, _info):
+    def resolve_webhook_events(_root, _info: ResolveInfo):
         return resolve_webhook_events()
 
 

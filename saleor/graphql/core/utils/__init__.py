@@ -1,7 +1,7 @@
 import binascii
 import os
 import secrets
-from typing import Union
+from typing import Literal, Tuple, Type, Union, overload
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -37,9 +37,27 @@ def get_duplicated_values(values):
     return {value for value in values if values.count(value) > 1}
 
 
+@overload
 def from_global_id_or_error(
     global_id: str,
     only_type: Union[ObjectType, str, None] = None,
+    raise_error: Literal[True] = True,
+) -> Tuple[str, str]:
+    ...
+
+
+@overload
+def from_global_id_or_error(
+    global_id: str,
+    only_type: Union[Type[ObjectType], str, None] = None,
+    raise_error: bool = False,
+) -> Union[Tuple[str, str], Tuple[str, None]]:
+    ...
+
+
+def from_global_id_or_error(
+    global_id: str,
+    only_type: Union[Type[ObjectType], str, None] = None,
     raise_error: bool = False,
 ):
     """Resolve global ID or raise GraphQLError.

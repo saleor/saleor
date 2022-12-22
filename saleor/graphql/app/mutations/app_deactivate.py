@@ -21,10 +21,10 @@ class AppDeactivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        app = cls.get_instance(info, **data)
+    def perform_mutation(cls, _root, info, /, *, id):
+        app = cls.get_instance(info, id=id)
         app.is_active = False
-        cls.save(info, app, cleaned_input=None)
+        cls.save(info, app, None)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)

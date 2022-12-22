@@ -28,7 +28,7 @@ def generate_fake_address() -> "Address":
     """
     fake_address = create_address(save=False)
     # Prevent accidental saving of the instance
-    fake_address.save = _fake_save  # type: ignore
+    fake_address.save = _fake_save
     return fake_address
 
 
@@ -39,7 +39,7 @@ def generate_fake_user() -> "User":
     """
     fake_user = create_fake_user(user_password=None, save=False)
     # Prevent accidental saving of the instance
-    fake_user.save = _fake_save  # type: ignore
+    fake_user.save = _fake_save
     return fake_user
 
 
@@ -55,7 +55,7 @@ def anonymize_order(order: "Order") -> "Order":
     """
     anonymized_order = copy.deepcopy(order)
     # Prevent accidental saving of the instance
-    anonymized_order.save = _fake_save  # type: ignore
+    anonymized_order.save = _fake_save  # type: ignore[assignment]
     fake_user = generate_fake_user()
     anonymized_order.user = fake_user
     anonymized_order.user_email = fake_user.email
@@ -74,7 +74,7 @@ def anonymize_checkout(checkout: "Checkout") -> "Checkout":
     """
     anonymized_checkout = copy.deepcopy(checkout)
     # Prevent accidental saving of the instance
-    anonymized_checkout.save = _fake_save  # type: ignore
+    anonymized_checkout.save = _fake_save  # type: ignore[assignment]
     fake_user = generate_fake_user()
     anonymized_checkout.user = fake_user
     anonymized_checkout.email = fake_user.email

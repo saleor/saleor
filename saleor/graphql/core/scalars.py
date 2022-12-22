@@ -94,7 +94,7 @@ class WeightScalar(graphene.Scalar):
 
     @staticmethod
     def parse_literal_object(node):
-        value = 0
+        value = decimal.Decimal(0)
         unit = get_default_weight_unit()
 
         for field in node.fields:

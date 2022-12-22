@@ -2,6 +2,7 @@ import graphene
 
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
@@ -26,6 +27,6 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_deleted, instance)

@@ -120,7 +120,7 @@ def calculate_undiscounted_base_line_unit_price(
 
 def base_checkout_delivery_price(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"] = None,
+    lines: Optional[Iterable["CheckoutLineInfo"]] = None,
 ) -> Money:
     """Calculate base (untaxed) price for any kind of delivery method."""
     currency = checkout_info.checkout.currency
@@ -145,7 +145,7 @@ def base_checkout_delivery_price(
 
 def base_checkout_undiscounted_delivery_price(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"] = None,
+    lines: Optional[Iterable["CheckoutLineInfo"]] = None,
 ) -> Money:
     """Calculate base (untaxed) undiscounted price for any kind of delivery method."""
     from .fetch import ShippingMethodInfo
@@ -164,7 +164,7 @@ def base_checkout_undiscounted_delivery_price(
 def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: "ShippingMethodInfo",
-    lines: Iterable["CheckoutLineInfo"] = None,
+    lines: Optional[Iterable["CheckoutLineInfo"]] = None,
 ) -> Money:
     """Return checkout shipping price."""
     from .fetch import CheckoutLineInfo

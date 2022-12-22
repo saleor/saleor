@@ -31,8 +31,8 @@ class AppUpdate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls)
+    def clean_input(cls, info, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         requestor = get_user_or_app_from_context(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, instance

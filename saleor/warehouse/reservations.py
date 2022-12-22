@@ -131,7 +131,7 @@ def reserve_stocks(
         .exclude_checkout_lines(checkout_lines)
         .values("stock")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
+    )
     quantity_reservation_for_stocks: Dict = defaultdict(int)
     for reservation in quantity_reservation_list:
         quantity_reservation_for_stocks[reservation["stock"]] += reservation[
@@ -223,7 +223,7 @@ def _create_stock_reservations(
             InsufficientStockData(
                 variant=variant,
                 available_quantity=quantity,
-            )  # type: ignore
+            )
         )
         return insufficient_stocks, []
 
@@ -410,7 +410,7 @@ def get_listings_reservations(
         .exclude_checkout_lines(checkout_lines)
         .values("product_variant_channel_listing")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
+    )
     listings_reservations: Dict = defaultdict(int)
 
     for reservation in quantity_reservation_list:

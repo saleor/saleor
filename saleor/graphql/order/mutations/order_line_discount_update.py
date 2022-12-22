@@ -7,6 +7,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.types import OrderError
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
@@ -36,7 +37,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         error_type_field = "order_errors"
 
     @classmethod
-    def validate(cls, info, order, order_line, input):
+    def validate(cls, info: ResolveInfo, order, order_line, input):
         cls.validate_order(info, order)
         input["value"] = input.get("value") or order_line.unit_discount_value
         input["value_type"] = input.get("value_type") or order_line.unit_discount_type
@@ -46,12 +47,11 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, order_line_id, input
+    ):
 
-        order_line = cls.get_node_or_error(
-            info, data.get("order_line_id"), only_type=OrderLine
-        )
-        input = data.get("input")
+        order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
         cls.validate(info, order, order_line, input)
         reason = input.get("reason")

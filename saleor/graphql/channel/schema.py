@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import AuthorizationFilters
+from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
 from ..core.types import NonNullList
@@ -39,11 +40,11 @@ class ChannelQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_channel(_root, info, *, id=None, slug=None, **kwargs):
+    def resolve_channel(_root, info: ResolveInfo, *, id=None, slug=None, **kwargs):
         return resolve_channel(info, id, slug)
 
     @staticmethod
-    def resolve_channels(_root, _info, **kwargs):
+    def resolve_channels(_root, _info: ResolveInfo, **kwargs):
         return resolve_channels()
 
 

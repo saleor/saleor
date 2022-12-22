@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Iterable
+from typing import Any, Dict, Optional
 
 import graphene
 from django.core.serializers.json import Serializer as JSONSerializer
@@ -22,7 +23,7 @@ class PythonSerializer(PythonBaseSerializer):
     def get_dump_object(self, obj):
         obj_id = graphene.Node.to_global_id(obj._meta.object_name, obj.id)
         data = OrderedDict([("type", str(obj._meta.object_name)), ("id", obj_id)])
-        data.update(self._current)
+        data.update(self._current)  # type: ignore[attr-defined] # internals of serializer # noqa: E501
 
         if obj._meta.object_name in self.extra_model_fields:
             fields_to_add = self.extra_model_fields[obj._meta.object_name]
@@ -66,7 +67,7 @@ class PayloadSerializer(JSONSerializer):
         obj_id = graphene.Node.to_global_id(
             obj._meta.object_name, getattr(obj, self.pk_field_name)
         )
-        data = {}
+        data: Dict[str, Optional[Any]] = {}
         if self.dump_type_name:
             data["type"] = str(obj._meta.object_name)
         data[self.obj_id_name] = obj_id
@@ -81,7 +82,8 @@ class PayloadSerializer(JSONSerializer):
             # user can be attached to obj as a SimpleLazyObject. We need to unwrap it
             # before we will be able to serialize it.
             if isinstance(data_to_serialize, SimpleLazyObject):
-                data_to_serialize = data_to_serialize._wrapped
+                # FIXME: is this still required now that user is never empty?
+                data_to_serialize = data_to_serialize._wrapped  # type: ignore[attr-defined] # noqa: E501
 
             if isinstance(data_to_serialize, Iterable):
                 data[field_name] = python_serializer.serialize(
@@ -99,5 +101,5 @@ class PayloadSerializer(JSONSerializer):
         data.update(self.extra_dict_data)
         data.update(called_data)
         # Finally update the data with the super class' "self._current" content
-        data.update(self._current)
+        data.update(self._current)  # type: ignore[attr-defined] # internals of serializer # noqa: E501
         return data

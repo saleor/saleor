@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
@@ -30,10 +31,14 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         product_ids = cls.get_product_ids_to_update(instance)
-        response = super().perform_mutation(_root, info, **data)
+        response = super().perform_mutation(
+            _root, info, external_reference=external_reference, id=id
+        )
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )

@@ -206,7 +206,7 @@ def create_event_delivery_list_for_webhooks(
 
 def create_attempt(
     delivery: "EventDelivery",
-    task_id: str = None,
+    task_id: Optional[str] = None,
 ):
     attempt = EventDeliveryAttempt.objects.create(
         delivery=delivery,

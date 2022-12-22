@@ -4554,7 +4554,6 @@ def draft_order_with_fixed_discount_order(draft_order):
         value=value,
         reason="Discount reason",
         amount=(draft_order.undiscounted_total - draft_order.total).gross,
-        # type: ignore
     )
     draft_order.save()
     return draft_order

@@ -4,7 +4,6 @@ import graphene
 from graphene import relay
 
 from ....core.permissions import has_one_of_permissions
-from ....core.tracing import traced_resolver
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
@@ -18,6 +17,7 @@ from ...core.connection import (
 from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
+from ...core.tracing import traced_resolver
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -33,7 +33,7 @@ from .products import ProductCountableConnection
 
 
 @federated_entity("id")
-class Category(ModelObjectType):
+class Category(ModelObjectType[models.Category]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -107,7 +107,9 @@ class Category(ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
-            url = get_image_or_proxy_url(thumbnail, root.id, "Category", size, format)
+            url = get_image_or_proxy_url(
+                thumbnail, str(root.id), "Category", size, format
+            )
             return Image(url=url, alt=alt)
 
         return (

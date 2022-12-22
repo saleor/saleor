@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple
 
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -26,7 +26,7 @@ class ProductAvailability:
     price_range_undiscounted: Optional[TaxedMoneyRange]
     discount: Optional[TaxedMoney]
     price_range_local_currency: Optional[TaxedMoneyRange]
-    discount_local_currency: Optional[TaxedMoneyRange]
+    discount_local_currency: Optional[TaxedMoney]
 
 
 @dataclass
@@ -64,17 +64,21 @@ def _get_total_discount(
 
 
 def _get_product_price_range(
-    discounted: Union[MoneyRange, TaxedMoneyRange],
-    undiscounted: Union[MoneyRange, TaxedMoneyRange],
+    discounted: Optional[TaxedMoneyRange],
+    undiscounted: Optional[TaxedMoneyRange],
     local_currency: Optional[str] = None,
-) -> Tuple[TaxedMoneyRange, TaxedMoney]:
+) -> Tuple[Optional[TaxedMoneyRange], Optional[TaxedMoney]]:
     price_range_local = None
     discount_local_currency = None
 
     if local_currency:
         price_range_local = to_local_currency(discounted, local_currency)
         undiscounted_local = to_local_currency(undiscounted, local_currency)
-        if undiscounted_local and undiscounted_local.start > price_range_local.start:
+        if (
+            undiscounted_local
+            and price_range_local
+            and undiscounted_local.start > price_range_local.start
+        ):
             discount_local_currency = undiscounted_local.start - price_range_local.start
 
     return price_range_local, discount_local_currency
@@ -161,7 +165,7 @@ def get_product_availability(
     tax_calculation_strategy: str,
     tax_rate: Decimal
 ) -> ProductAvailability:
-    discounted = None
+    discounted: Optional[TaxedMoneyRange] = None
     discounted_net_range = get_product_price_range(
         product=product,
         variants=variants,
@@ -186,7 +190,7 @@ def get_product_availability(
             ),
         )
 
-    undiscounted = None
+    undiscounted: Optional[TaxedMoneyRange] = None
     undiscounted_net_range = get_product_price_range(
         product=product,
         variants=variants,
@@ -214,7 +218,7 @@ def get_product_availability(
     discount = None
     price_range_local = None
     discount_local_currency = None
-    if undiscounted_net_range is not None and discounted_net_range is not None:
+    if undiscounted is not None and discounted is not None:
         discount = _get_total_discount_from_range(undiscounted, discounted)
         price_range_local, discount_local_currency = _get_product_price_range(
             discounted, undiscounted, local_currency

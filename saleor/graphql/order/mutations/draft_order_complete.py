@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -18,6 +20,7 @@ from ....order.utils import get_order_country, update_order_display_gross_prices
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -63,9 +66,15 @@ class DraftOrderComplete(BaseMutation):
                     )
                 }
             )
+        return order
 
     @classmethod
-    def perform_mutation(cls, _root, info, id):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        user = info.context.user
+        user = cast(User, user)
+
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(
             info,
@@ -98,6 +107,9 @@ class DraftOrderComplete(BaseMutation):
             channel = order.channel
             order_lines_info = []
             for line in order.lines.all():
+                if not line.variant:
+                    # we only care about stock for variants that still exist
+                    continue
                 if line.variant.track_inventory or line.variant.is_preorder_active():
                     line_data = OrderLineInfo(
                         line=line, quantity=line.quantity, variant=line.variant
@@ -137,7 +149,7 @@ class DraftOrderComplete(BaseMutation):
             transaction.on_commit(
                 lambda: order_created(
                     order_info=order_info,
-                    user=info.context.user,
+                    user=user,
                     app=app,
                     manager=manager,
                     from_draft=True,

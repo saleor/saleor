@@ -4,5 +4,11 @@
     "python.formatting.provider": "black",
     "python.languageServer": "Pylance",
     "python.linting.mypyEnabled": true,
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "cSpell.words": [
+        "dataloaders",
+        "preorder",
+        "preorders",
+        "undiscounted"
+    ]
 }

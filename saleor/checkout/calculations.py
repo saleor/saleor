@@ -298,9 +298,7 @@ def fetch_checkout_prices_if_expired(
             # Calculate net prices without taxes.
             _get_checkout_base_prices(checkout, checkout_info, lines, discounts)
 
-    checkout.price_expiration = (
-        timezone.now() + settings.CHECKOUT_PRICES_TTL  # type: ignore
-    )
+    checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
             "voucher_code",

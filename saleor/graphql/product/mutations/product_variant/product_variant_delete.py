@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
@@ -10,11 +12,11 @@ from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
 from .....product import models
-from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
@@ -61,39 +63,45 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         return super().success_response(instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        sku = data.get("sku")
-        ext_ref = data.get("external_reference")
-
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        external_reference: Optional[str] = None,
+        id: Optional[str] = None,
+        sku: Optional[str] = None
+    ):
         validate_one_of_args_is_in_mutation(
-            ProductErrorCode,
             "sku",
             sku,
             "id",
-            node_id,
+            id,
             "external_reference",
-            ext_ref,
+            external_reference,
         )
-
-        if ext_ref:
-            node_id = ext_ref_to_global_id_or_error(models.ProductVariant, ext_ref)
-
-        if node_id:
-            instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
-
-        if node_sku := data.get("sku"):
-            instance = models.ProductVariant.objects.filter(sku=node_sku).first()
+        node_id: str
+        instance: Optional[models.ProductVariant]
+        if external_reference:
+            id = ext_ref_to_global_id_or_error(
+                models.ProductVariant, external_reference=external_reference
+            )
+        if id:
+            instance = cls.get_node_or_error(info, id, only_type=ProductVariant)
+            node_id = id
+        else:
+            instance = models.ProductVariant.objects.filter(sku=sku).first()
             if not instance:
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            f"Couldn't resolve to a node: {node_sku}",
+                            f"Couldn't resolve to a node: {sku}",
                             code="not_found",
                         )
                     }
                 )
-            data["id"] = graphene.Node.to_global_id("ProductVariant", instance.id)
+            node_id = graphene.Node.to_global_id("ProductVariant", instance.id)
 
         draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 
@@ -106,7 +114,7 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(variant)
             cls.delete_product_channel_listings_without_available_variants(variant)
-            response = super().perform_mutation(_root, info, **data)
+            response = super().perform_mutation(_root, info, id=node_id)
 
             # delete order lines for deleted variant
             order_models.OrderLine.objects.filter(

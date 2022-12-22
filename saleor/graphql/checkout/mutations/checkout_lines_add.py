@@ -11,6 +11,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -169,20 +170,22 @@ class CheckoutLinesAdd(BaseMutation):
         return lines
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        lines,
+        checkout_id=None,
+        token=None,
+        id=None,
+        replace=False,
     ):
         app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
 
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         variants = cls._get_variants_from_lines_input(lines)

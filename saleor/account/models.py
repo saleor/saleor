@@ -6,8 +6,7 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import JSONField  # type: ignore
-from django.db.models import Q, Value
+from django.db.models import JSONField, Q, Value
 from django.db.models.expressions import Exists, OuterRef
 from django.forms.models import model_to_dict
 from django.utils import timezone
@@ -31,7 +30,7 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
-class AddressQueryset(models.QuerySet):
+class AddressQueryset(models.QuerySet["Address"]):
     def annotate_default(self, user):
         # Set default shipping/billing address pk to None
         # if default shipping/billing address doesn't exist
@@ -51,6 +50,9 @@ class AddressQueryset(models.QuerySet):
         )
 
 
+AddressManager = models.Manager.from_queryset(AddressQueryset)
+
+
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -64,7 +66,7 @@ class Address(models.Model):
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
 
-    objects = models.Manager.from_queryset(AddressQueryset)()
+    objects = AddressManager()
 
     class Meta:
         ordering = ("pk",)
@@ -123,7 +125,7 @@ class Address(models.Model):
         return Address.objects.create(**self.as_data())
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager["User"]):
     def create_user(
         self, email, password=None, is_staff=False, is_active=True, **extra_fields
     ):

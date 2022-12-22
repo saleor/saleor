@@ -5,6 +5,7 @@ from .....core.permissions import ProductPermissions
 from .....core.utils.editorjs import clean_editor_js
 from .....product import models
 from .....product.error_codes import ProductErrorCode
+from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, RICH_CONTENT
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
@@ -61,8 +62,8 @@ class CategoryCreate(ModelMutation):
         support_private_meta_field = True
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         description = cleaned_input.get("description")
         cleaned_input["description_plaintext"] = (
             clean_editor_js(description, to_string=True) if description else ""
@@ -86,12 +87,12 @@ class CategoryCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         parent_id = data.pop("parent_id", None)
         data["input"]["parent_id"] = parent_id
         return super().perform_mutation(root, info, **data)
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.category_created, instance)

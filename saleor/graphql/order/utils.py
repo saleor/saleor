@@ -89,16 +89,20 @@ def validate_shipping_method(
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
         )
     else:
-        error = get_shipping_method_availability_error(
-            order,
-            convert_to_shipping_method_data(
-                order.shipping_method,
-                order.channel.shipping_method_listings.filter(
-                    shipping_method=order.shipping_method
-                ).last(),
-            ),
-            manager,
-        )
+        listing = order.channel.shipping_method_listings.filter(
+            shipping_method=order.shipping_method
+        ).last()
+        if not listing:
+            error = ValidationError(
+                "Shipping method not available in given channel.",
+                code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+            )
+        else:
+            error = get_shipping_method_availability_error(
+                order,
+                convert_to_shipping_method_data(order.shipping_method, listing),
+                manager,
+            )
 
     if error:
         errors["shipping"].append(error)
@@ -299,7 +303,7 @@ def prepare_insufficient_stock_order_validation_errors(exc):
         errors.append(
             ValidationError(
                 f"Insufficient product stock: {item.order_line or item.variant}",
-                code=OrderErrorCode.INSUFFICIENT_STOCK,
+                code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 params={
                     "order_lines": [order_line_global_id]
                     if order_line_global_id

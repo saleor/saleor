@@ -1,7 +1,10 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
@@ -12,6 +15,7 @@ from ....order.utils import update_order_display_gross_prices
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -34,7 +38,7 @@ class OrderConfirm(ModelMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         instance = super().get_instance(info, **data)
         if not instance.is_unconfirmed():
             raise ValidationError(
@@ -42,7 +46,7 @@ class OrderConfirm(ModelMutation):
                     "id": ValidationError(
                         "Provided order id belongs to an order with status "
                         "different than unconfirmed.",
-                        code=OrderErrorCode.INVALID,
+                        code=OrderErrorCode.INVALID.value,
                     )
                 }
             )
@@ -51,14 +55,16 @@ class OrderConfirm(ModelMutation):
                 {
                     "id": ValidationError(
                         "Provided order id belongs to an order without products.",
-                        code=OrderErrorCode.INVALID,
+                        code=OrderErrorCode.INVALID.value,
                     )
                 }
             )
         return instance
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
+        user = info.context.user
+        user = cast(User, user)
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         update_order_display_gross_prices(order)
@@ -84,9 +90,10 @@ class OrderConfirm(ModelMutation):
                 except PaymentError as e:
                     raise ValidationError(
                         str(e),
-                        code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                        code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value,
                     )
             elif payment and payment.is_authorized and payment.can_capture():
+                authorized_payment = payment
                 gateway.capture(payment, manager, channel_slug=order.channel.slug)
                 site = get_site_promise(info.context).get()
                 transaction.on_commit(
@@ -94,8 +101,8 @@ class OrderConfirm(ModelMutation):
                         order_info,
                         info.context.user,
                         app,
-                        payment.total,
-                        payment,
+                        authorized_payment.total,
+                        authorized_payment,
                         manager,
                         site.settings,
                     )
@@ -103,7 +110,7 @@ class OrderConfirm(ModelMutation):
             transaction.on_commit(
                 lambda: order_confirmed(
                     order,
-                    info.context.user,
+                    user,
                     app,
                     manager,
                     send_confirmation_email=True,

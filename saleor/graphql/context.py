@@ -2,6 +2,7 @@ from typing import Optional, cast
 
 from django.contrib.auth import authenticate
 from django.http import HttpRequest
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 
 from ..account.models import User
@@ -17,17 +18,15 @@ def get_context_value(request: HttpRequest) -> SaleorContext:
     request = cast(SaleorContext, request)
     request.dataloaders = {}
     request.is_mutation = False
+    request.request_time = timezone.now()
     set_app_on_context(request)
     set_auth_on_context(request)
     set_decoded_auth_token(request)
     return request
 
 
-UserType = Optional[User]
-
-
 class RequestWithUser(HttpRequest):
-    _cached_user: UserType
+    _cached_user: Optional[User]
     app: Optional[App]
 
 
@@ -44,9 +43,9 @@ def set_app_on_context(request: SaleorContext):
         request.app = get_app_promise(request).get()
 
 
-def get_user(request: SaleorContext) -> UserType:
+def get_user(request: SaleorContext) -> Optional[User]:
     if not hasattr(request, "_cached_user"):
-        request._cached_user = cast(UserType, authenticate(request=request))
+        request._cached_user = cast(Optional[User], authenticate(request=request))
     return request._cached_user
 
 

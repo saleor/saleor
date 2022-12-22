@@ -5,6 +5,7 @@ from .....core.permissions import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -34,7 +35,9 @@ class ProductVariantSetDefault(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id, variant_id):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, product_id, variant_id
+    ):
         qs = models.Product.objects.prefetched_for_webhook()
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product, qs=qs
@@ -51,7 +54,7 @@ class ProductVariantSetDefault(BaseMutation):
                 {
                     "variant_id": ValidationError(
                         "Provided variant doesn't belong to provided product.",
-                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
+                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT.value,
                     )
                 }
             )

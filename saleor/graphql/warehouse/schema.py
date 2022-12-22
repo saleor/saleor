@@ -6,6 +6,7 @@ from ...core.permissions import (
     ShippingPermissions,
 )
 from ...warehouse import models
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
@@ -56,11 +57,13 @@ class WarehouseQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_warehouse(_root, _info, id=None, external_reference=None):
+    def resolve_warehouse(
+        _root, _info: ResolveInfo, /, *, id=None, external_reference=None
+    ):
         return resolve_by_global_id_or_ext_ref(models.Warehouse, id, external_reference)
 
     @staticmethod
-    def resolve_warehouses(_root, info, **kwargs):
+    def resolve_warehouses(_root, info: ResolveInfo, **kwargs):
         qs = resolve_warehouses()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
@@ -89,13 +92,12 @@ class StockQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_stock(_root, _info, **kwargs):
-        stock_id = kwargs.get("id")
-        _, id = from_global_id_or_error(stock_id, Stock)
+    def resolve_stock(_root, _info: ResolveInfo, /, *, id: str):
+        _, id = from_global_id_or_error(id, Stock)
         return resolve_stock(id)
 
     @staticmethod
-    def resolve_stocks(_root, info, **kwargs):
+    def resolve_stocks(_root, info: ResolveInfo, **kwargs):
         qs = resolve_stocks()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)

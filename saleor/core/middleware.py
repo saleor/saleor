@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
-from django.utils import timezone
 from django.utils.translation import get_language
 
 from . import analytics
@@ -41,14 +40,6 @@ def google_analytics(get_response):
     return _google_analytics_middleware
 
 
-def request_time(get_response):
-    def _stamp_request(request):
-        request.request_time = timezone.now()
-        return get_response(request)
-
-    return _stamp_request
-
-
 def jwt_refresh_token_middleware(get_response):
     def middleware(request):
         """Append generated refresh_token to response object."""
@@ -62,9 +53,7 @@ def jwt_refresh_token_middleware(get_response):
                     jwt_refresh_token
                 )
                 if refresh_token_payload and refresh_token_payload.get("exp"):
-                    expires = datetime.utcfromtimestamp(
-                        refresh_token_payload.get("exp")
-                    )
+                    expires = datetime.utcfromtimestamp(refresh_token_payload["exp"])
             response.set_cookie(
                 JWT_REFRESH_TOKEN_COOKIE_NAME,
                 jwt_refresh_token,

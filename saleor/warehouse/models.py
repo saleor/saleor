@@ -1,6 +1,15 @@
 import itertools
 import uuid
-from typing import Iterable, Optional, Set
+from typing import (
+    TYPE_CHECKING,
+    Iterable,
+    Optional,
+    Set,
+    TypedDict,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from django.db import models
 from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
@@ -8,6 +17,7 @@ from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
+from django_stubs_ext import WithAnnotations
 
 from ..account.models import Address
 from ..channel.models import Channel
@@ -18,8 +28,18 @@ from ..product.models import Product, ProductVariant, ProductVariantChannelListi
 from ..shipping.models import ShippingZone
 from . import WarehouseClickAndCollectOption
 
+if TYPE_CHECKING:
+    # https://github.com/typeddjango/django-stubs/issues/719
 
-class WarehouseQueryset(models.QuerySet):
+    class WithAvailableQuantity(TypedDict):
+        available_quantity: int
+
+    StockWithAvailableQuantity = WithAnnotations["Stock", WithAvailableQuantity]
+else:
+    StockWithAvailableQuantity = "Stock"
+
+
+class WarehouseQueryset(models.QuerySet["Warehouse"]):
     def for_channel(self, channel_id: int):
         WarehouseChannel = Channel.warehouses.through  # type: ignore
         return self.filter(
@@ -60,7 +80,9 @@ class WarehouseQueryset(models.QuerySet):
         ).order_by("pk")
 
     def applicable_for_click_and_collect_no_quantity_check(
-        self, lines_qs: QuerySet[CheckoutLine], channel_id: int
+        self,
+        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        channel_id: int,
     ):
         """Return Warehouses which support click and collect.
 
@@ -69,7 +91,7 @@ class WarehouseQueryset(models.QuerySet):
         validation steps, for instance in checkout completion.
         """
         if all(
-            line.variant.is_preorder_active()
+            line.variant.is_preorder_active() if line.variant else False
             for line in lines_qs.select_related("variant").only("variant_id")
         ):
             return self._for_channel_click_and_collect(channel_id)
@@ -81,7 +103,9 @@ class WarehouseQueryset(models.QuerySet):
         return self._for_channel_lines_and_stocks(lines_qs, stocks_qs, channel_id)
 
     def applicable_for_click_and_collect(
-        self, lines_qs: QuerySet[CheckoutLine], channel_id: int
+        self,
+        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        channel_id: int,
     ) -> QuerySet["Warehouse"]:
         """Return Warehouses which support click and collect.
 
@@ -90,7 +114,7 @@ class WarehouseQueryset(models.QuerySet):
         a single warehouse.
         """
         if all(
-            line.variant.is_preorder_active()
+            line.variant.is_preorder_active() if line.variant else False
             for line in lines_qs.select_related("variant").only("variant_id")
         ):
             return self._for_channel_click_and_collect(channel_id)
@@ -118,7 +142,7 @@ class WarehouseQueryset(models.QuerySet):
 
     def _for_channel_lines_and_stocks(
         self,
-        lines_qs: QuerySet[CheckoutLine],
+        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
         stocks_qs: QuerySet["Stock"],
         channel_id: int,
     ) -> QuerySet["Warehouse"]:
@@ -165,6 +189,9 @@ class ChannelWarehouse(SortableModel):
         return self.channel.channelwarehouse.all()
 
 
+WarehouseManager = models.Manager.from_queryset(WarehouseQueryset)
+
+
 class Warehouse(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
@@ -184,7 +211,7 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
     )
     is_private = models.BooleanField(default=True)
 
-    objects = models.Manager.from_queryset(WarehouseQueryset)()
+    objects = WarehouseManager()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-slug",)
@@ -203,17 +230,20 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
         address.delete()
 
 
-class StockQuerySet(models.QuerySet):
-    def annotate_available_quantity(self):
-        return self.annotate(
-            available_quantity=F("quantity")
-            - Coalesce(
-                Sum(
-                    "allocations__quantity_allocated",
-                    filter=Q(allocations__quantity_allocated__gt=0),
-                ),
-                0,
-            )
+class StockQuerySet(models.QuerySet["Stock"]):
+    def annotate_available_quantity(self) -> QuerySet[StockWithAvailableQuantity]:
+        return cast(
+            QuerySet[StockWithAvailableQuantity],
+            self.annotate(
+                available_quantity=F("quantity")
+                - Coalesce(
+                    Sum(
+                        "allocations__quantity_allocated",
+                        filter=Q(allocations__quantity_allocated__gt=0),
+                    ),
+                    0,
+                )
+            ),
         )
 
     def annotate_reserved_quantity(self):
@@ -341,6 +371,9 @@ class StockQuerySet(models.QuerySet):
         )
 
 
+StockManager = models.Manager.from_queryset(StockQuerySet)
+
+
 class Stock(models.Model):
     warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.CASCADE)
     product_variant = models.ForeignKey(
@@ -349,7 +382,7 @@ class Stock(models.Model):
     quantity = models.IntegerField(default=0)
     quantity_allocated = models.IntegerField(default=0)
 
-    objects = models.Manager.from_queryset(StockQuerySet)()
+    objects = StockManager()
 
     class Meta:
         unique_together = [["warehouse", "product_variant"]]
@@ -367,7 +400,7 @@ class Stock(models.Model):
             self.save(update_fields=["quantity"])
 
 
-class AllocationQueryset(models.QuerySet):
+class AllocationQueryset(models.QuerySet["Allocation"]):
     def annotate_stock_available_quantity(self):
         return self.annotate(
             stock_available_quantity=F("stock__quantity")
@@ -382,6 +415,9 @@ class AllocationQueryset(models.QuerySet):
             or 0
         )
         return max(stock.quantity - allocated_quantity, 0)
+
+
+AllocationManager = models.Manager.from_queryset(AllocationQueryset)
 
 
 class Allocation(models.Model):
@@ -401,7 +437,7 @@ class Allocation(models.Model):
     )
     quantity_allocated = models.PositiveIntegerField(default=0)
 
-    objects = models.Manager.from_queryset(AllocationQueryset)()
+    objects = AllocationManager()
 
     class Meta:
         unique_together = [["order_line", "stock"]]
@@ -430,7 +466,10 @@ class PreorderAllocation(models.Model):
         ordering = ("pk",)
 
 
-class ReservationQuerySet(models.QuerySet):
+T = TypeVar("T", bound=models.Model)
+
+
+class ReservationQuerySet(models.QuerySet[T]):
     def not_expired(self):
         return self.filter(reserved_until__gt=timezone.now())
 
@@ -439,6 +478,9 @@ class ReservationQuerySet(models.QuerySet):
             return self.exclude(checkout_line__in=checkout_lines)
 
         return self
+
+
+ReservationManager = models.Manager.from_queryset(ReservationQuerySet)
 
 
 class PreorderReservation(models.Model):
@@ -459,7 +501,7 @@ class PreorderReservation(models.Model):
     quantity_reserved = models.PositiveIntegerField(default=0)
     reserved_until = models.DateTimeField()
 
-    objects = models.Manager.from_queryset(ReservationQuerySet)()
+    objects = ReservationManager()
 
     class Meta:
         unique_together = [["checkout_line", "product_variant_channel_listing"]]
@@ -487,7 +529,7 @@ class Reservation(models.Model):
     quantity_reserved = models.PositiveIntegerField(default=0)
     reserved_until = models.DateTimeField()
 
-    objects = models.Manager.from_queryset(ReservationQuerySet)()
+    objects = ReservationManager()
 
     class Meta:
         unique_together = [["checkout_line", "stock"]]

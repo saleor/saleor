@@ -290,7 +290,7 @@ def _create_line_for_order(
     else:
         tax_class = product.product_type.tax_class
 
-    line = OrderLine(
+    line = OrderLine(  # type: ignore[misc] # see below:
         product_name=product_name,
         variant_name=variant_name,
         translated_product_name=translated_product_name,
@@ -301,18 +301,18 @@ def _create_line_for_order(
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price,  # type: ignore
-        undiscounted_unit_price=undiscounted_unit_price,  # type: ignore
-        undiscounted_total_price=undiscounted_total_price,  # type: ignore
-        total_price=total_line_price,  # type: ignore
+        unit_price=unit_price,  # money field not supported by mypy_django_plugin
+        undiscounted_unit_price=undiscounted_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_total_price=undiscounted_total_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        total_price=total_line_price,
         tax_rate=tax_rate,
         sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
         voucher_code=voucher_code,
-        unit_discount=discount_amount,  # type: ignore
+        unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
-        base_unit_price=base_unit_price,
-        undiscounted_base_unit_price=undiscounted_base_unit_price,
+        base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
         **get_tax_class_kwargs_for_order_line(tax_class),
@@ -854,7 +854,7 @@ def complete_checkout_post_payment_part(
 
     if payment and txn:
         if txn.customer_id and user:
-            store_customer_id(user, payment.gateway, txn.customer_id)  # type:ignore
+            store_customer_id(user, payment.gateway, txn.customer_id)
 
         action_required = txn.action_required
         if action_required:
@@ -870,7 +870,7 @@ def complete_checkout_post_payment_part(
                 checkout_info=checkout_info,
                 checkout_lines=lines,
                 order_data=order_data,
-                user=user,  # type: ignore
+                user=user,
                 app=app,
                 manager=manager,
                 site_settings=site_settings,
@@ -1116,12 +1116,12 @@ def _create_order_from_checkout(
         )
 
     # order
-    order = Order.objects.create(
+    order = Order.objects.create(  # type: ignore[misc] # see below:
         status=status,
         language_code=checkout_info.checkout.language_code,
         tracking_client_id=tracking_code or "",
-        total=taxed_total,  # type: ignore
-        undiscounted_total=undiscounted_total,  # type: ignore
+        total=taxed_total,  # money field not supported by mypy_django_plugin
+        undiscounted_total=undiscounted_total,  # money field not supported by mypy_django_plugin # noqa: E501
         shipping_tax_rate=shipping_tax_rate,
         voucher=voucher,
         checkout_token=str(checkout_info.checkout.token),
@@ -1402,7 +1402,7 @@ def _reserve_stocks_without_availability_check(
     variants = [line.variant for line in lines]
     stocks = Stock.objects.get_variants_stocks_for_country(
         country_code=checkout_info.get_country(),
-        channel_slug=checkout_info.channel,
+        channel_slug=checkout_info.channel.slug,
         products_variants=variants,
     )
     variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}

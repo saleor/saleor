@@ -1,14 +1,18 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
 from ....giftcard.utils import order_has_gift_card_lines
-from ....order import FulfillmentStatus
+from ....order import FulfillmentStatus, models
 from ....order.actions import order_refunded
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
+from ....payment import models as payment_models
 from ....payment.gateway import request_refund_action
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
@@ -17,20 +21,23 @@ from ..types import Order
 from .utils import clean_payment, try_payment_action
 
 
-def clean_refund_payment(payment):
-    clean_payment(payment)
+def clean_refund_payment(
+    payment: Optional[payment_models.Payment],
+) -> payment_models.Payment:
+    payment = clean_payment(payment)
     if not payment.can_refund():
         raise ValidationError(
             {
                 "payment": ValidationError(
                     "Payment cannot be refunded.",
-                    code=OrderErrorCode.CANNOT_REFUND,
+                    code=OrderErrorCode.CANNOT_REFUND.value,
                 )
             }
         )
+    return payment
 
 
-def clean_order_refund(order):
+def clean_order_refund(order: models.Order) -> models.Order:
     if order_has_gift_card_lines(order):
         raise ValidationError(
             {
@@ -40,6 +47,7 @@ def clean_order_refund(order):
                 )
             }
         )
+    return order
 
 
 class OrderRefund(BaseMutation):
@@ -58,19 +66,21 @@ class OrderRefund(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, amount, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, amount, id: str
+    ):
         if amount <= 0:
             raise ValidationError(
                 {
                     "amount": ValidationError(
                         "Amount should be a positive number.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                     )
                 }
             )
 
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        clean_order_refund(order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
+        order = clean_order_refund(order)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         if payment_transactions := list(order.payment_transactions.all()):
@@ -88,12 +98,12 @@ class OrderRefund(BaseMutation):
             except PaymentError as e:
                 raise ValidationError(
                     str(e),
-                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value,
                 )
         else:
             payment = order.get_last_payment()
-            clean_payment(payment)
-            clean_refund_payment(payment)
+            payment = clean_payment(payment)
+            payment = clean_refund_payment(payment)
             transaction = try_payment_action(
                 order,
                 info.context.user,
