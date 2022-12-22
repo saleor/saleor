@@ -5,6 +5,7 @@ from django.db import IntegrityError
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
+from ...webhook.event_types import WebhookEventAsyncType
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
@@ -332,6 +333,7 @@ class WebhookDryRun(BaseMutation):
     )
 
     class Arguments:
+        id = graphene.ID(description="The ID of the webhook.", required=True)
         input = WebhookDryRunInput(
             description="Fields required to perform dry run of a webhook event.",
             required=True,
@@ -346,6 +348,7 @@ class WebhookDryRun(BaseMutation):
     def validate_input(cls, info, **data):
         query = data.get("input", {}).get("query")
         object_id = data.get("input", {}).get("object_id")
+        webhook_id = data.get("id")
 
         event_type = get_event_type_from_subscription(query)
         if not event_type:
@@ -363,19 +366,30 @@ class WebhookDryRun(BaseMutation):
         #         code=WebhookDryRunErrorCode.INVALID_ID,
         #     )
 
-        instance = cls.get_node_or_error(info, object_id, field="objectId")
+        object = cls.get_node_or_error(info, object_id, field="objectId")
+        webhook = cls.get_node_or_error(info, webhook_id, field="id")
+        app = webhook.app
 
-        return event_type, instance, query
+        if permission := WebhookEventAsyncType.PERMISSIONS.get(event_type):
+            codename = permission.value.split(".")[1]
+            app_permissions = [perm.codename for perm in app.permissions.all()]
+            if codename not in app_permissions:
+                raise_validation_error(
+                    message=f"The app doesn't have required permission: {codename}.",
+                    code=WebhookDryRunErrorCode.MISSING_APP_PERMISSION,
+                )
+
+        return event_type, object, app, query
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        event_type, instance, query = cls.validate_input(info, **data)
+        event_type, object, app, query = cls.validate_input(info, **data)
 
         payload = None
-        if all([event_type, instance, query]):
+        if all([event_type, object, app, query]):
             request = initialize_request()
             payload = generate_payload_from_subscription(
-                event_type, instance, query, request
+                event_type, object, query, request, app
             )
 
         return WebhookDryRun(payload=payload)

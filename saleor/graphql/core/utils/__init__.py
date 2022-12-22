@@ -113,7 +113,7 @@ def add_hash_to_file_name(file):
     file._name = new_name
 
 
-def raise_validation_error(field: str, message: str, code):
+def raise_validation_error(field: str = None, message: str = None, code=None):
     raise ValidationError({field: ValidationError(message, code=code)})
 
 

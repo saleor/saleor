@@ -11952,6 +11952,9 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS.
   """
   webhookDryRun(
+    """The ID of the webhook."""
+    id: ID!
+
     """Fields required to perform dry run of a webhook event."""
     input: WebhookDryRunInput!
   ): WebhookDryRun
@@ -15930,6 +15933,7 @@ enum WebhookDryRunErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID_ID
+  MISSING_APP_PERMISSION
 }
 
 input WebhookDryRunInput {
