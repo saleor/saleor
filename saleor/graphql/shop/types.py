@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.conf import settings
 from django_countries import countries
@@ -399,7 +397,7 @@ class Shop(graphene.ObjectType):
     @traced_resolver
     @plugin_manager_promise_callback
     def resolve_available_payment_gateways(
-        _, _info, manager, currency: Optional[str] = None, channel: Optional[str] = None
+        _, _info, manager, currency: str | None = None, channel: str | None = None
     ):
         return manager.list_payment_gateways(currency=currency, channel_slug=channel)
 

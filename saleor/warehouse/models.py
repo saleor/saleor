@@ -3,10 +3,8 @@ import uuid
 from collections.abc import Iterable
 from typing import (
     TYPE_CHECKING,
-    Optional,
     TypedDict,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -80,7 +78,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
 
     def applicable_for_click_and_collect_no_quantity_check(
         self,
-        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        lines_qs: QuerySet[CheckoutLine] | QuerySet[OrderLine],
         channel_id: int,
     ):
         """Return Warehouses which support click and collect.
@@ -103,7 +101,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
 
     def applicable_for_click_and_collect(
         self,
-        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        lines_qs: QuerySet[CheckoutLine] | QuerySet[OrderLine],
         channel_id: int,
     ) -> QuerySet["Warehouse"]:
         """Return Warehouses which support click and collect.
@@ -141,7 +139,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
 
     def _for_channel_lines_and_stocks(
         self,
-        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        lines_qs: QuerySet[CheckoutLine] | QuerySet[OrderLine],
         stocks_qs: QuerySet["Stock"],
         channel_id: int,
     ) -> QuerySet["Warehouse"]:
@@ -277,7 +275,7 @@ class StockQuerySet(models.QuerySet["Stock"]):
     def for_channel_and_country(
         self,
         channel_slug: str,
-        country_code: Optional[str] = None,
+        country_code: str | None = None,
         include_cc_warehouses: bool = False,
     ):
         """Get stocks for given channel and country_code.
@@ -472,7 +470,7 @@ class ReservationQuerySet(models.QuerySet[T]):
     def not_expired(self):
         return self.filter(reserved_until__gt=timezone.now())
 
-    def exclude_checkout_lines(self, checkout_lines: Optional[Iterable[CheckoutLine]]):
+    def exclude_checkout_lines(self, checkout_lines: Iterable[CheckoutLine] | None):
         if checkout_lines:
             return self.exclude(checkout_line__in=checkout_lines)
 

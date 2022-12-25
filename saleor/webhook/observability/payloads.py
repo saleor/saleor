@@ -89,7 +89,7 @@ GQL_OPERATION_PLACEHOLDER = GraphQLOperation(
 GQL_OPERATION_PLACEHOLDER_SIZE = len(dump_payload(GQL_OPERATION_PLACEHOLDER))
 
 
-def serialize_headers(headers: Optional[dict[str, str]]) -> HttpHeaders:
+def serialize_headers(headers: dict[str, str] | None) -> HttpHeaders:
     if headers:
         return list(filter_and_hide_headers(headers).items())
     return []

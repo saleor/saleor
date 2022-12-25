@@ -1,0 +1,391 @@
+.. _pyxbgen-cli:
+
+``pyxbgen`` Command Line Options
+================================
+Generic Options
+---------------
+
+
+
+.. table:: Generic Options
+
+   =============  =========  ======  ==================================================
+    Long Option    Argument   Alt     Description
+   =============  =========  ======  ==================================================
+   ``--version``                     :ref:`show program's version number and exit<pyxbgen--version>`
+   ``--help``                ``-h``  :ref:`show this help message and exit<pyxbgen--help>`
+   =============  =========  ======  ==================================================
+
+.. _pyxbgen--version:
+
+``--version``
+^^^^^^^^^^^^^
+show program's version number and exit
+
+.. _pyxbgen--help:
+
+``--help``
+^^^^^^^^^^
+show this help message and exit
+
+Identifying Schema
+------------------
+
+Specify and locate schema for which bindings should be generated.
+
+.. table:: Identifying Schema
+
+   ===================================  =============  ======  ==================================================
+    Long Option                          Argument       Alt     Description
+   ===================================  =============  ======  ==================================================
+   ``--schema-location``                *FILE_or_URL*  ``-u``  :ref:`Add the location of an entrypoint schema.  The...<pyxbgen--schema-location>`
+   ``--schema-root``                    *DIRECTORY*            :ref:`The directory from which entrypoint schemas...<pyxbgen--schema-root>`
+   ``--schema-stripped-prefix``         *TEXT*                 :ref:`Optional string that is stripped from the...<pyxbgen--schema-stripped-prefix>`
+   ``--location-prefix-rewrite``        *TEXT*                 :ref:`Add a rewrite entry for schema locations....<pyxbgen--location-prefix-rewrite>`
+   ``--uri-content-archive-directory``  *DIRECTORY*            :ref:`The directory path into which any content...<pyxbgen--uri-content-archive-directory>`
+   ===================================  =============  ======  ==================================================
+
+.. _pyxbgen--schema-location:
+
+``--schema-location``
+^^^^^^^^^^^^^^^^^^^^^
+Add the location of an entrypoint schema.  The provided value should be
+a URL; if it does not have a URL scheme (e.g., ``http:``), it is assumed
+to be a file, and if it is not an absolute path is located relative to
+the ``schemaRoot``.
+
+.. _pyxbgen--schema-root:
+
+``--schema-root``
+^^^^^^^^^^^^^^^^^
+The directory from which entrypoint schemas specified as relative file
+paths will be read.
+
+.. _pyxbgen--schema-stripped-prefix:
+
+``--schema-stripped-prefix``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Optional string that is stripped from the beginning of schemaLocation
+values before loading from them. This now applies only to URIs specified
+on the command line so is unlikely to be useful.
+
+.. _pyxbgen--location-prefix-rewrite:
+
+``--location-prefix-rewrite``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Add a rewrite entry for schema locations. Parameter values are strings
+of the form ``pfx=sub``.  The effect is that a schema location that
+begins with ``pfx`` is rewritten so that it instead begins with ``sub``.
+This applies to schemaLocation attributes in ``import`` and ``include``
+elements.  It may be used to convert absolute schema locations into
+relative ones to allow offline processing when all schema are available
+in a local directory.  See ``schemaRoot``.
+
+.. _pyxbgen--uri-content-archive-directory:
+
+``--uri-content-archive-directory``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The directory path into which any content retrieved by URI will be
+written. This serves as a local cache, and to give you an opportunity to
+inspect material retrieved from some other system. @rtype: ``str``
+
+Configuring Bindings
+--------------------
+
+Specify where generated bindings should be written, and how they will be accessed from Python.
+
+.. table:: Configuring Bindings
+
+   ================================  ===========  ======  ==================================================
+    Long Option                       Argument     Alt     Description
+   ================================  ===========  ======  ==================================================
+   ``--module``                      *MODULE*     ``-m``  :ref:`Add a module name corresponding to an entrypoint...<pyxbgen--module>`
+   ``--module-prefix``               *MODULE*             :ref:`The prefix for binding modules. The base name for...<pyxbgen--module-prefix>`
+   ``--binding-root``                *DIRECTORY*          :ref:`The directory path into which generated bindings...<pyxbgen--binding-root>`
+   ``--write-for-customization``                  ``-r``  :ref:`Indicates whether the binding Python code should...<pyxbgen--write-for-customization>`
+   ``--no-write-for-customization``                       :ref:`Indicates whether the binding Python code should...<pyxbgen--no-write-for-customization>`
+   ================================  ===========  ======  ==================================================
+
+.. _pyxbgen--module:
+
+``--module``
+^^^^^^^^^^^^
+Add a module name corresponding to an entrypoint schema. The namespace
+defined by the corresponding schema will be written to a binding using
+the given module name, adjusted by L{modulePrefix}.
+
+.. _pyxbgen--module-prefix:
+
+``--module-prefix``
+^^^^^^^^^^^^^^^^^^^
+The prefix for binding modules. The base name for the module holding a
+binding is taken from the moduleList, moduleMap, or an XMLNS prefix
+associated with the namespace in a containing schema.  This value, if
+present, is used as a prefix to allow a deeper module hierarchy.
+
+.. _pyxbgen--binding-root:
+
+``--binding-root``
+^^^^^^^^^^^^^^^^^^
+The directory path into which generated bindings will be written.
+@rtype: ``str``
+
+.. _pyxbgen--write-for-customization:
+
+``--write-for-customization``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether the binding Python code should be written into a sub-
+module for customization. If enabled, a module ``path.to.namespace``
+will be written to the file ``path/to/raw/namespace.py``, so that the
+file ``path/to/namespace.py`` can import it and override behavior. This
+option turns on the feature.
+
+.. _pyxbgen--no-write-for-customization:
+
+``--no-write-for-customization``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether the binding Python code should be written into a sub-
+module for customization. If enabled, a module ``path.to.namespace``
+will be written to the file ``path/to/raw/namespace.py``, so that the
+file ``path/to/namespace.py`` can import it and override behavior. This
+option turns off the feature (*default*).
+
+Reading Namespace Archives
+--------------------------
+
+Locating and loading (or inhibiting load of) namespace archives.
+
+.. table:: Reading Namespace Archives
+
+   ==================================  =========  ====  ==================================================
+    Long Option                         Argument   Alt   Description
+   ==================================  =========  ====  ==================================================
+   ``--archive-path``                  *PATH*           :ref:`A colon-separated list of paths from which...<pyxbgen--archive-path>`
+   ``--import-augmentable-namespace``  *URI*            :ref:`Mark that the specified namespace may be imported...<pyxbgen--import-augmentable-namespace>`
+   ``--no-load-namespace``             *URI*            :ref:`Mark that the specified namespace should not be...<pyxbgen--no-load-namespace>`
+   ==================================  =========  ====  ==================================================
+
+.. _pyxbgen--archive-path:
+
+``--archive-path``
+^^^^^^^^^^^^^^^^^^
+A colon-separated list of paths from which namespace archives can be
+read. The default path is the contents of the ``PYXB_ARCHIVE_PATH``
+environment variable, or the standard path configured at installation
+time.  Any file with the extension ``.wxs`` found in one of these
+directories is examined to see whether it is a namespace archive.
+
+.. _pyxbgen--import-augmentable-namespace:
+
+``--import-augmentable-namespace``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Mark that the specified namespace may be imported by new bindings.
+Normally namespaces that are available from archives are considered to
+be complete, and schema locations in import directives are ignored.  Use
+this to indicate that the bindings being generated import new bindings.
+Note that attempts to import schema that contributed to the archive will
+only be detected if the archive was generated from the same
+schemaLocation URI; if the archive was generated from a different source
+component definitions might conflict.
+
+.. _pyxbgen--no-load-namespace:
+
+``--no-load-namespace``
+^^^^^^^^^^^^^^^^^^^^^^^
+Mark that the specified namespace should not be loaded from an archive.
+Use this when you are generating bindings for an application that has a
+restricted profile of a namespace that would otherwise be read from an
+archive.  Be aware that this removes any knowledge of any archive in
+which this namespace is present as a non-private member.
+
+Writing Namespace Archives
+--------------------------
+
+Control the location and content of a namespace archive corresponding to a binding generation.
+
+.. table:: Writing Namespace Archives
+
+   ===============================  =========  ====  ==================================================
+    Long Option                      Argument   Alt   Description
+   ===============================  =========  ====  ==================================================
+   ``--archive-to-file``            *FILE*           :ref:`Optional file into which the archive of namespaces...<pyxbgen--archive-to-file>`
+   ``--public-namespace``           *URI*            :ref:`Indicates, for specific namespaces, whether their...<pyxbgen--public-namespace>`
+   ``--private-namespace``          *URI*            :ref:`Indicates, for specific namespaces, whether their...<pyxbgen--private-namespace>`
+   ``--default-namespace-public``                    :ref:`Indicates whether unmentioned namespaces will be...<pyxbgen--default-namespace-public>`
+   ``--default-namespace-private``                   :ref:`Indicates whether unmentioned namespaces will be...<pyxbgen--default-namespace-private>`
+   ===============================  =========  ====  ==================================================
+
+.. _pyxbgen--archive-to-file:
+
+``--archive-to-file``
+^^^^^^^^^^^^^^^^^^^^^
+Optional file into which the archive of namespaces will be written.
+Subsequent generation actions can read pre-parsed namespaces from this
+file, and therefore reference the bindings that were built earlier
+rather than re-generating them. The file name should normally end with
+``.wxs``.
+
+.. _pyxbgen--public-namespace:
+
+``--public-namespace``
+^^^^^^^^^^^^^^^^^^^^^^
+Indicates, for specific namespaces, whether their visibility in the
+archive should be public or private. This option adds the namespace as a
+public archive member.
+
+.. _pyxbgen--private-namespace:
+
+``--private-namespace``
+^^^^^^^^^^^^^^^^^^^^^^^
+Indicates, for specific namespaces, whether their visibility in the
+archive should be public or private. This option adds the namespace as a
+private archive member.
+
+.. _pyxbgen--default-namespace-public:
+
+``--default-namespace-public``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether unmentioned namespaces will be public or private
+(default) in the archive. A namespace is *mentioned* if it is the target
+namespace of an entrypoint schema, or appears in a namespace visibility
+specification.  I.e., this default applies only to namespaces that are
+modified as a result of including some schema, which is generally a
+local customization of something. This option makes the default
+``public`` (*default*).
+
+.. _pyxbgen--default-namespace-private:
+
+``--default-namespace-private``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether unmentioned namespaces will be public or private
+(default) in the archive. A namespace is *mentioned* if it is the target
+namespace of an entrypoint schema, or appears in a namespace visibility
+specification.  I.e., this default applies only to namespaces that are
+modified as a result of including some schema, which is generally a
+local customization of something. This option makes the default
+``private``.
+
+Configuring Binding Code Generation
+-----------------------------------
+
+Control the style and content of the generated bindings.  This is not well-supported, and you are advised to pretend these options don't exist.
+
+.. table:: Configuring Binding Code Generation
+
+   =========================  =========  ====  ==================================================
+    Long Option                Argument   Alt   Description
+   =========================  =========  ====  ==================================================
+   ``--validate-changes``                      :ref:`Indicates whether the bindings should validate...<pyxbgen--validate-changes>`
+   ``--no-validate-changes``                   :ref:`Indicates whether the bindings should validate...<pyxbgen--no-validate-changes>`
+   =========================  =========  ====  ==================================================
+
+.. _pyxbgen--validate-changes:
+
+``--validate-changes``
+^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether the bindings should validate mutations against the
+content model. This option turns on validation (default).
+
+.. _pyxbgen--no-validate-changes:
+
+``--no-validate-changes``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether the bindings should validate mutations against the
+content model. This option turns off validation.
+
+Miscellaneous Options
+---------------------
+
+Anything else.
+
+.. table:: Miscellaneous Options
+
+   =========================  =========  ====  ==================================================
+    Long Option                Argument   Alt   Description
+   =========================  =========  ====  ==================================================
+   ``--logging-config-file``  *FILE*           :ref:`A file provided to L{logging.config.fileConfig} to...<pyxbgen--logging-config-file>`
+   =========================  =========  ====  ==================================================
+
+.. _pyxbgen--logging-config-file:
+
+``--logging-config-file``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+A file provided to L{logging.config.fileConfig} to control log messages.
+In the absence of other configuration the Python standard logging
+infrastructure is used in its default configuration. @rtype: ``str``
+
+Maintainer Options
+------------------
+
+Don't use these.  They don't exist.  If they did, they'd do different things at different times, and if you used them you'd probably be sorry.
+
+.. table:: Maintainer Options
+
+   =================================  =========  ====  ==================================================
+    Long Option                        Argument   Alt   Description
+   =================================  =========  ====  ==================================================
+   ``--allow-absent-module``                           :ref:`Indicates whether the code generator is permitted...<pyxbgen--allow-absent-module>`
+   ``--no-allow-absent-module``                        :ref:`Indicates whether the code generator is permitted...<pyxbgen--no-allow-absent-module>`
+   ``--allow-builtin-generation``                      :ref:`Indicates whether bindings will be written for...<pyxbgen--allow-builtin-generation>`
+   ``--no-allow-builtin-generation``                   :ref:`Indicates whether bindings will be written for...<pyxbgen--no-allow-builtin-generation>`
+   =================================  =========  ====  ==================================================
+
+.. _pyxbgen--allow-absent-module:
+
+``--allow-absent-module``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether the code generator is permitted to process namespace
+for which no module path can be determined. Use this only when
+generating bindings that will not be referenced by other bindings. This
+option turns on the feature.
+
+.. _pyxbgen--no-allow-absent-module:
+
+``--no-allow-absent-module``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether the code generator is permitted to process namespace
+for which no module path can be determined. Use this only when
+generating bindings that will not be referenced by other bindings. This
+option turns off the feature (default).
+
+.. _pyxbgen--allow-builtin-generation:
+
+``--allow-builtin-generation``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether bindings will be written for namespaces that are
+built-in to PyXB. This must be enabled when building bindings for the
+XML, XMLSchema instance, and other built-in namespaces.  Normally
+generation of these namespaces is inhibited lest it produce
+inconsistencies. This option turns on the feature.
+
+.. _pyxbgen--no-allow-builtin-generation:
+
+``--no-allow-builtin-generation``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Indicates whether bindings will be written for namespaces that are
+built-in to PyXB. This must be enabled when building bindings for the
+XML, XMLSchema instance, and other built-in namespaces.  Normally
+generation of these namespaces is inhibited lest it produce
+inconsistencies. This option turns off the feature (default).
+
+WSDL Options
+------------
+
+Options relevant to generating bindings from WSDL service descriptions
+
+.. table:: WSDL Options
+
+   ===================  =============  ======  ==================================================
+    Long Option          Argument       Alt     Description
+   ===================  =============  ======  ==================================================
+   ``--wsdl-location``  *FILE_or_URL*  ``-W``  :ref:`Generate bindings for the types stanza of the...<pyxbgen--wsdl-location>`
+   ===================  =============  ======  ==================================================
+
+.. _pyxbgen--wsdl-location:
+
+``--wsdl-location``
+^^^^^^^^^^^^^^^^^^^
+Generate bindings for the ``types`` stanza of the WSDL at this location.
+This option is equivalent to retrieving the WSDL, extracting the schema
+part of its ``types`` block to a file, and using that file as a
+``--schema-location``.

@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 
 from django.conf import settings
 from django.db import models
@@ -33,7 +33,7 @@ class Translation(models.Model):
     class Meta:
         abstract = True
 
-    def get_translated_object_id(self) -> tuple[str, Union[int, str]]:
+    def get_translated_object_id(self) -> tuple[str, int | str]:
         raise NotImplementedError(
             "Models extending Translation should implement get_translated_object_id"
         )

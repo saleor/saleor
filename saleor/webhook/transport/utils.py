@@ -2,11 +2,12 @@ import decimal
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from time import time
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
@@ -68,17 +69,17 @@ class WebhookSchemes(str, Enum):
 
 @dataclass
 class PaymentAppData:
-    app_pk: Optional[int]
-    app_identifier: Optional[str]
+    app_pk: int | None
+    app_identifier: str | None
     name: str
 
 
 @dataclass
 class WebhookResponse:
     content: str
-    request_headers: Optional[dict] = None
-    response_headers: Optional[dict] = None
-    response_status_code: Optional[int] = None
+    request_headers: dict | None = None
+    response_headers: dict | None = None
+    response_status_code: int | None = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
 
@@ -107,7 +108,7 @@ def send_webhook_using_http(
     signature,
     event_type,
     timeout=settings.WEBHOOK_TIMEOUT,
-    custom_headers: Optional[dict[str, str]] = None,
+    custom_headers: dict[str, str] | None = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -380,7 +381,7 @@ def catch_duration_time():
 
 def create_attempt(
     delivery: "EventDelivery",
-    task_id: Optional[str] = None,
+    task_id: str | None = None,
 ):
     attempt = EventDeliveryAttempt.objects.create(
         delivery=delivery,
@@ -503,7 +504,7 @@ def trigger_transaction_request(
 
 def parse_tax_data(
     response_data: Any,
-) -> Optional[TaxData]:
+) -> TaxData | None:
     try:
         return _unsafe_parse_tax_data(response_data)
     except (TypeError, KeyError, decimal.DecimalException):
@@ -614,7 +615,7 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
     return None
 
 
-def get_current_tax_app() -> Optional[App]:
+def get_current_tax_app() -> App | None:
     """Return currently used tax app or None, if there aren't any."""
     return (
         App.objects.order_by("pk")

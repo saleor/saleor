@@ -2,7 +2,7 @@ import binascii
 import os
 import secrets
 from dataclasses import dataclass
-from typing import Literal, Optional, Union, overload
+from typing import Literal, overload
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -45,7 +45,7 @@ def get_duplicated_values(values):
 @overload
 def from_global_id_or_error(
     global_id: str,
-    only_type: Union[ObjectType, str, None] = None,
+    only_type: ObjectType | str | None = None,
     raise_error: Literal[True] = True,
 ) -> tuple[str, str]:
     ...
@@ -54,15 +54,15 @@ def from_global_id_or_error(
 @overload
 def from_global_id_or_error(
     global_id: str,
-    only_type: Union[type[ObjectType], str, None] = None,
+    only_type: type[ObjectType] | str | None = None,
     raise_error: bool = False,
-) -> Union[tuple[str, str], tuple[str, None]]:
+) -> tuple[str, str] | tuple[str, None]:
     ...
 
 
 def from_global_id_or_error(
     global_id: str,
-    only_type: Union[type[ObjectType], str, None] = None,
+    only_type: type[ObjectType] | str | None = None,
     raise_error: bool = False,
 ):
     """Resolve global ID or raise GraphQLError.
@@ -98,7 +98,7 @@ def from_global_id_or_error(
 
 
 def from_global_id_or_none(
-    global_id, only_type: Union[ObjectType, str, None] = None, raise_error: bool = False
+    global_id, only_type: ObjectType | str | None = None, raise_error: bool = False
 ):
     if not global_id:
         return None
@@ -146,7 +146,7 @@ def ext_ref_to_global_id_or_error(model, external_reference):
 @dataclass
 class WebhookEventInfo:
     type: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 CHECKOUT_CALCULATE_TAXES_MESSAGE = (

@@ -14,12 +14,12 @@ repository = "https://github.com/saleor/saleor"
 documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
-  python = "~3.9"
+  python = "~3.10"
   Adyen = "^4.0.0"
   aniso8601 = "^7.0.0"
   asgiref = "^3.7.2"
   Authlib = "^1.0.0"
-  authorizenet = "^1.1.3"
+  authorizenet = {path = "vendored/authorizenet"}
   azure-common = "^1.1.28"
   azure-storage-blob = "^12.12.0"
   azure-storage-common = "^2.1.0"
@@ -74,6 +74,7 @@ documentation = "https://docs.saleor.io/"
   python-json-logger = ">=0.1.11,<2.1.0"
   pytimeparse = "^1.1.8"
   pytz = "^2023.3"
+  pyxb = {path = "vendored/pyxb"}
   razorpay = "^1.2"
   redis = "^5.0.1"
   requests = "^2.22"
@@ -145,7 +146,7 @@ documentation = "https://docs.saleor.io/"
   vcrpy = ">=4.0,<5.0"
 
 [tool.deptry]
-extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
+extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*", "vendored/.*"]
 
   [tool.deptry.package_module_name_map]
   graphql-core = "graphql"
@@ -154,13 +155,44 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
   [tool.deptry.per_rule_ignores]
   DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg2"]
+  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg2", "pyxb"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
+[tool.django-stubs]
+django_settings_module = "saleor.settings"
+
+[tool.mypy]
+allow_untyped_globals = true
+allow_redefinition = true
+check_untyped_defs = true
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+plugins = [
+  "mypy_django_plugin.main"
+]
+
+exclude = [
+  "tests/",
+  "vendored/"
+]
+
+  [[tool.mypy.overrides]]
+  module = ["saleor.*.migrations.*"]
+  ignore_errors = true
+
+
 [tool.ruff]
+extend-exclude = ["vendored"]
 extend-select = ["D", "I", "ISC001", "ISC002", "PIE", "PT", "T20", "UP"]
 ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
-target-version = "py39"
+target-version = "py310"
 
   [tool.ruff.flake8-pytest-style]
   fixture-parentheses = false

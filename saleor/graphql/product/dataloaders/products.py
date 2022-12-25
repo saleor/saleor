@@ -1,6 +1,5 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Optional
 
 from django.db.models import F
 
@@ -109,7 +108,7 @@ class ProductChannelListingByProductIdAndChannelSlugLoader(
 
         # For each channel execute a single query for all products.
         product_channel_listing_by_product_and_channel: defaultdict[
-            ProductIdAndChannelSlug, Optional[ProductChannelListing]
+            ProductIdAndChannelSlug, ProductChannelListing | None
         ] = defaultdict()
         for channel_slug, product_ids in product_channel_listing_by_channel.items():
             product_channel_listings = self.batch_load_channel(
@@ -124,7 +123,7 @@ class ProductChannelListingByProductIdAndChannelSlugLoader(
 
     def batch_load_channel(
         self, channel_slug: str, products_ids: Iterable[int]
-    ) -> Iterable[tuple[int, Optional[ProductChannelListing]]]:
+    ) -> Iterable[tuple[int, ProductChannelListing | None]]:
         product_channel_listings = ProductChannelListing.objects.using(
             self.database_connection_name
         ).filter(channel__slug=channel_slug, product_id__in=products_ids)
@@ -302,7 +301,7 @@ class VariantChannelListingByVariantIdAndChannelLoader(
 
         # For each channel execute a single query for all product variants.
         variant_channel_listing_by_variant_and_channel: defaultdict[
-            VariantIdAndChannelSlug, Optional[ProductVariantChannelListing]
+            VariantIdAndChannelSlug, ProductVariantChannelListing | None
         ] = defaultdict()
         for channel, variant_ids in variant_channel_listing_by_channel.items():
             variant_channel_listings = self.batch_load_channel(channel, variant_ids)
@@ -315,7 +314,7 @@ class VariantChannelListingByVariantIdAndChannelLoader(
 
     def batch_load_channel(
         self, channel: str, variant_ids: Iterable[int]
-    ) -> Iterable[tuple[int, Optional[ProductVariantChannelListing]]]:
+    ) -> Iterable[tuple[int, ProductVariantChannelListing | None]]:
         filter = {
             f"channel__{self.field}": channel,
             "variant_id__in": variant_ids,
@@ -372,7 +371,7 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
 
         # For each channel execute a single query for all product variants.
         variant_channel_listing_by_product_and_channel: defaultdict[
-            ProductIdAndChannelSlug, Optional[Iterable[ProductVariantChannelListing]]
+            ProductIdAndChannelSlug, Iterable[ProductVariantChannelListing] | None
         ] = defaultdict()
         for channel_slug, product_ids in variant_channel_listing_by_channel.items():
             variant_channel_listings = self.batch_load_channel(
@@ -389,7 +388,7 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
 
     def batch_load_channel(
         self, channel_slug: str, products_ids: Iterable[int]
-    ) -> Iterable[tuple[int, Optional[list[ProductVariantChannelListing]]]]:
+    ) -> Iterable[tuple[int, list[ProductVariantChannelListing] | None]]:
         variants_channel_listings = (
             ProductVariantChannelListing.objects.all()
             .using(self.database_connection_name)

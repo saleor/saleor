@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "demo4a1.py", line 8, in <module>
+    addr.state = 'NY'
+  File "/opt/pyxb/pyxb/binding/basis.py", line 100, in __setattr__
+    return super(_TypeBinding_mixin, self).__setattr__(name, value)
+  File "/opt/pyxb/pyxb/binding/content.py", line 1037, in set
+    value = self.__elementBinding.compatibleValue(value, is_plural=self.isPlural())
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1623, in compatibleValue
+    return self.typeDefinition()._CompatibleValue(value, **kw)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 373, in _CompatibleValue
+    return cls(value)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 924, in __init__
+    self.xsdConstraintsOK(location)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1050, in xsdConstraintsOK
+    return self.XsdConstraintsOK(self, location)
+  File "/opt/pyxb/pyxb/binding/basis.py", line 1045, in XsdConstraintsOK
+    raise pyxb.SimpleFacetValueError(cls, value, f, location)
+pyxb.exceptions_.SimpleFacetValueError: Type {URN:address}USState enumeration constraint violated by value NY

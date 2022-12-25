@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
@@ -43,9 +43,7 @@ def get_transaction_item(id: str) -> payment_models.TransactionItem:
     return instance
 
 
-def clean_customer_ip_address(
-    info, customer_ip_address: Optional[str], error_code: str
-):
+def clean_customer_ip_address(info, customer_ip_address: str | None, error_code: str):
     """Get customer IP address.
 
     The customer IP address is required for some payment gateways. By default, the

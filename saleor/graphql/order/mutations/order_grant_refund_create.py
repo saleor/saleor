@@ -1,5 +1,5 @@
 import decimal
-from typing import Any, Optional, Union
+from typing import Any
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -113,8 +113,8 @@ class OrderGrantRefundCreate(BaseMutation):
     def clean_input_lines(
         cls,
         order: models.Order,
-        lines: list[dict[str, Union[str, int]]],
-    ) -> tuple[list[models.OrderGrantedRefundLine], Optional[list[dict[str, str]]]]:
+        lines: list[dict[str, str | int]],
+    ) -> tuple[list[models.OrderGrantedRefundLine], list[dict[str, str]] | None]:
         errors: list[dict[str, str]] = []
         input_lines_data = get_input_lines_data(
             lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value

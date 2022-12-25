@@ -30,7 +30,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: python:3.9
+    container: python:3.10
 
     services:
       postgres:
@@ -64,7 +64,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry env use python3.9
+          poetry env use python3.10
           poetry install --no-root
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 

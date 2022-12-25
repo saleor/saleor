@@ -1,6 +1,5 @@
 import logging
 from tempfile import NamedTemporaryFile
-from typing import Optional
 from urllib.parse import urlsplit
 
 import requests
@@ -38,10 +37,10 @@ logger = logging.getLogger(__name__)
 
 
 def validate_payment_data_for_apple_pay(
-    validation_url: Optional[str],
-    merchant_identifier: Optional[str],
-    domain: Optional[str],
-    display_name: Optional[str],
+    validation_url: str | None,
+    merchant_identifier: str | None,
+    domain: str | None,
+    display_name: str | None,
     certificate,
 ):
     if not certificate:

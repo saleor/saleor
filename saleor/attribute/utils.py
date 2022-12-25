@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Union
 
 from django.db.models.expressions import Exists, OuterRef
 
@@ -15,14 +14,14 @@ from .models import (
     AttributeVariant,
 )
 
-T_INSTANCE = Union[Product, ProductVariant, Page]
+T_INSTANCE = Product | ProductVariant | Page
 
 
 def associate_attribute_values_to_instance(
     instance: T_INSTANCE,
     attribute: Attribute,
     *values: AttributeValue,
-) -> Union[None, AssignedVariantAttribute]:
+) -> None | AssignedVariantAttribute:
     """Assign given attribute values to a product or variant.
 
     Note: be aware this function invokes the ``set`` method on the instance's
@@ -56,7 +55,7 @@ def _associate_attribute_to_instance(
     instance: T_INSTANCE,
     attribute: Attribute,
     *values: AttributeValue,
-) -> Union[None, AssignedVariantAttribute]:
+) -> None | AssignedVariantAttribute:
     """Associate a given attribute to an instance.
 
     For a given instance assign an attribute to it and set values based on *values.
@@ -168,7 +167,7 @@ def sort_assigned_attribute_values_using_assignment(
 
 
 def sort_assigned_attribute_values(
-    instance: Union[Page, Product],
+    instance: Page | Product,
     attribute: Attribute,
     values: Iterable[AttributeValue],
 ) -> None:

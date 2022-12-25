@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:nsdep:D" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:nsdep:D" xmlns:B="URN:nsdep:B" xmlns:A="URN:nsdep:A" xmlns:C="URN:nsdep:C" xmlns:D="URN:nsdep:D">
+	<xs:import namespace="URN:nsdep:A" schemaLocation="a_c.xsd"/>
+	<xs:import namespace="URN:nsdep:B" schemaLocation="b_c.xsd"/>
+	<xs:import namespace="URN:nsdep:C" schemaLocation="c_c.xsd"/>
+	<xs:complexType name="tD_c">
+		<xs:sequence>
+			<xs:element ref="A:A_c_e1"/>
+			<xs:element ref="B:B_c_e1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="D_c_e1" type="tns:tD_c"/>
+	<xs:complexType name="esses">
+		<xs:sequence>
+			<xs:element ref="A:s"/>
+			<xs:element ref="B:s"/>
+			<xs:element ref="C:s"/>
+			<xs:element name="s" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

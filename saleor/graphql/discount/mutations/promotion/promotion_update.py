@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 import graphene
 import pytz
@@ -114,7 +113,7 @@ class PromotionUpdate(ModelMutation):
             )
 
     @classmethod
-    def get_toggle_type(cls, instance, clean_input, previous_end_date) -> Optional[str]:
+    def get_toggle_type(cls, instance, clean_input, previous_end_date) -> str | None:
         """Check if promotion has started, ended or there was no toggle.
 
         Promotion toggles when start or end date already passed and the
@@ -156,7 +155,7 @@ class PromotionUpdate(ModelMutation):
         cls,
         manager: "PluginsManager",
         instance: models.Promotion,
-        toggle_type: Optional[str],
+        toggle_type: str | None,
     ):
         """Send a webhook about starting or ending promotion, if it wasn't sent yet."""
         event = None
@@ -174,7 +173,7 @@ class PromotionUpdate(ModelMutation):
         cls,
         info: ResolveInfo,
         instance: models.Promotion,
-        toggle_type: Optional[str],
+        toggle_type: str | None,
     ):
         app = get_app_promise(info.context).get()
         user = info.context.user

@@ -1,5 +1,5 @@
 import json
-from typing import Any, Optional
+from typing import Any
 
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
@@ -62,7 +62,7 @@ class Command(BaseCommand):
             raise CommandError(f"Request failed. Exception: {e}")
         response.raise_for_status()
 
-    def handle(self, *args: Any, **options: Any) -> Optional[str]:
+    def handle(self, *args: Any, **options: Any) -> str | None:
         name = options["name"]
         is_active = options["activate"]
         target_url = options["target_url"]

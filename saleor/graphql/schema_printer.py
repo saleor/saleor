@@ -3,7 +3,8 @@
 Can be dropped once we upgrade from the legacy version of GraphQL Core.
 """
 
-from typing import Callable, Optional, Union, cast
+from collections.abc import Callable
+from typing import cast
 
 from graphene.types.definitions import GrapheneObjectType
 from graphql.language.printer import print_ast
@@ -75,7 +76,7 @@ def print_filtered_schema(
     )
 
 
-def print_schema_definition(schema: GraphQLSchema) -> Optional[str]:
+def print_schema_definition(schema: GraphQLSchema) -> str | None:
     operation_types = []
 
     query_type = schema.get_query_type()
@@ -281,7 +282,7 @@ def print_input_object(type_: GraphQLInputObjectType) -> str:
 
 
 def print_fields(
-    type_: Union[GraphQLObjectType, GraphQLInterfaceType],
+    type_: GraphQLObjectType | GraphQLInterfaceType,
     include_doc_category_directives: bool = True,
 ) -> str:
     fields = [
@@ -342,7 +343,7 @@ def print_directive(directive: GraphQLDirective) -> str:
     )
 
 
-def print_deprecated(reason: Optional[str]) -> str:
+def print_deprecated(reason: str | None) -> str:
     if reason is None:
         return ""
     if reason != DEFAULT_DEPRECATION_REASON:
@@ -443,17 +444,15 @@ def print_block_string(value: str, minimize: bool = False) -> str:
 
 
 def print_description(
-    def_: Union[
-        GraphQLArgument,
-        GraphQLDirective,
-        GraphQLEnumType,
-        GraphQLEnumValue,
-        GraphQLInputObjectType,
-        GraphQLInterfaceType,
-        GraphQLObjectType,
-        GraphQLScalarType,
-        GraphQLUnionType,
-    ],
+    def_: GraphQLArgument
+    | GraphQLDirective
+    | GraphQLEnumType
+    | GraphQLEnumValue
+    | GraphQLInputObjectType
+    | GraphQLInterfaceType
+    | GraphQLObjectType
+    | GraphQLScalarType
+    | GraphQLUnionType,
     indentation: str = "",
     first_in_block: bool = True,
 ) -> str:

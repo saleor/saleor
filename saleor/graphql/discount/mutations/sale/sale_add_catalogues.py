@@ -1,5 +1,3 @@
-from typing import Optional
-
 from .....core.tracing import traced_atomic_transaction
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
@@ -89,7 +87,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
     @classmethod
     def add_items_to_catalogue(
         cls, rules: list[PromotionRule], previous_catalogue_info: CatalogueInfo, input
-    ) -> Optional[dict]:
+    ) -> dict | None:
         catalogue_info_to_add = cls.get_catalogue_info_from_input(input)
         if any(catalogue_info_to_add):
             new_catalogue = merge_catalogues_info(

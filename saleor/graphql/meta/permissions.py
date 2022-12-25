@@ -1,4 +1,5 @@
-from typing import Any, Callable, Union
+from collections.abc import Callable
+from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
@@ -176,7 +177,7 @@ def menu_permissions(_info: ResolveInfo, _object_pk: Any) -> list[BasePermission
 def app_permissions(info: ResolveInfo, object_pk: str) -> list[BasePermissionEnum]:
     auth_token = info.context.decoded_auth_token or {}
     app = get_app_promise(info.context).get()
-    app_id: Union[str, int, None]
+    app_id: str | int | None
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:

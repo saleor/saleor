@@ -1,0 +1,9 @@
+<xs:schema targetNamespace="urn:app" xmlns:tns="urn:app" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:common="urn:common" elementFormDefault="qualified">
+  <xs:import namespace="urn:common"/>
+  <xs:complexType name="app">
+    <xs:sequence>
+      <xs:element name="xcommon" type="common:extended"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="elt" type="tns:app"/>
+</xs:schema>

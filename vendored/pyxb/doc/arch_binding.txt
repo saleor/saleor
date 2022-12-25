@@ -1,0 +1,372 @@
+.. _bindingModel:
+
+Binding Model
+=============
+
+The binding model represents the relations between Python classes that
+correspond to schema components.  The class hierarchy for the binding model
+is depicted in the following diagram.
+
+.. image:: Images/BindingModel.jpg
+
+There are three primary groups of classes, which in turn depend on some
+supporting capabilities, all of which are described in the following
+sections.
+
+Supporting Capabilities
+-----------------------
+
+Common Binding Instance Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:api:`pyxb.binding.basis._TypeBinding_mixin` is a marker class to indicate
+that the incorporating class represents a binding associated with a type
+definition (whether simple or complex).  The key features of this mixin are:
+
+ - The :api:`_ExpandedName
+   <pyxb.binding.basis._TypeBinding_mixin._ExpandedName>` class variable is
+   overridden in each class to identify the type definition corresponding to
+   the class.
+
+ - The :api:`_XSDLocation
+   <pyxb.binding.basis._TypeBinding_mixin._XSDLocation>` class variable is
+   overridden in each class to provide the line, column, and schema at which
+   the data type definition was found.  This is used in diagnostics.
+
+ - The :api:`namespace context
+   <pyxb.binding.basis._TypeBinding_mixin._namespaceContext>` of the type
+   definition is recorded to allow users to perform QName resolution of values
+   within instance documents (see, for example, the customized bindings in
+   ``pyxb.bundles.wssplat.wsdl11``).
+
+ - Each instance records the :api:`pyxb.binding.basis.element` instance that
+   determines where the type came from.  The element is required in order to
+   provide the correct name when converting the binding instance to a DOM
+   instance on its way to expression as a text XML document.
+
+ - The mixin is also where `xsi:nil
+   <http://www.w3.org/TR/xmlschema-1/#xsi_nil>`_ information for the instance
+   is stored.
+
+ - A :api:`Factory <pyxb.binding.basis._TypeBinding_mixin>` infrastructure is
+   provided to allow creation of new instances of the binding while permitting
+   developers to customize the generated binding classes; see
+   :ref:`binding_customization`.
+
+.. _binding_deconflictingNames:
+
+Deconflicting Names
+^^^^^^^^^^^^^^^^^^^
+
+In XML schema, the namespaces for element declarations, type definitions, and
+attribute definitions are all distinct.  Python uses the same namespace for
+everything.  So, if you have a schema that defines a simple type ``color``,
+the schema can also have an element named ``color`` with a complex type that
+itself has both a child element named ``color`` and a distinct attribute (of
+type ``color``) that is also named ``color``.  Since the natural
+representation of elements and attributes inside complex types is also by
+their XML name, the chances of conflict are high.
+
+PyXB resolves this by ensuring every identifiable object has a unique
+identifier within its context.  The steps involved are:
+
+#. Make object name into an :api:`identifier
+   <pyxb.utils.utility.MakeIdentifier>` by stripping out non-printable
+   characters, replacing characters that cannot appear in identifiers with
+   underscores, stripping leading underscores, and prefixing an initial
+   digit with the character ``n``.
+
+#. :api:`Deconflict <pyxb.utils.utility.DeconflictKeyword>` the resulting
+   identifier from Python :api:`reserved identifiers
+   <pyxb.utils.utility._Keywords>` and other context-specific keywords.
+
+#. Prepend the standard prefix that denotes the identifier's :ref:`visibility
+   <identifier_naming>` (public, protected, private)
+
+#. Make the resulting identifier :api:`unique <pyxb.utils.utility.MakeUnique>`
+   within its context (containing class or module).
+
+These steps are encapsulated into a single function
+:api:`pyxb.utils.utility.PrepareIdentifier` which takes parameters that
+customize the context for the identifier.
+
+In addition to name conflicts with namespace-global identifiers appearing
+directly in the module, conflicts may also appear within a binding class as a
+result of collision with names from Python keywords, public class names, and
+public field or method names in the class.  The
+:api:`pyxb.utils.utility._DeconflictSymbols_mixin` is used to refine the set
+of type-specific public names.  If you customize a generated binding class by
+extending from it, you must specify your own class variable
+``_ReservedSymbols`` with a value that is the union of your symbols and those
+of the superclass(es) (see :api:`pyxb.utils.utility._DeconflictSymbols_mixin`
+for details).
+
+Deconfliction of module-level names occurs prior to :api:`code generation
+<pyxb.binding.generate.GeneratePython>`.  Identifiers are deconflicted in
+favor of higher items on this list:
+
+- Python keywords
+- Public class identifiers
+- Element tags
+- Complex or simple type definition tags
+- Enumeration tags
+- Attribute tags
+
+.. _binding_customization:
+
+Support for Customization
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+One of the primary goals of PyXB is to support Python modules which customize
+the generated bindings by adding both functionality and derived content.
+Maintenance issues require that these extensions exist separately from the
+automatically-generated binding modules; usability requires that they inherit
+from the automatically-generated modules.  This is supported by the
+:api:`pyxb.binding.basis._DynamicCreate_mixin` class.
+
+This class provides a :api:`method
+<pyxb.binding.basis._DynamicCreate_mixin._DynamicCreate>` which is used by
+the generated bindings to create new instances of themselves.  The raw
+bindings are generated into a sub-module with the prefix ``raw``, and the
+extensions modify the generated class to record the real class that should
+be used when new instances are created as a result of converting an XML
+document into a binding object.
+
+For example, if a binding is to be created in a module ``dinner``, the
+``--generate-raw-binding`` flag would be used on :ref:`pyxbgen <pyxbgen>` to
+generate the binding in a file named ``raw/dinner.py``.  The wrapper module
+``dinner.py`` would contain the following code (assuming that the class
+``parsnip`` was to be extended)::
+
+  # Bring all public symbols up from the generated one
+  from raw.dinner import *
+  # Bring them in again, but left with their original module path
+  import raw.dinner
+  # Replace the generated parsnip with a customizing extension
+  class parsnip (raw.dinner.parsnip):
+    # Customization here
+    pass
+  # Register the customization for use by the binding infrastructure
+  raw.dinner.parsnip._SetSupersedingClass(parsnip)
+
+With this pattern, objects created by the user through ``dinner.parsnip()``
+and from XML documents by the ``CreateFromDOM`` infrastructure will both be
+instances of the extending wrapper class.
+
+
+Simple Type Definitions
+-----------------------
+
+`Simple type definitions
+<http://www.w3.org/TR/xmlschema-1/#Simple_Type_Definitions>`_ derive from
+:api:`pyxb.binding.basis.simpleTypeDefinition` and a standard Python type.
+
+For simple types that are not derived by list or union, you can construct
+instances using the :api:`Factory <pyxb.binding.basis._TypeBinding_mixin>`
+method or directly, providing the value as an argument.  New instance creation
+is validated against the `facets
+<http://www.w3.org/TR/xmlschema-2/#rf-facets>`_ recorded in the binding class.
+
+
+Constraining Facets
+^^^^^^^^^^^^^^^^^^^
+
+Each class corresponding to a simple type definition has class variables for
+the `constraining facets <http://www.w3.org/TR/xmlschema-2/#rf-facets>`_
+that are valid for that class.  These variables are named by prefixing the
+facet name with ``_CF_``, and have a value that is an instance of the
+corresponding :api:`facet class <pyxb.binding.facets>`.  Where possible, the
+variables are inherited from the parent class; when a simple type is derived
+by restriction, the restricted class overrides its parent with a new value
+for the corresponding facet.
+
+Facets incorporate schema-specific constraining values with some code that
+validates potential instances of the type against the constraints.
+Constraining values may:
+
+- be of a fixed type, as with `length
+  <http://www.w3.org/TR/xmlschema-2/#rf-length>`_;
+
+- take on a value in the value space of the simple type in which the facet
+  appears, as with `minInclusive
+  <http://www.w3.org/TR/xmlschema-2/#rf-minInclusive>`_; or
+
+- take on a value in the value space of the superclass of the simple type in
+  which the facet appears, as with `minExclusive
+  <http://www.w3.org/TR/xmlschema-2/#rf-minExclusive>`_;
+
+Enumeration and pattern constraints maintain a list of the respective
+acceptable enumeration and pattern values.
+
+Facets implement the
+:api:`pyxb.binding.facets.ConstrainingFacet.validateConstraint` method, which
+in turn is invoked by the
+:api:`pyxb.binding.basis.simpleTypeDefinition.XsdConstraintsOK` class method
+when given a value that may or may not satisfy the constraints.  The
+:api:`Factory <pyxb.binding.basis._TypeBinding_mixin.Factory>` will normally
+validate the constraints before allowing a new instance to be returned.
+
+List Types
+^^^^^^^^^^
+
+Simple types that derive by `list
+<http://www.w3.org/TR/xmlschema-2/#atomic-vs-list>`_ extend from
+:api:`pyxb.binding.basis.STD_list` which in turn descends from the Python
+``list`` type.  These derived classes must override the base class
+:api:`pyxb.binding.basis.STD_list._ItemType` value with the appropriate
+class to use when creating or validating list members.
+
+When constructing an instance of a simple list type, you can provide a list as
+the initializer.  The members of the list must be valid initializers to the
+underlying item type.
+
+Union Types
+^^^^^^^^^^^
+
+Union types are classes that are never instantiated.  Instead, the binding
+classes define a :api:`pyxb.binding.basis.STD_union._MemberTypes` variable
+which contains a list of binding classes that are permitted as members of the
+union.  The :api:`pyxb.binding.basis.STD_union.Factory` method attempts, in
+turn, to create an instance of each potential member type using the arguments
+passed into it.  The returned value is the first instance that was
+successfully created.
+
+Note that this means the fact that a particular attribute in an element is a
+member of a union is not recorded in the attribute value.  See
+:ref:`attributeUse`.
+
+It is not possible to construct an instance of a union type directly.  You
+must use the :api:`Factory <pyxb.binding.basis.STD_union.Factory>` method,
+with an argument that is acceptable as an initializer for one of the member
+types.
+
+
+Complex Type Definitions
+------------------------
+
+`Complex type definitions
+<http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions>`_ derive from
+:api:`pyxb.binding.basis.complexTypeDefinition`.  Classes representing complex
+type definitions record maps that specify :api:`attribute
+<pyxb.binding.content.AttributeUse>` and :api:`element
+<pyxb.binding.content.ElementDeclaration>` use structures to record the attributes and
+elements that comprise the type.  Each such structure is stored as a private
+class field and is used by Python properties to provide access to element and
+attribute values in a binding instance.
+
+The base :api:`pyxb.binding.basis.complexTypeDefinition` class provides the
+infrastructure to identify the appropriate attribute or element given an XML
+tag name.  For classes corresponding to types that enable `wildcards
+<http://www.w3.org/TR/xmlschema-1/#Wildcards>`_, it also provides a mechanism
+to access unrecognized elements and attributes.  :api:`Wildcard elements
+<pyxb.binding.basis.complexTypeDefinition.wildcardElements>` are converted to
+binding instances if their namespace and name are recognized, and otherwise
+are left as DOM nodes.  :api:`Wildcard attributes
+<pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap>` are stored in
+a map from their :api:`expanded name <pyxb.namespace.ExpandedName>` to the
+unicode value of the attribute.
+
+When creating a complex type definition, you can provide the values for its
+attributes and fields through arguments and keywords.  Keywords whose name
+matches an attribute or element identifier are used to set that element,
+bypassing the content model.  Arguments are processed in order using the
+content model for identification and validation.  See the :ref:`example below
+<ex_showcontent>`.
+
+Elements
+^^^^^^^^
+
+Each element corresponds to a field in the binding instance; the field is
+managed through a :ref:`element declaration <elementUse>` structure.  Element
+names are disambiguated, and a Python property is defined to retrieve and set
+the element value.
+
+When the content model permits multiple occurrences of the element, its value
+is a Python list.  The order in this list is significant.
+
+Attributes
+^^^^^^^^^^
+
+Each attribute corresponds to a field in the binding instance; the field is
+managed through a :ref:`attribute use <attributeUse>` structure.  Attribute
+names are disambiguated, and a Python property is defined to retrieve and set
+each attribute value.
+
+Note that if the same name is used for both an attribute and an element, the
+element use takes priority.  See :ref:`binding_deconflictingNames`.
+
+Simple Content
+^^^^^^^^^^^^^^
+
+Complex types with simple content (i.e., those in which the body of the
+element is an octet sequence in the lexical space of a specified simple type)
+are distinguished by providing a value for the class-level
+:api:`pyxb.binding.basis.complexTypeDefinition._TypeDefinition` variable.
+For these types, the :api:`pyxb.binding.basis.complexTypeDefinition.content`
+method returns the instance of that type that corresponds to the content of
+the object.
+
+Users of bindings must be aware of whether a particular value is a true simple
+type, or a complex type with simple content.  In the former case, the value
+descends from the corresponding Python type and can be used directly in Python
+expressions.  In the latter, the value must be retrieved using the ``value``
+method before it can be used.
+
+As an example, consider this schema (available in :file:`examples/content`):
+
+.. literalinclude:: ../examples/content/content.xsd
+
+With the generated bindings, the following program:
+
+.. _ex_showcontent:
+
+.. literalinclude:: ../examples/content/showcontent.py
+
+produces the following output:
+
+.. literalinclude:: ../examples/content/showcontent.out
+
+Note that it was necessary to indicate that the second member (``complex``) of
+the ``numbers`` element needs to be wrapped in an instance of the appropriate
+complex type.  Similarly, it was necessary to add the call to ``value()`` on
+the value of ``v.complex`` in order to get a valid Python numeric value.  This
+was not necessary for ``v.simple`` or ``v.attribute``.
+
+Mixed and Element-Only Content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Mixed and element-only content
+<http://www.w3.org/TR/xmlschema-1/#content_type>`_ nodes use the :api:`
+<pyxb.binding.basis.complexTypeDefinition._ElementBindingDeclForName>` method
+to manage the mapping from XML schema element names to class members.  The
+element and attribute names are distinct.  Instances of complex types also
+reference a :api:`content automaton
+<pyxb.binding.content.AutomatonConfiguration>` to ensure the constraints of
+the schema are satisfied.  These structures are described in
+:ref:`contentModel`.
+
+For these types, the :api:`pyxb.binding.basis.complexTypeDefinition.content`
+method returns a list, in parsed order, of the Python objects and (if mixed)
+non-element content that belong to the instance.  Be aware that this order
+currently does not influence the order of elements when converting bindings
+into XML.
+
+Elements
+--------
+
+Unlike the bindings for schema type definitions, which are represented as
+Python classes, bindings corresponding to XML Schema element declarations are
+represented as instances of the :api:`pyxb.binding.basis.element` class.  The
+instances can be used to create new binding instances that are associated with
+the element.  Elements are used in the content model to identify transitions
+through a finite automaton.
+
+You can use elements just like types in that they are invokable, with
+arguments corresponding to the arguments of the constructor of the
+corresponding type.  See :ref:`the example above <ex_showcontent>`.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

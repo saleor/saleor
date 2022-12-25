@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from ..permission.enums import (
     AccountPermissions,
@@ -772,7 +772,7 @@ class WebhookEventAsyncType:
     ] + [
         (event_name, event_data["name"]) for event_name, event_data in EVENT_MAP.items()
     ]
-    PERMISSIONS: dict[str, Optional[BasePermissionEnum]] = {
+    PERMISSIONS: dict[str, BasePermissionEnum | None] = {
         event_name: event_data["permission"]
         for event_name, event_data in EVENT_MAP.items()
     }
@@ -915,7 +915,7 @@ class WebhookEventSyncType:
     CHOICES = [
         (event_name, event_data["name"]) for event_name, event_data in EVENT_MAP.items()
     ]
-    PERMISSIONS: dict[str, Optional[BasePermissionEnum]] = {
+    PERMISSIONS: dict[str, BasePermissionEnum | None] = {
         event_name: event_data["permission"]
         for event_name, event_data in EVENT_MAP.items()
     }

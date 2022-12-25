@@ -1,5 +1,4 @@
 from collections.abc import Collection
-from typing import Optional
 
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
@@ -37,8 +36,8 @@ def validate_image_exif(img: Image, error_code: str):
 def validate_image_size(
     img: Image,
     error_code: str,
-    min_size: Optional[int] = None,
-    max_size: Optional[int] = None,
+    min_size: int | None = None,
+    max_size: int | None = None,
     square_required=False,
 ):
     if min_size and img.size < (min_size, min_size):

@@ -1,5 +1,4 @@
 import base64
-from typing import Optional, Union
 
 import graphene
 
@@ -87,7 +86,7 @@ def check_permission_for_access_to_meta(root: models.App, info: ResolveInfo, app
 
 def has_access_to_app_public_meta(root, info: ResolveInfo, app) -> bool:
     auth_token = info.context.decoded_auth_token or {}
-    app_id: Union[str, int, None]
+    app_id: str | int | None
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
     else:
@@ -277,8 +276,8 @@ class AppManifestBrandLogo(BaseObjectType):
         root,
         _info: ResolveInfo,
         *,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ):
         format = get_icon_thumbnail_format(format)
         # limit thumbnail max size as it is transferred
@@ -312,11 +311,11 @@ class AppBrandLogo(BaseObjectType):
 
     @staticmethod
     def resolve_default(
-        root: Union[models.App, models.AppInstallation],
+        root: models.App | models.AppInstallation,
         info: ResolveInfo,
         *,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ):
         if not root.brand_logo_default:
             return None
@@ -362,9 +361,7 @@ class AppBrand(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
-    def resolve_logo(
-        root: Union[models.App, models.AppInstallation], _info: ResolveInfo
-    ):
+    def resolve_logo(root: models.App | models.AppInstallation, _info: ResolveInfo):
         return root
 
 

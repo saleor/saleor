@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:foo" targetNamespace="urn:foo">
+  <simpleType name="SimpleOpenDeliveries">
+    <restriction base="int"/>
+  </simpleType>
+  <simpleType name="Currency">
+    <restriction base="int"/>
+  </simpleType>
+  <simpleType name="Season">
+    <restriction base="Name"/>
+  </simpleType>
+  <complexType name="OpenDeliveries">
+    <complexContent>
+      <restriction base="tns:Money">
+        <sequence>
+          <element name="Value" type="tns:SimpleOpenDeliveries"/>
+          <element name="Currency" type="tns:Currency"/>
+          <element name="Season" type="tns:Season"/>
+        </sequence>
+      </restriction>
+    </complexContent>
+  </complexType>
+  <complexType name="Money">
+    <sequence>
+      <element name="Value" type="integer"/>
+      <element name="Currency" type="anySimpleType"/>
+      <element name="Season" type="anyType"/>
+    </sequence>
+  </complexType>
+</schema>

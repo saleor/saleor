@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import requests
 from django.conf import settings
@@ -49,7 +49,7 @@ def _request(
     config: "ApiConfig",
     method: str,
     path: str = "",
-    json: Optional[dict] = None,
+    json: dict | None = None,
 ) -> requests.Response:
     trace_name = f"np-atobarai.request.{path.lstrip('/')}"
     with np_atobarai_opentracing_trace(trace_name):
@@ -71,7 +71,7 @@ def _request(
 
 
 def np_request(
-    config: "ApiConfig", method: str, path: str = "", json: Optional[dict] = None
+    config: "ApiConfig", method: str, path: str = "", json: dict | None = None
 ) -> NPResponse:
     try:
         response = _request(config, method, path, json)
@@ -85,7 +85,7 @@ def np_request(
 
 
 def handle_unrecoverable_state(
-    order: Optional[Order],
+    order: Order | None,
     action: str,
     transaction_id: str,
     error_codes: Iterable[str],
@@ -109,7 +109,7 @@ def format_name(ad: AddressData) -> str:
     return f"{ad.last_name}　{ad.first_name}".strip()
 
 
-def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
+def format_address(config: "ApiConfig", ad: AddressData) -> str | None:
     """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
@@ -257,8 +257,8 @@ def cancel(config: "ApiConfig", transaction_id: str) -> NPResponse:
 def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
-    billed_amount: Optional[int] = None,
-    goods: Optional[list[dict]] = None,
+    billed_amount: int | None = None,
+    goods: list[dict] | None = None,
 ) -> NPResponse:
     if billed_amount is None:
         billed_amount = format_price(
@@ -318,9 +318,9 @@ def register(
 
 def report(
     config: "ApiConfig",
-    shipping_company_code: Optional[str],
-    psp_reference: Optional[str],
-    shipping_slip_number: Optional[str],
+    shipping_company_code: str | None,
+    psp_reference: str | None,
+    shipping_slip_number: str | None,
 ) -> NPResponse:
     if not shipping_company_code:
         return error_np_response(SHIPPING_COMPANY_CODE_INVALID)

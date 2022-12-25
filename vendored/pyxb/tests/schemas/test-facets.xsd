@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="URN:test-facets" xmlns:tns="URN:test-facets" xmlns="http://www.w3.org/2001/XMLSchema">
+	<annotation>
+	  <documentation>Test case for facets</documentation>
+	</annotation>
+           <element name="quantity">
+              <simpleType>
+                <restriction base="positiveInteger">
+                  <maxExclusive value="100"/>
+                </restriction>
+              </simpleType>
+           </element>
+</schema>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="http://dev/null" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://dev/null">
+	<xs:element name="wrapper" type="tns:tWrapper"/>
+	<xs:complexType name="tWrapper">
+		<xs:sequence>
+			<xs:element name="field" type="xs:int"/>
+			<xs:element name="field" type="xs:string"/>
+			<xs:element name="field" type="xs:boolean"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

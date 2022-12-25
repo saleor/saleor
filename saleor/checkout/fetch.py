@@ -1,11 +1,10 @@
 import itertools
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from functools import singledispatch
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Optional,
     Union,
 )
@@ -98,18 +97,18 @@ class CheckoutInfo:
             return self.checkout.country.code
         return address.country.code
 
-    def get_customer_email(self) -> Optional[str]:
+    def get_customer_email(self) -> str | None:
         return self.user.email if self.user else self.checkout.email
 
 
 @dataclass(frozen=True)
 class DeliveryMethodBase:
-    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]] = None
+    delivery_method: Union["ShippingMethodData", "Warehouse"] | None = None
     shipping_address: Optional["Address"] = None
     store_as_customer_address: bool = False
 
     @property
-    def warehouse_pk(self) -> Optional[UUID]:
+    def warehouse_pk(self) -> UUID | None:
         pass
 
     @property
@@ -121,7 +120,7 @@ class DeliveryMethodBase:
         return False
 
     @property
-    def delivery_method_name(self) -> dict[str, Optional[str]]:
+    def delivery_method_name(self) -> dict[str, str | None]:
         return {"shipping_method_name": None}
 
     def get_warehouse_filter_lookup(self) -> dict[str, Any]:
@@ -141,7 +140,7 @@ class ShippingMethodInfo(DeliveryMethodBase):
     store_as_customer_address: bool = True
 
     @property
-    def delivery_method_name(self) -> dict[str, Optional[str]]:
+    def delivery_method_name(self) -> dict[str, str | None]:
         return {"shipping_method_name": str(self.delivery_method.name)}
 
     @property
@@ -181,7 +180,7 @@ class CollectionPointInfo(DeliveryMethodBase):
         )
 
     @property
-    def delivery_method_name(self) -> dict[str, Optional[str]]:
+    def delivery_method_name(self) -> dict[str, str | None]:
         return {"collection_point_name": str(self.delivery_method)}
 
     def get_warehouse_filter_lookup(self) -> dict[str, Any]:
@@ -206,7 +205,7 @@ class CollectionPointInfo(DeliveryMethodBase):
 
 @singledispatch
 def get_delivery_method_info(
-    delivery_method: Optional[Union["ShippingMethodData", "Warehouse", Callable]],
+    delivery_method: Union["ShippingMethodData", "Warehouse", Callable] | None,
     address: Optional["Address"] = None,
 ) -> DeliveryMethodBase:
     if callable(delivery_method):
@@ -254,7 +253,7 @@ def fetch_checkout_lines(
     )
     lines_info = []
     unavailable_variant_pks = []
-    product_channel_listing_mapping: dict[int, Optional["ProductChannelListing"]] = {}
+    product_channel_listing_mapping: dict[int, "ProductChannelListing" | None] = {}
     channel = checkout.channel
 
     for line in lines:
@@ -407,9 +406,7 @@ def fetch_checkout_info(
     checkout: "Checkout",
     lines: Iterable[CheckoutLineInfo],
     manager: "PluginsManager",
-    shipping_channel_listings: Optional[
-        Iterable["ShippingMethodChannelListing"]
-    ] = None,
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"] | None = None,
     fetch_delivery_methods=True,
     voucher: Optional["Voucher"] = None,
     voucher_code: Optional["VoucherCode"] = None,
@@ -458,8 +455,8 @@ def fetch_checkout_info(
 
 def update_checkout_info_delivery_method_info(
     checkout_info: CheckoutInfo,
-    shipping_method: Optional[ShippingMethod],
-    collection_point: Optional[Warehouse],
+    shipping_method: ShippingMethod | None,
+    collection_point: Warehouse | None,
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ):
     """Update delivery_method_attribute for CheckoutInfo.
@@ -469,7 +466,7 @@ def update_checkout_info_delivery_method_info(
     from ..webhook.transport.shipping import convert_to_app_id_with_identifier
     from .utils import get_external_shipping_id
 
-    delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
+    delivery_method: ShippingMethodData | Warehouse | Callable | None = None
     checkout = checkout_info.checkout
     if shipping_method:
         # Find listing for the currently selected shipping method
@@ -667,7 +664,7 @@ def get_valid_collection_points_for_checkout_info(
 
 def update_checkout_info_delivery_method(
     checkout_info: CheckoutInfo,
-    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]],
+    delivery_method: Union["ShippingMethodData", "Warehouse"] | None,
 ):
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address

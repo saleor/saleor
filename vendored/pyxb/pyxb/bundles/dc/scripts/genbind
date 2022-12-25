@@ -1,0 +1,27 @@
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
+BUNDLE_TAG=dc
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+( mkdir -p ${SCHEMA_DIR} \
+  && cd ${SCHEMA_DIR} \
+  && ( [ -f dc.xsd ] || wget http://dublincore.org/schemas/xmls/qdc/dc.xsd ) \
+  && ( [ -f dcmitype.xsd ] || wget http://dublincore.org/schemas/xmls/qdc/dcmitype.xsd ) \
+  && ( [ -f dcterms.xsd ] || wget http://dublincore.org/schemas/xmls/qdc/dcterms.xsd )
+) || failure unable to obtain schema
+
+pyxbgen \
+ --module-prefix=${MODULE_PREFIX} \
+ --write-for-customization \
+ --archive-to-file=${ARCHIVE_DIR}/dc.wxs \
+ --schema-root=${SCHEMA_DIR} \
+ -u dc.xsd -m dc \
+ -u dcmitype.xsd -m dcmitype \
+ -u dcterms.xsd -m dcterms

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:test" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:annotation>
+		<xs:documentation>Created with EditiX (http://www.editix.com) at Wed Apr 15 14:24:10 MST 2009</xs:documentation>
+	</xs:annotation>
+	<xs:element name="elt"/>
+	<xs:element name="h01"><!-- Zero or one elt children, occurrence constrained by elt -->
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="elt" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="h01b"><!-- Zero or one elt children, occurrence constrained by sequence -->
+		<xs:complexType>
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="elt"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="h11"><!-- Exactly  one elt child, occurrence constrained by elt -->
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="elt" maxOccurs="1" minOccurs="1"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="h11b"><!-- Exactly one elt child, occurrence constrained by sequence -->
+		<xs:complexType>
+			<xs:sequence minOccurs="1" maxOccurs="1">
+				<xs:element name="elt"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="h24"><!-- Two to four elt children, occurrence constrained by elt -->
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="elt" maxOccurs="4" minOccurs="2"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="h24b"><!-- Two to four elt children, occurrence constrained by sequence -->
+		<xs:complexType>
+			<xs:sequence minOccurs="2" maxOccurs="4">
+				<xs:element name="elt"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, cast
+from typing import cast
 
 import stripe
 from django.core.exceptions import ValidationError
@@ -120,7 +120,7 @@ def _channel_slug_is_different_from_payment_channel_slug(
         )  # pragma: no cover
 
 
-def _get_payment(payment_intent_id: str, with_lock=True) -> Optional[Payment]:
+def _get_payment(payment_intent_id: str, with_lock=True) -> Payment | None:
     qs = Payment.objects.prefetch_related(
         Prefetch("checkout", queryset=Checkout.objects.select_related("channel")),
         Prefetch("order", queryset=Order.objects.select_related("channel")),
@@ -130,7 +130,7 @@ def _get_payment(payment_intent_id: str, with_lock=True) -> Optional[Payment]:
     return qs.filter(transactions__token=payment_intent_id).first()
 
 
-def _get_checkout(payment_id: int) -> Optional[Checkout]:
+def _get_checkout(payment_id: int) -> Checkout | None:
     return (
         Checkout.objects.prefetch_related("payments")
         .select_for_update(of=("self",))

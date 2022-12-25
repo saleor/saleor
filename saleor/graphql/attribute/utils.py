@@ -3,7 +3,7 @@ import re
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -44,33 +44,31 @@ if TYPE_CHECKING:
 
 @dataclass
 class AttrValuesForSelectableFieldInput:
-    id: Optional[str] = None
-    external_reference: Optional[str] = None
-    value: Optional[str] = None
+    id: str | None = None
+    external_reference: str | None = None
+    value: str | None = None
 
 
 @dataclass
 class AttrValuesInput:
-    global_id: Optional[str] = None
-    external_reference: Optional[str] = None
-    values: Optional[list[str]] = None
-    dropdown: Optional[AttrValuesForSelectableFieldInput] = None
-    swatch: Optional[AttrValuesForSelectableFieldInput] = None
-    multiselect: Optional[list[AttrValuesForSelectableFieldInput]] = None
-    numeric: Optional[str] = None
-    references: Union[list[str], list[page_models.Page], None] = None
-    file_url: Optional[str] = None
-    content_type: Optional[str] = None
-    rich_text: Optional[dict] = None
-    plain_text: Optional[str] = None
-    boolean: Optional[bool] = None
-    date: Optional[datetime.date] = None
-    date_time: Optional[datetime.datetime] = None
+    global_id: str | None = None
+    external_reference: str | None = None
+    values: list[str] | None = None
+    dropdown: AttrValuesForSelectableFieldInput | None = None
+    swatch: AttrValuesForSelectableFieldInput | None = None
+    multiselect: list[AttrValuesForSelectableFieldInput] | None = None
+    numeric: str | None = None
+    references: list[str] | list[page_models.Page] | None = None
+    file_url: str | None = None
+    content_type: str | None = None
+    rich_text: dict | None = None
+    plain_text: str | None = None
+    boolean: bool | None = None
+    date: datetime.date | None = None
+    date_time: datetime.datetime | None = None
 
 
-T_INSTANCE = Union[
-    product_models.Product, product_models.ProductVariant, page_models.Page
-]
+T_INSTANCE = product_models.Product | product_models.ProductVariant | page_models.Page
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 T_ERROR_DICT = dict[tuple[str, str], list]
 
@@ -231,7 +229,7 @@ class AttributeAssignmentMixin:
         :raises ValidationError: contain the message.
         :return: The resolved data
         """
-        error_class: Union[type[PageErrorCode], type[ProductErrorCode]] = (
+        error_class: type[PageErrorCode] | type[ProductErrorCode] = (
             PageErrorCode if is_page_attributes else ProductErrorCode
         )
 
@@ -319,7 +317,7 @@ class AttributeAssignmentMixin:
         return cleaned_input
 
     @staticmethod
-    def _clean_file_url(file_url: Optional[str], error_class):
+    def _clean_file_url(file_url: str | None, error_class):
         # extract storage path from file URL
         storage_root_url = get_default_storage_root_url()
         if file_url and not file_url.startswith(storage_root_url):

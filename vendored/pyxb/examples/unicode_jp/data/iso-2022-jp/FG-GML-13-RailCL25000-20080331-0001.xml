@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="iso-2022-jp"?>
+
+<Dataset xsi:schemaLocation="http://fgd.gsi.go.jp/spec/2008/FGD_GMLSchema FGD_GMLSchema.xsd" 
+	xmlns:gml="http://www.opengis.net/gml/3.2" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns="http://fgd.gsi.go.jp/spec/2008/FGD_GMLSchema"
+    gml:id="Dataset1">
+  <gml:description>基盤地図情報メタデータ ID=fmdid:7-26</gml:description>
+  <gml:name>基盤地図情報ダウンロードデータ（GML版）</gml:name>
+
+<RailCL  gml:id="K21_1">
+<fid>fgoid:10-00100-7-27-100088</fid>
+<lfSpanFr gml:id="K21_1-1">
+<gml:timePosition>2008-03-31</gml:timePosition>
+</lfSpanFr>
+<devDate gml:id="K21_1-2">
+<gml:timePosition>2009-06-30</gml:timePosition>
+</devDate>
+<orgGILvl>25000</orgGILvl>
+<orgMDId>0-8</orgMDId>
+<loc>
+<gml:Curve gml:id="K21_1-g" srsName="fguuid:jgd2000.bl">
+<gml:segments>
+<gml:LineStringSegment>
+<gml:posList>
+ 35.566654139 139.75
+ 35.565891944 139.7505875
+ 35.565326944 139.751114167
+</gml:posList>
+</gml:LineStringSegment>
+</gml:segments>
+</gml:Curve>
+</loc>
+<type>その他</type>
+<name></name>
+</RailCL>
+<RailCL  gml:id="K21_3">
+<fid>fgoid:10-00100-7-27-100089</fid>
+<lfSpanFr gml:id="K21_3-1">
+<gml:timePosition>2008-03-31</gml:timePosition>
+</lfSpanFr>
+<devDate gml:id="K21_3-2">
+<gml:timePosition>2009-06-30</gml:timePosition>
+</devDate>
+<orgGILvl>25000</orgGILvl>
+<orgMDId>0-8</orgMDId>
+<loc>
+<gml:Curve gml:id="K21_3-g" srsName="fguuid:jgd2000.bl">
+<gml:segments>
+<gml:LineStringSegment>
+<gml:posList>
+ 35.5639525 139.752326667
+ 35.563600833 139.7526725
+ 35.563081667 139.753129167
+ 35.562153889 139.753948333
+ 35.561791944 139.754255556
+ 35.561241667 139.754609722
+ 35.560856389 139.754704167
+ 35.560596667 139.754720556
+</gml:posList>
+</gml:LineStringSegment>
+</gml:segments>
+</gml:Curve>
+</loc>
+<type>トンネル内の鉄道</type>
+<name></name>
+</RailCL>
+</Dataset>

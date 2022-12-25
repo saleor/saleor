@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://sample" targetNamespace="http://sample" elementFormDefault="qualified" attributeFormDefault="qualified">
+    <!--Document-->
+    <xs:element name="samplerootelement" type="samplerootelementType"/>
+    <!--ABIEs-->
+    <xs:complexType name="samplerootelementType">
+        <xs:sequence>
+            <xs:element name="sampleelement" type="sampleelementType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="sampleelementType">
+        <xs:sequence>
+            <xs:element name="ValueAmount" type="AmountType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <!--Datatypes-->
+    <xs:complexType name="AmountType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="currencyID" type="xs:normalizedString" use="optional"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+</xs:schema>

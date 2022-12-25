@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Optional, cast
+from typing import cast
 
 from ...account.models import Address, CustomerEvent, Group, User
 from ...channel.models import Channel
@@ -40,17 +40,17 @@ class CustomerEventsByUserLoader(DataLoader):
 
 
 class ThumbnailByUserIdSizeAndFormatLoader(
-    DataLoader[tuple[int, int, Optional[str]], Thumbnail]
+    DataLoader[tuple[int, int, str | None], Thumbnail]
 ):
     context_key = "thumbnail_by_user_size_and_format"
 
-    def batch_load(self, keys: Iterable[tuple[int, int, Optional[str]]]):
+    def batch_load(self, keys: Iterable[tuple[int, int, str | None]]):
         user_ids = [user_id for user_id, _, _ in keys]
         thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
             user_id__in=user_ids
         )
         thumbnails_by_user_size_and_format_map: defaultdict[
-            tuple[int, int, Optional[str]], Optional[Thumbnail]
+            tuple[int, int, str | None], Thumbnail | None
         ] = defaultdict()
         for thumbnail in thumbnails:
             format = get_thumbnail_format(thumbnail.format)

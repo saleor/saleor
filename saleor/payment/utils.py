@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Optional, Union, cast, overload
+from typing import Any, Optional, cast, overload
 
 import graphene
 from aniso8601 import parse_datetime
@@ -71,7 +71,7 @@ ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 def _recalculate_last_refund_success_for_transaction(
     transaction_item: TransactionItem,
     request_event: TransactionEvent,
-    response_event: Optional[TransactionEvent] = None,
+    response_event: TransactionEvent | None = None,
 ) -> bool:
     """Recalculate last_refund_success for transaction.
 
@@ -116,7 +116,7 @@ def _recalculate_last_refund_success_for_transaction(
 def recalculate_refundable_for_checkout(
     transaction_item: TransactionItem,
     request_event: TransactionEvent,
-    response_event: Optional[TransactionEvent] = None,
+    response_event: TransactionEvent | None = None,
 ):
     last_refund_success_changed = _recalculate_last_refund_success_for_transaction(
         transaction_item,
@@ -240,13 +240,13 @@ def generate_transactions_data(payment: Payment) -> list[TransactionData]:
 
 def create_payment_information(
     payment: Payment,
-    payment_token: Optional[str] = None,
-    amount: Optional[Decimal] = None,
-    customer_id: Optional[str] = None,
+    payment_token: str | None = None,
+    amount: Decimal | None = None,
+    customer_id: str | None = None,
     store_source: bool = False,
-    refund_data: Optional[RefundData] = None,
-    additional_data: Optional[dict] = None,
-    manager: Optional[PluginsManager] = None,
+    refund_data: RefundData | None = None,
+    additional_data: dict | None = None,
+    manager: PluginsManager | None = None,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -326,15 +326,15 @@ def create_payment(
     total: Decimal,
     currency: str,
     email: str,
-    customer_ip_address: Optional[str] = None,
-    payment_token: Optional[str] = None,
-    extra_data: Optional[dict] = None,
-    checkout: Optional[Checkout] = None,
-    order: Optional[Order] = None,
-    return_url: Optional[str] = None,
-    external_reference: Optional[str] = None,
+    customer_ip_address: str | None = None,
+    payment_token: str | None = None,
+    extra_data: dict | None = None,
+    checkout: Checkout | None = None,
+    order: Order | None = None,
+    return_url: str | None = None,
+    external_reference: str | None = None,
     store_payment_method: str = StorePaymentMethod.NONE,
-    metadata: Optional[dict[str, str]] = None,
+    metadata: dict[str, str] | None = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -413,7 +413,7 @@ def create_transaction(
     kind: str,
     payment_information: PaymentData,
     action_required: bool = False,
-    gateway_response: Optional[GatewayResponse] = None,
+    gateway_response: GatewayResponse | None = None,
     error_msg=None,
     is_success=False,
 ) -> Transaction:
@@ -425,7 +425,7 @@ def create_transaction(
     payment: Payment,
     *,
     kind: str,
-    payment_information: Optional[PaymentData],
+    payment_information: PaymentData | None,
     action_required: bool = False,
     gateway_response: GatewayResponse,
     error_msg=None,
@@ -438,9 +438,9 @@ def create_transaction(
     payment: Payment,
     *,
     kind: str,
-    payment_information: Optional[PaymentData],
+    payment_information: PaymentData | None,
     action_required: bool = False,
-    gateway_response: Optional[GatewayResponse] = None,
+    gateway_response: GatewayResponse | None = None,
     error_msg=None,
     is_success=False,
 ) -> Transaction:
@@ -482,7 +482,7 @@ def get_already_processed_transaction_or_create_new_transaction(
     kind: str,
     payment_information: PaymentData,
     action_required: bool = False,
-    gateway_response: Optional[GatewayResponse] = None,
+    gateway_response: GatewayResponse | None = None,
     error_msg=None,
 ) -> Transaction:
     if gateway_response and gateway_response.transaction_already_processed:
@@ -711,7 +711,7 @@ def price_to_minor_unit(value: Decimal, currency: str):
     return str(value_without_comma.quantize(Decimal("1")))
 
 
-def get_channel_slug_from_payment(payment: Payment) -> Optional[str]:
+def get_channel_slug_from_payment(payment: Payment) -> str | None:
     channel_slug = None
 
     if payment.checkout:
@@ -800,7 +800,7 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
 
 
 def parse_transaction_event_amount(
-    amount_data: Union[str, int, float, None],
+    amount_data: str | int | float | None,
     parsed_event_data: dict,
     error_field_msg: list[str],
     invalid_msg: str,
@@ -830,7 +830,7 @@ def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
     error_field_msg: list[str],
-    psp_reference: Optional[str],
+    psp_reference: str | None,
     request_type: str,
     event_is_optional: bool = True,
 ):
@@ -912,7 +912,7 @@ def parse_transaction_action_data(
     request_type: str,
     event_is_optional: bool = True,
     psp_reference_is_optional: bool = False,
-) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
+) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
     """Parse response from transaction action webhook.
 
     It takes the recieved response from sync webhook and
@@ -1028,7 +1028,7 @@ def authorization_success_already_exists(transaction_id: int) -> bool:
     ).exists()
 
 
-def get_already_existing_event(event: TransactionEvent) -> Optional[TransactionEvent]:
+def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | None:
     if event.type in [
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_ACTION_REQUIRED,
@@ -1053,7 +1053,7 @@ def get_already_existing_event(event: TransactionEvent) -> Optional[TransactionE
 
 def deduplicate_event(
     event: TransactionEvent, app: App
-) -> tuple[TransactionEvent, Optional[error_msg]]:
+) -> tuple[TransactionEvent, error_msg | None]:
     """Deduplicate the TransactionEvent.
 
     In case of having an existing event with the same type, psp reference
@@ -1103,7 +1103,7 @@ def _create_event_from_response(
     app: App,
     transaction_id: int,
     currency: str,
-) -> tuple[Optional[TransactionEvent], Optional[error_msg]]:
+) -> tuple[TransactionEvent | None, error_msg | None]:
     app_identifier = None
     if app and app.identifier:
         app_identifier = app.identifier
@@ -1130,11 +1130,11 @@ def _create_event_from_response(
 
 
 def _get_parsed_transaction_action_data(
-    transaction_webhook_response: Optional[dict[str, Any]],
+    transaction_webhook_response: dict[str, Any] | None,
     event_type: str,
     event_is_optional: bool = True,
     psp_reference_is_optional: bool = False,
-) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
+) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
     if transaction_webhook_response is None:
         return None, "Failed to delivery request."
 
@@ -1170,7 +1170,7 @@ def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
     manager: "PluginsManager",
-    transaction_webhook_response: Optional[dict[str, Any]] = None,
+    transaction_webhook_response: dict[str, Any] | None = None,
 ):
     request_event_type = "session-request"
 
@@ -1296,7 +1296,7 @@ def create_transaction_event_for_transaction_session(
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
     app: App,
-    transaction_webhook_response: Optional[dict[str, Any]] = None,
+    transaction_webhook_response: dict[str, Any] | None = None,
 ):
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
@@ -1488,11 +1488,11 @@ def create_manual_adjustment_events(
 
 
 def get_transaction_item_params(
-    source_object: Union[Checkout, Order],
-    user: Optional[User],
-    app: Optional[App],
-    psp_reference: Optional[str],
-    available_actions: Optional[list[str]] = None,
+    source_object: Checkout | Order,
+    user: User | None,
+    app: App | None,
+    psp_reference: str | None,
+    available_actions: list[str] | None = None,
     name: str = "",
 ):
     return {
@@ -1514,9 +1514,9 @@ def create_transaction_for_order(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    psp_reference: Optional[str],
+    psp_reference: str | None,
     charged_value: Decimal,
-    available_actions: Optional[list[str]] = None,
+    available_actions: list[str] | None = None,
     name: str = "",
 ) -> TransactionItem:
     transaction_defaults = get_transaction_item_params(
@@ -1539,11 +1539,11 @@ def create_transaction_for_order(
 
 
 def handle_transaction_initialize_session(
-    source_object: Union[Checkout, Order],
+    source_object: Checkout | Order,
     payment_gateway_data: PaymentGatewayData,
     amount: Decimal,
     action: str,
-    customer_ip_address: Optional[str],
+    customer_ip_address: str | None,
     app: App,
     manager: PluginsManager,
     idempotency_key: str,
@@ -1611,11 +1611,11 @@ def handle_transaction_initialize_session(
 
 def handle_transaction_process_session(
     transaction_item: TransactionItem,
-    source_object: Union[Checkout, Order],
+    source_object: Checkout | Order,
     payment_gateway_data: PaymentGatewayData,
     action: str,
     app: App,
-    customer_ip_address: Optional[str],
+    customer_ip_address: str | None,
     manager: PluginsManager,
     request_event: TransactionEvent,
 ):

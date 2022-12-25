@@ -1,6 +1,6 @@
 import collections
 import itertools
-from typing import TYPE_CHECKING, TypeVar, Union, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import graphene
 from django.db.models import Model
@@ -93,7 +93,7 @@ class ChannelContextType(ChannelContextTypeForObjectType[T]):
         abstract = True
 
     @classmethod
-    def is_type_of(cls, root: Union[ChannelContext[T], T], _info: ResolveInfo) -> bool:
+    def is_type_of(cls, root: ChannelContext[T] | T, _info: ResolveInfo) -> bool:
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
             root = root.node

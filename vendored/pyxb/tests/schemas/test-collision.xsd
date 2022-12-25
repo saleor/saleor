@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="color">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="red"/>
+			<xs:enumeration value="green"/>
+			<xs:enumeration value="blue"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="color">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="color" type="color"/>
+			</xs:sequence>
+			<xs:attribute name="color" type="color"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

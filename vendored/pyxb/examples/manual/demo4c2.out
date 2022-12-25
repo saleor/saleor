@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ns1:purchaseOrder xmlns:ns1="URN:purchase-order" orderDate="1999-10-20">
+  <ns1:shipTo country="US">
+    <name>Alice Smith</name>
+    <street>123 Maple Street</street>
+    <city>Anytown</city>
+    <state>AK</state>
+    <zip>12341</zip>
+  </ns1:shipTo>
+  <ns1:billTo country="US">
+    <name>Robert Smith</name>
+    <street>8 Oak Avenue</street>
+    <city>Anytown</city>
+    <state>AK</state>
+    <zip>12341</zip>
+  </ns1:billTo>
+  <ns1:items>
+    <ns1:item partNum="833-AA">
+      <ns1:productName>Lapis necklace</ns1:productName>
+      <ns1:quantity>1</ns1:quantity>
+      <ns1:USPrice>99.95</ns1:USPrice>
+      <ns1:comment>Want this for the holidays!</ns1:comment>
+      <ns1:shipDate>1999-12-05</ns1:shipDate>
+    </ns1:item>
+    <ns1:item partNum="833-AB">
+      <ns1:productName>Plastic necklace</ns1:productName>
+      <ns1:quantity>4</ns1:quantity>
+      <ns1:USPrice>3.95</ns1:USPrice>
+      <ns1:shipDate>1999-12-24</ns1:shipDate>
+    </ns1:item>
+  </ns1:items>
+</ns1:purchaseOrder>

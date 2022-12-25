@@ -1,6 +1,5 @@
 import logging
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 import graphene
@@ -869,7 +868,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     @staticmethod
     @traced_resolver
     def resolve_thumbnail(
-        root: models.OrderLine, info, *, size: int = 256, format: Optional[str] = None
+        root: models.OrderLine, info, *, size: int = 256, format: str | None = None
     ):
         if not root.variant_id:
             return None
@@ -1496,7 +1495,7 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     @traced_resolver
     def resolve_discount(root: models.Order, info):
-        def return_voucher_discount(discounts) -> Optional[Money]:
+        def return_voucher_discount(discounts) -> Money | None:
             if not discounts:
                 return None
             for discount in discounts:
@@ -1513,7 +1512,7 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     @traced_resolver
     def resolve_discount_name(root: models.Order, info):
-        def return_voucher_name(discounts) -> Optional[Money]:
+        def return_voucher_name(discounts) -> Money | None:
             if not discounts:
                 return None
             for discount in discounts:
@@ -1530,7 +1529,7 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     @traced_resolver
     def resolve_translated_discount_name(root: models.Order, info):
-        def return_voucher_translated_name(discounts) -> Optional[Money]:
+        def return_voucher_translated_name(discounts) -> Money | None:
             if not discounts:
                 return None
             for discount in discounts:
@@ -1956,8 +1955,8 @@ class Order(ModelObjectType[models.Order]):
             )
 
             def calculate_price(
-                listing: Optional[ShippingMethodChannelListing],
-            ) -> Optional[ShippingMethodData]:
+                listing: ShippingMethodChannelListing | None,
+            ) -> ShippingMethodData | None:
                 if not listing:
                     return None
                 return convert_to_shipping_method_data(shipping_method, listing)

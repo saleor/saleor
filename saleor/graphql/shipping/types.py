@@ -1,5 +1,3 @@
-from typing import Union
-
 import graphene
 from django.db.models import QuerySet
 from graphene import relay
@@ -240,7 +238,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     ):
         from ..product.types import ProductCountableConnection
 
-        qs: Union[QuerySet[product_models.Product], ChannelQsContext]
+        qs: QuerySet[product_models.Product] | ChannelQsContext
 
         if not root.node.excluded_products:
             qs = product_models.Product.objects.none()

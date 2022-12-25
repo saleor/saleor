@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.contrib.postgres.search import SearchQuery
 from django.db.models import Q, QuerySet, Value, prefetch_related_objects
 
@@ -33,7 +31,7 @@ def prepare_gift_card_search_vector_value(
     return search_vectors
 
 
-def mark_gift_cards_search_index_as_dirty(gift_cards: Union[list[GiftCard], QuerySet]):
+def mark_gift_cards_search_index_as_dirty(gift_cards: list[GiftCard] | QuerySet):
     for gift_card in gift_cards:
         gift_card.search_index_dirty = True
     GiftCard.objects.bulk_update(gift_cards, ["search_index_dirty"])

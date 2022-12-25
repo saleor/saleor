@@ -1,0 +1,20 @@
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:test="urn:namespaceTest"
+        targetNamespace="urn:namespaceTest"
+        elementFormDefault="unqualified"
+        attributeFormDefault="unqualified">
+
+  <element name="globalElt" type="string"/>
+  <element name="globalStruct" type="test:tGlobal"/>
+  <attribute name="globalAttr" type="string"/>
+
+  <complexType name="tGlobal">
+    <sequence>
+      <element name="local" type="string"/>
+      <element ref="test:globalElt"/>
+    </sequence>
+    <attribute ref="test:globalAttr"/>
+    <attribute name="localAttr" type="string"/>
+  </complexType>
+
+</schema>

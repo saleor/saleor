@@ -1,8 +1,8 @@
 from collections import defaultdict
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Optional, Union, cast
+from typing import TYPE_CHECKING, Optional, cast
 from uuid import UUID
 
 import graphene
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
         VariantChannelListingPromotionRule,
     )
 
-CatalogueInfo = defaultdict[str, set[Union[int, str]]]
+CatalogueInfo = defaultdict[str, set[int | str]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
@@ -100,7 +100,7 @@ def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -
 def release_voucher_code_usage(
     code: Optional["VoucherCode"],
     voucher: Optional["Voucher"],
-    user_email: Optional[str],
+    user_email: str | None,
 ):
     if not code:
         return
@@ -171,7 +171,7 @@ def calculate_discounted_price_for_promotions(
     rules_info_per_variant: dict[int, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: int,
-) -> Optional[tuple[UUID, Money]]:
+) -> tuple[UUID, Money] | None:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discount = None
     rules_info_for_variant = rules_info_per_variant.get(variant_id)
@@ -186,7 +186,7 @@ def get_best_promotion_discount(
     price: Money,
     rules_info_for_variant: list[PromotionRuleInfo],
     channel: "Channel",
-) -> Optional[tuple[UUID, Money]]:
+) -> tuple[UUID, Money] | None:
     """Return the rule with the discount amount for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
@@ -310,7 +310,7 @@ def apply_discount_to_value(
     value: Decimal,
     value_type: str,
     currency: str,
-    price_to_discount: Union[Money, TaxedMoney],
+    price_to_discount: Money | TaxedMoney,
 ):
     """Calculate the price based on the provided values."""
     if value_type == DiscountValueType.FIXED:

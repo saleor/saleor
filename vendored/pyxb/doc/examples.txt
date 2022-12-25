@@ -1,0 +1,138 @@
+.. _examples:
+
+********
+Examples
+********
+
+A detailed, albeit contrived, example of how to use PyXB is in
+:ref:`pyxbgen`.
+
+Multiple real-world XML and web service examples of varying complexity are
+provided in the :file:`examples` subdirectories of the PyXB distribution and of the
+various bundles.  Some are WSDL services, and others are simply XMLSchema
+documents.  Often there are a couple trivial programs that show how the
+bindings are used.  The script :file:`test.sh` in each directory can be used
+to generate the bindings and run the programs in a single step.
+
+See the :file:`README.txt` file in each example subdirectory for more
+information.
+
+For ...
+ - REST-style interactions, see :ref:`ex_dictionary`, :ref:`ex_ndfd`, and :ref:`thirty_sec_example`
+ - SOAP interactions, see :ref:`ex_weather`, :ref:`ex_ndfd`, and :ref:`ex_geocoder`
+ - Customizing a generated binding, see :ref:`ex_tmsxtvd`
+ - Using a SAX parser, see :ref:`ex_tmsxtvd`
+
+You may also want to look at some of the unit tests for other ideas.
+
+.. _ex_dictionary:
+
+Dictionary (Aonaware)
+=====================
+
+The `Dictionary web service at Aonaware <http://www.aonaware.com/services.htm>`_.
+
+The example :file:`define.py` looks up a word in all available dictionaries:
+
+.. literalinclude:: ../examples/dictionary/define.py
+
+The example :file:`showdict.py` lists the available dictionaries:
+
+.. literalinclude:: ../examples/dictionary/showdict.py
+
+Sorry, no automatic generation of classes corresponding to the WSDL
+operations.  Next release, maybe.
+
+.. _ex_weather:
+
+Simple Weather (CDyne)
+======================
+
+A `free weather service <http://ws.cdyne.com/WeatherWS/Weather.asmx>`_.
+The REST interface was demonstrated as the :ref:`thirty_sec_example`.  A
+SOAP interface example is in ``client.py``:
+
+.. literalinclude:: ../examples/weather/client.py
+
+Note the various misspellings in the schema (e.g., "Desciption").  Also, be
+aware that the weather information in this service does not get updated
+often, and sometimes fails to provide valid dates.  Try various zip codes;
+usually you can find one that works.
+
+.. _ex_ndfd:
+
+Professional Weather (National Digital Forecast Data)
+=====================================================
+
+Interact with the `National Digital Forecast Database
+<http://www.nws.noaa.gov/xml>`_.
+
+Use the :file:`genbindings.sh` script to retrieve the schema for Digital
+Weather Markup Language and generate the bindings.  Note that the schema has
+two levels of ``include`` directives, which PyXB follows.
+
+The examples for this service are too long to include into the web
+documentation.  :file:`forecast.py` uses the REST interface to get the
+forecast temperature data for two locations, and print it in several ways.
+:file:`latlon.py` does something similar but for a latitude/longitude pair,
+using SOAP, and requesting more data.
+
+.. _ex_tmsxtvd:
+
+Television Schedules (Tribune Media Services)
+=============================================
+
+A commercial service for `television listings
+<http://www.tribunemediaservices.com/product-and-services/television/services/>`_.
+Only one sample document is available for testing; it is retrieved using
+:file:`genbindings.sh`.  The :file:`dumpsample.py` demonstrates extending a
+binding to add a custom method, and parsing content with both DOM and SAX.
+It also provides timing information; the document is about 200KB, and takes
+several seconds to parse.
+
+.. literalinclude:: ../examples/tmsxtvd/dumpsample.py
+
+.. _ex_geocoder:
+
+Address-To-Latitude/Longitude (http://geocoder.us)
+=====================================================
+
+This service provides the latitude and longitude for free-form US addresses.
+It also demonstrates several of the pitfalls of using WSDL, which has a very
+lax concept of schemas, with a system that expects to operate on validatable
+documents.  The following changes were made to make the service easier to
+work with:
+
+ - Change the element form default to ``qualified``.  This is necessary
+   because there is a non-absent target namespace in the schema, and the
+   documents returned from the service set it as the default namespace.
+   This causes the XML engine to associate that namespace with
+   locally-scoped elements like "number", while the original ``unqualified``
+   form default caused the schema to record them with no namespace.
+ - Set ``minOccurs`` on all the elements, since some are missing from some
+   responses
+ - Set ``nillable`` on all elements that are observed to use ``xsi:nil="true"`` in
+   response documents
+ - Provide types and elements corresponding to the request and response
+   messages, since PyXB's WSDL support does not currently generate them from
+   the operation messages.
+
+:file:`genbindings.sh` applies changes to the WSDL after retrieving it and
+prior to generating the bindings.
+
+A second complication is the need to burrow down through wildcard elements
+in the binding instance generated from the SOAP response.  This is the
+consequence of an `error in the WSDL specification
+<http://tech.groups.yahoo.com/group/soapbuilders/message/5879>`_, which was
+discovered after too many tools had already worked around it.  Currently,
+PyXB also requires that you work around it manually, although a
+customization of the relevant SOAP encoding class could make it unnecessary.
+
+.. literalinclude:: ../examples/geocoder/client.py
+
+.. _ex_opengis:
+
+OpenGIS (http://www.opengeospatial.org)
+=======================================
+
+See the directory ``examples/OpenGIS`` in the distribution.

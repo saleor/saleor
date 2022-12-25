@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Generic, Optional, TypeVar, Union
+from typing import Generic, TypeVar
 
 import opentracing
 import opentracing.tags
@@ -52,16 +52,16 @@ class DataLoader(BaseLoader, Generic[K, R]):
                 return Promise.resolve(results)
             return results
 
-    def batch_load(self, keys: Iterable[K]) -> Union[Promise[list[R]], list[R]]:
+    def batch_load(self, keys: Iterable[K]) -> Promise[list[R]] | list[R]:
         raise NotImplementedError()
 
 
 class BaseThumbnailBySizeAndFormatLoader(
-    DataLoader[tuple[int, int, Optional[str]], Thumbnail]
+    DataLoader[tuple[int, int, str | None], Thumbnail]
 ):
     model_name: str
 
-    def batch_load(self, keys: Iterable[tuple[int, int, Optional[str]]]):
+    def batch_load(self, keys: Iterable[tuple[int, int, str | None]]):
         model_name = self.model_name.lower()
         instance_ids = [id for id, _, _ in keys]
         lookup = {f"{model_name}_id__in": instance_ids}
@@ -69,7 +69,7 @@ class BaseThumbnailBySizeAndFormatLoader(
             **lookup
         )
         thumbnails_by_instance_id_size_and_format_map: defaultdict[
-            tuple[int, int, Optional[str]], Thumbnail
+            tuple[int, int, str | None], Thumbnail
         ] = defaultdict()
         for thumbnail in thumbnails:
             format = get_thumbnail_format(thumbnail.format)

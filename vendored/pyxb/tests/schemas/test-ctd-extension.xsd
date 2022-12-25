@@ -1,0 +1,61 @@
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:complexType name="personName">
+		<xs:sequence>
+			<xs:element name="title" minOccurs="0"/>
+			<xs:element name="forename" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="surname"/>
+		</xs:sequence>
+		<xs:attribute name="pAttr" type="xs:string"/>
+		<xs:attribute name="pUse" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="extendedName">
+		<xs:complexContent>
+			<xs:extension base="personName">
+				<xs:sequence>
+					<xs:element name="generation" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="eAttr" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="oldAddressee" type="personName"/>
+	<xs:element name="addressee" type="extendedName"/><!-- Here's a little ugliness based on something in the wsdl spec.
+	     It's used to verify that wildcards get recognized after
+	     extension elements. -->
+	<xs:complexType name="tDoc">
+		<xs:sequence>
+			<xs:element name="documentation" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="tExtDoc">
+		<xs:complexContent>
+			<xs:extension base="tDoc">
+				<xs:sequence>
+					<xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:group name="anyTLOE">
+		<xs:choice>
+			<xs:element name="import" type="xs:string"/>
+			<xs:element name="types" type="xs:string"/>
+			<xs:element name="message" type="xs:string"/>
+			<xs:element name="portType" type="xs:string"/>
+			<xs:element name="binding" type="xs:string"/>
+			<xs:element name="service" type="xs:string"/>
+			<xs:element name="port" type="xs:string"/>
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="tDefs">
+		<xs:complexContent>
+			<xs:extension base="tExtDoc">
+				<xs:sequence>
+					<xs:group ref="anyTLOE" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="defs" type="tDefs"/>
+</xs:schema>

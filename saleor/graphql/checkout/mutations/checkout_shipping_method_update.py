@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -72,7 +70,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         ]
 
     @staticmethod
-    def _resolve_delivery_method_type(id_) -> Optional[str]:
+    def _resolve_delivery_method_type(id_) -> str | None:
         if id_ is None:
             return None
 
@@ -155,7 +153,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout_info,
         lines,
         *,
-        delivery_method: Optional[shipping_interface.ShippingMethodData],
+        delivery_method: shipping_interface.ShippingMethodData | None,
     ) -> None:
         delivery_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info,

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
@@ -72,7 +70,7 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
     return bool(filter_search.strip())
 
 
-def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
+def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
     return kwargs.get("sort_by", {}).get("field") or None
 
 

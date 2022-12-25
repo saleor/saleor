@@ -260,7 +260,7 @@ class WebhookPlugin(BasePlugin):
         user: "User",
         channel_slug: str,
         token: str,
-        redirect_url: Optional[str],
+        redirect_url: str | None,
         previous_value: None,
     ) -> None:
         if not self.active:
@@ -1165,7 +1165,7 @@ class WebhookPlugin(BasePlugin):
         self,
         order: "Order",
         invoice: "Invoice",
-        number: Optional[str],
+        number: str | None,
         previous_value: Any,
     ) -> Any:
         if not self.active:
@@ -1336,7 +1336,7 @@ class WebhookPlugin(BasePlugin):
         self,
         fulfillment: "Fulfillment",
         notify_customer: bool = True,
-        previous_value: Optional[Any] = None,
+        previous_value: Any | None = None,
     ):
         if not self.active:
             return previous_value
@@ -1377,8 +1377,8 @@ class WebhookPlugin(BasePlugin):
     def fulfillment_approved(
         self,
         fulfillment: "Fulfillment",
-        notify_customer: Optional[bool] = True,
-        previous_value: Optional[Any] = None,
+        notify_customer: bool | None = True,
+        previous_value: Any | None = None,
     ):
         if not self.active:
             return previous_value
@@ -1854,7 +1854,7 @@ class WebhookPlugin(BasePlugin):
         )
 
     def notify(
-        self, event: Union[NotifyEventType, str], payload: dict, previous_value
+        self, event: NotifyEventType | str, payload: dict, previous_value
     ) -> Any:
         if not self.active:
             return previous_value
@@ -2443,8 +2443,8 @@ class WebhookPlugin(BasePlugin):
         webhook: "Webhook",
         event_type: str,
         request_data: PaymentMethodTokenizationBaseRequestData,
-        additional_legacy_payload_data: Optional[dict] = None,
-    ) -> Optional[dict]:
+        additional_legacy_payload_data: dict | None = None,
+    ) -> dict | None:
         payload_data = {
             "user_id": graphene.Node.to_global_id("User", request_data.user.id),
             "channel_slug": request_data.channel.slug,
@@ -2493,7 +2493,7 @@ class WebhookPlugin(BasePlugin):
         event_type: str,
         request_data: PaymentMethodTokenizationBaseRequestData,
         previous_value: "PaymentMethodTokenizationResponseData",
-        additional_legacy_payload_data: Optional[dict] = None,
+        additional_legacy_payload_data: dict | None = None,
     ):
         webhook = get_webhooks_for_event(
             event_type, apps_identifier=[app_identifier]
@@ -2758,7 +2758,7 @@ class WebhookPlugin(BasePlugin):
     def payment_gateway_initialize_session(
         self,
         amount: Decimal,
-        payment_gateways: Optional[list[PaymentGatewayData]],
+        payment_gateways: list[PaymentGatewayData] | None,
         source_object: Union["Order", "Checkout"],
         previous_value,
     ) -> list[PaymentGatewayData]:
@@ -2866,9 +2866,9 @@ class WebhookPlugin(BasePlugin):
 
     def get_payment_gateways(
         self,
-        currency: Optional[str],
+        currency: str | None,
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        checkout_lines: Iterable["CheckoutLineInfo"] | None,
         previous_value,
         **kwargs,
     ) -> list["PaymentGateway"]:
@@ -3118,7 +3118,7 @@ class WebhookPlugin(BasePlugin):
             allow_replica=self.allow_replica,
         )
 
-    def is_event_active(self, event: str, channel=Optional[str]):
+    def is_event_active(self, event: str, channel: str | None = None):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
             "stored_payment_method_request_delete": (

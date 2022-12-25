@@ -1,4 +1,8 @@
-exclude: ^.semgrep/
+default_language_version:
+    python: python3.10
+
+exclude: ^(.semgrep|vendored)/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -21,7 +25,7 @@ repos:
     hooks:
       - id: mypy
         language: system
-        exclude: tests/
+        exclude: (tests|vendored)/
 
   - repo: https://github.com/fpgmaas/deptry.git
     rev: "0.12.0"
@@ -32,7 +36,7 @@ repos:
     rev: v1.52.0
     hooks:
     - id: semgrep
-      language_version: python3.9
+      language_version: python3.10
       exclude_types:
         - yaml
       args:

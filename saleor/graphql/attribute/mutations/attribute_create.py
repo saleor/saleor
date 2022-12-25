@@ -1,5 +1,3 @@
-from typing import Union
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -152,7 +150,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         # check permissions based on attribute type
-        permissions: Union[tuple[ProductTypePermissions], tuple[PageTypePermissions]]
+        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
         if input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         else:

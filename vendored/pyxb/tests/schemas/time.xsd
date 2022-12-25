@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:complexType name="tTime" abstract="true"/>
+	<xs:complexType name="tXMTime">
+		<xs:complexContent>
+			<xs:extension base="tTime">
+				<xs:sequence>
+					<xs:element name="seconds" type="xs:nonNegativeInteger"/>
+					<xs:element name="fractionalSeconds" type="xs:double" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tISO8601">
+		<xs:complexContent>
+			<xs:extension base="tTime">
+				<xs:sequence>
+					<xs:element name="time" type="xs:dateTime"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="time" type="tTime"/>
+	<xs:element name="times">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="time" minOccurs="0" maxOccurs="6"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

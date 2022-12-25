@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.db.models import QuerySet
 from graphql.error import GraphQLError
 
@@ -47,7 +45,7 @@ def sort_queryset(
     queryset: QuerySet,
     sort_by: SortInputObjectType,
     reversed: bool,
-    channel_slug: Optional[str],
+    channel_slug: str | None,
 ) -> QuerySet:
     """Sort queryset according to given parameters.
 
@@ -63,6 +61,7 @@ def sort_queryset(
         queryset: queryset to be sorted
         reversed: if True, sorting direction will be reversed
         sort_by: dictionary with sorting field and direction
+
     """
     sorting_direction = sort_by.direction
     if reversed:

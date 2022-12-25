@@ -26,7 +26,7 @@ class DefaultMultipleChoiceField(MultipleChoiceField):
         """Validate that the input is a list or tuple."""
         if self.required and not value:
             raise ValidationError(self.error_messages["required"], code="required")
-        if not isinstance(value, (list, tuple)):
+        if not isinstance(value, list | tuple):
             raise ValidationError(
                 self.error_messages["invalid_list"], code="invalid_list"
             )

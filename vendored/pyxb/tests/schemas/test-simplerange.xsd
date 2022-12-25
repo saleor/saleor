@@ -1,0 +1,8 @@
+<schema xmlns="http://www.w3.org/2001/XMLSchema">
+  <simpleType name="angle360">
+    <restriction base="double">
+      <minInclusive value="-360"/>
+      <maxInclusive value="360"/>
+    </restriction>
+  </simpleType>
+</schema>

@@ -105,7 +105,7 @@ def get_product_variant_payload(variant: ProductVariant):
 
 
 def get_order_line_payload(line: "OrderLine"):
-    digital_url: Optional[str] = None
+    digital_url: str | None = None
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
         digital_url = content.get_absolute_url() if content else None

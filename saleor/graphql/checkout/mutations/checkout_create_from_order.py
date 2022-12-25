@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import graphene
 from django.contrib.sites.models import Site
@@ -202,7 +202,7 @@ class CheckoutCreateFromOrder(BaseMutation):
         variant_ids_set: set[int],
         order_lines: list[order_models.OrderLine],
         variant_errors: list[dict[str, Any]],
-        global_quantity_limit: Optional[int],
+        global_quantity_limit: int | None,
     ) -> set[int]:
         variant_ids_to_exclude = []
         error_codes = CheckoutCreateFromOrderUnavailableVariantErrorCode
@@ -231,7 +231,7 @@ class CheckoutCreateFromOrder(BaseMutation):
         cls,
         order: order_models.Order,
         order_lines: list[order_models.OrderLine],
-        global_quantity_limit: Optional[int],
+        global_quantity_limit: int | None,
     ) -> tuple[set[int], list[order_models.OrderLine], list[dict[str, Any]]]:
         variant_errors: list[dict[str, Any]] = []
         variant_ids_set = set(

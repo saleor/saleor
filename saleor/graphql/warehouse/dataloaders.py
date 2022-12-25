@@ -3,9 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import (
     TYPE_CHECKING,
-    Optional,
     TypedDict,
-    Union,
 )
 from uuid import UUID
 
@@ -42,7 +40,7 @@ else:
     StockWithAvailableQuantity = Stock
 
 
-CountryCode = Optional[str]
+CountryCode = str | None
 VariantIdCountryCodeChannelSlug = tuple[int, CountryCode, str]
 
 
@@ -92,8 +90,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
 
     def batch_load_quantities_by_country(
         self,
-        country_code: Optional[CountryCode],
-        channel_slug: Optional[str],
+        country_code: CountryCode | None,
+        channel_slug: str | None,
         variant_ids: Iterable[int],
         site: Site,
     ) -> Iterable[tuple[int, int]]:
@@ -274,7 +272,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         """
         cc_warehouses_in_bulk = cc_warehouses.in_bulk()
         warehouse_ids_by_shipping_zone_by_variant: defaultdict[
-            int, defaultdict[Union[int, UUID], list[UUID]]
+            int, defaultdict[int | UUID, list[UUID]]
         ] = defaultdict(lambda: defaultdict(list))
         variants_with_global_cc_warehouses = []
         available_quantity_by_warehouse_id_and_variant_id: defaultdict[
@@ -414,8 +412,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
 
     def batch_load_stocks_by_country(
         self,
-        country_code: Optional[CountryCode],
-        channel_slug: Optional[str],
+        country_code: CountryCode | None,
+        channel_slug: str | None,
         variant_ids: Iterable[int],
     ) -> Iterable[tuple[int, list[Stock]]]:
         # convert to set to not return the same stocks for the same variant twice
@@ -547,7 +545,7 @@ class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader[int, in
 class WarehouseByIdLoader(DataLoader):
     context_key = "warehouse_by_id"
 
-    def batch_load(self, keys: Iterable[UUID]) -> list[Optional[Warehouse]]:
+    def batch_load(self, keys: Iterable[UUID]) -> list[Warehouse | None]:
         warehouses = (
             Warehouse.objects.all().using(self.database_connection_name).in_bulk(keys)
         )

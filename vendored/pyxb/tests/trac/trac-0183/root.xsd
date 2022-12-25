@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="urn:root"
+    targetNamespace="urn:root"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    >
+    <xs:import namespace="urn:branch1" schemaLocation="branch1.xsd"/>
+    <xs:import namespace="urn:branch2" schemaLocation="branch2.xsd"/>
+
+    <xs:element name="msg">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="e3" type="xs:string"/>
+                <xs:element xmlns="urn:branch1" ref="e1"/>
+                <xs:element xmlns="urn:branch2" ref="e2"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

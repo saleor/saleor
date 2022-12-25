@@ -1,0 +1,13 @@
+<xsd:schema targetNamespace="urn:issue-0048:profile"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:profile-base="urn:issue-0048:profile-base"
+   elementFormDefault="qualified">
+ <xsd:import namespace="urn:issue-0048:profile-base" schemaLocation="profile-base.xsd"/>
+       <xsd:complexType name="AbstractFeatureBaseType" abstract="true">
+                <xsd:complexContent>
+                        <xsd:restriction base="profile-base:DynamicFeatureType">
+                                <xsd:attribute ref="profile-base:id" use="required"/>
+                        </xsd:restriction>
+                </xsd:complexContent>
+        </xsd:complexType>
+</xsd:schema>

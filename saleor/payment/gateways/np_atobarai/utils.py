@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from contextlib import contextmanager
 from decimal import Decimal
 from itertools import chain
-from typing import Optional
 
 from django.db.models import Q
 
@@ -34,7 +33,7 @@ STATUSES_NOT_ALLOWED_TO_REFUND = [
 
 def get_shipping_company_code(
     config: ApiConfig, fulfillment: Fulfillment
-) -> Optional[str]:
+) -> str | None:
     code = fulfillment.get_value_from_private_metadata(
         SHIPPING_COMPANY_CODE_METADATA_KEY, default=config.shipping_company
     )

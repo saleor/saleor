@@ -5,7 +5,6 @@ multiple instances of the application server, we're patching it with
 a thread-safe structure and methods that use it underneath.
 """
 import threading
-from typing import Union
 
 from django.contrib.sites.models import Site, SiteManager
 from django.core.exceptions import ImproperlyConfigured
@@ -13,7 +12,7 @@ from django.http.request import split_domain_port
 
 lock = threading.Lock()
 with lock:
-    THREADED_SITE_CACHE: dict[Union[str, int], Site] = {}
+    THREADED_SITE_CACHE: dict[str | int, Site] = {}
 
 
 def new_get_current(self, request=None):

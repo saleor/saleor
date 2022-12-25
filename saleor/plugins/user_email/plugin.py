@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from promise.promise import Promise
 
@@ -356,7 +356,7 @@ class UserEmailPlugin(BasePlugin):
 
     def resolve_plugin_configuration(
         self, request
-    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+    ) -> PluginConfigurationType | Promise[PluginConfigurationType]:
         # Get email templates from the database and merge them with self.configuration.
         if not self.db_config:
             return self.configuration
@@ -387,7 +387,7 @@ class UserEmailPlugin(BasePlugin):
             .then(map_templates_to_configuration)
         )
 
-    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
+    def notify(self, event: NotifyEventType | str, payload: dict, previous_value):
         if not self.active:
             return previous_value
 

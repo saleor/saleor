@@ -1,5 +1,5 @@
 import copy
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 from uuid import UUID
 
 from django.db.models import Model, Q
@@ -92,7 +92,7 @@ class ModelObjectType(Generic[MT], BaseObjectType):
                 cls._meta.fields[field_name] = field
 
     @classmethod
-    def get_node(cls, _, id) -> Optional[MT]:
+    def get_node(cls, _, id) -> MT | None:
         model = cls._meta.model
         type_name = cls._meta.name
         lookup = Q(pk=id)

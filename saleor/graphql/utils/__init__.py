@@ -2,7 +2,7 @@ import hashlib
 import logging
 import traceback
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import graphene
@@ -96,7 +96,7 @@ def _resolve_graphene_type(schema, type_name):
 
 def get_nodes(
     ids,
-    graphene_type: Union[graphene.ObjectType, str, None] = None,
+    graphene_type: graphene.ObjectType | str | None = None,
     model=None,
     qs=None,
     schema=None,
@@ -177,6 +177,7 @@ def format_permissions_for_display(permissions):
 
     Arguments:
         permissions: queryset with permissions
+
     """
     permissions_data = permissions.annotate(
         formatted_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -191,7 +192,7 @@ def format_permissions_for_display(permissions):
     return formatted_permissions
 
 
-def get_user_or_app_from_context(context: "SaleorContext") -> Union[App, User, None]:
+def get_user_or_app_from_context(context: "SaleorContext") -> App | User | None:
     # order is important
     # app can be None but user if None then is passed as anonymous
     return context.app or context.user

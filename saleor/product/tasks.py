@@ -1,6 +1,5 @@
 import logging
 from collections.abc import Iterable
-from typing import Optional
 from uuid import UUID
 
 from celery.utils.log import get_task_logger
@@ -103,9 +102,9 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 @app.task
 def update_products_discounted_prices_for_promotion_task(
     product_ids: Iterable[int],
-    start_id: Optional[UUID] = None,
+    start_id: UUID | None = None,
     *,
-    rule_ids: Optional[list[UUID]] = None,
+    rule_ids: list[UUID] | None = None,
 ):
     """Update the product discounted prices for given product ids.
 

@@ -1,10 +1,9 @@
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Optional,
     Union,
 )
@@ -195,7 +194,7 @@ class PluginsManager(PaymentInterface):
         method_name: str,
         default_value: Any,
         *args,
-        channel_slug: Optional[str] = None,
+        channel_slug: str | None = None,
         **kwargs,
     ):
         """Try to run a method with the given name on each declared active plugin."""
@@ -237,7 +236,7 @@ class PluginsManager(PaymentInterface):
     def change_user_address(
         self,
         address: "Address",
-        address_type: Optional[str],
+        address_type: str | None,
         user: Optional["User"],
         save: bool = True,
     ) -> "Address":
@@ -560,7 +559,7 @@ class PluginsManager(PaymentInterface):
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
-    def get_taxes_for_checkout(self, checkout_info, lines) -> Optional[TaxData]:
+    def get_taxes_for_checkout(self, checkout_info, lines) -> TaxData | None:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
@@ -568,7 +567,7 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
 
-    def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
+    def get_taxes_for_order(self, order: "Order") -> TaxData | None:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_order", order, channel_slug=order.channel.slug
         )
@@ -576,7 +575,7 @@ class PluginsManager(PaymentInterface):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+        lines: Iterable["CheckoutLineInfo"] | None = None,
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -831,9 +830,7 @@ class PluginsManager(PaymentInterface):
             "promotion_rule_deleted", default_value, promotion_rule
         )
 
-    def invoice_request(
-        self, order: "Order", invoice: "Invoice", number: Optional[str]
-    ):
+    def invoice_request(self, order: "Order", invoice: "Invoice", number: str | None):
         default_value = None
         return self.__run_method_on_plugins(
             "invoice_request",
@@ -935,7 +932,7 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("order_bulk_created", default_value, orders)
 
     def fulfillment_created(
-        self, fulfillment: "Fulfillment", notify_customer: Optional[bool] = True
+        self, fulfillment: "Fulfillment", notify_customer: bool | None = True
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -956,7 +953,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def fulfillment_approved(
-        self, fulfillment: "Fulfillment", notify_customer: Optional[bool] = True
+        self, fulfillment: "Fulfillment", notify_customer: bool | None = True
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1099,7 +1096,7 @@ class PluginsManager(PaymentInterface):
     def payment_gateway_initialize_session(
         self,
         amount: Decimal,
-        payment_gateways: Optional[list["PaymentGatewayData"]],
+        payment_gateways: list["PaymentGatewayData"] | None,
         source_object: Union["Order", "Checkout"],
     ) -> list["PaymentGatewayData"]:
         default_value = None
@@ -1147,7 +1144,7 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("account_confirmed", default_value, user)
 
     def account_confirmation_requested(
-        self, user: "User", channel_slug: str, token: str, redirect_url: Optional[str]
+        self, user: "User", channel_slug: str, token: str, redirect_url: str | None
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1743,7 +1740,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def get_plugins(
-        self, channel_slug: Optional[str] = None, active_only=False
+        self, channel_slug: str | None = None, active_only=False
     ) -> list["BasePlugin"]:
         """Return list of plugins for a given channel."""
         if channel_slug:
@@ -1757,10 +1754,10 @@ class PluginsManager(PaymentInterface):
 
     def list_payment_gateways(
         self,
-        currency: Optional[str] = None,
+        currency: str | None = None,
         checkout_info: Optional["CheckoutInfo"] = None,
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
-        channel_slug: Optional[str] = None,
+        checkout_lines: Iterable["CheckoutLineInfo"] | None = None,
+        channel_slug: str | None = None,
         active_only: bool = True,
     ) -> list["PaymentGateway"]:
         channel_slug = checkout_info.channel.slug if checkout_info else channel_slug
@@ -1785,7 +1782,7 @@ class PluginsManager(PaymentInterface):
     def list_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
-        channel_slug: Optional[str] = None,
+        channel_slug: str | None = None,
         active_only: bool = True,
     ) -> list["ShippingMethodData"]:
         channel_slug = channel_slug if channel_slug else checkout.channel.slug
@@ -1808,7 +1805,7 @@ class PluginsManager(PaymentInterface):
         self,
         shipping_method_id: str,
         checkout: Optional["Checkout"] = None,
-        channel_slug: Optional[str] = None,
+        channel_slug: str | None = None,
     ):
         if checkout:
             methods = {
@@ -1859,7 +1856,7 @@ class PluginsManager(PaymentInterface):
         self,
         method_name: str,
         *args,
-        channel_slug: Optional[str] = None,
+        channel_slug: str | None = None,
     ):
         plugins = self.get_plugins(channel_slug=channel_slug)
         for plugin in plugins:
@@ -1892,7 +1889,7 @@ class PluginsManager(PaymentInterface):
 
     # FIXME these methods should be more generic
 
-    def assign_tax_code_to_object_meta(self, obj: "TaxClass", tax_code: Optional[str]):
+    def assign_tax_code_to_object_meta(self, obj: "TaxClass", tax_code: str | None):
         default_value = None
         return self.__run_method_on_plugins(
             "assign_tax_code_to_object_meta", default_value, obj, tax_code
@@ -1907,7 +1904,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def save_plugin_configuration(
-        self, plugin_id, channel_slug: Optional[str], cleaned_data: dict
+        self, plugin_id, channel_slug: str | None, cleaned_data: dict
     ):
         if channel_slug:
             plugins = self.get_plugins(channel_slug=channel_slug)
@@ -1939,7 +1936,7 @@ class PluginsManager(PaymentInterface):
                 return configuration
 
     def get_plugin(
-        self, plugin_id: str, channel_slug: Optional[str] = None
+        self, plugin_id: str, channel_slug: str | None = None
     ) -> Optional["BasePlugin"]:
         plugins = self.get_plugins(channel_slug=channel_slug)
         for plugin in plugins:
@@ -1966,7 +1963,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def webhook(
-        self, request: SaleorContext, plugin_id: str, channel_slug: Optional[str] = None
+        self, request: SaleorContext, plugin_id: str, channel_slug: str | None = None
     ) -> HttpResponse:
         split_path = request.path.split(plugin_id, maxsplit=1)
         path = None
@@ -1995,8 +1992,8 @@ class PluginsManager(PaymentInterface):
         self,
         event: "NotifyEventTypeChoice",
         payload: dict,
-        channel_slug: Optional[str] = None,
-        plugin_id: Optional[str] = None,
+        channel_slug: str | None = None,
+        plugin_id: str | None = None,
     ):
         default_value = None
         if plugin_id:
@@ -2062,7 +2059,7 @@ class PluginsManager(PaymentInterface):
     ) -> tuple[Optional["User"], dict]:
         """Verify the provided authentication data."""
         default_data: dict[str, str] = dict()
-        default_user: Optional["User"] = None
+        default_user: "User" | None = None
         default_value = default_user, default_data
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
@@ -2097,7 +2094,7 @@ class PluginsManager(PaymentInterface):
 
     def perform_mutation(
         self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
-    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
+    ) -> ExecutionResult | GraphQLError | None:
         """Invoke before each mutation is executed.
 
         This allows to trigger specific logic before the mutation is executed
@@ -2118,7 +2115,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def is_event_active_for_any_plugin(
-        self, event: str, channel_slug: Optional[str] = None
+        self, event: str, channel_slug: str | None = None
     ) -> bool:
         """Check if any plugin supports defined event."""
         plugins = (
@@ -2136,7 +2133,7 @@ class PluginsManager(PaymentInterface):
 
 def get_plugins_manager(
     allow_replica: bool,
-    requestor_getter: Optional[Callable[[], "Requestor"]] = None,
+    requestor_getter: Callable[[], "Requestor"] | None = None,
 ) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
         return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

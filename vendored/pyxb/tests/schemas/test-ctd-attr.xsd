@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:testCTD" xmlns="URN:testCTD" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:annotation>
+		<xs:documentation>Test schema for complex type definitions</xs:documentation>
+	</xs:annotation>
+	<xs:element name="structure" type="structure"/>
+	<xs:attribute name="tlAttr" default="top default"/>
+	<xs:complexType name="structure">
+		<xs:sequence>
+			<xs:element name="field" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="simple">
+		<xs:simpleContent>
+			<xs:extension base="xs:string"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="simple" type="simple">
+		<xs:annotation>
+			<xs:documentation>This element references a complex type with simple content</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="string" type="xs:string">
+		<xs:annotation>
+			<xs:documentation>This element references a simple type.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="emptyWithAttr">
+		<xs:annotation>
+			<xs:documentation>This element has no data, but does have an attribute.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute default="irish" name="language" use="optional"/>
+		<xs:attribute name="capitalized" type="xs:boolean" use="required"/>
+		<xs:attribute name="port" type="xs:short" default="5432"/>
+		<xs:attribute name="immutable" type="xs:string" fixed="stone"/>
+		<xs:attribute ref="tlAttr"/>
+	</xs:complexType>
+	<xs:complexType name="restrictedEWA">
+		<xs:complexContent>
+			<xs:restriction base="emptyWithAttr">
+				<xs:attribute name="language" use="prohibited"/>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="extendedEWA">
+		<xs:complexContent>
+			<xs:extension base="emptyWithAttr">
+				<xs:attribute name="newlanguage" default="welsh"/>
+				<xs:attribute name="altBMember1" default="welsh"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="emptyWithAttr" type="emptyWithAttr"/>
+	<xs:element name="restrictedEWA" type="restrictedEWA"/>
+	<xs:element name="extendedEWA" type="extendedEWA"/>
+	<xs:attributeGroup id="attrGroupA" name="attrGroupA">
+		<xs:attribute name="groupMember2" type="xs:string" default="gM2"/>
+		<xs:attribute name="groupMember1" type="xs:string" default="gM1"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="attrGroupB">
+		<xs:attributeGroup ref="attrGroupA"/>
+		<xs:attribute name="bMember1" type="xs:string" default="bM1"/>
+	</xs:attributeGroup>
+	<xs:complexType name="emptyWithAttrGroups">
+		<xs:annotation>
+			<xs:documentation>This element has no data, but does have an attribute.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="localAttr1" default="lA1"/>
+		<xs:attribute ref="tlAttr" default="refDefault"/>
+		<xs:attributeGroup ref="attrGroupB"/>
+	</xs:complexType>
+	<xs:element name="emptyWithAttrGroups" type="emptyWithAttrGroups"/>
+</xs:schema>

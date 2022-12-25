@@ -1,7 +1,6 @@
 import logging
 import time
 from io import BytesIO
-from typing import Optional, Union
 
 import requests
 from celery.exceptions import MaxRetriesExceededError
@@ -133,7 +132,7 @@ def fetch_brand_data(manifest_data, timeout=settings.COMMON_REQUESTS_TIMEOUT):
     return brand_data
 
 
-def _set_brand_data(brand_obj: Optional[Union[App, AppInstallation]], logo: File):
+def _set_brand_data(brand_obj: App | AppInstallation | None, logo: File):
     if not brand_obj:
         return
     try:
@@ -181,8 +180,8 @@ def fetch_brand_data_task(
 def fetch_brand_data_async(
     manifest_data: dict,
     *,
-    app_installation: Optional[AppInstallation] = None,
-    app: Optional[App] = None,
+    app_installation: AppInstallation | None = None,
+    app: App | None = None,
 ):
     if brand_data := manifest_data.get("brand"):
         app_id = app.pk if app else None

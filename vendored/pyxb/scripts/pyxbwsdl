@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+# Sample URIs:
+# http://www.weather.gov/forecasts/xml/DWMLgen/wsdl/ndfdXML.wsdl
+# http://services.aonaware.com/DictService/DictService.asmx?WSDL
+# http://soap.amazon.com/schemas2/AmazonWebServices.wsdl
+# http://api.google.com/GoogleSearch.wsdl
+
+from __future__ import print_function
+import sys
+import xml.dom.minidom
+from pyxb.utils.six.moves.urllib.request import urlopen
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+import pyxb.bundles.wssplat.wsdl11 as wsdl
+
+for uri in sys.argv[1:]:
+    uri_src = urlopen(uri)
+    doc = xml.dom.minidom.parseString(uri_src.read())
+    spec = wsdl.definitions.createFromDOM(doc.documentElement, process_schema=True)
+
+    for s in spec.service:
+        print('Service: %s' % (s.name,))
+        if s.documentation:
+            print(s.documentation)
+        for p in s.port:
+            b = p.bindingReference
+            prot = b.protocolBinding
+            assert p.addressReference, 'No reference for %s wildcards: %s' % (p.name, p.wildcardElements())  # Usually fails when generated bindings import raw module
+            print('  Port %s at %s' % (p.name, p.addressReference.location))
+            ptr = b.portTypeReference
+            for op in b.operation:
+                pt_op = ptr.operationMap()[op.name]
+                if op.operationReference is not None:
+                    print('    %s (at %s)' % (op.name, op.operationReference.locationInformation))
+                else:
+                    print('    %s' % (op.name,))
+                if pt_op.documentation is not None:
+                    print('      %s' % (pt_op.documentation,))
+                if pt_op.input is not None:
+                    print('      Input: %s' % (pt_op.input.message,))
+                if pt_op.output is not None:
+                    print('      Output: %s' % (pt_op.output.message,))

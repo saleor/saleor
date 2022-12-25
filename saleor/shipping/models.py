@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.db import models
@@ -153,10 +153,8 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         instance: Union["Checkout", "Order"],
         channel_id,
         price: Money,
-        country_code: Optional[str] = None,
-        lines: Union[
-            Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"], None
-        ] = None,
+        country_code: str | None = None,
+        lines: Iterable["CheckoutLineInfo"] | Iterable["OrderLineInfo"] | None = None,
     ):
         if not instance.shipping_address:
             return None

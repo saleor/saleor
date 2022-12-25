@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:B" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:B" xmlns:a="URN:A">
+	<xs:import namespace="URN:A" schemaLocation="a.xsd"/>
+	<xs:simpleType name="bst">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="legal"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="b1">
+		<xs:complexContent>
+			<xs:extension base="a:a1">
+				<xs:sequence>
+					<xs:element name="ba" type="tns:bst"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

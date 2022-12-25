@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -204,8 +203,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout_info,
         lines,
         *,
-        shipping_method: Optional[shipping_interface.ShippingMethodData],
-        collection_point: Optional[Warehouse],
+        shipping_method: shipping_interface.ShippingMethodData | None,
+        collection_point: Warehouse | None,
     ) -> None:
         delivery_method = shipping_method
         error_msg = "This shipping method is not applicable."
@@ -234,9 +233,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         *,
-        shipping_method: Optional[ShippingMethod],
-        external_shipping_method: Optional[shipping_interface.ShippingMethodData],
-        collection_point: Optional[Warehouse],
+        shipping_method: ShippingMethod | None,
+        external_shipping_method: shipping_interface.ShippingMethodData | None,
+        collection_point: Warehouse | None,
     ) -> None:
         checkout = checkout_info.checkout
         if external_shipping_method:
@@ -261,7 +260,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         cls.call_event(manager.checkout_updated, checkout)
 
     @staticmethod
-    def _resolve_delivery_method_type(id_) -> Optional[str]:
+    def _resolve_delivery_method_type(id_) -> str | None:
         if id_ is None:
             return None
 

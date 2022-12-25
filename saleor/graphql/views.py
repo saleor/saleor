@@ -2,7 +2,7 @@ import hashlib
 import importlib
 import json
 from inspect import isclass
-from typing import Any, Optional, Union
+from typing import Any
 
 import opentracing
 import opentracing.tags
@@ -73,7 +73,7 @@ class GraphQLView(View):
         schema: GraphQLSchema,
         backend: GraphQLBackend,
         executor=None,
-        middleware: Optional[list[str]] = None,
+        middleware: list[str] | None = None,
         root_value=None,
     ):
         super().__init__()
@@ -137,9 +137,7 @@ class GraphQLView(View):
 
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
-            result: Union[list, Optional[dict]] = [
-                response for response, code in responses
-            ]
+            result: list | dict | None = [response for response, code in responses]
             status_code = max((code for response, code in responses), default=200)
         else:
             result, status_code = self.get_response(request, data)
@@ -198,7 +196,7 @@ class GraphQLView(View):
 
     def get_response(
         self, request: HttpRequest, data: dict
-    ) -> tuple[Optional[dict[str, list[Any]]], int]:
+    ) -> tuple[dict[str, list[Any]] | None, int]:
         with observability.report_gql_operation() as operation:
             execution_result = self.execute_graphql_request(request, data)
             status_code = 200
@@ -214,7 +212,7 @@ class GraphQLView(View):
                     response["data"] = execution_result.data
                 if execution_result.extensions:
                     response["extensions"] = execution_result.extensions
-                result: Optional[dict[str, list[Any]]] = response
+                result: dict[str, list[Any]] | None = response
             else:
                 result = None
             operation.result = result
@@ -225,8 +223,8 @@ class GraphQLView(View):
         return self.root_value
 
     def parse_query(
-        self, query: Optional[str]
-    ) -> tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
+        self, query: str | None
+    ) -> tuple[GraphQLDocument | None, ExecutionResult | None]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -306,7 +304,7 @@ class GraphQLView(View):
                 result = ExecutionResult(errors=cost_errors, invalid=True)
                 return set_query_cost_on_result(result, query_cost)
 
-            extra_options: dict[str, Optional[Any]] = {}
+            extra_options: dict[str, Any | None] = {}
 
             if self.executor:
                 # We only include it optionally since

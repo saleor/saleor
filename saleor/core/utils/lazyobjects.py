@@ -1,5 +1,6 @@
 import functools
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from django.utils.functional import LazyObject, SimpleLazyObject, empty
 
@@ -13,7 +14,7 @@ def lazy_no_retry(func: Callable) -> SimpleLazyObject:
     This mitigates an issue where an expensive ``func`` can be rerun for
     each GraphQL resolver instead of flagging it as rejected/failed.
     """
-    error: Optional[Exception] = None
+    error: Exception | None = None
 
     @functools.wraps(func)
     def _wrapper():

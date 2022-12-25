@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
@@ -27,7 +27,7 @@ class TransactionSessionBase(BaseMutation):
         incorrect_type_error_code: str,
         not_found_error: str,
         manager: "PluginsManager",
-    ) -> Union[checkout_models.Checkout, order_models.Order]:
+    ) -> checkout_models.Checkout | order_models.Order:
         source_object_type, source_object_id = from_global_id_or_error(
             id, raise_error=False
         )
@@ -44,7 +44,7 @@ class TransactionSessionBase(BaseMutation):
                     )
                 }
             )
-        source_object: Optional[Union[checkout_models.Checkout, order_models.Order]]
+        source_object: checkout_models.Checkout | order_models.Order | None
         if source_object_type == "Checkout":
             source_object = (
                 checkout_models.Checkout.objects.select_related("channel")
@@ -79,8 +79,8 @@ class TransactionSessionBase(BaseMutation):
     @classmethod
     def get_amount(
         cls,
-        source_object: Union[checkout_models.Checkout, order_models.Order],
-        input_amount: Optional[Decimal],
+        source_object: checkout_models.Checkout | order_models.Order,
+        input_amount: Decimal | None,
     ) -> Decimal:
         if input_amount is not None:
             return input_amount

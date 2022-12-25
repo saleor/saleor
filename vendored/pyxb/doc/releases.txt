@@ -1,0 +1,832 @@
+.. _releases:
+
+***************
+Release History
+***************
+
+Historically, the release number of PyXB indicated stability in a way similar
+to that of Linux several years ago, with even/odd of the middle digit
+indicating stability/development.  That policy ended as of 1.1.3, and the
+relaxed policy is:
+
+- All releases consist of three non-negative integers
+
+- A release *series* refers to all releases with the same first two integers.
+  The third integer indicates an incremental update to the system.
+
+- Should it be necessary to make wholesale changes that affect either
+  stability or interface, the second or even first integer will be
+  incremented
+
+- Critical bug fixes may result in new releases in older series, but this is
+  expected to be extremely unusual.  Such fixes will be made on a branch of
+  the :ref:`git repository <git_repository>`.
+
+- All packaged releases are intended to be of comparable stability, with bug
+  fixes and most enhancements causing an increment in the third integer
+
+As examples, :ticket:`correcting the content model for weak determinism <112>`
+resulted in PyXB 1.2.0, and :ticket:`support of Python 3 <150>` was completed
+in PyXB 1.2.4.  :ticket:`support for XML Schema 1.1 <217>` will not be addressed
+until PyXB 1.3.0 if at all.
+
+
+1.2.x
+=====
+
+The 1.2.x release series introduces a new content model which provides much
+more help in resolving validation errors.  Concurrent with this support was
+dropped for Python 2.4 and 2.5.  The 1.2.x release works with Python 2.6 and
+2.7 and as of PyXB 1.2.4 also with Python 3.1 and later.  Some unit tests are
+skipped under Python 2.6 due to insufficient support for validating exception
+attributes.
+
+.. _pyxb-1.2.5:
+
+1.2.5 (18 Sep 2016)
+-------------------
+
+This is a roll-up aggregating all fixes since the last major release nearly
+two years ago.
+
+The following reported `defects/enhancements
+<https://github.net/pabigot/pyxb/issues/>`_ have been addressed:
+
+- Deconflict class properties from module identifiers.  :issue:`27`
+- Correct handling of `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_
+  on non-abstract types.  :issue:`32`
+- Fix generation of zero-span durations.  :issue:`38`
+- Document how to use file URIs on Windows.  :issue:`34`
+- Document need for common bindings when generating OpenGIS bindings.
+  :issue:`28`
+- Fix literal representation of not-a-number and infinite values. :issue:`43`
+- Document that Python 3 is supported.  :issue:`36`
+- Fix processing of empty binary data tpyes.  :issue:`51`
+- Fix transition sort key to support Python 3.  :issue:`52`
+- Fix generation of modules that cannot be imported due to use of invalid
+  characters in the module path.  :issue:`48`
+- Add a method to xsd.base64Binary to allow a heavy-weight validation step to
+  be bypassed.  :issue:`50`
+
+.. _pyxb-1.2.4:
+
+1.2.4 (19 Oct 2014)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.4
+
+The major feature of this release is a new approach to Python 3 support based
+on the `six <https://pypi.python.org/pypi/six/>`_ module.  This resolves
+:ticket:`support for Python 3 <150>` and allows one release of PyXB to support
+Python versions from 2.6 through 3.4, excluding 3.0.  The ``maintainer/2to3``
+script used in PyXB 1.2.3 is no longer supported.  Both the core
+implementation and the bindings are compatible with Python 2 and 3.
+
+A second important feature was correct handling of QName by changing the
+binding representation from a string to an expanded name that saves the
+namespace URI rather than the prefix from the original document.
+
+Finally, with this release primary development and support moves from
+SourceForge to `Github <https://github.com/pabigot/pyxb>`_.  Inter-release
+updates will be made first on github (on the `next
+<https://github.com/pabigot/pyxb/tree/next>`_ branch), and pushed to the
+SourceForge git repository aperiodically.
+
+Other miscellanous changes:
+
+- Correct rich comparisons for _PluralBinding instances.  :ticket:`218`
+- Prevent adding non-element content as wildcard elements.  :ticket:`219`
+- Provide public API to _CF_enumeration helper methods. :ticket:`221`
+- Specify requirements for an acceptable DOM implementation. :ticket:`224`
+- Rebase xs:decimal on Python decimal.Decimal to provide high precision
+  support. :ticket:`91`
+- Support Python 3. :ticket:`150`
+- Fix mis-ordered attribute groups use/resolution issue.  :ticket:`230`
+- Generate facet values that are valid Python expressions.  :ticket:`231`
+- Improve validation failure location for simple values. :ticket:`232`
+- Disallow name attribute in internal complex types.  :issue:`6`
+- Avoid unbounded non-deterministic expansion.  :issue:`5`
+- Reduce namespace intrusion with enumeration types.  :issue:`9`
+- Add API to replace simple content complex type values. :issue:`7`
+- Fix representation and use of QNames.  :issue:`13`
+- Fix generation of wildcard attributes. :issue:`14`
+- Fix validation of wildcard types in DOM instances.  :issue:`15`
+- Reference github for bug reports.  :issue:`16`:
+- Eliminate a gratuitous log warning on a validation failure.  :issue:`17`
+- Eliminate improper assertion on extension binding use of imported bindings.
+  :issue:`18`
+- Support serialization of anonymous namespaces to allow Python copy.deepcopy
+  module to work on binding instances.  :issue:`19`
+- Generate bindings that are compatible with both Python 2 and Python 3.
+  :issue:`22`
+
+.. _pyxb-1.2.3:
+
+1.2.3 (18 Sep 2013)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.3
+
+This is primarily a bug-fix and clean-up release.  One new feature is that
+starting with this release a Python 3 compatible version of PyXB will be
+available in the git repository.  For this version, it may be obtained by::
+
+  git clone -b python3/pyxb-1.2.3 git://git.code.sf.net/p/pyxb/code pyxb3-1.2.3
+
+The Python 3 code in this branch is created by automatic conversion of the
+Python 2 code using the maintainer/2to3 script.  While not officially
+supported until PyXB 1.3.0, Python 3 appears to work correctly with this
+version.
+
+Behavioral changes:
+
+- PyXB 1.2.1 automatically filled in the content of fixed elements.  This
+  generated invalid documents when the particular element should have been
+  absent for some content.  The feature has been removed so fixed elements
+  initialize to absent just like every other element.
+
+- The former `--pre-load-archives` option to pyxbgen has been removed and
+  replaced by :ref:`pyxbgen--import-augmentable-namespace` which has more
+  consistent semantics.  Schema import directives related to a non-augmentable
+  namespace (one for which the referenced option has not been provided) will
+  be ignored if content for the namespace can be located in any archive or
+  builtin.
+
+- Generating DOM (or XML) expressions of bindings that were created by type
+  constructors and not associated with elements now cause an exception to be
+  raised rather than mis-using the type name as though it were a valid element
+  tag.
+
+Code cleanup:
+
+- Trailing whitespace throughout the source has been removed to decrease git
+  complaints and non-reproducible patches.
+- Several coding practices that would not work under Python3 have been
+  replaced with new solutions.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
+
+- Fix DOM style handling of xsi:type attribute.  :ticket:`166`
+- Fix problems with nillable simple types.  :ticket:`200`
+- Fix problems inserting into plural element attributes.  :ticket:`201`
+- Correct namespace-qualified attributes.  :ticket:`202`
+- Eliminate automatic derivation of XML element tag from binding type when
+  converting an element-free instance to DOM.  :ticket:`203`
+- Eliminate default to fixed value for elements.  :ticket:`204`
+- Re-word exception when element content was incompatible with fixed value.
+  :ticket:`205`
+- Fix the aslocal() method for xs:dateTime values with non-UTC timezones.
+  :ticket:`206`
+- Fix values for restricted duration ranges in pickled data such as namespace
+  archives.  :ticket:`207`
+- Correct the interpretation of QName-valued base and similar attributes with
+  respect to in-scope namespace declarations.  :ticket:`208`
+- Rework how to specify that imported namespaces should be processed to extend
+  the content model.  :ticket:`209`
+- Removed redundant code in pyxbgen relevant to
+  :ref:`pyxbgen--wsdl-location`.  :ticket:`210`
+- Refine diagnostics when an element with simple type appears in a context
+  that expects non-element content.  :ticket:`211`
+- Add :api:`pyxb.NonElementContent` to simplify access to non-element content
+  in a mixed-content instance.  :ticket:`212`
+- Convert assert failures to diagnostic exceptions when generating DOM
+  expressions of complex types with simple content where the content is
+  missing. :ticket:`213`
+- Ensure attribute values are converted from lexical space to value space when
+  assigned from an XML representation.  :ticket:`216`
+
+.. _pyxb-1.2.2:
+
+1.2.2 (17 Apr 2013)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.2
+
+Almost all changes are bug fixes, including issues with element order when
+extending types, name conflicts between XML and Python entities in the
+binding, and unicode problems in diagnostics.
+
+PyXB has never intentionally supported using bindings generated by different
+versions of PyXB.  This will be enforced from version 1.2.2 onwards.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
+
+- Correct management of changes to default namespace within documents. :ticket:`183`
+- Do not interleave base and extension type elements. :ticket:`184`
+- Incorrect character range management resulted in regex failure. :ticket:`186`
+- Wide unicode mis-defines XML1p0e2 Char class. :ticket:`187`
+- Improve contents of StructuralBadDocumentError. :ticket:`189`
+- Generate exception details correctly with unicode content. :ticket:`190`
+- Namespace must be a reserved symbol within CTD instances.
+- PyXB rejects restriction that changes element type. :ticket:`193`
+- Multiple cases where names (from imported bindings, namespaces, and
+  top-level classes and elements) resulted in conflicts with other top-level
+  and class-level names. :ticket:`191`, :ticket:`194`, :ticket:`197`
+- Avoid validating content of simple types marked with xsi:nil. :ticket:`195`
+- Validate handling of attribute and element form attributes. :ticket:`196`
+- Ensure all referenced namespaces are imported into a binding. :ticket:`198`
+- Detect import of bindings generated by a different version of PyXB. :ticket:`199`
+
+.. _pyxb-1.2.1:
+
+
+1.2.1 (17 Dec 2012)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.1
+
+.. warning::
+
+   This release has an interface change: the :api:`content
+   <pyxb.binding.basis.complexTypeDefinition.content>` method on complex types
+   is now deprecated in favor of the :api:`orderedContent
+   <pyxb.binding.basis.complexTypeDefinition.orderedContent>` method.  The
+   members in the new list have wrapper classes to correctly associate
+   instance bindings with the element declaration and to distinguish instances
+   with string values from non-element character data.  The old method is
+   supported for this release, but will produce a warning when used, and is
+   likely to be removed in the next release.
+
+Key features of the release:
+
+- Full support for mixed content schema through a new method
+  :api:`orderedContent <pyxb.binding.basis.complexTypeDefinition.orderedContent>` on complex
+  binding instances and flags that control when that list affects document
+  generation.  See :ref:`mixed_content`.  This is particularly relevant to
+  XHTML.
+
+- Immediate validation of values assigned to plural elements.
+
+- A first step to providing finer control of validation, using
+  :api:`pyxb.ValidationConfig`
+
+The following reported `defects/enhancements
+<http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
+
+- Validate :ref:`pyxb.BIND<pyxb_BIND>` at point of use.  :ticket:`69`
+- Issues with renamed element (most of which were mis-use of pyxb.BIND).  :ticket:`71`
+- Support for default and fixed values in elements. :ticket:`99`
+- Support for mixed content.  :ticket:`153`, :ticket:`154`
+- Provide an example based on a `help-forum thread
+  <http://sourceforge.net/projects/pyxb/forums/forum/956708/topic/5422611/>`_
+  to show how to take advantage of PyXB 1.2.x improved diagnostics.
+  :ticket:`158`
+- Improve interpretation of Python native type values when used in element
+  constructors.  :ticket:`175`
+- Add :ref:`ECMA-376 (Office Open XML)<bundle_ecma376>` as an optional bundle.
+  :ticket:`178`
+- Fix invalid error when an all model group had minOccurs=0.  :ticket:`179`
+- Add :ref:`Dublin Core<bundle_dc>` to the standard bundles.  :ticket:`180`
+- Allow control of element order in generated documents.  :ticket:`181`
+- Include wildcard elements in content.  :ticket:`182`
+
+.. _pyxb-1.2.0:
+
+1.2.0 (07 Nov 2012)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.2.0
+
+This is a beta release intended to allow independent verification that the new
+content model works.  It is released on SourceForge, but will not be made
+available through PyPI until such verification is satisfactory.
+
+Key feature of the release:
+
+- Use of an advanced content model which provides more accurate validation and
+  :ref:`much better diagnostics <validating>` when validation fails.
+
+- Elimination of support for Python 2.4 and 2.5 (necessary to ease the path to
+  a future Python3 implementation of PyXB).
+
+- Complete rework of the exceptions that normally arise when using binding
+  instances.  These exceptions now provide information through attributes
+  rather than a text message.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
+
+- Improved diagnostics. :ticket:`26`, :ticket:`75`
+- Correct handling of schema where greedy processing fails.  :ticket:`112`,
+  :ticket:`133`
+- Elements and attributes in generated bindings are emitted in a deterministic
+  order sorted by schema and location within schema, to ensure deterministic
+  processing and reduce variation between bindings when generation is
+  repeated.  :ticket:`164`
+- Make documentation annotations from schema available as documentation
+  strings for the generated complex type bindings.  :ticket:`79`
+- Update OpenGIS bindings to `use W3C XLink schema
+  <http://www.ogcnetwork.net/node/1829>`_.  :ticket:`165`
+
+1.1.x
+=====
+
+The 1.1.x release series entered maintenance mode with release 1.1.5.  It is
+unlikely that further releases will occur, though critical bugs fixes may be
+made available in the `release branch
+<http://pyxb.git.sourceforge.net/git/gitweb.cgi?p=pyxb/pyxb;a=shortlog;h=refs/heads/pyxb-1.1/next>`_.
+Bugs reported against 1.1.5 will generally be fixed in the 1.2.x series.
+
+.. _pyxb-1.1.5:
+
+1.1.5 (01 Nov 2012)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.5
+
+This is a maintenance release to finalize the 1.1.x series before starting the
+1.2.x series.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
+
+- The standard Python logging module is now used.  :ticket:`17`,
+  :ticket:`159`, :ticket:`157`
+- The potential for changing binding style support has been removed.
+  :ticket:`82`
+- PyPI/setuptools support has been fixed (again).  :ticket:`130`
+- Unit test setup/teardown has been reviewed.  :ticket:`149`
+- utf-8 is now used in all PyXB source files.  :ticket:`151`
+- Preserve namespace mappings in deep-cloned instances.  :ticket:`155`
+- Fix problems revealed by cython and pyflakes.  :ticket:`156`, :ticket:`167`
+- User contributions from Jon Foster, with the exception of windows test
+  scripts, have been incorporated.  :ticket:`157`
+- Correct issues in generator function to retrieve command line.
+  :ticket:`161`
+- Restore content of ExtraContentError exception.  :ticket:`163`
+- Warn rather than abort when apparently redundant schema are included.
+  :ticket:`169`
+
+
+.. _pyxb-1.1.4:
+
+1.1.4 (15 Jun 2012)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.4
+
+Key features of the release:
+
+- A large number of bug fixes, especially in the area of internationalization.
+  Naive uses of unicode have mostly been eliminated.
+- Corrections and improvements to date and time-related types, especially with
+  respect to timezones.
+- More namespaces have been added in the :ref:`common <bundle_common>`,
+  :ref:`WS-* <bundle_wssplat>`, and :ref:`OpenGIS <bundle_opengis>` bundles.
+- This release eliminates the separate packages for different bundles; all
+  bundles and documentation except for OpenGIS are incorporated into the
+  release file.  OpenGIS is present but must be built manually; see
+  :ref:`OpenGIS <bundle_opengis>`
+
+Examples have been added:
+
+- ``examples/customization`` shows advanced customization, including injecting
+  behavior into binding classes corresponding to types from which other XML
+  types are extended or restricted.  It also demonstrates how to introspect
+  the bindings within a module, automating much of the process of extending
+  multiple bindings with the same functionality.
+
+- ``examples/unicode_jp`` demonstrates internationalization features including
+  the ability to intercept PyXB's construction of Python identifiers from XML
+  identifiers to produce meaningful identifiers when the schema language is
+  not compatible with the Python 2 requirement that identifiers be ASCII.
+
+The following reported `defects/enhancements
+<http://sourceforge.net/p/pyxb/tickets/>`_ have been addressed:
+
+- Timezone support for xsd:date types. :ticket:`102`
+- Pattern restriction does not work correctly with Unicode. :ticket:`108`
+- bad unvalidated generation with simple list. :ticket:`110`
+- Make simpleType CF_Enumeration iterable. :ticket:`111`
+- toxml fails when wildcard is in unrecognized namespace. :ticket:`114`
+- Problem with timedelta to duration conversion. :ticket:`115`
+- Simple-typed elements accept any attributes. :ticket:`116`
+- attributes are validated regardless of pyxb.RequireValidWhenParsing. :ticket:`117`
+- unable to resolve with absent namespace. :ticket:`119`
+- module CreateFromDocument ignores default_namespace. :ticket:`120`
+- PyXB elementary data types do not play well with copy/pickling/.... :ticket:`121`
+- PxXB should allow to assign None to optional elements and attributes. :ticket:`122`
+- unbound wildcard element toxml() fails. :ticket:`123`
+- misapplied allow_builtin_generation keyword in Generator. :ticket:`124`
+- attributes are not validated regardless of pyxb.RequireValidWhenGenerating. :ticket:`126`
+- dateTime objects must be timezone-aware. :ticket:`127`
+- most lexical representations for reduced dates wrong. :ticket:`128`
+- incorrect timezone adjustment from python values. :ticket:`129`
+- validate processing of unicode in assignments and documents. :ticket:`131`
+- Crash in PyXB when attempting to retrieve Unicode value from exception. :ticket:`132`
+- Name, NMTOKEN, NCName wrong validation regexes. :ticket:`134`
+- opengis/scripts/genbind removes all user files. :ticket:`135`
+- preserve timezone in processing. :ticket:`136`
+- wildcards rejected when validation disabled during parsing. :ticket:`137`
+- xsd.dateTime loses microsecond precision. :ticket:`138`
+- support alternative XML parsers. :ticket:`139`
+- need regular way to replace MakeIdentifier. :ticket:`141`
+- Document advanced customization. :ticket:`142`
+- cleanup OpenGIS schema bundle. :ticket:`143`
+- toxml needs encoding support. :ticket:`144`
+- mark encoding in generated output. :ticket:`146`
+- domutils references unqualified PyXB exceptions. :ticket:`148`
+
+.. _pyxb-1.1.3:
+
+1.1.3 (09 Sep 2011)
+--------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.3
+
+General cleanup, finish up a few previously unsupported datatypes.
+
+- Correct extension of a simple type with enumeration restrictions.
+  :ticket:`89`
+
+- Use the Python string type as the basis for `xs:hexBinary
+  <http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#hexBinary>`_.
+  :ticket:`90`
+
+- Support ``+`` in ``PYXB_ARCHIVE_PATH`` like the documentation says.
+  :ticket:`92`
+
+- Correct exception reference.  :ticket:`93`
+
+- Correct handling of the `ur-type
+  <http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType>`_.  :ticket:`94`
+
+- Automatically provide an `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_
+  attribute when the schema uses the ur-type.  :ticket:`95`
+
+- Implement `xs:base64binary
+  <http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#base64Binary>`_.
+  :ticket:`83`, :ticket:`96`
+
+- Fix pickling and URI path issues on Windows.  :ticket:`97`, :ticket:`98`
+
+- Correct extensions that involve wildcards.  :ticket:`100`
+
+- Do a better job resolving circular dependencies, and don't try to write two
+  namespace groups to the same binding file.  :ticket:`104`, :ticket:`105`
+
+- Add a bundle for :ref:`Security Assertion Markup Language <bundle_saml20>`.
+  Thanks to Michael van der Westhuizen for providing this (sixteen months
+  ago).  :ticket:`106`
+
+- Avoid overwrite of Python `built-in constants
+  <http://docs.python.org/library/constants.html>`_, including ``None``,
+  ``True``, and ``False``.  :ticket:`107`
+
+.. _pyxb-1.1.2:
+
+1.1.2 (30 May 2010)
+-------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.2
+
+Complete replacement of the model group portion of the content model.  The
+NFA-to-DFA approach is gone.  The resulting system does a better job in less
+space and significantly faster: 30% faster on the standard tmsxtvd test,
+orders of magnitude on documents with large sequences of optional elements.
+
+Note: A couple unit tests fail due to incidental reasons that will be
+addressed when fixing :ticket:`75`.  Also, the architecture documentation for
+the validation portion of the content model is completely out of date.
+
+- Handle sequences of optional elements more effectively.  :ticket:`33`
+
+- Correct multi-step attribute restriction/extension.  :ticket:`80`
+
+- Support prefix rewrite for schema location URIs.  :ticket:`81`
+
+- Fix syntax error generating wildcard namespace constraints.  :ticket:`84`
+
+- Support whitespace validation bypass in simple type definitions.  :ticket:`85`
+
+.. _pyxb-1.1.1:
+
+1.1.1 (28 Jan 2010, rev 2135)
+-----------------------------
+
+Documentation: http://pyxb.sourceforge.net/PyXB-1.1.1
+
+Major feature is significantly improved ability to determine what content is
+not acceptable to the validating parser, and where it can be found in the
+document.  See :ref:`invalid-content`.
+
+Also, using keyword parameters in binding instance constructors will now raise
+an :api:`pyxb.exceptions_.ExtraContentError` in the case where the keyword does not
+correspond to the PyXB-generated identifier associated with an attribute or
+element of the class being instantiated.
+
+- Eliminate complaints about reference to deprecated :mod:`sha` module in Python
+  2.6.
+
+- Fix assorted problems with mixtures of :ref:`pyxbgen--binding-root`,
+  :ref:`pyxbgen--module-prefix`, and :ref:`pyxbgen--write-for-customization`.
+  :ticket:`64`, :ticket:`65`
+
+- Eliminate unnecessary attempts to download schema for builtin namespaces.
+  :ticket:`63`
+
+- Avoid assertion failure when provided schema location's content looks a
+  little, but not enough, like a schema document.  :ticket:`72`
+
+- References to declarations in other namespaces are now calculated locally to
+  the module, rather than cached under the expectation the name is valid
+  everywhere.  :ticket:`73`
+
+- Imposed consistency on behavior when document root element is not
+  recognized.  :ticket:`74`
+
+- Partial implementation of improved error data stored in exceptions.
+  :ticket:`75`
+
+- Detect invalid keywords in instance constructor calls.  :ticket:`76`
+
+.. _pyxb-1.1.0:
+
+1.1.0 (30 Nov 2009, rev 2092)
+-----------------------------
+
+Mostly nit-picky things, but some changed interface, so we're starting a new
+beta series.
+
+- Make handling of invalid xsi:type attributes more robust.  :ticket:`56`
+
+- Use validation flags to control validation (what a novel concept).
+  :ticket:`57`
+
+- Fix improper generation of content within elements marked as xsi:nil.
+  :ticket:`58`
+
+- Provide mechanism to control default handling of xsi:type attributes in
+  instance documents.  :ticket:`60`
+
+- Fix bug where constraining facets were not inherited when deriving simple
+  types by restriction.  :ticket:`61`
+
+
+1.0.x (Stable)
+==============
+
+1.0.0 (18 Oct 2009, rev 2068)
+-----------------------------
+
+Nobody seems to have found anything critical for a while, and it does what I
+want it to, so we'll let this thing run free.
+
+- Replace a reference to a non-existent variable with something that works.
+  :ticket:`52`
+
+- Consistently validate instances created from documents no matter which
+  parser is used.  :ticket:`53`
+
+- Support caching message references in WSDL SOAP faults.  :ticket:`54`
+
+0.7.x (Beta)
+============
+
+0.7.3 (15 Sep 2009, rev 2050)
+-----------------------------
+
+A few bug fixes (one major), a couple new features, and separation of the
+various components to allow a smaller distribution.
+
+- Fixed a circular reference in the DFA state classes that caused memory bloat
+  in long-running processes.  :ticket:`49`
+
+- When PyXB renames an XML element or attribute due to a collision with a
+  reserved word, it will write a warning, and at runtime will raise an
+  exception if an attempt is made to assign to the original name.
+  :ticket:`50`, :ticket:`51`
+
+- Support for pattern restrictions for string-based simple types.
+  :ticket:`47`
+
+- Split distribution into multiple files to reduce download size:
+
+   - ``PyXB-base-@VERSION@.tar.gz`` -- Complete release, nothing pre-built
+   - ``PyXB-doc-@VERSION@.tar.gz`` -- Overlay with pre-built documentation
+   - ``PyXB-common-@VERSION@.tar.gz`` -- Overlay with XHTML bindings
+   - ``PyXB-opengis-@VERSION@.tar.gz`` -- Overlay with OpenGIS bindings
+   - ``PyXB-wsspat-@VERSION@.tar.gz`` -- Overlay with WS-* bindings
+   - ``PyXB-full-@VERSION@.tar.gz`` -- Complete release with all overlays
+
+
+0.7.2 (25 Aug 2009, rev 1981)
+-----------------------------
+
+Primarily to fix a problem with chameleon schemas, but also a couple other
+minor issues.
+
+- References to QNames with absent namespaces in chameleon schema included
+  into schema with a target namespace could not be resolved.  :ticket:`46`
+
+- Documentation content was not correctly sanitized for use within a Python
+  docstring.  :ticket:`45`.
+
+- Elements with complex types with simple content that derived from string
+  could not be marked as nil.  :ticket:`48`
+
+0.7.1 (23 Aug 2009, rev 1968)
+-----------------------------
+
+None of the enhancements really got in, but lots of minor bug fixes.
+
+- Restored the ability to dump copies of all schemas retrieved from a remote
+  location, so you can review them.  :ticket:`28`
+
+- Fixed assorted problems with simple types constructed by list and union.
+  :ticket:`35`, :ticket:`40`
+
+- Provide link from content values to the element binding that was used to
+  store them.  Useful for quickly identifying the owner element when
+  generating a valid child sequence for conversion to DOM.  :ticket:`36`
+
+- Fix validation of attributes with union types.  :ticket:`37`
+
+- Enumeration fixes: Only generate class-level constants for enumerations that
+  restrict a string representation (not double, float, etc).  Verify
+  enumerations work correctly on list and union constructions.  Duplicate the
+  class-level constants for enumerations that are defined in union member
+  types.  :ticket:`38`
+
+- Provide a facility to simplify the automatic creation of an instance of the
+  appropriate type when storing values into an element.  Makes life with
+  anonymous local elements a lot easier.  :ticket:`39`
+
+- Enhance management of namespace prefixes by allowing a system-wide default
+  in BindingDOMSupport and by inferring the base name of the module as the
+  default prefix for namespaces defined in imported bindings.  :ticket:`41`
+
+- Provided crude facility to bypass validation when generating and parsing
+  documents.  :ticket:`44`
+
+- Re-arrange the help for pyxbgen's arguments, and add a script to
+  automatically generate the Sphinx tables for it.
+
+- Support bundles of related schemas/namespaces, currently wssplat (for WS-\*)
+  and opengis (Geographic Information Systems).
+
+- Got the user-level documentation back up to where it might actually help
+  somebody.
+
+
+0.7.0 (03 Aug 2009, rev 1715)
+-----------------------------
+
+This release is identical to 0.5.2 except that the binding interface has
+completely changed.  All examples have been updated; the documentation will be
+updated later.
+
+Note that the code in PyXB itself has not changed, and is not going to
+change.  However, properties produce an interface more natural to most Python
+programs, so that has become the default style.  See the --binding-style
+parameter to pyxbgen if you want to change this.
+
+- Change the method of accessing elements and attributes in bindings from
+  accessor methods (e.g., elt.attr(), elt.setAttr()) to properties (e.g.,
+  elt.attr).  :ticket:`18`
+
+
+0.5.x (Beta)
+============
+
+0.5.2 (03 Aug 2009, rev 1706)
+-----------------------------
+
+Mostly changes to namespaces in support of profiles and application schemas
+which extend other namespaces with special components, or have their own
+copies of somebody else's schemas, etc.  See the pyxbgen private/public
+namespace switches.
+
+- Presence of nested choice model groups caused the plurality calculations to
+  be wrong: some elements were dropped from the model, others were treated as
+  lists when only one instance would be permitted.  :ticket:`34`
+
+- Content accessor would return wrong value for elements with simple type of
+  list variety.  :ticket:`32`
+
+- Corrected handling of attributes when deriving complex types by
+  restriction.  :ticket:`27`
+
+- Added a source module for XML namespace
+  (http://www.w3.org/XML/1998/namespace) with bindings linked to the built-in
+  component model.  :ticket:`23`
+
+- Fix inadequacies in namespace archive management.  :ticket:`22`
+
+This is expected to be the last release in 0.5.x.  0.7.0 should follow soon
+thereafter, and only contain the change of default binding style from accessor
+to property.  :ticket:`18`
+
+
+0.5.1 (16 Jul 2009, rev 1502)
+-----------------------------
+
+Fixed various problems with OpenGIS schemas, specifically dependency loops
+induced by attempting to keep binding components within modules identified by
+the schema they came from, and loss of bindings for one namespace due to its
+being overwritten by those for another.
+
+- The presence of a wildcard in a sequence or choice model group caused other
+  elements to be lost in the binding.  :ticket:`29`
+
+- Rework content verification to operate on binding instances rather than DOM
+  nodes.  :ticket:`24`
+
+- Use `value()` to extract the value of a complex type with simple content;
+  the `content()` method works only with element and mixed content.
+  :ticket:`21`
+
+- Add support to specify prefix to be used in QNames when generating DOM
+  documents from binding instances.  Provide facility to re-use the
+  BindingDOMSupport instance for multiple conversions.  :ticket:`15`
+
+- Tightened requirements on content type matching: no more will strings and
+  numbers automatically be converted to match the content model (probably for
+  a branch you didn't intend).  :ticket:`14`
+
+- Fix problems overwriting binding modules with data from a different set of
+  namespaces.  :ticket:`31`.
+
+- Eliminated the schema group modules: too hard to avoid dependency loops.
+  Now all components are written into a single module, which is a namespace
+  group module if the components cross namespaces.  A namespace-specific
+  module still exists, and imports only the relevant components from the group
+  module.
+
+
+0.5.0 (07 Jul 2009, rev 1446)
+-----------------------------
+
+Ability to parse many of the OpenGIS schemas (gml, iso19139, citygml, ogc,
+ogckml22, om, ows, sensorML, sos, swe, tml, ...).
+
+- Completely rework include and import directives to correctly handle relative
+  paths in ``schemaLocation`` attributes and to only import from a given
+  location once per namespace. :ticket:`9`, :ticket:`8`, :ticket:`5`
+
+- Parse ``final`` attribute on type definitions (though this has no effect on
+  the bindings).  :ticket:`10`
+
+- Complete missing implementations in complex types with simple content.
+  :ticket:`6`
+
+- Create new code generation model which supports inter-namespace and
+  inter-schema dependency cycles.  Namespace archives can now holds all
+  namespaces that depend on each other.
+
+- Other miscellaneous. :ticket:`11`
+
+- Did I mention the ability to handle OpenGIS?  :ticket:`16`
+
+Beware:
+
+- Most of the classes in the new code generation model are undocumented.
+
+- The interface to `pyxbgen` has changed completely.  Look at
+  ``examples/OpenGIS/makebind.sh`` or other scripts in the ``examples``
+  directory.
+
+
+0.4.x (Stable)
+==============
+
+0.4.0 (20 Jun 2009, rev 1204)
+-----------------------------
+
+First usable public release.
+
+- Use expanded names for all declarations and definitions. :ticket:`1`
+
+- Use the finite automaton content model for generation as well as
+  parsing. :ticket:`2`
+
+- Support xsi:type and xsi:nil. :ticket:`3`
+
+- Support substitution groups. :ticket:`4`
+
+- Fix many problems in QName resolution
+
+- Implement the remaining date/time types
+
+- Rework content model so binding instances are always instances of the
+  binding for the corresponding XML type, with no intervening element
+  instance
+
+- Add support for SAX parser
+
+0.2.x (Stable)
+==============
+
+0.2.0 (30 May 2009, rev 818)
+----------------------------
+
+- Initial public release
+
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

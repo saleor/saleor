@@ -1,0 +1,16 @@
+if test "${PYXB_ROOT}" ; then
+  export PATH=${PATH}:${PYXB_ROOT}/scripts
+fi
+
+( find . -name '*.pyc' ;
+  find . -name '*.pyo' ) \
+| xargs rm -f
+python --version
+python setup.py test && \
+  find . -name test.sh \
+    | while read TEST_PATH ; do
+      dir=`dirname ${TEST_PATH}`
+      echo "Running ${TEST_PATH}"
+      (cd ${dir} && ./test.sh >test.log 2>&1 ) || (echo "FAILED: ${TEST_PATH} (see test.log there)" ;  exit 1 )
+      echo "Passed ${TEST_PATH}"
+    done

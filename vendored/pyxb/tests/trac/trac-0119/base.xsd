@@ -1,0 +1,10 @@
+<xs:schema targetNamespace="urn:trac0119"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:trac0119">
+  <xs:element name="Message" type="tMessage"/>
+  <xs:complexType name="tMessage">
+    <xs:sequence>
+      <xs:element name="command" type="tCommand"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="tCommand" abstract="true"/>
+</xs:schema>

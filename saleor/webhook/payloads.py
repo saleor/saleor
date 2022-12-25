@@ -419,8 +419,8 @@ def _calculate_removed(
 @traced_payload_generator
 def generate_sale_payload(
     promotion: "Promotion",
-    previous_catalogue: Optional[defaultdict[str, set[str]]] = None,
-    current_catalogue: Optional[defaultdict[str, set[str]]] = None,
+    previous_catalogue: defaultdict[str, set[str]] | None = None,
+    current_catalogue: defaultdict[str, set[str]] | None = None,
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     if previous_catalogue is None:
@@ -1055,7 +1055,7 @@ def generate_payment_payload(
 
 @traced_payload_generator
 def generate_list_gateways_payload(
-    currency: Optional[str], checkout: Optional["Checkout"]
+    currency: str | None, checkout: Optional["Checkout"]
 ):
     if checkout:
         # Deserialize checkout payload to dict and generate a new payload including
@@ -1111,7 +1111,7 @@ def _generate_sample_order_payload(event_name):
 
 
 @traced_payload_generator
-def generate_sample_payload(event_name: str) -> Optional[dict]:
+def generate_sample_payload(event_name: str) -> dict | None:
     checkout_events = [
         WebhookEventAsyncType.CHECKOUT_UPDATED,
         WebhookEventAsyncType.CHECKOUT_CREATED,

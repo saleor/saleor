@@ -1,0 +1,9 @@
+<xsd:schema targetNamespace="urn:issue-0048:profile-base"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:base="urn:issue-0048:profile-base"
+   elementFormDefault="qualified">
+  <xsd:attribute name="id" type="xsd:string"/>
+  <xsd:complexType name="DynamicFeatureType" abstract="true">
+        <xsd:attribute ref="base:id" use="optional"/>
+  </xsd:complexType>
+</xsd:schema>

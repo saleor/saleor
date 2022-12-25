@@ -1,5 +1,3 @@
-from typing import Optional
-
 from .payload_schema import ObservabilityEventTypes
 
 
@@ -12,7 +10,7 @@ class ConnectionNotConfigured(ObservabilityError):
 
 
 class TruncationError(ObservabilityError):
-    _event_type: Optional[ObservabilityEventTypes] = None
+    _event_type: ObservabilityEventTypes | None = None
 
     def __init__(self, operation: str, bytes_limit: int, payload_size: int, **kwargs):
         self.extra = {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="8 1.87" targetNamespace="Alma/APDMTest/ObsProject">
+
+  <xsd:element name="ObsProject">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="assignedPriority" nillable="true" type="xsd:int" />
+        <xsd:element name="timeOfCreation" type="xsd:string"/>
+      </xsd:sequence>
+      <xsd:attribute name="schemaVersion" type="xsd:string" use="required" fixed="8"/>
+      <xsd:attribute name="revision" type="xsd:string" default="1.87"/>
+      <xsd:attribute name="almatype" type="xsd:string" use="required" fixed="APDM::ObsProject"/>
+    </xsd:complexType>
+  </xsd:element>
+
+
+</xsd:schema>

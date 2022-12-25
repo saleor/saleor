@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="urn:customVOD"
+    xmlns:core="http://www.cablelabs.com/namespaces/metadata/xsd/core/1"
+    targetNamespace="urn:customVOD"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    version="1">
+  <xsd:import namespace="http://www.cablelabs.com/namespaces/metadata/xsd/core/1" schemaLocation="MD-SP-CORE-I01.xsd"/>
+  <xsd:element name="Venue" type="xsd:string"/>
+</xsd:schema>

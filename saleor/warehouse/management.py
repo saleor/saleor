@@ -1,7 +1,7 @@
 import math
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID
 
 from django.db import transaction
@@ -46,10 +46,10 @@ def allocate_stocks(
     country_code: str,
     channel: "Channel",
     manager: PluginsManager,
-    collection_point_pk: Optional[UUID] = None,
-    additional_filter_lookup: Optional[dict[str, Any]] = None,
+    collection_point_pk: UUID | None = None,
+    additional_filter_lookup: dict[str, Any] | None = None,
     check_reservations: bool = False,
-    checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
+    checkout_lines: Iterable["CheckoutLine"] | None = None,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -191,7 +191,7 @@ def sort_stocks(
     stocks: list[dict],
     channel: "Channel",
     quantity_allocation_for_stocks: dict[int, int],
-    collection_point_pk: Optional[UUID] = None,
+    collection_point_pk: UUID | None = None,
 ):
     warehouse_ids = [stock_data["warehouse_id"] for stock_data in stocks]
     channel_warehouse_ids = ChannelWarehouse.objects.filter(
@@ -642,7 +642,7 @@ def allocate_preorders(
     order_lines_info: Iterable["OrderLineInfo"],
     channel_slug: str,
     check_reservations: bool = False,
-    checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
+    checkout_lines: Iterable["CheckoutLine"] | None = None,
 ):
     """Allocate preorder variant for given `order_lines` in given channel."""
     order_lines_info = get_order_lines_with_preorder(order_lines_info)
@@ -752,12 +752,12 @@ def get_order_lines_with_preorder(
 
 def _create_preorder_allocation(
     line_info: "OrderLineInfo",
-    variant_channel_data: tuple[int, Optional[int]],
+    variant_channel_data: tuple[int, int | None],
     variant_global_allocation: int,
     variants_channel_listings: list[int],
     quantity_allocation_for_channel: dict[int, int],
     listings_reservations: dict[int, int],
-) -> tuple[Optional[PreorderAllocation], Optional[InsufficientStockData]]:
+) -> tuple[PreorderAllocation | None, InsufficientStockData | None]:
     variant = cast(ProductVariant, line_info.variant)
     quantity = line_info.quantity
     channel_listing_id, channel_quantity_threshold = variant_channel_data

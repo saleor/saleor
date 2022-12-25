@@ -18,10 +18,10 @@ class PaymentInterface(ABC):
     @abstractmethod
     def list_payment_gateways(
         self,
-        currency: Optional[str] = None,
+        currency: str | None = None,
         checkout_info: Optional["CheckoutInfo"] = None,
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
-        channel_slug: Optional[str] = None,
+        checkout_lines: Iterable["CheckoutLineInfo"] | None = None,
+        channel_slug: str | None = None,
         active_only: bool = True,
     ) -> list["PaymentGateway"]:
         pass

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:group name="types">
+		<xs:choice>
+			<xs:element name="bool" type="xs:boolean"/>
+			<xs:element name="int" type="xs:int"/>
+			<xs:element name="long" type="xs:integer"/>
+			<xs:element name="float" type="xs:float"/>
+			<xs:element name="str" type="xs:string"/>
+		</xs:choice>
+	</xs:group>
+	<xs:element name="anyType">
+		<xs:complexType>
+			<xs:group ref="types"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="notBool">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="int" type="xs:int"/>
+				<xs:element name="long" type="xs:integer"/>
+				<xs:element name="float" type="xs:float"/>
+				<xs:element name="str" type="xs:string"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="notInt">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="bool" type="xs:boolean"/>
+				<xs:element name="long" type="xs:integer"/>
+				<xs:element name="float" type="xs:float"/>
+				<xs:element name="str" type="xs:string"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="notLong">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="bool" type="xs:boolean"/>
+				<xs:element name="int" type="xs:int"/>
+				<xs:element name="float" type="xs:float"/>
+				<xs:element name="str" type="xs:string"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="notFloat">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="bool" type="xs:boolean"/>
+				<xs:element name="int" type="xs:int"/>
+				<xs:element name="long" type="xs:integer"/>
+				<xs:element name="str" type="xs:string"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="notString">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="bool" type="xs:boolean"/>
+				<xs:element name="int" type="xs:int"/>
+				<xs:element name="long" type="xs:integer"/>
+				<xs:element name="float" type="xs:float"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

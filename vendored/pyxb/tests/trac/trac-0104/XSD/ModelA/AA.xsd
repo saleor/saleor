@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns="http://www.example.com/ModelA/AA" xmlns:modela.au="http://www.example.com/ModelA/AUXAA" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.example.com/ModelA/AA" xsi:schemaLocation="http://www.example.com/ModelA/AUXAA AUXAA.xsd">
+  <xs:import namespace="http://www.example.com/ModelA/AUXAA" schemaLocation="AUXAA.xsd"/>
+  <xs:complexType abstract="true" id="ModelA.AA.__BASE_ClassAA" name="__BASE_ClassAA">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="1" name="classAB" type="REFClassAB"/>
+    </xs:sequence>
+    <xs:attribute name="OID" type="xs:ID" use="optional"/>
+  </xs:complexType>
+  <xs:complexType id="ModelA.AA.REFClassAB" name="REFClassAB">
+    <xs:attribute name="OIDREF" type="xs:IDREF" use="required"/>
+  </xs:complexType>
+  <xs:complexType id="ModelA.AA.ClassAB" name="ClassAB">
+    <xs:complexContent>
+      <xs:restriction base="__BASE_ClassAB">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="classAA" type="REFClassAA"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType abstract="true" id="ModelA.AA.__BASE_ClassAB" name="__BASE_ClassAB">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="1" name="classAA" type="REFClassAA"/>
+    </xs:sequence>
+    <xs:attribute name="OID" type="xs:ID" use="optional"/>
+  </xs:complexType>
+  <xs:complexType id="ModelA.AA.REFClassAC" name="REFClassAC">
+    <xs:complexContent>
+      <xs:restriction base="REFClassAA">
+        <xs:attribute name="OIDREF" type="xs:IDREF" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType id="ModelA.AA.ClassAC" name="ClassAC">
+    <xs:complexContent>
+      <xs:restriction base="__BASE_ClassAC">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="classAB" type="REFClassAB"/>
+          <xs:element maxOccurs="1" minOccurs="1" name="Property" type="TypeAA"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType abstract="true" id="ModelA.AA.__BASE_ClassAC" name="__BASE_ClassAC">
+    <xs:complexContent>
+      <xs:extension base="modela.au:__EXTENSION_BASE_ClassAC">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="Property" type="TypeAA"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType id="ModelA.AA.REFClassAA" name="REFClassAA">
+    <xs:attribute name="OIDREF" type="xs:IDREF" use="required"/>
+  </xs:complexType>
+  <xs:complexType id="ModelA.AA.ClassAA" name="ClassAA">
+    <xs:complexContent>
+      <xs:restriction base="__BASE_ClassAA">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="classAB" type="REFClassAB"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType abstract="false" id="ModelA.AA.TypeAA" name="TypeAA">
+    <xs:sequence/>
+  </xs:complexType>
+</xs:schema>

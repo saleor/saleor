@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 import graphene
 import jwt
@@ -28,9 +28,7 @@ JWT_SALEOR_OWNER_NAME = "saleor"
 JWT_OWNER_FIELD = "owner"
 
 
-def jwt_base_payload(
-    exp_delta: Optional[timedelta], token_owner: str
-) -> dict[str, Any]:
+def jwt_base_payload(exp_delta: timedelta | None, token_owner: str) -> dict[str, Any]:
     utc_now = datetime.utcnow()
 
     payload = {
@@ -46,8 +44,8 @@ def jwt_base_payload(
 def jwt_user_payload(
     user: User,
     token_type: str,
-    exp_delta: Optional[timedelta],
-    additional_payload: Optional[dict[str, Any]] = None,
+    exp_delta: timedelta | None,
+    additional_payload: dict[str, Any] | None = None,
     token_owner: str = JWT_SALEOR_OWNER_NAME,
 ) -> dict[str, Any]:
     payload = jwt_base_payload(exp_delta, token_owner)
@@ -72,7 +70,7 @@ def jwt_encode(payload: dict[str, Any]) -> str:
 
 def jwt_decode_with_exception_handler(
     token: str, verify_expiration=settings.JWT_EXPIRE
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     try:
         return jwt_decode(token, verify_expiration=verify_expiration)
     except jwt.PyJWTError:
@@ -92,7 +90,7 @@ def create_token(payload: dict[str, Any], exp_delta: timedelta) -> str:
 
 
 def create_access_token(
-    user: User, additional_payload: Optional[dict[str, Any]] = None
+    user: User, additional_payload: dict[str, Any] | None = None
 ) -> str:
     payload = jwt_user_payload(
         user, JWT_ACCESS_TYPE, settings.JWT_TTL_ACCESS, additional_payload
@@ -101,7 +99,7 @@ def create_access_token(
 
 
 def create_refresh_token(
-    user: User, additional_payload: Optional[dict[str, Any]] = None
+    user: User, additional_payload: dict[str, Any] | None = None
 ) -> str:
     payload = jwt_user_payload(
         user,
@@ -112,7 +110,7 @@ def create_refresh_token(
     return jwt_encode(payload)
 
 
-def get_user_from_payload(payload: dict[str, Any], request=None) -> Optional[User]:
+def get_user_from_payload(payload: dict[str, Any], request=None) -> User | None:
     # TODO: dataloader
     user = User.objects.filter(email=payload["email"], is_active=True).first()
     user_jwt_token = payload.get("token")
@@ -139,7 +137,7 @@ def is_saleor_token(token: str) -> bool:
     return True
 
 
-def get_user_from_access_payload(payload: dict, request=None) -> Optional[User]:
+def get_user_from_access_payload(payload: dict, request=None) -> User | None:
     jwt_type = payload.get("type")
     if jwt_type not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
         raise jwt.InvalidTokenError(
@@ -163,7 +161,7 @@ def _create_access_token_for_third_party_actions(
     permissions: Iterable["Permission"],
     user: "User",
     app: "App",
-    extra: Optional[dict[str, Any]] = None,
+    extra: dict[str, Any] | None = None,
 ):
     app_permission_enums = get_permission_names(permissions)
 

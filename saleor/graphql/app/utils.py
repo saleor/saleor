@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.core.exceptions import ValidationError
 
 from ...app.models import App
@@ -27,7 +25,7 @@ def ensure_can_manage_permissions(requestor, permission_items):
 
 
 def validate_app_is_not_removed(
-    app: Optional[App],
+    app: App | None,
     app_global_id: str,
     field_name: str,
     code: str = AppErrorCode.NOT_FOUND.value,

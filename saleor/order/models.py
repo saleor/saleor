@@ -1,7 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from re import match
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from django.conf import settings
@@ -391,7 +391,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def __str__(self):
         return f"#{self.id}"
 
-    def get_last_payment(self) -> Optional[Payment]:
+    def get_last_payment(self) -> Payment | None:
         # Skipping a partial payment is a temporary workaround for storing a basic data
         # about partial payment from Adyen plugin. This is something that will removed
         # in 3.1 by introducing a partial payments feature.

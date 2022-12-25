@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.core.exceptions import ValidationError
 
 from ...account.forms import get_address_form
@@ -26,7 +24,7 @@ class I18nMixin:
     def validate_address_form(
         cls,
         address_data: dict,
-        address_type: Optional[str] = None,
+        address_type: str | None = None,
         instance=None,
         format_check=True,
         required_check=True,
@@ -104,8 +102,8 @@ class I18nMixin:
         cls,
         address_data: dict,
         *,
-        address_type: Optional[str] = None,
-        instance: Optional[Address] = None,
+        address_type: str | None = None,
+        instance: Address | None = None,
         info=None,
         format_check=True,
         required_check=True,

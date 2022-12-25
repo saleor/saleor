@@ -37,7 +37,7 @@ class AnonymizePlugin(BasePlugin):
     def change_user_address(
         self,
         address: "Address",
-        address_type: Optional[str],
+        address_type: str | None,
         user: Optional["User"],
         save: bool,
         previous_value: "Address",

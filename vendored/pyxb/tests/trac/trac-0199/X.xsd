@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    version="1.0"
+    targetNamespace="urn:trac:199:X">
+  <xsd:complexType name="C">
+    <xsd:sequence>
+      <xsd:element name="e" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

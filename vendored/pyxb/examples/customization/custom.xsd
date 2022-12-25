@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="urn:custom" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:custom" elementFormDefault="qualified">
+	<xs:complexType abstract="true" name="ta0">
+		<xs:sequence>
+			<xs:element name="ea0" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="tc01">
+		<xs:complexContent>
+			<xs:extension base="ta0">
+				<xs:sequence>
+					<xs:element name="ec01" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tc02">
+		<xs:complexContent>
+			<xs:extension base="ta0">
+				<xs:sequence>
+					<xs:element name="ec02_i" type="xs:int"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tc03">
+		<xs:complexContent>
+			<xs:extension base="ta0">
+				<xs:sequence>
+					<xs:element name="ec03_b" type="xs:boolean"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType abstract="true" name="ta04">
+		<xs:complexContent>
+			<xs:extension base="ta0">
+				<xs:sequence>
+					<xs:element name="ea04_s" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tc041">
+		<xs:complexContent>
+			<xs:extension base="ta04">
+				<xs:sequence>
+					<xs:element name="ec041_s" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tc042">
+		<xs:complexContent>
+			<xs:extension base="ta04">
+				<xs:sequence>
+					<xs:element name="ec042_i" type="xs:int"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="leafseq">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="ec01" type="tc01"/>
+				<xs:element name="ec02" type="tc02"/>
+				<xs:element name="ec03" type="tc03"/>
+				<xs:element name="ec041" type="tc041"/>
+				<xs:element name="ec042" type="tc042"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

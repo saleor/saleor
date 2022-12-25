@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -22,7 +20,7 @@ from .utils import clean_payment, try_payment_action
 
 
 def clean_order_capture(
-    payment: Optional[payment_models.Payment],
+    payment: payment_models.Payment | None,
 ) -> payment_models.Payment:
     payment = clean_payment(payment)
     if not payment.is_active:

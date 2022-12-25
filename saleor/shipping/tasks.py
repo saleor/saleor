@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Union
 
 from django.utils import timezone
 
@@ -11,8 +10,8 @@ from ..order.models import Order
 
 @app.task
 def drop_invalid_shipping_methods_relations_for_given_channels(
-    shipping_method_ids: Iterable[Union[str, int]],
-    channel_ids: Iterable[Union[str, int]],
+    shipping_method_ids: Iterable[str | int],
+    channel_ids: Iterable[str | int],
 ):
     # unlink shipping methods from order and checkout instances
     # when method is no longer available in given channels

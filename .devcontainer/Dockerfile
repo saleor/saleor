@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.9
+FROM mcr.microsoft.com/devcontainers/python:3.10
 
 ENV PYTHONUNBUFFERED 1
 
@@ -24,5 +24,6 @@ RUN echo 'image/avif avif' >> /etc/mime.types
 WORKDIR /app
 RUN pip install poetry==1.7.0
 RUN poetry config virtualenvs.create false
+COPY vendored/ /app/vendored/
 COPY poetry.lock pyproject.toml /app/
 RUN poetry install --no-root

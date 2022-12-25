@@ -2,7 +2,7 @@ import logging
 from collections.abc import Iterable
 from datetime import timedelta
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 from uuid import UUID
 
 from django.conf import settings
@@ -186,8 +186,8 @@ def _create_line_for_order(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    products_translation: dict[int, Optional[str]],
-    variants_translation: dict[int, Optional[str]],
+    products_translation: dict[int, str | None],
+    variants_translation: dict[int, str | None],
     prices_entered_with_tax: bool,
 ) -> OrderLineInfo:
     """Create a line for the given order.
@@ -534,8 +534,8 @@ def _create_order(
     app: Optional["App"],
     manager: "PluginsManager",
     site_settings: Optional["SiteSettings"] = None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
 ) -> Order:
     """Create an order from the checkout.
 
@@ -706,7 +706,7 @@ def _prepare_checkout_with_transactions(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    redirect_url: Optional[str],
+    redirect_url: str | None,
 ):
     """Prepare checkout object with transactions to complete the checkout process."""
     clean_billing_address(checkout_info, CheckoutErrorCode)
@@ -751,8 +751,8 @@ def _prepare_checkout_with_payment(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    redirect_url: Optional[str],
-    payment: Optional[Payment],
+    redirect_url: str | None,
+    payment: Payment | None,
 ):
     """Prepare checkout object with payment to complete the checkout process."""
     clean_checkout_payment(
@@ -806,9 +806,9 @@ def _get_order_data(
 
 def _process_payment(
     payment: Payment,
-    customer_id: Optional[str],
+    customer_id: str | None,
     store_source: bool,
-    payment_data: Optional[dict],
+    payment_data: dict | None,
     order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
@@ -855,7 +855,7 @@ def complete_checkout_pre_payment_part(
     user,
     site_settings=None,
     redirect_url=None,
-) -> tuple[Optional[Payment], Optional[str], dict]:
+) -> tuple[Payment | None, str | None, dict]:
     """Logic required to process checkout before payment.
 
     Should be used with transaction_with_commit_on_errors, as there is a possibility
@@ -899,15 +899,15 @@ def complete_checkout_post_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    payment: Optional[Payment],
-    txn: Optional[Transaction],
+    payment: Payment | None,
+    txn: Transaction | None,
     order_data,
     user,
     app,
     site_settings=None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
-) -> tuple[Optional[Order], bool, dict]:
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
+) -> tuple[Order | None, bool, dict]:
     action_required = False
     action_data: dict[str, str] = {}
 
@@ -1000,7 +1000,7 @@ def _create_order_lines_from_checkout_lines(
     checkout_info: CheckoutInfo,
     lines: list[CheckoutLineInfo],
     manager: "PluginsManager",
-    order_pk: Union[str, UUID],
+    order_pk: str | UUID,
     prices_entered_with_tax: bool,
 ) -> list[OrderLineInfo]:
     order_lines_info = _create_lines_for_order(
@@ -1075,7 +1075,7 @@ def _post_create_order_actions(
     checkout_info: "CheckoutInfo",
     order_lines_info: list["OrderLineInfo"],
     manager: "PluginsManager",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     site_settings: "SiteSettings",
 ):
@@ -1109,10 +1109,10 @@ def _create_order_from_checkout(
     checkout_info: CheckoutInfo,
     checkout_lines_info: list[CheckoutLineInfo],
     manager: "PluginsManager",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
 ):
     from ..order.utils import add_gift_cards_to_order
 
@@ -1281,8 +1281,8 @@ def create_order_from_checkout(
     user: Optional["User"],
     app: Optional["App"],
     delete_checkout: bool = True,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
 ) -> Order:
     """Crate order from checkout.
 
@@ -1374,10 +1374,10 @@ def complete_checkout(
     user: Optional["User"],
     app: Optional["App"],
     site_settings: Optional["SiteSettings"] = None,
-    redirect_url: Optional[str] = None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
-) -> tuple[Optional[Order], bool, dict]:
+    redirect_url: str | None = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
+) -> tuple[Order | None, bool, dict]:
     transactions = checkout_info.checkout.payment_transactions.all()
     fetch_checkout_data(checkout_info, manager, lines)
 
@@ -1428,10 +1428,10 @@ def complete_checkout_with_transaction(
     lines: Iterable["CheckoutLineInfo"],
     user: Optional["User"],
     app: Optional["App"],
-    redirect_url: Optional[str] = None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
-) -> Optional[Order]:
+    redirect_url: str | None = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
+) -> Order | None:
     try:
         _prepare_checkout_with_transactions(
             manager=manager,
@@ -1474,9 +1474,9 @@ def complete_checkout_with_payment(
     app,
     site_settings=None,
     redirect_url=None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
-) -> tuple[Optional[Order], bool, dict]:
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
+) -> tuple[Order | None, bool, dict]:
     """Logic required to finalize the checkout and convert it to order.
 
     Should be used with transaction_with_commit_on_errors, as there is a possibility

@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, cast
+from typing import cast
 
 import graphene
 from django.core.cache import cache
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def get_credit_card_info(
     app: App, credit_card_info: dict
-) -> Optional[PaymentMethodCreditCardInfo]:
+) -> PaymentMethodCreditCardInfo | None:
     required_fields = [
         "brand",
         "lastDigits",
@@ -83,7 +83,7 @@ def get_credit_card_info(
 
 def get_payment_method_from_response(
     app: "App", payment_method: dict, currency: str
-) -> Optional[PaymentMethodData]:
+) -> PaymentMethodData | None:
     payment_method_external_id = payment_method.get("id")
     if not payment_method_external_id:
         logger.warning(
@@ -151,7 +151,7 @@ def get_list_stored_payment_methods_from_response(
 
 
 def get_response_for_stored_payment_method_request_delete(
-    response_data: Optional[dict],
+    response_data: dict | None,
 ) -> "StoredPaymentMethodRequestDeleteResponseData":
     if response_data is None:
         result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER
@@ -192,7 +192,7 @@ def invalidate_cache_for_stored_payment_methods(
 
 
 def get_response_for_payment_gateway_initialize_tokenization(
-    response_data: Optional[dict],
+    response_data: dict | None,
 ) -> "PaymentGatewayInitializeTokenizationResponseData":
     data = None
     if response_data is None:
@@ -214,7 +214,7 @@ def get_response_for_payment_gateway_initialize_tokenization(
 
 
 def get_response_for_payment_method_tokenization(
-    response_data: Optional[dict], app: "App"
+    response_data: dict | None, app: "App"
 ) -> "PaymentMethodTokenizationResponseData":
     data = None
     payment_method_id = None

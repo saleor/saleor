@@ -2,7 +2,6 @@ import sys
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
-from typing import Optional
 
 import graphene
 from graphene import relay
@@ -559,7 +558,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     def resolve_attributes(
         root: ChannelContext[models.ProductVariant],
         info,
-        variant_selection: Optional[str] = None,
+        variant_selection: str | None = None,
     ):
         def apply_variant_selection_filter(selected_attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
@@ -1065,7 +1064,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         info,
         *,
         size: int = 256,
-        format: Optional[str] = None,
+        format: str | None = None,
     ):
         format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
@@ -1271,7 +1270,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     def resolve_attribute(root: ChannelContext[models.Product], info, slug):
         def get_selected_attribute_by_slug(
             attributes: list[SelectedAttribute],
-        ) -> Optional[SelectedAttribute]:
+        ) -> SelectedAttribute | None:
             return next(
                 (atr for atr in attributes if atr["attribute"].slug == slug),
                 None,
@@ -1346,7 +1345,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         def get_product_variant(
             product_variants,
-        ) -> Optional[ProductVariant]:
+        ) -> ProductVariant | None:
             if id:
                 id_type, variant_id = graphene.Node.from_global_id(id)
                 if id_type != "ProductVariant":
@@ -1705,7 +1704,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     def resolve_variant_attributes(
         root: models.ProductType,
         info,
-        variant_selection: Optional[str] = None,
+        variant_selection: str | None = None,
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
@@ -1730,7 +1729,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     def resolve_assigned_variant_attributes(
         root: models.ProductType,
         info,
-        variant_selection: Optional[str] = None,
+        variant_selection: str | None = None,
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
@@ -1827,8 +1826,8 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         root: models.ProductMedia,
         info,
         *,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ):
         if root.external_url:
             return root.external_url
@@ -1893,8 +1892,8 @@ class ProductImage(BaseObjectType):
         root: models.ProductMedia,
         info,
         *,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ):
         if not root.image:
             return

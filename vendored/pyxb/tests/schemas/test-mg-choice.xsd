@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema targetNamespace="URN:test-mg-choice" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:test-mg-choice">
+	<element name="choice" type="tns:choice"/>
+	<element name="multiplechoice" type="tns:multiplechoice"/>
+	<element name="altmultiplechoice" type="tns:altmultiplechoice"/>
+	<element name="fixedMultichoice" type="tns:fixedMultichoice"/>
+	<complexType name="choice">
+		<choice>
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third"/>
+		</choice>
+	</complexType>
+	<complexType name="multiplechoice">
+		<sequence minOccurs="0" maxOccurs="unbounded">
+			<choice>
+				<element name="first"/>
+				<element name="second"/>
+				<element name="third"/>
+			</choice>
+		</sequence>
+	</complexType>
+	<complexType name="altmultiplechoice">
+		<choice minOccurs="0" maxOccurs="3">
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third"/>
+		</choice>
+	</complexType>
+	<complexType name="fixedMultichoice">
+		<choice>
+			<element name="A" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="B" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="C" type="string" minOccurs="0" maxOccurs="unbounded"/>
+		</choice>
+	</complexType>
+
+</schema>

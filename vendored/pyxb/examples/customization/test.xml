@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<leafseq xmlns="urn:custom">
+	<ec01>
+		<ea0>ec01</ea0>
+		<ec01>c01</ec01>
+	</ec01>
+	<ec02>
+		<ea0>ec02</ea0>
+		<ec02_i>2</ec02_i>
+	</ec02>
+	<ec03>
+		<ea0>ec03</ea0>
+		<ec03_b>true</ec03_b>
+	</ec03>
+	<ec041>
+		<ea0>ec041</ea0>
+		<ea04_s>a04</ea04_s>
+		<ec041_s>c041</ec041_s>
+	</ec041>
+	<ec042>
+		<ea0>ec042</ea0>
+		<ea04_s>a04</ea04_s>
+		<ec042_i>42</ec042_i>
+	</ec042>
+</leafseq>

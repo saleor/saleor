@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Literal, Union
+from typing import Literal
 from unittest.mock import Mock, patch
 
 import pytest
@@ -103,7 +103,7 @@ DISCOUNT = Decimal("1.5")
 
 
 def get_checkout_taxed_prices_data(
-    obj: Union[TaxData, TaxLineData],
+    obj: TaxData | TaxLineData,
     attr: Literal["total", "shipping_price"],
     currency: str,
 ) -> TaxedMoney:
@@ -115,7 +115,7 @@ def get_checkout_taxed_prices_data(
 
 
 def get_taxed_money(
-    obj: Union[TaxData, TaxLineData],
+    obj: TaxData | TaxLineData,
     attr: Literal["total", "shipping_price"],
     currency: str,
 ) -> TaxedMoney:

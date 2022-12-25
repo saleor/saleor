@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_camel_case
@@ -123,7 +123,7 @@ def clean_predicate(predicate, error_class, index=None):
     if isinstance(predicate, list):
         return [
             clean_predicate(item, error_class, index)
-            if isinstance(item, (dict, list))
+            if isinstance(item, dict | list)
             else item
             for item in predicate
         ]
@@ -136,13 +136,13 @@ def clean_predicate(predicate, error_class, index=None):
         )
     return {
         to_camel_case(key): clean_predicate(value, error_class, index)
-        if isinstance(value, (dict, list))
+        if isinstance(value, dict | list)
         else value
         for key, value in predicate.items()
     }
 
 
-def _contains_operator(input: dict[str, Union[dict, str]]):
+def _contains_operator(input: dict[str, dict | str]):
     return any([operator in input for operator in ["AND", "OR"]])
 
 

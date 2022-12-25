@@ -1,6 +1,5 @@
 import re
 from re import Pattern
-from typing import Union
 
 from django.utils.functional import SimpleLazyObject
 
@@ -50,7 +49,7 @@ OBSERVABILITY_REPORT_ALL_API_CALLS = False
 
 PLUGINS = []
 
-PATTERNS_IGNORED_IN_QUERY_CAPTURES: list[Union[Pattern, SimpleLazyObject]] = [
+PATTERNS_IGNORED_IN_QUERY_CAPTURES: list[Pattern | SimpleLazyObject] = [
     lazy_re_compile(r"^SET\s+")
 ]
 

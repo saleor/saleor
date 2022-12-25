@@ -1,0 +1,13 @@
+<xs:schema targetNamespace="http://www.w3.org/2001/XMLSchema-NOT" blockDefault="#all" elementFormDefault="qualified" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xml:lang="EN" xmlns:hfp="http://www.w3.org/2001/XMLSchema-hasFacetAndProperty">
+ <xs:complexType name="anyType" mixed="true">
+  <xs:annotation>
+   <xs:documentation>
+   Not the real urType, but as close an approximation as we can
+   get in the XML representation</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+  </xs:sequence>
+  <xs:anyAttribute processContents="lax"/>
+ </xs:complexType>
+</xs:schema>

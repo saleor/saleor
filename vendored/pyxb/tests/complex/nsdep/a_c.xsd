@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:nsdep:A" elementFormDefault="qualified" xmlns:tns="URN:nsdep:A" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:include schemaLocation="a_b.xsd"/>
+	<xs:include schemaLocation="a_x.xsd"/>
+	<xs:complexType name="tA_c">
+		<xs:sequence>
+			<xs:element ref="tns:A_b_e1"/>
+			<xs:element ref="tns:e1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="A_c_e1" type="tns:tA_c"/>
+</xs:schema>

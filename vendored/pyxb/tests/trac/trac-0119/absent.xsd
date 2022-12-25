@@ -1,0 +1,13 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:base="urn:trac0119">
+  <xs:import namespace="urn:trac0119" schemaLocation="base.xsd"/>
+  <xs:complexType name="doit">
+    <xs:complexContent>
+      <xs:extension base="base:tCommand">
+        <xs:sequence>
+          <xs:element name="payload" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

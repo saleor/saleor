@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from functools import partial, reduce
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 from django.conf import settings
 from django.contrib.sites.models import Site

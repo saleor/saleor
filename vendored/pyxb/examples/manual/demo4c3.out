@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<po:purchaseOrder xmlns:po="URN:purchase-order" orderDate="1999-10-20">
+  <po:shipTo country="US">
+    <name>Alice Smith</name>
+    <street>123 Maple Street</street>
+    <city>Anytown</city>
+    <state>AK</state>
+    <zip>12341</zip>
+  </po:shipTo>
+  <po:billTo country="US">
+    <name>Robert Smith</name>
+    <street>8 Oak Avenue</street>
+    <city>Anytown</city>
+    <state>AK</state>
+    <zip>12341</zip>
+  </po:billTo>
+  <po:items>
+    <po:item partNum="833-AA">
+      <po:productName>Lapis necklace</po:productName>
+      <po:quantity>1</po:quantity>
+      <po:USPrice>99.95</po:USPrice>
+      <po:comment>Want this for the holidays!</po:comment>
+      <po:shipDate>1999-12-05</po:shipDate>
+    </po:item>
+    <po:item partNum="833-AB">
+      <po:productName>Plastic necklace</po:productName>
+      <po:quantity>4</po:quantity>
+      <po:USPrice>3.95</po:USPrice>
+      <po:shipDate>1999-12-24</po:shipDate>
+    </po:item>
+  </po:items>
+</po:purchaseOrder>

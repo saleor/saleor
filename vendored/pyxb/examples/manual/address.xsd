@@ -1,0 +1,53 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="Address">
+    <xsd:sequence>
+      <xsd:element name="name"   type="xsd:string"/>
+      <xsd:element name="street" type="xsd:string"/>
+      <xsd:element name="city"   type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="USAddress">
+    <xsd:complexContent>
+      <xsd:extension base="Address">
+        <xsd:sequence>
+          <xsd:element name="state" type="USState"/>
+          <xsd:element name="zip"   type="xsd:positiveInteger"/>
+        </xsd:sequence>
+        <xsd:attribute name="country" type="xsd:NMTOKEN" fixed="US"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="UKAddress">
+    <xsd:complexContent>
+      <xsd:extension base="Address">
+        <xsd:sequence>
+          <xsd:element name="postcode" type="UKPostcode"/>
+        </xsd:sequence>
+        <attribute name="exportCode" type="xsd:positiveInteger" fixed="1"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <!-- other Address derivations for more countries -->
+
+  <xsd:simpleType name="USState">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="AK"/>
+      <xsd:enumeration value="AL"/>
+      <xsd:enumeration value="AR"/>
+      <xsd:enumeration value="AZ"/>
+      <!-- and so on ... -->
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- simple type definition for UKPostcode -->
+  <!-- *** pyxb mod: provide missing STD *** -->
+  <xsd:simpleType name="UKPostcode">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[A-Z]{2}\d\s\d[A-Z]{2}"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+</xsd:schema>

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import graphene
 from promise import Promise
@@ -102,7 +102,7 @@ if TYPE_CHECKING:
 def get_dataloaders_for_fetching_checkout_data(
     root: models.Checkout, info: ResolveInfo
 ) -> tuple[
-    Optional[Promise["Address"]],
+    Promise["Address"] | None,
     Promise[list["CheckoutLineInfo"]],
     Promise["CheckoutInfo"],
     Promise["PluginsManager"],
@@ -1231,7 +1231,7 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_stored_payment_methods(
-        root: models.Checkout, info: ResolveInfo, amount: Optional[Decimal] = None
+        root: models.Checkout, info: ResolveInfo, amount: Decimal | None = None
     ):
         if root.user_id is None:
             return []

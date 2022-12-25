@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 import graphene
@@ -628,7 +628,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         return root.message or ""
 
     @classmethod
-    def get_node(cls, _: Any, id: str) -> Optional[models.TransactionItem]:
+    def get_node(cls, _: Any, id: str) -> models.TransactionItem | None:
         model = cls._meta.model
         lookup = Q(token=id)
         try:

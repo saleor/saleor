@@ -1,6 +1,5 @@
 import logging
 from dataclasses import asdict
-from typing import Union
 
 from django.core.exceptions import ValidationError
 
@@ -222,7 +221,7 @@ class SendgridEmailPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = SendgridConfiguration(**configuration)
 
-    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
+    def notify(self, event: NotifyEventType | str, payload: dict, previous_value):
         if not self.active:
             return previous_value
 

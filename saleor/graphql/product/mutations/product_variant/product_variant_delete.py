@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
@@ -71,9 +69,9 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         info: ResolveInfo,
         /,
         *,
-        external_reference: Optional[str] = None,
-        id: Optional[str] = None,
-        sku: Optional[str] = None,
+        external_reference: str | None = None,
+        id: str | None = None,
+        sku: str | None = None,
     ):
         validate_one_of_args_is_in_mutation(
             "sku",
@@ -84,7 +82,7 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             external_reference,
         )
         node_id: str
-        instance: Optional[models.ProductVariant]
+        instance: models.ProductVariant | None
         if external_reference:
             id = ext_ref_to_global_id_or_error(
                 models.ProductVariant, external_reference=external_reference

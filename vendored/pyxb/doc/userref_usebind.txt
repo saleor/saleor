@@ -1,0 +1,303 @@
+.. _usebind:
+
+Using Binding Classes
+=====================
+
+Python instances corresponding to XML structures can be created in two
+primary ways: from XML documents, and directly within Python code.
+Generating XML documents from bindings can also be controlled.
+
+.. _from-xml:
+
+Creating Instances from XML Documents
+-------------------------------------
+
+XML documents are converted into Python bindings by invoking the
+``CreateFromDocument`` function in a binding module.  For example:
+
+.. literalinclude:: ../examples/manual/demo3.py
+
+The ``CreateFromDocument`` function in a given binding module is configured
+so that documents with no default namespace are assumed to be in the
+namespace from which the binding was generated.
+
+.. _invalid-content:
+
+Locating Invalid Content
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a document does not validate, PyXB will generally through an
+:api:`pyxb.UnrecognizedContentError` exception.  You can determine where the
+problem lies, and what was not recognized, by examining attributes present
+on the exception as shown in this example:
+
+.. literalinclude:: ../examples/manual/badcontent.py
+
+which produces:
+
+.. literalinclude:: ../examples/manual/badcontent.out
+
+Coping With Wrong ``xsi:type`` Attributes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some web services and binding tools mis-use `xsi:type
+<http://www.w3.org/TR/xmlschema-1/#xsi_type>`_, providing attribute values
+that either are not types, or do not specify a type that is derived from an
+abstract type.  The
+:api:`pyxb.namespace.builtin.XMLSchema_instance.ProcessTypeAttribute
+<pyxb.namespace.builtin._XMLSchema_instance.ProcessTypeAttribute>` method
+can be used to relax how PyXB processes those attributes.
+
+.. _from-python:
+
+Creating Instances in Python Code
+---------------------------------
+
+Creating bindings from XML documents is straightforward, because the
+documents contain enough information to identify each element and attribute,
+locate the corresponding use in the binding class, and store a value that is
+converted to the appropriate type.  Creating values in Python is inherently
+more complex, because native Python objects like strings and integers do not
+contain this information.
+
+As described in :ref:`bindingModel`, binding classes corresponding to simple
+types extend the underlying Python type (such as ``str`` or ``int``), and
+add XML-specific information like the canonical representation of the value
+in `Unicode <http://www.unicode.org/>`_, which is the natural representation
+as XML text.  These classes also maintain a set of facets that constrain the
+values that can be stored as instances when validation is active.  Binding
+classes for complex types have constructors that parse positional and
+keyword parameters to determine the appropriate element or attribute to
+which the value belongs.  Attributes are assigned using keyword parameters.
+Content is assigned using positional parameters.  The order of the
+positional parameters must be consistent with the order expected by the
+content model.
+
+Using the schema in the :ref:`namespace-aware address schema
+<nsaddress_xsd>`, we can begin to construct the example document in Python:
+
+.. literalinclude:: ../examples/manual/demo4a.py
+
+.. note::
+
+   It is necessary to provide an ``element_name`` parameter to ``to_xml``
+   because in this case ``USAddress`` is the name of a complex type, not an
+   top-level schema element.  PyXB cannot generate XML for an instance unless
+   it knows the name to use for the root element.  In most situations PyXB can
+   figure out what element the instance belongs to, as when the instance is
+   created through an element binding instead of a type binding and when it is
+   assigned into another instance, both of which are seen in `demo4c`_.
+
+This produces:
+
+.. literalinclude:: ../examples/manual/demo4a.out
+
+Assigning to individual fields like this bypasses the complex type content
+model, although each field itself is validated.  For example, the address
+schema does not include New York as a state, so the following assignment::
+
+  addr.state = 'NY'
+
+will cause a :api:`pyxb.exceptions_.BadTypeValueError` exception to be raised:
+
+.. literalinclude:: ../examples/manual/demo4a1.out
+
+However, the order of the field assignments does not matter, as long as all
+required fields are present by the time the XML document is generated.
+
+.. literalinclude:: ../examples/manual/demo4a2.py
+
+Alternatively, you can provide the content as positional parameters in the
+object creation call:
+
+.. literalinclude:: ../examples/manual/demo4b.py
+
+This has the same effect, and is much more compact, but it does require that
+the order match the content model.
+
+.. _demo4c:
+
+Attributes are set using keyword parameters:
+
+.. literalinclude:: ../examples/manual/demo4c.py
+
+This example produces (after reformatting):
+
+.. literalinclude:: ../examples/manual/demo4c.out
+
+.. index::
+   pair: disabling; validation
+
+Note that, because we're in the middle of the example and have not provided
+the ``items`` element that the content model requires, the code
+:api:`explicitly disables the requirement for
+validation <pyxb.RequireValidWhenGenerating>` when generating XML from a
+binding instance.  A consequence of this is that the generated XML is not
+valid, and validation must be :api:`disabled for parsing
+<pyxb.RequireValidWhenParsing>` as well if the resulting document is to be
+re-converted into a binding with ``CreateFromDocument``.
+
+.. _pyxb_BIND:
+
+Creating Instances of Anonymous Types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The style of XML schema used for purchase orders uses anonymous types for
+the deeper elements of the purchase order:
+
+.. literalinclude:: ../examples/manual/po4.xsd
+
+.. index::
+   single: BIND
+
+In particular, there is no global ``item`` element that can be used to
+create the individual items.  For situations like this, we use
+:api:`pyxb.BIND`:
+
+.. literalinclude:: ../examples/manual/demo4c1.py
+
+The :api:`pyxb.BIND` reference wraps the content of the inner elements, and
+is a cue to PyXB to attempt to build an instance of whatever type of object
+would satisfy the content model at that point.  The resulting document
+(after reformatting) is:
+
+.. literalinclude:: ../examples/manual/demo4c1.out
+
+The complete document is generated by the following program:
+
+.. literalinclude:: ../examples/manual/demo4c2.py
+
+The additional code demonstrates a couple additional features:
+
+ - Fixed attribute values (such as ``country``) are present in the bindings,
+   even though they are only printed if they are set explicitly
+
+ - The PyXB types for representing dates and times are extensions of those
+   used by Python for the same purpose, including the ability to use them in
+   expressions
+
+.. _to-xml:
+
+Creating XML Documents from Binding Instances
+---------------------------------------------
+
+All along we've been seeing how to generate XML from a binding instance.
+The ``toxml`` method is short-hand for a sequence that converts the binding
+to a DOM instance using ``xml.dom.minidom``, then uses the DOM interface to
+generate the XML document.
+
+The :api:`pyxb.utils.domutils.BindingDOMSupport` class provides ways to
+control this generation.  In particular, you may want to use something more
+informative than ``ns#`` to denote namespaces in the generated documents.
+This can be done using the following code:
+
+.. literalinclude:: ../examples/manual/demo4c3.py
+   :lines: 20-
+
+With this, the final document produced is:
+
+.. literalinclude:: ../examples/manual/demo4c3.out
+
+(Surprise: ``addr`` does not appear, because the ``nsaddress.xsd`` schema
+uses the default element form ``unqualified``, so none of the address
+components in the document have a namespace.)
+
+.. _mixed_content:
+
+Influencing Element and Mixed Content Order
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+PyXB generally expects that any information reflected in the order of elements
+is controlled by the content model in the schema.  Where content includes
+multiple instances of the same element, they are maintained in order within
+the binding attribute corresponding to the name.  Historically relative order
+with other elements or with mixed content historically was not rigorously
+maintained, and generated documents applied only the order enforced by the
+content model.
+
+The following example from ``examples/xhtml/generate.py`` hints at the difficulty:
+
+.. literalinclude:: ../examples/xhtml/generate.py
+
+If the relative order of elements and mixed content were not maintained, this
+might produce something like:
+
+.. literalinclude:: eltonly.xhtml
+
+Here mixed content is lost, and element content is emitted in the order that
+elements appear in the original schema.
+
+As of release 1.2.1 [#content]_, PyXB appends both element and non-element content to a
+list in each complex binding instance.  The list may be obtained using the
+:api:`orderedContent
+<pyxb.binding.basis.complexTypeDefinition.orderedContent>` method.  The list
+comprises instances of :api:`pyxb.binding.basis.ElementContent` and
+:api:`pyxb.binding.basis.NonElementContent` added in the order in which they were
+added to the binding instance: when creating the instance from a document or
+through a constructor, or by invoking the
+:api:`append <pyxb.binding.basis.complexTypeDefinition.append>` or
+:api:`extend <pyxb.binding.basis.complexTypeDefinition.extend>` methods to add
+content consistent with the content model.
+
+The :api:`contentInfluencesGeneration
+<pyxb.ValidationConfig.contentInfluencesGeneration>` flag of
+:api:`pyxb.ValidationConfig` controls how the ``orderedContent`` list affects
+generation of documents (both DOM directly and XML indirectly).  With the
+default value of :api:`MIXED_ONLY <pyxb.ValidationConfig.MIXED_ONLY>` the
+``orderedContent`` list is only consulted when a complex type allows both
+element and non-element content.
+
+The bundle for XHTML has been modified to use:
+
+- :api:`ALWAYS <pyxb.ValidationConfig.ALWAYS>` for :api:`contentInfluencesGeneration
+  <pyxb.ValidationConfig.contentInfluencesGeneration>`
+- :api:`RAISE_EXCEPTION <pyxb.ValidationConfig.RAISE_EXCEPTION>` for
+  :api:`orphanElementInContent <pyxb.ValidationConfig.orphanElementInContent>`
+- :api:`RAISE_EXCEPTION <pyxb.ValidationConfig.RAISE_EXCEPTION>` for
+  :api:`invalidElementInContent <pyxb.ValidationConfig.invalidElementInContent>`
+
+for all binding classes in that module.  (See
+``pyxb/bundles/common/xhtml1.py`` for the technique used.)  This ensures
+preservation of element order in cases where no non-element content may appear
+(such as the top-level ``body`` element).
+
+With this capability the following document is generated:
+
+.. literalinclude:: ../examples/xhtml/expout.xhtml
+
+Be aware that the automatically-maintained ``orderedContent`` list will be
+incorrect in at least two cases:
+
+- When the elements of an instance are mutated through Python code, the list
+  no longer reflects the correct order;
+
+- When elements are appended directly to sub-elements as with:
+
+  .. code-block:: python
+
+     p2.b.append('another bit of bold')
+
+  the newly added elements do not appear in the ``orderedContent`` list.
+
+The value returned by :api:`orderedContent
+<pyxb.binding.basis.complexTypeDefinition.orderedContent>` is a mutable list
+so that you can manipulate it to reflect the content you wish to have
+generated.
+
+Where the ``orderedContent`` list is not consistent with the content model
+(e.g., references elements that are no longer part of the binding instance, or
+proposes an order that is not valid) various exceptions may arise.  To some
+extent this can be controlled through the :api:`orphanElementInContent
+<pyxb.ValidationConfig.orphanElementInContent>` and
+:api:`invalidElementInContent <pyxb.ValidationConfig.invalidElementInContent>`
+flags.
+
+.. [#content] Though previous versions also provided this information through
+   a ``content`` list, the list did not associate content with the element to
+   which it belonged making it difficult to reconstruct a valid document.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

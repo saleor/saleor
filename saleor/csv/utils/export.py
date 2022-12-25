@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Any, Optional, Union
+from typing import IO, TYPE_CHECKING, Any
 
 import petl as etl
 from django.utils import timezone
@@ -25,7 +25,7 @@ BATCH_SIZE = 10000
 
 def export_products(
     export_file: "ExportFile",
-    scope: dict[str, Union[str, dict]],
+    scope: dict[str, str | dict],
     export_info: dict[str, list],
     file_type: str,
     delimiter: str = ",",
@@ -61,7 +61,7 @@ def export_products(
 
 def export_gift_cards(
     export_file: "ExportFile",
-    scope: dict[str, Union[str, dict]],
+    scope: dict[str, str | dict],
     file_type: str,
     delimiter: str = ",",
 ):
@@ -93,8 +93,8 @@ def export_gift_cards(
 def export_voucher_codes(
     export_file: "ExportFile",
     file_type: str,
-    voucher_id: Optional[int] = None,
-    ids: Optional[list[int]] = None,
+    voucher_id: int | None = None,
+    ids: list[int] | None = None,
     delimiter: str = ",",
 ):
     file_name = get_filename("voucher_code", file_type)
@@ -128,7 +128,7 @@ def get_filename(model_name: str, file_type: str) -> str:
     )
 
 
-def get_queryset(model, filter, scope: dict[str, Union[str, dict]]) -> "QuerySet":
+def get_queryset(model, filter, scope: dict[str, str | dict]) -> "QuerySet":
     queryset = model.objects.all()
     if "ids" in scope:
         queryset = model.objects.filter(pk__in=scope["ids"])
@@ -140,7 +140,7 @@ def get_queryset(model, filter, scope: dict[str, Union[str, dict]]) -> "QuerySet
     return queryset
 
 
-def parse_input(data: Any) -> dict[str, Union[str, dict]]:
+def parse_input(data: Any) -> dict[str, str | dict]:
     """Parse input into correct data types.
 
     Scope coming from Celery will be passed as strings.
@@ -262,7 +262,7 @@ def queryset_in_batches(queryset):
 
 
 def append_to_file(
-    export_data: list[dict[str, Union[str, bool]]],
+    export_data: list[dict[str, str | bool]],
     headers: list[str],
     temporary_file: Any,
     file_type: str,

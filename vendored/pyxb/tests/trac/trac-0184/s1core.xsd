@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:s1core" xmlns:tns="urn:s1core" elementForm="qualified">
+   <xs:element name="e1i" type="xs:int"/>
+   <xs:element name="e1s" type="xs:string"/>
+   <xs:complexType name="t1foundation">
+     <xs:sequence>
+       <xs:element ref="tns:e1s" minOccurs="0"/>
+       <xs:element ref="tns:e1i" minOccurs="0"/>
+     </xs:sequence>
+   </xs:complexType>
+</xs:schema>

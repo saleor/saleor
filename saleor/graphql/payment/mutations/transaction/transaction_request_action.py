@@ -65,9 +65,9 @@ class TransactionRequestAction(BaseMutation):
         cls,
         action,
         action_kwargs,
-        action_value: Optional[Decimal],
+        action_value: Decimal | None,
         user: Optional["User"],
-        app: Optional[App],
+        app: App | None,
     ):
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]

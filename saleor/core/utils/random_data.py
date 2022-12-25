@@ -8,7 +8,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
-from typing import Any, Union, cast
+from typing import Any, cast
 from unittest.mock import patch
 
 import graphene
@@ -342,7 +342,7 @@ def create_product_variant_channel_listings(product_variant_channel_listings_dat
 
 
 def assign_attributes_to_product_types(
-    association_model: Union[type[AttributeProduct], type[AttributeVariant]],
+    association_model: type[AttributeProduct] | type[AttributeVariant],
     attributes: list,
 ):
     for value in attributes:

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from graphene import relay
 
@@ -121,8 +119,8 @@ class Category(ModelObjectType[models.Category]):
     def resolve_background_image(
         root: models.Category,
         info,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ):
         if not root.background_image:
             return

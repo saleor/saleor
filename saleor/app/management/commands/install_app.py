@@ -1,5 +1,5 @@
 import json
-from typing import Any, Optional
+from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
@@ -31,7 +31,7 @@ class Command(BaseCommand):
         except ValidationError:
             raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
 
-    def handle(self, *args: Any, **options: Any) -> Optional[str]:
+    def handle(self, *args: Any, **options: Any) -> str | None:
         activate = options["activate"]
         manifest_url = options["manifest-url"]
 

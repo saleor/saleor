@@ -1,6 +1,6 @@
 import uuid
 from functools import partial
-from typing import Optional, cast
+from typing import cast
 
 import graphene
 from django.contrib.auth import get_user_model
@@ -620,8 +620,8 @@ class User(ModelObjectType[models.User]):
     def resolve_avatar(
         root: models.User,
         info: ResolveInfo,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ):
         if not root.avatar:
             return

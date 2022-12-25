@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="URN:gmlapp" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<element name="Temperature" substitutionGroup="gml:AbstractScalarValue" nillable="true" >
+		<complexType>
+			<simpleContent>
+				<extension base="gml:MeasureType">
+					<attribute name="nilReason" type="gml:NilReasonType"/>
+<!--					<attribute ref="uom" fixed="urn:x-si:v1999:uom:degreesC"/> -->
+				</extension>
+			</simpleContent>
+		</complexType>
+	</element>
+	<element name="TemperatureList" type="gml:MeasureOrNilReasonListType" substitutionGroup="gml:AbstractScalarValueList"/>
+</schema>

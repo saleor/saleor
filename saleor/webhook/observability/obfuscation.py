@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlparse, urlunparse
 
 from graphql import (
@@ -29,13 +29,9 @@ if TYPE_CHECKING:
 
     from .utils import GraphQLOperationResponse
 
-GraphQLNode = Union[
-    Field,
-    FragmentDefinition,
-    FragmentSpread,
-    InlineFragment,
-    OperationDefinition,
-]
+GraphQLNode = (
+    Field | FragmentDefinition | FragmentSpread | InlineFragment | OperationDefinition
+)
 MASK = "***"
 
 
@@ -91,7 +87,7 @@ class ContainSensitiveField(ValidationRule):
         if isinstance(node, FragmentSpread) or not node.selection_set:
             return False
         fields: dict[str, GraphQLField] = {}
-        if isinstance(type_def, (GraphQLObjectType, GraphQLInterfaceType)):
+        if isinstance(type_def, GraphQLObjectType | GraphQLInterfaceType):
             fields = type_def.fields
         for child_node in node.selection_set.selections:
             if isinstance(child_node, Field):
@@ -136,9 +132,9 @@ class ContainSensitiveField(ValidationRule):
     def enter(
         self,
         node: Any,
-        key: Optional[Union[int, str]],
+        key: int | str | None,
         parent: Any,
-        path: list[Union[int, str]],
+        path: list[int | str],
         ancestors: list[Any],
     ):
         if isinstance(node, OperationDefinition):
@@ -194,7 +190,7 @@ def anonymize_gql_operation_response(
 
 
 def anonymize_event_payload(
-    subscription_query: Optional[str],
+    subscription_query: str | None,
     event_type: str,  # pylint: disable=unused-argument
     payload: Any,
     sensitive_fields: SensitiveFieldsMap,

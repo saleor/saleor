@@ -1,0 +1,4 @@
+<ns:globalStruct xmlns:ns="urn:namespaceTest">
+  <local>local</local>
+  <ns:globalElt>global</ns:globalElt>
+</ns:globalStruct>

@@ -25,11 +25,11 @@ class OrderLineInfo:
     line: "OrderLine"
     quantity: int
     variant: Optional["ProductVariant"] = None
-    is_digital: Optional[bool] = None
+    is_digital: bool | None = None
     digital_content: Optional["DigitalContent"] = None
     replace: bool = False
-    warehouse_pk: Optional[UUID] = None
-    line_discounts: Optional[Iterable["OrderLineDiscount"]] = None
+    warehouse_pk: UUID | None = None
+    line_discounts: Iterable["OrderLineDiscount"] | None = None
 
 
 def fetch_order_info(order: "Order") -> OrderInfo:

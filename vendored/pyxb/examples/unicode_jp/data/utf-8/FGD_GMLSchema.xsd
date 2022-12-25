@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://fgd.gsi.go.jp/spec/2008/FGD_GMLSchema"
+	xmlns:fgd="http://fgd.gsi.go.jp/spec/2008/FGD_GMLSchema" 
+	xmlns:gml="http://www.opengis.net/gml/3.2" 
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://fgd.gsi.go.jp/spec/2008/FGD_GMLSchema"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified" >
+
+	<xs:annotation>
+		<xs:documentation>
+			基盤地図情報 ダウンロードデータ用 XML Schema (XML Schema for Down Loaded Fundamental Geospatial Data)
+			
+			      (GML版) V3.0
+			
+			2008年3月 (March 2008)
+			2010年3月改定 (Revised on March 2010)
+			国土交通省国土地理院 (Geographic Survey Institute, Ministry of Land, Infrastructure, Transport and Tourism)
+		</xs:documentation>
+	</xs:annotation>
+
+	<xs:import namespace="http://www.opengis.net/gml/3.2"
+		 schemaLocation="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19136_Schemas/gml.xsd"/>
+
+
+	<!--==== ルート要素定義 ====-->
+	<xs:element name="Dataset" type="DatasetType" substitutionGroup="gml:AbstractGML"/>
+	<xs:complexType name="DatasetType">
+		<xs:complexContent>
+			<xs:extension base="gml:AbstractGMLType">
+				<xs:sequence >
+					<xs:element ref="gml:AbstractGML" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<!--==== 基盤地図情報地物（抽象クラス） ====-->
+	<xs:element name="FGDFeature" type="fgd:FGDFeatureType" abstract="true" substitutionGroup="gml:AbstractFeature"/>
+	<xs:complexType name="FGDFeatureType">
+		<xs:complexContent>
+			<xs:extension base="gml:AbstractFeatureType">
+				<xs:sequence>
+					<xs:element name="fid" type="xs:string"/>								<!-- 地物ID -->
+					<xs:element name="lfSpanFr" type="gml:TimeInstantType"/>				<!-- 存在期間_自 -->
+					<xs:element name="lfSpanTo" type="gml:TimeInstantType" minOccurs="0"/>	<!-- 存在期間_至 -->
+					<xs:element name="devDate" type="gml:TimeInstantType" minOccurs="0"/>	<!-- 整備完了日 -->
+					<xs:element name="orgGILvl" type="fgd:地図情報レベル列挙型"/>			<!-- 出典地図情報レベル -->
+					<xs:element name="orgMDId" type="xs:string" minOccurs="0"/>				<!-- 出典メタデータ -->
+					<xs:element name="vis" type="fgd:表示区分列挙型" minOccurs="0" default="表示"/>	<!-- 表示区分 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="地図情報レベル列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="0"/>
+			<xs:enumeration value="250"/>
+			<xs:enumeration value="500"/>
+			<xs:enumeration value="1000"/>
+			<xs:enumeration value="2500"/>
+			<xs:enumeration value="5000"/>
+			<xs:enumeration value="10000"/>
+			<xs:enumeration value="25000"/>
+			<xs:enumeration value="KJ10"/>
+			<xs:enumeration value="KJ11"/>
+			<xs:enumeration value="KJ12"/>
+			<xs:enumeration value="KJ13"/>
+			<xs:enumeration value="KJ14"/>
+			<xs:enumeration value="KJ21"/>
+			<xs:enumeration value="KJ22"/>
+			<xs:enumeration value="KJ23"/>
+			<xs:enumeration value="KJ24"/>
+			<xs:enumeration value="KJ99"/>
+			<xs:enumeration value="SJ10"/>
+			<xs:enumeration value="SJ11"/>
+			<xs:enumeration value="SJ12"/>
+			<xs:enumeration value="SJ13"/>
+			<xs:enumeration value="SJ21"/>
+			<xs:enumeration value="SJ22"/>
+			<xs:enumeration value="SJ23"/>
+			<xs:enumeration value="SJ24"/>
+			<xs:enumeration value="SJ99"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="表示区分列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="表示"/>
+			<xs:enumeration value="非表示"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+
+	<!--==== 各種地物クラスの定義 ====-->
+
+
+	<!--==== 測量の基準点 ====-->
+	<xs:element name="GCP" type="fgd:GCPType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="GCPType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="pos" type="gml:PointPropertyType"/>			<!-- 地点 -->
+					<xs:element name="advNo" type="xs:string" minOccurs="0"/>		<!-- 助言番号 -->
+					<xs:element name="orgName" type="xs:string"/>					<!-- 計画機関名 -->
+					<xs:element name="type" type="fgd:基準点種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="gcpClass" type="xs:string" minOccurs="0"/>	<!-- 等級種別 -->
+					<xs:element name="gcpCode" type="xs:string" minOccurs="0"/>		<!-- 基準点コード -->
+					<xs:element name="name" type="xs:string"/>						<!-- 点名称 -->
+					<xs:element name="B" type="xs:double" minOccurs="0"/>			<!-- B -->
+					<xs:element name="L" type="xs:double" minOccurs="0"/>			<!-- L -->
+					<xs:element name="alti" type="xs:double" minOccurs="0"/>		<!-- 標高 -->
+					<xs:element name="altiAcc" type="xs:integer" minOccurs="0"/>	<!-- 標高値有効小数桁数 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="基準点種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="電子基準点"/>
+			<xs:enumeration value="三角点"/>
+			<xs:enumeration value="水準点"/>
+			<xs:enumeration value="多角点"/>
+			<xs:enumeration value="その他の国家基準点"/>
+			<xs:enumeration value="水路測量標"/>
+			<xs:enumeration value="公共基準点"/>
+			<xs:enumeration value="公共水準点"/>
+			<xs:enumeration value="街区基準点"/>
+			<xs:enumeration value="その他の基準点"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== DEM区画 ====-->
+	<xs:element name="DEM" type="fgd:DEMType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="DEMType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="type" type="fgd:DEM種別列挙型"/>				<!-- DEM種別 -->
+					<xs:element name="mesh" type="xs:string" minOccurs="0"/>		<!-- メッシュ番号 -->
+					<xs:element name="coverage" type="gml:DiscreteCoverageType"/>	<!-- 被覆 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="DEM種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="5mメッシュ（数値地形）"/>
+			<xs:enumeration value="5mメッシュ（標高）"/>
+			<xs:enumeration value="10mメッシュ（標高）"/>
+			<xs:enumeration value="10mメッシュ（火山標高）"/>
+			<xs:enumeration value="50mメッシュ（標高）"/>
+			<xs:enumeration value="250mメッシュ（標高）"/>
+			<xs:enumeration value="その他"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!-- DEM構成点 -->
+	<xs:element name="DEM構成点" type="fgd:DEM構成点Type" substitutionGroup="gml:AbstractValue"/>
+	<xs:complexType name="DEM構成点Type">
+		<xs:sequence>
+			<xs:element name="type" type="fgd:DEM構成点種別列挙型"/>	<!-- 種別 -->
+			<xs:element name="alti" type="xs:double"/>					<!-- 標高値 -->
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:simpleType name="DEM構成点種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="地表面"/>
+			<xs:enumeration value="表層面"/>
+			<xs:enumeration value="海水面"/>
+			<xs:enumeration value="内水面"/>
+			<xs:enumeration value="データなし"/>
+			<xs:enumeration value="その他"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 標高点 ====-->
+	<xs:element name="ElevPt" type="fgd:ElevPtType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="ElevPtType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="pos" type="gml:PointPropertyType"/>		<!-- 地点 -->
+					<xs:element name="type" type="fgd:標高点種別列挙型"/>		<!-- 種別 -->
+					<xs:element name="alti" type="xs:double" minOccurs="0"/>	<!-- 標高値 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="標高点種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="標高点（測点）"/>
+			<xs:enumeration value="等高線構成点"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 等高線 ====-->
+	<xs:element name="Cntr" type="fgd:CntrType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="CntrType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>	<!-- 場所 -->
+					<xs:element name="type" type="fgd:等高線種別列挙型"/>	<!-- 種別 -->
+					<xs:element name="alti" type="xs:double"/>				<!-- 標高値 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="等高線種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="一般等高線"/>
+			<xs:enumeration value="凹地等高線"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 行政区画 ====-->
+	<xs:element name="AdmArea" type="fgd:AdmAreaType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="AdmAreaType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>	<!-- 範囲 -->
+					<xs:element name="type" type="fgd:行政区画種別列挙型"/>		<!-- 種別 -->
+					<xs:element name="name" type="xs:string"/>					<!-- 名称 -->
+					<xs:element name="admCode" type="xs:string"/>				<!-- 行政コード -->
+					<xs:element name="repPt" type="fgd:ref_AdmPtType" minOccurs="0" maxOccurs="1"/>	<!-- 行政区画代表点へ関連 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ref_AdmAreaType">
+		<xs:sequence minOccurs="0">
+			<xs:element ref="fgd:AdmArea"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="gml:AssociationAttributeGroup"/>
+		<xs:attributeGroup ref="gml:OwnershipAttributeGroup" />
+	</xs:complexType>
+
+	<xs:simpleType name="行政区画種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="都道府県"/>
+			<xs:enumeration value="北海道の支庁"/>
+			<xs:enumeration value="郡市・東京都の区"/>
+			<xs:enumeration value="町村・指定都市の区"/>
+			<xs:enumeration value="大字・町・丁目"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 行政区画界線 ====-->
+	<xs:element name="AdmBdry" type="fgd:AdmBdryType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="AdmBdryType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="type" type="fgd:行政区画界線種別列挙型"/>	<!-- 種別 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:simpleType name="行政区画界線種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="都道府県界"/>
+			<xs:enumeration value="北海道の支庁界"/>
+			<xs:enumeration value="郡市・東京都の区界"/>
+			<xs:enumeration value="町村・指定都市の区界"/>
+			<xs:enumeration value="大字・町・丁目界"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 町字界線 ====-->
+	<xs:element name="CommBdry" type="fgd:CommBdryType" substitutionGroup="fgd:AdmBdry"/>
+	<xs:complexType name="CommBdryType">
+		<xs:complexContent>
+			<xs:extension base="fgd:AdmBdryType"/>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 行政区画代表点 ====-->
+	<xs:element name="AdmPt" type="fgd:AdmPtType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="AdmPtType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="pos" type="gml:PointPropertyType"/>	<!-- 地点 -->
+					<xs:element name="type" type="fgd:行政区画種別列挙型"/>	<!-- 種別 -->
+					<xs:element name="name" type="xs:string"/>				<!-- 名称 -->
+					<xs:element name="admCode" type="xs:string"/>			<!-- 行政コード -->
+					<xs:element name="admArea" type="fgd:ref_AdmAreaType" minOccurs="0" maxOccurs="1"/>	<!-- 行政区画への関連 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ref_AdmPtType">
+		<xs:sequence minOccurs="0">
+			<xs:element ref="fgd:AdmPt"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="gml:AssociationAttributeGroup"/>
+		<xs:attributeGroup ref="gml:OwnershipAttributeGroup" />
+	</xs:complexType>
+
+
+	<!--==== 町字の代表点 ====-->
+	<xs:element name="CommPt" type="fgd:CommPtType" substitutionGroup="fgd:AdmPt"/>
+	<xs:complexType name="CommPtType">
+		<xs:complexContent>
+			<xs:extension base="fgd:AdmPtType"/>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 街区域 ====-->
+	<xs:element name="SBArea" type="fgd:SBAreaType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="SBAreaType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>	<!-- 範囲 -->
+					<xs:element name="type" type="fgd:街区域種別列挙型"/>		<!-- 種別 -->
+					<xs:element name="sbaNo" type="xs:string" minOccurs="0"/>	<!-- 街区符号 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="街区域種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="住居表示地域"/>
+			<xs:enumeration value="その他の地域"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 街区線 ====-->
+	<xs:element name="SBBdry" type="fgd:SBBdryType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="SBBdryType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>	<!-- 場所 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 街区の代表点 ====-->
+	<xs:element name="SBAPt" type="fgd:SBAPtType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="SBAPtType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="pos" type="gml:PointPropertyType"/>		<!-- 地点 -->
+					<xs:element name="sbaNo" type="xs:string" minOccurs="0"/>	<!-- 街区符号 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 水域 ====-->
+	<xs:element name="WA" type="fgd:WAType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="WAType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>	<!-- 範囲 -->
+					<xs:element name="type" type="fgd:水域種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="水域種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="海"/>
+			<xs:enumeration value="河川"/>
+			<xs:enumeration value="湖池"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 水涯線 ====-->
+	<xs:element name="WL" type="fgd:WLType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="WLType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="type" type="fgd:水涯線種別列挙型"/>		<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="水涯線種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="水涯線（河川）"/>
+			<xs:enumeration value="水涯線（湖池）"/>
+			<xs:enumeration value="一条河川"/>
+			<xs:enumeration value="用水路"/>
+			<xs:enumeration value="露岩"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+				<!-- 以下は互換性維持のために定義している -->
+			<xs:enumeration value="桟橋（鉄，コンクリート）"/>
+			<xs:enumeration value="桟橋（木製，浮桟橋）"/>
+			<xs:enumeration value="被覆"/>
+			<xs:enumeration value="せき"/>
+			<xs:enumeration value="水門"/>
+			<xs:enumeration value="敷石斜坂"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 海岸線 ====-->
+	<xs:element name="Cstline" type="fgd:CstlineType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="CstlineType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="type" type="fgd:海岸線種別列挙型"/>		<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="海岸線種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="海岸線"/>
+			<xs:enumeration value="露岩"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+				<!-- 以下は互換性維持のために定義している -->
+			<xs:enumeration value="桟橋（鉄，コンクリート）"/>
+			<xs:enumeration value="桟橋（木製，浮桟橋）"/>
+			<xs:enumeration value="被覆"/>
+			<xs:enumeration value="防波堤"/>
+			<xs:enumeration value="せき"/>
+			<xs:enumeration value="水門"/>
+			<xs:enumeration value="敷石斜坂"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 水部構造物線 ====-->
+	<xs:element name="WStrL" type="fgd:WStrLType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="WStrLType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>				<!-- 場所 -->
+					<xs:element name="type" type="fgd:水部構造物種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>			<!-- 名称 -->
+					<xs:element name="surfA" type="fgd:ref_WStrAType" minOccurs="0" maxOccurs="1"/>	<!-- 水部構造物面への関連 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ref_WStrLType">
+		<xs:sequence minOccurs="0">
+			<xs:element ref="fgd:WStrL"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="gml:AssociationAttributeGroup"/>
+		<xs:attributeGroup ref="gml:OwnershipAttributeGroup" />
+	</xs:complexType>
+
+
+	<xs:simpleType name="水部構造物種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="桟橋（鉄，コンクリート）"/>
+			<xs:enumeration value="防波堤"/>
+			<xs:enumeration value="ダム"/>
+			<xs:enumeration value="砂防ダム"/>
+			<xs:enumeration value="滝"/>
+			<xs:enumeration value="せき"/>
+			<xs:enumeration value="水門"/>
+			<xs:enumeration value="不透過水制"/>
+			<xs:enumeration value="透過水制"/>
+			<xs:enumeration value="敷石斜坂"/>
+			<xs:enumeration value="雨水桝"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 水部構造物面 ====-->
+	<xs:element name="WStrA" type="fgd:WStrAType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="WStrAType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>			<!-- 範囲 -->
+					<xs:element name="type" type="fgd:水部構造物種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>			<!-- 名称 -->
+					<xs:element name="compL" type="fgd:ref_WStrLType" minOccurs="0" maxOccurs="unbounded"/>	<!-- 水部構造物線の集約 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ref_WStrAType">
+		<xs:sequence minOccurs="0">
+			<xs:element ref="fgd:WStrA"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="gml:AssociationAttributeGroup"/>
+		<xs:attributeGroup ref="gml:OwnershipAttributeGroup" />
+	</xs:complexType>
+
+
+	<!--==== 河川堤防表法肩法線 ====-->
+	<xs:element name="LeveeEdge" type="fgd:LeveeEdgeType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="LeveeEdgeType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 河川区域界線 ====-->
+	<xs:element name="RvrMgtBdry" type="fgd:河川区域界線" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="河川区域界線">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 建築物 ====-->
+	<xs:element name="BldA" type="fgd:BldAType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="BldAType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>	<!-- 範囲 -->
+					<xs:element name="type" type="fgd:建物種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+					<xs:element name="compL" type="fgd:ref_BldLType" minOccurs="0" maxOccurs="unbounded"/>	<!-- 建築物の外周線の集約 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ref_BldAType">
+		<xs:sequence minOccurs="0">
+			<xs:element ref="fgd:BldA"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="gml:AssociationAttributeGroup"/>
+		<xs:attributeGroup ref="gml:OwnershipAttributeGroup" />
+	</xs:complexType>
+
+
+	<xs:simpleType name="建物種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="普通建物"/>
+			<xs:enumeration value="堅ろう建物"/>
+			<xs:enumeration value="普通無壁舎"/>
+			<xs:enumeration value="堅ろう無壁舎"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 建築物の外周線 ====-->
+	<xs:element name="BldL" type="fgd:BldLType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="BldLType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="type" type="fgd:建物種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+					<xs:element name="surfA" type="fgd:ref_BldAType" minOccurs="0" maxOccurs="1"/>	<!-- 建築物への関連 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="ref_BldLType">
+		<xs:sequence minOccurs="0">
+			<xs:element ref="fgd:BldL"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="gml:AssociationAttributeGroup"/>
+		<xs:attributeGroup ref="gml:OwnershipAttributeGroup" />
+	</xs:complexType>
+
+
+	<!--==== 道路縁 ====-->
+	<xs:element name="RdEdg" type="fgd:RdEdgType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RdEdgType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>							<!-- 場所 -->
+					<xs:element name="type" type="fgd:道路種別列挙型"/>								<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>						<!-- 名称 -->
+					<xs:element name="admOffice" type="fgd:道路管理主体種別列挙型" minOccurs="0"/>	<!-- 管理主体 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="道路種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="真幅道路"/>
+			<xs:enumeration value="軽車道"/>
+			<xs:enumeration value="徒歩道"/>
+			<xs:enumeration value="庭園路等"/>
+			<xs:enumeration value="トンネル内の道路"/>
+			<xs:enumeration value="建設中の道路"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="道路管理主体種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="国"/>
+			<xs:enumeration value="都道府県"/>
+			<xs:enumeration value="市町村"/>
+			<xs:enumeration value="高速道路管理団体"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 道路構成線 ====-->
+	<xs:element name="RdCompt" type="fgd:RdComptType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RdComptType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>							<!-- 場所 -->
+					<xs:element name="type" type="fgd:道路構成線種別列挙型"/>						<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>						<!-- 名称 -->
+					<xs:element name="admOffice" type="fgd:道路管理主体種別列挙型" minOccurs="0"/>	<!-- 管理主体 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="道路構成線種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="歩道"/>
+			<xs:enumeration value="側溝"/>
+			<xs:enumeration value="分離帯"/>
+			<xs:enumeration value="安全地帯"/>
+			<xs:enumeration value="雨水桝"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 道路域分割線 ====-->
+	<xs:element name="RdASL" type="fgd:RdASLType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RdASLType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 道路域 ====-->
+	<xs:element name="RdArea" type="fgd:RdAreaType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RdAreaType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>						<!-- 範囲 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>						<!-- 名称 -->
+					<xs:element name="admOffice" type="fgd:道路管理主体種別列挙型" minOccurs="0"/>	<!-- 管理主体 -->
+						<!-- 次の要素は，H21 9月からリリースした一部のデータで使用されているが，今後はadmOfficeタグに変更する -->
+					<xs:element name="type" type="fgd:道路管理主体種別列挙型" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 道路区分面 ====-->
+	<xs:element name="RdSgmtA" type="fgd:RdSgmtAType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RdSgmtAType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="area" type="gml:SurfacePropertyType"/>						<!-- 範囲 -->
+					<xs:element name="type" type="fgd:道路区分面種別列挙型"/>						<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>						<!-- 名称 -->
+					<xs:element name="admOffice" type="fgd:道路管理主体種別列挙型" minOccurs="0"/>	<!-- 管理主体 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="道路区分面種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="車道部"/>
+			<xs:enumeration value="車道交差部"/>
+			<xs:enumeration value="踏切道"/>
+			<xs:enumeration value="軌道敷"/>
+			<xs:enumeration value="島"/>
+			<xs:enumeration value="路面電車停留所"/>
+			<xs:enumeration value="歩道部"/>
+			<xs:enumeration value="植栽"/>
+			<xs:enumeration value="自転車駐車場"/>
+			<xs:enumeration value="自動車駐車場"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<!--==== 道路区域界線 ====-->
+	<xs:element name="RdMgtBdry" type="fgd:RdMgtBdryType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RdMgtBdryType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<!--==== 軌道の中心線 ====-->
+	<xs:element name="RailCL" type="fgd:RailCLType" substitutionGroup="fgd:FGDFeature"/>
+	<xs:complexType name="RailCLType">
+		<xs:complexContent>
+			<xs:extension base="fgd:FGDFeatureType">
+				<xs:sequence>
+					<xs:element name="loc" type="gml:CurvePropertyType"/>		<!-- 場所 -->
+					<xs:element name="type" type="fgd:軌道種別列挙型"/>			<!-- 種別 -->
+					<xs:element name="name" type="xs:string" minOccurs="0"/>	<!-- 名称 -->
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="軌道種別列挙型" >
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="普通鉄道"/>
+			<xs:enumeration value="路面の鉄道"/>
+			<xs:enumeration value="特殊軌道"/>
+			<xs:enumeration value="索道"/>
+			<xs:enumeration value="トンネル内の鉄道"/>
+			<xs:enumeration value="建設中の鉄道"/>
+			<xs:enumeration value="その他"/>
+			<xs:enumeration value="不明"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+</xs:schema>

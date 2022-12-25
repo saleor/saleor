@@ -1,5 +1,4 @@
 from collections import namedtuple
-from typing import Optional
 
 import graphene
 from django.conf import settings
@@ -166,7 +165,7 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
         )
 
 
-def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.Payment:
+def clean_payment(payment: payment_models.Payment | None) -> payment_models.Payment:
     if not payment:
         raise ValidationError(
             {

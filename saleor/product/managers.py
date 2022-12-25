@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, Union
+from typing import Union
 
 import pytz
 from django.conf import settings
@@ -75,7 +75,7 @@ class ProductsQueryset(models.QuerySet):
         return self.none()
 
     def visible_to_user(
-        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+        self, requestor: Union["User", "App", None], channel_slug: str | None
     ):
         from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
 
@@ -135,9 +135,7 @@ class ProductsQueryset(models.QuerySet):
             visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
         )
 
-    def sort_by_attribute(
-        self, attribute_pk: Union[int, str], descending: bool = False
-    ):
+    def sort_by_attribute(self, attribute_pk: int | str, descending: bool = False):
         """Sort a query set by the values of the given product attribute.
 
         :param attribute_pk: The database ID (must be a numeric) of the attribute
@@ -319,7 +317,7 @@ class CollectionsQueryset(models.QuerySet):
         )
 
     def visible_to_user(
-        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+        self, requestor: Union["User", "App", None], channel_slug: str | None
     ):
         from .models import ALL_PRODUCTS_PERMISSIONS
 

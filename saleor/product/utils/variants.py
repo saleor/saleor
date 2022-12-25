@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.db.models import QuerySet
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def generate_and_set_variant_name(
-    variant: "ProductVariant", sku: Optional[str], save: Optional[bool] = True
+    variant: "ProductVariant", sku: str | None, save: bool | None = True
 ):
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []

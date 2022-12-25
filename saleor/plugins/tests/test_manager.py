@@ -76,7 +76,7 @@ def test_manager_with_default_configuration_for_channel_plugins(
         assert len(plugins) == 2
         assert all(
             [
-                isinstance(plugin, (PluginSample, ChannelPluginSample))
+                isinstance(plugin, PluginSample | ChannelPluginSample)
                 for plugin in plugins
             ]
         )

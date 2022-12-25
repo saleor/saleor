@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -101,7 +101,7 @@ class FulfillmentCancel(BaseMutation):
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             warehouse = None
         elif input:
-            warehouse_id: Optional[str] = input.get("warehouse_id")
+            warehouse_id: str | None = input.get("warehouse_id")
             if warehouse_id:
                 warehouse = cls.get_node_or_error(
                     info, warehouse_id, only_type=Warehouse, field="warehouse_id"

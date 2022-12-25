@@ -62,7 +62,7 @@ class OrderMarkAsPaid(BaseMutation):
         request_user: User,
         app: Optional["App"],
         manager: "PluginsManager",
-        external_reference: Optional[str] = None,
+        external_reference: str | None = None,
     ):
         try_payment_action(
             order, request_user, app, None, clean_mark_order_as_paid, order
@@ -82,7 +82,7 @@ class OrderMarkAsPaid(BaseMutation):
         request_user: User,
         app: Optional["App"],
         manager: "PluginsManager",
-        external_reference: Optional[str] = None,
+        external_reference: str | None = None,
     ):
         try:
             clean_mark_order_as_paid(order=order)

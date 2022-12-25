@@ -1,0 +1,42 @@
+# Legal stuff
+include LICENSE
+include NOTICE
+
+# Miscellaneous other
+include MANIFEST.in
+include MANIFEST
+
+# Include the abstract (version-independent) stuff, for completeness
+include README.txt.in
+include pyxb/__init__.py.in
+include doc/conf.py.in
+
+# Include the pre-built bindings for standard schema, excepting schema we
+# downloaded.
+graft pyxb/bundles
+prune pyxb/bundles/core/schemas
+prune pyxb/bundles/core/remote
+prune pyxb/bundles/wssplat/schemas
+prune pyxb/bundles/wssplat/remote
+prune pyxb/bundles/opengis/schemas
+prune pyxb/bundles/opengis/remote
+
+# Include all the unit tests
+recursive-include tests *.py *.xsd *.xml *.sh logging.cfg
+
+# Include the scripts and any other garbage helpful to the maintainer
+recursive-include maintainer * *.sh *.py
+
+# Documentation, not including cached W3C material
+global-include README*
+graft doc
+prune doc/_build
+exclude doc/*.eap
+prune doc/W3C
+
+# Examples that didn't go into bundles
+recursive-include examples *.txt *.py *.sh *.xsd *.xml *-patch *.out *.xhtml
+include examples/unicode_jp/pyxbgen_jp
+
+# Detritus
+global-exclude *~ #*# *.pyc *.pyo

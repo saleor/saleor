@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from django.core.files.base import ContentFile
@@ -22,7 +22,7 @@ class InvoicingPlugin(BasePlugin):
         self,
         order: "Order",
         invoice: "Invoice",
-        number: Optional[str],
+        number: str | None,
         previous_value: Any,
     ) -> Any:
         invoice_number = generate_invoice_number()

@@ -1,6 +1,6 @@
 import uuid
 from collections import defaultdict
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
 import graphene
 from graphql import GraphQLError
@@ -20,7 +20,7 @@ def handle_lines_with_quantity_already_refunded(
     input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
     errors: list[dict[str, Any]],
     error_code: str,
-    granted_refund_lines_to_exclude: Optional[list[int]] = None,
+    granted_refund_lines_to_exclude: list[int] | None = None,
 ):
     all_granted_refund_ids = order.granted_refunds.all().values_list("id", flat=True)
     all_granted_refund_lines = models.OrderGrantedRefundLine.objects.filter(
@@ -67,7 +67,7 @@ def handle_lines_with_quantity_already_refunded(
 
 
 def get_input_lines_data(
-    lines: list[dict[str, Union[str, int]]],
+    lines: list[dict[str, str | int]],
     errors: list[dict[str, str]],
     error_code: str,
 ) -> dict[uuid.UUID, models.OrderGrantedRefundLine]:
@@ -79,7 +79,7 @@ def get_input_lines_data(
                 order_line_id, only_type="OrderLine", raise_error=True
             )
             uuid_pk = uuid.UUID(pk)
-            reason = cast(Optional[str], line.get("reason"))
+            reason = cast(str | None, line.get("reason"))
             granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
                 order_line_id=uuid_pk,
                 quantity=int(line["quantity"]),

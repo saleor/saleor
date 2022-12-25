@@ -1,0 +1,79 @@
+This document provides a speed and memory use analysis of PyXB revision 2111
+against a user-provided document and schema.
+
+The minimum size of any Python class instance that has one instance-specific
+member of type int assigned at construction time is about 380 bytes, and
+takes 4.4 usec to allocate.
+
+The example document consists of a single element with 10000 instances of a
+type that itself has:
+
+* An element with three sub-elements with string content [4]
+* An element with two sub-elements with floating point content [2]
+* An element with string content [1]
+* An element with: [7]
+  - An element with three sub-elements with floating point content, one of
+    which also includes an attribute [3]
+  - An element with three sub-elements with floating point content [3]
+  - An element with floating point content [1]
+
+The bracketed values indicate the number of Python objects required to
+represent the value, assuming that primitive values representing elements
+are stored as Python objects (as is required if the value is an instance of
+a complex type).
+
+Thus, each of those 10000 instances comprise a minimum of 15 Python objects,
+plus the non-object data, so will require at least 5700 bytes and 66 usec to
+allocate.  The best case memory footprint is therefore 54MB.
+
+1.1.0-DEV at the time of this experiment (changeset 2111) incorporates a
+couple fixes that improve the document read performance by about 35%
+relative to 1.1.0.  These fixes will be in 1.1.1, whenever that comes out
+(waiting on a need-by date from users).
+
+When creating the objects directly from the bindings (no parsing) with PyXB
+1.1.0-DEV, the actual objects consume 18668 bytes and take 5000 usec to
+allocate, including validation.  (Allocation drops to 4100 usec when
+validation is disabled.)
+
+Nonetheless, the minimum footprint for bindings representing the document
+content with this revision would be 186MB, and allocation time about 50
+seconds.
+
+Processing an in-memory XML text document that contains a sample with 1000
+elements consumes 40MB of memory and takes 28 seconds; that is 41750 bytes
+and 28330 usec per instance, including validation.  Memory footprint is 2.2
+times the optimal, and allocation time 5.6 times the optimal.
+
+Note that, when processing a document rather than creating binding instances
+directly, additional memory will be used to hold information associating a
+document position with each element.  This should not impose more than a
+small constant per-instance memory penalty.
+
+I have also determined that the use of Python properties induces an 80%
+performance penalty over the use of attributes, which makes sense since they
+add a class attribute lookup plus a method call to the minimal cost of an
+instance attribute lookup.
+
+Several changes must be made to decrease memory use and time:
+
+* A runtime model that uses attributes directly instead of properties should
+  cut execution time at least in half.  A consequence of this will be that
+  passive validation (as fields are assigned) will not be possible, and it
+  will be possible for users to unintentionally overwrite reserved method
+  names (like "value"), preventing the system from working correctly.
+  Ideally, it should be possible to support both modes in the same binding
+  module, with behavior configured at the time the module is loaded (not
+  dynamically as the system is running).
+
+* A Python int takes 4 bytes while an xsd:int instance takes 362.  Values
+  that are fundamentally Python primitive types should be stored as
+  instances of those types whenever possible.  This should apply to any
+  instance of a simple type that derives from a Python primitive type,
+  whether the instance is content in an element or value for an attribute.
+  This will cut memory use significantly; the optimal per-instance cost in
+  the test system would reduce to 2310 bytes plus data (at least 7 of the
+  elements required are of complex type), a memory footprint of 23MB.
+
+* The runtime system will need to be updated to perform validation on the
+  primitive types, which will not have the necessary mix-in classes.

@@ -114,7 +114,7 @@ class TransactionEventReport(ModelMutation):
         cls,
         transaction: payment_models.TransactionItem,
         transaction_event: payment_models.TransactionEvent,
-        available_actions: Optional[list[str]] = None,
+        available_actions: list[str] | None = None,
         app: Optional["App"] = None,
     ):
         fields_to_update = [

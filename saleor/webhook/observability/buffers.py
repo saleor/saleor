@@ -1,6 +1,5 @@
 import math
 import zlib
-from typing import Optional
 
 from asgiref.local import Local
 from django.conf import settings
@@ -55,7 +54,7 @@ class BaseBuffer:
             "subclasses of BaseBuffer must provide a put_events_multi_buffer() method"
         )
 
-    def pop_event(self) -> Optional[bytes]:
+    def pop_event(self) -> bytes | None:
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a pop_events() method"
         )
@@ -91,7 +90,7 @@ class RedisBuffer(BaseBuffer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._client: Optional[Redis] = None
+        self._client: Redis | None = None
 
     def get_connection_pool(self):
         return ConnectionPool.from_url(
@@ -117,7 +116,7 @@ class RedisBuffer(BaseBuffer):
         return self._client
 
     def _put_events(
-        self, key: KEY_TYPE, events: list[bytes], client: Optional[Redis] = None
+        self, key: KEY_TYPE, events: list[bytes], client: Redis | None = None
     ) -> int:
         start_index = -self.max_size
         events_data = [self.encode(event) for event in events[start_index:]]
@@ -167,7 +166,7 @@ class RedisBuffer(BaseBuffer):
             events.append(self.decode(elem))
         return events, size - len(events)
 
-    def pop_event(self) -> Optional[bytes]:
+    def pop_event(self) -> bytes | None:
         events, _ = self._pop_events(self.key, batch_size=1)
         return events[0] if events else None
 

@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import Optional, Union, cast
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -119,7 +119,7 @@ class TransactionCreate(BaseMutation):
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
-    def validate_external_url(cls, external_url: Optional[str], error_code: str):
+    def validate_external_url(cls, external_url: str | None, error_code: str):
         if external_url is None:
             return
         validator = URLValidator()
@@ -174,9 +174,9 @@ class TransactionCreate(BaseMutation):
     @classmethod
     def validate_instance(
         cls, instance: Model, instance_id
-    ) -> Union[checkout_models.Checkout, order_models.Order]:
+    ) -> checkout_models.Checkout | order_models.Order:
         """Validate if provided instance is an order or checkout type."""
-        if not isinstance(instance, (checkout_models.Checkout, order_models.Order)):
+        if not isinstance(instance, checkout_models.Checkout | order_models.Order):
             raise ValidationError(
                 {
                     "id": ValidationError(
@@ -214,8 +214,8 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def validate_input(
-        cls, instance: Union[checkout_models.Checkout, order_models.Order], transaction
-    ) -> Union[checkout_models.Checkout, order_models.Order]:
+        cls, instance: checkout_models.Checkout | order_models.Order, transaction
+    ) -> checkout_models.Checkout | order_models.Order:
         currency = instance.currency
 
         cls.validate_money_input(

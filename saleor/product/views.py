@@ -1,6 +1,5 @@
 import mimetypes
 import os
-from typing import Union
 
 from django.http import FileResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
@@ -12,7 +11,7 @@ from .utils.digital_products import (
 )
 
 
-def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
+def digital_product(request, token: str) -> FileResponse | HttpResponseNotFound:
     """Return the direct download link to content if given token is still valid."""
 
     qs = DigitalContentUrl.objects.prefetch_related("line__order__user")

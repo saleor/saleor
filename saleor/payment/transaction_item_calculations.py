@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Optional, cast
+from typing import cast
 
 from . import TransactionEventType
 from .models import TransactionEvent, TransactionItem
@@ -10,24 +10,24 @@ from .models import TransactionEvent, TransactionItem
 
 @dataclass
 class BaseEvent:
-    request: Optional[TransactionEvent] = None
-    success: Optional[TransactionEvent] = None
-    failure: Optional[TransactionEvent] = None
+    request: TransactionEvent | None = None
+    success: TransactionEvent | None = None
+    failure: TransactionEvent | None = None
 
 
 @dataclass
 class AuthorizationEvents(BaseEvent):
-    adjustment: Optional[TransactionEvent] = None
+    adjustment: TransactionEvent | None = None
 
 
 @dataclass
 class ChargeEvents(BaseEvent):
-    back: Optional[TransactionEvent] = None
+    back: TransactionEvent | None = None
 
 
 @dataclass
 class RefundEvents(BaseEvent):
-    reverse: Optional[TransactionEvent] = None
+    reverse: TransactionEvent | None = None
 
 
 @dataclass
@@ -63,9 +63,9 @@ class ActionEventMap:
 
 
 def _should_increase_pending_amount(
-    request: Optional[TransactionEvent],
-    success: Optional[TransactionEvent],
-    failure: Optional[TransactionEvent],
+    request: TransactionEvent | None,
+    success: TransactionEvent | None,
+    failure: TransactionEvent | None,
 ) -> bool:
     if request:
         # the pending amount should be increased only when we don't
@@ -76,7 +76,7 @@ def _should_increase_pending_amount(
 
 
 def _should_increse_amount(
-    success: Optional[TransactionEvent], failure: Optional[TransactionEvent]
+    success: TransactionEvent | None, failure: TransactionEvent | None
 ) -> bool:
     if success and failure:
         # in case of having success and failure events for the same psp reference
@@ -91,12 +91,12 @@ def _should_increse_amount(
 
 def _recalculate_base_amounts(
     transaction: TransactionItem,
-    request: Optional[TransactionEvent],
-    success: Optional[TransactionEvent],
-    failure: Optional[TransactionEvent],
+    request: TransactionEvent | None,
+    success: TransactionEvent | None,
+    failure: TransactionEvent | None,
     pending_amount_field_name: str,
     amount_field_name: str,
-    previous_amount_field_name: Optional[str],
+    previous_amount_field_name: str | None,
 ):
     if _should_increase_pending_amount(request, success, failure):
         request = cast(TransactionEvent, request)
@@ -216,7 +216,7 @@ def _get_authorize_events(events: Iterable[TransactionEvent]) -> list[Transactio
     authorize_events: list[TransactionEvent] = [
         event for event in events if event.type in AUTHORIZATION_EVENTS
     ]
-    auth_adjustment_event: Optional[TransactionEvent] = next(
+    auth_adjustment_event: TransactionEvent | None = next(
         (
             event
             for event in reversed(authorize_events)

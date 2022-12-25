@@ -2,10 +2,11 @@ import logging
 import operator
 import os
 import re
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any
 
 import dateutil.parser
 import html2text
@@ -42,12 +43,12 @@ DEFAULT_EMAIL_TIMEOUT = 5
 
 @dataclass
 class EmailConfig:
-    host: Optional[str] = None
-    port: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    sender_name: Optional[str] = None
-    sender_address: Optional[str] = None
+    host: str | None = None
+    port: str | None = None
+    username: str | None = None
+    password: str | None = None
+    sender_name: str | None = None
+    sender_address: str | None = None
     use_tls: bool = False
     use_ssl: bool = False
 
@@ -377,7 +378,7 @@ def get_email_template_or_default(
 
 
 def get_email_subject(
-    plugin_configuration: Optional[list],
+    plugin_configuration: list | None,
     subject_field_name: str,
     default: str,
 ) -> str:

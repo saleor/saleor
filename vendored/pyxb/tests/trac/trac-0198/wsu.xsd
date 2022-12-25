@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    version="1.0"
+    targetNamespace="urn:trac:198:wsu"
+    xmlns:tns="urn:trac:198:uu"
+    elementFormDefault="unqualified"
+    attributeFormDefault="unqualified">
+  <xsd:attribute name="Id" type="xsd:string"/>
+  <xsd:attributeGroup name="ag">
+    <xsd:attribute name="agu" form="unqualified" type="xsd:string"/>
+    <xsd:attribute name="agq" form="qualified" type="xsd:string"/>
+  </xsd:attributeGroup>
+  <xsd:element name="Elt" type="xsd:string"/>
+</xsd:schema>

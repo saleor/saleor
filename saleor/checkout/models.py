@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal
 from operator import attrgetter
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -194,7 +194,7 @@ class Checkout(models.Model):
     def __iter__(self):
         return iter(self.lines.all())
 
-    def get_customer_email(self) -> Optional[str]:
+    def get_customer_email(self) -> str | None:
         return self.user.email if self.user else self.email
 
     def is_shipping_required(self) -> bool:
@@ -211,7 +211,7 @@ class Checkout(models.Model):
         return Money(balance, self.currency)
 
     def get_total_weight(
-        self, lines: Union[Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"]]
+        self, lines: Iterable["CheckoutLineInfo"] | Iterable["OrderLineInfo"]
     ) -> "Weight":
         # FIXME: it does not make sense for this method to live in the Checkout model
         # since it's used in the Order model as well. We should move it to a separate

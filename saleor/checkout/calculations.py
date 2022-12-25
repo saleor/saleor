@@ -369,7 +369,7 @@ def _calculate_checkout_subtotal(lines, currency):
 def _apply_tax_data(
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
-    tax_data: Optional[TaxData],
+    tax_data: TaxData | None,
 ) -> None:
     if not tax_data:
         return
@@ -486,7 +486,7 @@ def fetch_checkout_data(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     force_update: bool = False,
-    checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
+    checkout_transactions: Iterable["TransactionItem"] | None = None,
     force_status_update: bool = False,
 ):
     """Fetch checkout data.

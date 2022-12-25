@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -48,7 +46,7 @@ class CreateToken(BaseMutation):
     user = graphene.Field(User, description="A user instance.")
 
     @classmethod
-    def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
+    def _retrieve_user_from_credentials(cls, email, password) -> models.User | None:
         user = retrieve_user_by_email(email)
 
         if user and user.check_password(password):

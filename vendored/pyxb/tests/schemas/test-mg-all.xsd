@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema targetNamespace="URN:test-mg-all" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:test-mg-all">
+	<element name="required" type="tns:required"/>
+	<element name="optional" type="tns:optional"/>
+	<element name="many" type="tns:many"/>
+	<complexType name="required">
+		<all>
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third"/>
+		</all>
+	</complexType>
+	<complexType name="optional">
+		<all>
+			<element name="first" minOccurs="0"/>
+			<element name="second" minOccurs="0"/>
+			<element name="third" minOccurs="0"/>
+		</all>
+	</complexType>
+	<complexType name="thirdOptional">
+		<all>
+			<element name="first"/>
+			<element name="second"/>
+			<element name="third" minOccurs="0"/>
+		</all>
+	</complexType>
+	<complexType name="many">
+		<all>
+			<element name="a" minOccurs="0"/>
+			<element name="b"/>
+			<element name="c"/>
+			<element name="d"/>
+			<element name="e" minOccurs="0"/>
+			<element name="f"/>
+			<element name="g"/>
+			<element name="h"/>
+		</all>
+	</complexType>
+</schema>

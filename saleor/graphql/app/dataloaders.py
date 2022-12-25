@@ -1,6 +1,5 @@
 from collections import defaultdict
 from functools import partial, wraps
-from typing import Optional
 
 from django.contrib.auth.hashers import check_password
 from django.utils.functional import LazyObject
@@ -118,14 +117,14 @@ class ThumbnailByAppInstallationIdSizeAndFormatLoader(
     model_name = "app_installation"
 
 
-def promise_app(context: SaleorContext) -> Promise[Optional[App]]:
+def promise_app(context: SaleorContext) -> Promise[App | None]:
     auth_token = get_token_from_request(context)
     if not auth_token or len(auth_token) != 30:
         return Promise.resolve(None)
     return AppByTokenLoader(context).load(auth_token)
 
 
-def get_app_promise(context: SaleorContext) -> Promise[Optional[App]]:
+def get_app_promise(context: SaleorContext) -> Promise[App | None]:
     if hasattr(context, "app"):
         app = context.app
         if isinstance(app, LazyObject):

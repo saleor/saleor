@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="data" type="xs:string"/>
+	<xs:complexType name="node">
+		<xs:sequence>
+			<xs:element ref="data"/>
+			<xs:element name="left" type="node" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="right" type="node" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="node" type="node"/>
+	<xs:complexType name="selfReference">
+		<xs:sequence>
+			<xs:element ref="selfReferential" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="selfReferential" type="selfReference"/>
+	<xs:element name="srBaseElt" type="srBase"/>
+	<xs:element name="srSubElt" type="srSub"/>
+	<xs:complexType name="srBase">
+		<xs:sequence>
+			<xs:element ref="srBaseElt" minOccurs="0" maxOccurs="5"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="srSub">
+		<xs:complexContent>
+			<xs:restriction base="srBase">
+				<xs:sequence>
+					<xs:element ref="srSubElt" minOccurs="0" maxOccurs="3"/>
+				</xs:sequence>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

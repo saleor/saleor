@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Optional
 
 from django.core.exceptions import ValidationError
 
@@ -9,7 +8,7 @@ from ...core.enums import ChannelErrorCode
 DELETE_EXPIRED_ORDERS_MAX_DAYS = 120
 
 
-def clean_expire_orders_after(expire_orders_after: int) -> Optional[int]:
+def clean_expire_orders_after(expire_orders_after: int) -> int | None:
     if expire_orders_after is None or expire_orders_after == 0:
         return None
     if expire_orders_after < 0:

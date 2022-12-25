@@ -353,7 +353,7 @@ def look_for_permission_in_users_with_manage_staff(
 
 
 def is_owner_or_has_one_of_perms(
-    requestor: Union["User", "App", None], owner: Optional[Union["User", "App"]], *perms
+    requestor: Union["User", "App", None], owner: Union["User", "App"] | None, *perms
 ) -> bool:
     """Check if requestor can access data.
 
@@ -385,7 +385,7 @@ def check_is_owner_or_has_one_of_perms(
         raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])
 
 
-def get_user_accessible_channels(info, user: Optional[User]):
+def get_user_accessible_channels(info, user: User | None):
     return (
         (AccessibleChannelsByUserIdLoader(info.context).load(user.id).get())
         if user is not None

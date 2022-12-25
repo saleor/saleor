@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Union, cast
+from typing import cast
 from uuid import uuid4
 
 from django.contrib.auth.hashers import make_password
@@ -96,7 +96,7 @@ class App(ModelWithMetadata):
             setattr(self, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(self, perm_cache_name)
 
-    def has_perms(self, perm_list: Iterable[Union[BasePermissionEnum, str]]) -> bool:
+    def has_perms(self, perm_list: Iterable[BasePermissionEnum | str]) -> bool:
         """Return True if the app has each of the specified permissions."""
         if not self.is_active:
             return False
@@ -109,7 +109,7 @@ class App(ModelWithMetadata):
 
         return (wanted_perms & actual_perms) == wanted_perms
 
-    def has_perm(self, perm: Union[BasePermissionEnum, str]) -> bool:
+    def has_perm(self, perm: BasePermissionEnum | str) -> bool:
         """Return True if the app has the specified permission."""
         if not self.is_active:
             return False

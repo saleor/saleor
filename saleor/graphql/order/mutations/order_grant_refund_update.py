@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -190,7 +190,7 @@ class OrderGrantRefundUpdate(BaseMutation):
     def clean_add_lines(
         cls,
         order: models.Order,
-        lines: list[dict[str, Union[str, int]]],
+        lines: list[dict[str, str | int]],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
     ) -> list[models.OrderGrantedRefundLine]:

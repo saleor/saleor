@@ -1,6 +1,6 @@
 import socket
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse
 
 from celery.utils.log import get_task_logger
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from django.utils.safestring import SafeText
 
 
-def get_domain(site: Optional[Site] = None) -> str:
+def get_domain(site: Site | None = None) -> str:
     if settings.PUBLIC_URL:
         return urlparse(settings.PUBLIC_URL).netloc
     if site is None:
@@ -29,7 +29,7 @@ def get_domain(site: Optional[Site] = None) -> str:
     return site.domain
 
 
-def get_public_url(domain: Optional[str] = None) -> str:
+def get_public_url(domain: str | None = None) -> str:
     if settings.PUBLIC_URL:
         return settings.PUBLIC_URL
     host = domain or Site.objects.get_current().domain
@@ -43,7 +43,7 @@ def is_ssl_enabled() -> bool:
     return settings.ENABLE_SSL
 
 
-def build_absolute_uri(location: str, domain: Optional[str] = None) -> str:
+def build_absolute_uri(location: str, domain: str | None = None) -> str:
     """Create absolute uri from location.
 
     If provided location is absolute uri by itself, it returns unchanged value,
@@ -138,7 +138,7 @@ def generate_unique_slug(
 
 def prepare_unique_slug(slug: str, slug_values: Iterable):
     """Prepare unique slug value based on provided list of existing slug values."""
-    unique_slug: Union["SafeText", str] = slug
+    unique_slug: "SafeText" | str = slug
     extension = 1
 
     while unique_slug in slug_values:

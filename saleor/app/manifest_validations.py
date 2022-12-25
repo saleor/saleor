@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.db.models import Value
@@ -339,7 +338,7 @@ def clean_required_saleor_version(
     required_version,
     raise_for_saleor_version: bool,
     saleor_version=__version__,
-) -> Optional[dict]:
+) -> dict | None:
     if not required_version:
         return None
     try:
@@ -355,7 +354,7 @@ def clean_required_saleor_version(
     return {"constraint": required_version, "satisfied": satisfied}
 
 
-def clean_author(author) -> Optional[str]:
+def clean_author(author) -> str | None:
     if author is None:
         return None
     if isinstance(author, str):

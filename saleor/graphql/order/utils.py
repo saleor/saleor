@@ -30,12 +30,12 @@ T_ERRORS = dict[str, list[ValidationError]]
 
 @dataclass
 class OrderLineData:
-    variant_id: Optional[str] = None
-    variant: Optional[ProductVariant] = None
-    line_id: Optional[str] = None
-    price_override: Optional[Decimal] = None
+    variant_id: str | None = None
+    variant: ProductVariant | None = None
+    line_id: str | None = None
+    price_override: Decimal | None = None
     quantity: int = 0
-    rules_info: Optional[Iterable[VariantPromotionRuleInfo]] = None
+    rules_info: Iterable[VariantPromotionRuleInfo] | None = None
 
 
 def validate_total_quantity(order: "Order", errors: T_ERRORS):

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Literal, Union
+from typing import Literal
 from unittest.mock import Mock, patch, sentinel
 
 import pytest
@@ -546,7 +546,7 @@ def fetch_kwargs_with_lines(order_with_lines, order_lines, plugins_manager):
 
 
 def get_taxed_money(
-    obj: Union[TaxData, TaxLineData],
+    obj: TaxData | TaxLineData,
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
     currency: str,
     exempt_taxes: bool = False,
@@ -562,7 +562,7 @@ def get_taxed_money(
 
 
 def get_order_priced_taxes_data(
-    obj: Union[TaxData, TaxLineData],
+    obj: TaxData | TaxLineData,
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
     currency: str,
 ) -> OrderTaxedPricesData:

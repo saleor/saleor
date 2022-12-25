@@ -1,6 +1,6 @@
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -121,7 +121,7 @@ def get_draft_order_lines_data_for_variants(
     return DraftOrderLinesData(order_to_lines_mapping, line_pks, order_pks)
 
 
-def clean_variant_sku(sku: Optional[str]) -> Optional[str]:
+def clean_variant_sku(sku: str | None) -> str | None:
     if sku:
         return sku.strip() or None
     return None
@@ -155,7 +155,7 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
     return bool(filter_search.strip()) or bool(search.strip())
 
 
-def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
+def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
     return kwargs.get("sort_by", {}).get("field") or None
 
 

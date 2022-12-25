@@ -1,7 +1,7 @@
 import json
 import logging
 from os.path import exists, join
-from typing import Optional, Union, cast
+from typing import cast
 
 import jwt
 from authlib.jose import JsonWebKey
@@ -19,7 +19,7 @@ from .utils import build_absolute_uri, get_domain
 
 logger = logging.getLogger(__name__)
 
-PUBLIC_KEY: Optional[rsa.RSAPublicKey] = None
+PUBLIC_KEY: rsa.RSAPublicKey | None = None
 
 
 class JWTManagerBase:
@@ -85,11 +85,11 @@ class JWTManager(JWTManagerBase):
         return cls._get_private_key(pem)
 
     @classmethod
-    def _get_private_key(cls, pem: Union[str, bytes]) -> rsa.RSAPrivateKey:
+    def _get_private_key(cls, pem: str | bytes) -> rsa.RSAPrivateKey:
         if isinstance(pem, str):
             pem = pem.encode("utf-8")
 
-        password: Union[str, bytes, None] = settings.RSA_PRIVATE_PASSWORD
+        password: str | bytes | None = settings.RSA_PRIVATE_PASSWORD
         if isinstance(password, str):
             password = password.encode("utf-8")
         return cast(

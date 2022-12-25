@@ -2,12 +2,12 @@ import datetime
 import itertools
 import uuid
 from collections import namedtuple
+from collections.abc import Callable
 from contextlib import contextmanager
 from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import Callable, Optional
 from unittest.mock import MagicMock
 
 import graphene
@@ -216,9 +216,7 @@ def capture_queries(pytestconfig):
     cfg = pytestconfig
 
     @contextmanager
-    def _capture_queries(
-        num: Optional[int] = None, msg: Optional[str] = None, exact=False
-    ):
+    def _capture_queries(num: int | None = None, msg: str | None = None, exact=False):
         with CaptureQueriesContext(connection) as ctx:
             yield ctx
             if num is not None:

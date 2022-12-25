@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -55,8 +53,8 @@ class RefreshToken(BaseMutation):
 
     @classmethod
     def get_refresh_token(
-        cls, info: ResolveInfo, refresh_token: Optional[str] = None
-    ) -> Optional[str]:
+        cls, info: ResolveInfo, refresh_token: str | None = None
+    ) -> str | None:
         request = info.context
         refresh_token = refresh_token or request.COOKIES.get(
             JWT_REFRESH_TOKEN_COOKIE_NAME, None

@@ -1,7 +1,7 @@
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
@@ -392,14 +392,14 @@ def is_reservation_enabled(settings) -> bool:
     )
 
 
-def get_reservation_length(site, user) -> Optional[int]:
+def get_reservation_length(site, user) -> int | None:
     if user:
         return site.settings.reserve_stock_duration_authenticated_user
     return site.settings.reserve_stock_duration_anonymous_user
 
 
 def get_listings_reservations(
-    checkout_lines: Optional[Iterable["CheckoutLine"]],
+    checkout_lines: Iterable["CheckoutLine"] | None,
     all_variants_channel_listings,
 ) -> dict[int, int]:
     quantity_reservation_list = (

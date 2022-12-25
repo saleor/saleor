@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    version="1.0"
+    targetNamespace="urn:trac:196:@e@@a@"
+    xmlns:tns="urn:trac:196:@e@@a@"
+    elementFormDefault="@E@"
+    attributeFormDefault="@A@">
+  <xsd:attribute name="a" type="xsd:string"/>
+  <xsd:attribute name="aq" form="qualified" type="xsd:string"/>
+  <xsd:attribute name="au" form="unqualified" type="xsd:string"/>
+  <xsd:element name="e" type="xsd:string"/>
+  <xsd:element name="eq" form="qualified" type="xsd:string"/>
+  <xsd:element name="eu" form="unqualified" type="xsd:string"/>
+  <xsd:complexType name="t">
+    <xsd:attribute name="ta" type="xsd:string"/>
+    <xsd:attribute name="taq" form="qualified" type="xsd:string"/>
+    <xsd:attribute name="tau" form="unqualified" type="xsd:string"/>
+    <xsd:attribute ref="tns:a"/>
+    <xsd:attribute ref="tns:aq"/>
+    <xsd:attribute ref="tns:au"/>
+    <xsd:sequence>
+      <xsd:element name="te" type="xsd:string"/>
+      <xsd:element name="teq" type="xsd:string" form="qualified"/>
+      <xsd:element name="teu" type="xsd:string" form="unqualified"/>
+      <xsd:element ref="tns:e"/>
+      <xsd:element ref="tns:eq"/>
+      <xsd:element ref="tns:eu"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="elt" type="tns:t"/>
+  <xsd:element name="@ea@e" type="tns:t"/>
+</xsd:schema>

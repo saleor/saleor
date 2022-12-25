@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -176,7 +176,7 @@ class StripeGatewayPlugin(BasePlugin):
 
     def _get_setup_future_usage_from_store_payment_method(
         self, store_payment_method: StorePaymentMethodEnum
-    ) -> Optional[str]:
+    ) -> str | None:
         if store_payment_method == StorePaymentMethodEnum.ON_SESSION:
             return "on_session"
         elif store_payment_method == StorePaymentMethodEnum.OFF_SESSION:

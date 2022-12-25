@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
@@ -113,7 +111,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         return CheckoutRemovePromoCode(checkout=checkout)
 
     @staticmethod
-    def clean_promo_code_id(promo_code_id: Optional[str]):
+    def clean_promo_code_id(promo_code_id: str | None):
         if promo_code_id is None:
             return None, None
         try:

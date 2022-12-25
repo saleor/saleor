@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+
+<!-- root element wsdl:definitions defines set of related services -->
+<wsdl:definitions name="EndorsementSearch"
+  targetNamespace="http://namespaces.snowboard-info.com"
+  xmlns:es="http://www.snowboard-info.com/EndorsementSearch.wsdl"
+  xmlns:esxsd="http://schemas.snowboard-info.com/EndorsementSearch.xsd"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+
+  <!-- wsdl:types encapsulates schema definitions of communication types; here using xsd -->
+  <wsdl:types>
+
+    <!-- all type declarations are in a chunk of xsd -->
+    <xsd:schema targetNamespace="http://namespaces.snowboard-info.com"
+      xmlns:xsd="http://www.w3.org/1999/XMLSchema">
+
+      <!-- xsd definition: GetEndorsingBoarder [manufacturer string, model string] -->
+      <xsd:element name="GetEndorsingBoarder">
+	<xsd:complexType>
+	  <xsd:sequence>
+	    <xsd:element name="manufacturer" type="string"/>
+            <xsd:element name="model" type="string"/>
+	  </xsd:sequence>
+	</xsd:complexType>
+      </xsd:element>
+
+      <!-- xsd definition: GetEndorsingBoarderResponse [... endorsingBoarder string ...] -->
+      <xsd:element name="GetEndorsingBoarderResponse">
+	<xsd:complexType>
+	  <xsd:all>
+	    <xsd:element name="endorsingBoarder" type="string"/>
+	  </xsd:all>
+	</xsd:complexType>
+      </xsd:element>
+
+      <!-- xsd definition: GetEndorsingBoarderFault [... errorMessage string ...] -->
+      <xsd:element name="GetEndorsingBoarderFault">
+	<xsd:complexType>
+	  <xsd:all>
+	    <xsd:element name="errorMessage" type="string"/>
+	  </xsd:all>
+	</xsd:complexType>
+      </xsd:element>
+
+    </xsd:schema>
+  </wsdl:types>
+
+  <!-- wsdl:message elements describe potential transactions -->
+
+  <!-- request GetEndorsingBoarderRequest is of type GetEndorsingBoarder -->
+  <wsdl:message name="GetEndorsingBoarderRequest">
+    <wsdl:part name="body" element="esxsd:GetEndorsingBoarder"/>
+  </wsdl:message>
+
+  <!-- response GetEndorsingBoarderResponse is of type GetEndorsingBoarderResponse -->
+  <wsdl:message name="GetEndorsingBoarderResponse">
+    <wsdl:part name="body" element="esxsd:GetEndorsingBoarderResponse"/>
+  </wsdl:message>
+
+  <!-- wsdl:portType describes messages in an operation -->
+  <wsdl:portType name="GetEndorsingBoarderPortType">
+
+    <!-- the value of wsdl:operation eludes me -->
+    <wsdl:operation name="GetEndorsingBoarder">
+      <wsdl:input message="es:GetEndorsingBoarderRequest"/>
+      <wsdl:output message="es:GetEndorsingBoarderResponse"/>
+      <wsdl:fault message="es:GetEndorsingBoarderFault"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <!-- wsdl:binding states a serialization protocol for this service -->
+  <wsdl:binding name="EndorsementSearchSoapBinding"
+                type="es:GetEndorsingBoarderPortType">
+
+    <!-- leverage off soap:binding document style @@@(no wsdl:foo pointing at the soap binding) -->
+    <soap:binding style="document"
+                  transport="http://schemas.xmlsoap.org/soap/http"/>
+
+    <!-- semi-opaque container of network transport details classed by soap:binding above @@@ -->
+    <wsdl:operation name="GetEndorsingBoarder">
+
+      <!-- again bind to SOAP? @@@ -->
+      <soap:operation soapAction="http://www.snowboard-info.com/EndorsementSearch"/>
+
+      <!-- furthur specify that the messages in the wsdl:operation "GetEndorsingBoarder" use SOAP? @@@ -->
+      <wsdl:input>
+        <soap:body use="literal"
+		   namespace="http://schemas.snowboard-info.com/EndorsementSearch.xsd"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"
+		   namespace="http://schemas.snowboard-info.com/EndorsementSearch.xsd"/>
+      </wsdl:output>
+      <wsdl:fault>
+        <soap:body use="literal"
+		   namespace="http://schemas.snowboard-info.com/EndorsementSearch.xsd"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <!-- wsdl:service names a new service "EndorsementSearchService" -->
+  <wsdl:service name="EndorsementSearchService">
+    <wsdl:documentation>snowboarding-info.com Endorsement Service</wsdl:documentation>
+
+    <!-- connect it to the binding "EndorsementSearchSoapBinding" above -->
+    <wsdl:port name="GetEndorsingBoarderPort"
+               binding="es:EndorsementSearchSoapBinding">
+
+      <!-- give the binding an network address -->
+      <soap:address location="http://www.snowboard-info.com/EndorsementSearch"/>
+    </wsdl:port>
+  </wsdl:service>
+
+ </wsdl:definitions>

@@ -1,0 +1,44 @@
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
+BUNDLE_TAG=wssplat
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+( cat <<EOList
+http://schemas.xmlsoap.org/wsdl/ wsdl11
+http://www.w3.org/2002/ws/desc/ns/wsdl20.xsd wsdl20
+http://schemas.xmlsoap.org/ws/2003/03/business-process/ bpws
+http://schemas.xmlsoap.org/wsdl/http/ httpbind
+http://schemas.xmlsoap.org/wsdl/mime/ mimebind
+http://schemas.xmlsoap.org/soap/envelope/ soap11
+http://www.w3.org/2003/05/soap-envelope/ soap12
+http://schemas.xmlsoap.org/soap/encoding/ soapenc
+http://schemas.xmlsoap.org/wsdl/soap/ soapbind11
+http://schemas.xmlsoap.org/wsdl/soap12/wsdl11soap12.xsd soapbind12
+http://www.w3.org/2002/ws/desc/ns/http.xsd whttp
+http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd ds
+http://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd xenc
+http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd wsu
+http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd wsse
+http://www.w3.org/2002/ws/policy/ns/ws-policy wsp
+http://www.w3.org/2006/07/ws-policy.xsd wsp200607
+http://www.w3.org/2002/ws/addr/ns/ws-addr wsa
+http://www.w3.org/2002/ws/addr/ns/ws-addr-metadata wsam
+http://www.w3.org/2002/ws/desc/ns/soap.xsd wsoap
+http://docs.oasis-open.org/ws-tx/wscoor/2006/06/wstx-wscoor-1.1-schema-200701.xsd wscoor
+http://www.w3.org/2002/ws/desc/ns/wsdl-instance.xsd wsdli
+http://www.w3.org/2002/ws/desc/ns/wsdl-extensions.xsd wsdlx
+http://docs.oasis-open.org/ws-rx/wsrm/200702/wsrm-1.1-schema-200702.xsd wsrm
+http://docs.oasis-open.org/wsn/t-1.xsd wstop
+http://docs.oasis-open.org/wsrf/bf-2.xsd wsrf_bf
+http://docs.oasis-open.org/wsn/b-2.xsd wsnt
+http://docs.oasis-open.org/wsn/br-2.xsd wsrf_br
+http://www.w3.org/ns/sawsdl sawsdl
+EOList
+) | generateBindings

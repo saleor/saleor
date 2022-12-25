@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import date
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -24,11 +24,9 @@ if TYPE_CHECKING:
 def clean_checkout_shipping(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    error_code: Union[
-        type[CheckoutErrorCode],
-        type[PaymentErrorCode],
-        type[OrderCreateFromCheckoutErrorCode],
-    ],
+    error_code: type[CheckoutErrorCode]
+    | type[PaymentErrorCode]
+    | type[OrderCreateFromCheckoutErrorCode],
 ):
     delivery_method_info = checkout_info.delivery_method_info
 
@@ -65,11 +63,9 @@ def clean_checkout_shipping(
 
 def clean_billing_address(
     checkout_info: "CheckoutInfo",
-    error_code: Union[
-        type[CheckoutErrorCode],
-        type[PaymentErrorCode],
-        type[OrderCreateFromCheckoutErrorCode],
-    ],
+    error_code: type[CheckoutErrorCode]
+    | type[PaymentErrorCode]
+    | type[OrderCreateFromCheckoutErrorCode],
 ):
     if not checkout_info.billing_address:
         raise ValidationError(
@@ -87,7 +83,7 @@ def clean_checkout_payment(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     error_code: type[CheckoutErrorCode],
-    last_payment: Optional[payment_models.Payment],
+    last_payment: payment_models.Payment | None,
 ):
     clean_billing_address(checkout_info, error_code)
     if not is_fully_paid(manager, checkout_info, lines):

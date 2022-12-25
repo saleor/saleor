@@ -1,0 +1,4 @@
+Instructions and scripts for testing and packaging new releases of PyXB are
+in the HOWTO.txt file at the root directory of:
+
+  git://pyxb.git.sourceforge.net/gitroot/pyxb/releases

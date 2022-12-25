@@ -1,12 +1,12 @@
 import functools
 import logging
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import partial
 from time import monotonic
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Optional
 
 from asgiref.local import Local
 from django.conf import settings
@@ -42,7 +42,7 @@ class WebhookData:
     id: int
     saleor_domain: str
     target_url: str
-    secret_key: Optional[str] = None
+    secret_key: str | None = None
 
 
 def get_buffer_name() -> str:
@@ -82,8 +82,8 @@ def get_webhooks(timeout=CACHE_TIMEOUT) -> list[WebhookData]:
         return webhooks_data
 
 
-def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
-    if isinstance(retry_error.when, (int, float)):
+def task_next_retry_date(retry_error: "Retry") -> datetime | None:
+    if isinstance(retry_error.when, int | float):
         return timezone.now() + timedelta(seconds=retry_error.when)
     if isinstance(retry_error.when, datetime):
         return retry_error.when
@@ -116,17 +116,17 @@ def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
 
 @dataclass
 class GraphQLOperationResponse:
-    name: Optional[str] = None
-    query: Optional[GraphQLDocument] = None
-    variables: Optional[dict] = None
-    result: Optional[dict] = None
+    name: str | None = None
+    query: GraphQLDocument | None = None
+    variables: dict | None = None
+    result: dict | None = None
     result_invalid: bool = False
 
 
 class ApiCall:
     def __init__(self, request: "HttpRequest"):
         self.gql_operations: list[GraphQLOperationResponse] = []
-        self.response: Optional["HttpResponse"] = None
+        self.response: "HttpResponse" | None = None
         self._reported = False
         self.request = request
 

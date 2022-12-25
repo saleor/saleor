@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Optional
 
 from django.db.models import Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
@@ -150,7 +149,7 @@ class VoucherChannelListingByVoucherIdLoader(DataLoader):
         ]
 
 
-class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
+class VoucherInfoByVoucherCodeLoader(DataLoader[str, VoucherInfo | None]):
     context_key = "voucher_info_by_voucher_code"
 
     def batch_load(self, keys):
@@ -199,7 +198,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
 
-        voucher_infos: list[Optional[VoucherInfo]] = []
+        voucher_infos: list[VoucherInfo | None] = []
         for code in keys:
             voucher_code = voucher_codes_map.get(code)
             if not voucher_code:

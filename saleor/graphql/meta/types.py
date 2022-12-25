@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from graphene.types.generic import GenericScalar
 
@@ -124,7 +122,7 @@ class ObjectWithMetadata(graphene.Interface):
     @staticmethod
     def resolve_metafield(
         root: ModelWithMetadata, _info: ResolveInfo, *, key: str
-    ) -> Optional[str]:
+    ) -> str | None:
         return root.metadata.get(key)
 
     @staticmethod
@@ -138,7 +136,7 @@ class ObjectWithMetadata(graphene.Interface):
     @staticmethod
     def resolve_private_metafield(
         root: ModelWithMetadata, info: ResolveInfo, *, key: str
-    ) -> Optional[str]:
+    ) -> str | None:
         check_private_metadata_privilege(root, info)
         return root.private_metadata.get(key)
 

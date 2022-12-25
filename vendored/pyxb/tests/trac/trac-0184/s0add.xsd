@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:s0add" xmlns:s1="urn:s1core" xmlns:tns="urn:s0add" elementForm="qualified">
+   <xs:import namespace="urn:s1core" schemaLocation="s1core.xsd"/>
+   <xs:complexType name="t0extend0">
+     <xs:complexContent>
+       <xs:extension base="tns:t0foundation">
+	 <xs:sequence>
+	   <xs:element ref="tns:e0i"/>
+	 </xs:sequence>
+       </xs:extension>
+     </xs:complexContent>
+   </xs:complexType>
+   <xs:complexType name="t0extend1">
+     <xs:complexContent>
+       <xs:extension base="s1:t1foundation">
+	 <xs:sequence>
+	   <xs:element ref="tns:e0i"/>
+	 </xs:sequence>
+       </xs:extension>
+     </xs:complexContent>
+   </xs:complexType>
+   <xs:complexType name="t0foundation">
+     <xs:sequence>
+       <xs:element ref="s1:e1i" minOccurs="0"/>
+       <xs:element ref="s1:e1s" minOccurs="0"/>
+     </xs:sequence>
+   </xs:complexType>
+   <xs:element name="e0foundation" type="tns:t0foundation"/>
+   <xs:element name="e0i" type="xs:int"/>
+   <xs:element name="e0extend0" type="tns:t0extend0"/>
+   <xs:element name="e0extend1" type="tns:t0extend1"/>
+</xs:schema>

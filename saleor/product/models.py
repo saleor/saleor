@@ -384,7 +384,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
-        promotion_rules: Optional[Iterable["PromotionRule"]] = None,
+        promotion_rules: Iterable["PromotionRule"] | None = None,
     ) -> "Money":
         """Return the variant discounted price with applied promotions.
 
@@ -579,7 +579,7 @@ class DigitalContentUrl(models.Model):
             self.token = str(uuid4()).replace("-", "")
         super().save(force_insert, force_update, using, update_fields)
 
-    def get_absolute_url(self) -> Optional[str]:
+    def get_absolute_url(self) -> str | None:
         url = reverse("digital-product", kwargs={"token": str(self.token)})
         return build_absolute_uri(url)
 

@@ -1,0 +1,101 @@
+.. _componentModel:
+
+Component Model
+===============
+
+PyXB's component model is the representation of XML schema components as a
+complex relation of data objects.  Each object class corresponds to one of
+the thirteen `XML Schema Components
+<www.w3.org/TR/xmlschema-1/index.html#components>`_, and names of components
+and their properties follow those definitions.  All classes specific to the
+component model are found in the :api:`pyxb.xmlschema.structures` module.
+
+The relationships amongst components is depicted in the following diagram.
+Composite aggregation generally denotes ownership and shared aggregation
+reference, but don't look for consistency.
+
+.. image:: Images/ComponentModel.jpg
+
+Component Model Mix-ins
+-----------------------
+
+A variety of :ref:`mixins` are used to allow common code to be abstracted or
+to mark objects as having certain capabilities.  These mixins are:
+
+- :api:`pyxb.xmlschema.structures._SchemaComponent_mixin` marks the object
+  as being a schema component and holds its
+  :api:`pyxb.namespace.NamespaceContext`.  It also records relations between
+  components in a global definition and their clones where those definitions
+  are expanded.
+
+- :api:`pyxb.xmlschema.structures._Singleton_mixin` is used to ensure there is only one instance each
+  of the `simple ur-type
+  <http://www.w3.org/TR/xmlschema-1/#simple-ur-type-itself>`_ and `ur-type
+  <http://www.w3.org/TR/xmlschema-1/#ur-type-itself>`_.  It overloads
+  ``__new__`` to ensure that only one instance of the class is ever
+  constructed.
+
+- :api:`pyxb.xmlschema.structures._Annotated_mixin` provides the support for all components that
+  contain an `annotation <http://www.w3.org/TR/xmlschema-1/#cAnnotations>`_
+  as a child element.
+
+- :api:`pyxb.xmlschema.structures._NamedComponent_mixin` supports components
+  that can be identified by name.  This includes the target namespace (which
+  may be anonymous) if the component is global, and the `complex type
+  definition <http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions>`_
+  that serves as the component's `scope
+  <http://www.w3.org/TR/xmlschema-1/#e-scope>`_ when it is local.
+
+- :api:`pyxb.xmlschema.structures._ValueConstraint_mixin` provides support
+  for components that have `value constraints
+  <http://www.w3.org/TR/xmlschema-1/#e-value_constraint>`_ : that is,
+  provide a default value and optionally require a fixed value.
+
+- :api:`pyxb.xmlschema.structures._ScopedDeclaration_mixin` is used by
+  `element declarations
+  <http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_ and `complex
+  type definitions
+  <http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions>`_ which may be
+  named but only referenceable within a specific `scope
+  <http://www.w3.org/TR/xmlschema-1/#e-scope>`_.
+
+- :api:`pyxb.xmlschema.structures._AttributeWildcard_mixin` provides support
+  for `attribute group definitions
+  <http://www.w3.org/TR/xmlschema-1/#cAttribute_Group_Definitions>`_ and
+  `complex type definitions
+  <http://www.w3.org/TR/xmlschema-1/#Complex_Type_Definitions>`_, both of
+  which allow `wildcard <http://www.w3.org/TR/xmlschema-1/#Wildcards>`_
+  attributes.
+
+Other Information
+-----------------
+
+Most of the important information about the component model is best obtained
+from the `specification <http://www.w3.org/TR/xmlschema-1/#components>`_ or
+from the :api:`PyXB component model API <pyxb.xmlschema.structures>`.
+Tidbits of other relevant information:
+
+- An understanding of :ref:`resolution` is important.
+
+- Element and attribute declarations that are incorporated by reference are
+  represented in local scope by a copy of the global declaration.  This aids
+  in the infrastructure that binds declarations from model and attribute
+  groups to a specific context.  Local declarations are associated only with
+  the complex type in which they appear; types that extend or restrict that
+  type refer to the declaration instance associated with the base type.
+
+- PyXB strictly enforces the `requirement
+  <http://www.w3.org/TR/xmlschema-1/#cos-element-consistent>`_ that multiple
+  element declarations within a complex type be compatible with respect to
+  type and other attributes.  Since occurrence restrictions are associated
+  with a `Particle <http://www.w3.org/TR/xmlschema-1/#cParticle>`_ instance
+  rather than the declaration, the same element can appear in multiple places
+  with different multiplicities.  Note, though, that the default code
+  generation module collapses all occurrences of any given element into a
+  single Python field in the binding.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

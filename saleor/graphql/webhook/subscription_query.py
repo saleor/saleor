@@ -1,5 +1,4 @@
 from enum import Flag
-from typing import Optional, Union
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
@@ -28,11 +27,11 @@ class SubscriptionQuery:
         self.is_valid: bool = False
         self.ast: Document = Document("")
         self.events: list[str] = []
-        self.error_code: Optional[str] = None
+        self.error_code: str | None = None
         self.errors = self.validate_query()
         self.error_msg: str = ";".join(set([str(err.message) for err in self.errors]))
 
-    def validate_query(self) -> list[Union[GraphQLSyntaxError, ValidationError]]:
+    def validate_query(self) -> list[GraphQLSyntaxError | ValidationError]:
         from ..api import schema
 
         graphql_backend = get_default_backend()
@@ -95,7 +94,7 @@ class SubscriptionQuery:
         return sorted(list(map(to_snake_case, events)))
 
     @staticmethod
-    def _get_subscription(ast: Document) -> Optional[OperationDefinition]:
+    def _get_subscription(ast: Document) -> OperationDefinition | None:
         for definition in ast.definitions:
             if (
                 hasattr(definition, "operation")
@@ -116,7 +115,7 @@ class SubscriptionQuery:
 
     @staticmethod
     def _get_events_from_field(
-        field: Union[Field, FragmentDefinition],
+        field: Field | FragmentDefinition,
         events: dict[str, IsFragment],
     ) -> dict[str, IsFragment]:
         if (

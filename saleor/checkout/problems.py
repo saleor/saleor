@@ -2,7 +2,6 @@ import datetime
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Optional, Union
 
 import pytz
 
@@ -17,7 +16,7 @@ from .models import CheckoutLine
 class CheckoutLineProblemInsufficientStock:
     available_quantity: int
     line: CheckoutLine
-    variant: Optional[ChannelContext[ProductVariant]] = None
+    variant: ChannelContext[ProductVariant] | None = None
 
 
 @dataclass
@@ -25,12 +24,12 @@ class CheckoutLineProblemVariantNotAvailable:
     line: CheckoutLine
 
 
-CHECKOUT_LINE_PROBLEM_TYPE = Union[
-    CheckoutLineProblemInsufficientStock, CheckoutLineProblemVariantNotAvailable
-]
-CHECKOUT_PROBLEM_TYPE = Union[
-    CheckoutLineProblemInsufficientStock, CheckoutLineProblemVariantNotAvailable
-]
+CHECKOUT_LINE_PROBLEM_TYPE = (
+    CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+)
+CHECKOUT_PROBLEM_TYPE = (
+    CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+)
 
 VARIANT_ID = int
 PRODUCT_ID = int

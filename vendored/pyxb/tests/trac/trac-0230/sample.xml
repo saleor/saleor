@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009 http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009/index.xsd">
+  <spirit:vendor>spiritconsortium.org</spirit:vendor>
+  <spirit:library>Leon2RTL</spirit:library>
+  <spirit:name>ahbbusSparseChannel</spirit:name>
+  <spirit:version>1.0</spirit:version>
+  <spirit:busInterfaces>
+    <spirit:busInterface>
+      <spirit:name>MirroredMaster</spirit:name>
+      <spirit:busType spirit:vendor="amba.com" spirit:library="AMBA2" spirit:name="AHB" spirit:version="r2p0_6"/>
+      <spirit:abstractionType spirit:vendor="amba.com" spirit:library="AMBA2" spirit:name="AHB_rtl" spirit:version="r2p0_6"/>
+      <spirit:mirroredMaster/>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>MirroredSlave</spirit:name>
+      <spirit:busType spirit:vendor="amba.com" spirit:library="AMBA2" spirit:name="AHB" spirit:version="r2p0_6"/>
+      <spirit:abstractionType spirit:vendor="amba.com" spirit:library="AMBA2" spirit:name="AHB_rtl" spirit:version="r2p0_6"/>
+      <spirit:mirroredSlave>
+        <spirit:baseAddresses>
+          <spirit:remapAddress spirit:resolve="generated" spirit:id="start_addr_slv0_mirror" spirit:configGroups="requiredConfig" spirit:prompt="Slave 0 Starting Address:">0x00000000</spirit:remapAddress>
+          <spirit:range spirit:resolve="generated" spirit:id="range_slv0_mirror" spirit:configGroups="requiredConfig" spirit:prompt="Slave 0 Range:">0x00010000</spirit:range>
+        </spirit:baseAddresses>
+      </spirit:mirroredSlave>
+    </spirit:busInterface>
+  </spirit:busInterfaces>
+  <spirit:channels>
+    <spirit:channel>
+      <spirit:name>AHBChannel</spirit:name>
+<!--IP-XACT XSLT Warning#1:Removing element maxMasters from channel-->
+<!--IP-XACT XSLT Warning#2:Removing element maxSlaves from channel-->
+      <spirit:busInterfaceRef>MirroredMaster</spirit:busInterfaceRef>
+      <spirit:busInterfaceRef>MirroredSlave</spirit:busInterfaceRef>
+    </spirit:channel>
+  </spirit:channels>
+</spirit:component>

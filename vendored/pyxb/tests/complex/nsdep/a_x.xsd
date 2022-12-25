@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:nsdep:A" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:nsdep:A" xmlns:B="URN:nsdep:B">
+	<xs:import namespace="URN:nsdep:B" schemaLocation="b_c.xsd"/>
+	<xs:include schemaLocation="a_b.xsd"/>
+	<xs:element name="A_x_e1">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tns:A_b_e1"/>
+				<xs:element ref="B:B_c_e1"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

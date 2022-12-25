@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from authlib.common.errors import AuthlibBaseError
 from django.core import signing
@@ -451,7 +450,7 @@ class OpenIDConnectPlugin(BasePlugin):
 
     def external_verify(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> tuple[Optional[User], dict]:
+    ) -> tuple[User | None, dict]:
         if not self.active:
             return previous_value
 
@@ -481,7 +480,7 @@ class OpenIDConnectPlugin(BasePlugin):
             )
         return user, payload
 
-    def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
+    def authenticate_user(self, request: WSGIRequest, previous_value) -> User | None:
         if not self.active:
             return previous_value
         token = get_token_from_request(request)

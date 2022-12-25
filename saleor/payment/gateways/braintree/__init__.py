@@ -1,5 +1,3 @@
-from typing import Optional
-
 import braintree as braintree_sdk
 import opentracing
 import opentracing.tags
@@ -69,7 +67,7 @@ def get_error_for_client(errors: list) -> str:
 
 def extract_gateway_response(braintree_result) -> dict:
     """Extract data from Braintree response that will be stored locally."""
-    errors: list[Optional[dict[str, str]]] = []
+    errors: list[dict[str, str] | None] = []
     if not braintree_result.is_success:
         errors = [
             {"code": error.code, "message": error.message}
@@ -109,7 +107,7 @@ def get_braintree_gateway(
 
 
 def get_client_token(
-    config: GatewayConfig, token_config: Optional[TokenConfig] = None
+    config: GatewayConfig, token_config: TokenConfig | None = None
 ) -> str:
     gateway = get_braintree_gateway(**config.connection_params)
     with opentracing.global_tracer().start_active_span(
@@ -123,7 +121,7 @@ def get_client_token(
 
 
 def create_token_params(
-    config: GatewayConfig, token_config: Optional[TokenConfig] = None
+    config: GatewayConfig, token_config: TokenConfig | None = None
 ) -> dict:
     params = {}
     if "merchant_account_id" in config.connection_params:

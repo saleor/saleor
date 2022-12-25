@@ -2,7 +2,8 @@ import base64
 import json
 import logging
 from collections import defaultdict
-from typing import Any, Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any, Union
 
 from django.conf import settings
 from django.core.cache import cache
@@ -101,7 +102,7 @@ def get_excluded_shipping_methods_or_fetch(
     event_type: str,
     payload: str,
     cache_key: str,
-    subscribable_object: Optional[Union["Order", "Checkout"]],
+    subscribable_object: Union["Order", "Checkout"] | None,
     allow_replica: bool,
 ) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
@@ -143,7 +144,7 @@ def get_excluded_shipping_data(
     previous_value: list[ExcludedShippingMethod],
     payload_fun: Callable[[], str],
     cache_key: str,
-    subscribable_object: Optional[Union["Order", "Checkout"]],
+    subscribable_object: Union["Order", "Checkout"] | None,
     allow_replica: bool,
 ) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.

@@ -1,5 +1,4 @@
 from itertools import chain
-from typing import Optional
 
 from django.db.models import Q
 from i18naddress import get_validation_rules
@@ -139,9 +138,9 @@ def resolve_users(info, ids=None, emails=None):
 def resolve_address_validation_rules(
     info: ResolveInfo,
     country_code: str,
-    country_area: Optional[str],
-    city: Optional[str],
-    city_area: Optional[str],
+    country_area: str | None,
+    city: str | None,
+    city_area: str | None,
 ):
     params = {
         "country_code": country_code,

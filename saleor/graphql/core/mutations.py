@@ -5,9 +5,7 @@ from enum import Enum
 from itertools import chain
 from typing import (
     Any,
-    Optional,
     TypeVar,
-    Union,
     cast,
     overload,
 )
@@ -120,7 +118,7 @@ def validation_error_to_error_type(
     return err_list
 
 
-def attach_error_params(error, params: Optional[dict], error_class_fields: set):
+def attach_error_params(error, params: dict | None, error_class_fields: set):
     if not params:
         return {}
     # If some of the params key overlap with error class fields
@@ -163,7 +161,7 @@ class BaseMutation(graphene.Mutation):
         auto_permission_message=True,
         description=None,
         doc_category=None,
-        permissions: Optional[Collection[BasePermissionEnum]] = None,
+        permissions: Collection[BasePermissionEnum] | None = None,
         _meta=None,
         error_type_class=None,
         error_type_field=None,
@@ -171,7 +169,7 @@ class BaseMutation(graphene.Mutation):
         support_meta_field=False,
         support_private_meta_field=False,
         auto_webhook_events_message: bool = True,
-        webhook_events_info: Optional[list[WebhookEventInfo]] = None,
+        webhook_events_info: list[WebhookEventInfo] | None = None,
         **options,
     ):
         if not _meta:
@@ -229,9 +227,9 @@ class BaseMutation(graphene.Mutation):
         cls,
         info: ResolveInfo,
         graphene_type: type[ModelObjectType[MT]],
-        pk: Union[int, str],
+        pk: int | str,
         qs=None,
-    ) -> Optional[MT]:
+    ) -> MT | None:
         """Attempt to resolve a node from the given internal ID.
 
         Whether by using the provided query set object or by calling type's get_node().
@@ -259,7 +257,7 @@ class BaseMutation(graphene.Mutation):
     def get_global_id_or_error(
         cls,
         id: str,
-        only_type: Union[ObjectType, str, None] = None,
+        only_type: ObjectType | str | None = None,
         field: str = "id",
     ):
         try:
@@ -289,13 +287,13 @@ class BaseMutation(graphene.Mutation):
     def get_node_or_error(
         cls,
         info: ResolveInfo,
-        node_id: Optional[str],
+        node_id: str | None,
         *,
         field: str = "id",
         only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
-    ) -> Optional[MT]:
+    ) -> MT | None:
         ...
 
     @overload
@@ -331,26 +329,26 @@ class BaseMutation(graphene.Mutation):
     def get_node_or_error(
         cls,
         info: ResolveInfo,
-        node_id: Optional[str],
+        node_id: str | None,
         *,
         field: str = "id",
         only_type: Any = None,
         qs: Any = None,
         code: str = "not_found",
-    ) -> Optional[Model]:
+    ) -> Model | None:
         ...
 
     @classmethod
     def get_node_or_error(
         cls,
         info: ResolveInfo,
-        node_id: Optional[str],
+        node_id: str | None,
         *,
         field: str = "id",
-        only_type: Optional[type[ObjectType]] = None,
-        qs: Optional[QuerySet] = None,
+        only_type: type[ObjectType] | None = None,
+        qs: QuerySet | None = None,
         code: str = "not_found",
-    ) -> Optional[Model]:
+    ) -> Model | None:
         if not node_id:
             # FIXME: this is weird behavior and we should drop it
             # the function now has three possible outcomes:
@@ -387,7 +385,7 @@ class BaseMutation(graphene.Mutation):
     def get_global_ids_or_error(
         cls,
         ids: Iterable[str],
-        only_type: Union[ObjectType, str, None] = None,
+        only_type: ObjectType | str | None = None,
         field: str = "ids",
     ):
         try:
@@ -410,7 +408,7 @@ class BaseMutation(graphene.Mutation):
     @overload
     @classmethod
     def get_nodes_or_error(
-        cls, ids, field, only_type: Optional[ObjectType] = None, qs=None, schema=None
+        cls, ids, field, only_type: ObjectType | None = None, qs=None, schema=None
     ) -> list[Model]:
         ...
 
@@ -609,7 +607,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def check_channel_permissions(
-        cls, info: ResolveInfo, channel_ids: Iterable[Union[UUID, int]]
+        cls, info: ResolveInfo, channel_ids: Iterable[UUID | int]
     ):
         # App has access to all channels
         if get_app_promise(info.context).get():
@@ -882,7 +880,7 @@ class ModelWithRestrictedChannelAccessMutation(ModelMutation):
         return cls.success_response(instance)
 
     @classmethod
-    def get_instance_channel_id(cls, instance, **data) -> Union[UUID, int]:
+    def get_instance_channel_id(cls, instance, **data) -> UUID | int:
         """Retrieve the instance channel id for channel permission accessible check."""
         raise NotImplementedError()
 
@@ -941,7 +939,7 @@ class ModelDeleteWithRestrictedChannelAccessMutation(ModelDeleteMutation):
         return cls.success_response(instance)
 
     @classmethod
-    def get_instance_channel_id(cls, instance) -> Union[UUID, int]:
+    def get_instance_channel_id(cls, instance) -> UUID | int:
         """Retrieve the instance channel id for channel permission accessible check."""
         raise NotImplementedError()
 
@@ -999,7 +997,7 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
-    ) -> tuple[int, Optional[ValidationError]]:
+    ) -> tuple[int, ValidationError | None]:
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids = []
         errors_dict: dict[str, list[ValidationError]] = {}
@@ -1086,7 +1084,7 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
-    ) -> tuple[int, Optional[ValidationError]]:
+    ) -> tuple[int, ValidationError | None]:
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids = []
         errors_dict: dict[str, list[ValidationError]] = {}
@@ -1141,7 +1139,7 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         return count, errors
 
     @classmethod
-    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+    def get_channel_ids(cls, instances) -> Iterable[UUID | int]:
         """Get the instances channel ids for channel permission accessible check."""
         raise NotImplementedError()
 

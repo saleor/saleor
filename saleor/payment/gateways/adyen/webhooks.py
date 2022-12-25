@@ -4,10 +4,10 @@ import hashlib
 import hmac
 import json
 import logging
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from decimal import Decimal
 from json.decoder import JSONDecodeError
-from typing import Any, Callable, Optional, cast
+from typing import Any, cast
 from urllib.parse import urlencode, urlparse
 
 import Adyen
@@ -65,8 +65,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_payment_id(
-    payment_id: Optional[str],
-    transaction_id: Optional[str] = None,
+    payment_id: str | None,
+    transaction_id: str | None = None,
 ):
     if payment_id is None or not payment_id.strip():
         logger.warning("Missing payment ID. Reference %s", transaction_id)
@@ -86,10 +86,10 @@ def get_payment_id(
 
 
 def get_payment(
-    payment_id: Optional[str],
-    transaction_id: Optional[str] = None,
+    payment_id: str | None,
+    transaction_id: str | None = None,
     check_if_active=True,
-) -> Optional[Payment]:
+) -> Payment | None:
     transaction_id = transaction_id or ""
     db_payment_id = get_payment_id(payment_id)
     if not db_payment_id:
@@ -112,7 +112,7 @@ def get_payment(
     return payment
 
 
-def get_checkout(payment_id: int) -> Optional[Checkout]:
+def get_checkout(payment_id: int) -> Checkout | None:
     # Lock checkout in the same way as in checkoutComplete
     return (
         Checkout.objects.select_for_update(of=("self",))
@@ -128,9 +128,9 @@ def get_checkout(payment_id: int) -> Optional[Checkout]:
 
 def get_transaction(
     payment: "Payment",
-    transaction_id: Optional[str],
+    transaction_id: str | None,
     kind: str,
-) -> Optional[Transaction]:
+) -> Transaction | None:
     transaction = payment.transactions.filter(kind=kind, token=transaction_id).last()
     return transaction
 
@@ -164,7 +164,7 @@ def create_new_transaction(notification, payment, kind):
 
 
 def create_payment_notification_for_order(
-    payment: Payment, success_msg: str, failed_msg: Optional[str], is_success: bool
+    payment: Payment, success_msg: str, failed_msg: str | None, is_success: bool
 ):
     if not payment.order:
         # Order is not assigned
@@ -538,7 +538,7 @@ def handle_refund(notification: dict[str, Any], _gateway_config: GatewayConfig):
         )
 
 
-def _get_kind(transaction: Optional[Transaction]) -> str:
+def _get_kind(transaction: Transaction | None) -> str:
     if transaction:
         return transaction.kind
     # To proceed the refund we already need to have the capture status so we will use it
@@ -676,7 +676,7 @@ def handle_order_opened(notification: dict[str, Any], gateway_config: GatewayCon
 
 def get_or_create_adyen_partial_payments(
     notification: dict[str, Any], payment: Payment
-) -> Optional[list[Payment]]:
+) -> list[Payment] | None:
     """Store basic data about partial payments created by Adyen.
 
     This is a workaround for not supporting partial payments in Saleor. Adyen can
@@ -907,10 +907,10 @@ EVENT_MAP = {
 def validate_hmac_signature(
     notification: dict[str, Any], gateway_config: "GatewayConfig"
 ) -> bool:
-    hmac_signature: Optional[str] = notification.get("additionalData", {}).get(
+    hmac_signature: str | None = notification.get("additionalData", {}).get(
         "hmacSignature"
     )
-    hmac_key: Optional[str] = gateway_config.connection_params.get("webhook_hmac")
+    hmac_key: str | None = gateway_config.connection_params.get("webhook_hmac")
     if not hmac_key:
         return not hmac_signature
 
@@ -944,7 +944,7 @@ def validate_hmac_signature(
 def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") -> bool:
     username = gateway_config.connection_params["webhook_user"]
     password = gateway_config.connection_params["webhook_user_password"]
-    auth_header: Optional[str] = headers.get("Authorization")
+    auth_header: str | None = headers.get("Authorization")
     if not auth_header and not username:
         return True
     if auth_header and not username:
@@ -1131,7 +1131,7 @@ def prepare_redirect_url(
 
 def handle_api_response(
     payment: Payment,
-    checkout: Optional[Checkout],
+    checkout: Checkout | None,
     response: Adyen.Adyen,
     channel_slug: str,
 ):
