@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:annotation>
+		<xs:documentation>
+This schema defines representation for standard Midas data values.  Midas defines the following data format types, which are here paired with the equivalent XML Schema datatype and the name by which they are known in Midas.
+
+B xs:byte bytes
+I xs:short integers
+L xs:int longs
+X xs:long extraLongs
+F xs:float floats
+D xs:double doubles
+A xs:string
+O xs:byte offsetByte
+P xs:hexBinary packedBits
+
+Tables : xs:string -> XMValue
+Lists: XMValue*
+Key-Value Lists: ( xs:string XMValue ) *
+
+</xs:documentation>
+	</xs:annotation>
+	<xs:element name="base" type="xs:string"/>
+	<xs:group name="gScalarNumericData">
+		<xs:choice>
+			<xs:element ref="base"/>
+		</xs:choice>
+	</xs:group>
+	<xs:group name="gNumericData">
+		<xs:choice>
+			<xs:group ref="gScalarNumericData"/>
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="tData">
+		<xs:sequence>
+		    <xs:group ref="gNumericData"/>
+	        </xs:sequence>
+	</xs:complexType>
+	<xs:element name="element" type="tData"/>
+</xs:schema>

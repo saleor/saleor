@@ -1,0 +1,5 @@
+<soap:Envelope xmlns:soap="URN:SOAP"
+    notsoap:encodingStyle="something"
+    xmlns:notsoap="URN:notSOAP">
+<Body>ignored</Body>
+</soap:Envelope>

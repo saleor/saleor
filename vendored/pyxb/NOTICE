@@ -1,0 +1,29 @@
+PyXB
+Copyright 2009 - 2013, Peter A. Bigot
+
+This product includes software developed by Peter Bigot.
+
+Demonstration schemas in pyxb/standard/schemas are copyright their
+respective authors.  Retrieval information is in maintainer/dobinds.sh.
+
+The module pyxb.utils.activestate contains example code from
+http://code.activestate.com/recipes.  At this time, all such code is
+licensed under PSF (http://docs.python.org/license.html).
+
+pyxb/utils/six.py is a (modified) version of the
+[six](https://pypi.python.org/pypi/six) module supporting Python 2/3
+Compatible Source.  It is copyright Benjamin Peterson and is released
+under the MIT license
+(https://bitbucket.org/gutworth/six/src/320691c3ccadeb64bb8a368ef9d39cb2a9a44770/LICENSE?at=default).
+
+PyXB includes patches from the following Contributors:
+
+ Michael van der Westhuizen
+ Jon Foster
+
+For details on these patches see the git software configuration logs.
+
+The following people claim authorship of some material incorporated into
+test files:
+
+ Harold Solbrig

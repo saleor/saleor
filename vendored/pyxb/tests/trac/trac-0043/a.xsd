@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:A" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:A" xmlns:b="URN:B">
+	<xs:import namespace="URN:B" schemaLocation="b.xsd"/>
+	<xs:complexType name="a2">
+		<xs:sequence>
+			<xs:element name="a2member" type="xs:string"/>
+			<xs:element name="a2b" type="b:bst"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="a2elt" type="tns:a2"/>
+	<xs:complexType name="a1">
+		<xs:sequence>
+			<xs:element ref="tns:a2elt"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

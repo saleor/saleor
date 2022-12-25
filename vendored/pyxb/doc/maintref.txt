@@ -1,0 +1,236 @@
+********************
+Maintainer Reference
+********************
+
+The `API <api/index.html>`_
+***************************
+
+The `API <api/index.html>`_ for PyXB was generated using `Epydoc
+<http://epydoc.sourceforge.net/>`_.  Most of the public API is commented,
+though not all docstrings have been updated to use Epydoc syntax.
+
+.. _git_repository:
+
+Git Repository
+**************
+
+PyXB is developed using `git <http://gitscm.org>`_.  You can check out the
+development branch with::
+
+ git clone git://pyxb.git.sourceforge.net/gitroot/pyxb/pyxb
+
+Public development is mostly done on the ``next`` branch, which is the
+default for checkouts from SourceForge.  The ``master`` branch contains
+material integrated into the release, and follows ``next``.  Tags for each
+release are in the format ``PyXB-X.Y.Z``.
+
+Bug fixes with unit tests are pushed to the ``next`` branch as soon as they
+are fixed.  Users whose reported issues have been fixed are encouraged to
+use the development branch until the fix has been made available in a tagged
+and packaged release.
+
+Coding Practices
+****************
+
+The practices described herein are *intended* to be used, but evolved over
+time, and not all are followed in every situation.
+
+Style
+=====
+
+PyXB follows generally uses a coding style consistent with those described
+in the Python coding standard in :PEP:`8`.  Specific exceptions are listed
+below.
+
+Whitespace
+----------
+
+The pet peeves of PyXB's maintainer differ from the `BDFL
+<http://en.wikipedia.org/wiki/Guido_van_Rossum>`_'s when it comes to
+whitespace.  Spaces are used around operators to reveal precedence
+assumptions, and sometimes around parenthesis to distinguish tuple value
+boundaries::
+
+    hypot2 = x*x + y*y
+    pair_of_pairs = ( (a, b), (b, c) )
+
+Definitions of methods and classes always use a space before the
+parenthesis; invocations never do:
+
+::
+
+    def declaration (self, recurse=False):
+       if recurse:
+           self.declaration(False)
+
+.. _identifier_naming:
+
+Naming
+------
+
+PyXB heavily uses a single leading underscore as an indication of
+protected/friend status, as suggested in :PEP:`8`.  Wherever possible,
+double leading underscores are used to hide class member fields, restricting
+access to them through protected or public accessor methods.
+
+Class members that are specifically *class* (as opposed to *instance*)
+members begin with a capital letter.
+
+An underscore is used to separate the descriptive class or function name
+from a suffix that indicates its use.  Standard suffixes are:
+
+- ``mixin`` : A class that does not stand alone, but is a superclass of one
+  or more classes
+
+- ``csc`` : A method that uses :ref:`cooperative super calling<coding_csc>`
+
+- ``vx``, ``vb`` : An indication that the method is expected to be
+  overridden in a subclass.
+
+
+Exceptions
+==========
+
+PyXB provides a `standard exception hierarchy
+<api/pyxb.exceptions_-module.html>`_ that extends the one built into Python.
+
+Where an execution branch has been identified that requires behavior that
+has not yet been implemented, raise an
+:api:`pyxb.exceptions_.IncompleteImplementationError`.  At the current stage
+of development, these should be extremely rare.
+
+Where the system detects that a precondition is not satisfied, processing
+must stop.  If the precondition failure is due to improper use of the PyXB
+internal or public API, a :api:`pyxb.exceptions_.LogicError` should be
+raised.  If the precondition failure is due to invalid input from the
+schema, a :api:`pyxb.exceptions_.SchemaValidationError` should be raised.
+
+If the precondition is inexplicably false, Python's ``assert`` functionality
+may be used.  Use of ``assert`` should be rare, and only in places that are
+guaranteed to be exercised during the course of testing.
+
+The exception behavior of methods SHOULD be documented.  Documentation of
+asserts is not required.
+
+Annotations
+===========
+
+Use decorators (:PEP:`318`) to mark class methods.  Note that this restricts
+us to Python 2.4 or later.  Sigh with disappointment and move on.
+
+Documentation
+=============
+
+Use the `Epytext Markup Language
+<http://epydoc.sourceforge.net/manual-epytext.html>`_ for all public and
+implementation-shared methods and classes.  (Formerly, this was "Use
+docstrings :PEP:`257`".  Documentation in only a few modules has been
+converted.)
+
+Comments
+========
+
+Use comments copiously.  Do not duplicate detailed information from
+standards, but do include pertinent summaries and a reference to the section
+in which the details can be found.  The casual reader should not be forced
+to open the standard to figure out what the coder intended to accomplish.
+
+Terminology
+===========
+
+The term "attribute" has different meanings in Python and XML.
+
+tag : Refers to the text that opens an XML element
+
+instance : [as an adjective] Refers to a characteristic of an instance of a
+Python class.
+
+class : [as an adjective] Refers to a characteristic of a Python class
+itself, shared among all instances.
+
+field : Refers to a named attribute of a Python object (class).  When the
+attribute holds a value, it is an "instance (class) variable" or "instance
+(class) field".  When it holds a reference to an invokable object, it is an
+"instance (class) method".
+
+Use of new-style classes
+========================
+
+Too many things, such as clean hooking into the pickling system, require the
+use of `new-style classes
+<http://www.geocities.com/foetsch/python/new_style_classes.htm>`_.
+Namespaces, schema components, and types (simple and complex) all use
+new-style classes.
+
+For this to work properly, if you implement an ``__init__`` method, it must take
+arbitrary args and keywords, invoke ``super(Class, self).__init__(*args,**kw)``,
+and extract any arguments it needs from the keywords.  If you do not need to
+do anything in the init method, leave it out.  See
+`this commentary <http://fuhm.net/super-harmful/>`_ for a detailed
+description of the intricacies of ``super``.
+
+Inheritance
+===========
+
+.. _mixins:
+
+Mix-in classes
+--------------
+
+PyXB makes heavy use of multiple inheritance through `mix-in classes
+<http://en.wikipedia.org/wiki/Mixin>`_.  If there are constraints on where
+the mix-in must appear in the method resolution order (mro), note that
+clearly in the mix-in documentation.
+
+
+.. _coding_csc:
+
+Invoking Superclass Instances
+-----------------------------
+
+`Cooperative super calling
+<http://www.geocities.com/foetsch/python/new_style_classes.htm#super>`_ is a
+pattern where a class may inherit multiple implementations of the same
+method, and want to call all of them.  Normally this is done by invoking the
+parent class implementation before or after the subclass implementation.  In
+non-trivial inheritance hierarchies (as result from using many mix-ins),
+it's not obvious who the next parent to call is, so the Python ``super``
+function is used.  However, at some point a class will be reached that has
+no more definitions for the called method, and attempting to invoke one
+would produce an ``AttributeError``.
+
+Use the following idiom to conditionally invoke superclass methods when you
+are not sure the superclass has such a method.
+
+::
+
+    def method_csc (self, *args, **kw):
+        super_fn = getattr(super(ThisClass, self), 'method_csc', lambda *a,**kw: self)
+        return super_fn(*args, **kw)
+
+Note the use of the ``_csc`` suffix to highlight that this method uses
+cooperative super calling.
+
+Class Variables At Multiple Levels
+----------------------------------
+
+There are several cases where we want to store information in a class, but
+allow subclasses (not instances) to override it.  An example is in the
+:api:`pyxb.binding.basis.simpleTypeDefinition` hierarchy where each class
+maintains a set of :api:`pyxb.binding.facets.ConstrainingFacet` instances
+that are available for constraining values of the class.  In many cases, a
+subclass will not change the set of facets that affect instances, so we want
+to be able to inherit the parent class map; but in other cases we may need
+to add constraints that only affect the new class and its descendents.
+
+This sort of thing is supported by implementing a private class method in
+the base class which combines the dynamically-determined actual class name
+with a constant identifier and uses ``getattr`` and ``setattr`` to access
+the class-specific value.
+
+Type declarations may extend a type of the same name in a different
+namespace.  If they do so, their binding classes will likely have the same
+name, but in different modules, while also inheriting (in exactly the
+situation where we want different values).  For this reason, the constructed
+attribute name should also incorporate the module or namespace, something
+normally not done with the double-underscore feature of Python.

@@ -1,0 +1,22 @@
+<schema
+        targetNamespace="urn:schema:a"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:test="urn:schema:a"
+        elementFormDefault="unqualified"
+        attributeFormDefault="unqualified"
+        blockDefault="substitution"
+        version="2.0">
+    <element name="a" type="test:RequestAbstractType"/>
+    <complexType name="RequestAbstractType">
+        <sequence>
+            <element ref="test:Extensions" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <element name="Extensions" type="test:ExtensionsType"/>
+    <complexType name="ExtensionsType">
+        <sequence>
+            <any namespace="##other" processContents="lax" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+</schema>

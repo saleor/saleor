@@ -1,0 +1,33 @@
+License and Disclaimers
+-----------------------
+
+.. _pyxb-license:
+
+License
+^^^^^^^
+
+PyXB as a whole is made available under the `Apache License v 2.0
+<http://www.apache.org/licenses/LICENSE-2.0>`_.  For full details see
+the LICENSE file in the distribution.
+
+PyXB uses the `six <https://pypi.python.org/pypi/six>` module for Python
+2/3 Compatible Source support.
+
+About the Demonstration Web Services
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There seem to be very few free public web services that are maintained and
+provide an interesting capability that does not require significant effort
+to demonstrate in an satisfactory way.
+
+The :ref:`examples` in the PyXB documentation refer to web services found
+through `Google <http://www.google.com/>`_ and other search engines.  Some of
+these services are free; for others the API schemas could be obtained by
+anonymous download but use of the service would require a paid subscription.
+
+These web services are used for demonstration purposes only.  If you
+represent a company providing one of these services and object to its use in
+this way, email the developer to have the service references removed.  If
+you provide interesting web services and would like to contribute to open
+source development and the promotion of web services by explicitly
+permitting this use, email the developer.

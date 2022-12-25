@@ -1,0 +1,77 @@
+Manual changes to the GeoCoder WSDL to make it work a little better
+
+ - Change the element form default to "qualified".  This is necessary
+   because there is a non-absent target namespace in the schema, and the
+   documents returned from the service set it as the default namespace.
+   This causes the XML engine to associate that namespace with
+   locally-scoped elements like "number", while the "unqualified" form
+   default caused the schema recorded them as having no namespace.
+ - Set minOccurs on all the elements, since some are missing from some
+   responses
+ - Set nillable on all elements that are observed to use xsi:nil="true" in
+   response documents
+ - Provide types and elements corresponding to the request and response
+   messages, since PyXB's WSDL support does not generate them from the
+   operation messages.
+ - Retain element content in the ArrayOfGeocoderResult type
+
+--- GeoCoder.wsdl-orig	2005-08-19 01:48:44.000000000 -0500
++++ GeoCoder.wsdl	2012-12-14 11:00:04.377278949 -0600
+@@ -11,13 +11,14 @@
+ 	<types>
+      <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema"
+                  targetNamespace="http://rpc.geocoder.us/Geo/Coder/US/"
+-                 elementFormDefault="unqualified">
++                 elementFormDefault="qualified">
+      <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+ 
+         <xsd:complexType name="ArrayOfGeocoderResult">
+ 			<complexContent>
+ 				<restriction base="SOAP-ENC:Array">
+ 					<attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:GeocoderResult[]"/>
++					<xsd:group ref="SOAP-ENC:Array" minOccurs="0" />
+ 				</restriction>
+ 			</complexContent>
+         </xsd:complexType>
+@@ -55,16 +56,16 @@
+         
+    		<xsd:complexType name="GeocoderAddressResult">
+ 			<xsd:all>
+-				<xsd:element name="number" type="xsd:int"/>
+-				<xsd:element name="zip" type="xsd:int"/>
+-				<xsd:element name="suffix" type="xsd:string"/>
+-				<xsd:element name="prefix" type="xsd:string"/>
+-				<xsd:element name="type" type="xsd:string"/>
+-				<xsd:element name="street" type="xsd:string"/>
+-				<xsd:element name="state" type="xsd:string"/>
+-				<xsd:element name="city" type="xsd:string"/>
+-				<xsd:element name="lat" type="xsd:float"/>
+-				<xsd:element name="long" type="xsd:float"/>
++				<xsd:element name="number" type="xsd:int" minOccurs="0"/>
++				<xsd:element name="zip" nillable="true" type="xsd:int" minOccurs="0"/>
++				<xsd:element name="suffix" nillable="true" type="xsd:string" minOccurs="0"/>
++				<xsd:element name="prefix" nillable="true" type="xsd:string" minOccurs="0"/>
++				<xsd:element name="type" type="xsd:string" minOccurs="0"/>
++				<xsd:element name="street" type="xsd:string" minOccurs="0"/>
++				<xsd:element name="state" type="xsd:string" minOccurs="0"/>
++				<xsd:element name="city" type="xsd:string" minOccurs="0"/>
++				<xsd:element name="lat" type="xsd:float" minOccurs="0"/>
++				<xsd:element name="long" type="xsd:float" minOccurs="0"/>
+ 			</xsd:all>
+ 		</xsd:complexType>
+ 
+@@ -76,6 +77,14 @@
+ 			</complexContent>
+         </xsd:complexType>
+         
++        <xsd:complexType name="geocodeRequest">
++				<sequence>
++					<xsd:element name="location" type="xsd:string"/>
++				</sequence>
++        </xsd:complexType>
++	<xsd:element name="geocode" type="tns:geocodeRequest"/>
++	<xsd:element name="geocodeResponse" type="tns:ArrayOfGeocoderResult"/>
++
+    		<xsd:complexType name="GeocoderIntersectionResult">
+ 			<xsd:all>
+ 				<xsd:element name="zip" type="xsd:int"/>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- New document created with EditiX at Sat Apr 11 21:36:10 CDT 2009 -->
+
+<myElement xsi:schemaLocation="URN:unionTest C:\Users\pab\Documents\XML\test-union.xsd" xmlns="URN:unionTest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    one
+ <!-- and a comment -->
+</myElement>

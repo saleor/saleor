@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="tSimple">
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:element name="simple" type="tSimple"/>
+	<xs:complexType name="tComplex">
+		<xs:sequence>
+			<xs:element ref="simple" minOccurs="0"/>
+			<xs:element ref="complex" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="complex" type="tComplex"/>
+	<xs:complexType name="tComplexSimple">
+		<xs:simpleContent>
+			<xs:extension base="tSimple">
+				<xs:attribute name="attr" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="complexSimple" type="tComplexSimple"/>
+</xs:schema>

@@ -1,0 +1,77 @@
+Limitations
+***********
+
+Things That Work
+----------------
+
+* Class constants corresponding to string enumeration constraints
+
+* Simple and complex type definitions
+
+* List and union datatypes
+
+* Constraints on (simple) datatypes (e.g., minInclusive, length)
+
+* Model groups and attribute groups
+
+* Complex content models (all, sequence, choice); minOccurs and maxOccurs
+
+* Abstract types, `xsi:type <http://www.w3.org/TR/xmlschema-1/#xsi_type>`_,
+  substitution groups
+
+* Nillable elements with `xsi:nil <http://www.w3.org/TR/xmlschema-1/#xsi_nil>`_
+
+* Namespace qualified attributes and elements
+
+* Documentation annotations present in the schema are converted to Python
+  docstrings in the generated bindings.
+
+* Pattern constraints (as long as the simple type derives from something
+  that is represented as a Python string)
+
+
+Things That Don't Work
+----------------------
+
+...but could someday
+^^^^^^^^^^^^^^^^^^^^
+
+* Identity constraints ("key", "unique", "keyref") are stored in the content
+  model, but are not used.
+
+* `Wildcard elements <http://www.w3.org/TR/xmlschema-1/#Wildcards>`_ are
+  supported in the sense that classes that enable them in the content model
+  provide access to unrecognized values through the
+  :api:`pyxb.binding.basis.complexTypeDefinition.wildcardElements` method.
+  Where the type of the node is recognized, it is converted to a Python
+  binding instance; otherwise, the xml DOM instance is stored.  Although
+  namespace constraints are applied when checking for wildcard matches, the
+  process contents attribute of the wildcard is ignored.
+
+* `Wildcard attributes
+  <http://www.w3.org/TR/xmlschema-1/#ag-attribute_wildcard>`_ are supported
+  in much the same sense as wildcard elements: no constraints are checked,
+  and all are aggregated into the
+  :api:`pyxb.binding.basis.complexTypeDefinition.wildcardAttributeMap`.
+  Values are uninterpreted Unicode strings.
+
+...and probably never will
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The `redefine directive <http://www.w3.org/TR/xmlschema-1/#modify-schema>`_
+  is not supported.
+
+* The ability to use templates to customize binding generation was promised
+  in the vision document, but after three years of no plausible use case it
+  is no longer part of the plan.
+
+
+Things That Mostly Work, But They're Ugly
+-----------------------------------------
+
+* The `duration <http://www.w3.org/TR/xmlschema-2/#duration>`_ type is based
+  on the Python ``datetime.timedelta`` class, which works reasonably well
+  for small deltas but does not handle month and year deltas.  The PyXB
+  version records that information, but the ``timedelta`` functionality
+  (adding/substracting from ``datetime`` instances) does not incorporate
+  that portion of the delta.  Negative durations also may not work properly.

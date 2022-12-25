@@ -190,7 +190,7 @@ def generate_payload_from_subscription(
     )
     if hasattr(results, "errors"):
         logger.warning(
-            "Unable to build a payload for subscription. \n" "error: %s",
+            "Unable to build a payload for subscription. Error: %s",
             str(results.errors),
             extra={"query": subscription_query, "app": app_id},
         )

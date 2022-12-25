@@ -1,0 +1,118 @@
+.. PyXB documentation master file
+
+.. Sphinx standard indentations
+   # with overline, for parts
+   * with overline, for chapters
+   =, for sections
+   -, for subsections
+   ^, for subsubsections
+   ", for paragraphs
+
+.. role:: namespace(literal)
+
+################################
+PyXB: Python XML Schema Bindings
+################################
+
+PyXB ("pixbee") is a pure `Python <http://www.python.org>`_ package that
+generates Python source code for classes that correspond to data structures
+defined by `XMLSchema <http://www.w3.org/XML/Schema>`_.  The generated classes
+support bi-directional conversion between `XML <http://www.w3.org/XML/>`_
+documents and Python objects.  In concept it is similar to `JAXB
+<http://en.wikipedia.org/wiki/JAXB>`_ for Java and `CodeSynthesis XSD
+<http://www.codesynthesis.com/products/xsd/>`_ for C++.  A
+:ref:`thirty_sec_example` is at the bottom of this page.  Step-by-step
+examples are in :ref:`userReference`.
+
+************
+Getting Help
+************
+
+PyXB is distributed on `SourceForge <http://sourceforge.net/projects/pyxb>`_
+and `PyPI <https://pypi.python.org/pypi/PyXB/>`_, but active development has
+moved to `Github <https://github.com/pabigot/pyxb>`_.  Inter-release updates
+will be available on github on the `next
+<https://github.com/pabigot/pyxb/tree/next>`_ branch of the PyXB repository.
+
+For support, consult the `Help Forum
+<https://sourceforge.net/projects/pyxb/forums/forum/956708>`_, or subscribe to
+and email the `mailing list
+<https://sourceforge.net/mailarchive/forum.php?forum_name=pyxb-users>`_.
+
+To file a bug report or see the status of defects reported against the current
+release, visit the `Github issues page
+<http://github.com/pabigot/pyxb/issues>`_.  (Older defects were archived under
+Trac at SourceForge; the historical data was moved to the `SF ticket interface
+<http://sourceforge.net/p/pyxb/tickets/>`_ when SourceForge stopped supporting
+hosted applications.  Do not attempt to open new issues on SourceForge.)
+
+For a history of releases, see :ref:`releases`.
+
+********
+Contents
+********
+.. toctree::
+   :maxdepth: 2
+
+   overview
+   examples
+   releases
+   architecture
+   userref_index
+   maintref
+
+.. _thirty_sec_example:
+
+*********************
+Thirty Second Example
+*********************
+
+An example of a program using PyXB to interact with a `web service
+<http://wiki.cdyne.com/wiki/index.php?title=CDYNE_Weather>`_ using an
+automatically-generated module.  First, retrieve the WSDL and generate the
+bindings::
+
+ llc[566]$ pyxbgen \
+       --wsdl-location=http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL \
+       --module=weather \
+       --write-for-customization
+ Retrieving WSDL from http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL
+ WARNING:pyxb.binding.basis:Unable to convert DOM node {http://www.w3.org/2001/XMLSchema}schema at Weather.asmx?WSDL[4:4] to binding
+ PS urn:uuid:8292a36c-577f-11e4-b592-c8600024e903
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ArrayOfWeatherDescription renamed to ArrayOfWeatherDescription_
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}ForecastReturn renamed to ForecastReturn_
+ WARNING:pyxb.binding.generate:Complex type {http://ws.cdyne.com/WeatherWS/}WeatherReturn renamed to WeatherReturn_
+ Python for http://ws.cdyne.com/WeatherWS/ requires 1 modules
+
+Then write a program that uses them:
+
+.. literalinclude:: ../examples/weather/client_get.py
+
+And run it::
+
+ llc[567]$ python client_get.py
+ Weather forecast for Saint Paul, MN:
+  Wednesday, August 13 2014: Partly Cloudy, from 63 to 83
+  Thursday, August 14 2014: Partly Cloudy, from 61 to 82
+  Friday, August 15 2014: Partly Cloudy, from 65 to 86
+  Saturday, August 16 2014: Partly Cloudy, from 67 to 84
+  Sunday, August 17 2014: Partly Cloudy, from 67 to 82
+  Monday, August 18 2014: Partly Cloudy, from 67 to 83
+  Tuesday, August 19 2014: Partly Cloudy, from 65 to 84
+
+That's it.  (Note: Although the `CDYNE Weather Service
+<http://wsf.cdyne.com/WeatherWS/Weather.asmx?op=GetCityForecastByZIP>`_ is
+still available, the data underlying it is no longer updated.)
+
+******************
+Indices and tables
+******************
+
+* :ref:`genindex`
+* :ref:`search`
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

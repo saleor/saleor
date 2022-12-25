@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ns1:purchaseOrder xmlns:ns1="URN:purchase-order" orderDate="1999-10-20">
+  <ns1:billTo>
+    <city>Anytown</city>
+    <state>AK</state>
+    <street>8 Oak Avenue</street>
+    <name>Robert Smith</name>
+    <zip>12341</zip>
+  </ns1:billTo>
+  <ns1:shipTo>
+    <city>Anytown</city>
+    <state>AK</state>
+    <street>123 Maple Street</street>
+    <name>Alice Smith</name>
+    <zip>12341</zip>
+  </ns1:shipTo>
+</ns1:purchaseOrder>

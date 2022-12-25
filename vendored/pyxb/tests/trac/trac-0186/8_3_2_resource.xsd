@@ -1,0 +1,691 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:element name="XBResourceList" type="XBResourceListType"/>
+    <xsd:complexType name="XBResourceListType">
+        <xsd:sequence>
+            <xsd:element name="XBResource" minOccurs="0" maxOccurs="unbounded" type="XBResourceType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="XBResourceGroupList" type="XBResourceGroupListType"/>
+    <xsd:complexType name="XBResourceGroupListType">
+        <xsd:sequence>
+            <xsd:element name="XBResource" minOccurs="0" maxOccurs="unbounded" type="XBResourceType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="XBResourceBlockList" type="XBResourceBlockListType"/>
+    <xsd:complexType name="XBResourceBlockListType">
+        <xsd:sequence>
+            <xsd:element name="XBResourceBlock" minOccurs="0" maxOccurs="unbounded" type="XBResourceBlockType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBResourceBlockType">
+        <xsd:sequence>
+            <xsd:element name="trunkId" type="XBResourceBlockIngressTrunkId"/>
+            <xsd:element name="ingressTrunkId" type="XBResourceBlockIngressTrunkId"/>
+            <xsd:element name="blockDigit" type="digitMatchType"/>
+            <xsd:element name="blockDuration" minOccurs="0" maxOccurs="1" type="XBBlockDuration"/>
+            <xsd:element name="comment" minOccurs="0" maxOccurs="1" type="XBBlockComment"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBResourceType">
+        <xsd:sequence>
+            <xsd:element name="protocol" type="XBProtocol"/>
+            <xsd:choice>
+                <xsd:element name="typeH323gw" type="XBTypeH323gw"/>
+                <xsd:element name="typeH323gk" type="XBTypeH323gk"/>
+                <xsd:element name="typeSIPgw" type="XBTypeSIPgw"/>
+                <xsd:element name="typeENUM" type="XBTypeENUMserver"/>
+                <xsd:element name="typeAccess" type="XBTypeAccess"/>
+            </xsd:choice>
+            <xsd:element name="name" type="XBName"/>
+            <xsd:element name="companyName" type="XBCompanyName"/>
+            <xsd:element name="trunkId" type="XBTrunkId"/>
+            <xsd:element name="sgId" type="XBSgId" minOccurs="0" maxOccurs="1"/>
+            <xsd:group minOccurs="0" maxOccurs="1" ref="XBCapAndCpsType"/>
+            <xsd:element name="node" minOccurs="1" maxOccurs="64" type="XBFqdnType"/>
+            <xsd:element name="rtid" type="XBRtid" minOccurs="0" maxOccurs="1"/>
+
+            <xsd:element name="ingress1" type="XBIngress"/>
+            <xsd:element name="ingress2" type="XBIngress"/>
+            <xsd:element name="egress1" type="XBEgress"/>
+            <xsd:element name="egress2" type="XBEgress"/>
+            <xsd:element name="outboundANI" type="XBOutboundANI"/>
+            <xsd:element name="techPrefix" type="XBTechPrefix" minOccurs="0" maxOccurs="1"/>
+
+            <xsd:element name="rnIngress1" type="XBIngress"/>
+            <xsd:element name="rnIngress2" type="XBIngress"/>
+            <xsd:element name="rnEgress1" type="XBEgress"/>
+            <xsd:element name="rnEgress2" type="XBEgress"/>
+
+            <xsd:element name="codecPolicy" type="XBCodecPolicy"/>
+            <xsd:element name="codec" minOccurs="0" maxOccurs="8" type="XBCodec"/>
+            <xsd:element name="groupPolicy" minOccurs="0" maxOccurs="1" type="XBGroupPolicy"/>
+            <xsd:element name="dtid" type="XBDigitTranslationIndex" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="t38" type="XBT38" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="rfc2833" type="XBRfc2833" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="payloadType" type="XBPayloadType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="tos" type="XBTos"/>
+            <xsd:element name="svcPortIndex" type="XBSvcPortIndex"/>
+
+            <xsd:element name="radiusAuthGrpIndex" minOccurs="1" maxOccurs="1" type="XBAppGroupIndex"/>
+            <xsd:element name="radiusAcctGrpIndex" minOccurs="1" maxOccurs="1" type="XBAppGroupIndex"/>
+            <xsd:element name="lnpGrpIndex" minOccurs="1" maxOccurs="1"  type="XBAppGroupIndex"/>
+            <xsd:element name="teleblockGrpIndex" minOccurs="1" maxOccurs="1"  type="XBAppGroupIndex"/>
+            <xsd:element name="cnamGrpIndex" minOccurs="1" maxOccurs="1"  type="XBAppGroupIndex"/>
+            <xsd:element name="ersGrpIndex" minOccurs="1" maxOccurs="1"  type="XBAppGroupIndex"/>
+            <xsd:element name="maxCallDuration" minOccurs="1" maxOccurs="1"  type="XBMaxCallDuration"/>
+
+            <xsd:element name="acct" minOccurs="0" maxOccurs="1" type="XBAccount"/>
+            <xsd:element name="auth" minOccurs="0" maxOccurs="1" type="XBAuthentication"/>
+
+            <xsd:element name="noAnswerTimeout" minOccurs="0" maxOccurs="1" type="XBNoAnswerTimeout"/>
+            <xsd:element name="noRingTimeout" minOccurs="0" maxOccurs="1" type="XBNoRingTimeout"/>
+
+            <xsd:element name="causeCodeProfile" minOccurs="1" maxOccurs="1" type="XBCauseCodeProfileId"/>
+            <xsd:element name="stopRouteProfile" minOccurs="1" maxOccurs="1" type="XBStopRouteProfileId"/>
+
+            <xsd:element name="paiAction" minOccurs="1" maxOccurs="1" type="XBPAIAction"/>
+            <xsd:element name="paiString" minOccurs="1" maxOccurs="1" type="XBPAIString"/>
+            <xsd:element name="inheritedGenericHeader" minOccurs="1" maxOccurs="1" type="XBInheritedGenericHeader"/>
+
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="XBDigitTranslationIndex">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="10000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBAccount">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBAuthentication">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBT38">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBRfc2833">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBPayloadType">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="255"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBTos">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[a-fA-F0-9]*"/>
+            <xsd:minLength value="1"/>
+            <xsd:maxLength value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBCpsLimit">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="5000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBGroupPolicy">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="top_down"/>
+            <xsd:enumeration value="round_robin"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBProtocol">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="H.323 GW"/>
+            <xsd:enumeration value="H.323 GK"/>
+            <xsd:enumeration value="SIP"/>
+            <xsd:enumeration value="ENUM"/>
+            <xsd:enumeration value="Access"/>
+            <xsd:enumeration value="Dynamic Peering"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="XBTypeH323gw">
+        <xsd:sequence>
+            <xsd:element name="portAddress" type="XBPortAddress"/>
+            <xsd:element name="H245Tunnel" type="XBH245Tunnel"/>
+            <xsd:element name="serviceState" type="XBServiceState"/>
+            <xsd:element name="direction" type="XBDirection"/>
+            <xsd:element name="NAT" type="XBNat"/>
+            <xsd:element name="allowDirectMedia" type="XBAllowDirectMedia"/>
+            <xsd:element name="singleTcsCodec" type="XBSingleTcsCodec"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBTypeH323gk">
+        <xsd:sequence>
+            <xsd:element name="portAddress" type="XBPortAddress"/>
+            <xsd:element name="gateKeeperId" type="XBGatekeeperId"/>
+            <xsd:element name="serviceState" type="XBServiceState"/>
+            <xsd:element name="direction" type="XBDirection"/>
+            <xsd:element name="H245Tunnel" type="XBH245Tunnel"/>
+            <xsd:element name="NAT" type="XBNat"/>
+            <xsd:element name="allowDirectMedia" type="XBAllowDirectMedia"/>
+            <xsd:element name="singleTcsCodec" type="XBSingleTcsCodec"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBTypeENUMserver">
+        <xsd:sequence>
+            <xsd:element name="portAddress" type="XBPortAddress"/>
+            <xsd:element name="serviceDomain" type="XBServiceDomain"/>
+            <xsd:element name="serviceState" type="XBServiceState"/>
+            <xsd:element name="allowDirectMedia" type="XBAllowDirectMedia" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBTypeSIPgw">
+        <xsd:sequence>
+            <xsd:element name="portAddress" type="XBPortAddress"/>
+            <xsd:element name="serviceState" type="XBServiceState"/>
+            <xsd:element name="direction" type="XBDirection"/>
+            <xsd:element name="NAT" type="XBNat"/>
+            <xsd:element name="allowDirectMedia" type="XBAllowDirectMedia"/>
+            <xsd:element name="allowRegisters" type="XBAllowRegisters" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="portType" type="XBPortType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="sipProfileIndex" type="XBSipProfileIndex"/>
+            <xsd:element name="optionPoll" minOccurs="0" maxOccurs="1" type="XBOptionPoll"/>
+            <xsd:element name="authorizedRPS" minOccurs="0" maxOccurs="1" type="XBRPS"/>
+            <xsd:element name="unauthorizedRPS" minOccurs="0" maxOccurs="1" type="XBRPS"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBTypeAccess">
+        <xsd:sequence>
+            <xsd:element name="serviceState" type="XBServiceState"/>
+            <xsd:element name="NAT" type="XBNat"/>
+            <xsd:element name="allowDirectMedia" type="XBAllowDirectMedia"/>
+            <xsd:element name="registrarMode" type="XBRegistrarMode"/>
+            <xsd:element name="subsRegIntvl" minOccurs="0" maxOccurs="1" type="XBRegistrationIntvl"/>
+            <xsd:element name="registrarRegIntvl" minOccurs="0" maxOccurs="1" type="XBRegistrationIntvl"/>
+            <xsd:element name="sipProfileIndex" type="XBSipProfileIndex"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBIngress">
+        <xsd:sequence>
+            <xsd:element name="match" type="XBMatch"/>
+            <xsd:element name="action1" type="XBAction"/>
+            <xsd:element name="digits1" type="XBDigits"/>
+            <xsd:element name="action2" type="XBAction"/>
+            <xsd:element name="digits2" type="XBDigits"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBEgress">
+        <xsd:sequence>
+            <xsd:element name="match" type="XBMatch"/>
+            <xsd:element name="action1" type="XBAction"/>
+            <xsd:element name="digits1" type="XBDigits"/>
+            <xsd:element name="action2" type="XBAction"/>
+            <xsd:element name="digits2" type="XBDigits"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="XBMatch">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[\w*#+]*"/>
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="20"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBAction">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none"/>
+            <xsd:enumeration value="append"/>
+            <xsd:enumeration value="prepend"/>
+            <xsd:enumeration value="left strip"/>
+            <xsd:enumeration value="right strip"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBDigits">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[\w*#+]*"/>
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="20"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+<!-- minInclusive used to be 1001, after enum type added -->
+<!-- default value for enum type is 53 -->
+    <xsd:simpleType name="XBPortAddress">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="53"/>
+            <xsd:maxInclusive value="65535"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBH245Tunnel">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enable"/>
+            <xsd:enumeration value="disable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBServiceState">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="block"/>
+            <xsd:enumeration value="inservice"/>
+            <xsd:enumeration value="trace"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBDirection">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="in"/>
+            <xsd:enumeration value="out"/>
+            <xsd:enumeration value="both"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBNat">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+            <xsd:enumeration value="auto"/>
+            <xsd:enumeration value="none"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBAllowDirectMedia">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="yes"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBAllowRegisters">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="no"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBPortType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="UDP"/>
+            <xsd:enumeration value="TCP"/>
+            <xsd:enumeration value="TLS"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBGatekeeperId">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="40"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBServiceDomain">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBRfc3261">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBName">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="40"/>
+            <xsd:pattern value="[^,;]*"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBCompanyName">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="30"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+<!-- same as the GroupId defind in spx.xsd -->
+    <xsd:simpleType name="XBSgId">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="65535"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBTrunkId">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="1" />
+            <xsd:maxInclusive value="99999"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBResourceBlockIngressTrunkId">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="99999"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBChannelCapacity">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="50000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+
+<!--fixme here -->
+    <xsd:complexType name="XBFqdnType">
+        <xsd:sequence>
+            <xsd:element name="fqdn" type="XBFqdn"/>
+            <xsd:element name="netmask" type="XBNetmask" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="capacity" type="XBChannelCapacity"/>
+            <xsd:element name="cpsLimit" type="XBCpsLimit"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+<!--fixme here -->
+    <xsd:group name="XBCapAndCpsType">
+        <xsd:sequence>
+            <xsd:element name="capacity" type="XBChannelCapacity"/>
+            <xsd:element name="cpsLimit" type="XBCpsLimit"/>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:simpleType name="XBFqdn">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[^\s]*"/>
+            <xsd:minLength value="1"/>
+            <xsd:maxLength value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBNetmask">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="32"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBRtid">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="99999"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBOutboundANI">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[\w*#+]*"/>
+            <xsd:minLength value="1"/>
+            <xsd:maxLength value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBTechPrefix">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[\w*#+]*"/>
+            <xsd:minLength value="1"/>
+            <xsd:maxLength value="10"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBCodecPolicy">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="transparent"/>
+            <xsd:enumeration value="enforced"/>
+            <xsd:enumeration value="transcode"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBCodec">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none"/>
+            <xsd:enumeration value="g711u 64k"/>
+            <xsd:enumeration value="g711u 56k"/>
+            <xsd:enumeration value="g711a 64k"/>
+            <xsd:enumeration value="g711a 56k"/>
+            <xsd:enumeration value="g7231"/>
+            <xsd:enumeration value="g728"/>
+            <xsd:enumeration value="g729"/>
+            <xsd:enumeration value="g729A"/>
+            <xsd:enumeration value="g729B"/>
+            <xsd:enumeration value="g729AB"/>
+            <xsd:enumeration value="gms full"/>
+            <xsd:enumeration value="rfc2833"/>
+            <xsd:enumeration value="t38"/>
+            <xsd:enumeration value="ilbc"/>
+            <xsd:enumeration value="h263"/>
+            <xsd:enumeration value="g722"/>
+            <xsd:enumeration value="g722_1"/>
+            <xsd:enumeration value="g729D"/>
+            <xsd:enumeration value="g729E"/>
+            <xsd:enumeration value="amr"/>
+            <xsd:enumeration value="amr_wb"/>
+            <xsd:enumeration value="efr"/>
+            <xsd:enumeration value="evrc"/>
+            <xsd:enumeration value="h264"/>
+            <xsd:enumeration value="mpeg4"/>
+            <xsd:enumeration value="red"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBSingleTcsCodec">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enable"/>
+            <xsd:enumeration value="disable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+<!-- digitMatch will be 1 or more digits -->
+    <xsd:simpleType name="digitMatchType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[\w*#+]*"/>
+            <xsd:minLength value="1"/>
+            <xsd:maxLength value="40"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+<!--duration for block-->
+    <xsd:simpleType name="XBBlockDuration">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="65535"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBBlockComment">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="40"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBSvcPortIndex">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="1024"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBSipProfileIndex">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="1000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBRegistrarMode">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Internal"/>
+            <xsd:enumeration value="Internal for Register Only"/>
+            <xsd:enumeration value="External"/>
+            <xsd:enumeration value="External with Offload"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBRegistrationIntvl">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="10"/>
+            <xsd:maxInclusive value="65000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBAppGroupIndex">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="16"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBMaxCallDuration">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="10"/>
+            <xsd:maxInclusive value="131000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBNoAnswerTimeout">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="100000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBNoRingTimeout">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="100000"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBOptionPoll">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disable"/>
+            <xsd:enumeration value="enable"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBRPS">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="65535"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+
+    <!-- Elements used for real-time statistics data export -->
+    <xsd:element name="XBResourceRealTimeStatList" type="XBResourceRealTimeStatListType"/>
+    <xsd:complexType name="XBResourceRealTimeStatListType">
+        <xsd:sequence>
+            <xsd:element name="XBResourceRealTimeStat" minOccurs="0" maxOccurs="unbounded" type="XBResourceRealTimeStatType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBResourceRealTimeStatType">
+        <xsd:sequence>
+            <xsd:element name="trunkId" type="XBTrunkId"/>
+            <xsd:element name="alias" type="XBName"/>
+            <xsd:element name="fqdn" type="XBFqdn"/>
+            <xsd:element name="numOrig" type="XBStatsItem"/>
+            <xsd:element name="numTerm" type="XBStatsItem"/>
+            <xsd:element name="cps" type="XBStatsItem"/>
+            <xsd:element name="numPeak" type="XBStatsItem"/>
+            <xsd:element name="totalCLZ" type="XBStatsItem"/>
+            <xsd:element name="numCLZCps" type="XBStatsItem"/>
+            <xsd:element name="totalLimit" type="XBStatsItem"/>
+            <xsd:element name="cpsLimit" type="XBStatsItem"/>
+            <xsd:element name="ingressAsr" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ingressAcd" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="egressAsr" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="egressAcd" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="XBStatsItem">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <!-- Elements used for resource detail real-time statistics data export -->
+    <xsd:element name="XBResourceDetailRealTimeStatList" type="XBResourceDetailRealTimeStatListType"/>
+    <xsd:complexType name="XBResourceDetailRealTimeStatListType">
+        <xsd:sequence>
+            <xsd:element name="XBResourceDetailRealTimeStat" minOccurs="0" maxOccurs="unbounded" type="XBResourceDetailRealTimeStatType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="XBResourceDetailRealTimeStatType">
+        <xsd:sequence>
+            <xsd:element name="origTrunkId" type="XBTrunkId"/>
+            <xsd:element name="origAlias" type="XBName"/>
+            <xsd:element name="origGrpCap" type="XBStatsItem"/>
+            <xsd:element name="origGrpCps" type="XBStatsItem"/>
+            <xsd:element name="origFqdn" type="XBFqdn"/>
+            <xsd:element name="origCap" type="XBStatsItem"/>
+            <xsd:element name="origCps" type="XBStatsItem"/>
+
+            <xsd:element name="termTrunkId" type="XBTrunkId"/>
+            <xsd:element name="termAlias" type="XBName"/>
+            <xsd:element name="termGrpCap" type="XBStatsItem"/>
+            <xsd:element name="termGrpCps" type="XBStatsItem"/>
+            <xsd:element name="termFqdn" type="XBFqdn"/>
+            <xsd:element name="termCap" type="XBStatsItem"/>
+            <xsd:element name="termCps" type="XBStatsItem"/>
+
+            <xsd:element name="numActive" type="XBStatsItem"/>
+            <xsd:element name="peakActive" type="XBStatsItem"/>
+            <xsd:element name="cps" type="XBStatsItem"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <!-- Cause Code Profiles -->
+    <xsd:element name="XBCauseCodeProfileList" type="XBCauseCodeProfileListType"/>
+    <xsd:complexType name="XBCauseCodeProfileListType">
+        <xsd:sequence>
+            <xsd:element name="XBCauseCodeProfile" minOccurs="0" maxOccurs="unbounded" type="XBCauseCodeProfileType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="XBCauseCodeProfileType">
+        <xsd:sequence>
+            <xsd:element name="id" type="XBCauseCodeProfileId"/>
+            <xsd:element name="alias" type="XBName"/>
+            <xsd:element name="causeCodeMappings" minOccurs="0" maxOccurs="1000" type="XBCauseCodeMap"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="XBCauseCodeProfileId">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="XBCauseCodeMap">
+        <xsd:sequence>
+            <xsd:element name="XBSourceCauseCode" type="XBCauseCode"/>
+            <xsd:element name="XBMappedSipCauseCode" type="XBCauseCode"/>
+            <xsd:element name="XBMappedH323CauseCode" type="XBCauseCode"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="XBCauseCode">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="999"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Stop Route Profiles -->
+    <xsd:element name="XBStopRouteProfileList" type="XBStopRouteProfileListType"/>
+    <xsd:complexType name="XBStopRouteProfileListType">
+        <xsd:sequence>
+            <xsd:element name="XBStopRouteProfile" minOccurs="0" maxOccurs="unbounded" type="XBStopRouteProfileType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="XBStopRouteProfileType">
+        <xsd:sequence>
+            <xsd:element name="id" type="XBStopRouteProfileId"/>
+            <xsd:element name="alias" type="XBName"/>
+            <xsd:element name="sipTrunkStopCodes" type="XBStopRouteCodesType"/>
+            <xsd:element name="sipGlobalStopCodes" type="XBStopRouteCodesType"/>
+            <xsd:element name="h323TrunkStopCodes" type="XBStopRouteCodesType"/>
+            <xsd:element name="h323GlobalStopCodes" type="XBStopRouteCodesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="XBStopRouteProfileId">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="XBStopRouteCodesType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="([0-9, -]*)"/>
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="255"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- PAI -->
+    <xsd:simpleType name="XBPAIAction">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Disable"/>
+            <xsd:enumeration value="Fill"/>
+            <xsd:enumeration value="Overwrite"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBPAIString">
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="XBInheritedGenericHeader">
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="128"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

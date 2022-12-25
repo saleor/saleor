@@ -289,22 +289,48 @@ class ModelIdentifier:
 
 @dataclass
 class ModelIdentifiers:
-    user_ids: ModelIdentifier = ModelIdentifier(model="User")
-    user_emails: ModelIdentifier = ModelIdentifier(model="User")
-    user_external_references: ModelIdentifier = ModelIdentifier(model="User")
-    channel_slugs: ModelIdentifier = ModelIdentifier(model="Channel")
-    voucher_codes: ModelIdentifier = ModelIdentifier(model="VoucherCode")
-    warehouse_ids: ModelIdentifier = ModelIdentifier(model="Warehouse")
-    shipping_method_ids: ModelIdentifier = ModelIdentifier(model="ShippingMethod")
-    tax_class_ids: ModelIdentifier = ModelIdentifier(model="TaxClass")
-    order_external_references: ModelIdentifier = ModelIdentifier(model="Order")
-    variant_ids: ModelIdentifier = ModelIdentifier(model="ProductVariant")
-    variant_skus: ModelIdentifier = ModelIdentifier(model="ProductVariant")
-    variant_external_references: ModelIdentifier = ModelIdentifier(
-        model="ProductVariant"
+    user_ids: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="User")
     )
-    gift_card_codes: ModelIdentifier = ModelIdentifier(model="GiftCard")
-    app_ids: ModelIdentifier = ModelIdentifier(model="App")
+    user_emails: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="User")
+    )
+    user_external_references: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="User")
+    )
+    channel_slugs: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="Channel")
+    )
+    voucher_codes: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="VoucherCode")
+    )
+    warehouse_ids: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="Warehouse")
+    )
+    shipping_method_ids: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="ShippingMethod")
+    )
+    tax_class_ids: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="TaxClass")
+    )
+    order_external_references: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="Order")
+    )
+    variant_ids: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="ProductVariant")
+    )
+    variant_skus: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="ProductVariant")
+    )
+    variant_external_references: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="ProductVariant")
+    )
+    gift_card_codes: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="GiftCard")
+    )
+    app_ids: ModelIdentifier = dataclass_field(
+        default_factory=lambda: ModelIdentifier(model="App")
+    )
 
 
 class TaxedMoneyInput(BaseInputObjectType):

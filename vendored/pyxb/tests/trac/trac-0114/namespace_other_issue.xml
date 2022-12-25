@@ -1,0 +1,13 @@
+<ns1:a xmlns:ns1="urn:schema:a"
+       xmlns:ns2="urn:schema:b"
+       xmlns:ns3="urn:schema:c"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       urn:schema:a namespace_other_issue.xsd
+       urn:schema:b namespace_other_issue_support.xsd
+       urn:schema:c no_schema_for_this.xsd
+       ">
+    <ns1:Extensions>
+        <ns2:xyz ns3:tag="value">abc</ns2:xyz>
+    </ns1:Extensions>
+</ns1:a>

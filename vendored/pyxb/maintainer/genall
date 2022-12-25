@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# Generate all supported bundles in a more succinct form, with post-gen scan
+# for errors.  Used during development as a system validation check.
+
+maintainer/genbundles @ % \
+   2>&1 | tee gbo \
+   | grep '^Generating'
+echo "\nScanning for issues in build log"
+egrep -i 'error|assert|fail' gbo
