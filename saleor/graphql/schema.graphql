@@ -2605,7 +2605,6 @@ type Permission {
   name: String!
 }
 
-"""An enumeration."""
 enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
@@ -2877,7 +2876,6 @@ input EventDeliveryFilterInput {
 
 scalar JSONString
 
-"""An enumeration."""
 enum WebhookSampleEventTypeEnum {
   ADDRESS_CREATED
   ADDRESS_UPDATED
@@ -3131,7 +3129,6 @@ type ReducedRate {
   rateType: String!
 }
 
-"""An enumeration."""
 enum WarehouseClickAndCollectOptionEnum {
   DISABLED
   LOCAL
@@ -3377,7 +3374,6 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   taxClass: TaxClass
 }
 
-"""An enumeration."""
 enum ShippingMethodTypeEnum {
   PRICE
   WEIGHT
@@ -3406,7 +3402,6 @@ type LanguageDisplay {
   language: String!
 }
 
-"""An enumeration."""
 enum LanguageCodeEnum {
   AF
   AF_NA
@@ -4298,7 +4293,6 @@ type ShippingMethodsPerCountry {
   shippingMethods: [ShippingMethod!]
 }
 
-"""An enumeration."""
 enum CountryCode {
   AF
   AX
@@ -4661,7 +4655,6 @@ type Weight {
   value: Float!
 }
 
-"""An enumeration."""
 enum WeightUnitsEnum {
   G
   LB
@@ -4712,7 +4705,6 @@ type ShippingMethodPostalCodeRule implements Node {
   inclusionType: PostalCodeRuleInclusionTypeEnum
 }
 
-"""An enumeration."""
 enum PostalCodeRuleInclusionTypeEnum {
   INCLUDE
   EXCLUDE
@@ -5080,7 +5072,6 @@ type ProductType implements Node & ObjectWithMetadata {
   ): AttributeCountableConnection
 }
 
-"""An enumeration."""
 enum ProductTypeKindEnum {
   NORMAL
   GIFT_CARD
@@ -5341,7 +5332,6 @@ type Attribute implements Node & ObjectWithMetadata {
   externalReference: String
 }
 
-"""An enumeration."""
 enum AttributeInputTypeEnum {
   DROPDOWN
   MULTISELECT
@@ -5356,20 +5346,17 @@ enum AttributeInputTypeEnum {
   DATE_TIME
 }
 
-"""An enumeration."""
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
   PRODUCT_VARIANT
 }
 
-"""An enumeration."""
 enum AttributeTypeEnum {
   PRODUCT_TYPE
   PAGE_TYPE
 }
 
-"""An enumeration."""
 enum MeasurementUnitsEnum {
   CM
   M
@@ -6033,7 +6020,6 @@ type Image {
   alt: String
 }
 
-"""An enumeration."""
 enum ThumbnailFormatEnum {
   WEBP
 }
@@ -6412,7 +6398,6 @@ type ProductMedia implements Node {
   ): String!
 }
 
-"""An enumeration."""
 enum ProductMediaType {
   IMAGE
   VIDEO
@@ -8998,7 +8983,6 @@ type GiftCardEvent implements Node {
   oldExpiryDate: Date
 }
 
-"""An enumeration."""
 enum GiftCardEventsEnum {
   ISSUED
   BOUGHT
@@ -9533,7 +9517,6 @@ type Order implements Node & ObjectWithMetadata {
   externalReference: String
 }
 
-"""An enumeration."""
 enum OrderStatus {
   DRAFT
   UNCONFIRMED
@@ -9609,7 +9592,6 @@ type Fulfillment implements Node & ObjectWithMetadata {
   warehouse: Warehouse
 }
 
-"""An enumeration."""
 enum FulfillmentStatus {
   FULFILLED
   REFUNDED
@@ -9910,7 +9892,6 @@ interface Job {
   message: String
 }
 
-"""An enumeration."""
 enum JobStatusEnum {
   PENDING
   SUCCESS
@@ -9918,14 +9899,12 @@ enum JobStatusEnum {
   DELETED
 }
 
-"""An enumeration."""
 enum OrderOriginEnum {
   CHECKOUT
   DRAFT
   REISSUE
 }
 
-"""An enumeration."""
 enum PaymentChargeStatusEnum {
   NOT_CHARGED
   PENDING
@@ -10099,7 +10078,6 @@ type Transaction implements Node {
   amount: Money
 }
 
-"""An enumeration."""
 enum TransactionKind {
   EXTERNAL
   AUTH
@@ -10209,7 +10187,6 @@ type OrderEvent implements Node {
   reference: String
 }
 
-"""An enumeration."""
 enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
@@ -10259,7 +10236,6 @@ enum OrderEventsEnum {
   OTHER
 }
 
-"""An enumeration."""
 enum OrderEventsEmailsEnum {
   PAYMENT_CONFIRMATION
   CONFIRMED
@@ -10309,7 +10285,6 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
-"""An enumeration."""
 enum TransactionStatus {
   PENDING
   SUCCESS
@@ -10340,7 +10315,6 @@ type OrderDiscount implements Node {
   amount: Money!
 }
 
-"""An enumeration."""
 enum OrderDiscountType {
   VOUCHER
   MANUAL
@@ -10371,7 +10345,6 @@ type OrderError {
   addressType: AddressTypeEnum
 }
 
-"""An enumeration."""
 enum OrderErrorCode {
   BILLING_ADDRESS_NOT_SET
   CANNOT_CANCEL_FULFILLMENT
@@ -10407,7 +10380,6 @@ enum OrderErrorCode {
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
 }
 
-"""An enumeration."""
 enum AddressTypeEnum {
   BILLING
   SHIPPING
@@ -10544,7 +10516,6 @@ type CustomerEvent implements Node {
   orderLine: OrderLine
 }
 
-"""An enumeration."""
 enum CustomerEventsEnum {
   ACCOUNT_CREATED
   ACCOUNT_ACTIVATED
@@ -10617,7 +10588,6 @@ type GiftCardSettings {
   expiryPeriod: TimePeriod
 }
 
-"""An enumeration."""
 enum GiftCardSettingsExpiryTypeEnum {
   NEVER_EXPIRE
   EXPIRY_PERIOD
@@ -10631,7 +10601,6 @@ type TimePeriod {
   type: TimePeriodTypeEnum!
 }
 
-"""An enumeration."""
 enum TimePeriodTypeEnum {
   DAY
   WEEK
@@ -11236,7 +11205,6 @@ type ConfigurationItem {
   label: String
 }
 
-"""An enumeration."""
 enum ConfigurationTypeFieldEnum {
   STRING
   MULTILINE
@@ -11496,7 +11464,6 @@ type ExportEvent implements Node {
   message: String!
 }
 
-"""An enumeration."""
 enum ExportEventsEnum {
   EXPORT_PENDING
   EXPORT_SUCCESS
@@ -15704,7 +15671,6 @@ type WebhookError {
   code: WebhookErrorCode!
 }
 
-"""An enumeration."""
 enum WebhookErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -15860,7 +15826,6 @@ type WarehouseError {
   shippingZones: [ID!]
 }
 
-"""An enumeration."""
 enum WarehouseErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -16011,7 +15976,6 @@ type TaxClassCreateError {
   countryCodes: [String!]!
 }
 
-"""An enumeration."""
 enum TaxClassCreateErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -16063,7 +16027,6 @@ type TaxClassDeleteError {
   code: TaxClassDeleteErrorCode!
 }
 
-"""An enumeration."""
 enum TaxClassDeleteErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -16100,7 +16063,6 @@ type TaxClassUpdateError {
   countryCodes: [String!]!
 }
 
-"""An enumeration."""
 enum TaxClassUpdateErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
@@ -16163,7 +16125,6 @@ type TaxConfigurationUpdateError {
   countryCodes: [String!]!
 }
 
-"""An enumeration."""
 enum TaxConfigurationUpdateErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
@@ -16246,7 +16207,6 @@ type TaxCountryConfigurationUpdateError {
   taxClassIds: [String!]!
 }
 
-"""An enumeration."""
 enum TaxCountryConfigurationUpdateErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -16291,7 +16251,6 @@ type TaxCountryConfigurationDeleteError {
   code: TaxCountryConfigurationDeleteErrorCode!
 }
 
-"""An enumeration."""
 enum TaxCountryConfigurationDeleteErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -16327,7 +16286,6 @@ type TaxExemptionManageError {
   code: TaxExemptionManageErrorCode!
 }
 
-"""An enumeration."""
 enum TaxExemptionManageErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -16359,7 +16317,6 @@ type ShopError {
   code: ShopErrorCode!
 }
 
-"""An enumeration."""
 enum ShopErrorCode {
   ALREADY_EXISTS
   CANNOT_FETCH_TAX_RATES
@@ -16562,7 +16519,6 @@ type TranslationError {
   code: TranslationErrorCode!
 }
 
-"""An enumeration."""
 enum TranslationErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -16612,7 +16568,6 @@ type OrderSettingsError {
   code: OrderSettingsErrorCode!
 }
 
-"""An enumeration."""
 enum OrderSettingsErrorCode {
   INVALID
 }
@@ -16653,7 +16608,6 @@ type GiftCardSettingsError {
   code: GiftCardSettingsErrorCode!
 }
 
-"""An enumeration."""
 enum GiftCardSettingsErrorCode {
   INVALID
   REQUIRED
@@ -16707,7 +16661,6 @@ type ShippingError {
   channels: [ID!]
 }
 
-"""An enumeration."""
 enum ShippingErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -17021,7 +16974,6 @@ type ProductError {
   values: [ID!]
 }
 
-"""An enumeration."""
 enum ProductErrorCode {
   ALREADY_EXISTS
   ATTRIBUTE_ALREADY_ASSIGNED
@@ -17258,7 +17210,6 @@ type CollectionError {
   code: CollectionErrorCode!
 }
 
-"""An enumeration."""
 enum CollectionErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
@@ -18539,7 +18490,6 @@ type StockError {
   code: StockErrorCode!
 }
 
-"""An enumeration."""
 enum StockErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -18747,7 +18697,6 @@ type PaymentError {
   variants: [ID!]
 }
 
-"""An enumeration."""
 enum PaymentErrorCode {
   BILLING_ADDRESS_NOT_SET
   GRAPHQL_ERROR
@@ -18881,7 +18830,6 @@ type TransactionCreateError {
   code: TransactionCreateErrorCode!
 }
 
-"""An enumeration."""
 enum TransactionCreateErrorCode {
   INVALID
   GRAPHQL_ERROR
@@ -18958,7 +18906,6 @@ type TransactionUpdateError {
   code: TransactionUpdateErrorCode!
 }
 
-"""An enumeration."""
 enum TransactionUpdateErrorCode {
   INVALID
   GRAPHQL_ERROR
@@ -19026,7 +18973,6 @@ type TransactionRequestActionError {
   code: TransactionRequestActionErrorCode!
 }
 
-"""An enumeration."""
 enum TransactionRequestActionErrorCode {
   INVALID
   GRAPHQL_ERROR
@@ -19064,7 +19010,6 @@ type PageError {
   values: [ID!]
 }
 
-"""An enumeration."""
 enum PageErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -20031,7 +19976,6 @@ type MetadataError {
   code: MetadataErrorCode!
 }
 
-"""An enumeration."""
 enum MetadataErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -20092,7 +20036,6 @@ type MenuError {
   code: MenuErrorCode!
 }
 
-"""An enumeration."""
 enum MenuErrorCode {
   CANNOT_ASSIGN_NODE
   GRAPHQL_ERROR
@@ -20324,7 +20267,6 @@ type InvoiceError {
   code: InvoiceErrorCode!
 }
 
-"""An enumeration."""
 enum InvoiceErrorCode {
   REQUIRED
   NOT_READY
@@ -20435,7 +20377,6 @@ type GiftCardError {
   tags: [String!]
 }
 
-"""An enumeration."""
 enum GiftCardErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -20783,7 +20724,6 @@ type PluginError {
   code: PluginErrorCode!
 }
 
-"""An enumeration."""
 enum PluginErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -20831,7 +20771,6 @@ type ExternalNotificationError {
   code: ExternalNotificationErrorCodes!
 }
 
-"""An enumeration."""
 enum ExternalNotificationErrorCodes {
   REQUIRED
   INVALID_MODEL_TYPE
@@ -20886,7 +20825,6 @@ type DiscountError {
   channels: [ID!]
 }
 
-"""An enumeration."""
 enum DiscountErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -21232,7 +21170,6 @@ type ExportError {
   code: ExportErrorCode!
 }
 
-"""An enumeration."""
 enum ExportErrorCode {
   GRAPHQL_ERROR
   INVALID
@@ -21297,7 +21234,6 @@ enum ProductFieldEnum {
   VARIANT_MEDIA
 }
 
-"""An enumeration."""
 enum FileTypesEnum {
   CSV
   XLSX
@@ -21358,7 +21294,6 @@ type UploadError {
   code: UploadErrorCode!
 }
 
-"""An enumeration."""
 enum UploadErrorCode {
   GRAPHQL_ERROR
 }
@@ -21393,7 +21328,6 @@ type CheckoutError {
   addressType: AddressTypeEnum
 }
 
-"""An enumeration."""
 enum CheckoutErrorCode {
   BILLING_ADDRESS_NOT_SET
   CHECKOUT_NOT_FULLY_PAID
@@ -21790,7 +21724,6 @@ type OrderCreateFromCheckoutError {
   lines: [ID!]
 }
 
-"""An enumeration."""
 enum OrderCreateFromCheckoutErrorCode {
   GRAPHQL_ERROR
   CHECKOUT_NOT_FOUND
@@ -21838,7 +21771,6 @@ type ChannelError {
   warehouses: [ID!]
 }
 
-"""An enumeration."""
 enum ChannelErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -22039,7 +21971,6 @@ type AttributeError {
   code: AttributeErrorCode!
 }
 
-"""An enumeration."""
 enum AttributeErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
@@ -22387,7 +22318,6 @@ type AppError {
   permissions: [PermissionEnum!]
 }
 
-"""An enumeration."""
 enum AppErrorCode {
   FORBIDDEN
   GRAPHQL_ERROR
@@ -22658,7 +22588,6 @@ type AccountError {
   addressType: AddressTypeEnum
 }
 
-"""An enumeration."""
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
@@ -23361,7 +23290,6 @@ type PermissionGroupError {
   users: [ID!]
 }
 
-"""An enumeration."""
 enum PermissionGroupErrorCode {
   ASSIGN_NON_STAFF_MEMBER
   DUPLICATED_INPUT_ITEM
@@ -23450,7 +23378,6 @@ interface Event {
 
 union IssuingPrincipal = App | User
 
-"""An enumeration."""
 enum DistanceUnitsEnum {
   CM
   M
@@ -23460,7 +23387,6 @@ enum DistanceUnitsEnum {
   INCH
 }
 
-"""An enumeration."""
 enum AreaUnitsEnum {
   SQ_CM
   SQ_M
@@ -23470,7 +23396,6 @@ enum AreaUnitsEnum {
   SQ_INCH
 }
 
-"""An enumeration."""
 enum VolumeUnitsEnum {
   CUBIC_MILLIMETER
   CUBIC_CENTIMETER
