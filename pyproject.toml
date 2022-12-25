@@ -33,6 +33,7 @@ documentation = "https://docs.saleor.io/"
   google-i18n-address = "^2.5.2"
   google-measurement-protocol = "^1.0"
   html-to-draftjs = "^1.0.1"
+  lxml = "^4.9.2" # Authorize.net plugin
   markdown = "^3.1.1"
   petl = "1.7.12"
   opentracing = "^2.3.0"
@@ -59,7 +60,6 @@ documentation = "https://docs.saleor.io/"
   gunicorn = "^20.0.4"
   pybars3 = "^0.9.7"
   html2text = "^2020.1.16"
-  authorizenet = "^1.1.3"
   azure-common = "^1.1.28"
   azure-storage-blob = "^12.12.0"
   azure-storage-common = "^2.1.0"
@@ -126,27 +126,16 @@ documentation = "https://docs.saleor.io/"
   fakeredis = "^1.8"
 
 [tool.black]
-target_version = [ "py35", "py36", "py37", "py38" ]
+target_version = [ "py39" ]
 include = "\\.pyi?$"
-exclude = """
-/(\\.git/
-  |\\.eggs
-  |\\.hg
-  |__pycache__
-  |\\.cache
-  |\\.ipynb_checkpoints
-  |\\.mypy_cache
-  |\\.pytest_cache
-  |\\.tox
-  |\\.venv
-  |node_modules
-  |_build
-  |buck-out
+extend-exclude = """
+(
+  node_modules
   |build
+  |deployment
   |dist
   |media
-  |infrastructure
   |templates
-  |locale
-)/
+  |vendored
+)
 """

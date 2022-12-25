@@ -1,13 +1,9 @@
 import json
+import os.path
+import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
-from authorizenet import apicontractsv1
-from authorizenet.apicontrollers import (
-    constants,
-    createTransactionController,
-    getCustomerProfileController,
-)
 from lxml import etree
 from lxml.objectify import ObjectifiedElement
 
@@ -18,6 +14,16 @@ from ...interface import (
     GatewayResponse,
     PaymentData,
     PaymentMethodInfo,
+)
+
+# vendored dependencies
+sys.path.append(os.path.join(os.path.dirname(__file__), "vendored"))
+
+from authorizenet import apicontractsv1  # noqa: E402
+from authorizenet.apicontrollers import (  # noqa: E402
+    constants,
+    createTransactionController,
+    getCustomerProfileController,
 )
 
 

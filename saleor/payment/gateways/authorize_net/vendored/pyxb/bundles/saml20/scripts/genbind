@@ -1,0 +1,24 @@
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
+BUNDLE_TAG=saml20
+WSSPLAT_RAW=${PYXB_ROOT}/pyxb/bundles/wssplat/raw
+SAML20_RAW=${PYXB_ROOT}/pyxb/bundles/saml2/raw
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+( cat <<EOList
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd assertion
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd metadata
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd protocol
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-dce-2.0.xsd dce
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-ecp-2.0.xsd ecp
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-x500-2.0.xsd x500
+http://docs.oasis-open.org/security/saml/v2.0/saml-schema-xacml-2.0.xsd xacml
+EOList
+) | generateBindings --archive-path=${RAW_DIR}:${WSSPLAT_RAW}:+

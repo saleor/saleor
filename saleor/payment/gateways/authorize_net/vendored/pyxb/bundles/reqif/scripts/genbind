@@ -1,0 +1,47 @@
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
+BUNDLE_TAG=reqif
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+# NOTE: w3 imposes a 20-30 s delay when retrieving schema from their
+# site.  Be patient.
+( mkdir -p ${SCHEMA_DIR} \
+  && cd ${SCHEMA_DIR} \
+  && ( [ -f reqif.xsd ] || wget http://www.omg.org/spec/ReqIF/20110401/reqif.xsd ) \
+  && ( [ -f driver.xsd ] || wget http://www.omg.org/spec/ReqIF/20110402/driver.xsd ) \
+  && ( [ -f xhtml-attribs-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-attribs-1.xsd ) \
+  && ( [ -f xhtml-blkphras-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-blkphras-1.xsd ) \
+  && ( [ -f xhtml-blkpres-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-blkpres-1.xsd ) \
+  && ( [ -f xhtml-blkstruct-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-blkstruct-1.xsd ) \
+  && ( [ -f xhtml-datatypes-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-datatypes-1.xsd ) \
+  && ( [ -f xhtml-edit-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-edit-1.xsd ) \
+  && ( [ -f xhtml-framework-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-framework-1.xsd ) \
+  && ( [ -f xhtml-hypertext-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-hypertext-1.xsd ) \
+  && ( [ -f xhtml-inlphras-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-inlphras-1.xsd ) \
+  && ( [ -f xhtml-inlpres-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-inlpres-1.xsd ) \
+  && ( [ -f xhtml-inlstruct-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-inlstruct-1.xsd ) \
+  && ( [ -f xhtml-inlstyle-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-inlstyle-1.xsd ) \
+  && ( [ -f xhtml-list-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-list-1.xsd ) \
+  && ( [ -f xhtml-object-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-object-1.xsd ) \
+  && ( [ -f xhtml-param-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-param-1.xsd ) \
+  && ( [ -f xhtml-pres-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-pres-1.xsd ) \
+  && ( [ -f xhtml-table-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-table-1.xsd ) \
+  && ( [ -f xhtml-text-1.xsd ] || wget http://www.w3.org/TR/xhtml-modularization/SCHEMA/xhtml-text-1.xsd ) \
+) || failure unable to obtain schema
+
+pyxbgen \
+  --module-prefix=${MODULE_PREFIX} \
+  --write-for-customization \
+  --allow-builtin-generation \
+  --archive-to-file=${ARCHIVE_DIR}/reqif.wxs \
+  --schema-root=${SCHEMA_DIR} \
+  --location-prefix-rewrite http://www.w3.org/TR/xhtml-modularization/SCHEMA/=${SCHEMA_DIR}/ \
+  -u driver.xsd -m driver \
+  -u reqif.xsd -m ReqIF
