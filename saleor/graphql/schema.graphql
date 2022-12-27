@@ -13217,11 +13217,13 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
-  Create transaction for checkout or order. Requires the following permissions: HANDLE_PAYMENTS.
+  Create transaction for checkout or order.
   
   Added in Saleor 3.4.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionCreate(
     """The ID of the checkout or order."""
@@ -13235,11 +13237,13 @@ type Mutation {
   ): TransactionCreate
 
   """
-  Create transaction for checkout or order. Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  Create transaction for checkout or order.
   
   Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
   """
   transactionUpdate(
     """The ID of the transaction."""
@@ -13273,6 +13277,45 @@ type Mutation {
     """The ID of the transaction."""
     id: ID!
   ): TransactionRequestAction
+
+  """
+  Report the event for the transaction.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  """
+  transactionEventReport(
+    """The amount of the event to report."""
+    amount: PositiveDecimal!
+
+    """List of all possible actions for the transaction"""
+    availableActions: [TransactionActionEnum!]
+
+    """
+    The url that will allow to redirect user to payment provider page with event details.
+    """
+    externalUrl: String
+
+    """The ID of the transaction."""
+    id: ID!
+
+    """The message related to the event."""
+    message: String
+
+    """PSP Reference of the event to report."""
+    pspReference: String!
+
+    """
+    The time of the event to report. If not provide, the current time will be used.
+    """
+    time: DateTime
+
+    """Current status of the event to report."""
+    type: TransactionEventTypeEnum!
+  ): TransactionEventReport
 
   """
   Creates a new page. 
@@ -18905,11 +18948,13 @@ input MoneyInput {
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: HANDLE_PAYMENTS.
+Create transaction for checkout or order.
 
 Added in Saleor 3.4.
 
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionCreate {
   transaction: TransactionItem
@@ -19008,11 +19053,13 @@ input TransactionEventInput {
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+Create transaction for checkout or order.
 
 Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Requires the following permissions: OWNER and HANDLE_PAYMENTS.
 """
 type TransactionUpdate {
   transaction: TransactionItem
@@ -19123,6 +19170,50 @@ enum TransactionRequestActionErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
+Report the event for the transaction.
+
+Added in Saleor 3.10.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+"""
+type TransactionEventReport {
+  """Defines if the reported event hasn't been processed earlier."""
+  alreadyProcessed: Boolean
+
+  """The transaction related to the reported event."""
+  transaction: TransactionItem
+
+  """
+  The event assigned to this report. if `alreadyProcessed` is set to `true`, the previously processed event will be returned.
+  """
+  transactionEvent: TransactionEvent
+  errors: [TransactionEventReportError!]!
+}
+
+type TransactionEventReportError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionEventReportErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionEventReportErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_DETAILS
 }
 
 """
