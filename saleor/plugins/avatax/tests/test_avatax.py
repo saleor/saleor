@@ -33,6 +33,7 @@ from .. import (
     AvataxConfiguration,
     TransactionType,
     _validate_adddress_details,
+    _validate_order,
     api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
@@ -3231,6 +3232,17 @@ def test_validate_adddress_details(
         shipping_address, is_shipping_required, address, shipping_method
     )
     assert is_valid is expected_is_valid
+
+
+def test_validate_order_for_digital_order(order_with_digital_line):
+    # given
+    order = order_with_digital_line
+
+    # when
+    is_valid = _validate_order(order)
+
+    # then
+    assert is_valid is True
 
 
 def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
