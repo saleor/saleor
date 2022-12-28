@@ -8,7 +8,7 @@ from ..core.fields import FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
-from .filters import AttributeFilterInput
+from .filters import AttributeFilterInput, AttributeWhereInput
 from .mutations import (
     AttributeCreate,
     AttributeDelete,
@@ -28,6 +28,9 @@ class AttributeQueries(graphene.ObjectType):
         AttributeCountableConnection,
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),
+        where=AttributeWhereInput(
+            description="Filtering options for attributes." + ADDED_IN_310
+        ),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."

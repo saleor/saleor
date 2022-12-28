@@ -1,6 +1,11 @@
+from typing import TYPE_CHECKING, Dict, List, Union
+
 from django.utils import timezone
 
 from ..core.enums import ReportingPeriod
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 
 def reporting_period_to_date(period):
@@ -40,3 +45,15 @@ def filter_by_id(object_type):
         return qs.filter(id__in=obj_pks)
 
     return inner
+
+
+def filter_by_string_field(
+    qs: "QuerySet", field: str, value: Dict[str, Union[str, List[str]]]
+):
+    eq = value.get("eq")
+    one_of = value.get("one_of")
+    if eq:
+        qs = qs.filter(**{field: eq})
+    if one_of:
+        qs = qs.filter(**{f"{field}__in": one_of})
+    return qs

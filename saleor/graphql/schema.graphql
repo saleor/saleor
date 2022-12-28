@@ -1170,6 +1170,13 @@ type Query {
     """Filtering options for attributes."""
     filter: AttributeFilterInput
 
+    """
+    Filtering options for attributes.
+    
+    Added in Saleor 3.10.
+    """
+    where: AttributeWhereInput
+
     """Sorting options for attributes."""
     sortBy: AttributeSortingInput
 
@@ -11646,6 +11653,70 @@ type CheckoutLineCountableEdge {
 
   """A cursor for use in pagination."""
   cursor: String!
+}
+
+input AttributeWhereInput {
+  name: StringFilterInput
+  metadata: [MetadataFilter!]
+  slug: StringFilterInput
+  withChoices: Boolean
+  inputType: AttributeInputTypeEnumFilterInput
+  entityType: AttributeEntityTypeEnumFilterInput
+  type: AttributeTypeEnumFilterInput
+  unit: MeasurementUnitsEnumEnumFilterInput
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  inCollection: ID
+  inCategory: ID
+}
+
+"""
+Define the filtering options for string fields.
+
+Added in Saleor 3.10.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input StringFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
+input AttributeInputTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeInputTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeInputTypeEnum!]
+}
+
+input AttributeEntityTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeEntityTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeEntityTypeEnum!]
+}
+
+input AttributeTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeTypeEnum!]
+}
+
+input MeasurementUnitsEnumEnumFilterInput {
+  """The value equal to."""
+  eq: MeasurementUnitsEnum
+
+  """The value included in."""
+  oneOf: [MeasurementUnitsEnum!]
 }
 
 input AttributeSortingInput {

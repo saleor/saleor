@@ -1,13 +1,16 @@
 import itertools
 
+import graphene
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
 from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ..descriptions import DEPRECATED_IN_3X_INPUT
+from ..descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
+from ..scalars import Date
+from . import NonNullList
 from .converter import convert_form_field
 
 GLOBAL_ID_FILTERS = {
@@ -99,3 +102,86 @@ class ChannelFilterInputObjectType(FilterInputObjectType):
 
     class Meta:
         abstract = True
+
+
+class FilterInputDescriptions:
+    EQ = "The value equal to."
+    ONE_OF = "The value included in."
+    LTE = "The value greater than or equal to."
+    GTE = "The value less than or equal to."
+
+
+class StringFilterInput(graphene.InputObjectType):
+    eq = graphene.String(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.String,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for string fields."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        )
+
+
+class IntFilterInput(graphene.InputObjectType):
+    eq = graphene.Int(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.Int, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    gte = graphene.Int(description=FilterInputDescriptions.GTE, required=False)
+    lte = graphene.Int(description=FilterInputDescriptions.LTE, required=False)
+
+    class Meta:
+        description = (
+            "Define the filtering options for integer fields."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        )
+
+
+class DateFilterInput(graphene.InputObjectType):
+    eq = Date(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        Date, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    gte = Date(description=FilterInputDescriptions.GTE, required=False)
+    lte = Date(description=FilterInputDescriptions.LTE, required=False)
+
+    class Meta:
+        description = "Define the filtering options for date fields."
+
+
+class DateTimeFilterInput(graphene.InputObjectType):
+    eq = graphene.DateTime(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.DateTime,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+    gte = graphene.DateTime(description=FilterInputDescriptions.GTE, required=False)
+    lte = graphene.DateTime(description=FilterInputDescriptions.LTE, required=False)
+
+    class Meta:
+        description = (
+            "Define the filtering options for date time fields."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        )
+
+
+class IdFilterInput(graphene.InputObjectType):
+    eq = graphene.ID(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.ID, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for ID fields."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        )

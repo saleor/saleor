@@ -38,6 +38,8 @@ ConnectionArguments = Dict[str, Any]
 EPSILON = Decimal("0.000001")
 FILTERS_NAME = "_FILTERS_NAME"
 FILTERSET_CLASS = "_FILTERSET_CLASS"
+WHERE_NAME = "_WHERE_NAME"
+WHERE_FILTERSET_CLASS = "_WHERE_FILTERSET_CLASS"
 
 
 def to_global_cursor(values):
@@ -447,40 +449,77 @@ def slice_connection_iterable(
 
 
 def filter_connection_queryset(iterable, args, request=None, root=None):
+    # TODO: Add validation for where in filters - only one of that should be provided
+    # Not sure of the validation should be here, probably not
     filterset_class = args[FILTERSET_CLASS]
     filter_field_name = args[FILTERS_NAME]
     filter_input = args.get(filter_field_name)
-
     if filter_input:
-        # for nested filters get channel from ChannelContext object
-        if "channel" not in args and root and hasattr(root, "channel_slug"):
-            args["channel"] = root.channel_slug
+        return filter_qs(iterable, args, root, filterset_class, filter_input, request)
 
-        try:
-            filter_channel = str(filter_input["channel"])
-        except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
-            filter_channel = None
-        filter_input["channel"] = (
-            args.get("channel")
-            or filter_channel
-            or get_default_channel_slug_or_graphql_error()
+    where_filterset_class = args[WHERE_FILTERSET_CLASS]
+    where_field_name = args[WHERE_NAME]
+    where_input = args.get(where_field_name)
+    if where_input:
+        return where_filter_qs(
+            iterable, args, root, where_filterset_class, where_input, request
         )
 
-        if isinstance(iterable, ChannelQsContext):
-            queryset = iterable.qs
-        else:
-            queryset = iterable
-
-        filterset = filterset_class(filter_input, queryset=queryset, request=request)
-        if not filterset.is_valid():
-            raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
-
-        if isinstance(iterable, ChannelQsContext):
-            return ChannelQsContext(filterset.qs, iterable.channel_slug)
-
-        return filterset.qs
-
     return iterable
+
+
+def filter_qs(iterable, args, root, filterset_class, filter_input, request):
+    # for nested filters get channel from ChannelContext object
+    if "channel" not in args and root and hasattr(root, "channel_slug"):
+        args["channel"] = root.channel_slug
+
+    try:
+        filter_channel = str(filter_input["channel"])
+    except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
+        filter_channel = None
+    filter_input["channel"] = (
+        args.get("channel")
+        or filter_channel
+        or get_default_channel_slug_or_graphql_error()
+    )
+
+    if isinstance(iterable, ChannelQsContext):
+        queryset = iterable.qs
+    else:
+        queryset = iterable
+
+    filterset = filterset_class(filter_input, queryset=queryset, request=request)
+    if not filterset.is_valid():
+        raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+
+    if isinstance(iterable, ChannelQsContext):
+        return ChannelQsContext(filterset.qs, iterable.channel_slug)
+
+    return filterset.qs
+
+
+def where_filter_qs(iterable, args, root, filterset_class, filter_input, request):
+    # for nested filters get channel from ChannelContext object
+    if "channel" not in args and root and hasattr(root, "channel_slug"):
+        args["channel"] = root.channel_slug
+
+    filter_input["channel"] = (
+        args.get("channel") or get_default_channel_slug_or_graphql_error()
+    )
+
+    if isinstance(iterable, ChannelQsContext):
+        queryset = iterable.qs
+    else:
+        queryset = iterable
+
+    filterset = filterset_class(filter_input, queryset=queryset, request=request)
+    if not filterset.is_valid():
+        raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+
+    if isinstance(iterable, ChannelQsContext):
+        return ChannelQsContext(filterset.qs, iterable.channel_slug)
+
+    return filterset.qs
 
 
 class NonNullConnection(Connection):
