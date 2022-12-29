@@ -453,19 +453,16 @@ def filter_connection_queryset(iterable, args, request=None, root=None):
     # TODO: Add validation for where in filters - only one of that should be provided
     # Not sure of the validation should be here, probably not
     update_args_with_channel(args, root)
-    filterset_class = args[FILTERSET_CLASS]
-    filter_field_name = args[FILTERS_NAME]
-    filter_input = args.get(filter_field_name)
-    if filter_input:
-        return filter_qs(iterable, args, root, filterset_class, filter_input, request)
 
-    where_filterset_class = args[WHERE_FILTERSET_CLASS]
-    where_field_name = args[WHERE_NAME]
-    where_input = args.get(where_field_name)
-    if where_input:
-        return where_filter_qs(
-            iterable, args, root, where_filterset_class, where_input, request
-        )
+    for (filter_class, filterset_name, filter_func) in [
+        (FILTERSET_CLASS, FILTERS_NAME, filter_qs),
+        (WHERE_FILTERSET_CLASS, WHERE_NAME, where_filter_qs),
+    ]:
+        filterset_class = args[filter_class]
+        filter_field_name = args[filterset_name]
+        filter_input = args.get(filter_field_name)
+        if filter_input:
+            return filter_func(iterable, args, filterset_class, filter_input, request)
 
     return iterable
 
@@ -476,9 +473,7 @@ def update_args_with_channel(args, root):
         args["channel"] = root.channel_slug
 
 
-def filter_qs(iterable, args, root, filterset_class, filter_input, request):
-    # TODO: Add optional channel parameter
-    # remove root parameter
+def filter_qs(iterable, args, filterset_class, filter_input, request):
     try:
         filter_channel = str(filter_input["channel"])
     except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
@@ -504,7 +499,7 @@ def filter_qs(iterable, args, root, filterset_class, filter_input, request):
     return filterset.qs
 
 
-def where_filter_qs(iterable, args, root, filterset_class, filter_input, request):
+def where_filter_qs(iterable, args, filterset_class, filter_input, request):
     """Filter queryset by complex statement provided in where argument.
 
     Handle `AND`, `OR`, `NOT` operators, as well as flat filter input.
@@ -538,7 +533,7 @@ def where_filter_qs(iterable, args, root, filterset_class, filter_input, request
 
     if and_filter_input:
         for input in and_filter_input:
-            queryset &= filter_qs(queryset, args, root, filterset_class, input, request)
+            queryset &= filter_qs(queryset, args, filterset_class, input, request)
 
     if or_filter_input:
         # for the OR operator the instanced that passed one of specified condition are
@@ -546,17 +541,15 @@ def where_filter_qs(iterable, args, root, filterset_class, filter_input, request
         # main qs
         qs = queryset.model.objects.none()
         for input in or_filter_input:
-            qs |= filter_qs(queryset, args, root, filterset_class, input, request)
+            qs |= filter_qs(queryset, args, filterset_class, input, request)
         queryset &= qs
 
     if not_filter_input:
-        qs = filter_qs(queryset, args, root, filterset_class, not_filter_input, request)
+        qs = filter_qs(queryset, args, filterset_class, not_filter_input, request)
         queryset = queryset.exclude(Exists(qs.filter(id=OuterRef("id"))))
 
     if filter_input:
-        queryset &= filter_qs(
-            iterable, args, root, filterset_class, filter_input, request
-        )
+        queryset &= filter_qs(iterable, args, filterset_class, filter_input, request)
 
     return queryset
 
