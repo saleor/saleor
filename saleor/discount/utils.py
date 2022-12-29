@@ -14,6 +14,7 @@ from typing import (
     cast,
 )
 
+from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -99,7 +100,7 @@ def get_product_discounts(
     collections: Iterable["Collection"],
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Iterator[Tuple[int, Callable]]:
     """Return sale ids, discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
@@ -119,7 +120,7 @@ def get_sale_id_with_min_price(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Tuple[Optional[int], Money]:
     """Return a sale_id and minimum product's price."""
     available_discounts = [
@@ -149,7 +150,7 @@ def calculate_discounted_price(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
@@ -171,7 +172,7 @@ def get_sale_id_applied_as_a_discount(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Optional[int]:
     """Return an ID of Sale applied to product."""
     if not discounts:
@@ -255,11 +256,15 @@ def get_products_voucher_discount(
     return total_amount
 
 
-def fetch_categories(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_categories(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     from ..product.models import Category
 
     categories = (
-        Sale.categories.through.objects.filter(sale_id__in=sale_pks)
+        Sale.categories.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "category_id")
     )
@@ -276,9 +281,13 @@ def fetch_categories(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return subcategory_map
 
 
-def fetch_collections(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_collections(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     collections = (
-        Sale.collections.through.objects.filter(sale_id__in=sale_pks)
+        Sale.collections.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "collection_id")
     )
@@ -288,9 +297,13 @@ def fetch_collections(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return collection_map
 
 
-def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_products(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     products = (
-        Sale.products.through.objects.filter(sale_id__in=sale_pks)
+        Sale.products.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "product_id")
     )
@@ -300,9 +313,13 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return product_map
 
 
-def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_variants(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     variants = (
-        Sale.variants.through.objects.filter(sale_id__in=sale_pks)
+        Sale.variants.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "productvariant_id")
     )
@@ -314,9 +331,12 @@ def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
 
 def fetch_sale_channel_listings(
     sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    channel_listings = SaleChannelListing.objects.filter(sale_id__in=sale_pks).annotate(
-        channel_slug=F("channel__slug")
+    channel_listings = (
+        SaleChannelListing.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
+        .annotate(channel_slug=F("channel__slug"))
     )
     channel_listings_map: Dict[int, Dict[str, SaleChannelListing]] = defaultdict(dict)
     for channel_listing in channel_listings:
