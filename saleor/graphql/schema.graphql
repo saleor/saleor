@@ -11670,6 +11670,9 @@ input AttributeWhereInput {
   filterableInDashboard: Boolean
   inCollection: ID
   inCategory: ID
+  AND: [AttributeWhereInput!]
+  OR: [AttributeWhereInput!]
+  NOT: AttributeWhereInput
 }
 
 """

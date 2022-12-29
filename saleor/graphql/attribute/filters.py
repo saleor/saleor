@@ -258,7 +258,10 @@ class AttributeWhere(MetadataFilterBase):
 
 
 class AttributeWhereInput(FilterInputObjectType):
-    # AND = NonNullList(lambda: AttributeWhereInput)
+    # TODO: create something generic that will automatically include AND, OR, and NOT
+    AND = NonNullList(lambda: AttributeWhereInput)
+    OR = NonNullList(lambda: AttributeWhereInput)
+    NOT = graphene.Field(lambda: AttributeWhereInput)
 
     class Meta:
         filterset_class = AttributeWhere
