@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.contrib.auth.models import Permission
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_translation_payload

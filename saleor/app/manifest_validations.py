@@ -2,7 +2,6 @@ import logging
 from collections import defaultdict
 from typing import Dict, Iterable, List
 
-from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -14,6 +13,7 @@ from ..core.permissions import (
 )
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_payload import validate_subscription_query
+from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget

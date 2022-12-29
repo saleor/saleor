@@ -10,7 +10,6 @@ from urllib.parse import urlencode
 import graphene
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -21,7 +20,7 @@ from freezegun import freeze_time
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
-from ....account.models import Address, User
+from ....account.models import Address, Group, User
 from ....account.notifications import get_default_user_payload
 from ....account.search import (
     generate_address_search_document_value,

@@ -2,11 +2,10 @@ import random
 import uuid
 
 import pytest
-from django.contrib.auth import models as auth_models
 from prices import Money, TaxedMoney
 
 from .....account import CustomerEvents
-from .....account.models import CustomerEvent, User
+from .....account.models import CustomerEvent, Group, User
 from .....giftcard.models import GiftCard
 from .....order.models import Order
 
@@ -38,10 +37,8 @@ def _prepare_gift_cards_for_user(user):
 
 
 def _create_permission_groups(user):
-    _groups = [
-        auth_models.Group(name=str(uuid.uuid4())) for i in range(GROUPS_PER_USER)
-    ]
-    groups = auth_models.Group.objects.bulk_create(_groups)
+    _groups = [Group(name=str(uuid.uuid4())) for i in range(GROUPS_PER_USER)]
+    groups = Group.objects.bulk_create(_groups)
     user.groups.add(*groups)
     return groups
 

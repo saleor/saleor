@@ -1,8 +1,9 @@
 from enum import Enum
 from typing import Iterable, List
 
-from django.contrib.auth.models import Permission
 from django.db.models import QuerySet
+
+from ...permission.models import Permission
 
 
 class BasePermissionEnum(Enum):

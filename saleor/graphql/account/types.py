@@ -4,7 +4,6 @@ from typing import List
 
 import graphene
 from django.contrib.auth import get_user_model
-from django.contrib.auth import models as auth_models
 from graphene import relay
 
 from ...account import models
@@ -235,7 +234,7 @@ class UserPermission(Permission):
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, _info, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
-        groups = auth_models.Group.objects.filter(
+        groups = models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
         )
         return groups
@@ -631,21 +630,21 @@ class Group(ModelObjectType):
     class Meta:
         description = "Represents permission group data."
         interfaces = [relay.Node]
-        model = auth_models.Group
+        model = models.Group
 
     @staticmethod
-    def resolve_users(root: auth_models.Group, _info):
+    def resolve_users(root: models.Group, _info):
         return root.user_set.all()
 
     @staticmethod
-    def resolve_permissions(root: auth_models.Group, _info):
+    def resolve_permissions(root: models.Group, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_user_can_manage(root: auth_models.Group, info):
+    def resolve_user_can_manage(root: models.Group, info):
         user = info.context.user
         return can_user_manage_group(user, root)
 
@@ -655,7 +654,7 @@ class Group(ModelObjectType):
 
         requestor = get_user_or_app_from_context(info.context)
         if not requestor or not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
-            qs = auth_models.Group.objects.none()
+            qs = models.Group.objects.none()
         else:
             qs = resolve_permission_groups(info)
 

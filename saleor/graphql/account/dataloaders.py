@@ -1,8 +1,7 @@
 from collections import defaultdict
 
-from django.contrib.auth.models import Permission
-
 from ...account.models import Address, CustomerEvent, User
+from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
 from ..core.dataloaders import DataLoader
 
