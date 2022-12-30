@@ -11656,18 +11656,18 @@ type CheckoutLineCountableEdge {
 }
 
 input AttributeWhereInput {
-  name: StringFilterInput
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
+  name: StringFilterInput
   slug: StringFilterInput
   withChoices: Boolean
   inputType: AttributeInputTypeEnumFilterInput
   entityType: AttributeEntityTypeEnumFilterInput
   type: AttributeTypeEnumFilterInput
-  unit: MeasurementUnitsEnumEnumFilterInput
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
-  filterableInDashboard: Boolean
+  unit: MeasurementUnitsEnumFilterInput
   inCollection: ID
   inCategory: ID
   AND: [AttributeWhereInput!]
@@ -11714,7 +11714,7 @@ input AttributeTypeEnumFilterInput {
   oneOf: [AttributeTypeEnum!]
 }
 
-input MeasurementUnitsEnumEnumFilterInput {
+input MeasurementUnitsEnumFilterInput {
   """The value equal to."""
   eq: MeasurementUnitsEnum
 

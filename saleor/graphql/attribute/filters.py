@@ -163,7 +163,7 @@ class AttributeTypeEnumFilterInput(graphene.InputObjectType):
     )
 
 
-class MeasurementUnitsEnumEnumFilterInput(graphene.InputObjectType):
+class MeasurementUnitsEnumFilterInput(graphene.InputObjectType):
     eq = MeasurementUnitsEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         MeasurementUnitsEnum,
@@ -221,17 +221,7 @@ class AttributeWhere(MetadataFilterBase):
     )
     type = ObjectTypeFilter(AttributeTypeEnumFilterInput, method=filter_attribute_type)
     unit = ObjectTypeFilter(
-        MeasurementUnitsEnumEnumFilterInput, method=filter_attribute_unit
-    )
-    value_required = django_filters.BooleanFilter(field_name="value_required")
-    visible_in_storefront = django_filters.BooleanFilter(
-        field_name="visible_in_storefront"
-    )
-    filterable_in_storefront = django_filters.BooleanFilter(
-        field_name="filterable_in_storefront"
-    )
-    filterable_in_dashboard = django_filters.BooleanFilter(
-        field_name="filterable_in_dashboard"
+        MeasurementUnitsEnumFilterInput, method=filter_attribute_unit
     )
     in_collection = GlobalIDFilter(method="filter_in_collection")
     in_category = GlobalIDFilter(method="filter_in_category")
@@ -239,7 +229,11 @@ class AttributeWhere(MetadataFilterBase):
     class Meta:
         model = Attribute
         fields = [
-            "name",
+            # "name",
+            "value_required",
+            "visible_in_storefront",
+            "filterable_in_storefront",
+            "filterable_in_dashboard",
         ]
 
     def filter_in_collection(self, qs, name, value):

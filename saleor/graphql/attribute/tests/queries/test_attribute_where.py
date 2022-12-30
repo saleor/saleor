@@ -1,0 +1,1399 @@
+import graphene
+import pytest
+
+from .....attribute import AttributeInputType, AttributeType
+from .....attribute.models import Attribute
+from .....attribute.utils import associate_attribute_values_to_instance
+from .....core.units import MeasurementUnits
+from .....product import ProductTypeKind
+from .....product.models import ProductType
+from ....core.enums import MeasurementUnitsEnum
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+from ...enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+
+ATTRIBUTES_WHERE_QUERY = """
+    query($where: AttributeWhereInput!, $channel: String) {
+      attributes(first: 10, where: $where, channel: $channel) {
+        edges {
+          node {
+            name
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"eq": "Color"}, [0]),
+        ({"eq": "test"}, []),
+        ({"oneOf": ["Color", "Text"]}, [0, 2]),
+        ({"oneOf": ["a", "acd"]}, []),
+        ({"eq": "Text", "oneOf": ["Color", "Text"]}, [2]),
+        ({"eq": "test", "oneOf": ["Color", "Text"]}, []),
+    ],
+)
+def test_attributes_filter_by_name(
+    where, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+    variables = {"where": {"name": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"eq": "color"}, [0]),
+        ({"eq": "test"}, []),
+        ({"oneOf": ["color", "text"]}, [0, 2]),
+        ({"oneOf": ["a", "acd"]}, []),
+        ({"eq": "text", "oneOf": ["color", "text"]}, [2]),
+        ({"eq": "test", "oneOf": ["color", "text"]}, []),
+    ],
+)
+def test_attributes_filter_by_slug(
+    where, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+    variables = {"where": {"slug": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2])])
+def test_attributes_filter_by_with_choices(
+    value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+    variables = {"where": {"withChoices": value}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"eq": AttributeInputTypeEnum.DROPDOWN.name}, [0]),
+        ({"eq": AttributeInputTypeEnum.FILE.name}, []),
+        (
+            {
+                "oneOf": [
+                    AttributeInputTypeEnum.RICH_TEXT.name,
+                    AttributeInputTypeEnum.DATE.name,
+                ]
+            },
+            [1, 2],
+        ),
+        (
+            {
+                "oneOf": [
+                    AttributeInputTypeEnum.DATE_TIME.name,
+                    AttributeInputTypeEnum.FILE.name,
+                ]
+            },
+            [],
+        ),
+        (
+            {
+                "eq": AttributeInputTypeEnum.DATE.name,
+                "oneOf": [
+                    AttributeInputTypeEnum.RICH_TEXT.name,
+                    AttributeInputTypeEnum.DATE.name,
+                ],
+            },
+            [1],
+        ),
+        (
+            {
+                "eq": AttributeInputTypeEnum.DATE.name,
+                "oneOf": [
+                    AttributeInputTypeEnum.RICH_TEXT.name,
+                    AttributeInputTypeEnum.DATE_TIME.name,
+                ],
+            },
+            [],
+        ),
+    ],
+)
+def test_attributes_filter_by_input_type(
+    where, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+    variables = {"where": {"inputType": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"eq": AttributeEntityTypeEnum.PRODUCT_VARIANT.name}, [2]),
+        ({"eq": AttributeEntityTypeEnum.PRODUCT.name}, []),
+        (
+            {
+                "oneOf": [
+                    AttributeEntityTypeEnum.PAGE.name,
+                    AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
+                ]
+            },
+            [1, 2],
+        ),
+        (
+            {
+                "oneOf": [
+                    AttributeEntityTypeEnum.PRODUCT.name,
+                ]
+            },
+            [],
+        ),
+        (
+            {
+                "eq": AttributeEntityTypeEnum.PAGE.name,
+                "oneOf": [
+                    AttributeEntityTypeEnum.PAGE.name,
+                    AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
+                ],
+            },
+            [1],
+        ),
+        (
+            {
+                "eq": AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
+                "oneOf": [
+                    AttributeEntityTypeEnum.PAGE.name,
+                    AttributeEntityTypeEnum.PRODUCT.name,
+                ],
+            },
+            [],
+        ),
+    ],
+)
+def test_attributes_filter_by_entity_type(
+    where,
+    indexes,
+    api_client,
+    color_attribute,
+    product_type_page_reference_attribute,
+    page_type_variant_reference_attribute,
+):
+    # given
+    attributes = [
+        color_attribute,
+        product_type_page_reference_attribute,
+        page_type_variant_reference_attribute,
+    ]
+    variables = {"where": {"entityType": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"eq": AttributeTypeEnum.PRODUCT_TYPE.name}, [0, 1]),
+        ({"eq": AttributeTypeEnum.PAGE_TYPE.name}, []),
+        (
+            {
+                "oneOf": [
+                    AttributeTypeEnum.PRODUCT_TYPE.name,
+                    AttributeTypeEnum.PAGE_TYPE.name,
+                ]
+            },
+            [0, 1],
+        ),
+        (
+            {
+                "oneOf": [
+                    AttributeTypeEnum.PAGE_TYPE.name,
+                ]
+            },
+            [],
+        ),
+        (
+            {
+                "eq": AttributeTypeEnum.PRODUCT_TYPE.name,
+                "oneOf": [
+                    AttributeTypeEnum.PAGE_TYPE.name,
+                    AttributeTypeEnum.PRODUCT_TYPE.name,
+                ],
+            },
+            [0, 1],
+        ),
+        (
+            {
+                "eq": AttributeTypeEnum.PAGE_TYPE.name,
+                "oneOf": [
+                    AttributeTypeEnum.PAGE_TYPE.name,
+                    AttributeTypeEnum.PRODUCT_TYPE.name,
+                ],
+            },
+            [],
+        ),
+    ],
+)
+def test_attributes_filter_by_type(
+    where,
+    indexes,
+    api_client,
+    color_attribute,
+    product_type_page_reference_attribute,
+):
+    # given
+    attributes = [
+        color_attribute,
+        product_type_page_reference_attribute,
+    ]
+    variables = {"where": {"type": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"eq": MeasurementUnitsEnum.CM.name}, [1]),
+        ({"eq": MeasurementUnitsEnum.SQ_CM.name}, []),
+        (
+            {
+                "oneOf": [
+                    MeasurementUnitsEnum.CM.name,
+                    MeasurementUnitsEnum.M.name,
+                ]
+            },
+            [1, 2],
+        ),
+        (
+            {
+                "oneOf": [
+                    MeasurementUnitsEnum.SQ_CM.name,
+                ]
+            },
+            [],
+        ),
+        (
+            {
+                "eq": MeasurementUnitsEnum.M.name,
+                "oneOf": [
+                    MeasurementUnitsEnum.CM.name,
+                    MeasurementUnitsEnum.M.name,
+                ],
+            },
+            [2],
+        ),
+        (
+            {
+                "eq": MeasurementUnitsEnum.M.name,
+                "oneOf": [
+                    MeasurementUnitsEnum.CM.name,
+                    MeasurementUnitsEnum.SQ_CM.name,
+                ],
+            },
+            [],
+        ),
+    ],
+)
+def test_attributes_filter_by_unit(
+    where,
+    indexes,
+    api_client,
+    color_attribute,
+    numeric_attribute,
+    date_attribute,
+):
+    # given
+    numeric_attribute_2 = Attribute.objects.create(
+        slug="length-2",
+        name="Length 2",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.NUMERIC,
+        unit=MeasurementUnits.M,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    attributes = [
+        color_attribute,
+        numeric_attribute,
+        numeric_attribute_2,
+        date_attribute,
+    ]
+    variables = {"where": {"unit": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2])])
+def test_attributes_filter_by_value_required(
+    value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+
+    color_attribute.value_required = True
+    date_attribute.value_required = True
+    rich_text_attribute.value_required = False
+
+    Attribute.objects.bulk_update(attributes, ["value_required"])
+
+    variables = {"where": {"valueRequired": value}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize("value, indexes", [(True, [0, 1]), (False, [2])])
+def test_attributes_filter_by_visible_in_storefront(
+    value,
+    indexes,
+    staff_api_client,
+    color_attribute,
+    date_attribute,
+    rich_text_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+
+    color_attribute.visible_in_storefront = True
+    date_attribute.visible_in_storefront = True
+    rich_text_attribute.visible_in_storefront = False
+
+    Attribute.objects.bulk_update(attributes, ["visible_in_storefront"])
+
+    variables = {"where": {"visibleInStorefront": value}}
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize("value, indexes", [(True, [1]), (False, [0, 2])])
+def test_attributes_filter_by_filterable_in_storefront(
+    value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+
+    color_attribute.filterable_in_storefront = False
+    date_attribute.filterable_in_storefront = True
+    rich_text_attribute.filterable_in_storefront = False
+
+    Attribute.objects.bulk_update(attributes, ["filterable_in_storefront"])
+
+    variables = {"where": {"filterableInStorefront": value}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize("value, indexes", [(True, [0]), (False, [1, 2])])
+def test_attributes_filter_by_filterable_in_dashboard(
+    value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
+):
+    # given
+    attributes = [color_attribute, date_attribute, rich_text_attribute]
+
+    color_attribute.filterable_in_dashboard = True
+    date_attribute.filterable_in_dashboard = False
+    rich_text_attribute.filterable_in_dashboard = False
+
+    Attribute.objects.bulk_update(attributes, ["filterable_in_dashboard"])
+
+    variables = {"where": {"filterableInDashboard": value}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+def test_attributes_filter_attributes_in_collection_not_visible_in_listings_by_customer(
+    user_api_client, product_list, weight_attribute, collection, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_collection_not_published_by_customer(
+    user_api_client, product_list, weight_attribute, collection, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_attributes_filter_in_collection_not_published_by_staff_with_perm(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_collection_not_published_by_staff_without_manage_products(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    collection,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+
+
+def test_attributes_filter_in_collection_not_published_by_app_with_perm(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+    channel_USD,
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_collection_not_published_by_app_without_manage_products(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    collection,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+
+
+def test_attributes_filter_attributes_in_collection_invalid_collection_id(
+    user_api_client, product_list, weight_attribute, collection, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "where": {
+            "inCollection": "xnd",
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    message_error = (
+        '{"in_collection": [{"message": "Invalid ID specified.", "code": ""}]}'
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["attributes"] is None
+
+
+def test_attributes_filter_attributes_in_collection_object_with_given_id_does_not_exist(
+    user_api_client, product_list, weight_attribute, collection, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "where": {
+            "inCollection": graphene.Node.to_global_id("Product", -1),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["attributes"]["edges"] == []
+
+
+def test_attributes_filter_in_category_not_visible_in_listings_by_customer(
+    user_api_client, product_list, weight_attribute, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_attributes_filter_in_category_not_visible_in_listings_by_staff_with_perm(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_category_not_in_listings_by_staff_without_manage_products(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1  # product not listed will not count
+
+
+def test_attributes_filter_in_category_not_visible_in_listings_by_app_with_perm(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_category_not_in_listings_by_app_without_manage_products(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1  # product not visible will not count
+
+
+def test_attributes_filter_in_category_not_published_by_customer(
+    user_api_client, product_list, weight_attribute, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_attributes_filter_in_category_not_published_by_staff_with_perm(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_category_not_published_by_staff_without_manage_products(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+
+
+def test_attributes_filter_in_category_not_published_by_app_with_perm(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count
+
+
+def test_attributes_filter_in_category_not_published_by_app_without_manage_products(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(is_published=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    attributes = content["data"]["attributes"]["edges"]
+    assert len(attributes) == attribute_count - 1
+
+
+def test_attributes_filter_in_category_invalid_category_id(
+    user_api_client, product_list, weight_attribute, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "where": {
+            "inCategory": "xyz",
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    message_error = (
+        '{"in_category": [{"message": "Invalid ID specified.", "code": ""}]}'
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["attributes"] is None
+
+
+def test_attributes_filter_in_category_object_with_given_id_does_not_exist(
+    user_api_client, product_list, weight_attribute, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "where": {
+            "inCategory": graphene.Node.to_global_id("Product", -1),
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["attributes"]["edges"] == []
