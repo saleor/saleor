@@ -210,6 +210,7 @@ def filter_attribute_value_required(qs, _, value):
 
 
 class AttributeWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
     name = ObjectTypeFilter(input_class=StringFilterInput, method=filter_attribute_name)
     slug = ObjectTypeFilter(input_class=StringFilterInput, method=filter_attribute_slug)
     with_choices = django_filters.BooleanFilter(method=filter_with_choices)

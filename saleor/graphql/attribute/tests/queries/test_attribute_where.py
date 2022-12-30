@@ -25,6 +25,28 @@ ATTRIBUTES_WHERE_QUERY = """
 """
 
 
+def test_attributes_filter_by_ids(api_client, product_type_attribute_list):
+    # given
+    ids = [
+        graphene.Node.to_global_id("Attribute", attribute.pk)
+        for attribute in product_type_attribute_list[:2]
+    ]
+    variables = {"where": {"ids": ids}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    attributes = data["data"]["attributes"]["edges"]
+    assert len(attributes) == 2
+    received_slugs = {node["node"]["slug"] for node in attributes}
+    assert received_slugs == {
+        product_type_attribute_list[0].slug,
+        product_type_attribute_list[1].slug,
+    }
+
+
 @pytest.mark.parametrize(
     "where, indexes",
     [

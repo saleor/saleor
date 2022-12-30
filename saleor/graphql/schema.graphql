@@ -11661,6 +11661,7 @@ input AttributeWhereInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
+  ids: [ID!]
   name: StringFilterInput
   slug: StringFilterInput
   withChoices: Boolean
