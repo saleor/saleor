@@ -12445,6 +12445,16 @@ type Mutation {
   ): ProductBulkDelete
 
   """
+  Updates products. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productBulkUpdate(
+    """Fields required to update a product."""
+    products: [ProductBulkUpdateInput!]!
+  ): ProductBulkUpdate
+
+  """
   Updates an existing product. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -17759,6 +17769,98 @@ type ProductBulkDelete {
   count: Int!
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
+}
+
+"""
+Updates products. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductBulkUpdate {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created products."""
+  results: [ProductBulkResult!]!
+  bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [BulkProductError!]!
+}
+
+input ProductBulkUpdateInput {
+  """List of attributes."""
+  attributes: [AttributeValueInput!]
+
+  """ID of the product's category."""
+  category: ID
+
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
+  chargeTaxes: Boolean
+
+  """List of IDs of collections that the product belongs to."""
+  collections: [ID!]
+
+  """
+  Product description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Product name."""
+  name: String
+
+  """Product slug."""
+  slug: String
+
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
+  taxCode: String
+
+  """Search engine optimization fields."""
+  seo: SeoInput
+
+  """Weight of the Product."""
+  weight: WeightScalar
+
+  """Defines the product rating value."""
+  rating: Float
+
+  """
+  Fields required to update the product metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """ID of the type that product belongs to."""
+  productType: ID!
+  media: [MediaInput!]
+  channelListings: [ProductChannelListingCreateInput!]
+
+  """Input list of product variants to create."""
+  variants: [ProductVariantBulkCreateInput!]
+
+  """ID of a product to update."""
+  id: ID!
 }
 
 """
