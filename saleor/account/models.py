@@ -213,6 +213,11 @@ class User(
                 fields=["search_document"],
                 opclasses=["gin_trgm_ops"],
             ),
+            GinIndex(
+                name="user_p_meta_jsonb_path_idx",
+                fields=["private_metadata"],
+                opclasses=["jsonb_path_ops"],
+            ),
         ]
 
     def __init__(self, *args, **kwargs):
