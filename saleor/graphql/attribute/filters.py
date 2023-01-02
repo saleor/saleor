@@ -233,7 +233,6 @@ class AttributeWhere(MetadataFilterBase):
             # "name",
             "value_required",
             "visible_in_storefront",
-            "filterable_in_storefront",
             "filterable_in_dashboard",
         ]
 

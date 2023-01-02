@@ -5314,7 +5314,7 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  filterableInStorefront: Boolean!
+  filterableInStorefront: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
@@ -5324,12 +5324,12 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  availableInGrid: Boolean!
+  availableInGrid: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  storefrontSearchPosition: Int!
+  storefrontSearchPosition: Int! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Returns translated attribute fields for the given language code."""
   translation(
@@ -11658,7 +11658,6 @@ type CheckoutLineCountableEdge {
 input AttributeWhereInput {
   valueRequired: Boolean
   visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
   ids: [ID!]
@@ -22330,7 +22329,11 @@ input AttributeCreateInput {
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   filterableInStorefront: Boolean
 
   """Whether the attribute can be filtered in dashboard."""
@@ -22338,10 +22341,16 @@ input AttributeCreateInput {
 
   """
   The position of the attribute in the storefront navigation (0 by default).
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
   """
   storefrontSearchPosition: Int
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   availableInGrid: Boolean
 
   """
@@ -22438,7 +22447,11 @@ input AttributeUpdateInput {
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   filterableInStorefront: Boolean
 
   """Whether the attribute can be filtered in dashboard."""
@@ -22446,10 +22459,16 @@ input AttributeUpdateInput {
 
   """
   The position of the attribute in the storefront navigation (0 by default).
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
   """
   storefrontSearchPosition: Int
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   availableInGrid: Boolean
 
   """

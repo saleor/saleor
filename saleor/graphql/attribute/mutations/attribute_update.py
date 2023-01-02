@@ -5,7 +5,7 @@ from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....permission.enums import ProductTypePermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310
+from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError, NonNullList
@@ -43,15 +43,19 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
     filterable_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
+        + DEPRECATED_IN_3X_INPUT
     )
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
     storefront_search_position = graphene.Int(
-        required=False, description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+        required=False,
+        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+        + DEPRECATED_IN_3X_INPUT,
     )
     available_in_grid = graphene.Boolean(
-        required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
+        required=False,
+        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
     )
     external_reference = graphene.String(
         description="External ID of this product." + ADDED_IN_310, required=False
