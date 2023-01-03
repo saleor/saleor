@@ -15963,6 +15963,8 @@ Trigger a webhook event.
 Requires one of the following permissions: MANAGE_APPS.
 """
 type WebhookTrigger {
+  """JSON payload, that would be sent out to webhook's target URL."""
+  payload: JSONString
   delivery: EventDelivery
   errors: [WebhookTriggerError!]!
 }

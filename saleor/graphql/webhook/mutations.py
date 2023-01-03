@@ -396,11 +396,12 @@ class WebhookDryRun(BaseMutation):
                     code=WebhookDryRunErrorCode.MISSING_APP_PERMISSION,
                 )
 
-        return event_type, object, app, query
+        return event_type, object, webhook, query
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        event_type, object, app, query = cls.validate_input(info, **data)
+        event_type, object, webhook, query = cls.validate_input(info, **data)
+        app = webhook.app
         payload = None
         if all([event_type, object, app, query]):
             request = initialize_request()
@@ -422,7 +423,7 @@ class WebhookTriggerInput(graphene.InputObjectType):
     )
 
 
-class WebhookTrigger(BaseMutation):
+class WebhookTrigger(WebhookDryRun):
     delivery = graphene.Field(EventDelivery)
 
     class Arguments:
@@ -436,11 +437,24 @@ class WebhookTrigger(BaseMutation):
         description = "Trigger a webhook event."
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookTriggerError
-
-    @classmethod
-    def validate_input(cls, info, **data):
-        pass
+        exclude = ("payload",)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        pass
+        from ...plugins.webhook.tasks import (
+            create_deliveries_for_subscriptions,
+            send_webhook_request_async,
+        )
+
+        event_type, object, webhook, query = cls.validate_input(info, **data)
+        webhook.subscription_query = query
+        delivery = None
+
+        if all([event_type, object, webhook]):
+            deliveries = create_deliveries_for_subscriptions(
+                event_type, object, [webhook]
+            )
+            if deliveries:
+                delivery = deliveries[0]
+                send_webhook_request_async(delivery.id)
+        return WebhookTrigger(delivery=delivery)
