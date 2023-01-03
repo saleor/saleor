@@ -23,6 +23,15 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `Invoice.order` field
   - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
 - Add support for metadata for `Address` model - #11701 by @IKarbowiak
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
+- Add `WebhookDryRun` mutation - #11548 by @zedzior
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
