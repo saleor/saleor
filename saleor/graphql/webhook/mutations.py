@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from graphene.utils.str_converters import to_camel_case
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
@@ -20,6 +21,7 @@ from .subscription_payload import (
     initialize_request,
     validate_query,
 )
+from .subscription_types import WEBHOOK_TYPES_MAP
 from .types import EventDelivery, Webhook
 from .utils import get_event_type_from_subscription
 
@@ -358,13 +360,27 @@ class WebhookDryRun(BaseMutation):
                 code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
             )
 
-        # TODO check if object_id match event_type
-        # if ... :
-        #     raise_validation_error(
-        #         field="objectId",
-        #         message="ObjectId doesn't match event type.",
-        #         code=WebhookDryRunErrorCode.INVALID_ID,
-        #     )
+        event = WEBHOOK_TYPES_MAP.get(event_type)
+        if not event:
+            event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
+            raise_validation_error(
+                field="query",
+                message=f"Event type: {event_name} is not defined in graphql schema.",
+                code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
+            )
+
+        related_models = [
+            field.type.get_model().__name__
+            for field in event._meta.fields.values()
+            if hasattr(field, "type") and hasattr(field.type, "get_model")
+        ]
+        model, _ = graphene.Node.from_global_id(object_id)
+        if model not in related_models:
+            raise_validation_error(
+                field="objectId",
+                message="ObjectId doesn't match event type.",
+                code=WebhookDryRunErrorCode.INVALID_ID,
+            )
 
         object = cls.get_node_or_error(info, object_id, field="objectId")
         webhook = cls.get_node_or_error(info, webhook_id, field="id")
@@ -384,7 +400,6 @@ class WebhookDryRun(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         event_type, object, app, query = cls.validate_input(info, **data)
-
         payload = None
         if all([event_type, object, app, query]):
             request = initialize_request()
