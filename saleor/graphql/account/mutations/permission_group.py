@@ -1,11 +1,12 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import DefaultDict, Dict, List, Tuple, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....account import models
 from ....account.error_codes import PermissionGroupErrorCode
+from ....account.models import User
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, get_permissions
 from ....core.tracing import traced_atomic_transaction
@@ -18,15 +19,13 @@ from ...account.utils import (
     get_out_of_scope_users,
 )
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Group
-
-if TYPE_CHECKING:
-    from ....account.models import User
 
 
 class PermissionGroupInput(graphene.InputObjectType):
@@ -64,7 +63,7 @@ class PermissionGroupCreate(ModelMutation):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         add_permissions = cleaned_data.get("add_permissions")
         with traced_atomic_transaction():
             if add_permissions:
@@ -75,18 +74,19 @@ class PermissionGroupCreate(ModelMutation):
                 instance.user_set.add(*users)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_created, instance)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        requestor = info.context.user
-        errors = defaultdict(list)
-        cls.clean_permissions(requestor, instance, errors, cleaned_input)
-        cls.clean_users(requestor, errors, cleaned_input, instance)
+        user = info.context.user
+        user = cast(User, user)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        cls.clean_permissions(user, instance, errors, cleaned_input)
+        cls.clean_users(user, errors, cleaned_input, instance)
 
         if errors:
             raise ValidationError(errors)
@@ -98,7 +98,7 @@ class PermissionGroupCreate(ModelMutation):
         cls,
         requestor: "User",
         group: models.Group,
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         cleaned_input: dict,
     ):
         field = "add_permissions"
@@ -123,7 +123,7 @@ class PermissionGroupCreate(ModelMutation):
     def ensure_can_manage_permissions(
         cls,
         requestor: "User",
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         field: str,
         permission_items: List[str],
     ):
@@ -142,7 +142,7 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def clean_users(
         cls,
-        requestor: "User",
+        requestor: User,
         errors: dict,
         cleaned_input: dict,
         group: models.Group,
@@ -154,7 +154,7 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def ensure_users_are_staff(
         cls,
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
@@ -172,9 +172,9 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def update_errors(
         cls,
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         msg: str,
-        field: Optional[str],
+        field: str,
         code: str,
         params: dict,
     ):
@@ -215,7 +215,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             remove_users = cleaned_data.get("remove_users")
@@ -227,7 +227,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
                     instance.permissions.remove(*remove_permissions)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_updated, instance)
 
@@ -241,7 +241,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor = info.context.user
         cls.ensure_requestor_can_manage_group(requestor, instance)
 
-        errors = defaultdict(list)
+        errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
 
@@ -271,7 +271,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls,
         requestor: "User",
         group: models.Group,
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         cleaned_input: dict,
     ):
         super().clean_permissions(requestor, group, errors, cleaned_input)
@@ -326,7 +326,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def ensure_can_manage_users(
         cls,
         requestor: "User",
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
@@ -443,13 +443,15 @@ class PermissionGroupDelete(ModelDeleteMutation):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_deleted, instance)
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         requestor = info.context.user
+        if not requestor:
+            raise PermissionDenied("You must be authenticated to perform this action.")
         if requestor.is_superuser:
             return
         if not can_user_manage_group(requestor, instance):

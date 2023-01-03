@@ -5,6 +5,7 @@ from ....core.permissions import OrderPermissions
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
@@ -33,7 +34,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         instance = super().get_instance(
             info, qs=models.Order.objects.prefetch_related("lines"), **data
         )
@@ -43,7 +44,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
                     "id": ValidationError(
                         "Provided order id belongs to non-draft order. "
                         "Use `orderUpdate` mutation instead.",
-                        code=OrderErrorCode.INVALID,
+                        code=OrderErrorCode.INVALID.value,
                     )
                 }
             )
@@ -61,7 +62,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         )
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
         return cls._save_draft_order(

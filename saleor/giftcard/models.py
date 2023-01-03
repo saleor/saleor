@@ -37,6 +37,9 @@ class GiftCardQueryset(models.QuerySet):
         )
 
 
+GiftCardManager = models.Manager.from_queryset(GiftCardQueryset)
+
+
 class GiftCard(ModelWithMetadata):
     code = models.CharField(max_length=16, unique=True, db_index=True)
     is_active = models.BooleanField(default=True)
@@ -105,7 +108,7 @@ class GiftCard(ModelWithMetadata):
         amount_field="current_balance_amount", currency_field="currency"
     )
 
-    objects = models.Manager.from_queryset(GiftCardQueryset)()
+    objects = GiftCardManager()
 
     class Meta:
         ordering = ("code",)

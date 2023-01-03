@@ -17,6 +17,7 @@ from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_38,
@@ -165,9 +166,13 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def clean_input(
-        cls, info, instance: models.ProductVariant, data: dict, input_cls=None
+        cls,
+        info: ResolveInfo,
+        instance: models.ProductVariant,
+        data: dict,
+        **kwargs,
     ):
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -287,7 +292,7 @@ class ProductVariantCreate(ModelMutation):
             )
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         new_variant = instance.pk is None
         with traced_atomic_transaction():
             instance.save()

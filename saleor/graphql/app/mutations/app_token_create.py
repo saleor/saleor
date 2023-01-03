@@ -36,7 +36,7 @@ class AppTokenCreate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info, /, **data):
         input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, input_data)

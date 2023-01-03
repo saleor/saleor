@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from django_countries import countries
 
@@ -30,11 +30,8 @@ def get_countries_without_shipping_zone():
 
 
 def convert_to_shipping_method_data(
-    shipping_method: "ShippingMethod", listing: Optional["ShippingMethodChannelListing"]
-) -> Optional["ShippingMethodData"]:
-    if not listing:
-        return None
-
+    shipping_method: "ShippingMethod", listing: "ShippingMethodChannelListing"
+) -> "ShippingMethodData":
     price = listing.price
     minimum_order_price = listing.minimum_order_price
     maximum_order_price = listing.maximum_order_price

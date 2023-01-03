@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Iterable
+from typing import Dict, Iterable, List, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -32,6 +32,7 @@ from ...app.dataloaders import get_app_promise
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
 from ...channel.types import Channel
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
 from ...core.types import (
@@ -89,7 +90,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         manager = get_plugin_manager_promise(info.context).get()
         delete_categories(queryset.values_list("pk", flat=True), manager)
 
@@ -109,7 +110,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         collections_ids = queryset.values_list("id", flat=True)
         products = list(
             models.Product.objects.prefetched_for_webhook(single_object=False)
@@ -141,7 +142,9 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids
+    ):
         try:
             pks = cls.get_global_ids_or_error(ids, Product)
         except ValidationError as error:
@@ -158,11 +161,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_ids)
 
         response = super().perform_mutation(
-            _root,
-            info,
-            ids,
-            product_to_variant=product_to_variant,
-            **data,
+            _root, info, ids=ids, product_to_variant=product_to_variant
         )
 
         # delete order lines for deleted variants
@@ -191,7 +190,9 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         ).delete()
 
     @classmethod
-    def bulk_action(cls, info, queryset, product_to_variant):
+    def bulk_action(  # type: ignore[override]
+        cls, info: ResolveInfo, queryset, /, *, product_to_variant
+    ):
         product_variant_map = defaultdict(list)
         for product, variant in product_to_variant:
             product_variant_map[product].append(variant)
@@ -277,9 +278,9 @@ class ProductVariantBulkCreate(BaseMutation):
     def clean_variant_input(
         cls,
         info,
-        instance: models.ProductVariant,
+        instance: Optional[models.ProductVariant],
         data: dict,
-        errors: dict,
+        errors: Dict[str, ValidationError],
         variant_index: int,
     ):
         cleaned_input = ModelMutation.clean_input(
@@ -415,7 +416,7 @@ class ProductVariantBulkCreate(BaseMutation):
             error_dict[key].extend(value)
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         instance.save()
 
         attributes = cleaned_input.get("attributes")
@@ -425,7 +426,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
     @classmethod
-    def create_variants(cls, info, cleaned_inputs, product, errors):
+    def create_variants(cls, info: ResolveInfo, cleaned_inputs, product, errors):
         instances = []
         for index, cleaned_input in enumerate(cleaned_inputs):
             if not cleaned_input:
@@ -441,11 +442,13 @@ class ProductVariantBulkCreate(BaseMutation):
         return instances
 
     @classmethod
-    def validate_duplicated_sku(cls, sku, index, sku_list, errors):
+    def validate_duplicated_sku(cls, sku, index, sku_list: List[str], errors):
         if sku in sku_list:
             errors["sku"].append(
                 ValidationError(
-                    "Duplicated SKU.", ProductErrorCode.UNIQUE, params={"index": index}
+                    "Duplicated SKU.",
+                    ProductErrorCode.UNIQUE.value,
+                    params={"index": index},
                 )
             )
         sku_list.append(sku)
@@ -463,14 +466,14 @@ class ProductVariantBulkCreate(BaseMutation):
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
-                ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
             )
         used_attribute_values.append(attribute_values)
 
     @classmethod
-    def clean_variants(cls, info, variants, product, errors):
+    def clean_variants(cls, info: ResolveInfo, variants, product, errors):
         cleaned_inputs = []
-        sku_list = []
+        sku_list: List[str] = []
         used_attribute_values = get_used_variants_attribute_values(product)
         for index, variant_data in enumerate(variants):
             if variant_data.attributes:
@@ -524,7 +527,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, info, instances, product, cleaned_inputs):
+    def save_variants(cls, info: ResolveInfo, instances, product, cleaned_inputs):
         assert len(instances) == len(
             cleaned_inputs
         ), "There should be the same number of instances and cleaned inputs."
@@ -550,11 +553,13 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        product = cls.get_node_or_error(info, data["product_id"], only_type="Product")
-        errors = defaultdict(list)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, product_id: str, variants
+    ):
+        product = cls.get_node_or_error(info, product_id, only_type=Product)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
-        cleaned_inputs = cls.clean_variants(info, data["variants"], product, errors)
+        cleaned_inputs = cls.clean_variants(info, variants, product, errors)
         instances = cls.create_variants(info, cleaned_inputs, product, errors)
         if errors:
             raise ValidationError(errors)
@@ -603,15 +608,15 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids=None, skus=None, **data):
-        validate_one_of_args_is_in_mutation(ProductErrorCode, "skus", skus, "ids", ids)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, ids=None, skus=None, **data):
+        validate_one_of_args_is_in_mutation("skus", skus, "ids", ids)
 
         if ids:
             try:
                 pks = cls.get_global_ids_or_error(ids, ProductVariant)
             except ValidationError as error:
                 return 0, error
-        if skus:
+        else:
             pks = models.ProductVariant.objects.filter(sku__in=skus).values_list(
                 "pk", flat=True
             )
@@ -636,7 +641,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
         cls.delete_assigned_attribute_values(pks)
         cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
-        response = super().perform_mutation(_root, info, ids, **data)
+        response = super().perform_mutation(_root, info, ids=ids, **data)
         manager = get_plugin_manager_promise(info.context).get()
         transaction.on_commit(
             lambda: [manager.product_variant_deleted(variant) for variant in variants]
@@ -741,9 +746,9 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         manager = get_plugin_manager_promise(info.context).get()
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
@@ -790,7 +795,9 @@ class ProductVariantStocksCreate(BaseMutation):
         return warehouses
 
     @classmethod
-    def check_for_duplicates(cls, warehouse_ids, errors):
+    def check_for_duplicates(
+        cls, warehouse_ids, errors: defaultdict[str, List[ValidationError]]
+    ):
         duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
         error_msg = "Duplicated warehouse ID."
         indexes = []
@@ -803,7 +810,9 @@ class ProductVariantStocksCreate(BaseMutation):
         )
 
     @classmethod
-    def update_errors(cls, errors, msg, field, code, indexes):
+    def update_errors(
+        cls, errors: defaultdict[str, List[ValidationError]], msg, field, code, indexes
+    ):
         for index in indexes:
             error = ValidationError(msg, code=code, params={"index": index})
             errors[field].append(error)
@@ -832,15 +841,13 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        errors = defaultdict(list)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         sku = data.get("sku")
         variant_id = data.get("variant_id")
 
-        validate_one_of_args_is_in_mutation(
-            ProductErrorCode, "sku", sku, "variant_id", variant_id
-        )
+        validate_one_of_args_is_in_mutation("sku", sku, "variant_id", variant_id)
 
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
@@ -926,18 +933,16 @@ class ProductVariantStocksDelete(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         sku = data.get("sku")
         variant_id = data.get("variant_id")
-        validate_one_of_args_is_in_mutation(
-            ProductErrorCode, "sku", sku, "variant_id", variant_id
-        )
+        validate_one_of_args_is_in_mutation("sku", sku, "variant_id", variant_id)
 
         manager = get_plugin_manager_promise(info.context).get()
 
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
-        if sku:
+        else:
             variant = models.ProductVariant.objects.filter(sku=sku).first()
             if not variant:
                 raise ValidationError(
@@ -986,13 +991,15 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids
+    ):
         try:
             pks = cls.get_global_ids_or_error(ids, ProductType)
         except ValidationError as error:
             return 0, error
         cls.delete_assigned_attribute_values(pks)
-        return super().perform_mutation(_root, info, ids, **data)
+        return super().perform_mutation(_root, info, ids=ids)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):

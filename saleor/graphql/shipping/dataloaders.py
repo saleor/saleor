@@ -108,7 +108,10 @@ class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
 
         shipping_methods_by_shipping_zone_and_channel_map = defaultdict(list)
         for shipping_method in shipping_methods:
-            key = (shipping_method.shipping_zone_id, shipping_method.channel_slug)
+            key = (
+                shipping_method.shipping_zone_id,
+                getattr(shipping_method, "channel_slug"),  # annotation
+            )
             shipping_methods_by_shipping_zone_and_channel_map[key].append(
                 shipping_method
             )

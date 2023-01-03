@@ -1,7 +1,7 @@
 import operator
 from collections import defaultdict
 from functools import reduce
-from typing import Optional
+from typing import List
 
 from django.db.models.query_utils import Q
 from prices import Money
@@ -22,8 +22,8 @@ def _get_variant_prices_in_channels_dict(product):
 
 def _get_product_discounted_price(
     variant_prices, product, collections, discounts, channel
-) -> Optional[Money]:
-    discounted_variants_price = []
+) -> Money:
+    discounted_variants_price: List[Money] = []
     for variant_price in variant_prices:
         discounted_variant_price = calculate_discounted_price(
             product=product,

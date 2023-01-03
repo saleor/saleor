@@ -12,7 +12,7 @@ class InvalidPromoCode(ValidationError):
         if message is None:
             message = {
                 "promo_code": ValidationError(
-                    "Promo code is invalid", code=GiftCardErrorCode.INVALID
+                    "Promo code is invalid", code=GiftCardErrorCode.INVALID.value
                 )
             }
         super().__init__(message, **kwargs)

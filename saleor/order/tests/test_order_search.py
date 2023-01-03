@@ -47,7 +47,7 @@ def test_prepare_order_search_vector_value(
         translated_name="discount translated",
         value=Decimal("20"),
         reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,  # type: ignore
+        amount=(order.undiscounted_total - order.total).gross,
     )
 
     psp_reference = "TestABC"
@@ -73,7 +73,7 @@ def test_prepare_order_search_vector_value_empty_relation_fields(
         value_type=DiscountValueType.FIXED,
         value=Decimal("20"),
         reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,  # type: ignore
+        amount=(order.undiscounted_total - order.total).gross,
     )
 
     payment_dummy.psp_reference = None

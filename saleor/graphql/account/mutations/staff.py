@@ -1,5 +1,6 @@
 from collections import defaultdict
 from copy import copy
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -24,6 +25,7 @@ from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import (
     BaseMutation,
@@ -112,7 +114,7 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
     @classmethod
     def generate_events(
-        cls, info, old_instance: models.User, new_instance: models.User
+        cls, info: ResolveInfo, old_instance: models.User, new_instance: models.User
     ):
         # Retrieve the event base data
         staff_user = info.context.user
@@ -151,7 +153,7 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         """Generate events by comparing the old instance with the new data.
 
         It overrides the `perform_mutation` base method of ModelMutation.
@@ -199,13 +201,13 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         results = super().perform_mutation(root, info, **data)
         cls.post_process(info)
         return results
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.customer_deleted, instance)
 
@@ -238,21 +240,22 @@ class StaffCreate(ModelMutation):
         return super().check_permissions(context, permissions)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         errors = defaultdict(list)
         if cleaned_input.get("redirect_url"):
             try:
                 validate_storefront_url(cleaned_input.get("redirect_url"))
             except ValidationError as error:
-                error.code = AccountErrorCode.INVALID
+                error.code = AccountErrorCode.INVALID.value
                 errors["redirect_url"].append(error)
 
-        requestor = info.context.user
+        user = info.context.user
+        user = cast(models.User, user)
         # set is_staff to True to create a staff user
         cleaned_input["is_staff"] = True
-        cls.clean_groups(requestor, cleaned_input, errors)
+        cls.clean_groups(user, cleaned_input, errors)
         cls.clean_is_active(cleaned_input, instance, info.context.user, errors)
 
         email = cleaned_input.get("email")
@@ -301,7 +304,7 @@ class StaffCreate(ModelMutation):
         pass
 
     @classmethod
-    def save(cls, info, user, cleaned_input, send_notification=True):
+    def save(cls, info: ResolveInfo, user, cleaned_input, send_notification=True):
         if any([field in cleaned_input for field in USER_SEARCH_FIELDS]):
             user.search_document = prepare_user_search_document_value(
                 user, attach_addresses_data=False
@@ -318,7 +321,7 @@ class StaffCreate(ModelMutation):
             )
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             groups = cleaned_data.get("add_groups")
@@ -326,12 +329,12 @@ class StaffCreate(ModelMutation):
                 instance.groups.add(*groups)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.staff_created, instance)
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         object_id = data.get("id")
         email = data.get("input", {}).get("email")
         send_notification = True
@@ -348,7 +351,7 @@ class StaffCreate(ModelMutation):
         return super().get_instance(info, **data), send_notification
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance, send_notification = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
@@ -380,10 +383,11 @@ class StaffUpdate(StaffCreate):
         error_type_field = "staff_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        requestor = info.context.user
-        # check if requestor can manage this user
-        if not requestor.is_superuser and get_out_of_scope_users(requestor, [instance]):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        user = info.context.user
+        user = cast(models.User, user)
+        # check if user can manage this user
+        if not user.is_superuser and get_out_of_scope_users(user, [instance]):
             msg = "You can't manage this user."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
@@ -393,7 +397,7 @@ class StaffUpdate(StaffCreate):
             error.code = AccountErrorCode.DUPLICATED_INPUT_ITEM.value
             raise error
 
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         return cleaned_input
 
@@ -479,7 +483,7 @@ class StaffUpdate(StaffCreate):
             errors["is_active"].append(error)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             add_groups = cleaned_data.get("add_groups")
@@ -490,10 +494,10 @@ class StaffUpdate(StaffCreate):
                 instance.groups.remove(*remove_groups)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         instance, _ = cls.get_instance(info, **data)
         old_email = instance.email
-        response = super().perform_mutation(_root, info, **data)
+        response = super().perform_mutation(root, info, **data)
         user = response.user
         if user.email != old_email:
             assign_user_gift_cards(user)
@@ -501,7 +505,7 @@ class StaffUpdate(StaffCreate):
         return response
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.staff_updated, instance)
 
@@ -521,9 +525,10 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         id = graphene.ID(required=True, description="ID of a staff user to delete.")
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        user_id = data.get("id")
-        instance = cls.get_node_or_error(info, user_id, only_type=User)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        instance = cls.get_node_or_error(info, id, only_type=User)
         cls.clean_instance(info, instance)
 
         db_id = instance.id
@@ -561,7 +566,7 @@ class AddressCreate(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         user_id = data["user_id"]
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
         with traced_atomic_transaction():
@@ -577,7 +582,7 @@ class AddressCreate(ModelMutation):
             return response
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.address_created, instance)
 
@@ -619,7 +624,9 @@ class AddressSetDefault(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, address_id, user_id, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, address_id, user_id, type
+    ):
         address = cls.get_node_or_error(
             info, address_id, field="address_id", only_type=Address
         )
@@ -630,12 +637,12 @@ class AddressSetDefault(BaseMutation):
                 {
                     "address_id": ValidationError(
                         "The address doesn't belong to that user.",
-                        code=AccountErrorCode.INVALID,
+                        code=AccountErrorCode.INVALID.value,
                     )
                 }
             )
 
-        if data.get("type") == AddressTypeEnum.BILLING.value:
+        if type == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
@@ -665,8 +672,9 @@ class UserAvatarUpdate(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         user = info.context.user
+        user = cast(models.User, user)
         data["image"] = info.context.FILES.get(data["image"])
         image_data = clean_image_file(data, "image", AccountErrorCode)
         if user.avatar:
@@ -688,8 +696,9 @@ class UserAvatarDelete(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info):
+    def perform_mutation(cls, _root, info: ResolveInfo, /):
         user = info.context.user
+        user = cast(models.User, user)
         user.avatar.delete()
         thumbnail_models.Thumbnail.objects.filter(user_id=user.id).delete()
         return UserAvatarDelete(user=user)

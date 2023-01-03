@@ -13,6 +13,7 @@ from .....product.search import update_product_search_vector
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
@@ -125,8 +126,8 @@ class ProductCreate(ModelMutation):
         return attributes
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         description = cleaned_input.get("description")
         cleaned_input["description_plaintext"] = (
@@ -174,7 +175,7 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         with traced_atomic_transaction():
             instance.save()
             attributes = cleaned_input.get("attributes")
@@ -182,20 +183,20 @@ class ProductCreate(ModelMutation):
                 AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, _info: ResolveInfo, instance, cleaned_data):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
             instance.collections.set(collections)
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         response = super().perform_mutation(_root, info, **data)
         product = getattr(response, cls._meta.return_field_name)
 

@@ -10,6 +10,7 @@ from .....order.tasks import recalculate_orders_task
 from .....product import models
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
@@ -40,8 +41,10 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         return super().success_response(instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(instance)
@@ -50,7 +53,9 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
                 variants_id
             )
 
-            response = super().perform_mutation(_root, info, **data)
+            response = super().perform_mutation(
+                _root, info, external_reference=external_reference, id=id
+            )
 
             # delete order lines for deleted variant
             order_models.OrderLine.objects.filter(

@@ -5,9 +5,7 @@ from ...core.exceptions import ReadOnlyException
 from .utils import get_graphql_content
 
 
-@override_settings(
-    GRAPHENE={"MIDDLEWARE": ["saleor.graphql.middleware.ReadOnlyMiddleware"]}
-)
+@override_settings(GRAPHQL_MIDDLEWARE=["saleor.graphql.middleware.ReadOnlyMiddleware"])
 def test_read_only_middleware_blocked_mutation(staff_api_client):
     mutation = """
         mutation updateMetadata($id: ID!, $input: [MetadataInput!]!) {
@@ -28,9 +26,7 @@ def test_read_only_middleware_blocked_mutation(staff_api_client):
     )
 
 
-@override_settings(
-    GRAPHENE={"MIDDLEWARE": ["saleor.graphql.middleware.ReadOnlyMiddleware"]}
-)
+@override_settings(GRAPHQL_MIDDLEWARE=["saleor.graphql.middleware.ReadOnlyMiddleware"])
 def test_read_only_middleware_allowed_mutation(staff_api_client, customer_user):
     mutation = """
         mutation tokenCreate($email: String!, $password: String!){
@@ -46,7 +42,7 @@ def test_read_only_middleware_allowed_mutation(staff_api_client, customer_user):
     assert content["data"]["tokenCreate"]["token"]
 
 
-@override_settings(GRAPHENE={"MIDDLEWARE": ["saleor.graphql.middleware.NonExisting"]})
+@override_settings(GRAPHQL_MIDDLEWARE=["saleor.graphql.middleware.NonExisting"])
 def test_middleware_invalid_name(api_client):
     with pytest.raises(ImportError):
         api_client.post_graphql("")

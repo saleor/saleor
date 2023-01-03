@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List, Optional
 
 from django.db.models import F
 
@@ -153,7 +154,7 @@ class VoucherChannelListingByVoucherIdLoader(DataLoader):
         ]
 
 
-class VoucherInfoByVoucherCodeLoader(DataLoader):
+class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
     context_key = "voucher_info_by_voucher_code"
 
     def batch_load(self, keys):
@@ -200,7 +201,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader):
             category_pks_map[voucher_id].append(category_id)
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
-        voucher_infos = []
+        voucher_infos: List[Optional[VoucherInfo]] = []
         for code in keys:
             voucher = vouchers_map.get(code)
             if not voucher:

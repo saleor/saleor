@@ -110,7 +110,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
         try:
             attribute_assignment = instance.attributes.prefetch_related("values").get(
-                assignment__attribute_id=attribute_pk  # type: ignore
+                assignment__attribute_id=attribute_pk
             )
         except ObjectDoesNotExist:
             raise ValidationError(

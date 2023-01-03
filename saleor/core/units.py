@@ -85,11 +85,15 @@ class WeightUnits:
 def prepare_all_units_dict():
     measurement_dict = {
         unit.upper(): unit
-        for units in [DistanceUnits, AreaUnits, VolumeUnits, WeightUnits]
-        for unit, _ in units.CHOICES
+        for unit_choices in [
+            DistanceUnits.CHOICES,
+            AreaUnits.CHOICES,
+            VolumeUnits.CHOICES,
+            WeightUnits.CHOICES,
+        ]
+        for unit, _ in unit_choices
     }
-    measurement_dict["CHOICES"] = [(v, v) for v in measurement_dict.values()]
-    return measurement_dict
+    return dict(measurement_dict, CHOICES=[(v, v) for v in measurement_dict.values()])
 
 
 MeasurementUnits = type("MeasurementUnits", (object,), prepare_all_units_dict())

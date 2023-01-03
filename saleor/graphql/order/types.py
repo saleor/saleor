@@ -22,7 +22,6 @@ from ...core.permissions import (
     has_one_of_permissions,
 )
 from ...core.prices import quantize_price
-from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
@@ -70,6 +69,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.fields import PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
+from ..core.tracing import traced_resolver
 from ..core.types import (
     Image,
     ModelObjectType,
@@ -216,7 +216,7 @@ class OrderEventOrderLineObject(graphene.ObjectType):
     )
 
 
-class OrderEvent(ModelObjectType):
+class OrderEvent(ModelObjectType[models.OrderEvent]):
     id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
@@ -281,8 +281,12 @@ class OrderEvent(ModelObjectType):
 
     @staticmethod
     def resolve_user(root: models.OrderEvent, info):
+        user_or_app = get_user_or_app_from_context(info.context)
+        if not user_or_app:
+            return None
+        requester = user_or_app
+
         def _resolve_user(event_user):
-            requester = get_user_or_app_from_context(info.context)
             if (
                 requester == event_user
                 or requester.has_perm(AccountPermissions.MANAGE_USERS)
@@ -449,7 +453,7 @@ class OrderEventCountableConnection(CountableConnection):
         node = OrderEvent
 
 
-class FulfillmentLine(ModelObjectType):
+class FulfillmentLine(ModelObjectType[models.FulfillmentLine]):
     id = graphene.GlobalID(required=True)
     quantity = graphene.Int(required=True)
     order_line = graphene.Field(lambda: OrderLine)
@@ -464,7 +468,7 @@ class FulfillmentLine(ModelObjectType):
         return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
-class Fulfillment(ModelObjectType):
+class Fulfillment(ModelObjectType[models.Fulfillment]):
     id = graphene.GlobalID(required=True)
     fulfillment_order = graphene.Int(required=True)
     status = FulfillmentStatusEnum(required=True)
@@ -522,7 +526,7 @@ class Fulfillment(ModelObjectType):
         )
 
 
-class OrderLine(ModelObjectType):
+class OrderLine(ModelObjectType[models.OrderLine]):
     id = graphene.GlobalID(required=True)
     product_name = graphene.String(required=True)
     variant_name = graphene.String(required=True)
@@ -841,7 +845,7 @@ class OrderLine(ModelObjectType):
         return resolve_metadata(root.tax_class_private_metadata)
 
 
-class Order(ModelObjectType):
+class Order(ModelObjectType[models.Order]):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
@@ -1337,7 +1341,8 @@ class Order(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_undiscounted_total(root: models.Order, info):
-        def _resolve_undiscounted_total(lines):
+        def _resolve_undiscounted_total(lines_and_manager):
+            lines, manager = lines_and_manager
             return calculations.order_undiscounted_total(root, manager, lines)
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
@@ -1615,7 +1620,11 @@ class Order(ModelObjectType):
                 ).load((shipping_method.id, channel.slug))
             )
 
-            def calculate_price(listing: Optional[ShippingMethodChannelListing]):
+            def calculate_price(
+                listing: Optional[ShippingMethodChannelListing],
+            ) -> Optional[ShippingMethodData]:
+                if not listing:
+                    return None
                 return convert_to_shipping_method_data(shipping_method, listing)
 
             return listing.then(calculate_price)

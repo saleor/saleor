@@ -2,7 +2,7 @@
 from datetime import date
 from decimal import Decimal
 from operator import attrgetter
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
@@ -25,6 +25,7 @@ from ..shipping.models import ShippingMethod
 if TYPE_CHECKING:
     from django_measurement import Weight
 
+    from ..order.fetch import OrderLineInfo
     from ..payment.models import Payment
     from ..product.models import ProductVariant
     from .fetch import CheckoutLineInfo
@@ -180,18 +181,28 @@ class Checkout(models.Model):
 
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
-        balance = self.gift_cards.active(date=date.today()).aggregate(  # type: ignore
+        balance = self.gift_cards.active(  # type: ignore[attr-defined] # problem with django-stubs detecting the correct manager # noqa: E501
+            date=date.today()
+        ).aggregate(
             models.Sum("current_balance_amount")
-        )["current_balance_amount__sum"]
+        )[
+            "current_balance_amount__sum"
+        ]
         if balance is None:
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
-    def get_total_weight(self, lines: Iterable["CheckoutLineInfo"]) -> "Weight":
+    def get_total_weight(
+        self, lines: Union[Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"]]
+    ) -> "Weight":
+        # FIXME: it does not make sense for this method to live in the Checkout model
+        # since it's used in the Order model as well. We should move it to a separate
+        # helper.
         weights = zero_weight()
         for checkout_line_info in lines:
             line = checkout_line_info.line
-            weights += line.variant.get_weight() * line.quantity
+            if line.variant:
+                weights += line.variant.get_weight() * line.quantity
         return weights
 
     def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:

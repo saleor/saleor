@@ -5,6 +5,7 @@ from ....app import models
 from ....app.error_codes import AppErrorCode
 from ....core.permissions import AppPermission
 from ...account.utils import can_manage_app
+from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -25,7 +26,7 @@ class AppDelete(ModelDeleteMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         requestor = get_user_or_app_from_context(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, instance

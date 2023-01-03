@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+from typing import Dict
 
 import graphene
 import pytz
@@ -38,7 +39,7 @@ def send_sale_toggle_notifications():
 
 
 def fetch_catalogue_infos(sales):
-    catalogue_info: CatalogueInfo = {}
+    catalogue_info: Dict[int, CatalogueInfo] = {}
     for sale_data in sales.values("id", *CATALOGUE_FIELDS):
         sale_id = sale_data["id"]
         if sale_id not in catalogue_info:

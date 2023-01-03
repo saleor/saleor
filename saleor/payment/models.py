@@ -7,7 +7,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
+from django.db.models import JSONField
 from django_prices.models import MoneyField
 from prices import Money
 

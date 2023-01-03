@@ -12,6 +12,7 @@ from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import is_gift_card_expired
 from ..app.dataloaders import get_app_promise
+from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.scalars import Date
@@ -63,14 +64,15 @@ class GiftCardBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        input_data = data["input"]
-        cls.clean_count_value(input_data)
-        cls.clean_expiry_date(input_data)
-        cls.clean_balance(input_data)
-        GiftCardCreate.set_created_by_user(input_data, info)
-        tags = input_data.pop("tags", None)
-        instances = cls.create_instances(input_data, info)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input
+    ):
+        cls.clean_count_value(input)
+        cls.clean_expiry_date(input)
+        cls.clean_balance(input)
+        GiftCardCreate.set_created_by_user(input, info)
+        tags = input.pop("tags", None)
+        instances = cls.create_instances(input, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
         manager = get_plugin_manager_promise(info.context).get()
@@ -174,7 +176,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         error_type_class = GiftCardError
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = [card for card in queryset]
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
@@ -196,16 +198,16 @@ class GiftCardBulkActivate(BaseBulkMutation):
         error_type_class = GiftCardError
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, _info: ResolveInfo, instance):
         if is_gift_card_expired(instance):
             raise ValidationError(
                 "Cannot activate expired card.",
-                code=GiftCardErrorCode.EXPIRED_GIFT_CARD,
+                code=GiftCardErrorCode.EXPIRED_GIFT_CARD.value,
             )
 
     @classmethod
     @traced_atomic_transaction()
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         queryset = queryset.filter(is_active=False)
         gift_card_ids = [gift_card.id for gift_card in queryset]
         app = get_app_promise(info.context).get()
@@ -235,7 +237,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         app = get_app_promise(info.context).get()
         queryset = queryset.filter(is_active=True)
         gift_card_ids = [gift_card.id for gift_card in queryset]

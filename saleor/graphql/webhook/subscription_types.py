@@ -24,6 +24,7 @@ from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
+from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -65,7 +66,7 @@ class IssuingPrincipal(Union):
         types = (AppType, UserType)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         if isinstance(instance, User):
             return UserType
         return AppType
@@ -88,24 +89,24 @@ class Event(graphene.Interface):
         return WEBHOOK_TYPES_MAP.get(object_type)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         type_str, _ = instance
         return cls.get_type(type_str)
 
     @staticmethod
-    def resolve_issued_at(_root, _info):
+    def resolve_issued_at(_root, _info: ResolveInfo):
         return timezone.now()
 
     @staticmethod
-    def resolve_version(_root, _info):
+    def resolve_version(_root, _info: ResolveInfo):
         return __version__
 
     @staticmethod
-    def resolve_recipient(_root, info):
+    def resolve_recipient(_root, info: ResolveInfo):
         return info.context.app
 
     @staticmethod
-    def resolve_issuing_principal(_root, info):
+    def resolve_issuing_principal(_root, info: ResolveInfo):
         if not info.context.requestor:
             return None
         return info.context.requestor
@@ -118,7 +119,7 @@ class AddressBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_address(root, _info):
+    def resolve_address(root, _info: ResolveInfo):
         _, address = root
         return address
 
@@ -154,7 +155,7 @@ class AppBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_app(root, _info):
+    def resolve_app(root, _info: ResolveInfo):
         _, app = root
         return app
 
@@ -194,7 +195,7 @@ class AttributeBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_attribute(root, _info):
+    def resolve_attribute(root, _info: ResolveInfo):
         _, attribute = root
         return attribute
 
@@ -230,7 +231,7 @@ class AttributeValueBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_attribute_value(root, _info):
+    def resolve_attribute_value(root, _info: ResolveInfo):
         _, attribute = root
         return attribute
 
@@ -272,7 +273,7 @@ class CategoryBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_category(root, info):
+    def resolve_category(root, info: ResolveInfo):
         _, category = root
         return category
 
@@ -308,7 +309,7 @@ class ChannelBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_channel(root, info):
+    def resolve_channel(root, info: ResolveInfo):
         _, channel = root
         return channel
 
@@ -354,7 +355,7 @@ class OrderBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_order(root, info):
+    def resolve_order(root, info: ResolveInfo):
         _, order = root
         return order
 
@@ -448,7 +449,7 @@ class GiftCardBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_gift_card(root, info):
+    def resolve_gift_card(root, info: ResolveInfo):
         _, gift_card = root
         return gift_card
 
@@ -507,7 +508,7 @@ class MenuBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_menu(root, info, channel=None):
+    def resolve_menu(root, info: ResolveInfo, channel=None):
         _, menu = root
         return ChannelContext(node=menu, channel_slug=channel)
 
@@ -542,7 +543,7 @@ class MenuItemBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_menu_item(root, info, channel=None):
+    def resolve_menu_item(root, info: ResolveInfo, channel=None):
         _, menu_item = root
         return ChannelContext(node=menu_item, channel_slug=channel)
 
@@ -585,12 +586,12 @@ class ProductBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_product(root, info, channel=None):
+    def resolve_product(root, info: ResolveInfo, channel=None):
         _, product = root
         return ChannelContext(node=product, channel_slug=channel)
 
     @staticmethod
-    def resolve_category(root, _info):
+    def resolve_category(root, _info: ResolveInfo):
         _, product = root
         return product.category
 
@@ -639,7 +640,7 @@ class ProductVariantBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_product_variant(root, _info, channel=None):
+    def resolve_product_variant(root, _info: ResolveInfo, channel=None):
         _, variant = root
         return ChannelContext(node=variant, channel_slug=channel)
 
@@ -698,13 +699,13 @@ class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
         )
 
     @staticmethod
-    def resolve_product_variant(root, info, channel=None):
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
         _, stock = root
         variant = stock.product_variant
         return ChannelContext(node=variant, channel_slug=channel)
 
     @staticmethod
-    def resolve_warehouse(root, _info):
+    def resolve_warehouse(root, _info: ResolveInfo):
         _, stock = root
         return stock.warehouse
 
@@ -723,7 +724,7 @@ class ProductVariantBackInStock(ObjectType, ProductVariantBase):
         )
 
     @staticmethod
-    def resolve_product_variant(root, _info, channel=None):
+    def resolve_product_variant(root, _info: ResolveInfo, channel=None):
         _, stock = root
         variant = stock.product_variant
         return ChannelContext(node=variant, channel_slug=channel)
@@ -744,7 +745,7 @@ class SaleBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_sale(root, info, channel=None):
+    def resolve_sale(root, info: ResolveInfo, channel=None):
         _, sale = root
         return ChannelContext(node=sale, channel_slug=channel)
 
@@ -798,7 +799,7 @@ class InvoiceBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_invoice(root, _info):
+    def resolve_invoice(root, _info: ResolveInfo):
         _, invoice = root
         return invoice
 
@@ -847,12 +848,12 @@ class FulfillmentBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_fulfillment(root, _info):
+    def resolve_fulfillment(root, _info: ResolveInfo):
         _, fulfillment = root
         return fulfillment
 
     @staticmethod
-    def resolve_order(root, info):
+    def resolve_order(root, info: ResolveInfo):
         _, fulfillment = root
         return fulfillment.order
 
@@ -900,7 +901,7 @@ class UserBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_user(root, _info):
+    def resolve_user(root, _info: ResolveInfo):
         _, user = root
         return user
 
@@ -943,7 +944,7 @@ class CollectionBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_collection(root, _info, channel=None):
+    def resolve_collection(root, _info: ResolveInfo, channel=None):
         _, collection = root
         return ChannelContext(node=collection, channel_slug=channel)
 
@@ -989,7 +990,7 @@ class CheckoutBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_checkout(root, _info):
+    def resolve_checkout(root, _info: ResolveInfo):
         _, checkout = root
         return checkout
 
@@ -1026,7 +1027,7 @@ class PageBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_page(root, _info):
+    def resolve_page(root, _info: ResolveInfo):
         _, page = root
         return page
 
@@ -1058,7 +1059,7 @@ class PageTypeBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_page_type(root, _info):
+    def resolve_page_type(root, _info: ResolveInfo):
         _, page_type = root
         return page_type
 
@@ -1094,7 +1095,7 @@ class PermissionGroupBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_permission_group(root, _info):
+    def resolve_permission_group(root, _info: ResolveInfo):
         _, permission_group = root
         return permission_group
 
@@ -1146,12 +1147,12 @@ class ShippingPriceBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_shipping_method(root, _info, channel=None):
+    def resolve_shipping_method(root, _info: ResolveInfo, channel=None):
         _, shipping_method = root
         return ChannelContext(node=shipping_method, channel_slug=channel)
 
     @staticmethod
-    def resolve_shipping_zone(root, _info, channel=None):
+    def resolve_shipping_zone(root, _info: ResolveInfo, channel=None):
         _, shipping_method = root
         return ChannelContext(node=shipping_method.shipping_zone, channel_slug=channel)
 
@@ -1192,7 +1193,7 @@ class ShippingZoneBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_shipping_zone(root, _info, channel=None):
+    def resolve_shipping_zone(root, _info: ResolveInfo, channel=None):
         _, shipping_zone = root
         return ChannelContext(node=shipping_zone, channel_slug=channel)
 
@@ -1268,7 +1269,7 @@ class TransactionAction(ObjectType, AbstractType):
     )
 
     @staticmethod
-    def resolve_amount(root: TransactionActionData, _info):
+    def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
         if root.action_value:
             return quantize_price(root.action_value, root.transaction.currency)
         return None
@@ -1294,13 +1295,13 @@ class TransactionActionRequest(ObjectType):
         )
 
     @staticmethod
-    def resolve_transaction(root, _info):
+    def resolve_transaction(root, _info: ResolveInfo):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data.transaction
 
     @staticmethod
-    def resolve_action(root, _info):
+    def resolve_action(root, _info: ResolveInfo):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data
@@ -1321,7 +1322,7 @@ class TransactionItemMetadataUpdated(ObjectType):
         )
 
     @staticmethod
-    def resolve_transaction(root, _info):
+    def resolve_transaction(root, _info: ResolveInfo):
         _, transaction_item = root
         return transaction_item
 
@@ -1331,7 +1332,7 @@ class TranslationTypes(Union):
         types = tuple(TRANSLATIONS_TYPES_MAP.values())
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
         if instance_type in TRANSLATIONS_TYPES_MAP:
             return TRANSLATIONS_TYPES_MAP[instance_type]
@@ -1345,7 +1346,7 @@ class TranslationBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_translation(root, _info):
+    def resolve_translation(root, _info: ResolveInfo):
         _, translation = root
         return translation
 
@@ -1378,7 +1379,7 @@ class VoucherBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_voucher(root, _info):
+    def resolve_voucher(root, _info: ResolveInfo):
         _, voucher = root
         return ChannelContext(node=voucher, channel_slug=None)
 
@@ -1424,7 +1425,7 @@ class WarehouseBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_warehouse(root, _info):
+    def resolve_warehouse(root, _info: ResolveInfo):
         _, warehouse = root
         return warehouse
 
@@ -1436,7 +1437,7 @@ class PaymentBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_payment(root, _info):
+    def resolve_payment(root, _info: ResolveInfo):
         _, payment = root
         return payment
 
@@ -1493,7 +1494,7 @@ class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
 
     @staticmethod
     @plugin_manager_promise_callback
-    def resolve_shipping_methods(root, info, manager):
+    def resolve_shipping_methods(root, info: ResolveInfo, manager):
         _, checkout = root
         return resolve_shipping_methods_for_checkout(info, checkout, manager)
 
@@ -1517,7 +1518,7 @@ class CalculateTaxes(ObjectType):
             + PREVIEW_FEATURE
         )
 
-    def resolve_tax_base(root, info):
+    def resolve_tax_base(root, _info: ResolveInfo):
         _, tax_base = root
         return tax_base
 
@@ -1532,7 +1533,7 @@ class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
 
     @staticmethod
     @plugin_manager_promise_callback
-    def resolve_shipping_methods(root, info, manager):
+    def resolve_shipping_methods(root, info: ResolveInfo, manager):
         _, checkout = root
         return resolve_shipping_methods_for_checkout(info, checkout, manager)
 
@@ -1552,7 +1553,7 @@ class OrderFilterShippingMethods(ObjectType, OrderBase):
     )
 
     @staticmethod
-    def resolve_shipping_methods(root, info):
+    def resolve_shipping_methods(root, info: ResolveInfo):
         _, order = root
 
         def with_channel(channel):
@@ -1615,7 +1616,7 @@ class Subscription(ObjectType):
     )
 
     @staticmethod
-    def resolve_event(root, info):
+    def resolve_event(root, info: ResolveInfo):
         return Observable.from_([root])
 
 

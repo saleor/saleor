@@ -1,7 +1,7 @@
 import hashlib
 import logging
 import traceback
-from typing import Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Union
 from uuid import UUID
 
 import graphene
@@ -12,9 +12,14 @@ from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
 
+from ...account.models import User
+from ...app.models import App
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
+
+if TYPE_CHECKING:
+    from ..core import SaleorContext
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
@@ -30,7 +35,7 @@ REVERSED_DIRECTION = {
 
 
 def resolve_global_ids_to_primary_keys(
-    ids, graphene_type=None, raise_error: bool = False
+    ids: Iterable[str], graphene_type=None, raise_error: bool = False
 ):
     pks = []
     invalid_ids = []
@@ -71,7 +76,7 @@ def _resolve_graphene_type(schema, type_name):
 
 def get_nodes(
     ids,
-    graphene_type: Union[graphene.ObjectType, str] = None,
+    graphene_type: Union[graphene.ObjectType, str, None] = None,
     model=None,
     qs=None,
     schema=None,
@@ -167,7 +172,7 @@ def format_permissions_for_display(permissions):
     return formatted_permissions
 
 
-def get_user_or_app_from_context(context):
+def get_user_or_app_from_context(context: "SaleorContext") -> Union[App, User, None]:
     # order is important
     # app can be None but user if None then is passed as anonymous
     return context.app or context.user
@@ -244,6 +249,7 @@ def query_fingerprint(document: GraphQLDocument) -> str:
 
 
 def format_error(error, handled_exceptions):
+    result: Dict[str, Any]
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
     else:

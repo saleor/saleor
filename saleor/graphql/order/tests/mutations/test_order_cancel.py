@@ -15,6 +15,7 @@ mutation cancelOrder($id: ID!) {
         errors{
             field
             code
+            message
         }
     }
 }
@@ -31,6 +32,7 @@ def test_order_cancel(
     order_with_lines,
 ):
     order = order_with_lines
+    mock_clean_order_cancel.return_value = order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
@@ -56,6 +58,7 @@ def test_order_cancel_as_app(
     order_with_lines,
 ):
     order = order_with_lines
+    mock_clean_order_cancel.return_value = order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = app_api_client.post_graphql(
@@ -82,6 +85,7 @@ def test_order_cancel_with_bought_gift_cards(
     gift_card,
 ):
     order = order_with_lines
+    mock_clean_order_cancel.return_value = order
     gift_cards_bought_event([gift_card], order, staff_api_client.user, None)
     assert gift_card.is_active is True
     order_id = graphene.Node.to_global_id("Order", order.id)

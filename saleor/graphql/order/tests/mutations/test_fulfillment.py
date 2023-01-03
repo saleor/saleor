@@ -117,7 +117,7 @@ def test_order_fulfill(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -182,7 +182,7 @@ def test_order_fulfill_with_tracking_number(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -512,7 +512,7 @@ def test_order_fulfill_as_app(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -579,11 +579,11 @@ def test_order_fulfill_many_warehouses(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse1.pk): [
+        warehouse1.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 1},
         ],
-        str(warehouse2.pk): [{"order_line": order_line2, "quantity": 1}],
+        warehouse2.pk: [{"order_line": order_line2, "quantity": 1}],
     }
 
     mock_create_fulfillments.assert_called_once_with(
@@ -875,7 +875,7 @@ def test_order_fulfill_without_notification(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [{"order_line": order_line, "quantity": 1}]
+        warehouse.pk: [{"order_line": order_line, "quantity": 1}]
     }
     mock_create_fulfillments.assert_called_once_with(
         staff_user,
@@ -943,7 +943,7 @@ def test_order_fulfill_lines_with_empty_quantity(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
+        warehouse.pk: [{"order_line": order_line2, "quantity": 2}]
     }
     mock_create_fulfillments.assert_called_once_with(
         staff_user,
@@ -1006,7 +1006,7 @@ def test_order_fulfill_without_sku(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -1217,6 +1217,7 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
                 variant=order_line.variant,
                 order_line=order_line,
                 warehouse_pk=warehouse_no_shipping_zone.pk,
+                available_quantity=0,
             )
         ]
     )

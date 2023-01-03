@@ -2,7 +2,7 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...product.models import Product, ProductType
-from .base import AssociatedAttributeQuerySet, BaseAssignedAttribute
+from .base import AssociatedAttributeManager, BaseAssignedAttribute
 
 
 class AssignedProductAttributeValue(SortableModel):
@@ -60,7 +60,7 @@ class AttributeProduct(SortableModel):
         related_name="attributesrelated",
     )
 
-    objects = models.Manager.from_queryset(AssociatedAttributeQuerySet)()
+    objects = AssociatedAttributeManager()
 
     class Meta:
         unique_together = (("attribute", "product_type"),)

@@ -7,6 +7,7 @@ from .....core.permissions import ProductPermissions
 from .....product import models
 from .....product.search import update_product_search_vector
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types.common import ProductError
@@ -49,7 +50,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         return attributes
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
         manager = get_plugin_manager_promise(info.context).get()

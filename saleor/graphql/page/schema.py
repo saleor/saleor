@@ -1,5 +1,6 @@
 import graphene
 
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
@@ -58,22 +59,22 @@ class PageQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_page(_root, info, *, id=None, slug=None):
+    def resolve_page(_root, info: ResolveInfo, *, id=None, slug=None):
         return resolve_page(info, id, slug)
 
     @staticmethod
-    def resolve_pages(_root, info, **kwargs):
+    def resolve_pages(_root, info: ResolveInfo, **kwargs):
         qs = resolve_pages(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PageCountableConnection)
 
     @staticmethod
-    def resolve_page_type(_root, info, *, id):
+    def resolve_page_type(_root, _info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, PageType)
         return resolve_page_type(id)
 
     @staticmethod
-    def resolve_page_types(_root, info, **kwargs):
+    def resolve_page_types(_root, info: ResolveInfo, **kwargs):
         qs = resolve_page_types(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PageTypeCountableConnection)

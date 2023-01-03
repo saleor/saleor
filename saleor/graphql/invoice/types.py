@@ -7,7 +7,7 @@ from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 
 
-class Invoice(ModelObjectType):
+class Invoice(ModelObjectType[models.Invoice]):
     number = graphene.String()
     external_url = graphene.String()
     created_at = graphene.DateTime(required=True)

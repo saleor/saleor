@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.permissions import ProductTypePermissions
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
@@ -92,21 +93,23 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(
-                            msg, code=AttributeErrorCode.INVALID
+                            msg, code=AttributeErrorCode.INVALID.value
                         )
                     }
                 )
         return remove_values
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         for attribute_value in cleaned_data.get("remove_values", []):
             attribute_value.delete()
 
     @classmethod
-    def perform_mutation(cls, _root, info, input, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None, input
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
 
         # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)
@@ -127,6 +130,6 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         return AttributeUpdate(attribute=instance)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_updated, instance)

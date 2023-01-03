@@ -12,6 +12,7 @@ from ....order.utils import (
     recalculate_order_weight,
 )
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -35,7 +36,9 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, id):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id
+    ):
         manager = get_plugin_manager_promise(info.context).get()
         line = cls.get_node_or_error(
             info,
