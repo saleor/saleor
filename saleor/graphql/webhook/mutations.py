@@ -13,6 +13,7 @@ from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEA
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookDryRunError, WebhookError
+from ..core.types.common import WebhookTriggerError
 from ..core.utils import raise_validation_error
 from ..plugins.dataloaders import get_plugin_manager_promise
 from . import enums
@@ -408,3 +409,38 @@ class WebhookDryRun(BaseMutation):
             )
 
         return WebhookDryRun(payload=payload)
+
+
+class WebhookTriggerInput(graphene.InputObjectType):
+    object_id = graphene.ID(
+        description="The ID of an object to serialize.", required=True
+    )
+    query = graphene.String(
+        description="The subscription query that defines the webhook event and its "
+        "payload.",
+        required=True,
+    )
+
+
+class WebhookTrigger(BaseMutation):
+    delivery = graphene.Field(EventDelivery)
+
+    class Arguments:
+        id = graphene.ID(description="The ID of the webhook.", required=True)
+        input = WebhookTriggerInput(
+            description="Fields required to trigger the webhook.",
+            required=True,
+        )
+
+    class Meta:
+        description = "Trigger a webhook event."
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = WebhookTriggerError
+
+    @classmethod
+    def validate_input(cls, info, **data):
+        pass
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        pass

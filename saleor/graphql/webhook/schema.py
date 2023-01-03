@@ -12,6 +12,7 @@ from .mutations import (
     WebhookCreate,
     WebhookDelete,
     WebhookDryRun,
+    WebhookTrigger,
     WebhookUpdate,
 )
 from .resolvers import resolve_sample_payload, resolve_webhook, resolve_webhook_events
@@ -72,3 +73,4 @@ class WebhookMutations(graphene.ObjectType):
     webhook_update = WebhookUpdate.Field()
     event_delivery_retry = EventDeliveryRetry.Field()
     webhook_dry_run = WebhookDryRun.Field()
+    webhook_trigger = WebhookTrigger.Field()
