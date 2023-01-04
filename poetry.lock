@@ -1389,7 +1389,7 @@ compatible-mypy = ["mypy (>=0.980,<0.990)"]
 name = "django-stubs-ext"
 version = "0.7.0"
 description = "Monkey-patching and extensions for django-stubs"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -4933,4 +4933,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
   python-versions = "~3.9"
-content-hash = "58ef845f0ed927035c5d34ec09ed3401df6c2c1790afc625e9b2f2572467d7ec"
+content-hash = "7c14bbf55dff725cac2c89d26e3d199871b9bb1fb573d01b9276d5a224901244"

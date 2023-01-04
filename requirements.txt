@@ -48,6 +48,7 @@ django-prices-vatlayer==1.1.0 ; python_version >= "3.9" and python_version < "3.
 django-prices==2.3.0 ; python_version >= "3.9" and python_version < "3.10"
 django-redis==5.2.0 ; python_version >= "3.9" and python_version < "3.10"
 django-storages[google]==1.13.2 ; python_version >= "3.9" and python_version < "3.10"
+django-stubs-ext==0.7.0 ; python_version >= "3.9" and python_version < "3.10"
 django-timezone-field==5.0 ; python_version >= "3.9" and python_version < "3.10"
 django-versatileimagefield==2.2 ; python_version >= "3.9" and python_version < "3.10"
 django==3.2.16 ; python_version >= "3.9" and python_version < "3.10"
