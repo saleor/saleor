@@ -7,8 +7,8 @@ from .....graphql.tests.utils import assert_no_permission, get_graphql_content
 from .....webhook.error_codes import WebhookDryRunErrorCode
 
 WEBHOOK_DRY_RUN_MUTATION = """
-    mutation webhookDryRun($id: ID!, $input: WebhookDryRunInput!) {
-        webhookDryRun(id: $id, input: $input) {
+    mutation webhookDryRun($query: String!, $objectId: ID!) {
+        webhookDryRun(query: $query, objectId: $objectId) {
             errors {
                 field
                 code
@@ -23,24 +23,20 @@ WEBHOOK_DRY_RUN_MUTATION = """
 def test_webhook_dry_run(
     staff_api_client,
     permission_manage_apps,
+    permission_manage_orders,
     order,
     subscription_order_created_webhook,
-    subscription_product_updated_webhook,
 ):
     # given
     query = WEBHOOK_DRY_RUN_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": order_id, "query": webhook.subscription_query},
-    }
+    variables = {"objectId": order_id, "query": webhook.subscription_query}
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_apps]
+        query, variables, permissions=[permission_manage_apps, permission_manage_orders]
     )
     content = get_graphql_content(response)
 
@@ -59,12 +55,8 @@ def test_webhook_dry_run_missing_user_permission(
     query = WEBHOOK_DRY_RUN_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": order_id, "query": webhook.subscription_query},
-    }
+    variables = {"objectId": order_id, "query": webhook.subscription_query}
 
     # when
     response = staff_api_client.post_graphql(query, variables, permissions=[])
@@ -83,14 +75,10 @@ def test_webhook_dry_run_missing_app_permission(
     query = WEBHOOK_DRY_RUN_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
     app = webhook.app
     app.permissions.set([])
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": order_id, "query": webhook.subscription_query},
-    }
+    variables = {"objectId": order_id, "query": webhook.subscription_query}
 
     # when
     response = staff_api_client.post_graphql(
@@ -101,15 +89,16 @@ def test_webhook_dry_run_missing_app_permission(
     # then
     error = content["data"]["webhookDryRun"]["errors"][0]
     assert not error["field"]
-    assert error["code"] == WebhookDryRunErrorCode.MISSING_APP_PERMISSION.name
+    assert error["code"] == WebhookDryRunErrorCode.MISSING_PERMISSION.name
     assert (
-        error["message"] == "The app doesn't have required permission: manage_orders."
+        error["message"] == "The user doesn't have required permission: manage_orders."
     )
 
 
 def test_webhook_dry_run_non_existing_id(
     staff_api_client,
     permission_manage_apps,
+    permission_manage_orders,
     order,
     subscription_order_created_webhook,
 ):
@@ -117,16 +106,12 @@ def test_webhook_dry_run_non_existing_id(
     query = WEBHOOK_DRY_RUN_MUTATION
     order_id = graphene.Node.to_global_id("Order", uuid.uuid4())
     webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": order_id, "query": webhook.subscription_query},
-    }
+    variables = {"objectId": order_id, "query": webhook.subscription_query}
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_apps]
+        query, variables, permissions=[permission_manage_apps, permission_manage_orders]
     )
     content = get_graphql_content(response)
 
@@ -140,6 +125,7 @@ def test_webhook_dry_run_non_existing_id(
 def test_webhook_dry_run_wrong_subscription_query(
     staff_api_client,
     permission_manage_apps,
+    permission_manage_orders,
     order,
     subscription_order_created_webhook,
 ):
@@ -148,16 +134,12 @@ def test_webhook_dry_run_wrong_subscription_query(
     order_id = graphene.Node.to_global_id("Order", order.id)
     webhook = subscription_order_created_webhook
     subscription = webhook.subscription_query.replace("subscription", "whatever")
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": order_id, "query": subscription},
-    }
+    variables = {"objectId": order_id, "query": subscription}
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_apps]
+        query, variables, permissions=[permission_manage_apps, permission_manage_orders]
     )
     content = get_graphql_content(response)
 
@@ -171,6 +153,7 @@ def test_webhook_dry_run_wrong_subscription_query(
 def test_webhook_dry_run_event_type_doesnt_exist(
     staff_api_client,
     permission_manage_apps,
+    permission_manage_orders,
     order,
     subscription_order_created_webhook,
 ):
@@ -179,16 +162,12 @@ def test_webhook_dry_run_event_type_doesnt_exist(
     order_id = graphene.Node.to_global_id("Order", order.id)
     webhook = subscription_order_created_webhook
     subscription = webhook.subscription_query.replace("OrderCreated", "UndefinedEvent")
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": order_id, "query": subscription},
-    }
+    variables = {"objectId": order_id, "query": subscription}
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_apps]
+        query, variables, permissions=[permission_manage_apps, permission_manage_orders]
     )
     content = get_graphql_content(response)
 
@@ -205,6 +184,7 @@ def test_webhook_dry_run_event_type_doesnt_exist(
 def test_webhook_dry_run_object_id_does_not_match_event(
     staff_api_client,
     permission_manage_apps,
+    permission_manage_orders,
     product,
     subscription_order_created_webhook,
 ):
@@ -212,16 +192,12 @@ def test_webhook_dry_run_object_id_does_not_match_event(
     query = WEBHOOK_DRY_RUN_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.id)
     webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
-    variables = {
-        "id": webhook_id,
-        "input": {"objectId": product_id, "query": webhook.subscription_query},
-    }
+    variables = {"objectId": product_id, "query": webhook.subscription_query}
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_apps]
+        query, variables, permissions=[permission_manage_apps, permission_manage_orders]
     )
     content = get_graphql_content(response)
 

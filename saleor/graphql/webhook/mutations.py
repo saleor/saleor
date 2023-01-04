@@ -5,7 +5,11 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
-from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
+from ...webhook.error_codes import (
+    WebhookDryRunErrorCode,
+    WebhookErrorCode,
+    WebhookTriggerErrorCode,
+)
 from ...webhook.event_types import WebhookEventAsyncType
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
@@ -319,27 +323,19 @@ class EventDeliveryRetry(BaseMutation):
         return EventDeliveryRetry(delivery=delivery)
 
 
-class WebhookDryRunInput(graphene.InputObjectType):
-    object_id = graphene.ID(
-        description="The ID of an object to serialize.", required=True
-    )
-    query = graphene.String(
-        description="The subscription query that defines the webhook event and its "
-        "payload.",
-        required=True,
-    )
-
-
 class WebhookDryRun(BaseMutation):
     payload = JSONString(
         description="JSON payload, that would be sent out to webhook's target URL."
     )
 
     class Arguments:
-        id = graphene.ID(description="The ID of the webhook.", required=True)
-        input = WebhookDryRunInput(
-            description="Fields required to perform dry run of a webhook event.",
+        query = graphene.String(
+            description="The subscription query that defines the webhook event and its "
+            "payload.",
             required=True,
+        )
+        object_id = graphene.ID(
+            description="The ID of an object to serialize.", required=True
         )
 
     class Meta:
@@ -349,9 +345,8 @@ class WebhookDryRun(BaseMutation):
 
     @classmethod
     def validate_input(cls, info, **data):
-        query = data.get("input", {}).get("query")
-        object_id = data.get("input", {}).get("object_id")
-        webhook_id = data.get("id")
+        query = data.get("query")
+        object_id = data.get("object_id")
 
         event_type = get_event_type_from_subscription(query)
         if not event_type:
@@ -384,60 +379,89 @@ class WebhookDryRun(BaseMutation):
             )
 
         object = cls.get_node_or_error(info, object_id, field="objectId")
-        webhook = cls.get_node_or_error(info, webhook_id, field="id")
-        app = webhook.app
 
         if permission := WebhookEventAsyncType.PERMISSIONS.get(event_type):
             codename = permission.value.split(".")[1]
-            app_permissions = [perm.codename for perm in app.permissions.all()]
-            if codename not in app_permissions:
+            user_permissions = [
+                perm.codename for perm in info.context.user.effective_permissions.all()
+            ]
+            if codename not in user_permissions:
                 raise_validation_error(
-                    message=f"The app doesn't have required permission: {codename}.",
-                    code=WebhookDryRunErrorCode.MISSING_APP_PERMISSION,
+                    message=f"The user doesn't have required permission: {codename}.",
+                    code=WebhookDryRunErrorCode.MISSING_PERMISSION,
                 )
 
-        return event_type, object, webhook, query
+        return event_type, object, query
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        event_type, object, webhook, query = cls.validate_input(info, **data)
-        app = webhook.app
+        event_type, object, query = cls.validate_input(info, **data)
         payload = None
-        if all([event_type, object, app, query]):
+        if all([event_type, object, query]):
             request = initialize_request()
             payload = generate_payload_from_subscription(
-                event_type, object, query, request, app
+                event_type, object, query, request
             )
-
         return WebhookDryRun(payload=payload)
 
 
-class WebhookTriggerInput(graphene.InputObjectType):
-    object_id = graphene.ID(
-        description="The ID of an object to serialize.", required=True
-    )
-    query = graphene.String(
-        description="The subscription query that defines the webhook event and its "
-        "payload.",
-        required=True,
-    )
-
-
-class WebhookTrigger(WebhookDryRun):
+class WebhookTrigger(BaseMutation):
     delivery = graphene.Field(EventDelivery)
 
     class Arguments:
-        id = graphene.ID(description="The ID of the webhook.", required=True)
-        input = WebhookTriggerInput(
-            description="Fields required to trigger the webhook.",
-            required=True,
+        webhook_id = graphene.ID(description="The ID of the webhook.", required=True)
+        object_id = graphene.ID(
+            description="The ID of an object to serialize.", required=True
         )
 
     class Meta:
         description = "Trigger a webhook event."
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookTriggerError
-        exclude = ("payload",)
+
+    @classmethod
+    def validate_input(cls, info, **data):
+        object_id = data.get("object_id")
+        webhook_id = data.get("webhook_id")
+
+        webhook = cls.get_node_or_error(info, webhook_id, field="webhookId")
+        query = webhook.subscription_query
+        if not query:
+            raise_validation_error(
+                field="webhookId",
+                message="Missing subscription query for given webhook.",
+                code=WebhookTriggerErrorCode.MISSING_QUERY,
+            )
+
+        event_type = get_event_type_from_subscription(query)
+        if not event_type:
+            raise_validation_error(
+                message="Can't parse an event type from webhook's subscription query.",
+                code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
+            )
+
+        event = WEBHOOK_TYPES_MAP.get(event_type)
+        if not event:
+            event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
+            raise_validation_error(
+                message=f"Event type: {event_name} is not defined in graphql schema.",
+                code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
+            )
+
+        if permission := WebhookEventAsyncType.PERMISSIONS.get(event_type):
+            codename = permission.value.split(".")[1]
+            user_permissions = [
+                perm.codename for perm in info.context.user.effective_permissions.all()
+            ]
+            if codename not in user_permissions:
+                raise_validation_error(
+                    message=f"The user doesn't have required permission: {codename}.",
+                    code=WebhookDryRunErrorCode.MISSING_PERMISSION,
+                )
+
+        object = cls.get_node_or_error(info, object_id, field="objectId")
+
+        return event_type, object, webhook
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -446,8 +470,7 @@ class WebhookTrigger(WebhookDryRun):
             send_webhook_request_async,
         )
 
-        event_type, object, webhook, query = cls.validate_input(info, **data)
-        webhook.subscription_query = query
+        event_type, object, webhook = cls.validate_input(info, **data)
         delivery = None
 
         if all([event_type, object, webhook]):

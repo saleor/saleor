@@ -11952,11 +11952,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS.
   """
   webhookDryRun(
-    """The ID of the webhook."""
-    id: ID!
+    """The ID of an object to serialize."""
+    objectId: ID!
 
-    """Fields required to perform dry run of a webhook event."""
-    input: WebhookDryRunInput!
+    """The subscription query that defines the webhook event and its payload."""
+    query: String!
   ): WebhookDryRun
 
   """
@@ -11965,11 +11965,11 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS.
   """
   webhookTrigger(
-    """The ID of the webhook."""
-    id: ID!
+    """The ID of an object to serialize."""
+    objectId: ID!
 
-    """Fields required to trigger the webhook."""
-    input: WebhookTriggerInput!
+    """The ID of the webhook."""
+    webhookId: ID!
   ): WebhookTrigger
 
   """
@@ -15946,15 +15946,7 @@ enum WebhookDryRunErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID_ID
-  MISSING_APP_PERMISSION
-}
-
-input WebhookDryRunInput {
-  """The ID of an object to serialize."""
-  objectId: ID!
-
-  """The subscription query that defines the webhook event and its payload."""
-  query: String!
+  MISSING_PERMISSION
 }
 
 """
@@ -15963,8 +15955,6 @@ Trigger a webhook event.
 Requires one of the following permissions: MANAGE_APPS.
 """
 type WebhookTrigger {
-  """JSON payload, that would be sent out to webhook's target URL."""
-  payload: JSONString
   delivery: EventDelivery
   errors: [WebhookTriggerError!]!
 }
@@ -15987,15 +15977,8 @@ enum WebhookTriggerErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID_ID
-  MISSING_APP_PERMISSION
-}
-
-input WebhookTriggerInput {
-  """The ID of an object to serialize."""
-  objectId: ID!
-
-  """The subscription query that defines the webhook event and its payload."""
-  query: String!
+  MISSING_PERMISSION
+  MISSING_QUERY
 }
 
 """
