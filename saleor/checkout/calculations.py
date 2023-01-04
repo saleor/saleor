@@ -482,23 +482,21 @@ def _get_checkout_base_prices(
 
     for line_info in lines:
         line = line_info.line
+        quantity = line.quantity
 
-        total_price_default = base_calculations.calculate_base_line_total_price(
-            line_info,
-            checkout_info.channel,
-            discounts,
-        )
-        line.total_price = quantize_price(
-            TaxedMoney(net=total_price_default, gross=total_price_default), currency
-        )
-
-        unit_price_default = base_calculations.calculate_base_line_unit_price(
+        unit_price = base_calculations.calculate_base_line_unit_price(
             line_info, checkout_info.channel, discounts
         )
-        unit_price = quantize_price(
-            TaxedMoney(net=unit_price_default, gross=unit_price_default), currency
+        unit_price = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info, lines, line_info, discounts, unit_price
         )
-        line.tax_rate = calculate_tax_rate(unit_price)
+        line_total_price = quantize_price(unit_price * quantity, unit_price.currency)
+
+        line.total_price = quantize_price(
+            TaxedMoney(net=line_total_price, gross=line_total_price), currency
+        )
+        # Set zero tax rate since net and gross are equal.
+        line.tax_rate = Decimal("0.0")
 
     shipping_price_default = base_calculations.base_checkout_delivery_price(
         checkout_info, lines
