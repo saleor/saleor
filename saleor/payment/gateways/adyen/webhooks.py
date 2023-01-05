@@ -6,7 +6,7 @@ import json
 import logging
 from decimal import Decimal
 from json.decoder import JSONDecodeError
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional, cast
 from urllib.parse import urlencode, urlparse
 
 import Adyen
@@ -43,7 +43,6 @@ from ....order.actions import (
 from ....order.events import external_notification_event
 from ....order.fetch import fetch_order_info
 from ....payment.models import Payment, Transaction
-from ....payment.utils import update_payment_charge_status
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind, gateway
 from ...gateway import payment_refund_or_void
@@ -123,25 +122,6 @@ def get_transaction(
     kind: str,
 ) -> Optional[Transaction]:
     transaction = payment.transactions.filter(kind=kind, token=transaction_id).last()
-    return transaction
-
-
-def _get_or_create_transaction(
-    payment: "Payment",
-    transaction_id: Optional[str],
-    allowed_kinds: Iterable[str],
-    kind: str,
-    notification,
-):
-    transaction = payment.transactions.filter(
-        token=transaction_id,
-        action_required=False,
-        is_success=True,
-        kind__in=allowed_kinds,
-    ).last()
-    if not transaction:
-        transaction = create_new_transaction(notification, payment, kind)
-        update_payment_charge_status(payment, transaction)
     return transaction
 
 
@@ -310,20 +290,15 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         )
         return
 
+    transaction = get_transaction(payment, transaction_id, kind)
+
     if not payment.is_active:
-        # the `CAPTURE`` transaction should be created only when `AUTH` or `CAPTURE`
-        # transaction does not exist yet
-        transaction = _get_or_create_transaction(
-            payment,
-            transaction_id,
-            [TransactionKind.AUTH, TransactionKind.CAPTURE],
-            kind,
-            notification,
-        )
+        if not transaction:
+            transaction = create_new_transaction(notification, payment, kind)
+        transaction = cast(Transaction, transaction)
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return
 
-    transaction = get_transaction(payment, transaction_id, kind)
     if not transaction:
         if not payment.order:
             handle_not_created_order(notification, payment, checkout, kind, manager)
@@ -420,20 +395,17 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
 
     manager = get_plugins_manager()
 
+    transaction = get_transaction(payment, transaction_id, TransactionKind.CAPTURE)
+
     if not payment.is_active:
-        # the `CAPTURE`` transaction should be created only when `CAPTURE`
-        # transaction does not exist yet
-        transaction = _get_or_create_transaction(
-            payment,
-            transaction_id,
-            [TransactionKind.CAPTURE],
-            TransactionKind.CAPTURE,
-            notification,
-        )
+        if not transaction:
+            transaction = create_new_transaction(
+                notification, payment, TransactionKind.CAPTURE
+            )
+        transaction = cast(Transaction, transaction)
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return
 
-    transaction = get_transaction(payment, transaction_id, TransactionKind.CAPTURE)
     if not transaction:
         if not payment.order:
             handle_not_created_order(
@@ -518,27 +490,30 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     )
     if not payment:
         return
+
     transaction = get_transaction(payment, transaction_id, TransactionKind.REFUND)
-    if transaction and transaction.is_success:
+    if not transaction or not transaction.already_processed:
+        if not transaction:
+            transaction = create_new_transaction(
+                notification, payment, TransactionKind.REFUND
+            )
+        gateway_postprocess(transaction, payment)
+    else:
         # it is already refunded
         return
-    new_transaction = create_new_transaction(
-        notification, payment, TransactionKind.REFUND
-    )
-    gateway_postprocess(new_transaction, payment)
-
+    transaction = cast(Transaction, transaction)
     reason = notification.get("reason", "-")
     success_msg = f"Adyen: The refund {transaction_id} request was successful."
     failed_msg = f"Adyen: The refund {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
-        payment, success_msg, failed_msg, new_transaction.is_success
+        payment, success_msg, failed_msg, transaction.is_success
     )
-    if payment.order and new_transaction.is_success:
+    if payment.order and transaction.is_success:
         order_refunded(
             payment.order,
             None,
             None,
-            new_transaction.amount,
+            transaction.amount,
             payment,
             get_plugins_manager(),
         )
