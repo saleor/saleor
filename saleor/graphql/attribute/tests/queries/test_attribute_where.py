@@ -1,3 +1,5 @@
+import json
+
 import graphene
 import pytest
 
@@ -54,8 +56,6 @@ def test_attributes_filter_by_ids(api_client, product_type_attribute_list):
         ({"eq": "test"}, []),
         ({"oneOf": ["Color", "Text"]}, [0, 2]),
         ({"oneOf": ["a", "acd"]}, []),
-        ({"eq": "Text", "oneOf": ["Color", "Text"]}, [2]),
-        ({"eq": "test", "oneOf": ["Color", "Text"]}, []),
     ],
 )
 def test_attributes_filter_by_name(
@@ -83,8 +83,6 @@ def test_attributes_filter_by_name(
         ({"eq": "test"}, []),
         ({"oneOf": ["color", "text"]}, [0, 2]),
         ({"oneOf": ["a", "acd"]}, []),
-        ({"eq": "text", "oneOf": ["color", "text"]}, [2]),
-        ({"eq": "test", "oneOf": ["color", "text"]}, []),
     ],
 )
 def test_attributes_filter_by_slug(
@@ -147,26 +145,6 @@ def test_attributes_filter_by_with_choices(
             },
             [],
         ),
-        (
-            {
-                "eq": AttributeInputTypeEnum.DATE.name,
-                "oneOf": [
-                    AttributeInputTypeEnum.RICH_TEXT.name,
-                    AttributeInputTypeEnum.DATE.name,
-                ],
-            },
-            [1],
-        ),
-        (
-            {
-                "eq": AttributeInputTypeEnum.DATE.name,
-                "oneOf": [
-                    AttributeInputTypeEnum.RICH_TEXT.name,
-                    AttributeInputTypeEnum.DATE_TIME.name,
-                ],
-            },
-            [],
-        ),
     ],
 )
 def test_attributes_filter_by_input_type(
@@ -206,26 +184,6 @@ def test_attributes_filter_by_input_type(
                 "oneOf": [
                     AttributeEntityTypeEnum.PRODUCT.name,
                 ]
-            },
-            [],
-        ),
-        (
-            {
-                "eq": AttributeEntityTypeEnum.PAGE.name,
-                "oneOf": [
-                    AttributeEntityTypeEnum.PAGE.name,
-                    AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
-                ],
-            },
-            [1],
-        ),
-        (
-            {
-                "eq": AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
-                "oneOf": [
-                    AttributeEntityTypeEnum.PAGE.name,
-                    AttributeEntityTypeEnum.PRODUCT.name,
-                ],
             },
             [],
         ),
@@ -280,26 +238,6 @@ def test_attributes_filter_by_entity_type(
             },
             [],
         ),
-        (
-            {
-                "eq": AttributeTypeEnum.PRODUCT_TYPE.name,
-                "oneOf": [
-                    AttributeTypeEnum.PAGE_TYPE.name,
-                    AttributeTypeEnum.PRODUCT_TYPE.name,
-                ],
-            },
-            [0, 1],
-        ),
-        (
-            {
-                "eq": AttributeTypeEnum.PAGE_TYPE.name,
-                "oneOf": [
-                    AttributeTypeEnum.PAGE_TYPE.name,
-                    AttributeTypeEnum.PRODUCT_TYPE.name,
-                ],
-            },
-            [],
-        ),
     ],
 )
 def test_attributes_filter_by_type(
@@ -346,26 +284,6 @@ def test_attributes_filter_by_type(
                 "oneOf": [
                     MeasurementUnitsEnum.SQ_CM.name,
                 ]
-            },
-            [],
-        ),
-        (
-            {
-                "eq": MeasurementUnitsEnum.M.name,
-                "oneOf": [
-                    MeasurementUnitsEnum.CM.name,
-                    MeasurementUnitsEnum.M.name,
-                ],
-            },
-            [2],
-        ),
-        (
-            {
-                "eq": MeasurementUnitsEnum.M.name,
-                "oneOf": [
-                    MeasurementUnitsEnum.CM.name,
-                    MeasurementUnitsEnum.SQ_CM.name,
-                ],
             },
             [],
         ),
@@ -1424,4 +1342,82 @@ def test_attributes_filter_and_where_both_used(api_client, product_type_attribut
     message_error = "Only one filtering argument (filter or where) can be specified."
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == message_error
+    assert content["data"]["attributes"] is None
+
+
+@pytest.mark.parametrize(
+    "where, field_name",
+    [
+        ({"name": {"eq": "Text", "oneOf": ["Color", "Text"]}}, "name"),
+        ({"slug": {"eq": "text", "oneOf": ["color", "text"]}}, "slug"),
+        (
+            {
+                "inputType": {
+                    "eq": AttributeInputTypeEnum.DATE.name,
+                    "oneOf": [
+                        AttributeInputTypeEnum.RICH_TEXT.name,
+                        AttributeInputTypeEnum.DATE_TIME.name,
+                    ],
+                }
+            },
+            "input_type",
+        ),
+        (
+            {
+                "entityType": {
+                    "eq": AttributeEntityTypeEnum.PAGE.name,
+                    "oneOf": [
+                        AttributeEntityTypeEnum.PAGE.name,
+                        AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
+                    ],
+                }
+            },
+            "entity_type",
+        ),
+        (
+            {
+                "type": {
+                    "eq": AttributeTypeEnum.PRODUCT_TYPE.name,
+                    "oneOf": [
+                        AttributeTypeEnum.PAGE_TYPE.name,
+                        AttributeTypeEnum.PRODUCT_TYPE.name,
+                    ],
+                }
+            },
+            "type",
+        ),
+        (
+            {
+                "unit": {
+                    "eq": MeasurementUnitsEnum.M.name,
+                    "oneOf": [
+                        MeasurementUnitsEnum.CM.name,
+                        MeasurementUnitsEnum.SQ_CM.name,
+                    ],
+                }
+            },
+            "unit",
+        ),
+    ],
+)
+def test_attributes_filter_invalid_input(
+    where,
+    field_name,
+    api_client,
+    color_attribute,
+    numeric_attribute,
+    date_attribute,
+):
+    # given
+    variables = {"where": where}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    message_error = "Only one option can be specified."
+    assert len(content["errors"]) == 1
+    message = json.loads(content["errors"][0]["message"])
+    assert message[field_name][0]["message"] == message_error
     assert content["data"]["attributes"] is None

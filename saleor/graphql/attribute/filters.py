@@ -15,7 +15,7 @@ from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
-    ObjectTypeFilter,
+    OperationObjectTypeFilter,
     filter_slug_list,
 )
 from ..core.types import (
@@ -211,17 +211,23 @@ def filter_attribute_value_required(qs, _, value):
 
 class AttributeWhere(MetadataFilterBase):
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
-    name = ObjectTypeFilter(input_class=StringFilterInput, method=filter_attribute_name)
-    slug = ObjectTypeFilter(input_class=StringFilterInput, method=filter_attribute_slug)
+    name = OperationObjectTypeFilter(
+        input_class=StringFilterInput, method=filter_attribute_name
+    )
+    slug = OperationObjectTypeFilter(
+        input_class=StringFilterInput, method=filter_attribute_slug
+    )
     with_choices = django_filters.BooleanFilter(method=filter_with_choices)
-    input_type = ObjectTypeFilter(
+    input_type = OperationObjectTypeFilter(
         AttributeInputTypeEnumFilterInput, method=filter_attribute_input_type
     )
-    entity_type = ObjectTypeFilter(
+    entity_type = OperationObjectTypeFilter(
         AttributeEntityTypeEnumFilterInput, method=filter_attribute_entity_type
     )
-    type = ObjectTypeFilter(AttributeTypeEnumFilterInput, method=filter_attribute_type)
-    unit = ObjectTypeFilter(
+    type = OperationObjectTypeFilter(
+        AttributeTypeEnumFilterInput, method=filter_attribute_type
+    )
+    unit = OperationObjectTypeFilter(
         MeasurementUnitsEnumFilterInput, method=filter_attribute_unit
     )
     in_collection = GlobalIDFilter(method="filter_in_collection")
