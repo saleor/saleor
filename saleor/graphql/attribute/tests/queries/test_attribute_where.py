@@ -1391,3 +1391,37 @@ def test_attributes_filter_in_category_object_with_given_id_does_not_exist(
     # then
     content = get_graphql_content(response)
     assert content["data"]["attributes"]["edges"] == []
+
+
+def test_attributes_filter_and_where_both_used(api_client, product_type_attribute_list):
+    # given
+    query = """
+        query($where: AttributeWhereInput!, $filter: AttributeFilterInput!) {
+            attributes(first: 10, where: $where, filter: $filter) {
+                edges {
+                    node {
+                        name
+                        slug
+                    }
+                }
+            }
+        }
+    """
+    ids = [
+        graphene.Node.to_global_id("Attribute", attribute.pk)
+        for attribute in product_type_attribute_list[:2]
+    ]
+    variables = {
+        "where": {"AND": [{"ids": ids}]},
+        "filter": {"filterableInDashboard": True},
+    }
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    message_error = "Only one filtering argument (filter or where) can be specified."
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["attributes"] is None

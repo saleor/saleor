@@ -450,19 +450,22 @@ def slice_connection_iterable(
 
 
 def filter_connection_queryset(iterable, args, request=None, root=None):
-    # TODO: Add validation for where in filters - only one of that should be provided
-    # Not sure of the validation should be here, probably not
     update_args_with_channel(args, root)
+    if args.get(args[FILTERS_NAME]) and args.get(args[WHERE_NAME]):
+        raise GraphQLError(
+            "Only one filtering argument (filter or where) can be specified."
+        )
 
-    for (filter_class, filterset_name, filter_func) in [
-        (FILTERSET_CLASS, FILTERS_NAME, filter_qs),
-        (WHERE_FILTERSET_CLASS, WHERE_NAME, where_filter_qs),
-    ]:
-        filterset_class = args[filter_class]
-        filter_field_name = args[filterset_name]
-        filter_input = args.get(filter_field_name)
-        if filter_input:
-            return filter_func(iterable, args, filterset_class, filter_input, request)
+    if filter_input := args.get(args[FILTERS_NAME]):
+        filterset_class = args[FILTERSET_CLASS]
+        filter_func = filter_qs
+    else:
+        filter_input = args.get(args[WHERE_NAME])
+        filterset_class = args[WHERE_FILTERSET_CLASS]
+        filter_func = where_filter_qs
+
+    if filter_input:
+        return filter_func(iterable, args, filterset_class, filter_input, request)
 
     return iterable
 
@@ -522,6 +525,8 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
         - the name must equal to 'Author' or the slug must be equal to `a-rich` or `abv`
         - the name cannot be equal to `ABV`
     """
+    # TODO: to update - only one operator allow on each level
+    # TODO: handle nested filters
     and_filter_input = filter_input.pop("AND", None)
     or_filter_input = filter_input.pop("OR", None)
     not_filter_input = filter_input.pop("NOT", None)
