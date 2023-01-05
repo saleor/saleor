@@ -11,6 +11,7 @@ from ..descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
+from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from .converter import convert_form_field
 
 GLOBAL_ID_FILTERS = {
@@ -146,8 +147,7 @@ class WhereInputObjectType(FilterInputObjectType):
 class FilterInputDescriptions:
     EQ = "The value equal to."
     ONE_OF = "The value included in."
-    LTE = "The value greater than or equal to."
-    GTE = "The value less than or equal to."
+    RANGE = "The value in range."
 
 
 class StringFilterInput(graphene.InputObjectType):
@@ -171,8 +171,7 @@ class IntFilterInput(graphene.InputObjectType):
     one_of = NonNullList(
         graphene.Int, description=FilterInputDescriptions.ONE_OF, required=False
     )
-    gte = graphene.Int(description=FilterInputDescriptions.GTE, required=False)
-    lte = graphene.Int(description=FilterInputDescriptions.LTE, required=False)
+    range = IntRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
         description = (
@@ -187,11 +186,14 @@ class DateFilterInput(graphene.InputObjectType):
     one_of = NonNullList(
         Date, description=FilterInputDescriptions.ONE_OF, required=False
     )
-    gte = Date(description=FilterInputDescriptions.GTE, required=False)
-    lte = Date(description=FilterInputDescriptions.LTE, required=False)
+    range = DateRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
-        description = "Define the filtering options for date fields."
+        description = (
+            "Define the filtering options for date fields."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        )
 
 
 class DateTimeFilterInput(graphene.InputObjectType):
@@ -201,26 +203,13 @@ class DateTimeFilterInput(graphene.InputObjectType):
         description=FilterInputDescriptions.ONE_OF,
         required=False,
     )
-    gte = graphene.DateTime(description=FilterInputDescriptions.GTE, required=False)
-    lte = graphene.DateTime(description=FilterInputDescriptions.LTE, required=False)
-
-    class Meta:
-        description = (
-            "Define the filtering options for date time fields."
-            + ADDED_IN_310
-            + PREVIEW_FEATURE
-        )
-
-
-class IdFilterInput(graphene.InputObjectType):
-    eq = graphene.ID(description=FilterInputDescriptions.EQ, required=False)
-    one_of = NonNullList(
-        graphene.ID, description=FilterInputDescriptions.ONE_OF, required=False
+    range = DateTimeRangeInput(
+        description=FilterInputDescriptions.RANGE, required=False
     )
 
     class Meta:
         description = (
-            "Define the filtering options for ID fields."
+            "Define the filtering options for date time fields."
             + ADDED_IN_310
             + PREVIEW_FEATURE
         )
