@@ -270,6 +270,23 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     # given
     checkout = checkout_with_item
     channel = checkout.channel
+
+    line = checkout.lines.first()
+    variant = line.variant
+    channel_listing = variant.channel_listings.get(channel=channel.pk)
+    channel_listing.price_amount = Decimal("9.60")
+    channel_listing.save()
+
+    line.quantity = 7
+    line.save()
+
+    voucher_value = Decimal("3.00")
+    voucher_channel_listing = voucher_percentage.channel_listings.get(
+        channel=channel.pk
+    )
+    voucher_channel_listing.discount_value = voucher_value
+    voucher_channel_listing.save()
+
     lines, _ = fetch_checkout_lines(checkout)
     line_info = list(lines)[0]
     variant = line_info.variant
@@ -287,9 +304,6 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
         voucher_percentage.code,
         [],
     )
-    voucher_value = voucher_percentage.channel_listings.get(
-        channel=channel.pk
-    ).discount_value
 
     checkout.refresh_from_db()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
@@ -310,13 +324,16 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     line = checkout.lines.all()[0]
 
     # then
-    expected_price = quantize_price(
+    assert line.tax_rate == Decimal("0.0")
+
+    expected_unit_price = quantize_price(
         (100 - voucher_value) / 100 * product_price, checkout.currency
     )
-    expected_price = TaxedMoney(net=expected_price, gross=expected_price)
-    assert line.tax_rate == Decimal("0.0")
-    line_unit_price = line.total_price / line.quantity
-    assert line_unit_price == expected_price
+    line_unit_price = quantize_price(
+        line.total_price / line.quantity, checkout.currency
+    )
+    assert line_unit_price.gross == expected_unit_price
+    assert line.total_price == checkout.total
 
 
 @freeze_time("2020-12-12 12:00:00")
