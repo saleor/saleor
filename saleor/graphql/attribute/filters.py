@@ -24,7 +24,7 @@ from ..core.types import (
     NonNullList,
     StringFilterInput,
 )
-from ..core.types.filter_input import FilterInputDescriptions
+from ..core.types.filter_input import FilterInputDescriptions, WhereInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_string_field
@@ -251,11 +251,6 @@ class AttributeWhere(MetadataFilterBase):
         )
 
 
-class AttributeWhereInput(FilterInputObjectType):
-    # TODO: create something generic that will automatically include AND, OR, and NOT
-    AND = NonNullList(lambda: AttributeWhereInput)
-    OR = NonNullList(lambda: AttributeWhereInput)
-    NOT = graphene.Field(lambda: AttributeWhereInput)
-
+class AttributeWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeWhere

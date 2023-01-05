@@ -11670,8 +11670,14 @@ input AttributeWhereInput {
   unit: MeasurementUnitsEnumFilterInput
   inCollection: ID
   inCategory: ID
+
+  """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
   OR: [AttributeWhereInput!]
+
+  """A condition that cannot be met."""
   NOT: AttributeWhereInput
 }
 

@@ -38,7 +38,7 @@ def get_filterset_class(filterset_class=None):
 
 
 class FilterInputObjectType(InputObjectType):
-    """Class for storing and serving django-filtres as graphQL input.
+    """Class for storing and serving django-filters as graphQL input.
 
     FilterSet class which inherits from django-filters.FilterSet should be
     provided with using fitlerset_class argument.
@@ -102,6 +102,45 @@ class ChannelFilterInputObjectType(FilterInputObjectType):
 
     class Meta:
         abstract = True
+
+
+class WhereInputObjectType(FilterInputObjectType):
+    """Class for storing and serving django-filters with additional operators input.
+
+    FilterSet class which inherits from django-filters.FilterSet should be
+    provided with using fitlerset_class argument.
+
+    AND, OR, and NOT class type fields are automatically added to available input
+    fields, allowing to create complex filter statements.
+    """
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, _meta=None, **options):
+        super().__init_subclass_with_meta__(_meta=_meta, **options)
+        cls._meta.fields.update(
+            {
+                "AND": graphene.Field(
+                    NonNullList(
+                        cls,
+                    ),
+                    description="List of conditions that must be met.",
+                ),
+                "OR": graphene.Field(
+                    NonNullList(
+                        cls,
+                    ),
+                    description=(
+                        "A list of conditions of which at least one must be met."
+                    ),
+                ),
+                "NOT": graphene.Field(
+                    cls, description="A condition that cannot be met."
+                ),
+            }
+        )
 
 
 class FilterInputDescriptions:
