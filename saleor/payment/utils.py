@@ -616,21 +616,20 @@ def try_void_or_refund_inactive_payment(
     active. Some payment methods don't required confirmation so we can receive delayed
     webhook when we have order already paid.
     """
-    if transaction.is_success:
-        channel_slug = get_channel_slug_from_payment(payment)
-        try:
-            gateway.payment_refund_or_void(
-                payment,
-                manager,
-                channel_slug=channel_slug,
-                transaction_id=transaction.token,
-            )
-        except PaymentError:
-            logger.exception(
-                "Unable to void/refund an inactive payment %s, %s.",
-                payment.id,
-                payment.psp_reference,
-            )
+    if not transaction.is_success:
+        return
+
+    if not transaction.already_processed:
+        update_payment_charge_status(payment, transaction)
+    channel_slug = get_channel_slug_from_payment(payment)
+    try:
+        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+    except PaymentError:
+        logger.exception(
+            "Unable to void/refund an inactive payment %s, %s.",
+            payment.id,
+            payment.psp_reference,
+        )
 
 
 def payment_owned_by_user(payment_pk: int, user) -> bool:
