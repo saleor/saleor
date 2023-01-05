@@ -365,13 +365,8 @@ class WebhookDryRun(BaseMutation):
                 code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
             )
 
-        related_models = [
-            field.type.get_model().__name__
-            for field in event._meta.fields.values()
-            if hasattr(field, "type") and hasattr(field.type, "get_model")
-        ]
         model, _ = graphene.Node.from_global_id(object_id)
-        if model not in related_models:
+        if model != WebhookEventAsyncType.ROOT_TYPE.get(event_type):
             raise_validation_error(
                 field="objectId",
                 message="ObjectId doesn't match event type.",
@@ -448,6 +443,14 @@ class WebhookTrigger(BaseMutation):
                 code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
             )
 
+        model, _ = graphene.Node.from_global_id(object_id)
+        if model != WebhookEventAsyncType.ROOT_TYPE.get(event_type):
+            raise_validation_error(
+                field="objectId",
+                message="ObjectId doesn't match event type.",
+                code=WebhookTriggerErrorCode.INVALID_ID,
+            )
+
         if permission := WebhookEventAsyncType.PERMISSIONS.get(event_type):
             codename = permission.value.split(".")[1]
             user_permissions = [
@@ -456,7 +459,7 @@ class WebhookTrigger(BaseMutation):
             if codename not in user_permissions:
                 raise_validation_error(
                     message=f"The user doesn't have required permission: {codename}.",
-                    code=WebhookDryRunErrorCode.MISSING_PERMISSION,
+                    code=WebhookTriggerErrorCode.MISSING_PERMISSION,
                 )
 
         object = cls.get_node_or_error(info, object_id, field="objectId")
