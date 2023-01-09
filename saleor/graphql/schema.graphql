@@ -11083,6 +11083,7 @@ input OrderFilterInput {
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
+  checkoutToken: String
 }
 
 enum OrderStatusFilter {

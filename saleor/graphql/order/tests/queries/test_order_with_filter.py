@@ -1249,3 +1249,79 @@ def test_order_query_with_filter_not_allow_numbers_and_ids_together(
     # then
     assert content["errors"][0]["message"] == error_message
     assert not content["data"]["orders"]
+
+
+def test_order_query_with_filter_by_checkout_token(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders_from_checkout,
+    checkout,
+):
+    # given
+    variables = {
+        "filter": {
+            "checkoutToken": checkout.token,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"]
+
+    assert content["data"]["orders"]["totalCount"] == 4
+    for order in orders_from_checkout:
+        if order.checkout_token == checkout.token:
+            order_id = {"node": {"id": graphene.Node.to_global_id("Order", order.id)}}
+            assert order_id in order_data
+
+
+def test_order_query_with_filter_by_unexisted_checkout_token(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders_from_checkout,
+):
+    # given
+    variables = {
+        "filter": {
+            "checkoutToken": "unexisted",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 0
+
+
+def test_order_query_with_filter_by_empty_checkout_token(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders_from_checkout,
+):
+    # given
+    variables = {
+        "filter": {
+            "checkoutToken": "",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == len(orders_from_checkout)

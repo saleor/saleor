@@ -100,6 +100,12 @@ def filter_channels(qs, _, values):
     return qs
 
 
+def filter_checkouts(qs, _, value):
+    if value:
+        qs = qs.filter(checkout_token=value)
+    return qs
+
+
 def filter_is_click_and_collect(qs, _, values):
     if values is not None:
         lookup = Q(collection_point__isnull=False) | Q(
@@ -201,6 +207,7 @@ class OrderFilter(DraftOrderFilter):
     numbers = ListObjectTypeFilter(
         input_class=graphene.String, method=filter_by_order_number
     )
+    checkout_token = django_filters.CharFilter(method=filter_checkouts)
 
     class Meta:
         model = Order
