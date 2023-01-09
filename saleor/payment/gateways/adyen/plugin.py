@@ -642,6 +642,7 @@ class AdyenGatewayPlugin(BasePlugin):
             error=None,
             raw_response={},
             transaction_already_processed=bool(transaction_already_processed),
+            psp_reference=token,
         )
 
     @require_active_plugin
