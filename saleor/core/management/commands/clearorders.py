@@ -57,7 +57,7 @@ class Command(BaseCommand):
 
         payments = Payment.objects.all()
         payments._raw_delete(payments.db)
-        self.stdout.write("Removed payments and trnsactions")
+        self.stdout.write("Removed payments and transactions")
 
     def delete_invoices(self):
         invoice_events = InvoiceEvent.objects.all()
