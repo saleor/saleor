@@ -761,6 +761,18 @@ PRODUCT_VARIANT_BACK_IN_STOCK = """
     }
 """
 
+PRODUCT_VARIANT_STOCK_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantStockUpdated{
+          productVariant{
+            id
+          }
+        }
+      }
+    }
+"""
+
 ORDER_CREATED = """
     subscription{
       event{

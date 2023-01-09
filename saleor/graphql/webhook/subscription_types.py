@@ -735,6 +735,31 @@ class ProductVariantBackInStock(ObjectType, ProductVariantBase):
         return stock.warehouse
 
 
+class ProductVariantStockUpdated(ObjectType, ProductVariantBase):
+    warehouse = graphene.Field(
+        "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
+    )
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when product variant stock is updated."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
+        _, stock = root
+        variant = stock.product_variant
+        return ChannelContext(node=variant, channel_slug=channel)
+
+    @staticmethod
+    def resolve_warehouse(root, _info: ResolveInfo):
+        _, stock = root
+        return stock.warehouse
+
+
 class SaleBase(AbstractType):
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
@@ -1670,6 +1695,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
+    WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: ProductVariantStockUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         ProductVariantMetadataUpdated
