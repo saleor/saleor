@@ -54,7 +54,6 @@ from .common import (
     WarehouseError,
     WebhookDryRunError,
     WebhookError,
-    WebhookTriggerError,
     Weight,
 )
 from .filter_input import ChannelFilterInputObjectType, FilterInputObjectType
@@ -126,7 +125,6 @@ __all__ = [
     "WarehouseError",
     "WebhookError",
     "WebhookDryRunError",
-    "WebhookTriggerError",
     "FilterInputObjectType",
     "SortInputObjectType",
     "ChannelFilterInputObjectType",

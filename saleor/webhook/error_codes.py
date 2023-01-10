@@ -15,11 +15,3 @@ class WebhookDryRunErrorCode(Enum):
     NOT_FOUND = "not_found"
     INVALID_ID = "invalid_id"
     MISSING_PERMISSION = "missing_app_permission"
-
-
-class WebhookTriggerErrorCode(Enum):
-    GRAPHQL_ERROR = "graphql_error"
-    NOT_FOUND = "not_found"
-    INVALID_ID = "invalid_id"
-    MISSING_PERMISSION = "missing_app_permission"
-    MISSING_QUERY = "missing_query"

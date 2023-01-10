@@ -496,6 +496,8 @@ class WebhookEventAsyncType:
         OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
     }
 
+    # ROOT_TYPE mapping is needed by dry-run and manual trigger
+    # of the subscription webhooks events.
     ROOT_TYPE = {
         ADDRESS_CREATED: "Address",
         ADDRESS_UPDATED: "Address",
@@ -570,7 +572,6 @@ class WebhookEventAsyncType:
         FULFILLMENT_CANCELED: "Fulfillment",
         FULFILLMENT_APPROVED: "Fulfillment",
         FULFILLMENT_METADATA_UPDATED: "Fulfillment",
-        NOTIFY_USER: "???",
         PAGE_CREATED: "Page",
         PAGE_UPDATED: "Page",
         PAGE_DELETED: "Page",
@@ -602,7 +603,6 @@ class WebhookEventAsyncType:
         WAREHOUSE_UPDATED: "Warehouse",
         WAREHOUSE_DELETED: "Warehouse",
         WAREHOUSE_METADATA_UPDATED: "Warehouse",
-        OBSERVABILITY: "???",
     }
 
 

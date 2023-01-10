@@ -31,7 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `Order`
   - `User`
   - `Warehouse`
-- Add `WebhookDryRun` and `WebhookTrigger` mutations - #11548 by @zedzior
+- Add `WebhookDryRun` mutation - #11548 by @zedzior
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak

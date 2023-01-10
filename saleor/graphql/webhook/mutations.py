@@ -5,11 +5,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
-from ...webhook.error_codes import (
-    WebhookDryRunErrorCode,
-    WebhookErrorCode,
-    WebhookTriggerErrorCode,
-)
+from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
 from ...webhook.event_types import WebhookEventAsyncType
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
@@ -17,7 +13,6 @@ from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEA
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookDryRunError, WebhookError
-from ..core.types.common import WebhookTriggerError
 from ..core.utils import raise_validation_error
 from ..plugins.dataloaders import get_plugin_manager_promise
 from . import enums
@@ -398,89 +393,3 @@ class WebhookDryRun(BaseMutation):
                 event_type, object, query, request
             )
         return WebhookDryRun(payload=payload)
-
-
-class WebhookTrigger(BaseMutation):
-    delivery = graphene.Field(EventDelivery)
-
-    class Arguments:
-        webhook_id = graphene.ID(description="The ID of the webhook.", required=True)
-        object_id = graphene.ID(
-            description="The ID of an object to serialize.", required=True
-        )
-
-    class Meta:
-        description = "Trigger a webhook event."
-        permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = WebhookTriggerError
-
-    @classmethod
-    def validate_input(cls, info, **data):
-        object_id = data.get("object_id")
-        webhook_id = data.get("webhook_id")
-
-        webhook = cls.get_node_or_error(info, webhook_id, field="webhookId")
-        query = webhook.subscription_query
-        if not query:
-            raise_validation_error(
-                field="webhookId",
-                message="Missing subscription query for given webhook.",
-                code=WebhookTriggerErrorCode.MISSING_QUERY,
-            )
-
-        event_type = get_event_type_from_subscription(query)
-        if not event_type:
-            raise_validation_error(
-                message="Can't parse an event type from webhook's subscription query.",
-                code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
-            )
-
-        event = WEBHOOK_TYPES_MAP.get(event_type)
-        if not event:
-            event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
-            raise_validation_error(
-                message=f"Event type: {event_name} is not defined in graphql schema.",
-                code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
-            )
-
-        model, _ = graphene.Node.from_global_id(object_id)
-        if model != WebhookEventAsyncType.ROOT_TYPE.get(event_type):
-            raise_validation_error(
-                field="objectId",
-                message="ObjectId doesn't match event type.",
-                code=WebhookTriggerErrorCode.INVALID_ID,
-            )
-
-        if permission := WebhookEventAsyncType.PERMISSIONS.get(event_type):
-            codename = permission.value.split(".")[1]
-            user_permissions = [
-                perm.codename for perm in info.context.user.effective_permissions.all()
-            ]
-            if codename not in user_permissions:
-                raise_validation_error(
-                    message=f"The user doesn't have required permission: {codename}.",
-                    code=WebhookTriggerErrorCode.MISSING_PERMISSION,
-                )
-
-        object = cls.get_node_or_error(info, object_id, field="objectId")
-
-        return event_type, object, webhook
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        from ...plugins.webhook.tasks import (
-            create_deliveries_for_subscriptions,
-            send_webhook_request_async,
-        )
-
-        event_type, object, webhook = cls.validate_input(info, **data)
-        delivery = None
-
-        if all([event_type, object, webhook]):
-            deliveries = create_deliveries_for_subscriptions(
-                event_type, object, [webhook]
-            )
-            if deliveries:
-                delivery = deliveries[0]
-                send_webhook_request_async(delivery.id)
-        return WebhookTrigger(delivery=delivery)

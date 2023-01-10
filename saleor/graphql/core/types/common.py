@@ -45,7 +45,6 @@ from ..enums import (
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
-    WebhookTriggerErrorCode,
     WeightUnitsEnum,
 )
 from ..scalars import Date, PositiveDecimal
@@ -415,10 +414,6 @@ class WebhookError(Error):
 
 class WebhookDryRunError(Error):
     code = WebhookDryRunErrorCode(description="The error code.", required=True)
-
-
-class WebhookTriggerError(Error):
-    code = WebhookTriggerErrorCode(description="The error code.", required=True)
 
 
 class TranslationError(Error):
