@@ -15,3 +15,4 @@ class WebhookDryRunErrorCode(Enum):
     NOT_FOUND = "not_found"
     INVALID_ID = "invalid_id"
     MISSING_PERMISSION = "missing_app_permission"
+    TYPE_NOT_SUPPORTED = "type_not_supported"

@@ -15934,6 +15934,7 @@ enum WebhookDryRunErrorCode {
   NOT_FOUND
   INVALID_ID
   MISSING_PERMISSION
+  TYPE_NOT_SUPPORTED
 }
 
 """
