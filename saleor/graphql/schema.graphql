@@ -11947,9 +11947,13 @@ type Mutation {
   ): EventDeliveryRetry
 
   """
-  Performs a dry run of a webhook event. 
+  Performs a dry run of a webhook event.
   
-  Requires one of the following permissions: MANAGE_APPS.
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   webhookDryRun(
     """The ID of an object to serialize."""
@@ -15905,9 +15909,13 @@ type EventDeliveryRetry {
 }
 
 """
-Performs a dry run of a webhook event. 
+Performs a dry run of a webhook event.
 
-Requires one of the following permissions: MANAGE_APPS.
+Added in Saleor 3.10.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
 """
 type WebhookDryRun {
   """JSON payload, that would be sent out to webhook's target URL."""
@@ -15931,6 +15939,7 @@ type WebhookDryRunError {
 """An enumeration."""
 enum WebhookDryRunErrorCode {
   GRAPHQL_ERROR
+  UNABLE_TO_PARSE
   NOT_FOUND
   INVALID_ID
   MISSING_PERMISSION

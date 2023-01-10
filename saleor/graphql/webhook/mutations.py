@@ -9,7 +9,12 @@ from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
 from ...webhook.event_types import WebhookEventAsyncType
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_32,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookDryRunError, WebhookError
@@ -334,8 +339,10 @@ class WebhookDryRun(BaseMutation):
         )
 
     class Meta:
-        description = "Performs a dry run of a webhook event."
-        permissions = (AppPermission.MANAGE_APPS,)
+        description = (
+            "Performs a dry run of a webhook event." + ADDED_IN_310 + PREVIEW_FEATURE
+        )
+        permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookDryRunError
 
     @classmethod
@@ -348,7 +355,7 @@ class WebhookDryRun(BaseMutation):
             raise_validation_error(
                 field="query",
                 message="Can't parse an event type from query.",
-                code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
+                code=WebhookDryRunErrorCode.UNABLE_TO_PARSE,
             )
 
         event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
@@ -362,10 +369,11 @@ class WebhookDryRun(BaseMutation):
 
         model, _ = graphene.Node.from_global_id(object_id)
         model_name = event._meta.dry_run_model_name  # type: ignore[union-attr]
-        if not model_name:
+        if not model_name and event_type:
+            event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
             raise_validation_error(
-                field="objectId",
-                message="Type not supported.",
+                field="query",
+                message=f"Event type: {event_name} not supported.",
                 code=WebhookDryRunErrorCode.TYPE_NOT_SUPPORTED,
             )
         if model != model_name:
@@ -382,6 +390,7 @@ class WebhookDryRun(BaseMutation):
             if event_type
             else None
         ):
+
             codename = permission.value.split(".")[1]
             user_permissions = [
                 perm.codename for perm in info.context.user.effective_permissions.all()
