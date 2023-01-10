@@ -363,6 +363,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     assert product_variant_stock_update_webhook.call_count == 1
     product_variant_stock_update_webhook.assert_called_with(Stock.objects.all()[1])
 
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")

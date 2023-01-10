@@ -903,9 +903,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
-            transaction.on_commit(
-                lambda: manager.product_variant_stock_updated(stock)
-            )
+            transaction.on_commit(lambda: manager.product_variant_stock_updated(stock))
 
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
 
