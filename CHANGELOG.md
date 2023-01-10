@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `Order`
   - `User`
   - `Warehouse`
+- Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
 
 ### Other changes
 
