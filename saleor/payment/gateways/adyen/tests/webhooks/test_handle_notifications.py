@@ -147,6 +147,52 @@ def test_handle_authorization_for_pending_order(
     assert external_events.count() == 1
 
 
+def test_handle_authorization_sets_psp_reference(
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    expected_psp_reference = "psp-123"
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference=expected_psp_reference,
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+
+    # when
+    handle_authorization(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.psp_reference == expected_psp_reference
+
+
 def test_handle_authorization_for_checkout(
     notification,
     adyen_plugin,
