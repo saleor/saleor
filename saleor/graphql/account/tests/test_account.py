@@ -4550,6 +4550,7 @@ def test_create_address_mutation_the_oldest_address_is_deleted(
     query = ADDRESS_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"user": user_id, "address": graphql_address_data}
+
     # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]

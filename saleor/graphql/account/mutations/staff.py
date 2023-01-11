@@ -567,21 +567,20 @@ class AddressCreate(ModelMutation, I18nMixin):
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
         instance = cls.get_instance(info, **data)
         data = data.get("input")
-        cleaned_input = cls.clean_input(info, instance, data)
-        instance = cls.validate_address(cleaned_input, instance=instance)
-        cls.clean_instance(info, instance)
         with traced_atomic_transaction():
+            cleaned_input = cls.clean_input(info, instance, data)
+            instance = cls.validate_address(cleaned_input, instance=instance)
+            cls.clean_instance(info, instance)
             cls.save(info, instance, cleaned_input)
             cls.post_save_action(info, instance, cleaned_input)
-        response = cls.success_response(instance)
-        response.user = user
-        manager = get_plugin_manager_promise(info.context).get()
-        address = manager.change_user_address(instance, None, user)
-        remove_the_oldest_user_address_if_address_limit_is_reached(user)
+            response = cls.success_response(instance)
+            response.user = user
+            manager = get_plugin_manager_promise(info.context).get()
+            address = manager.change_user_address(instance, None, user)
+            remove_the_oldest_user_address_if_address_limit_is_reached(user)
+            user.addresses.add(address)
+            user.search_document = prepare_user_search_document_value(user)
 
-        user.addresses.add(address)
-        user.search_document = prepare_user_search_document_value(user)
-        with traced_atomic_transaction():
             user.save(update_fields=["search_document", "updated_at"])
         return response
 
