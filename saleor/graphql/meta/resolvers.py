@@ -45,6 +45,7 @@ def resolve_object_with_metadata_type(instance):
 
     if isinstance(instance, ModelWithMetadata):
         MODEL_TO_TYPE_MAP = {
+            account_models.Address: account_types.Address,
             account_models.User: account_types.User,
             app_models.App: app_types.App,
             attribute_models.Attribute: attribute_types.Attribute,

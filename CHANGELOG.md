@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend invoice object types with `Order` references - #11505 by @przlada
   - Add `Invoice.order` field
   - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak

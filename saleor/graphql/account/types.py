@@ -24,7 +24,12 @@ from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUse
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
@@ -40,7 +45,7 @@ from ..core.types import (
 )
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
-from ..meta.types import ObjectWithMetadata
+from ..meta.types import Metadata, MetadataDescription, MetadataItem, ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -89,9 +94,45 @@ class Address(ModelObjectType[models.Address]):
         required=False, description="Address is user's default billing address."
     )
 
+    # Temporary copy of meta fields to allow specifying the correct version when
+    # fields were introduced.
+    # Will be fixed in https://github.com/saleor/saleor/issues/11702
+    private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=MetadataDescription.PRIVATE_METADATA
+        + ADDED_IN_310
+        + PREVIEW_FEATURE,
+    )
+    private_metafield = graphene.String(
+        args={"key": graphene.NonNull(graphene.String)},
+        description=(
+            MetadataDescription.PRIVATE_METAFIELD + ADDED_IN_310 + PREVIEW_FEATURE
+        ),
+    )
+    private_metafields = Metadata(
+        args={"keys": NonNullList(graphene.String)},
+        description=(
+            MetadataDescription.PRIVATE_METAFIELDS + ADDED_IN_310 + PREVIEW_FEATURE
+        ),
+    )
+    metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(MetadataDescription.METADATA + ADDED_IN_310 + PREVIEW_FEATURE),
+    )
+    metafield = graphene.String(
+        args={"key": graphene.NonNull(graphene.String)},
+        description=(MetadataDescription.METAFIELD + ADDED_IN_310 + PREVIEW_FEATURE),
+    )
+    metafields = Metadata(
+        args={"keys": NonNullList(graphene.String)},
+        description=(MetadataDescription.METAFIELDS + ADDED_IN_310 + PREVIEW_FEATURE),
+    )
+
     class Meta:
         description = "Represents user address data."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
 
     @staticmethod
