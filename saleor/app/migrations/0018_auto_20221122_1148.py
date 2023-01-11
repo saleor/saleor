@@ -5,7 +5,9 @@ from django.db import migrations, models
 # Forward helpers
 DROP_OLD_CONSTRAINTS = """
 ALTER TABLE app_app_permissions
-    DROP CONSTRAINT account_serviceaccou_permission_id_449791f0_fk_auth_perm;
+    DROP CONSTRAINT IF EXISTS account_serviceaccou_permission_id_449791f0_fk_auth_perm;
+ALTER TABLE app_app_permissions
+    DROP CONSTRAINT IF EXISTS app_app_permissions_permission_id_defe4a88_fk_auth_perm;
 
 ALTER TABLE app_appextension_permissions
     DROP CONSTRAINT app_appextension_per_permission_id_cb6c3ce0_fk_auth_perm;

@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `Django.Auth` - #11305 by @fowczarek
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
 - Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
+- Accept the gift card code provided in the input - by @mociepka
 
 # 3.9.0
 

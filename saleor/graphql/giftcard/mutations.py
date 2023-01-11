@@ -8,7 +8,7 @@ from django.core.validators import validate_email
 from ...account.models import User
 from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
-from ...core.utils.promo_code import generate_promo_code
+from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...core.utils.validators import is_date_in_future
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
@@ -132,7 +132,18 @@ class GiftCardCreate(ModelMutation):
 
         # perform only when gift card is created
         if instance.pk is None:
-            cleaned_input["code"] = generate_promo_code()
+            code = cleaned_input.get("code")
+            if code and not is_available_promo_code(code):
+                raise ValidationError(
+                    {
+                        "code": ValidationError(
+                            "Promo code already exists.",
+                            code=GiftCardErrorCode.ALREADY_EXISTS.value,
+                        )
+                    }
+                )
+
+            cleaned_input["code"] = code or generate_promo_code()
             cls.set_created_by_user(cleaned_input, info)
 
         cls.clean_expiry_date(cleaned_input, instance)
