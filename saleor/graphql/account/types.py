@@ -94,8 +94,9 @@ class Address(ModelObjectType[models.Address]):
         required=False, description="Address is user's default billing address."
     )
 
-    # temporary copy of meta fields to allow specifying the correct version when
-    # fields were introduced
+    # Temporary copy of meta fields to allow specifying the correct version when
+    # fields were introduced.
+    # Will be fixed in https://github.com/saleor/saleor/issues/11702
     private_metadata = NonNullList(
         MetadataItem,
         required=True,
