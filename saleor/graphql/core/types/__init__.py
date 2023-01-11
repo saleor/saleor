@@ -56,7 +56,7 @@ from .common import (
     WebhookError,
     Weight,
 )
-from .event import EventObjectType
+from .event import SubscriptionObjectType
 from .filter_input import ChannelFilterInputObjectType, FilterInputObjectType
 from .model import ModelObjectType
 from .money import VAT, Money, MoneyRange, ReducedRate, TaxedMoney, TaxedMoneyRange
@@ -79,7 +79,7 @@ __all__ = [
     "DateTimeRangeInput",
     "DiscountError",
     "Error",
-    "EventObjectType",
+    "SubscriptionObjectType",
     "ExportError",
     "ExternalNotificationError",
     "File",

@@ -369,6 +369,7 @@ class WebhookDryRun(BaseMutation):
 
         model, _ = graphene.Node.from_global_id(object_id)
         model_name = event._meta.dry_run_model_name  # type: ignore[union-attr]
+
         if not model_name and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
             raise_validation_error(

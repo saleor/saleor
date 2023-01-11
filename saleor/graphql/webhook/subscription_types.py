@@ -36,7 +36,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
-from ..core.types import EventObjectType, NonNullList
+from ..core.types import NonNullList, SubscriptionObjectType
 from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
@@ -124,7 +124,7 @@ class AddressBase(AbstractType):
         return address
 
 
-class AddressCreated(EventObjectType, AddressBase):
+class AddressCreated(SubscriptionObjectType, AddressBase):
     class Meta:
         dry_run_model_name = "Address"
         interfaces = (Event,)
@@ -133,7 +133,7 @@ class AddressCreated(EventObjectType, AddressBase):
         )
 
 
-class AddressUpdated(EventObjectType, AddressBase):
+class AddressUpdated(SubscriptionObjectType, AddressBase):
     class Meta:
         dry_run_model_name = "Address"
         interfaces = (Event,)
@@ -142,7 +142,7 @@ class AddressUpdated(EventObjectType, AddressBase):
         )
 
 
-class AddressDeleted(EventObjectType, AddressBase):
+class AddressDeleted(SubscriptionObjectType, AddressBase):
     class Meta:
         dry_run_model_name = "Address"
         interfaces = (Event,)
@@ -163,7 +163,7 @@ class AppBase(AbstractType):
         return app
 
 
-class AppInstalled(EventObjectType, AppBase):
+class AppInstalled(SubscriptionObjectType, AppBase):
     class Meta:
         dry_run_model_name = "App"
         interfaces = (Event,)
@@ -172,21 +172,21 @@ class AppInstalled(EventObjectType, AppBase):
         )
 
 
-class AppUpdated(EventObjectType, AppBase):
+class AppUpdated(SubscriptionObjectType, AppBase):
     class Meta:
         dry_run_model_name = "App"
         interfaces = (Event,)
         description = "Event sent when app is updated." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
-class AppDeleted(EventObjectType, AppBase):
+class AppDeleted(SubscriptionObjectType, AppBase):
     class Meta:
         dry_run_model_name = "App"
         interfaces = (Event,)
         description = "Event sent when app is deleted." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
-class AppStatusChanged(EventObjectType, AppBase):
+class AppStatusChanged(SubscriptionObjectType, AppBase):
     class Meta:
         interfaces = (Event,)
         description = (
@@ -206,7 +206,7 @@ class AttributeBase(AbstractType):
         return attribute
 
 
-class AttributeCreated(EventObjectType, AttributeBase):
+class AttributeCreated(SubscriptionObjectType, AttributeBase):
     class Meta:
         dry_run_model_name = "Attribute"
         interfaces = (Event,)
@@ -215,7 +215,7 @@ class AttributeCreated(EventObjectType, AttributeBase):
         )
 
 
-class AttributeUpdated(EventObjectType, AttributeBase):
+class AttributeUpdated(SubscriptionObjectType, AttributeBase):
     class Meta:
         dry_run_model_name = "Attribute"
         interfaces = (Event,)
@@ -224,7 +224,7 @@ class AttributeUpdated(EventObjectType, AttributeBase):
         )
 
 
-class AttributeDeleted(EventObjectType, AttributeBase):
+class AttributeDeleted(SubscriptionObjectType, AttributeBase):
     class Meta:
         dry_run_model_name = "Attribute"
         interfaces = (Event,)
@@ -245,9 +245,9 @@ class AttributeValueBase(AbstractType):
         return attribute
 
 
-class AttributeValueCreated(EventObjectType, AttributeValueBase):
+class AttributeValueCreated(SubscriptionObjectType, AttributeValueBase):
     class Meta:
-        dry_run_model_name = "Attribute"
+        dry_run_model_name = "AttributeValue"
         interfaces = (Event,)
         description = (
             "Event sent when new attribute value is created."
@@ -256,9 +256,9 @@ class AttributeValueCreated(EventObjectType, AttributeValueBase):
         )
 
 
-class AttributeValueUpdated(EventObjectType, AttributeValueBase):
+class AttributeValueUpdated(SubscriptionObjectType, AttributeValueBase):
     class Meta:
-        dry_run_model_name = "Attribute"
+        dry_run_model_name = "AttributeValue"
         interfaces = (Event,)
         description = (
             "Event sent when attribute value is updated."
@@ -267,9 +267,9 @@ class AttributeValueUpdated(EventObjectType, AttributeValueBase):
         )
 
 
-class AttributeValueDeleted(EventObjectType, AttributeValueBase):
+class AttributeValueDeleted(SubscriptionObjectType, AttributeValueBase):
     class Meta:
-        dry_run_model_name = "Attribute"
+        dry_run_model_name = "AttributeValue"
         interfaces = (Event,)
         description = (
             "Event sent when attribute value is deleted."
@@ -290,7 +290,7 @@ class CategoryBase(AbstractType):
         return category
 
 
-class CategoryCreated(EventObjectType, CategoryBase):
+class CategoryCreated(SubscriptionObjectType, CategoryBase):
     class Meta:
         dry_run_model_name = "Category"
         interfaces = (Event,)
@@ -299,7 +299,7 @@ class CategoryCreated(EventObjectType, CategoryBase):
         )
 
 
-class CategoryUpdated(EventObjectType, CategoryBase):
+class CategoryUpdated(SubscriptionObjectType, CategoryBase):
     class Meta:
         dry_run_model_name = "Category"
         interfaces = (Event,)
@@ -308,7 +308,7 @@ class CategoryUpdated(EventObjectType, CategoryBase):
         )
 
 
-class CategoryDeleted(EventObjectType, CategoryBase):
+class CategoryDeleted(SubscriptionObjectType, CategoryBase):
     class Meta:
         dry_run_model_name = "Category"
         interfaces = (Event,)
@@ -329,7 +329,7 @@ class ChannelBase(AbstractType):
         return channel
 
 
-class ChannelCreated(EventObjectType, ChannelBase):
+class ChannelCreated(SubscriptionObjectType, ChannelBase):
     class Meta:
         dry_run_model_name = "Channel"
         interfaces = (Event,)
@@ -338,7 +338,7 @@ class ChannelCreated(EventObjectType, ChannelBase):
         )
 
 
-class ChannelUpdated(EventObjectType, ChannelBase):
+class ChannelUpdated(SubscriptionObjectType, ChannelBase):
     class Meta:
         dry_run_model_name = "Channel"
         interfaces = (Event,)
@@ -347,7 +347,7 @@ class ChannelUpdated(EventObjectType, ChannelBase):
         )
 
 
-class ChannelDeleted(EventObjectType, ChannelBase):
+class ChannelDeleted(SubscriptionObjectType, ChannelBase):
     class Meta:
         dry_run_model_name = "Channel"
         interfaces = (Event,)
@@ -356,7 +356,7 @@ class ChannelDeleted(EventObjectType, ChannelBase):
         )
 
 
-class ChannelStatusChanged(EventObjectType, ChannelBase):
+class ChannelStatusChanged(SubscriptionObjectType, ChannelBase):
     class Meta:
         dry_run_model_name = "Channel"
         interfaces = (Event,)
@@ -379,7 +379,7 @@ class OrderBase(AbstractType):
         return order
 
 
-class OrderCreated(EventObjectType, OrderBase):
+class OrderCreated(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -388,7 +388,7 @@ class OrderCreated(EventObjectType, OrderBase):
         )
 
 
-class OrderUpdated(EventObjectType, OrderBase):
+class OrderUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -397,7 +397,7 @@ class OrderUpdated(EventObjectType, OrderBase):
         )
 
 
-class OrderConfirmed(EventObjectType, OrderBase):
+class OrderConfirmed(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -406,7 +406,7 @@ class OrderConfirmed(EventObjectType, OrderBase):
         )
 
 
-class OrderFullyPaid(EventObjectType, OrderBase):
+class OrderFullyPaid(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -415,7 +415,7 @@ class OrderFullyPaid(EventObjectType, OrderBase):
         )
 
 
-class OrderFulfilled(EventObjectType, OrderBase):
+class OrderFulfilled(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -424,7 +424,7 @@ class OrderFulfilled(EventObjectType, OrderBase):
         )
 
 
-class OrderCancelled(EventObjectType, OrderBase):
+class OrderCancelled(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -433,7 +433,7 @@ class OrderCancelled(EventObjectType, OrderBase):
         )
 
 
-class OrderMetadataUpdated(EventObjectType, OrderBase):
+class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -442,7 +442,7 @@ class OrderMetadataUpdated(EventObjectType, OrderBase):
         )
 
 
-class DraftOrderCreated(EventObjectType, OrderBase):
+class DraftOrderCreated(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -453,7 +453,7 @@ class DraftOrderCreated(EventObjectType, OrderBase):
         )
 
 
-class DraftOrderUpdated(EventObjectType, OrderBase):
+class DraftOrderUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -462,7 +462,7 @@ class DraftOrderUpdated(EventObjectType, OrderBase):
         )
 
 
-class DraftOrderDeleted(EventObjectType, OrderBase):
+class DraftOrderDeleted(SubscriptionObjectType, OrderBase):
     class Meta:
         dry_run_model_name = "Order"
         interfaces = (Event,)
@@ -483,7 +483,7 @@ class GiftCardBase(AbstractType):
         return gift_card
 
 
-class GiftCardCreated(EventObjectType, GiftCardBase):
+class GiftCardCreated(SubscriptionObjectType, GiftCardBase):
     class Meta:
         dry_run_model_name = "GiftCard"
         interfaces = (Event,)
@@ -492,7 +492,7 @@ class GiftCardCreated(EventObjectType, GiftCardBase):
         )
 
 
-class GiftCardUpdated(EventObjectType, GiftCardBase):
+class GiftCardUpdated(SubscriptionObjectType, GiftCardBase):
     class Meta:
         dry_run_model_name = "GiftCard"
         interfaces = (Event,)
@@ -501,7 +501,7 @@ class GiftCardUpdated(EventObjectType, GiftCardBase):
         )
 
 
-class GiftCardDeleted(EventObjectType, GiftCardBase):
+class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
     class Meta:
         dry_run_model_name = "GiftCard"
         interfaces = (Event,)
@@ -510,7 +510,7 @@ class GiftCardDeleted(EventObjectType, GiftCardBase):
         )
 
 
-class GiftCardStatusChanged(EventObjectType, GiftCardBase):
+class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
     class Meta:
         dry_run_model_name = "GiftCard"
         interfaces = (Event,)
@@ -521,7 +521,7 @@ class GiftCardStatusChanged(EventObjectType, GiftCardBase):
         )
 
 
-class GiftCardMetadataUpdated(EventObjectType, GiftCardBase):
+class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
     class Meta:
         dry_run_model_name = "GiftCard"
         interfaces = (Event,)
@@ -547,7 +547,7 @@ class MenuBase(AbstractType):
         return ChannelContext(node=menu, channel_slug=channel)
 
 
-class MenuCreated(EventObjectType, MenuBase):
+class MenuCreated(SubscriptionObjectType, MenuBase):
     class Meta:
         dry_run_model_name = "Menu"
         interfaces = (Event,)
@@ -556,14 +556,14 @@ class MenuCreated(EventObjectType, MenuBase):
         )
 
 
-class MenuUpdated(EventObjectType, MenuBase):
+class MenuUpdated(SubscriptionObjectType, MenuBase):
     class Meta:
         dry_run_model_name = "Menu"
         interfaces = (Event,)
         description = "Event sent when menu is updated." + ADDED_IN_34 + PREVIEW_FEATURE
 
 
-class MenuDeleted(EventObjectType, MenuBase):
+class MenuDeleted(SubscriptionObjectType, MenuBase):
     class Meta:
         dry_run_model_name = "Menu"
         interfaces = (Event,)
@@ -585,7 +585,7 @@ class MenuItemBase(AbstractType):
         return ChannelContext(node=menu_item, channel_slug=channel)
 
 
-class MenuItemCreated(EventObjectType, MenuItemBase):
+class MenuItemCreated(SubscriptionObjectType, MenuItemBase):
     class Meta:
         dry_run_model_name = "MenuItem"
         interfaces = (Event,)
@@ -594,7 +594,7 @@ class MenuItemCreated(EventObjectType, MenuItemBase):
         )
 
 
-class MenuItemUpdated(EventObjectType, MenuItemBase):
+class MenuItemUpdated(SubscriptionObjectType, MenuItemBase):
     class Meta:
         dry_run_model_name = "MenuItem"
         interfaces = (Event,)
@@ -603,7 +603,7 @@ class MenuItemUpdated(EventObjectType, MenuItemBase):
         )
 
 
-class MenuItemDeleted(EventObjectType, MenuItemBase):
+class MenuItemDeleted(SubscriptionObjectType, MenuItemBase):
     class Meta:
         dry_run_model_name = "MenuItem"
         interfaces = (Event,)
@@ -636,7 +636,7 @@ class ProductBase(AbstractType):
         return product.category
 
 
-class ProductCreated(EventObjectType, ProductBase):
+class ProductCreated(SubscriptionObjectType, ProductBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -645,7 +645,7 @@ class ProductCreated(EventObjectType, ProductBase):
         )
 
 
-class ProductUpdated(EventObjectType, ProductBase):
+class ProductUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -654,7 +654,7 @@ class ProductUpdated(EventObjectType, ProductBase):
         )
 
 
-class ProductDeleted(EventObjectType, ProductBase):
+class ProductDeleted(SubscriptionObjectType, ProductBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -663,7 +663,7 @@ class ProductDeleted(EventObjectType, ProductBase):
         )
 
 
-class ProductMetadataUpdated(EventObjectType, ProductBase):
+class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -689,7 +689,7 @@ class ProductVariantBase(AbstractType):
         return ChannelContext(node=variant, channel_slug=channel)
 
 
-class ProductVariantCreated(EventObjectType, ProductVariantBase):
+class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -700,7 +700,7 @@ class ProductVariantCreated(EventObjectType, ProductVariantBase):
         )
 
 
-class ProductVariantUpdated(EventObjectType, ProductVariantBase):
+class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -711,7 +711,7 @@ class ProductVariantUpdated(EventObjectType, ProductVariantBase):
         )
 
 
-class ProductVariantDeleted(EventObjectType, ProductVariantBase):
+class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -722,7 +722,7 @@ class ProductVariantDeleted(EventObjectType, ProductVariantBase):
         )
 
 
-class ProductVariantMetadataUpdated(EventObjectType, ProductVariantBase):
+class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         dry_run_model_name = "Product"
         interfaces = (Event,)
@@ -733,7 +733,7 @@ class ProductVariantMetadataUpdated(EventObjectType, ProductVariantBase):
         )
 
 
-class ProductVariantOutOfStock(EventObjectType, ProductVariantBase):
+class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
@@ -759,7 +759,7 @@ class ProductVariantOutOfStock(EventObjectType, ProductVariantBase):
         return stock.warehouse
 
 
-class ProductVariantBackInStock(EventObjectType, ProductVariantBase):
+class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
@@ -800,7 +800,7 @@ class SaleBase(AbstractType):
         return ChannelContext(node=sale, channel_slug=channel)
 
 
-class SaleCreated(EventObjectType, SaleBase):
+class SaleCreated(SubscriptionObjectType, SaleBase):
     class Meta:
         dry_run_model_name = "Sale"
         interfaces = (Event,)
@@ -809,21 +809,21 @@ class SaleCreated(EventObjectType, SaleBase):
         )
 
 
-class SaleUpdated(EventObjectType, SaleBase):
+class SaleUpdated(SubscriptionObjectType, SaleBase):
     class Meta:
         dry_run_model_name = "Sale"
         interfaces = (Event,)
         description = "Event sent when sale is updated." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
-class SaleDeleted(EventObjectType, SaleBase):
+class SaleDeleted(SubscriptionObjectType, SaleBase):
     class Meta:
         dry_run_model_name = "Sale"
         interfaces = (Event,)
         description = "Event sent when sale is deleted." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
-class SaleToggle(EventObjectType, SaleBase):
+class SaleToggle(SubscriptionObjectType, SaleBase):
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
         channel=graphene.String(
@@ -863,7 +863,7 @@ class InvoiceBase(AbstractType):
         return OrderByIdLoader(_info.context).load(invoice.order_id)
 
 
-class InvoiceRequested(EventObjectType, InvoiceBase):
+class InvoiceRequested(SubscriptionObjectType, InvoiceBase):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         required=True,
@@ -878,7 +878,7 @@ class InvoiceRequested(EventObjectType, InvoiceBase):
         )
 
 
-class InvoiceDeleted(EventObjectType, InvoiceBase):
+class InvoiceDeleted(SubscriptionObjectType, InvoiceBase):
     class Meta:
         dry_run_model_name = "Invoice"
         interfaces = (Event,)
@@ -887,7 +887,7 @@ class InvoiceDeleted(EventObjectType, InvoiceBase):
         )
 
 
-class InvoiceSent(EventObjectType, InvoiceBase):
+class InvoiceSent(SubscriptionObjectType, InvoiceBase):
     class Meta:
         dry_run_model_name = "Invoice"
         interfaces = (Event,)
@@ -915,7 +915,7 @@ class FulfillmentBase(AbstractType):
         return fulfillment.order
 
 
-class FulfillmentCreated(EventObjectType, FulfillmentBase):
+class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         dry_run_model_name = "Fulfillment"
         interfaces = (Event,)
@@ -926,7 +926,7 @@ class FulfillmentCreated(EventObjectType, FulfillmentBase):
         )
 
 
-class FulfillmentCanceled(EventObjectType, FulfillmentBase):
+class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         dry_run_model_name = "Fulfillment"
         interfaces = (Event,)
@@ -935,7 +935,7 @@ class FulfillmentCanceled(EventObjectType, FulfillmentBase):
         )
 
 
-class FulfillmentApproved(EventObjectType, FulfillmentBase):
+class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         dry_run_model_name = "Fulfillment"
         interfaces = (Event,)
@@ -944,7 +944,7 @@ class FulfillmentApproved(EventObjectType, FulfillmentBase):
         )
 
 
-class FulfillmentMetadataUpdated(EventObjectType, FulfillmentBase):
+class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         dry_run_model_name = "Fulfillment"
         interfaces = (Event,)
@@ -967,7 +967,7 @@ class UserBase(AbstractType):
         return user
 
 
-class CustomerCreated(EventObjectType, UserBase):
+class CustomerCreated(SubscriptionObjectType, UserBase):
     class Meta:
         dry_run_model_name = "User"
         interfaces = (Event,)
@@ -978,7 +978,7 @@ class CustomerCreated(EventObjectType, UserBase):
         )
 
 
-class CustomerUpdated(EventObjectType, UserBase):
+class CustomerUpdated(SubscriptionObjectType, UserBase):
     class Meta:
         dry_run_model_name = "User"
         interfaces = (Event,)
@@ -987,7 +987,7 @@ class CustomerUpdated(EventObjectType, UserBase):
         )
 
 
-class CustomerMetadataUpdated(EventObjectType, UserBase):
+class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
     class Meta:
         dry_run_model_name = "User"
         interfaces = (Event,)
@@ -1013,7 +1013,7 @@ class CollectionBase(AbstractType):
         return ChannelContext(node=collection, channel_slug=channel)
 
 
-class CollectionCreated(EventObjectType, CollectionBase):
+class CollectionCreated(SubscriptionObjectType, CollectionBase):
     class Meta:
         dry_run_model_name = "Collection"
         interfaces = (Event,)
@@ -1022,7 +1022,7 @@ class CollectionCreated(EventObjectType, CollectionBase):
         )
 
 
-class CollectionUpdated(EventObjectType, CollectionBase):
+class CollectionUpdated(SubscriptionObjectType, CollectionBase):
     class Meta:
         dry_run_model_name = "Collection"
         interfaces = (Event,)
@@ -1031,7 +1031,7 @@ class CollectionUpdated(EventObjectType, CollectionBase):
         )
 
 
-class CollectionDeleted(EventObjectType, CollectionBase):
+class CollectionDeleted(SubscriptionObjectType, CollectionBase):
     class Meta:
         dry_run_model_name = "Collection"
         interfaces = (Event,)
@@ -1040,7 +1040,7 @@ class CollectionDeleted(EventObjectType, CollectionBase):
         )
 
 
-class CollectionMetadataUpdated(EventObjectType, CollectionBase):
+class CollectionMetadataUpdated(SubscriptionObjectType, CollectionBase):
     class Meta:
         dry_run_model_name = "Collection"
         interfaces = (Event,)
@@ -1063,7 +1063,7 @@ class CheckoutBase(AbstractType):
         return checkout
 
 
-class CheckoutCreated(EventObjectType, CheckoutBase):
+class CheckoutCreated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         dry_run_model_name = "Checkout"
         interfaces = (Event,)
@@ -1072,7 +1072,7 @@ class CheckoutCreated(EventObjectType, CheckoutBase):
         )
 
 
-class CheckoutUpdated(EventObjectType, CheckoutBase):
+class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         dry_run_model_name = "Checkout"
         interfaces = (Event,)
@@ -1081,7 +1081,7 @@ class CheckoutUpdated(EventObjectType, CheckoutBase):
         )
 
 
-class CheckoutMetadataUpdated(EventObjectType, CheckoutBase):
+class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         dry_run_model_name = "Checkout"
         interfaces = (Event,)
@@ -1103,7 +1103,7 @@ class PageBase(AbstractType):
         return page
 
 
-class PageCreated(EventObjectType, PageBase):
+class PageCreated(SubscriptionObjectType, PageBase):
     class Meta:
         dry_run_model_name = "Page"
         interfaces = (Event,)
@@ -1112,14 +1112,14 @@ class PageCreated(EventObjectType, PageBase):
         )
 
 
-class PageUpdated(EventObjectType, PageBase):
+class PageUpdated(SubscriptionObjectType, PageBase):
     class Meta:
         dry_run_model_name = "Page"
         interfaces = (Event,)
         description = "Event sent when page is updated." + ADDED_IN_32 + PREVIEW_FEATURE
 
 
-class PageDeleted(EventObjectType, PageBase):
+class PageDeleted(SubscriptionObjectType, PageBase):
     class Meta:
         dry_run_model_name = "Page"
         interfaces = (Event,)
@@ -1138,7 +1138,7 @@ class PageTypeBase(AbstractType):
         return page_type
 
 
-class PageTypeCreated(EventObjectType, PageTypeBase):
+class PageTypeCreated(SubscriptionObjectType, PageTypeBase):
     class Meta:
         dry_run_model_name = "PageType"
         interfaces = (Event,)
@@ -1147,7 +1147,7 @@ class PageTypeCreated(EventObjectType, PageTypeBase):
         )
 
 
-class PageTypeUpdated(EventObjectType, PageTypeBase):
+class PageTypeUpdated(SubscriptionObjectType, PageTypeBase):
     class Meta:
         dry_run_model_name = "PageType"
         interfaces = (Event,)
@@ -1156,7 +1156,7 @@ class PageTypeUpdated(EventObjectType, PageTypeBase):
         )
 
 
-class PageTypeDeleted(EventObjectType, PageTypeBase):
+class PageTypeDeleted(SubscriptionObjectType, PageTypeBase):
     class Meta:
         dry_run_model_name = "PageType"
         interfaces = (Event,)
@@ -1177,9 +1177,9 @@ class PermissionGroupBase(AbstractType):
         return permission_group
 
 
-class PermissionGroupCreated(EventObjectType, PermissionGroupBase):
+class PermissionGroupCreated(SubscriptionObjectType, PermissionGroupBase):
     class Meta:
-        dry_run_model_name = "PermissionGroup"
+        dry_run_model_name = "Group"
         interfaces = (Event,)
         description = (
             "Event sent when new permission group is created."
@@ -1188,9 +1188,9 @@ class PermissionGroupCreated(EventObjectType, PermissionGroupBase):
         )
 
 
-class PermissionGroupUpdated(EventObjectType, PermissionGroupBase):
+class PermissionGroupUpdated(SubscriptionObjectType, PermissionGroupBase):
     class Meta:
-        dry_run_model_name = "PermissionGroup"
+        dry_run_model_name = "Group"
         interfaces = (Event,)
         description = (
             "Event sent when permission group is updated."
@@ -1199,9 +1199,9 @@ class PermissionGroupUpdated(EventObjectType, PermissionGroupBase):
         )
 
 
-class PermissionGroupDeleted(EventObjectType, PermissionGroupBase):
+class PermissionGroupDeleted(SubscriptionObjectType, PermissionGroupBase):
     class Meta:
-        dry_run_model_name = "PermissionGroup"
+        dry_run_model_name = "Group"
         interfaces = (Event,)
         description = (
             "Event sent when permission group is deleted."
@@ -1237,7 +1237,7 @@ class ShippingPriceBase(AbstractType):
         return ChannelContext(node=shipping_method.shipping_zone, channel_slug=channel)
 
 
-class ShippingPriceCreated(EventObjectType, ShippingPriceBase):
+class ShippingPriceCreated(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
         dry_run_model_name = "ShippingMethod"
         interfaces = (Event,)
@@ -1248,7 +1248,7 @@ class ShippingPriceCreated(EventObjectType, ShippingPriceBase):
         )
 
 
-class ShippingPriceUpdated(EventObjectType, ShippingPriceBase):
+class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
         dry_run_model_name = "ShippingMethod"
         interfaces = (Event,)
@@ -1257,7 +1257,7 @@ class ShippingPriceUpdated(EventObjectType, ShippingPriceBase):
         )
 
 
-class ShippingPriceDeleted(EventObjectType, ShippingPriceBase):
+class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
         dry_run_model_name = "ShippingMethod"
         interfaces = (Event,)
@@ -1281,7 +1281,7 @@ class ShippingZoneBase(AbstractType):
         return ChannelContext(node=shipping_zone, channel_slug=channel)
 
 
-class ShippingZoneCreated(EventObjectType, ShippingZoneBase):
+class ShippingZoneCreated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         dry_run_model_name = "ShippingZone"
         interfaces = (Event,)
@@ -1292,7 +1292,7 @@ class ShippingZoneCreated(EventObjectType, ShippingZoneBase):
         )
 
 
-class ShippingZoneUpdated(EventObjectType, ShippingZoneBase):
+class ShippingZoneUpdated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         dry_run_model_name = "ShippingZone"
         interfaces = (Event,)
@@ -1301,7 +1301,7 @@ class ShippingZoneUpdated(EventObjectType, ShippingZoneBase):
         )
 
 
-class ShippingZoneDeleted(EventObjectType, ShippingZoneBase):
+class ShippingZoneDeleted(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         dry_run_model_name = "ShippingZone"
         interfaces = (Event,)
@@ -1310,7 +1310,7 @@ class ShippingZoneDeleted(EventObjectType, ShippingZoneBase):
         )
 
 
-class ShippingZoneMetadataUpdated(EventObjectType, ShippingZoneBase):
+class ShippingZoneMetadataUpdated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         dry_run_model_name = "ShippingZone"
         interfaces = (Event,)
@@ -1321,7 +1321,7 @@ class ShippingZoneMetadataUpdated(EventObjectType, ShippingZoneBase):
         )
 
 
-class StaffCreated(EventObjectType, UserBase):
+class StaffCreated(SubscriptionObjectType, UserBase):
     class Meta:
         dry_run_model_name = "User"
         interfaces = (Event,)
@@ -1330,7 +1330,7 @@ class StaffCreated(EventObjectType, UserBase):
         )
 
 
-class StaffUpdated(EventObjectType, UserBase):
+class StaffUpdated(SubscriptionObjectType, UserBase):
     class Meta:
         dry_run_model_name = "User"
         interfaces = (Event,)
@@ -1339,7 +1339,7 @@ class StaffUpdated(EventObjectType, UserBase):
         )
 
 
-class StaffDeleted(EventObjectType, UserBase):
+class StaffDeleted(SubscriptionObjectType, UserBase):
     class Meta:
         dry_run_model_name = "User"
         interfaces = (Event,)
@@ -1348,7 +1348,7 @@ class StaffDeleted(EventObjectType, UserBase):
         )
 
 
-class TransactionAction(EventObjectType, AbstractType):
+class TransactionAction(SubscriptionObjectType, AbstractType):
     action_type = graphene.Field(
         TransactionActionEnum,
         required=True,
@@ -1365,7 +1365,7 @@ class TransactionAction(EventObjectType, AbstractType):
         return None
 
 
-class TransactionActionRequest(EventObjectType):
+class TransactionActionRequest(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem,
         description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
@@ -1398,7 +1398,7 @@ class TransactionActionRequest(EventObjectType):
         return transaction_action_data
 
 
-class TransactionItemMetadataUpdated(EventObjectType):
+class TransactionItemMetadataUpdated(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem,
         description="Look up a transaction." + PREVIEW_FEATURE,
@@ -1443,7 +1443,7 @@ class TranslationBase(AbstractType):
         return translation
 
 
-class TranslationCreated(EventObjectType, TranslationBase):
+class TranslationCreated(SubscriptionObjectType, TranslationBase):
     class Meta:
         dry_run_model_name = "Translation"
         interfaces = (Event,)
@@ -1454,7 +1454,7 @@ class TranslationCreated(EventObjectType, TranslationBase):
         )
 
 
-class TranslationUpdated(EventObjectType, TranslationBase):
+class TranslationUpdated(SubscriptionObjectType, TranslationBase):
     class Meta:
         dry_run_model_name = "Translation"
         interfaces = (Event,)
@@ -1478,7 +1478,7 @@ class VoucherBase(AbstractType):
         return ChannelContext(node=voucher, channel_slug=None)
 
 
-class VoucherCreated(EventObjectType, VoucherBase):
+class VoucherCreated(SubscriptionObjectType, VoucherBase):
     class Meta:
         dry_run_model_name = "Voucher"
         interfaces = (Event,)
@@ -1487,7 +1487,7 @@ class VoucherCreated(EventObjectType, VoucherBase):
         )
 
 
-class VoucherUpdated(EventObjectType, VoucherBase):
+class VoucherUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
         dry_run_model_name = "Voucher"
         interfaces = (Event,)
@@ -1496,7 +1496,7 @@ class VoucherUpdated(EventObjectType, VoucherBase):
         )
 
 
-class VoucherDeleted(EventObjectType, VoucherBase):
+class VoucherDeleted(SubscriptionObjectType, VoucherBase):
     class Meta:
         dry_run_model_name = "Voucher"
         interfaces = (Event,)
@@ -1505,7 +1505,7 @@ class VoucherDeleted(EventObjectType, VoucherBase):
         )
 
 
-class VoucherMetadataUpdated(EventObjectType, VoucherBase):
+class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
         dry_run_model_name = "Voucher"
         interfaces = (Event,)
@@ -1528,49 +1528,49 @@ class PaymentBase(AbstractType):
         return payment
 
 
-class PaymentAuthorize(EventObjectType, PaymentBase):
+class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
         description = "Authorize payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class PaymentCaptureEvent(EventObjectType, PaymentBase):
+class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
         description = "Capture payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class PaymentRefundEvent(EventObjectType, PaymentBase):
+class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
         description = "Refund payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class PaymentVoidEvent(EventObjectType, PaymentBase):
+class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
         description = "Void payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class PaymentConfirmEvent(EventObjectType, PaymentBase):
+class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
         description = "Confirm payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class PaymentProcessEvent(EventObjectType, PaymentBase):
+class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         interfaces = (Event,)
         description = "Process payment." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class PaymentListGateways(EventObjectType, CheckoutBase):
+class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
     class Meta:
         interfaces = (Event,)
         description = "List payment gateways." + ADDED_IN_36 + PREVIEW_FEATURE
 
 
-class ShippingListMethodsForCheckout(EventObjectType, CheckoutBase):
+class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
@@ -1591,7 +1591,7 @@ class ShippingListMethodsForCheckout(EventObjectType, CheckoutBase):
         )
 
 
-class CalculateTaxes(EventObjectType):
+class CalculateTaxes(SubscriptionObjectType):
     tax_base = graphene.Field(
         "saleor.graphql.core.types.taxes.TaxableObject", required=True
     )
@@ -1609,7 +1609,7 @@ class CalculateTaxes(EventObjectType):
         return tax_base
 
 
-class CheckoutFilterShippingMethods(EventObjectType, CheckoutBase):
+class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
@@ -1630,7 +1630,7 @@ class CheckoutFilterShippingMethods(EventObjectType, CheckoutBase):
         )
 
 
-class OrderFilterShippingMethods(EventObjectType, OrderBase):
+class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods that can be used with this checkout."
@@ -1673,7 +1673,7 @@ class WarehouseBase(AbstractType):
         return warehouse
 
 
-class WarehouseCreated(EventObjectType, WarehouseBase):
+class WarehouseCreated(SubscriptionObjectType, WarehouseBase):
     class Meta:
         dry_run_model_name = "Warehouse"
         interfaces = (Event,)
@@ -1682,7 +1682,7 @@ class WarehouseCreated(EventObjectType, WarehouseBase):
         )
 
 
-class WarehouseUpdated(EventObjectType, WarehouseBase):
+class WarehouseUpdated(SubscriptionObjectType, WarehouseBase):
     class Meta:
         dry_run_model_name = "Warehouse"
         interfaces = (Event,)
@@ -1691,7 +1691,7 @@ class WarehouseUpdated(EventObjectType, WarehouseBase):
         )
 
 
-class WarehouseDeleted(EventObjectType, WarehouseBase):
+class WarehouseDeleted(SubscriptionObjectType, WarehouseBase):
     class Meta:
         dry_run_model_name = "Warehouse"
         interfaces = (Event,)
@@ -1700,7 +1700,7 @@ class WarehouseDeleted(EventObjectType, WarehouseBase):
         )
 
 
-class WarehouseMetadataUpdated(EventObjectType, WarehouseBase):
+class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
     class Meta:
         dry_run_model_name = "Warehouse"
         interfaces = (Event,)
@@ -1711,7 +1711,7 @@ class WarehouseMetadataUpdated(EventObjectType, WarehouseBase):
         )
 
 
-class Subscription(EventObjectType):
+class Subscription(SubscriptionObjectType):
     event = graphene.Field(
         Event,
         description="Look up subscription event." + ADDED_IN_32 + PREVIEW_FEATURE,

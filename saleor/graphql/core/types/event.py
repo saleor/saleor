@@ -2,7 +2,7 @@ from graphene import ObjectType
 from graphene.types.objecttype import ObjectTypeOptions
 
 
-class EventObjectType(ObjectType):
+class SubscriptionObjectType(ObjectType):
     class Meta:
         abstract = True
 
