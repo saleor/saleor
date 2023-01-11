@@ -203,7 +203,7 @@ def test_webhook_dry_run_event_type_not_supported(
 
 
 @pytest.fixture
-def subscription_webhooks_with_objects(
+def async_subscription_webhooks_with_root_objects(
     subscription_address_created_webhook,
     subscription_address_updated_webhook,
     subscription_address_deleted_webhook,
@@ -505,18 +505,18 @@ def subscription_webhooks_with_objects(
             subscription_permission_group_deleted_webhook,
             permission_group_manage_users,
         ],
-        # events.SHIPPING_PRICE_CREATED: [
-        #     subscription_shipping_price_created_webhook,
-        #     shipping_method,
-        # ],
-        # events.SHIPPING_PRICE_UPDATED: [
-        #     subscription_shipping_price_updated_webhook,
-        #     shipping_method,
-        # ],
-        # events.SHIPPING_PRICE_DELETED: [
-        #     subscription_shipping_price_deleted_webhook,
-        #     shipping_method,
-        # ],
+        events.SHIPPING_PRICE_CREATED: [
+            subscription_shipping_price_created_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_PRICE_UPDATED: [
+            subscription_shipping_price_updated_webhook,
+            shipping_method,
+        ],
+        events.SHIPPING_PRICE_DELETED: [
+            subscription_shipping_price_deleted_webhook,
+            shipping_method,
+        ],
         events.SHIPPING_ZONE_CREATED: [
             subscription_shipping_zone_created_webhook,
             shipping_zone,
@@ -536,19 +536,18 @@ def subscription_webhooks_with_objects(
         events.STAFF_CREATED: [subscription_staff_created_webhook, staff_user],
         events.STAFF_UPDATED: [subscription_staff_updated_webhook, staff_user],
         events.STAFF_DELETED: [subscription_staff_deleted_webhook, staff_user],
-        # events.TRANSACTION_ACTION_REQUEST: [],
         events.TRANSACTION_ITEM_METADATA_UPDATED: [
             subscription_transaction_item_metadata_updated_webhook,
             transaction_item,
         ],
-        # events.TRANSLATION_CREATED: [
-        #     subscription_translation_created_webhook,
-        #     translated_attribute,
-        # ],
-        # events.TRANSLATION_UPDATED: [
-        #     subscription_translation_updated_webhook,
-        #     translated_attribute,
-        # ],
+        events.TRANSLATION_CREATED: [
+            subscription_translation_created_webhook,
+            translated_attribute,
+        ],
+        events.TRANSLATION_UPDATED: [
+            subscription_translation_updated_webhook,
+            translated_attribute,
+        ],
         events.VOUCHER_CREATED: [subscription_voucher_created_webhook, voucher],
         events.VOUCHER_UPDATED: [subscription_voucher_updated_webhook, voucher],
         events.VOUCHER_DELETED: [subscription_voucher_deleted_webhook, voucher],
@@ -566,22 +565,19 @@ def subscription_webhooks_with_objects(
     }
 
 
-def test_webhook_dry_run_model_name(
+def test_webhook_dry_run_root_type(
     superuser_api_client,
-    subscription_webhooks_with_objects,
+    async_subscription_webhooks_with_root_objects,
 ):
     # given
     query = WEBHOOK_DRY_RUN_MUTATION
 
     for event_name, event_type in WEBHOOK_TYPES_MAP.items():
-        if (
-            not subscription_webhooks_with_objects.get(event_name)
-            or not event_type._meta.dry_run_model_name
-        ):
+        if not event_type._meta.enable_dry_run:
             continue
 
-        webhook = subscription_webhooks_with_objects[event_name][0]
-        object = subscription_webhooks_with_objects[event_name][1]
+        webhook = async_subscription_webhooks_with_root_objects[event_name][0]
+        object = async_subscription_webhooks_with_root_objects[event_name][1]
         object_id = graphene.Node.to_global_id(object.__class__.__name__, object.pk)
 
         variables = {"objectId": object_id, "query": webhook.subscription_query}
