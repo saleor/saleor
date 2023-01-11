@@ -83,6 +83,7 @@ def public_address_permissions(
     addresses.
     Staff user with `MANAGE_STAFF` have access to public metadata of staff user
     addresses.
+    For now, updating warehouse and shop addresses is forbidden.
     """
     address = (
         account_models.Address.objects.filter(pk=address_pk)
@@ -102,8 +103,10 @@ def public_address_permissions(
     if user and address.user_addresses.filter(id=user.id):
         return []
     staff_users = account_models.User.objects.filter(is_staff=True)
+
     if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
         return [AccountPermissions.MANAGE_STAFF]
+
     if (
         warehouse_models.Warehouse.objects.filter(address_id=address.id).exists()
         or site_models.SiteSettings.objects.filter(
@@ -111,6 +114,7 @@ def public_address_permissions(
         ).exists()
     ):
         raise PermissionDenied()
+
     return [AccountPermissions.MANAGE_USERS]
 
 
