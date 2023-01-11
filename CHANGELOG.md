@@ -2,9 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.10.0 [Unreleased]
-
-### Breaking changes
+# 3.10.0
 
 ### GraphQL API
 
