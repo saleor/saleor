@@ -142,7 +142,7 @@ def test_availability_with_missing_variant_channel_listings(stock, channel_USD):
         collections=[],
         discounts=[],
         prices_entered_with_tax=channel_USD.tax_configuration.prices_entered_with_tax,
-        tax_calculation_strategy=None,
+        tax_calculation_strategy="TAX_APP",
         tax_rate=Decimal(0),
     )
 
@@ -171,7 +171,7 @@ def test_availability_without_variant_channel_listings(stock, channel_USD):
         collections=[],
         discounts=[],
         tax_rate=Decimal(0),
-        tax_calculation_strategy=None,
+        tax_calculation_strategy="TAX_APP",
         prices_entered_with_tax=True,
     )
 

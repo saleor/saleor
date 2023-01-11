@@ -97,7 +97,7 @@ class Permission(models.Model):
     def natural_key(self):
         return (self.codename,) + self.content_type.natural_key()
 
-    natural_key.dependencies = ["contenttypes.contenttype"]  # type: ignore
+    natural_key.dependencies = ["contenttypes.contenttype"]  # type: ignore[attr-defined] # noqa: E501
 
 
 class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
@@ -165,7 +165,7 @@ class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
         permissions for that object.
         """
         # Active superusers have all permissions.
-        if self.is_active and self.is_superuser:
+        if self.is_active and self.is_superuser:  # type: ignore[attr-defined] # mixin
             return True
 
         # Otherwise we need to check the backends.
@@ -184,7 +184,7 @@ class PermissionsMixin(models.Model):  # noqa: D205, D212, D400, D415
         Use similar logic as has_perm(), above.
         """
         # Active superusers have all permissions.
-        if self.is_active and self.is_superuser:
+        if self.is_active and self.is_superuser:  # type: ignore[attr-defined] # mixin
             return True
 
         return _user_has_module_perms(self, app_label)

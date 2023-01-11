@@ -110,7 +110,7 @@ def api_post_request(
             "Unable to decode the response from Avatax. Response: %s", content
         )
         return {}
-    return json_response  # type: ignore
+    return json_response
 
 
 def api_get_request(
@@ -124,7 +124,7 @@ def api_get_request(
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
-        if "error" in json_response:  # type: ignore
+        if "error" in json_response:
             logger.error("Avatax response contains errors %s", json_response)
         return json_response
     except requests.exceptions.RequestException:
@@ -139,7 +139,10 @@ def api_get_request(
 
 
 def _validate_adddress_details(
-    shipping_address, is_shipping_required, address, delivery_method
+    shipping_address: Optional[Address],
+    is_shipping_required: bool,
+    address: Optional[Address],
+    delivery_method,
 ):
     if not is_shipping_required and address:
         return True
@@ -155,10 +158,13 @@ def _validate_order(order: "Order") -> bool:
     if not order.lines.exists():
         return False
     shipping_required = order.is_shipping_required()
-    if order.collection_point_id:
+    delivery_method: Union[None, ShippingMethod, Warehouse]
+    address: Optional[Address]
+    shipping_address: Optional[Address]
+    if order.collection_point:
         collection_point = order.collection_point
-        delivery_method: Union[None, ShippingMethod, Warehouse] = collection_point
-        shipping_address = collection_point.address  # type: ignore
+        delivery_method = collection_point
+        shipping_address = collection_point.address
         address = shipping_address
     else:
         delivery_method = order.shipping_method
@@ -170,7 +176,7 @@ def _validate_order(order: "Order") -> bool:
     if not valid_address_details:
         return False
     if shipping_required and isinstance(delivery_method, ShippingMethod):
-        channel_listing = delivery_method.channel_listings.filter(  # type: ignore
+        channel_listing = delivery_method.channel_listings.filter(
             channel_id=order.channel_id
         ).first()
         if not channel_listing:
@@ -212,13 +218,13 @@ def taxes_need_new_fetch(data: Dict[str, Any], cached_data) -> bool:
 
 
 def append_line_to_data(
-    data: List[Dict[str, Union[Any]]],
+    data: List[Dict[str, Any]],
     quantity: int,
     amount: Decimal,
     tax_code: str,
     item_code: str,
     prices_entered_with_tax: bool,
-    name: str = None,
+    name: Optional[str] = None,
     discounted: Optional[bool] = False,
     tax_override_data: Optional[dict] = None,
     ref1: Optional[str] = None,

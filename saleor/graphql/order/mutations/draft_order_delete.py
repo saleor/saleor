@@ -5,6 +5,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import OrderError
@@ -29,19 +30,19 @@ class DraftOrderDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
                     "id": ValidationError(
                         "Provided order id belongs to non-draft order.",
-                        code=OrderErrorCode.INVALID,
+                        code=OrderErrorCode.INVALID.value,
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         order = cls.get_instance(info, **data)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():

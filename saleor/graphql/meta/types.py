@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from graphene.types.generic import GenericScalar
 
@@ -5,6 +7,7 @@ from ...checkout.models import Checkout
 from ...checkout.utils import get_or_create_checkout_metadata
 from ...core.models import ModelWithMetadata
 from ..channel import ChannelContext
+from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_33, PREVIEW_FEATURE
 from ..core.types import NonNullList
 from .resolvers import (
@@ -91,7 +94,7 @@ class ObjectWithMetadata(graphene.Interface):
     )
 
     @staticmethod
-    def resolve_metadata(root: ModelWithMetadata, info):
+    def resolve_metadata(root: ModelWithMetadata, info: ResolveInfo):
         if isinstance(root, Checkout):
             from ..checkout.types import Checkout as CheckoutType
 
@@ -99,29 +102,35 @@ class ObjectWithMetadata(graphene.Interface):
         return resolve_metadata(root.metadata)
 
     @staticmethod
-    def resolve_metafield(root: ModelWithMetadata, _info, *, key: str):
+    def resolve_metafield(
+        root: ModelWithMetadata, _info: ResolveInfo, *, key: str
+    ) -> Optional[str]:
         return root.metadata.get(key)
 
     @staticmethod
-    def resolve_metafields(root: ModelWithMetadata, _info, *, keys=None):
+    def resolve_metafields(root: ModelWithMetadata, _info: ResolveInfo, *, keys=None):
         return _filter_metadata(root.metadata, keys)
 
     @staticmethod
-    def resolve_private_metadata(root: ModelWithMetadata, info):
+    def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
         return resolve_private_metadata(root, info)
 
     @staticmethod
-    def resolve_private_metafield(root: ModelWithMetadata, info, *, key: str):
+    def resolve_private_metafield(
+        root: ModelWithMetadata, info: ResolveInfo, *, key: str
+    ) -> Optional[str]:
         check_private_metadata_privilege(root, info)
         return root.private_metadata.get(key)
 
     @staticmethod
-    def resolve_private_metafields(root: ModelWithMetadata, info, *, keys=None):
+    def resolve_private_metafields(
+        root: ModelWithMetadata, info: ResolveInfo, *, keys=None
+    ):
         check_private_metadata_privilege(root, info)
         return _filter_metadata(root.private_metadata, keys)
 
     @classmethod
-    def resolve_type(cls, instance: ModelWithMetadata, info):
+    def resolve_type(cls, instance: ModelWithMetadata, info: ResolveInfo):
         if isinstance(instance, ChannelContext):
             # Return instance for types that use ChannelContext
             instance = instance.node

@@ -1,13 +1,23 @@
 import json
 from decimal import Decimal, InvalidOperation
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import graphene
 from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection
-from graphql import GraphQLError, ResolveInfo
+from graphql import GraphQLError
 from graphql.language.ast import FragmentSpread
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
@@ -19,6 +29,9 @@ from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import OrderDirection
 from ..core.types import NonNullList
 from ..utils.sorting import sort_queryset_for_connection
+
+if TYPE_CHECKING:
+    from ..core import ResolveInfo
 
 ConnectionArguments = Dict[str, Any]
 
@@ -240,7 +253,7 @@ def _get_id_coercion(qs: QuerySet) -> Callable[[str], Any]:
 
 def connection_from_queryset_slice(
     qs: QuerySet,
-    args: ConnectionArguments = None,
+    args: Optional[ConnectionArguments] = None,
     connection_type: Any = Connection,
     edge_type: Any = Edge,
     pageinfo_type: Any = PageInfo,
@@ -305,7 +318,7 @@ def connection_from_queryset_slice(
 
 def create_connection_slice(
     iterable,
-    info,
+    info: "ResolveInfo",
     args,
     connection_type,
     edge_type=None,
@@ -351,7 +364,7 @@ def create_connection_slice(
 
 
 def _validate_slice_args(
-    info: ResolveInfo,
+    info: "ResolveInfo",
     args: dict,
     max_limit: Optional[int] = None,
 ):
@@ -367,7 +380,7 @@ def _validate_slice_args(
         )
 
     if max_limit is None:
-        max_limit = cast(int, settings.GRAPHENE.get("RELAY_CONNECTION_MAX_LIMIT", 0))
+        max_limit = settings.GRAPHQL_PAGINATION_LIMIT
 
     if max_limit:
         if first:

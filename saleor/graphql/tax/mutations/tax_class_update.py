@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import Error, NonNullList
@@ -67,7 +68,7 @@ class TaxClassUpdate(ModelMutation):
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         update_country_rates = data.get("update_country_rates", [])
         update_country_codes = [item["country_code"] for item in update_country_rates]
         remove_country_rates = data.get("remove_country_rates", [])
@@ -80,10 +81,10 @@ class TaxClassUpdate(ModelMutation):
                 "removing items: "
             ) + ", ".join(duplicated_country_codes)
             params = {"country_codes": duplicated_country_codes}
-            code = error_codes.TaxClassUpdateErrorCode.DUPLICATED_INPUT_ITEM
+            code = error_codes.TaxClassUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
             raise ValidationError(message=message, code=code, params=params)
 
-        return super().clean_input(info, instance, data, input_cls)
+        return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
     def update_country_rates(cls, instance, country_rates):

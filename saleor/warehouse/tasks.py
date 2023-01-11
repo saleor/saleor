@@ -39,14 +39,17 @@ def update_stocks_quantity_allocated_task():
     for mismatched_stock in Stock.objects.annotate(
         allocations_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
     ).exclude(quantity_allocated=F("allocations_allocated")):
+        allocations_allocated = getattr(
+            mismatched_stock, "allocations_allocated"
+        )  # annotation
         task_logger.info(
             "Mismatch updating quantity_allocated: stock %d had "
             "%d allocated, but should have %d.",
             mismatched_stock.pk,
             mismatched_stock.quantity_allocated,
-            mismatched_stock.allocations_allocated,
+            allocations_allocated,
         )
-        mismatched_stock.quantity_allocated = mismatched_stock.allocations_allocated
+        mismatched_stock.quantity_allocated = allocations_allocated
         stocks_to_update.append(mismatched_stock)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])

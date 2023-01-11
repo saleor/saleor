@@ -1,6 +1,7 @@
 import graphene
 
 from ...attribute import models
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField
@@ -42,12 +43,14 @@ class AttributeQueries(graphene.ObjectType):
         description="Look up an attribute by ID, slug or external reference.",
     )
 
-    def resolve_attributes(self, info, **kwargs):
+    def resolve_attributes(self, info: ResolveInfo, **kwargs):
         qs = resolve_attributes(info)
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
-    def resolve_attribute(self, _info, *, id=None, slug=None, external_reference=None):
+    def resolve_attribute(
+        self, _info: ResolveInfo, *, id=None, slug=None, external_reference=None
+    ):
         return resolve_by_global_id_slug_or_ext_ref(
             models.Attribute, id, slug, external_reference
         )

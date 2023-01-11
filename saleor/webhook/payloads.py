@@ -157,9 +157,8 @@ def generate_metadata_updated_payload(
 
 def prepare_order_lines_allocations_payload(line):
     warehouse_id_quantity_allocated_map = list(
-        line.allocations.values(  # type: ignore
-            "quantity_allocated",
-            warehouse_id=F("stock__warehouse_id"),
+        line.allocations.values(
+            "quantity_allocated", warehouse_id=F("stock__warehouse_id")
         )
     )
     for item in warehouse_id_quantity_allocated_map:
@@ -729,7 +728,7 @@ def generate_product_payload(
             "charge_taxes": _get_charge_taxes_for_product(product),
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
-                    product.channel_listings.all()  # type: ignore
+                    product.channel_listings.all()
                 )
             ),
             "variants": lambda x: json.loads(

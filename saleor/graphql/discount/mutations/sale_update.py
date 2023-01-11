@@ -7,6 +7,7 @@ from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....discount.utils import fetch_catalogue_info
+from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -31,7 +32,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         previous_catalogue = fetch_catalogue_info(instance)
         previous_end_date = instance.end_date

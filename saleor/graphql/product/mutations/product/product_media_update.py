@@ -3,6 +3,7 @@ import graphene
 from .....core.permissions import ProductPermissions
 from .....product import models
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -30,12 +31,14 @@ class ProductMediaUpdate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        media = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
+        media = cls.get_node_or_error(info, id, only_type=ProductMedia)
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media.product_id
         )
-        alt = data.get("input").get("alt")
+        alt = input.get("alt")
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])

@@ -16,6 +16,7 @@ from ....plugins.webhook.utils import APP_ID_PREFIX
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -75,17 +76,18 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         return str_type
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, shipping_method_id, checkout_id=None, token=None, id=None
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        checkout_id=None,
+        id=None,
+        shipping_method_id,
+        token=None
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         manager = get_plugin_manager_promise(info.context).get()
 
@@ -150,7 +152,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_on_shipping_method(
-        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
+        cls,
+        info: ResolveInfo,
+        shipping_method_id,
+        checkout_info,
+        lines,
+        checkout,
+        manager,
     ):
         shipping_method = cls.get_node_or_error(
             info,
@@ -161,13 +169,20 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 "postal_code_rules"
             ),
         )
-        delivery_method = convert_to_shipping_method_data(
-            shipping_method,
-            shipping_models.ShippingMethodChannelListing.objects.filter(
-                shipping_method=shipping_method,
-                channel=checkout_info.channel,
-            ).first(),
-        )
+        listing = shipping_models.ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method,
+            channel=checkout_info.channel,
+        ).first()
+        if not listing:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not found for this channel.",
+                        code=CheckoutErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        delivery_method = convert_to_shipping_method_data(shipping_method, listing)
 
         cls._check_delivery_method(
             checkout_info, lines, delivery_method=delivery_method
@@ -196,7 +211,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_on_external_shipping_method(
-        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
+        cls,
+        info: ResolveInfo,
+        shipping_method_id,
+        checkout_info,
+        lines,
+        checkout,
+        manager,
     ):
         delivery_method = manager.get_shipping_method(
             checkout=checkout,

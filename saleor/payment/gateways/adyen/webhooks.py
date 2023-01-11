@@ -256,7 +256,7 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
         )
 
     # Only when we confirm that notification is success we will create the order
-    if transaction.is_success and checkout:  # type: ignore
+    if transaction.is_success and checkout:
         confirm_payment_and_set_back_to_confirm(payment, manager, checkout.channel.slug)
         payment.refresh_from_db()  # refresh charge_status
         order = create_order(payment, checkout, manager)
@@ -745,10 +745,14 @@ def get_or_create_adyen_partial_payments(
         # payments.
         payment_total_to_cover -= new_payment.total
 
-    already_existing_partial_payments = Payment.objects.filter(
-        psp_reference__in=[p.psp_reference for p in new_payments],
-        partial=True,
-        checkout_id=payment.checkout_id,
+    already_existing_partial_payments = (
+        Payment.objects.filter(
+            psp_reference__in=[p.psp_reference for p in new_payments],
+            partial=True,
+            checkout_id=payment.checkout_id,
+        )
+        if payment.checkout_id
+        else []
     )
     if already_existing_partial_payments:
         return list(already_existing_partial_payments)
@@ -924,16 +928,13 @@ def validate_hmac_signature(
         "hmacSignature"
     )
     hmac_key: Optional[str] = gateway_config.connection_params.get("webhook_hmac")
-    if not hmac_key and not hmac_signature:
-        return True
-
-    if not hmac_key and hmac_signature:
-        return False
+    if not hmac_key:
+        return not hmac_signature
 
     if not hmac_signature and hmac_key:
         return False
 
-    hmac_key = hmac_key.encode()  # type: ignore
+    hmac_key = hmac_key.encode()
 
     success = "true" if notification.get("success", "") == "true" else "false"
     if notification.get("success", None) is None:
@@ -1018,7 +1019,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
     event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
     if event_handler:
-        event_handler(notification, gateway_config)  # type: ignore
+        event_handler(notification, gateway_config)
         return HttpResponse("[accepted]")
     return HttpResponse("[accepted]")
 
@@ -1125,7 +1126,7 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
 def prepare_redirect_url(
     payment_id: str, checkout_pk: str, api_response: Adyen.Adyen, return_url: str
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)  # type: ignore
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
 
     params = {
         "checkout": checkout_id,

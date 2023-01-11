@@ -440,7 +440,7 @@ def test_order_calculate_taxes_with_discounts(
         value_type=DiscountValueType.FIXED,
         value=value,
         reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,  # type: ignore
+        amount=(order.undiscounted_total - order.total).gross,
     )
     recalculate_order(order)
     order.refresh_from_db()

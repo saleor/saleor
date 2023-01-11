@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Union, overload
 
 from django.utils.html import strip_tags
 from urllib3.util import parse_url
@@ -15,7 +15,24 @@ ITEM_TYPE_TO_CLEAN_FUNC_MAP = {
 }
 
 
-def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
+@overload
+def clean_editor_js(
+    definitions: Union[Dict, str, None], *, to_string: Literal[True]
+) -> str:
+    ...
+
+
+@overload
+def clean_editor_js(definitions: Dict) -> Dict:
+    ...
+
+
+@overload
+def clean_editor_js(definitions: None) -> None:
+    ...
+
+
+def clean_editor_js(definitions, *, to_string=False) -> Union[Dict, str, None]:
     """Sanitize a given EditorJS JSON definitions.
 
     Look for not allowed URLs, replaced them with `invalid` value, and clean valid ones.
@@ -116,7 +133,7 @@ def clean_text_data(text: str) -> str:
 
         url = parse_url(original_url)
         new_url = url.url
-        url_scheme = url.scheme  # type: ignore
+        url_scheme = url.scheme
         if url_scheme in BLACKLISTED_URL_SCHEMES:
             warnings.warn(
                 f"An invalid url was sent: {original_url} "

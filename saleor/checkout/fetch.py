@@ -12,6 +12,7 @@ from typing import (
     Tuple,
     Union,
 )
+from uuid import UUID
 
 from django.utils.functional import SimpleLazyObject
 
@@ -102,7 +103,7 @@ class DeliveryMethodBase:
     store_as_customer_address: bool = False
 
     @property
-    def warehouse_pk(self) -> Optional[str]:
+    def warehouse_pk(self) -> Optional[UUID]:
         pass
 
     @property
@@ -338,7 +339,7 @@ def _get_product_channel_listing(
 ):
     product_channel_listing = product_channel_listing_mapping.get(product.id)
     if product.id not in product_channel_listing_mapping:
-        for channel_listing in product.channel_listings.all():  # type: ignore
+        for channel_listing in product.channel_listings.all():
             if channel_listing.channel_id == channel_id:
                 product_channel_listing = channel_listing
         product_channel_listing_mapping[product.id] = product_channel_listing
@@ -458,9 +459,10 @@ def update_checkout_info_delivery_method_info(
                 shipping_channel_listing = listing
                 break
 
-        delivery_method = convert_to_shipping_method_data(
-            shipping_method, shipping_channel_listing
-        )
+        if shipping_channel_listing:
+            delivery_method = convert_to_shipping_method_data(
+                shipping_method, shipping_channel_listing
+            )
 
     elif external_shipping_method_id := get_external_shipping_id(checkout):
         # A local function is used to delay evaluation
@@ -486,7 +488,7 @@ def update_checkout_info_delivery_method_info(
             delivery_method,
             checkout_info.shipping_address,
         )
-    )  # type: ignore
+    )  # type: ignore[assignment] # using SimpleLazyObject breaks protocol
 
 
 def update_checkout_info_shipping_address(
@@ -625,10 +627,10 @@ def update_delivery_method_lists_for_checkout_info(
 
     checkout_info.all_shipping_methods = SimpleLazyObject(
         _resolve_all_shipping_methods
-    )  # type: ignore
+    )  # type: ignore[assignment] # using lazy object breaks protocol
     checkout_info.valid_pick_up_points = SimpleLazyObject(
         lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
-    )  # type: ignore
+    )  # type: ignore[assignment] # using lazy object breaks protocol
     update_checkout_info_delivery_method_info(
         checkout_info,
         shipping_method,

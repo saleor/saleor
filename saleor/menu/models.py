@@ -39,7 +39,7 @@ class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
     page = models.ForeignKey(Page, blank=True, null=True, on_delete=models.CASCADE)
 
     objects = models.Manager()
-    tree = TreeManager()  # type: ignore
+    tree = TreeManager()  # type: ignore[django-manager-missing]
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):

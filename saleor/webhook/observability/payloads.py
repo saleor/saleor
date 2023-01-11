@@ -156,7 +156,7 @@ def generate_api_call_payload(
         request=ApiCallRequest(
             id=str(uuid.uuid4()),
             method=request.method or "",
-            url=build_absolute_uri(request.get_full_path()),  # type: ignore
+            url=build_absolute_uri(request.get_full_path()),
             time=getattr(request, "request_time", timezone.now()).timestamp(),
             headers=serialize_headers(dict(request.headers)),
             content_length=int(request.headers.get("Content-Length") or 0),

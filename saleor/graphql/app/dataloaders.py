@@ -1,11 +1,13 @@
 from collections import defaultdict
 from functools import partial, wraps
+from typing import Optional
 
 from django.contrib.auth.hashers import check_password
 from promise import Promise
 
 from ...app.models import App, AppExtension, AppToken
 from ...core.auth import get_token_from_request
+from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 
 
@@ -72,18 +74,18 @@ class AppByTokenLoader(DataLoader):
         return [apps.get(authed_apps.get(key)) for key in keys]
 
 
-def promise_app(context):
+def promise_app(context: SaleorContext) -> Promise[Optional[App]]:
     auth_token = get_token_from_request(context)
     if not auth_token or len(auth_token) != 30:
         return Promise.resolve(None)
     return AppByTokenLoader(context).load(auth_token)
 
 
-def get_app_promise(context):
+def get_app_promise(context: SaleorContext) -> Promise[Optional[App]]:
     if hasattr(context, "app"):
         return Promise.resolve(context.app)
 
-    return Promise.resolve(promise_app(context))
+    return promise_app(context)
 
 
 def app_promise_callback(func):

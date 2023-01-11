@@ -3,6 +3,7 @@ import graphene
 from .....core.permissions import ProductPermissions
 from .....product import models
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import CollectionError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -22,13 +23,17 @@ class CollectionDelete(ModelDeleteMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **kwargs):
-        node_id = kwargs.get("id")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        instance = cls.get_node_or_error(info, id, only_type=Collection)
+        products = list(
+            instance.products.prefetched_for_webhook(  # type: ignore[attr-defined]
+                single_object=False
+            )
+        )
 
-        instance = cls.get_node_or_error(info, node_id, only_type=Collection)
-        products = list(instance.products.prefetched_for_webhook(single_object=False))
-
-        result = super().perform_mutation(_root, info, **kwargs)
+        result = super().perform_mutation(_root, info, id=id)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_deleted, instance)
         for product in products:

@@ -30,6 +30,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
 - Drop `Django.Auth` - #11305 by @fowczarek
 - Add address validation to AddressCreate - #11639 by @jakubkuc
+- Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
+- Accept the gift card code provided in the input - by @mociepka
 
 # 3.9.0
 

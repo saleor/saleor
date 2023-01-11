@@ -12,9 +12,10 @@ from ...core.permissions import (
     OrderPermissions,
     has_one_of_permissions,
 )
-from ...core.tracing import traced_resolver
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
+from ..core import ResolveInfo
+from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -92,7 +93,7 @@ def resolve_users(info, ids=None, emails=None):
     if requester.has_perms(
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
     ):
-        qs = models.User.objects
+        qs = models.User.objects.all()
     elif requester.has_perm(AccountPermissions.MANAGE_STAFF):
         qs = models.User.objects.staff()
     elif requester.has_perm(AccountPermissions.MANAGE_USERS):
@@ -116,7 +117,7 @@ def resolve_users(info, ids=None, emails=None):
 
 @traced_resolver
 def resolve_address_validation_rules(
-    info,
+    info: ResolveInfo,
     country_code: str,
     country_area: Optional[str],
     city: Optional[str],

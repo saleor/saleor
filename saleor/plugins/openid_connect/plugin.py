@@ -417,9 +417,7 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError({"token": e})
         permissions = payload.get(PERMISSIONS_FIELD)
         if permissions is not None:
-            user.effective_permissions = get_permissions_from_names(  # type: ignore
-                permissions
-            )
+            user.effective_permissions = get_permissions_from_names(permissions)
             user.is_staff = True
         return user, payload
 

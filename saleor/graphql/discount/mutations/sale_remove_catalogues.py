@@ -1,7 +1,11 @@
+from typing import cast
+
 from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale
@@ -17,14 +21,17 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        sale = cls.get_node_or_error(
-            info, data.get("id"), only_type=Sale, field="sale_id"
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
+        sale = cast(
+            models.Sale,
+            cls.get_node_or_error(info, id, only_type=Sale, field="sale_id"),
         )
         previous_catalogue = fetch_catalogue_info(sale)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
-            cls.remove_catalogues_from_node(sale, data.get("input"))
+            cls.remove_catalogues_from_node(sale, input)
             current_catalogue = fetch_catalogue_info(sale)
             cls.call_event(
                 lambda: manager.sale_updated(

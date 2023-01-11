@@ -18,6 +18,7 @@ from ...core.permissions import (
     has_one_of_permissions,
 )
 from ..app.dataloaders import get_app_promise
+from ..core import ResolveInfo, SaleorContext
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -30,14 +31,14 @@ class UserDeleteMixin:
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
         user = info.context.user
         if instance == user:
             raise ValidationError(
                 {
                     "id": ValidationError(
                         "You cannot delete your own account.",
-                        code=AccountErrorCode.DELETE_OWN_ACCOUNT,
+                        code=AccountErrorCode.DELETE_OWN_ACCOUNT.value,
                     )
                 }
             )
@@ -46,7 +47,7 @@ class UserDeleteMixin:
                 {
                     "id": ValidationError(
                         "Cannot delete this account.",
-                        code=AccountErrorCode.DELETE_SUPERUSER_ACCOUNT,
+                        code=AccountErrorCode.DELETE_SUPERUSER_ACCOUNT.value,
                     )
                 }
             )
@@ -57,20 +58,20 @@ class CustomerDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
         super().clean_instance(info, instance)
         if instance.is_staff:
             raise ValidationError(
                 {
                     "id": ValidationError(
                         "Cannot delete a staff account.",
-                        code=AccountErrorCode.DELETE_STAFF_ACCOUNT,
+                        code=AccountErrorCode.DELETE_STAFF_ACCOUNT.value,
                     )
                 }
             )
 
     @classmethod
-    def post_process(cls, info, deleted_count=1):
+    def post_process(cls, info: ResolveInfo, deleted_count=1):
         app = get_app_promise(info.context).get()
         account_events.customer_deleted_event(
             staff_user=info.context.user,
@@ -84,16 +85,16 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context: SaleorContext, permissions=None):
         if get_app_promise(context).get():
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
-        return super().check_permissions(context, permissions)
+        return super().check_permissions(context, permissions)  # type: ignore[misc] # mixin # noqa: E501
 
     @classmethod
-    def clean_instance(cls, info, instance):
-        errors = defaultdict(list)
+    def clean_instance(cls, info: ResolveInfo, instance):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
         requestor = info.context.user
 
@@ -106,7 +107,7 @@ class StaffDeleteMixin(UserDeleteMixin):
             raise ValidationError(errors)
 
     @classmethod
-    def check_if_users_can_be_deleted(cls, info, instances, field, errors):
+    def check_if_users_can_be_deleted(cls, info: ResolveInfo, instances, field, errors):
         """Check if only staff users will be deleted. Cannot delete non-staff users."""
         not_staff_users = set()
         for user in instances:
@@ -122,7 +123,7 @@ class StaffDeleteMixin(UserDeleteMixin):
                 graphene.Node.to_global_id("User", user.pk) for user in not_staff_users
             ]
             msg = "Cannot delete a non-staff users."
-            code = AccountErrorCode.DELETE_NON_STAFF_USER
+            code = AccountErrorCode.DELETE_NON_STAFF_USER.value
             params = {"users": user_pks}
             errors[field].append(ValidationError(msg, code=code, params=params))
 
@@ -145,7 +146,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_if_removing_left_not_manageable_permissions(
-        cls, requestor, users, field, errors
+        cls, requestor, users, field, errors: defaultdict[str, List[ValidationError]]
     ):
         """Check if after removing users all permissions will be manageable.
 
@@ -164,7 +165,7 @@ class StaffDeleteMixin(UserDeleteMixin):
             code = AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
             params = {"permissions": permissions}
             error = ValidationError(msg, code=code, params=params)
-            errors[field] = error
+            errors[field] = [error]
 
 
 def get_required_fields_camel_case(required_fields: set) -> set:
@@ -225,10 +226,12 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
     return user.has_perms(permissions)
 
 
-def can_manage_app(requestor: Union["User", "App"], app: "App") -> bool:
+def can_manage_app(requestor: Union["User", "App", None], app: "App") -> bool:
     """Requestor can't manage app with wider scope of permissions."""
     permissions = app.get_permissions()
-    return bool(requestor) and requestor.has_perms(permissions)
+    if not requestor:
+        return False
+    return requestor.has_perms(permissions)
 
 
 def get_group_permission_codes(group: Group) -> "QuerySet":
@@ -479,7 +482,7 @@ def look_for_permission_in_users_with_manage_staff(
 
 
 def is_owner_or_has_one_of_perms(
-    requestor: Union["User", "App"], owner: Optional[Union["User", "App"]], *perms
+    requestor: Union["User", "App", None], owner: Optional[Union["User", "App"]], *perms
 ) -> bool:
     """Check if requestor can access data.
 
@@ -494,7 +497,7 @@ def is_owner_or_has_one_of_perms(
 
 
 def check_is_owner_or_has_one_of_perms(
-    requestor: Union["User", "App"], owner: Optional["User"], *perms
+    requestor: Union["User", "App", None], owner: Optional["User"], *perms
 ) -> None:
     """Confirm that requestor can access data, raise `PermissionDenied` otherwise.
 

@@ -10,6 +10,7 @@ from ...site.error_codes import GiftCardSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
+from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -129,7 +130,8 @@ class ShopSettingsUpdate(BaseMutation):
                 validate_storefront_url(data["customer_set_password_url"])
             except ValidationError as error:
                 raise ValidationError(
-                    {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
+                    {"customer_set_password_url": error},
+                    code=ShopErrorCode.INVALID.value,
                 )
 
         if "reserve_stock_duration_anonymous_user" in data:
@@ -165,7 +167,7 @@ class ShopSettingsUpdate(BaseMutation):
         return instance
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         site = get_site_promise(info.context).get()
         instance = site.settings
         data = data.get("input")
@@ -192,7 +194,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         site = get_site_promise(info.context).get()
         data = data.get("input")
 
@@ -226,11 +228,12 @@ class ShopDomainUpdate(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input
+    ):
         site = get_site_promise(info.context).get()
-        data = data.get("input")
-        domain = data.get("domain")
-        name = data.get("name")
+        domain = input.get("domain")
+        name = input.get("name")
         if domain is not None:
             site.domain = domain
         if name is not None:
@@ -250,7 +253,7 @@ class ShopFetchTaxRates(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info):
+    def perform_mutation(cls, _root, _info: ResolveInfo, /):
         # This mutation is deprecated and will be removed in Saleor 4.0.
         return ShopFetchTaxRates(shop=Shop())
 
@@ -307,7 +310,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
                     {
                         "staff_notification": ValidationError(
                             "User and email cannot be set empty",
-                            code=ShopErrorCode.INVALID,
+                            code=ShopErrorCode.INVALID.value,
                         )
                     }
                 )
@@ -315,7 +318,8 @@ class StaffNotificationRecipientCreate(ModelMutation):
                 raise ValidationError(
                     {
                         "staff_notification": ValidationError(
-                            "User or email is required", code=ShopErrorCode.REQUIRED
+                            "User or email is required",
+                            code=ShopErrorCode.REQUIRED.value,
                         )
                     }
                 )
@@ -323,7 +327,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
             raise ValidationError(
                 {
                     "user": ValidationError(
-                        "User has to be staff user", code=ShopErrorCode.INVALID
+                        "User has to be staff user", code=ShopErrorCode.INVALID.value
                     )
                 }
             )
@@ -392,7 +396,7 @@ class OrderSettingsUpdate(BaseMutation):
         error_type_field = "order_settings_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         FIELDS = [
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
@@ -434,7 +438,7 @@ class GiftCardSettingsUpdate(BaseMutation):
         error_type_class = GiftCardSettingsError
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         site = get_site_promise(info.context).get()
         instance = site.settings
         input = data["input"]

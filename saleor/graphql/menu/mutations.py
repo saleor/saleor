@@ -12,6 +12,7 @@ from ...menu.error_codes import MenuErrorCode
 from ...page import models as page_models
 from ...product import models as product_models
 from ..channel import ChannelContext
+from ..core import ResolveInfo
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import MenuError, NonNullList
 from ..core.utils.reordering import perform_reordering
@@ -72,8 +73,8 @@ class MenuCreate(ModelMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
@@ -93,7 +94,7 @@ class MenuCreate(ModelMutation):
                     {
                         "items": ValidationError(
                             "More than one item provided.",
-                            code=MenuErrorCode.TOO_MANY_MENU_ITEMS,
+                            code=MenuErrorCode.TOO_MANY_MENU_ITEMS.value,
                         )
                     }
                 )
@@ -116,7 +117,7 @@ class MenuCreate(ModelMutation):
                     {
                         "items": ValidationError(
                             "No menu item provided.",
-                            code=MenuErrorCode.NO_MENU_ITEM_PROVIDED,
+                            code=MenuErrorCode.NO_MENU_ITEM_PROVIDED.value,
                         )
                     }
                 )
@@ -125,14 +126,14 @@ class MenuCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         items = cleaned_data.get("items", [])
         for item in items:
             instance.items.create(**item)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_created, instance)
 
@@ -163,7 +164,7 @@ class MenuUpdate(ModelMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_updated, instance)
 
@@ -186,7 +187,7 @@ class MenuDelete(ModelDeleteMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_deleted, instance)
 
@@ -235,7 +236,7 @@ class MenuItemCreate(ModelMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_item_created, instance)
 
@@ -245,8 +246,8 @@ class MenuItemCreate(ModelMutation):
         return super().success_response(instance)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         _validate_menu_item_instance(cleaned_input, "page", page_models.Page)
         _validate_menu_item_instance(
@@ -263,7 +264,8 @@ class MenuItemCreate(ModelMutation):
         items = [item for item in items if item is not None]
         if len(items) > 1:
             raise ValidationError(
-                "More than one item provided.", code=MenuErrorCode.TOO_MANY_MENU_ITEMS
+                "More than one item provided.",
+                code=MenuErrorCode.TOO_MANY_MENU_ITEMS.value,
             )
         return cleaned_input
 
@@ -297,7 +299,7 @@ class MenuItemUpdate(MenuItemCreate):
         return super().construct_instance(instance, cleaned_data)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_item_updated, instance)
 
@@ -315,7 +317,7 @@ class MenuItemDelete(ModelDeleteMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.menu_item_deleted, instance)
 
@@ -388,13 +390,13 @@ class MenuItemMove(BaseMutation):
     @classmethod
     def get_operation(
         cls,
-        info,
+        info: ResolveInfo,
         menu_item_to_current_parent,
         menu: models.Menu,
         move: MenuItemMoveInput,
     ) -> _MenuMoveOperation:
         menu_item = cls.get_node_or_error(
-            info, move.item_id, field="item", only_type="MenuItem", qs=menu.items
+            info, move.item_id, field="item", only_type=MenuItem, qs=menu.items
         )
         new_parent, parent_changed = None, False
 
@@ -431,7 +433,10 @@ class MenuItemMove(BaseMutation):
 
     @classmethod
     def clean_moves(
-        cls, info, menu: models.Menu, move_operations: List[MenuItemMoveInput]
+        cls,
+        info: ResolveInfo,
+        menu: models.Menu,
+        move_operations: List[MenuItemMoveInput],
     ) -> List[_MenuMoveOperation]:
         operations = []
         item_to_current_parent: Dict[int, Optional[models.MenuItem]] = {}
@@ -465,7 +470,7 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         menu: str = data["menu"]
         moves: List[MenuItemMoveInput] = data["moves"]
         qs = models.Menu.objects.prefetch_related("items")
@@ -510,7 +515,9 @@ class AssignNavigation(BaseMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, navigation_type, menu=None):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, menu=None, navigation_type
+    ):
         site = get_site_promise(info.context).get()
         if menu is not None:
             menu = cls.get_node_or_error(info, menu, field="menu", only_type=Menu)

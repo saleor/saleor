@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Dict, Optional
+import datetime
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from django.conf import settings
 from django.http import HttpRequest
@@ -11,16 +12,15 @@ if TYPE_CHECKING:
     from .dataloaders import DataLoader
 
 
-UserType = Optional[User]
-
-
 class SaleorContext(HttpRequest):
-    _cached_user: UserType
+    _cached_user: Optional[User]
     decoded_auth_token: Optional[Dict[str, Any]]
     is_mutation: bool
     dataloaders: Dict[str, "DataLoader"]
-    app: Optional["App"]
-    user: UserType  # type: ignore
+    app: Optional[App]
+    user: Optional[User]  # type: ignore[assignment]
+    requestor: Union[App, User, None]
+    request_time: datetime.datetime
 
 
 def set_mutation_flag_in_context(context: SaleorContext) -> None:

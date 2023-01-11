@@ -164,5 +164,5 @@ jg/3747WSsf/zBTcHihTRBdAv6OmdhV4/dD5YBfLAkLrd+mX7iE=
     return jwt.encode(
         id_payload,
         private_key,
-        "RS256",  # type: ignore
+        "RS256",
     )

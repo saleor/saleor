@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, cast
 
 import graphene
 from django.core.exceptions import FieldDoesNotExist, ValidationError
@@ -17,6 +17,7 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
+from ..core import ResolveInfo
 from ..core.mutations import BaseMutation
 from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
@@ -89,19 +90,16 @@ class BaseMetadataMutation(BaseMutation):
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
-    def get_instance(cls, info, **data):
-        object_id = data.get("id")
-        qs = data.get("qs", None)
-
+    def get_instance(cls, info: ResolveInfo, /, *, id: str, qs=None, **kwargs):
         try:
-            type_name, _ = from_global_id_or_error(object_id)
+            type_name, _ = from_global_id_or_error(id)
             # ShippingMethodType represents the ShippingMethod model
             if type_name == "ShippingMethodType":
                 qs = shipping_models.ShippingMethod.objects
 
-            return cls.get_node_or_error(info, object_id, qs=qs)
+            return cls.get_node_or_error(info, id, qs=qs)
         except GraphQLError as e:
-            if instance := cls.get_instance_by_token(object_id, qs):
+            if instance := cls.get_instance_by_token(id, qs):
                 return instance
             raise ValidationError(
                 {
@@ -149,7 +147,7 @@ class BaseMetadataMutation(BaseMutation):
             )
 
     @classmethod
-    def get_permissions(cls, info, type_name, object_pk, **data):
+    def get_permissions(cls, info: ResolveInfo, type_name, object_pk, **data):
         if object_pk is None:
             return []
         object_id = data.get("id")
@@ -165,7 +163,7 @@ class BaseMetadataMutation(BaseMutation):
         )
 
     @classmethod
-    def get_model_for_type_name(cls, info, type_name):
+    def get_model_for_type_name(cls, info: ResolveInfo, type_name):
         if type_name in ["ShippingMethodType", "ShippingMethod"]:
             return shipping_models.ShippingMethod
 
@@ -186,7 +184,7 @@ class BaseMetadataMutation(BaseMutation):
         return super().check_permissions(context, permissions)
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def mutate(cls, root, info: ResolveInfo, **data):
         try:
             type_name, object_pk = cls.get_object_type_name_and_pk(data)
             permissions = cls.get_permissions(info, type_name, object_pk, **data)
@@ -232,7 +230,7 @@ class BaseMetadataMutation(BaseMutation):
             )
 
     @classmethod
-    def perform_model_extra_actions(cls, root, info, type_name, **data):
+    def perform_model_extra_actions(cls, root, info: ResolveInfo, type_name, **data):
         """Run extra metadata method based on mutating model."""
         if MODEL_EXTRA_METHODS.get(type_name):
             prefetch_method = MODEL_EXTRA_PREFETCH.get(type_name)
@@ -293,13 +291,14 @@ class UpdateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input: List
+    ):
+        instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
-            metadata_list = data.pop("input")
-            cls.validate_metadata_keys(metadata_list)
-            items = {data.key: data.value for data in metadata_list}
+            cls.validate_metadata_keys(input)
+            items = {data.key: data.value for data in input}
             meta_instance.store_value_in_metadata(items=items)
             _save_instance(meta_instance, "metadata")
 
@@ -328,12 +327,13 @@ class DeleteMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
+    ):
+        instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
-            metadata_keys = data.pop("keys")
-            for key in metadata_keys:
+            for key in keys:
                 meta_instance.delete_value_from_metadata(key)
             _save_instance(meta_instance, "metadata")
         return cls.success_response(instance)
@@ -361,7 +361,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
@@ -395,14 +395,15 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
+    ):
 
-        instance = cls.get_instance(info, **data)
+        instance = cls.get_instance(info, id=id)
 
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
-            metadata_keys = data.pop("keys")
-            for key in metadata_keys:
+            for key in keys:
                 meta_instance.delete_value_from_private_metadata(key)
             _save_instance(meta_instance, "private_metadata")
         return cls.success_response(instance)

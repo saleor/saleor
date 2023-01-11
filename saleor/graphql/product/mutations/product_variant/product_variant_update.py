@@ -9,8 +9,8 @@ from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.permissions import ProductPermissions
 from .....product import models
-from .....product.error_codes import ProductErrorCode
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
@@ -86,7 +86,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         """Prefetch related fields that are needed to process the mutation.
 
         If we are updating an instance and want to update its attributes, prefetch them.
@@ -128,14 +128,30 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             return instance
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        root,
+        info: ResolveInfo,
+        /,
+        *,
+        external_reference=None,
+        id=None,
+        sku=None,
+        input
+    ):
         validate_one_of_args_is_in_mutation(
-            ProductErrorCode,
             "sku",
-            data.get("sku"),
+            sku,
             "id",
-            data.get("id"),
+            id,
             "external_reference",
-            data.get("external_reference"),
+            external_reference,
         )
-        return super().perform_mutation(_root, info, **data)
+        return super().perform_mutation(
+            root,
+            info,
+            external_reference=external_reference,
+            id=id,
+            sku=sku,
+            input=input,
+        )

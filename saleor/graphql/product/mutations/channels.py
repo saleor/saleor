@@ -21,6 +21,7 @@ from ....product.tasks import update_product_discounted_price_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
+from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_33,
@@ -333,7 +334,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         cls.perform_checkout_lines_delete(variant_ids, remove_channels)
 
     @classmethod
-    def save(cls, info, product: "ProductModel", cleaned_input: Dict):
+    def save(cls, info: ResolveInfo, product: "ProductModel", cleaned_input: Dict):
         with traced_atomic_transaction():
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
@@ -342,9 +343,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.call_event(manager.product_updated, product)
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
         product = cls.get_node_or_error(info, id, only_type=Product, field="id")
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
             info,
@@ -413,7 +416,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         error_type_field = "product_channel_listing_errors"
 
     @classmethod
-    def clean_channels(cls, info, input, errors: ErrorType) -> List:
+    def clean_channels(cls, info: ResolveInfo, input, errors: ErrorType) -> List:
         add_channels_ids = [
             channel_listing_data["channel_id"] for channel_listing_data in input
         ]
@@ -482,7 +485,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             errors[field_name].append(error)
 
     @classmethod
-    def clean_prices(cls, info, cleaned_input, errors: ErrorType) -> List:
+    def clean_prices(cls, info: ResolveInfo, cleaned_input, errors: ErrorType) -> List:
         for channel_listing_data in cleaned_input:
             price = channel_listing_data.get("price")
             cost_price = channel_listing_data.get("cost_price")
@@ -495,7 +498,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def save(cls, info, variant: "ProductVariantModel", cleaned_input: List):
+    def save(
+        cls, info: ResolveInfo, variant: "ProductVariantModel", cleaned_input: List
+    ):
         with traced_atomic_transaction():
             for channel_listing_data in cleaned_input:
                 channel = channel_listing_data["channel"]
@@ -520,12 +525,14 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             cls.call_event(manager.product_variant_updated, variant)
 
     @classmethod
-    def perform_mutation(cls, _root, info, input, id=None, sku=None):
-        validate_one_of_args_is_in_mutation(ProductErrorCode, "sku", sku, "id", id)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id=None, input, sku=None
+    ):
+        validate_one_of_args_is_in_mutation("sku", sku, "id", id)
 
         qs = ProductVariantModel.objects.prefetched_for_webhook()
         if id:
-            variant: "ProductVariantModel" = cls.get_node_or_error(  # type: ignore
+            variant = cls.get_node_or_error(
                 info, id, only_type=ProductVariant, field="id", qs=qs
             )
         else:
@@ -539,7 +546,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     }
                 )
 
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
         cleaned_input = cls.clean_channels(info, input, errors)
         cls.validate_product_assigned_to_channel(variant, cleaned_input, errors)
@@ -606,15 +613,19 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
         ).delete()
 
     @classmethod
-    def save(cls, info, collection: "CollectionModel", cleaned_input: Dict):
+    def save(
+        cls, info: ResolveInfo, collection: "CollectionModel", cleaned_input: Dict
+    ):
         with traced_atomic_transaction():
             cls.add_channels(collection, cleaned_input.get("add_channels", []))
             cls.remove_channels(collection, cleaned_input.get("remove_channels", []))
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
         collection = cls.get_node_or_error(info, id, only_type=Collection, field="id")
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
             info,

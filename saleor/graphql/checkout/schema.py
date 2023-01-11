@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -78,17 +79,17 @@ class CheckoutQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_checkout(_root, info, *, token=None, id=None):
+    def resolve_checkout(_root, info: ResolveInfo, *, token=None, id=None):
         return resolve_checkout(info, token, id)
 
     @staticmethod
-    def resolve_checkouts(_root, info, *, channel=None, **kwargs):
+    def resolve_checkouts(_root, info: ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_checkouts(channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, CheckoutCountableConnection)
 
     @staticmethod
-    def resolve_checkout_lines(_root, info, **kwargs):
+    def resolve_checkout_lines(_root, info: ResolveInfo, **kwargs):
         qs = resolve_checkout_lines()
         return create_connection_slice(
             qs, info, kwargs, CheckoutLineCountableConnection

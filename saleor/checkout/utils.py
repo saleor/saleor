@@ -161,7 +161,7 @@ def add_variant_to_checkout(
         if line is not None:
             line.delete()
     elif line is None:
-        checkout.lines.create(  # type: ignore
+        checkout.lines.create(
             variant=variant,
             quantity=new_quantity,
             currency=checkout.currency,
@@ -360,8 +360,8 @@ def change_shipping_address_in_checkout(
     )
     updated_fields = []
     if changed:
-        if remove:
-            checkout.shipping_address.delete()  # type: ignore
+        if remove and checkout.shipping_address:
+            checkout.shipping_address.delete()
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
             checkout_info, address, lines, discounts, manager, shipping_channel_listings
@@ -789,11 +789,11 @@ def get_valid_internal_shipping_methods_for_checkout(
         listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
-    internal_methods = []
+    internal_methods: List[ShippingMethodData] = []
     for method in shipping_methods:
         listing = channel_listings_map.get(method.pk)
-        shipping_method_data = convert_to_shipping_method_data(method, listing)
-        if shipping_method_data:
+        if listing:
+            shipping_method_data = convert_to_shipping_method_data(method, listing)
             internal_methods.append(shipping_method_data)
 
     return internal_methods
@@ -896,12 +896,12 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in not_available_variants
         }
-        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines with unavailable variants.",
-                    code=error_code,  # type: ignore
+                    code=error_code,
                     params={"variants": not_available_variants_ids},
                 )
             }

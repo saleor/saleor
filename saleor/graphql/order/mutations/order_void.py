@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -5,8 +7,10 @@ from ....core.permissions import OrderPermissions
 from ....order.actions import order_voided
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
+from ....payment import models as payment_models
 from ....payment.gateway import request_void_action
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -14,18 +18,21 @@ from ..types import Order
 from .utils import clean_payment, try_payment_action
 
 
-def clean_void_payment(payment):
+def clean_void_payment(
+    payment: Optional[payment_models.Payment],
+) -> payment_models.Payment:
     """Check for payment errors."""
-    clean_payment(payment)
+    payment = clean_payment(payment)
     if not payment.is_active:
         raise ValidationError(
             {
                 "payment": ValidationError(
                     "Only pre-authorized payments can be voided",
-                    code=OrderErrorCode.VOID_INACTIVE_PAYMENT,
+                    code=OrderErrorCode.VOID_INACTIVE_PAYMENT.value,
                 )
             }
         )
+    return payment
 
 
 class OrderVoid(BaseMutation):
@@ -41,8 +48,10 @@ class OrderVoid(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         if payment_transactions := list(order.payment_transactions.all()):
@@ -59,11 +68,11 @@ class OrderVoid(BaseMutation):
             except PaymentError as e:
                 raise ValidationError(
                     str(e),
-                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value,
                 )
         else:
             payment = order.get_last_payment()
-            clean_void_payment(payment)
+            payment = clean_void_payment(payment)
             transaction = try_payment_action(
                 order,
                 info.context.user,

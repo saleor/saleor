@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F, OrderBy, Q
 
 from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
@@ -19,32 +19,27 @@ from ...product.models import Product, ProductType, ProductVariant
 from .. import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
-    from django.db.models import OrderBy
-
     from ...account.models import User
     from ...app.models import App
 
 
 class BaseAssignedAttribute(models.Model):
-    assignment = None
-
     class Meta:
         abstract = True
 
     @property
     def attribute(self):
-        return self.assignment.attribute
-
-    @property
-    def attribute_pk(self):
-        return self.assignment.attribute_id
+        return self.assignment.attribute  # type: ignore[attr-defined] # mixin
 
 
-class BaseAttributeQuerySet(models.QuerySet):
+T = TypeVar("T", bound=models.Model)
+
+
+class BaseAttributeQuerySet(models.QuerySet[T]):
     def get_public_attributes(self):
         raise NotImplementedError
 
-    def get_visible_to_user(self, requestor: Union["User", "App"]):
+    def get_visible_to_user(self, requestor: Union["User", "App", None]):
         if has_one_of_permissions(
             requestor,
             [
@@ -56,12 +51,15 @@ class BaseAttributeQuerySet(models.QuerySet):
         return self.get_public_attributes()
 
 
-class AssociatedAttributeQuerySet(BaseAttributeQuerySet):
+class AssociatedAttributeQuerySet(BaseAttributeQuerySet[T]):
     def get_public_attributes(self):
         return self.filter(attribute__visible_in_storefront=True)
 
 
-class AttributeQuerySet(BaseAttributeQuerySet):
+AssociatedAttributeManager = models.Manager.from_queryset(AssociatedAttributeQuerySet)
+
+
+class AttributeQuerySet(BaseAttributeQuerySet[T]):
     def get_unassigned_product_type_attributes(self, product_type_pk: int):
         return self.product_type_attributes().exclude(
             Q(attributeproduct__product_type_id=product_type_pk)
@@ -92,7 +90,7 @@ class AttributeQuerySet(BaseAttributeQuerySet):
         id_field = F(f"{m2m_field_name}__id")
         if asc:
             sort_method = sort_order_field.asc(nulls_last=True)
-            id_sort: Union["OrderBy", "F"] = id_field
+            id_sort: Union[OrderBy, F] = id_field
         else:
             sort_method = sort_order_field.desc(nulls_first=True)
             id_sort = id_field.desc()
@@ -110,6 +108,9 @@ class AttributeQuerySet(BaseAttributeQuerySet):
 
     def page_type_attributes(self):
         return self.filter(type=AttributeType.PAGE_TYPE)
+
+
+AttributeManager = models.Manager.from_queryset(AttributeQuerySet)
 
 
 class Attribute(ModelWithMetadata, ModelWithExternalReference):
@@ -150,7 +151,8 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
 
     unit = models.CharField(
         max_length=100,
-        choices=MeasurementUnits.CHOICES,  # type: ignore
+        # MeasurementUnits is constructed programmatically, so mypy can't see its fields
+        choices=MeasurementUnits.CHOICES,  # type: ignore[attr-defined]
         blank=True,
         null=True,
     )
@@ -164,7 +166,7 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     storefront_search_position = models.IntegerField(default=0, blank=True)
     available_in_grid = models.BooleanField(default=False, blank=True)
 
-    objects = models.Manager.from_queryset(AttributeQuerySet)()
+    objects = AttributeManager()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):

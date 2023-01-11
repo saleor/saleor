@@ -2,13 +2,14 @@ from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
 from ...core.permissions import has_one_of_permissions
-from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...order.models import Order
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelQsContext
+from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
+from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
@@ -22,14 +23,14 @@ def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
 
 
-def resolve_categories(_info, level=None):
+def resolve_categories(_info: ResolveInfo, level=None):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
     return qs.distinct()
 
 
-def resolve_collection_by_id(_info, id, channel_slug, requestor):
+def resolve_collection_by_id(_info: ResolveInfo, id, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug=channel_slug)
         .filter(id=id)
@@ -37,7 +38,7 @@ def resolve_collection_by_id(_info, id, channel_slug, requestor):
     )
 
 
-def resolve_collection_by_slug(_info, slug, channel_slug, requestor):
+def resolve_collection_by_slug(_info: ResolveInfo, slug, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug)
         .filter(slug=slug)
@@ -45,7 +46,7 @@ def resolve_collection_by_slug(_info, slug, channel_slug, requestor):
     )
 
 
-def resolve_collections(info, channel_slug):
+def resolve_collections(info: ResolveInfo, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
     qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
 
@@ -56,11 +57,13 @@ def resolve_digital_content_by_id(id):
     return models.DigitalContent.objects.filter(pk=id).first()
 
 
-def resolve_digital_contents(_info):
+def resolve_digital_contents(_info: ResolveInfo):
     return models.DigitalContent.objects.all()
 
 
-def resolve_product(info, id, slug, external_reference, channel_slug, requestor):
+def resolve_product(
+    info: ResolveInfo, id, slug, external_reference, channel_slug, requestor
+):
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(database_connection_name).visible_to_user(
         requestor, channel_slug=channel_slug
@@ -75,7 +78,9 @@ def resolve_product(info, id, slug, external_reference, channel_slug, requestor)
 
 
 @traced_resolver
-def resolve_products(info, requestor, channel_slug=None) -> ChannelQsContext:
+def resolve_products(
+    info: ResolveInfo, requestor, channel_slug=None
+) -> ChannelQsContext:
     database_connection_name = get_database_connection_name(info.context)
     qs = (
         models.Product.objects.all()
@@ -98,13 +103,13 @@ def resolve_product_type_by_id(id):
     return models.ProductType.objects.filter(pk=id).first()
 
 
-def resolve_product_types(_info):
+def resolve_product_types(_info: ResolveInfo):
     return models.ProductType.objects.all()
 
 
 @traced_resolver
 def resolve_variant(
-    _info,
+    _info: ResolveInfo,
     id,
     sku,
     external_reference,
@@ -130,7 +135,11 @@ def resolve_variant(
 
 @traced_resolver
 def resolve_product_variants(
-    _info, requestor_has_access_to_all, requestor, ids=None, channel_slug=None
+    _info: ResolveInfo,
+    requestor_has_access_to_all,
+    requestor,
+    ids=None,
+    channel_slug=None,
 ) -> ChannelQsContext:
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)

@@ -24,6 +24,7 @@ from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_36, ADDED_IN_310, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -113,7 +114,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
@@ -130,7 +131,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             except User.DoesNotExist:
                 data["user"] = None
 
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
@@ -159,7 +160,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def clean_channel_id(cls, info, instance, cleaned_input, channel_id):
+    def clean_channel_id(cls, info: ResolveInfo, instance, cleaned_input, channel_id):
         if channel_id:
             if hasattr(instance, "channel"):
                 raise ValidationError(
@@ -206,7 +207,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     {
                         "quantity": ValidationError(
                             "Ensure this value is greater than 0.",
-                            code=OrderErrorCode.ZERO_QUANTITY,
+                            code=OrderErrorCode.ZERO_QUANTITY.value,
                         )
                     }
                 )
@@ -234,7 +235,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_addresses(
-        cls, info, instance, cleaned_input, shipping_address, billing_address, manager
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        shipping_address,
+        billing_address,
+        manager,
     ):
         if shipping_address:
             shipping_address = cls.validate_address(
@@ -305,7 +312,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app):
+    def _commit_changes(
+        cls, info: ResolveInfo, instance, cleaned_input, is_new_instance, app
+    ):
         if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
             tax_class = shipping_method.tax_class
@@ -332,7 +341,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return is_new_instance
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
         return cls._save_draft_order(
@@ -346,7 +355,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def _save_draft_order(
-        cls, info, instance, cleaned_input, *, is_new_instance, app, manager
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        *,
+        is_new_instance,
+        app,
+        manager
     ):
         with traced_atomic_transaction():
             # Process addresses

@@ -4,10 +4,12 @@ import os
 import os.path
 import warnings
 from datetime import timedelta
+from typing import List
 
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import django_stubs_ext
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
@@ -25,6 +27,8 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_sale_webhook_schedule
+
+django_stubs_ext.monkeypatch()
 
 
 def get_list(text):
@@ -208,7 +212,6 @@ JWT_MANAGER_PATH = os.environ.get(
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.request_time",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
@@ -661,10 +664,8 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     ignore_logger("graphql.execution.executor")
 
 
-GRAPHENE = {
-    "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
-    "RELAY_CONNECTION_MAX_LIMIT": 100,
-}
+GRAPHQL_PAGINATION_LIMIT = 100
+GRAPHQL_MIDDLEWARE: List[str] = []
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(

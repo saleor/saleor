@@ -63,7 +63,7 @@ class Command(BaseCommand):
         permissions = clean_permissions(permissions)
         app = App.objects.create(name=name, is_active=is_active)
         app.permissions.set(permissions)
-        _, auth_token = app.tokens.create()
+        _, auth_token = app.tokens.create()  # type: ignore[call-arg] # method of a related manager # noqa: E501
         data = {
             "auth_token": auth_token,
         }
