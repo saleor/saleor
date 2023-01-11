@@ -61,6 +61,12 @@ class I18nMixin:
             )
             if errors:
                 raise ValidationError(errors)
+
+        if address_form.cleaned_data["metadata"] is None:
+            address_form.cleaned_data["metadata"] = {}
+        if address_form.cleaned_data["private_metadata"] is None:
+            address_form.cleaned_data["private_metadata"] = {}
+
         return address_form
 
     @classmethod
