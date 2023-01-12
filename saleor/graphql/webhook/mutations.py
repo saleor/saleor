@@ -374,7 +374,7 @@ class WebhookDryRun(BaseMutation):
         model_name = event._meta.root_type  # type: ignore[union-attr]
         enable_dry_run = event._meta.enable_dry_run  # type: ignore[union-attr]
 
-        if not model_name and enable_dry_run and event_type:
+        if (not model_name or not enable_dry_run) and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
             raise_validation_error(
                 field="query",
