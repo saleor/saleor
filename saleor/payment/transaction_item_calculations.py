@@ -217,8 +217,6 @@ def _handle_events_without_psp_reference(
     transaction: TransactionItem, events: List[TransactionEvent]
 ):
     for event in events:
-        # FIXME: double check what will hapen when we will call webhook
-        # and we have a webhook request without psp reference
         if event.type == TransactionEventType.AUTHORIZATION_SUCCESS:
             transaction.authorized_value += event.amount_value
         elif event.type == TransactionEventType.AUTHORIZATION_ADJUSTMENT:
