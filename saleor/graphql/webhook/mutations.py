@@ -340,7 +340,10 @@ class WebhookDryRun(BaseMutation):
 
     class Meta:
         description = (
-            "Performs a dry run of a webhook event." + ADDED_IN_310 + PREVIEW_FEATURE
+            "Performs a dry run of a webhook event. "
+            "Supports a single event (the first if multiple provided)."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
         )
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookDryRunError
