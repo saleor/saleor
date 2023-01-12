@@ -11947,7 +11947,7 @@ type Mutation {
   ): EventDeliveryRetry
 
   """
-  Performs a dry run of a webhook event. Supports a single event (the first if multiple provided).
+  Performs a dry run of a webhook event. Supports a single event (the first if multiple provided in the `query`). Requires permission relevant to processed event.
   
   Added in Saleor 3.10.
   
@@ -15909,7 +15909,7 @@ type EventDeliveryRetry {
 }
 
 """
-Performs a dry run of a webhook event. Supports a single event (the first if multiple provided).
+Performs a dry run of a webhook event. Supports a single event (the first if multiple provided in the `query`). Requires permission relevant to processed event.
 
 Added in Saleor 3.10.
 

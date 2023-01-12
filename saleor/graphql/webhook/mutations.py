@@ -341,7 +341,8 @@ class WebhookDryRun(BaseMutation):
     class Meta:
         description = (
             "Performs a dry run of a webhook event. "
-            "Supports a single event (the first if multiple provided)."
+            "Supports a single event (the first if multiple provided in the `query`). "
+            "Requires permission relevant to processed event."
             + ADDED_IN_310
             + PREVIEW_FEATURE
         )
@@ -374,7 +375,7 @@ class WebhookDryRun(BaseMutation):
         model_name = event._meta.root_type  # type: ignore[union-attr]
         enable_dry_run = event._meta.enable_dry_run  # type: ignore[union-attr]
 
-        if (not model_name or not enable_dry_run) and event_type:
+        if not (model_name or enable_dry_run) and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
             raise_validation_error(
                 field="query",
