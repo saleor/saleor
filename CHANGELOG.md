@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend invoice object types with `Order` references - #11505 by @przlada
   - Add `Invoice.order` field
   - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
@@ -31,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `Django.Auth` - #11305 by @fowczarek
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
 - Fix stock events triggers - #11714 by @jakubkuc
+- Accept the gift card code provided in the input - by @mociepka
 
 # 3.9.0
 

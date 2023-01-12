@@ -4723,6 +4723,8 @@ def dummy_address_data(address):
         country=address.country,
         country_area=address.country_area,
         phone=address.phone,
+        metadata=address.metadata,
+        private_metadata=address.private_metadata,
     )
 
 
