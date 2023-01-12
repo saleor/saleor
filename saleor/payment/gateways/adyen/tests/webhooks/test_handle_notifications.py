@@ -15,6 +15,7 @@ from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ......warehouse.models import Stock
 from ..... import ChargeStatus, TransactionKind
+from .....models import Transaction
 from .....utils import price_to_minor_unit, update_payment_charge_status
 from ...webhooks import (
     confirm_payment_and_set_back_to_confirm,
@@ -422,6 +423,93 @@ def test_handle_authorization_for_checkout_that_cannot_be_finalized(
     assert not payment.order
     assert payment.checkout
     assert payment.transactions.count() == 2
+
+
+@patch("saleor.payment.gateway.refund")
+def test_handle_authorization_calls_refund_for_inactive_payment(
+    mock_refund,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = False
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    Transaction.objects.bulk_create(
+        [
+            Transaction(
+                payment_id=payment.id,
+                token="reference",
+                kind=TransactionKind.CAPTURE,
+                is_success=True,
+                action_required=False,
+                currency=payment.currency,
+                amount=payment.total,
+                gateway_response={},
+                already_processed=True,
+            ),
+            Transaction(
+                payment_id=payment.id,
+                token="refund-reference",
+                is_success=True,
+                kind=TransactionKind.REFUND_ONGOING,
+                action_required=False,
+                currency=payment.currency,
+                amount=payment.total,
+                gateway_response={},
+                already_processed=True,
+            ),
+            Transaction(
+                payment_id=payment.id,
+                token="refund-reference",
+                is_success=True,
+                kind=TransactionKind.REFUND,
+                action_required=False,
+                currency=payment.currency,
+                amount=payment.total,
+                gateway_response={},
+                already_processed=True,
+            ),
+        ]
+    )
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference="reference",
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin(adyen_auto_capture=True).config
+
+    # when
+    handle_authorization(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    assert not payment.order
+    assert payment.checkout
+    assert payment.captured_amount == Decimal("0")
+    assert payment.transactions.count() == 3
 
 
 @patch("saleor.payment.gateway.void")
@@ -1242,7 +1330,10 @@ def test_handle_refund_already_refunded(
         merchant_reference=payment_id,
         value=price_to_minor_unit(payment.total, payment.currency),
     )
-    create_new_transaction(notification, payment, TransactionKind.REFUND)
+    transaction = create_new_transaction(notification, payment, TransactionKind.REFUND)
+    transaction.already_processed = True
+    transaction.save()
+
     config = adyen_plugin().config
 
     handle_refund(notification, config)
