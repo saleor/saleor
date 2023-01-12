@@ -8,7 +8,7 @@ from django.db.models import Sum
 from .....plugins.manager import get_plugins_manager
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.error_codes import StockErrorCode
-from .....warehouse.models import Stock, Warehouse, Allocation
+from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
 from ...bulk_mutations.products import ProductVariantStocksUpdate
 from ...utils import create_stocks
@@ -371,15 +371,14 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
 ):
     stock_quantity = 4
     stock = Stock.objects.create(
-        warehouse=warehouse,
-        product_variant=variant,
-        quantity=stock_quantity)
+        warehouse=warehouse, product_variant=variant, quantity=stock_quantity
+    )
 
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     plugins = get_plugins_manager()
     stock.quantity_allocated = stock_quantity
-    stock.save(update_fields=['quantity_allocated'])
+    stock.save(update_fields=["quantity_allocated"])
     stocks_data = [
         {"quantity": stock.quantity_allocated + 1},
     ]
@@ -405,15 +404,14 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
 ):
     stock_quantity = 4
     stock = Stock.objects.create(
-        warehouse=warehouse,
-        product_variant=variant,
-        quantity=stock_quantity)
+        warehouse=warehouse, product_variant=variant, quantity=stock_quantity
+    )
 
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     plugins = get_plugins_manager()
     stock.quantity_allocated = stock_quantity - 1
-    stock.save(update_fields=['quantity_allocated'])
+    stock.save(update_fields=["quantity_allocated"])
     stocks_data = [
         {"quantity": stock.quantity_allocated},
     ]
