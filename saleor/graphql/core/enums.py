@@ -149,3 +149,6 @@ UploadErrorCode = graphene.Enum.from_enum(core_error_codes.UploadErrorCode)
 WarehouseErrorCode = graphene.Enum.from_enum(warehouse_error_codes.WarehouseErrorCode)
 WebhookErrorCode = graphene.Enum.from_enum(webhook_error_codes.WebhookErrorCode)
 TranslationErrorCode = graphene.Enum.from_enum(core_error_codes.TranslationErrorCode)
+WebhookDryRunErrorCode = graphene.Enum.from_enum(
+    webhook_error_codes.WebhookDryRunErrorCode
+)

@@ -11947,6 +11947,23 @@ type Mutation {
   ): EventDeliveryRetry
 
   """
+  Performs a dry run of a webhook event. Supports a single event (the first if multiple provided in the `query`). Requires permission relevant to processed event.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  webhookDryRun(
+    """The ID of an object to serialize."""
+    objectId: ID!
+
+    """The subscription query that defines the webhook event and its payload."""
+    query: String!
+  ): WebhookDryRun
+
+  """
   Creates new warehouse. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -15889,6 +15906,44 @@ type EventDeliveryRetry {
   """Event delivery."""
   delivery: EventDelivery
   errors: [WebhookError!]!
+}
+
+"""
+Performs a dry run of a webhook event. Supports a single event (the first if multiple provided in the `query`). Requires permission relevant to processed event.
+
+Added in Saleor 3.10.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
+type WebhookDryRun {
+  """JSON payload, that would be sent out to webhook's target URL."""
+  payload: JSONString
+  errors: [WebhookDryRunError!]!
+}
+
+type WebhookDryRunError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: WebhookDryRunErrorCode!
+}
+
+"""An enumeration."""
+enum WebhookDryRunErrorCode {
+  GRAPHQL_ERROR
+  UNABLE_TO_PARSE
+  NOT_FOUND
+  INVALID_ID
+  MISSING_PERMISSION
+  TYPE_NOT_SUPPORTED
 }
 
 """
