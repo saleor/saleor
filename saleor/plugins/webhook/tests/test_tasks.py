@@ -12,6 +12,7 @@ from ....core.models import EventDelivery, EventPayload
 from ....payment import TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionEvent
+from ....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....tests.utils import flush_post_commit_hooks
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import generate_transaction_action_request_payload
@@ -596,3 +597,79 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     mocked_post_request.assert_called_once_with(
         target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
     )
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch(
+    "saleor.payment.utils.recalculate_transaction_amounts",
+    wraps=recalculate_transaction_amounts,
+)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_handle_transaction_request_task_calls_recalculation_of_amounts(
+    mocked_post_request,
+    mocked_recalculation,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    staff_user,
+    mocked_webhook_response,
+):
+    # given
+    request_psp_reference = "psp:123:111"
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_payload = {
+        "pspReference": request_psp_reference,
+        "event": {
+            "amount": event_amount,
+            "type": event_type.upper(),
+            "time": event_time,
+            "externalUrl": event_url,
+            "message": event_cause,
+        },
+    }
+    mocked_webhook_response.text = json.dumps(response_payload)
+    mocked_webhook_response.content = json.dumps(response_payload)
+    mocked_post_request.return_value = mocked_webhook_response
+
+    target_url = "http://localhost:3000/"
+
+    request_event = transaction_item_created_by_app.events.create(
+        type=TransactionEventType.CHARGE_REQUEST
+    )
+    app = transaction_item_created_by_app.app
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url=target_url,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED)
+
+    transaction_data = TransactionActionData(
+        transaction=transaction_item_created_by_app,
+        action_type="charge",
+        action_value=Decimal("12.00"),
+        event=request_event,
+    )
+
+    payload = generate_transaction_action_request_payload(transaction_data, staff_user)
+    event_payload = EventPayload.objects.create(payload=payload)
+    delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+        payload=event_payload,
+        webhook=webhook,
+    )
+
+    # when
+    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+
+    # then
+    mocked_recalculation.assert_called_once_with(transaction_item_created_by_app)
+    transaction_item_created_by_app.refresh_from_db()
+    assert transaction_item_created_by_app.charged_value == event_amount
