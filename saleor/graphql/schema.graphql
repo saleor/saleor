@@ -9075,7 +9075,13 @@ type GiftCardTag implements Node {
 type CheckoutLine implements Node & ObjectWithMetadata {
   id: ID!
 
-  """List of private metadata items. Requires staff permissions to access."""
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   privateMetadata: [MetadataItem!]!
 
   """
@@ -9083,7 +9089,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9092,13 +9098,19 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   metadata: [MetadataItem!]!
 
   """
@@ -9106,7 +9118,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9115,7 +9127,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9657,7 +9669,13 @@ type FulfillmentLine implements Node {
 type OrderLine implements Node & ObjectWithMetadata {
   id: ID!
 
-  """List of private metadata items. Requires staff permissions to access."""
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   privateMetadata: [MetadataItem!]!
 
   """
@@ -9665,7 +9683,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9674,13 +9692,19 @@ type OrderLine implements Node & ObjectWithMetadata {
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   metadata: [MetadataItem!]!
 
   """
@@ -9688,7 +9712,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9697,7 +9721,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
