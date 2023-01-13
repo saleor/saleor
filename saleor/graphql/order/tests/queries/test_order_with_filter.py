@@ -1256,12 +1256,15 @@ def test_order_query_with_filter_by_checkout_token(
     staff_api_client,
     permission_manage_orders,
     orders_from_checkout,
+    orders,
     checkout,
 ):
     # given
     variables = {
         "filter": {
-            "checkoutToken": checkout.token,
+            "checkoutIds": [
+                graphene.Node.to_global_id("Checkout", checkout.token),
+            ],
         }
     }
 
@@ -1274,23 +1277,33 @@ def test_order_query_with_filter_by_checkout_token(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"]
 
+    returned_orders_ids = {edge["node"]["id"] for edge in order_data}
+    orders_from_checkout_ids = {
+        graphene.Node.to_global_id("Order", order.id) for order in orders_from_checkout
+    }
+
+    assert len(returned_orders_ids) == len(orders_from_checkout_ids) == 4
+    assert len(returned_orders_ids.intersection(orders_from_checkout_ids)) == 4
     assert content["data"]["orders"]["totalCount"] == 4
-    for order in orders_from_checkout:
-        if order.checkout_token == checkout.token:
-            order_id = {"node": {"id": graphene.Node.to_global_id("Order", order.id)}}
-            assert order_id in order_data
 
 
-def test_order_query_with_filter_by_unexisted_checkout_token(
+def test_order_query_with_filter_by_multiple_checkout_tokens(
     orders_query_with_filter,
     staff_api_client,
     permission_manage_orders,
     orders_from_checkout,
+    order_from_checkout_JPY,
+    orders,
+    checkout,
+    checkout_JPY,
 ):
     # given
     variables = {
         "filter": {
-            "checkoutToken": "unexisted",
+            "checkoutIds": [
+                graphene.Node.to_global_id("Checkout", checkout.token),
+                graphene.Node.to_global_id("Checkout", checkout_JPY.token),
+            ],
         }
     }
 
@@ -1301,10 +1314,19 @@ def test_order_query_with_filter_by_unexisted_checkout_token(
 
     # then
     content = get_graphql_content(response)
-    assert content["data"]["orders"]["totalCount"] == 0
+    order_data = content["data"]["orders"]["edges"]
+
+    returned_orders_ids = {edge["node"]["id"] for edge in order_data}
+    orders_from_checkout_ids = {
+        graphene.Node.to_global_id("Order", order.id) for order in orders_from_checkout
+    } | {graphene.Node.to_global_id("Order", order_from_checkout_JPY.id)}
+
+    assert len(returned_orders_ids) == len(orders_from_checkout_ids) == 5
+    assert len(returned_orders_ids.intersection(orders_from_checkout_ids)) == 5
+    assert content["data"]["orders"]["totalCount"] == 5
 
 
-def test_order_query_with_filter_by_empty_checkout_token(
+def test_order_query_with_filter_by_empty_list(
     orders_query_with_filter,
     staff_api_client,
     permission_manage_orders,
@@ -1313,7 +1335,7 @@ def test_order_query_with_filter_by_empty_checkout_token(
     # given
     variables = {
         "filter": {
-            "checkoutToken": "",
+            "checkoutIds": [],
         }
     }
 

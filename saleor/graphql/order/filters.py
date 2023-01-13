@@ -100,9 +100,10 @@ def filter_channels(qs, _, values):
     return qs
 
 
-def filter_checkouts(qs, _, value):
-    if value:
-        qs = qs.filter(checkout_token=value)
+def filter_checkouts(qs, _, values):
+    if values:
+        _, checkout_ids = resolve_global_ids_to_primary_keys(values, "Checkout")
+        qs = qs.filter(checkout_token__in=checkout_ids)
     return qs
 
 
@@ -207,7 +208,7 @@ class OrderFilter(DraftOrderFilter):
     numbers = ListObjectTypeFilter(
         input_class=graphene.String, method=filter_by_order_number
     )
-    checkout_token = django_filters.CharFilter(method=filter_checkouts)
+    checkout_ids = GlobalIDMultipleChoiceFilter(method=filter_checkouts)
 
     class Meta:
         model = Order
