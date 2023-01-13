@@ -2,6 +2,16 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.11.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+- Add `webhookDryRun` mutation - #11548 by @zedzior
+
+### Other changes
+
 # 3.10.0 [Unreleased]
 
 ### Breaking changes
@@ -23,11 +33,11 @@ All notable, unreleased changes to this project will be documented in this file.
   - `Order`
   - `User`
   - `Warehouse`
-- Add `WebhookDryRun` mutation - #11548 by @zedzior
 
 ### Other changes
+
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
-- Move checkout metadata to separate model - #11264  by @jakubkuc
+- Move checkout metadata to separate model - #11264 by @jakubkuc
 - Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
 - Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
 - Drop `Django.Auth` - #11305 by @fowczarek
