@@ -1144,7 +1144,9 @@ class Order(ModelObjectType[models.Order]):
         description=f"External ID of this order. {ADDED_IN_310}", required=False
     )
     checkout_id = graphene.ID(
-        description=f"Id of the checkout that order was created from. {ADDED_IN_311}",
+        description=(
+            f"ID of the checkout that the order was created from. {ADDED_IN_311}"
+        ),
         required=False,
     )
 

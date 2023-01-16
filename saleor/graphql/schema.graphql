@@ -9571,7 +9571,7 @@ type Order implements Node & ObjectWithMetadata {
   externalReference: String
 
   """
-  Id of the checkout that order was created from. 
+  ID of the checkout that the order was created from. 
   
   Added in Saleor 3.11.
   """
