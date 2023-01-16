@@ -5,20 +5,20 @@ from graphql import parse
 from graphql.language.ast import Document
 
 
-def get_event_type_from_subscription(query: str) -> Optional[List[str]]:
+def get_event_type_from_subscription(query: str) -> List[str]:
     try:
         ast = parse(query)
         subscription = get_subscription(ast)
         if not subscription:
-            return None
+            return []
 
         event_field = get_event_field_from_subscription(subscription)
         if not event_field:
-            return None
+            return []
 
         events = get_events(event_field)
         if not events:
-            return None
+            return []
 
         fragments = get_event_fragment_names_from_query(ast)
         if fragments:
@@ -27,7 +27,7 @@ def get_event_type_from_subscription(query: str) -> Optional[List[str]]:
         return list(map(to_snake_case, events))
 
     except Exception:
-        return None
+        return []
 
 
 def get_event_field_from_subscription(field):

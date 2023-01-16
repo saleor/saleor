@@ -79,11 +79,17 @@ class WebhookCreateInput(graphene.InputObjectType):
 
 def clean_webhook_events(_info, _instance, data):
     # if `events` field is not empty, use this field. Otherwise get event types
-    # from `async_events` and `sync_events`.
+    # from `async_events` and `sync_events`. If the fields are also empty, parse events
+    # from `query`.
     events = data.get("events", [])
     if not events:
         events += data.pop("async_events", [])
         events += data.pop("sync_events", [])
+
+    query = data.get("query", [])
+    if not events and query:
+        events = get_event_type_from_subscription(query)
+
     data["events"] = events
     return data
 
