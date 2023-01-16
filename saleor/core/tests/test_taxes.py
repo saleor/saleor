@@ -1,14 +1,14 @@
 import pytest
 
 from ...app.models import App
-from ...plugins.webhook.utils import get_current_tax_app
-from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...webhook.models import Webhook, WebhookEvent
-from ..permissions import (
+from ...permission.enums import (
     CheckoutPermissions,
     OrderPermissions,
     get_permissions_from_codenames,
 )
+from ...plugins.webhook.utils import get_current_tax_app
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...webhook.models import Webhook, WebhookEvent
 
 
 @pytest.fixture

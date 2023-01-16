@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import ProductPermissions
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...channel import ChannelContext

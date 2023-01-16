@@ -1,7 +1,7 @@
 import graphene
 
 from ....attribute import models as models
-from ....core.permissions import ProductTypePermissions
+from ....permission.enums import ProductTypePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation

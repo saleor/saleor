@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import GiftcardPermissions, OrderPermissions
+from ...permission.enums import GiftcardPermissions, OrderPermissions
 from ..core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback

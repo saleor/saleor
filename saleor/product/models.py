@@ -46,13 +46,6 @@ from ..core.models import (
     PublishableModel,
     SortableModel,
 )
-from ..core.permissions import (
-    DiscountPermissions,
-    OrderPermissions,
-    ProductPermissions,
-    ProductTypePermissions,
-    has_one_of_permissions,
-)
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
@@ -60,6 +53,13 @@ from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
+from ..permission.enums import (
+    DiscountPermissions,
+    OrderPermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
+from ..permission.utils import has_one_of_permissions
 from ..seo.models import SeoModel, SeoModelTranslation
 from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind

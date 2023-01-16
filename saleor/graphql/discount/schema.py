@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import DiscountPermissions
+from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT

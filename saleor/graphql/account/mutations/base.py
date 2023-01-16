@@ -16,12 +16,13 @@ from ....account.search import prepare_user_search_document_value
 from ....account.utils import retrieve_user_by_email
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import AccountPermissions
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise

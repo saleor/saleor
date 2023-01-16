@@ -16,10 +16,10 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
-from ..core.permissions import CheckoutPermissions
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
+from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:

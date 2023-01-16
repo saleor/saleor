@@ -7,8 +7,8 @@ from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLError
 from graphql.execution import ExecutionResult
 
-from ....core.permissions import ProductPermissions
 from ....order.models import Order
+from ....permission.enums import ProductPermissions
 from ....plugins.tests.sample_plugins import PluginSample
 from ....product.models import Product
 from ...order import types as order_types

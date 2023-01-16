@@ -7,7 +7,7 @@ from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import PageTypePermissions, ProductTypePermissions
+from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
 from ...core.enums import MeasurementUnitsEnum

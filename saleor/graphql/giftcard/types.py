@@ -6,13 +6,9 @@ import prices
 
 from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AccountPermissions,
-    AppPermission,
-    AuthorizationFilters,
-    GiftcardPermissions,
-)
 from ...giftcard import GiftCardEvents, models
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AccountPermissions, AppPermission, GiftcardPermissions
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,

@@ -18,8 +18,8 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import is_shipping_required
 from ....core import analytics
-from ....core.permissions import AccountPermissions
 from ....order import models as order_models
+from ....permission.enums import AccountPermissions
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo

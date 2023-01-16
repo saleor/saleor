@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import ShippingPermissions
+from ...permission.enums import ShippingPermissions
 from ...shipping import models
 from ..channel.types import ChannelContext
 from ..core import ResolveInfo

@@ -9,13 +9,9 @@ from graphene import relay
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AccountPermissions,
-    AppPermission,
-    AuthorizationFilters,
-    OrderPermissions,
-)
 from ...order import OrderStatus
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise

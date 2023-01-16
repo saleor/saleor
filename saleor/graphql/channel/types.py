@@ -11,7 +11,8 @@ from promise import Promise
 
 from ...channel import models
 from ...core.models import ModelWithMetadata
-from ...core.permissions import AuthorizationFilters, ChannelPermissions
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import ChannelPermissions
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (

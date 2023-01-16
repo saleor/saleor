@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import ShippingPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ShippingPermissions
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.tasks import (

@@ -1,10 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import DiscountPermissions
 from ....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
+from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31

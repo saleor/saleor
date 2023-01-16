@@ -1,6 +1,6 @@
 from ....account.models import Group, User
 from ....app.models import App
-from ....core.permissions import (
+from ....permission.enums import (
     AccountPermissions,
     OrderPermissions,
     ProductPermissions,

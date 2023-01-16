@@ -4,8 +4,8 @@ import graphene
 import pytz
 from django.core.exceptions import ValidationError
 
-from .....core.permissions import ProductPermissions
 from .....core.utils.date_time import convert_to_utc_date_time
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
 from ....channel import ChannelContext

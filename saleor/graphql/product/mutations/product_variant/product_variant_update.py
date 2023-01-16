@@ -7,7 +7,7 @@ from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....core import ResolveInfo

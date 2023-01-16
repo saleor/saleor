@@ -7,10 +7,10 @@ from django.db.models import Model
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...attribute.models import AttributeValue
-from ...core.permissions import DiscountPermissions, ShippingPermissions
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
+from ...permission.enums import DiscountPermissions, ShippingPermissions
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models

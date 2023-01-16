@@ -1,7 +1,7 @@
 import graphene
 
-from ...core.permissions import MenuPermissions
 from ...menu import models
+from ...permission.enums import MenuPermissions
 from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import MenuError, NonNullList

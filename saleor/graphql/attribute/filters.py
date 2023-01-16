@@ -3,7 +3,7 @@ import graphene
 from django.db.models import Q
 
 from ...attribute.models import Attribute, AttributeValue
-from ...core.permissions import has_one_of_permissions
+from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..attribute.enums import AttributeTypeEnum

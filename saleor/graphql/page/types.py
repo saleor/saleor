@@ -3,8 +3,8 @@ from typing import List
 import graphene
 
 from ...attribute import models as attribute_models
-from ...core.permissions import PagePermissions
 from ...page import models
+from ...permission.enums import PagePermissions
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
 from ..core import ResolveInfo

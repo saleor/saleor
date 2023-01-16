@@ -1,6 +1,6 @@
 import graphene
 
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.tasks import update_products_discounted_prices_of_catalogues_task
 from ....channel import ChannelContext

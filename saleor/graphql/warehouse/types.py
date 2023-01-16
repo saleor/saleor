@@ -3,7 +3,7 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from ...core.permissions import OrderPermissions, ProductPermissions
+from ...permission.enums import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader

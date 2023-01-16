@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import OrderPermissions, PaymentPermissions
+from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE

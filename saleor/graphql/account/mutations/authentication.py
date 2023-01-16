@@ -24,7 +24,8 @@ from ....core.jwt import (
     get_user_from_payload,
     jwt_decode,
 )
-from ....core.permissions import AuthorizationFilters, get_permissions_from_names
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import get_permissions_from_names
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.fields import JSONString

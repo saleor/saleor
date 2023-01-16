@@ -3,12 +3,12 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....order.actions import order_voided
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment import models as payment_models
 from ....payment.gateway import request_void_action
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation

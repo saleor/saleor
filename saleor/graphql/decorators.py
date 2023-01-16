@@ -6,18 +6,19 @@ from graphene import ResolveInfo
 
 from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
-from ..core.permissions import (
+from ..permission.auth_filters import is_app, is_staff_user
+from ..permission.enums import (
     BasePermissionEnum,
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
+)
+from ..permission.utils import (
     has_one_of_permissions,
-    is_app,
-    is_staff_user,
     one_of_permissions_or_auth_filter_required,
 )
-from ..core.permissions import permission_required as core_permission_required
+from ..permission.utils import permission_required as core_permission_required
 from .utils import get_user_or_app_from_context
 
 

@@ -16,11 +16,12 @@ from ....account.utils import (
 )
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import AccountPermissions
 from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User

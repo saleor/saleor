@@ -7,7 +7,6 @@ from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....checkout import AddressType
-from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -20,6 +19,7 @@ from ....order.utils import (
     recalculate_order_weight,
     update_order_display_gross_prices,
 )
+from ....permission.enums import OrderPermissions
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise

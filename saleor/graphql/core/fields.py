@@ -6,7 +6,7 @@ import graphene
 from graphene.relay import Connection, is_node
 from graphql import GraphQLError
 
-from ...core.permissions import message_one_of_permissions_required
+from ...permission.utils import message_one_of_permissions_required
 from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 

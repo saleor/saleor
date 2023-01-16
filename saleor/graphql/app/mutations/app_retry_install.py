@@ -5,7 +5,7 @@ from ....app import models
 from ....app.error_codes import AppErrorCode
 from ....app.tasks import install_app_task
 from ....core import JobStatus
-from ....core.permissions import AppPermission
+from ....permission.enums import AppPermission
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
