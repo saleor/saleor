@@ -1268,7 +1268,7 @@ class TransactionEventReport(ModelMutation):
             required=True,
         )
         psp_reference = graphene.String(
-            description=("PSP Reference of the event to report."), required=True
+            description="PSP Reference of the event to report.", required=True
         )
         type = graphene.Argument(
             TransactionEventTypeEnum,
