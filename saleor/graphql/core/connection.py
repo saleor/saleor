@@ -507,17 +507,25 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
 
     Handle `AND`, `OR`, `NOT` operators, as well as flat filter input.
     The returned queryset contains data that fulfill all specified statements.
+    The condition can be nested, the operators cannot be mixed in
+    a single filter object.
+    Multiple operators can be provided with use of nesting. See the example below.
 
     E.g.
     {
         'where': {
             'AND': [
                 {'input_type': {'one_of': ['rich-text', 'dropdown']}}
+                {
+                    'OR': [
+                        {'name': {'eq': 'Author'}},
+                        {'slug': {'one_of': ['a-rich', 'abv']}}
+                    ]
+                },
+                {
+                    'NOT': {'name': {'eq': 'ABV'}}
+                }
             ],
-            'OR': [
-                {'name': {'eq': 'Author'}}, {'slug': {'one_of': ['a-rich', 'abv']}}
-            ],
-            'NOT': {'name': {'eq': 'ABV'}}
         }
     }
     For above example the returned instances will fulfill following conditions:
@@ -525,8 +533,10 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
         - the name must equal to 'Author' or the slug must be equal to `a-rich` or `abv`
         - the name cannot be equal to `ABV`
     """
-    # TODO: to update - only one operator allow on each level
-    # TODO: handle nested filters
+    # when any operator appear there cannot be any more data in filter input
+    if contains_filter_operator(filter_input) and len(filter_input) > 1:
+        raise GraphQLError("Cannot mix operators with other filter inputs.")
+
     and_filter_input = filter_input.pop("AND", None)
     or_filter_input = filter_input.pop("OR", None)
     not_filter_input = filter_input.pop("NOT", None)
@@ -537,25 +547,63 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
         queryset = iterable
 
     if and_filter_input:
-        for input in and_filter_input:
-            queryset &= filter_qs(queryset, args, filterset_class, input, request)
+        queryset = _handle_add_filter_input(
+            and_filter_input, queryset, args, filterset_class, request
+        )
 
     if or_filter_input:
-        # for the OR operator the instanced that passed one of specified condition are
-        # found, then the return queryset is joined with the use of AND operator with
-        # main qs
-        qs = queryset.model.objects.none()
-        for input in or_filter_input:
-            qs |= filter_qs(queryset, args, filterset_class, input, request)
-        queryset &= qs
+        queryset = _handle_or_filter_input(
+            or_filter_input, queryset, args, filterset_class, request
+        )
 
     if not_filter_input:
-        qs = filter_qs(queryset, args, filterset_class, not_filter_input, request)
-        queryset = queryset.exclude(Exists(qs.filter(id=OuterRef("id"))))
+        queryset = _handle_not_filter_input(
+            not_filter_input, queryset, args, filterset_class, request
+        )
 
     if filter_input:
         queryset &= filter_qs(iterable, args, filterset_class, filter_input, request)
 
+    return queryset
+
+
+def contains_filter_operator(input: Dict[str, Union[dict, str]]):
+    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+
+
+def _handle_add_filter_input(filter_input, queryset, args, filterset_class, request):
+    for input in filter_input:
+        if contains_filter_operator(input):
+            # when the input contains the operator run the where_filter_qs method again
+            # to properly handle the nested input
+            queryset &= where_filter_qs(queryset, args, filterset_class, input, request)
+        else:
+            queryset &= filter_qs(queryset, args, filterset_class, input, request)
+    return queryset
+
+
+def _handle_or_filter_input(filter_input, queryset, args, filterset_class, request):
+    # for the OR operator the instanced that passed one of specified condition are
+    # found, then the return queryset is joined with the use of AND operator with
+    # main qs
+    qs = queryset.model.objects.none()
+    for input in filter_input:
+        if contains_filter_operator(input):
+            # when the input contains the operator run the where_filter_qs method again
+            # to properly handle the nested input
+            qs |= where_filter_qs(queryset, args, filterset_class, input, request)
+        else:
+            qs |= filter_qs(queryset, args, filterset_class, input, request)
+    queryset &= qs
+    return queryset
+
+
+def _handle_not_filter_input(filter_input, queryset, args, filterset_class, request):
+    if contains_filter_operator(filter_input):
+        qs = where_filter_qs(queryset, args, filterset_class, filter_input, request)
+    else:
+        qs = filter_qs(queryset, args, filterset_class, filter_input, request)
+    queryset = queryset.exclude(Exists(qs.filter(id=OuterRef("id"))))
     return queryset
 
 
