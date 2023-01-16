@@ -59,6 +59,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
     ADDED_IN_38,
     ADDED_IN_39,
     ADDED_IN_310,
@@ -632,6 +633,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         description = "Represents order line of particular order."
         model = models.OrderLine
         interfaces = [relay.Node, ObjectWithMetadata]
+        metadata_since = ADDED_IN_35
 
     @staticmethod
     @traced_resolver

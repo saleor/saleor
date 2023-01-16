@@ -8,7 +8,6 @@ from ...checkout.utils import get_or_create_checkout_metadata
 from ...core.models import ModelWithMetadata
 from ..channel import ChannelContext
 from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_33, PREVIEW_FEATURE
 from ..core.types import NonNullList
 from .resolvers import (
     check_private_metadata_privilege,
@@ -72,32 +71,46 @@ class ObjectWithMetadata(graphene.Interface):
     private_metadata = NonNullList(
         MetadataItem,
         required=True,
-        description=MetadataDescription.PRIVATE_METADATA,
+        description=(
+            "List of private metadata items. Requires staff permissions to access."
+        ),
     )
     private_metafield = graphene.String(
         args={"key": graphene.NonNull(graphene.String)},
         description=(
-            MetadataDescription.PRIVATE_METAFIELD + ADDED_IN_33 + PREVIEW_FEATURE
+            "A single key from private metadata. "
+            "Requires staff permissions to access.\n\n"
+            "Tip: Use GraphQL aliases to fetch multiple keys."
         ),
     )
     private_metafields = Metadata(
         args={"keys": NonNullList(graphene.String)},
         description=(
-            MetadataDescription.PRIVATE_METAFIELDS + ADDED_IN_33 + PREVIEW_FEATURE
+            "Private metadata. Requires staff permissions to access. "
+            "Use `keys` to control which fields you want to include. "
+            "The default is to include everything."
         ),
     )
     metadata = NonNullList(
         MetadataItem,
         required=True,
-        description=(MetadataDescription.METADATA),
+        description=(
+            "List of public metadata items. Can be accessed without permissions."
+        ),
     )
     metafield = graphene.String(
         args={"key": graphene.NonNull(graphene.String)},
-        description=(MetadataDescription.METAFIELD + ADDED_IN_33 + PREVIEW_FEATURE),
+        description=(
+            "A single key from public metadata.\n\n"
+            "Tip: Use GraphQL aliases to fetch multiple keys."
+        ),
     )
     metafields = Metadata(
         args={"keys": NonNullList(graphene.String)},
-        description=(MetadataDescription.METAFIELDS + ADDED_IN_33 + PREVIEW_FEATURE),
+        description=(
+            "Public metadata. Use `keys` to control which fields you want to include. "
+            "The default is to include everything."
+        ),
     )
 
     @staticmethod

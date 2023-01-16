@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `webhookDryRun` mutation - #11548 by @zedzior
+- Fix adding invalid label to meta fields - #11718 by @IKarbowiak
 
 ### Other changes
 

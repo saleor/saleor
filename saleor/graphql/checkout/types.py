@@ -27,6 +27,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
     ADDED_IN_38,
     ADDED_IN_39,
     DEPRECATED_IN_3X_FIELD,
@@ -136,6 +137,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         description = "Represents an item in the checkout."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.CheckoutLine
+        metadata_since = ADDED_IN_35
 
     @staticmethod
     def resolve_variant(root: models.CheckoutLine, info: ResolveInfo):
