@@ -7,6 +7,7 @@ from ....attribute import models as attribute_models
 from ....core.permissions import ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models
+from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
 from ..types import ProductType
@@ -30,13 +31,15 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids
+    ):
         try:
             pks = cls.get_global_ids_or_error(ids, ProductType)
         except ValidationError as error:
             return 0, error
         cls.delete_assigned_attribute_values(pks)
-        return super().perform_mutation(_root, info, ids, **data)
+        return super().perform_mutation(_root, info, ids=ids)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):

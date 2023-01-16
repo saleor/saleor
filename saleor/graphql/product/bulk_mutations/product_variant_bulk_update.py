@@ -13,7 +13,7 @@ from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
 from ...core.enums import ErrorPolicyEnum
 from ...core.types import BulkProductError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_used_variants_attribute_values
 from .product_variant_bulk_create import (
     BulkAttributeValueInput,
@@ -214,7 +214,7 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
         if errors:
             raise ValidationError(errors)
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.save_variants(info, manager, instances, cleaned_inputs)
 
         # Recalculate the "discounted price" for the parent product

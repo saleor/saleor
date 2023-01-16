@@ -318,6 +318,19 @@ class BulkProductError(ProductError):
     )
 
 
+class ProductVariantBulkError(ProductError):
+    warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channel IDs which causes the error.",
+        required=False,
+    )
+
+
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
 

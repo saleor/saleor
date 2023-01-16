@@ -18539,7 +18539,35 @@ type ProductVariantBulkCreate {
 }
 
 type ProductVariantBulkResult {
-  productVariant: ProductVariant!
+  productVariant: ProductVariant
+
+  """List of errors occurred on create attempt."""
+  errors: [ProductVariantBulkError!]
+}
+
+type ProductVariantBulkError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductErrorCode!
+
+  """List of attributes IDs which causes the error."""
+  attributes: [ID!]
+
+  """List of attribute values IDs which causes the error."""
+  values: [ID!]
+
+  """List of warehouse IDs which causes the error."""
+  warehouses: [ID!]
+
+  """List of channel IDs which causes the error."""
+  channels: [ID!]
 }
 
 type BulkProductError {
@@ -18742,6 +18770,13 @@ input ProductVariantBulkUpdateInput {
   Added in Saleor 3.8.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Stocks of a product available for sale."""
   stocks: [StockInput!]

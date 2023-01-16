@@ -5,13 +5,13 @@ from django.db import transaction
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models
-from ....product.error_codes import ProductErrorCode
 from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
@@ -45,18 +45,16 @@ class ProductVariantStocksDelete(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         sku = data.get("sku")
         variant_id = data.get("variant_id")
-        validate_one_of_args_is_in_mutation(
-            ProductErrorCode, "sku", sku, "variant_id", variant_id
-        )
+        validate_one_of_args_is_in_mutation("sku", sku, "variant_id", variant_id)
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
 
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
-        if sku:
+        else:
             variant = models.ProductVariant.objects.filter(sku=sku).first()
             if not variant:
                 raise ValidationError(

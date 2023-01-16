@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -7,12 +8,12 @@ from django.db import transaction
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models
-from ....product.error_codes import ProductErrorCode
 from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.types import BulkStockError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
@@ -45,15 +46,13 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        errors = defaultdict(list)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         sku = data.get("sku")
         variant_id = data.get("variant_id")
 
-        validate_one_of_args_is_in_mutation(
-            ProductErrorCode, "sku", sku, "variant_id", variant_id
-        )
+        validate_one_of_args_is_in_mutation("sku", sku, "variant_id", variant_id)
 
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
@@ -77,7 +76,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
 
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
         StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(

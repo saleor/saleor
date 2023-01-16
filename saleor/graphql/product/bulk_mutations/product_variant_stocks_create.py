@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -8,9 +9,10 @@ from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
@@ -44,9 +46,9 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
-        errors = defaultdict(list)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        manager = get_plugin_manager_promise(info.context).get()
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
@@ -93,7 +95,9 @@ class ProductVariantStocksCreate(BaseMutation):
         return warehouses
 
     @classmethod
-    def check_for_duplicates(cls, warehouse_ids, errors):
+    def check_for_duplicates(
+        cls, warehouse_ids, errors: defaultdict[str, List[ValidationError]]
+    ):
         duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
         error_msg = "Duplicated warehouse ID."
         indexes = []
@@ -106,7 +110,9 @@ class ProductVariantStocksCreate(BaseMutation):
         )
 
     @classmethod
-    def update_errors(cls, errors, msg, field, code, indexes):
+    def update_errors(
+        cls, errors: defaultdict[str, List[ValidationError]], msg, field, code, indexes
+    ):
         for index in indexes:
             error = ValidationError(msg, code=code, params={"index": index})
             errors[field].append(error)
