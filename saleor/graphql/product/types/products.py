@@ -15,7 +15,6 @@ from ....core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ....core.tracing import traced_resolver
 from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
@@ -55,6 +54,7 @@ from ...core.connection import (
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
+    ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -69,6 +69,7 @@ from ...core.fields import (
     PermissionsField,
 )
 from ...core.scalars import Date
+from ...core.tracing import traced_resolver
 from ...core.types import (
     Image,
     ModelObjectType,
@@ -243,7 +244,7 @@ class PreorderData(graphene.ObjectType):
 
 
 @federated_entity("id channel")
-class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
+class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     sku = graphene.String()
@@ -362,6 +363,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
+    external_reference = graphene.String(
+        description=f"External ID of this product. {ADDED_IN_310}",
+        required=False,
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -802,7 +807,7 @@ class ProductVariantCountableConnection(CountableConnection):
 
 
 @federated_entity("id channel")
-class Product(ChannelContextTypeWithMetadata, ModelObjectType):
+class Product(ChannelContextTypeWithMetadata[models.Product]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -949,6 +954,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ),
         required=False,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this product. {ADDED_IN_310}",
+        required=False,
     )
 
     class Meta:
@@ -1532,7 +1541,7 @@ class ProductCountableConnection(CountableConnection):
 
 
 @federated_entity("id")
-class ProductType(ModelObjectType):
+class ProductType(ModelObjectType[models.ProductType]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     slug = graphene.String(required=True)
@@ -1692,7 +1701,7 @@ class ProductType(ModelObjectType):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.visible_to_user(requestor, channel)  # type: ignore
+        qs = root.products.visible_to_user(requestor, channel)
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
         kwargs["channel"] = channel
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
@@ -1731,7 +1740,7 @@ class ProductTypeCountableConnection(CountableConnection):
 
 
 @federated_entity("id")
-class ProductMedia(ModelObjectType):
+class ProductMedia(ModelObjectType[models.ProductMedia]):
     id = graphene.GlobalID(required=True)
     sort_order = graphene.Int()
     alt = graphene.String(required=True)
@@ -1760,7 +1769,7 @@ class ProductMedia(ModelObjectType):
 
         def _resolve_url(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, root.id, "ProductMedia", size, format
+                thumbnail, str(root.id), "ProductMedia", size, format
             )
             return build_absolute_uri(url)
 
@@ -1810,7 +1819,7 @@ class ProductImage(graphene.ObjectType):
 
         def _resolve_url(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, root.id, "ProductMedia", size, format
+                thumbnail, str(root.id), "ProductMedia", size, format
             )
             return build_absolute_uri(url)
 

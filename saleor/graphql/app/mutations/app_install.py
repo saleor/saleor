@@ -47,11 +47,11 @@ class AppInstall(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
+    def clean_input(cls, info, instance, data, **kwargs):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
 
-        cleaned_input = super().clean_input(info, instance, data, input_cls)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         # clean and prepare permissions
         if "permissions" in cleaned_input:
@@ -63,7 +63,7 @@ class AppInstall(ModelMutation):
 
     @classmethod
     @staff_member_required
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info, /, **data):
         return super().perform_mutation(root, info, **data)
 
     @classmethod

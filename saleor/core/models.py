@@ -1,11 +1,10 @@
 import datetime
-from typing import Any
+from typing import Any, TypeVar
 
 import pytz
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
-from django.db.models import JSONField  # type: ignore
-from django.db.models import F, Max, Q
+from django.db.models import F, JSONField, Max, Q
 
 from . import EventDeliveryStatus, JobStatus
 from .utils.json_serializer import CustomJsonEncoder
@@ -42,7 +41,10 @@ class SortableModel(models.Model):
         super().delete(*args, **kwargs)
 
 
-class PublishedQuerySet(models.QuerySet):
+T = TypeVar("T", bound="PublishableModel")
+
+
+class PublishedQuerySet(models.QuerySet[T]):
     def published(self):
         today = datetime.datetime.now(pytz.UTC)
         return self.filter(
@@ -51,11 +53,14 @@ class PublishedQuerySet(models.QuerySet):
         )
 
 
+PublishableManager = models.Manager.from_queryset(PublishedQuerySet)
+
+
 class PublishableModel(models.Model):
     published_at = models.DateTimeField(blank=True, null=True)
     is_published = models.BooleanField(default=False)
 
-    objects: Any = models.Manager.from_queryset(PublishedQuerySet)()
+    objects: Any = PublishableManager()
 
     class Meta:
         abstract = True
@@ -110,6 +115,19 @@ class ModelWithMetadata(models.Model):
     def delete_value_from_metadata(self, key: str):
         if key in self.metadata:
             del self.metadata[key]
+
+
+class ModelWithExternalReference(models.Model):
+    external_reference = models.CharField(
+        max_length=250,
+        unique=True,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    class Meta:
+        abstract = True
 
 
 class Job(models.Model):

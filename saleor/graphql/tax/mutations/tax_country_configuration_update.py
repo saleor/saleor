@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -7,6 +9,7 @@ from graphql import GraphQLError
 from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
@@ -66,6 +69,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         error_type_class = TaxCountryConfigurationUpdateError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
+    @staticmethod
     def _clean_default_rates(tax_rate_items):
         # Check if only one default rate is provided (only one item without the tax
         # class).
@@ -74,9 +78,8 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         ]
         if len(default_rate_items) > 1:
             code = (
-                error_codes.TaxCountryConfigurationUpdateErrorCode.ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED  # noqa: E501
+                error_codes.TaxCountryConfigurationUpdateErrorCode.ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED.value  # noqa: E501
             )
-            params = {"tax_class_ids": []}
             raise ValidationError(
                 {
                     "update_tax_class_rates": ValidationError(
@@ -85,32 +88,33 @@ class TaxCountryConfigurationUpdate(BaseMutation):
                             "Only one default country rate can be created for "
                             "a country (a rate without a tax class)."
                         ),
-                        params=params,
+                        params={"tax_class_ids": []},
                     )
                 }
             )
 
+    @staticmethod
     def _clean_tax_class_ids(tax_rate_items):
         cleaned_data = {}
         failed_ids = []
         for item in tax_rate_items:
             global_id = item.get("tax_class_id")
-            pk = None
+            pk: Optional[int] = None
             if global_id:
                 try:
-                    _, pk = from_global_id_or_error(
+                    _, node_id = from_global_id_or_error(
                         global_id, "TaxClass", raise_error=True
                     )
                 except GraphQLError:
                     failed_ids.append(global_id)
                     continue
-                pk = int(pk)
+                pk = int(node_id)
 
             cleaned_data[pk] = item
 
         if failed_ids:
             params = {"tax_class_ids": failed_ids}
-            code = error_codes.TaxCountryConfigurationUpdateErrorCode.NOT_FOUND
+            code = error_codes.TaxCountryConfigurationUpdateErrorCode.NOT_FOUND.value
             message = "Failed to resolve some of the provided tax class IDs."
             raise ValidationError(
                 {
@@ -132,7 +136,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
 
         if invalid_rates:
             code = (
-                error_codes.TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_NEGATIVE_RATE  # noqa: E501
+                error_codes.TaxCountryConfigurationUpdateErrorCode.CANNOT_CREATE_NEGATIVE_RATE.value  # noqa: E501
             )
             message = "Cannot create rates with negative values."
             params = {
@@ -216,7 +220,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         country_code = data["country_code"]
         cleaned_data = cls.clean_input(**data)
         cls.update_default_rate(country_code, cleaned_data)

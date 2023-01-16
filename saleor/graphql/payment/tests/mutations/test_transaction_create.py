@@ -460,6 +460,7 @@ def test_transaction_create_create_event_for_order_by_app(
     )
 
     # then
+    assert order_with_lines.events.count() == 1
     event = order_with_lines.events.first()
 
     assert event.type == OrderEvents.TRANSACTION_EVENT

@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, TypedDict
 from uuid import UUID
 
 from django.contrib.sites.models import Site
@@ -78,9 +78,14 @@ OrderLineIDType = UUID
 QuantityType = int
 
 
+class OrderFulfillmentLineInfo(TypedDict):
+    order_line: OrderLine
+    quantity: int
+
+
 def order_created(
     order_info: "OrderInfo",
-    user: "User",
+    user: User,
     app: Optional["App"],
     manager: "PluginsManager",
     from_draft: bool = False,
@@ -111,13 +116,13 @@ def order_created(
                 manager=manager,
             )
     site_settings = Site.objects.get_current().settings
-    if site_settings.automatically_confirm_all_new_orders:
+    if site_settings.automatically_confirm_all_new_orders or from_draft:
         order_confirmed(order, user, app, manager)
 
 
 def order_confirmed(
     order: "Order",
-    user: "User",
+    user: User,
     app: Optional["App"],
     manager: "PluginsManager",
     send_confirmation_email: bool = False,
@@ -135,7 +140,7 @@ def order_confirmed(
 def handle_fully_paid_order(
     manager: "PluginsManager",
     order_info: "OrderInfo",
-    user: Optional["User"] = None,
+    user: Optional[User] = None,
     app: Optional["App"] = None,
     site_settings: Optional["SiteSettings"] = None,
 ):
@@ -168,7 +173,7 @@ def handle_fully_paid_order(
 
 def cancel_order(
     order: "Order",
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     manager: "PluginsManager",
 ):
@@ -191,7 +196,7 @@ def cancel_order(
 
 def order_refunded(
     order: "Order",
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     amount: "Decimal",
     payment: "Payment",
@@ -209,7 +214,7 @@ def order_refunded(
 
 def order_voided(
     order: "Order",
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     payment: "Payment",
     manager: "PluginsManager",
@@ -220,7 +225,7 @@ def order_voided(
 
 def order_returned(
     order: "Order",
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     returned_lines: List[Tuple[QuantityType, OrderLine]],
 ):
@@ -229,10 +234,10 @@ def order_returned(
 
 
 def order_fulfilled(
-    fulfillments: List["Fulfillment"],
-    user: Optional["User"],
+    fulfillments: List[Fulfillment],
+    user: Optional[User],
     app: Optional["App"],
-    fulfillment_lines: List["FulfillmentLine"],
+    fulfillment_lines: List[FulfillmentLine],
     manager: "PluginsManager",
     gift_card_lines_info: List[GiftCardLineData],
     site_settings: "SiteSettings",
@@ -274,13 +279,12 @@ def order_fulfilled(
 
 
 def order_awaits_fulfillment_approval(
-    fulfillments: List["Fulfillment"],
-    user: "User",
+    fulfillments: List[Fulfillment],
+    user: Optional[User],
     app: Optional["App"],
-    fulfillment_lines: List["FulfillmentLine"],
+    fulfillment_lines: List[FulfillmentLine],
     manager: "PluginsManager",
-    _gift_card_lines: Iterable["OrderLine"],
-    _order_line_quantities: Dict[int, int],
+    _gift_card_lines: List["GiftCardLineData"],
     _site_settings: "SiteSettings",
     _notify_customer=True,
 ):
@@ -293,7 +297,7 @@ def order_awaits_fulfillment_approval(
 
 def order_authorized(
     order: "Order",
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     amount: "Decimal",
     payment: "Payment",
@@ -307,7 +311,7 @@ def order_authorized(
 
 def order_captured(
     order_info: "OrderInfo",
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     amount: "Decimal",
     payment: "Payment",
@@ -324,8 +328,8 @@ def order_captured(
 
 
 def fulfillment_tracking_updated(
-    fulfillment: "Fulfillment",
-    user: "User",
+    fulfillment: Fulfillment,
+    user: User,
     app: Optional["App"],
     tracking_number: str,
     manager: "PluginsManager",
@@ -342,8 +346,8 @@ def fulfillment_tracking_updated(
 
 
 def cancel_fulfillment(
-    fulfillment: "Fulfillment",
-    user: "User",
+    fulfillment: Fulfillment,
+    user: User,
     app: Optional["App"],
     warehouse: Optional["Warehouse"],
     manager: "PluginsManager",
@@ -375,8 +379,8 @@ def cancel_fulfillment(
 
 
 def cancel_waiting_fulfillment(
-    fulfillment: "Fulfillment",
-    user: "User",
+    fulfillment: Fulfillment,
+    user: User,
     app: Optional["App"],
     manager: "PluginsManager",
 ):
@@ -404,7 +408,7 @@ def cancel_waiting_fulfillment(
 
 def approve_fulfillment(
     fulfillment: Fulfillment,
-    user: "User",
+    user: User,
     app: Optional["App"],
     manager: "PluginsManager",
     settings: "SiteSettings",
@@ -445,6 +449,7 @@ def approve_fulfillment(
                         variant=variant,
                         order_line=order_line,
                         warehouse_pk=warehouse_pk,
+                        available_quantity=0,
                     )
                     insufficient_stocks.append(error_data)
             else:
@@ -455,7 +460,7 @@ def approve_fulfillment(
                     line=order_line,
                     quantity=fulfillment_line.quantity,
                     variant=variant,
-                    warehouse_pk=str(warehouse_pk) if warehouse_pk else None,
+                    warehouse_pk=warehouse_pk,
                 )
             )
             if order_line.is_gift_card:
@@ -495,7 +500,7 @@ def approve_fulfillment(
 
 def mark_order_as_paid(
     order: "Order",
-    request_user: "User",
+    request_user: User,
     app: Optional["App"],
     manager: "PluginsManager",
     external_reference: Optional[str] = None,
@@ -630,9 +635,10 @@ def automatically_fulfill_digital_lines(
             else:
                 # allocation is not created when track inventory for given product
                 # is turned off so it doesn't matter which warehouse we'll use
-                line_data.warehouse_pk = (
-                    line_data.variant.stocks.first().warehouse  # type: ignore
-                )
+                if line_data.variant:
+                    stock = line_data.variant.stocks.first()
+                    if stock:
+                        line_data.warehouse_pk = stock.warehouse.pk
 
             lines_info.append(line_data)
 
@@ -647,8 +653,8 @@ def automatically_fulfill_digital_lines(
 
 def _create_fulfillment_lines(
     fulfillment: Fulfillment,
-    warehouse_pk: str,
-    lines_data: List[Dict],
+    warehouse_pk: UUID,
+    lines_data: List[OrderFulfillmentLineInfo],
     channel_slug: str,
     gift_card_lines_info: List[GiftCardLineData],
     manager: "PluginsManager",
@@ -686,14 +692,14 @@ def _create_fulfillment_lines(
 
     """
     lines = [line_data["order_line"] for line_data in lines_data]
-    variants = [line.variant for line in lines]
+    variants = [line.variant for line in lines if line.variant]
     stocks = (
         Stock.objects.for_channel_and_country(channel_slug)
         .filter(warehouse_id=warehouse_pk, product_variant__in=variants)
         .select_related("product_variant")
     )
 
-    variant_to_stock: Dict[str, List[Stock]] = defaultdict(list)
+    variant_to_stock: Dict[int, List[Stock]] = defaultdict(list)
     for stock in stocks:
         variant_to_stock[stock.product_variant_id].append(stock)
 
@@ -704,9 +710,11 @@ def _create_fulfillment_lines(
         quantity = line["quantity"]
         order_line = line["order_line"]
         if quantity > 0:
-            line_stocks = variant_to_stock.get(order_line.variant_id)
             variant = order_line.variant
-            stock = line_stocks[0] if line_stocks else None
+            stock = None
+            if variant:
+                line_stocks = variant_to_stock.get(variant.id)
+                stock = line_stocks[0] if line_stocks else None
 
             # If there is no stock but allow_stock_to_be_exceeded == True
             # we proceed with fulfilling the order, treat as error otherwise
@@ -715,6 +723,7 @@ def _create_fulfillment_lines(
                     variant=variant,
                     order_line=order_line,
                     warehouse_pk=warehouse_pk,
+                    available_quantity=0,
                 )
                 insufficient_stocks.append(error_data)
                 continue
@@ -729,7 +738,7 @@ def _create_fulfillment_lines(
                     warehouse_pk=warehouse_pk,
                 )
             )
-            if is_digital:
+            if variant and is_digital:
                 variant.digital_content.urls.create(line=order_line)
             fulfillment_line = FulfillmentLine(
                 order_line=order_line,
@@ -760,10 +769,10 @@ def _create_fulfillment_lines(
 
 
 def create_fulfillments(
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     order: "Order",
-    fulfillment_lines_for_warehouses: Dict,
+    fulfillment_lines_for_warehouses: Dict[UUID, List[OrderFulfillmentLineInfo]],
     manager: "PluginsManager",
     site_settings: "SiteSettings",
     notify_customer: bool = True,
@@ -847,7 +856,7 @@ def create_fulfillments(
         transaction.on_commit(
             lambda: post_creation_func(
                 fulfillments,
-                user,  # type: ignore
+                user,
                 app,
                 fulfillment_lines,
                 manager,
@@ -1020,7 +1029,7 @@ def __get_shipping_refund_amount(
 
 
 def create_refund_fulfillment(
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     order,
     payment,
@@ -1156,10 +1165,8 @@ def create_replace_order(
                 ].quantity += fulfillment_line_data.quantity
                 continue
 
-            order_line_from_fulfillment = order_lines_with_fulfillment.get(
-                order_line_id
-            )
-            order_line = order_line_from_fulfillment  # type: ignore
+            order_line_from_fulfillment = order_lines_with_fulfillment[order_line_id]
+            order_line = order_line_from_fulfillment
             order_line_id = order_line.pk
             order_line.pk = None
             order_line.order = replace_order
@@ -1262,7 +1269,7 @@ def _move_lines_to_replace_fulfillment(
 
 
 def create_return_fulfillment(
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     order: "Order",
     order_lines: List[OrderLineInfo],
@@ -1291,14 +1298,14 @@ def create_return_fulfillment(
         for line_data in order_lines:
             returned_lines[line_data.line.id] = (line_data.quantity, line_data.line)
         for line_data in fulfillment_lines:
-            order_line = order_lines_with_fulfillment.get(line_data.line.order_line_id)
-            returned_line = returned_lines.get(order_line.id)  # type: ignore
+            order_line = order_lines_with_fulfillment[line_data.line.order_line_id]
+            returned_line = returned_lines.get(order_line.id)
             if returned_line:
                 quantity, line = returned_line
                 quantity += line_data.quantity
-                returned_lines[order_line.id] = (quantity, line)  # type: ignore
+                returned_lines[order_line.id] = (quantity, line)
             else:
-                returned_lines[order_line.id] = (  # type: ignore
+                returned_lines[order_line.id] = (
                     line_data.quantity,
                     order_line,
                 )
@@ -1316,7 +1323,7 @@ def create_return_fulfillment(
 
 
 def process_replace(
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     order: "Order",
     order_lines: List[OrderLineInfo],
@@ -1360,7 +1367,7 @@ def process_replace(
 
 
 def create_fulfillments_for_returned_products(
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     order: "Order",
     payment: Optional[Payment],
@@ -1484,7 +1491,7 @@ def _calculate_refund_amount(
 
 @transaction_with_commit_on_errors()
 def _process_refund(
-    user: Optional["User"],
+    user: Optional[User],
     app: Optional["App"],
     order: "Order",
     payment: Optional[Payment],

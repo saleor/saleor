@@ -4,6 +4,7 @@ from django_countries.fields import Country
 from ....core.permissions import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
@@ -41,7 +42,7 @@ class TaxCountryConfigurationDelete(BaseMutation):
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         country_code = data["country_code"]
         rates = models.TaxClassCountryRate.objects.filter(country=country_code)
         rates.delete()

@@ -28,7 +28,7 @@ from ...interface import (
     PaymentGateway,
 )
 from ...models import Payment, Transaction
-from ..utils import get_supported_currencies, require_active_plugin
+from ..utils import get_supported_currencies
 from .utils.apple_pay import initialize_apple_pay, make_request_to_initialize_apple_pay
 from .utils.common import (
     AUTH_STATUS,
@@ -239,7 +239,7 @@ class AdyenGatewayPlugin(BasePlugin):
             kwargs={"plugin_id": self.PLUGIN_ID, "channel_slug": channel.slug},
         )
         base_url = build_absolute_uri(api_path)
-        return urljoin(base_url, "webhooks")  # type: ignore
+        return urljoin(base_url, "webhooks")
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         """Handle a request received from Adyen.
@@ -253,6 +253,8 @@ class AdyenGatewayPlugin(BasePlugin):
             The redirect request comes through the Saleor which calls Adyen API to
             validate the current status of payment.
         """
+        if not self.channel:
+            return HttpResponseNotFound()
         config = self._get_gateway_config()
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
@@ -264,20 +266,18 @@ class AdyenGatewayPlugin(BasePlugin):
                 span.set_tag(opentracing.tags.COMPONENT, "payment")
                 span.set_tag("service.name", "adyen")
                 return handle_additional_actions(
-                    request,
-                    self.adyen.checkout.payments_details,
-                    self.channel.slug,  # type: ignore
+                    request, self.adyen.checkout.payments_details, self.channel.slug
                 )
         return HttpResponseNotFound()
 
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config
 
-    @require_active_plugin
     def token_is_required_as_payment_input(self, previous_value):
+        if not self.active:
+            return previous_value
         return False
 
-    @require_active_plugin
     def initialize_payment(
         self, payment_data, previous_value
     ) -> "InitializedPaymentResponse":
@@ -286,6 +286,8 @@ class AdyenGatewayPlugin(BasePlugin):
         ApplePay requires an additional action that initializes a payment action. It is
         done by a separate mutation which calls this method.
         """
+        if not self.active:
+            return previous_value
         payment_method = payment_data.get("paymentMethod")
         if payment_method == "applepay":
             # The apple pay on the web requires additional step
@@ -297,7 +299,6 @@ class AdyenGatewayPlugin(BasePlugin):
             )
         return previous_value
 
-    @require_active_plugin
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
@@ -311,6 +312,8 @@ class AdyenGatewayPlugin(BasePlugin):
         point to UK. We don't fetch anything if checkout is none, as we don't have
         enough info to provide the required data in the request.
         """
+        if not self.active:
+            return previous_value
         local_config = self._get_gateway_config()
         config = [
             {
@@ -343,13 +346,14 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         return [gateway]
 
-    @require_active_plugin
-    def check_payment_balance(self, data: dict, previous_value=None) -> dict:
+    def check_payment_balance(self, data: dict, previous_value) -> dict:
         """Check current payment balance.
 
         For Adyen, we use it only for checking the balance of the gift cards. It builds
         a request based on the input and send a request to Adyen's API.
         """
+        if not self.active:
+            return previous_value
         request_data = get_request_data_for_check_payment(
             data, self.config.connection_params["merchant_account"]
         )
@@ -376,7 +380,6 @@ class AdyenGatewayPlugin(BasePlugin):
         site_settings = Site.objects.get_current().settings
         return site_settings.automatically_confirm_all_new_orders
 
-    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -393,6 +396,8 @@ class AdyenGatewayPlugin(BasePlugin):
         action_required and add to action_required_data all Adyen's data required to
         finalize payment by the customer.
         """
+        if not self.active:
+            return previous_value
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
         except ObjectDoesNotExist:
@@ -481,12 +486,14 @@ class AdyenGatewayPlugin(BasePlugin):
                 item["value"] = make_password(item["value"])
         super()._update_config_items(configuration_to_update, current_config)
 
-    @require_active_plugin
     def get_payment_config(self, previous_value):
+        if not self.active:
+            return previous_value
         return []
 
-    @require_active_plugin
     def get_supported_currencies(self, previous_value):
+        if not self.active:
+            return previous_value
         config = self._get_gateway_config()
         return get_supported_currencies(config, GATEWAY_NAME)
 
@@ -550,7 +557,6 @@ class AdyenGatewayPlugin(BasePlugin):
             payment_method_info=payment_method_info,
         )
 
-    @require_active_plugin
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -570,6 +576,8 @@ class AdyenGatewayPlugin(BasePlugin):
         action data received from Adyen and required for the next additional action on
         the customer side.
         """
+        if not self.active:
+            return previous_value
         config = self._get_gateway_config()
         # The additional checks are proceed asynchronously so we try to confirm that
         # the payment is already processed
@@ -636,18 +644,20 @@ class AdyenGatewayPlugin(BasePlugin):
             is_success=is_success,
             action_required=False,
             kind=kind,
-            amount=payment_information.amount,  # type: ignore
-            currency=payment_information.currency,  # type: ignore
-            transaction_id=token,  # type: ignore
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            transaction_id=token,
             error=None,
             raw_response={},
             transaction_already_processed=bool(transaction_already_processed),
+            psp_reference=token,
         )
 
-    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         # we take Auth kind because it contains the transaction id that we need
         transaction = (
             Transaction.objects.filter(
@@ -689,7 +699,7 @@ class AdyenGatewayPlugin(BasePlugin):
         if transaction.payment.order:
             msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
             external_notification_event(
-                order=transaction.payment.order,  # type: ignore
+                order=transaction.payment.order,
                 user=None,
                 app=None,
                 message=msg,
@@ -710,10 +720,11 @@ class AdyenGatewayPlugin(BasePlugin):
             psp_reference=result.message.get("pspReference", ""),
         )
 
-    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
 
         if not payment_information.token:
             raise PaymentError("Cannot find a payment reference to capture.")
@@ -740,10 +751,11 @@ class AdyenGatewayPlugin(BasePlugin):
             psp_reference=result.message.get("pspReference", ""),
         )
 
-    @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         request = request_for_payment_cancel(
             payment_information=payment_information,
             merchant_account=self.config.connection_params["merchant_account"],

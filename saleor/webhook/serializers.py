@@ -152,7 +152,7 @@ def serialize_product_or_variant_attributes(
                     "content_type": attr_value.content_type,
                     "file_url": attr_value.file_url,
                 }
-            attr_data["values"].append(value)  # type: ignore
+            attr_data["values"].append(value)
 
         data.append(attr_data)
 

@@ -3,12 +3,12 @@ from uuid import UUID
 from django.db.models import Q
 
 from ...channel.models import Channel
-from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
 from ..channel.utils import get_default_channel_slug_or_graphql_error
+from ..core.tracing import traced_resolver
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")

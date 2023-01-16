@@ -97,6 +97,8 @@ def np_address_data():
         city_area="本宿",
         street_address_1="2-16-3",
         street_address_2="",
+        metadata={},
+        private_metadata={},
     )
 
 

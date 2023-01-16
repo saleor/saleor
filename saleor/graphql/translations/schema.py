@@ -8,6 +8,7 @@ from ...page.models import Page
 from ...product.models import Category, Collection, Product, ProductVariant
 from ...shipping.models import ShippingMethod
 from ..attribute.resolvers import resolve_attributes
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
@@ -45,7 +46,7 @@ class TranslatableItem(graphene.Union):
         types = tuple(TYPES_TRANSLATIONS_MAP.values())
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         instance_type = type(instance)
         if instance_type in TYPES_TRANSLATIONS_MAP:
             return TYPES_TRANSLATIONS_MAP[instance_type]
@@ -98,7 +99,7 @@ class TranslationQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_translations(_root, info, *, kind, **kwargs):
+    def resolve_translations(_root, info: ResolveInfo, *, kind, **kwargs):
         if kind == TranslatableKinds.PRODUCT:
             qs = resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
@@ -125,21 +126,21 @@ class TranslationQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
     @staticmethod
-    def resolve_translation(_root, _info, *, id, kind):
+    def resolve_translation(_root, _info: ResolveInfo, *, id, kind):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:
             return None
         models = {
-            TranslatableKinds.PRODUCT.value: Product,
-            TranslatableKinds.COLLECTION.value: Collection,
-            TranslatableKinds.CATEGORY.value: Category,
-            TranslatableKinds.ATTRIBUTE.value: Attribute,
-            TranslatableKinds.ATTRIBUTE_VALUE.value: AttributeValue,
-            TranslatableKinds.VARIANT.value: ProductVariant,
-            TranslatableKinds.PAGE.value: Page,
-            TranslatableKinds.SHIPPING_METHOD.value: ShippingMethod,
-            TranslatableKinds.SALE.value: Sale,
-            TranslatableKinds.VOUCHER.value: Voucher,
-            TranslatableKinds.MENU_ITEM.value: MenuItem,
+            TranslatableKinds.PRODUCT.value: Product,  # type: ignore[attr-defined]
+            TranslatableKinds.COLLECTION.value: Collection,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.CATEGORY.value: Category,  # type: ignore[attr-defined]
+            TranslatableKinds.ATTRIBUTE.value: Attribute,  # type: ignore[attr-defined]
+            TranslatableKinds.ATTRIBUTE_VALUE.value: AttributeValue,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.VARIANT.value: ProductVariant,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.PAGE.value: Page,  # type: ignore[attr-defined]
+            TranslatableKinds.SHIPPING_METHOD.value: ShippingMethod,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.SALE.value: Sale,  # type: ignore[attr-defined]
+            TranslatableKinds.VOUCHER.value: Voucher,  # type: ignore[attr-defined]
+            TranslatableKinds.MENU_ITEM.value: MenuItem,  # type: ignore[attr-defined]
         }
         return models[kind].objects.filter(pk=kind_id).first()

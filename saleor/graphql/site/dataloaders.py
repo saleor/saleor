@@ -1,15 +1,17 @@
-from functools import partial, reduce, wraps
+from functools import partial, reduce
+from typing import Callable, TypeVar
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from django.http.request import split_domain_port
+from promise import Promise
 
 from ..core.dataloaders import DataLoader
 
 
-class SiteByIdLoader(DataLoader):
+class SiteByIdLoader(DataLoader[int, Site]):
     context_key = "site_by_id"
 
     def batch_load(self, keys):
@@ -29,7 +31,7 @@ class SiteByHostLoader(DataLoader):
         return [sites_mapped.get(host.lower()) for host in keys]
 
 
-def get_site_promise(request):
+def get_site_promise(request) -> Promise[Site]:
     if getattr(settings, "SITE_ID", ""):
         site_id = settings.SITE_ID
         return SiteByIdLoader(request).load(site_id)
@@ -65,8 +67,10 @@ def ensure_that_site_is_not_none(request, host, site):
     return execute_callback_if_site_not_none(site)
 
 
-def load_site_callback(func):
-    @wraps(func)
+T = TypeVar("T")
+
+
+def load_site_callback(func: Callable[..., T]) -> Callable[..., Promise[T]]:
     def _wrapper(root, info, *args, **kwargs):
         return get_site_promise(info.context).then(
             partial(func, root, info, *args, **kwargs)

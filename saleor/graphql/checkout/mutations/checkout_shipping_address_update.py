@@ -114,6 +114,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         cls,
         _root,
         info,
+        /,
         shipping_address,
         validation_rules=None,
         checkout_id=None,
@@ -126,7 +127,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout_id=checkout_id,
             token=token,
             id=id,
-            error_class=CheckoutErrorCode,
             qs=models.Checkout.objects.prefetch_related(
                 "lines__variant__product__product_type"
             ),
@@ -138,7 +138,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 {
                     "shipping_address": ValidationError(
                         ERROR_DOES_NOT_SHIP,
-                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value,
                     )
                 }
             )

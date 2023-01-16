@@ -4,6 +4,8 @@ from django.forms import ValidationError
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
+from ...account.types import User
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -52,16 +54,16 @@ class CheckoutCustomerAttach(BaseMutation):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, checkout_id=None, token=None, customer_id=None, id=None
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        checkout_id=None,
+        token=None,
+        customer_id=None,
+        id=None,
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
@@ -85,7 +87,7 @@ class CheckoutCustomerAttach(BaseMutation):
                 raise PermissionDenied(
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
-            customer = cls.get_node_or_error(info, customer_id, only_type="User")
+            customer = cls.get_node_or_error(info, customer_id, only_type=User)
         elif not info.context.user:
             raise ValidationError(
                 {

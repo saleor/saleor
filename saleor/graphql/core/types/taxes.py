@@ -35,6 +35,7 @@ from ...tax.dataloaders import (
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
+from .. import ResolveInfo
 from .common import NonNullList
 from .money import Money
 
@@ -44,7 +45,7 @@ class TaxSourceObject(graphene.Union):
         types = (checkout_types.Checkout, order_types.Order)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         if isinstance(instance, Checkout):
             return checkout_types.Checkout
         if isinstance(instance, Order):
@@ -57,12 +58,12 @@ class TaxSourceLine(graphene.Union):
         types = (checkout_types.CheckoutLine, order_types.OrderLine)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: ResolveInfo):
         if isinstance(instance, CheckoutLine):
             return checkout_types.CheckoutLine
         if isinstance(instance, OrderLine):
             return order_types.OrderLine
-        return super(TaxSourceObject, cls).resolve_type(instance, info)
+        return super(TaxSourceLine, cls).resolve_type(instance, info)
 
 
 class TaxableObjectLine(graphene.ObjectType):
@@ -88,7 +89,7 @@ class TaxableObjectLine(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_variant_name(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_variant_name(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
         if isinstance(root, CheckoutLine):
 
             def get_name(variant):
@@ -104,7 +105,7 @@ class TaxableObjectLine(graphene.ObjectType):
         return root.variant_name
 
     @staticmethod
-    def resolve_product_name(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_product_name(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
         if isinstance(root, CheckoutLine):
 
             def get_name(product):
@@ -120,7 +121,7 @@ class TaxableObjectLine(graphene.ObjectType):
         return root.product_name
 
     @staticmethod
-    def resolve_product_sku(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_product_sku(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
         if isinstance(root, CheckoutLine):
             if not root.variant_id:
                 return None
@@ -136,11 +137,11 @@ class TaxableObjectLine(graphene.ObjectType):
         return root.product_sku
 
     @staticmethod
-    def resolve_source_line(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_source_line(root: Union[CheckoutLine, OrderLine], _info: ResolveInfo):
         return root
 
     @staticmethod
-    def resolve_charge_taxes(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_charge_taxes(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
         def load_tax_configuration(channel, country_code):
             tax_config = TaxConfigurationByChannelId(info.context).load(channel.pk)
 
@@ -184,7 +185,7 @@ class TaxableObjectLine(graphene.ObjectType):
         else:
             order = OrderByIdLoader(info.context).load(root.order_id)
 
-            def load_channel(order):  # type: ignore
+            def load_channel(order):
                 country_code = get_order_country(order)
                 load_tax_config_with_country = partial(
                     load_tax_configuration, country_code=country_code
@@ -198,7 +199,7 @@ class TaxableObjectLine(graphene.ObjectType):
             return order.then(load_channel)
 
     @staticmethod
-    def resolve_unit_price(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_unit_price(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
@@ -243,7 +244,7 @@ class TaxableObjectLine(graphene.ObjectType):
         return root.base_unit_price
 
     @staticmethod
-    def resolve_total_price(root: Union[CheckoutLine, OrderLine], info):
+    def resolve_total_price(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
@@ -329,31 +330,33 @@ class TaxableObject(graphene.ObjectType):
         description = "Taxable object."
 
     @staticmethod
-    def resolve_channel(root: Union[Checkout, Order], info):
+    def resolve_channel(root: Union[Checkout, Order], info: ResolveInfo):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    def resolve_address(root: Union[Checkout, Order], info):
+    def resolve_address(root: Union[Checkout, Order], info: ResolveInfo):
         address_id = root.shipping_address_id or root.billing_address_id
         if not address_id:
             return None
         return AddressByIdLoader(info.context).load(address_id)
 
     @staticmethod
-    def resolve_source_object(root: Union[Checkout, Order], info):
+    def resolve_source_object(root: Union[Checkout, Order], _info: ResolveInfo):
         return root
 
     @staticmethod
-    def resolve_prices_entered_with_tax(root: Union[Checkout, Order], info):
+    def resolve_prices_entered_with_tax(
+        root: Union[Checkout, Order], info: ResolveInfo
+    ):
         tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
         return tax_config.then(lambda tc: tc.prices_entered_with_tax)
 
     @staticmethod
-    def resolve_currency(root: Union[Checkout, Order], info):
+    def resolve_currency(root: Union[Checkout, Order], _info: ResolveInfo):
         return root.currency
 
     @staticmethod
-    def resolve_shipping_price(root: Union[Checkout, Order], info):
+    def resolve_shipping_price(root: Union[Checkout, Order], info: ResolveInfo):
         if isinstance(root, Checkout):
 
             def calculate_shipping_price(data):
@@ -383,7 +386,7 @@ class TaxableObject(graphene.ObjectType):
         return root.base_shipping_price
 
     @staticmethod
-    def resolve_discounts(root: Union[Checkout, Order], info):
+    def resolve_discounts(root: Union[Checkout, Order], info: ResolveInfo):
         if isinstance(root, Checkout):
 
             def calculate_checkout_discounts(checkout_info):
@@ -419,7 +422,7 @@ class TaxableObject(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_lines(root: Union[Checkout, Order], info):
+    def resolve_lines(root: Union[Checkout, Order], info: ResolveInfo):
         if isinstance(root, Checkout):
             return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
         return OrderLinesByOrderIdLoader(info.context).load(root.id)

@@ -1,4 +1,5 @@
 from ....core.permissions import DiscountPermissions
+from ...core import ResolveInfo
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Voucher
@@ -13,7 +14,7 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )

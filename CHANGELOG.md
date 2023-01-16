@@ -39,9 +39,28 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`
+- Extend invoice object types with `Order` references - #11505 by @przlada
+  - Add `Invoice.order` field
+  - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
+- Add `WebhookDryRun` mutation - #11548 by @zedzior
 
 ### Other changes
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
 - Move checkout metadata to separate model - #11264  by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
+- Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
+- Drop `Django.Auth` - #11305 by @fowczarek
+- Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
+- Accept the gift card code provided in the input - by @mociepka
 
 # 3.9.0
 

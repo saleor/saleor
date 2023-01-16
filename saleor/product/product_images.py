@@ -21,7 +21,7 @@ def get_product_image_thumbnail_url(product_media: Optional["ProductMedia"], siz
         return get_product_image_placeholder(size)
     thumbnail = Thumbnail.objects.filter(size=size, product_media=product_media).first()
     return get_image_or_proxy_url(
-        thumbnail, product_media.id, "ProductMedia", size, None
+        thumbnail, str(product_media.id), "ProductMedia", size, None
     )
 
 

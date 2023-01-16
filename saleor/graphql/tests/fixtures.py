@@ -6,8 +6,8 @@ from unittest.mock import Mock
 import graphene
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
-from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
+from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 
 from ...account.models import User

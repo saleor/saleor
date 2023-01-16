@@ -61,7 +61,7 @@ class OrderGrantRefundUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls)
+        cleaned_input = super().clean_input(info, instance, data, input_cls=input_cls)
         amount = cleaned_input.pop("amount", None)
         cls.validate_input(amount, data.get("reason"))
         if amount is not None:

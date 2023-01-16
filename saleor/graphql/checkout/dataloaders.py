@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Iterable, List, Tuple
 
 from django.db.models import F
 from promise import Promise
@@ -36,7 +37,7 @@ from ..tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChann
 from ..warehouse.dataloaders import WarehouseByIdLoader
 
 
-class CheckoutByTokenLoader(DataLoader):
+class CheckoutByTokenLoader(DataLoader[str, Checkout]):
     context_key = "checkout_by_token"
 
     def batch_load(self, keys):
@@ -44,7 +45,7 @@ class CheckoutByTokenLoader(DataLoader):
         return [checkouts.get(token) for token in keys]
 
 
-class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
+class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineInfo]]):
     context_key = "checkoutlinesinfo_by_checkout"
 
     def batch_load(self, keys):
@@ -168,7 +169,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
         return Promise.all([checkouts, checkout_lines]).then(with_checkout_lines)
 
 
-class CheckoutByUserLoader(DataLoader):
+class CheckoutByUserLoader(DataLoader[int, List[Checkout]]):
     context_key = "checkout_by_user"
 
     def batch_load(self, keys):
@@ -181,10 +182,10 @@ class CheckoutByUserLoader(DataLoader):
         return [checkout_by_user_map[user_id] for user_id in keys]
 
 
-class CheckoutByUserAndChannelLoader(DataLoader):
+class CheckoutByUserAndChannelLoader(DataLoader[Tuple[int, str], List[Checkout]]):
     context_key = "checkout_by_user_and_channel"
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[Tuple[int, str]]):
         user_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
         checkouts = (
@@ -203,7 +204,7 @@ class CheckoutByUserAndChannelLoader(DataLoader):
         return [checkout_by_user_and_channel_map[key] for key in keys]
 
 
-class CheckoutInfoByCheckoutTokenLoader(DataLoader):
+class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
     context_key = "checkoutinfo_by_checkout"
 
     def batch_load(self, keys):
@@ -315,9 +316,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 checkout.shipping_address_id
                             ),
                             delivery_method_info=delivery_method_info,
-                            tax_configuration=tax_configuration_by_channel_map.get(
+                            tax_configuration=tax_configuration_by_channel_map[
                                 channel.id
-                            ),
+                            ],
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
                             voucher=voucher,
@@ -371,7 +372,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
         )
 
 
-class CheckoutLineByIdLoader(DataLoader):
+class CheckoutLineByIdLoader(DataLoader[str, CheckoutLine]):
     context_key = "checkout_line_by_id"
 
     def batch_load(self, keys):
@@ -381,7 +382,7 @@ class CheckoutLineByIdLoader(DataLoader):
         return [checkout_lines.get(line_id) for line_id in keys]
 
 
-class CheckoutLinesByCheckoutTokenLoader(DataLoader):
+class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, List[CheckoutLine]]):
     context_key = "checkoutlines_by_checkout"
 
     def batch_load(self, keys):
@@ -394,7 +395,7 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader):
         return [line_map.get(checkout_id, []) for checkout_id in keys]
 
 
-class TransactionItemsByCheckoutIDLoader(DataLoader):
+class TransactionItemsByCheckoutIDLoader(DataLoader[str, List[TransactionItem]]):
     context_key = "transaction_items_by_checkout_id"
 
     def batch_load(self, keys):
@@ -409,7 +410,7 @@ class TransactionItemsByCheckoutIDLoader(DataLoader):
         return [transactions_map[checkout_id] for checkout_id in keys]
 
 
-class CheckoutMetadataByCheckoutIdLoader(DataLoader):
+class CheckoutMetadataByCheckoutIdLoader(DataLoader[str, CheckoutMetadata]):
     context_key = "checkout_metadata_by_checkout_id"
 
     def batch_load(self, keys):

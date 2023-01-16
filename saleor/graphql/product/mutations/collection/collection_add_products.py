@@ -8,6 +8,7 @@ from .....product.error_codes import CollectionErrorCode
 from .....product.tasks import update_products_discounted_prices_of_catalogues_task
 from .....product.utils import get_products_ids_without_variants
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -34,7 +35,9 @@ class CollectionAddProducts(BaseMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, collection_id, products):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, collection_id, products
+    ):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )

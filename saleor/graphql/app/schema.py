@@ -2,6 +2,7 @@ import graphene
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
@@ -109,18 +110,18 @@ class AppQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_apps_installations(_root, info, **kwargs):
+    def resolve_apps_installations(_root, info: ResolveInfo, **kwargs):
         return resolve_apps_installations(info, **kwargs)
 
     @staticmethod
-    def resolve_apps(_root, info, **kwargs):
+    def resolve_apps(_root, info: ResolveInfo, **kwargs):
         qs = resolve_apps(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, AppCountableConnection)
 
     @staticmethod
     @app_promise_callback
-    def resolve_app(_root, info, app, *, id=None):
+    def resolve_app(_root, info: ResolveInfo, app, *, id=None):
         if app:
             if not id:
                 return app
@@ -132,7 +133,7 @@ class AppQueries(graphene.ObjectType):
         return resolve_app(info, id)
 
     @staticmethod
-    def resolve_app_extensions(_root, info, **kwargs):
+    def resolve_app_extensions(_root, info: ResolveInfo, **kwargs):
         qs = resolve_app_extensions(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
@@ -140,7 +141,7 @@ class AppQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_app_extension(_root, info, *, id):
+    def resolve_app_extension(_root, info: ResolveInfo, *, id):
         def app_is_active(app_extension):
             def is_active(app):
                 if app.is_active:

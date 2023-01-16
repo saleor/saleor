@@ -1,13 +1,13 @@
 from typing import List
 
 import graphene
-from django.contrib.auth.models import Permission
 from django.http import HttpResponse
 
 from ....core.models import ModelWithMetadata
 from ....order.models import Order
 from ....payment.models import Payment
 from ....payment.utils import payment_owned_by_user
+from ....permission.models import Permission
 from ...tests.fixtures import ApiClient
 from ...tests.utils import assert_no_permission, get_graphql_content
 

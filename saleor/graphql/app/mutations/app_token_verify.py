@@ -22,8 +22,7 @@ class AppTokenVerify(BaseMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
-        token = data.get("token")
+    def perform_mutation(cls, _root, _info, /, *, token: str):  # type: ignore[override]
         tokens = models.AppToken.objects.filter(
             app__is_active=True, token_last_4=token[-4:]
         ).values_list("auth_token", flat=True)

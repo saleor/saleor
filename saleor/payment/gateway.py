@@ -36,9 +36,6 @@ from .utils import (
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
 
-UserType = Optional[User]
-AppType = Optional[App]
-
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful."
@@ -89,8 +86,8 @@ def request_charge_action(
     charge_value: Optional[Decimal],
     request_event: TransactionEvent,
     channel_slug: str,
-    user: UserType,
-    app: AppType,
+    user: Optional[User],
+    app: Optional[App],
 ):
 
     if charge_value is None:
@@ -126,8 +123,8 @@ def request_refund_action(
     refund_value: Optional[Decimal],
     request_event: TransactionEvent,
     channel_slug: str,
-    user: UserType,
-    app: AppType,
+    user: Optional[User],
+    app: Optional[App],
 ):
     if refund_value is None:
         refund_value = transaction.charged_value
@@ -163,8 +160,8 @@ def request_cancelation_action(
     cancel_value: Optional[Decimal],
     request_event: TransactionEvent,
     channel_slug: str,
-    user: UserType,
-    app: AppType,
+    user: Optional[User],
+    app: Optional[App],
     action: str,
 ):
     transaction_action_data = _create_transaction_data(
@@ -262,7 +259,7 @@ def process_payment(
     token: str,
     manager: "PluginsManager",
     channel_slug: str,
-    customer_id: str = None,
+    customer_id: Optional[str] = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
 ) -> Transaction:
@@ -303,7 +300,7 @@ def authorize(
     token: str,
     manager: "PluginsManager",
     channel_slug: str,
-    customer_id: str = None,
+    customer_id: Optional[str] = None,
     store_source: bool = False,
 ) -> Transaction:
     clean_authorize(payment)
@@ -340,8 +337,8 @@ def capture(
     payment: Payment,
     manager: "PluginsManager",
     channel_slug: str,
-    amount: Decimal = None,
-    customer_id: str = None,
+    amount: Optional[Decimal] = None,
+    customer_id: Optional[str] = None,
     store_source: bool = False,
 ) -> Transaction:
     if amount is None:
@@ -380,7 +377,7 @@ def refund(
     payment: Payment,
     manager: "PluginsManager",
     channel_slug: str,
-    amount: Decimal = None,
+    amount: Optional[Decimal] = None,
     refund_data: Optional["RefundData"] = None,
 ) -> Transaction:
     if amount is None:
@@ -403,7 +400,7 @@ def refund(
         # for manual payment we just need to mark payment as a refunded
         return create_transaction(
             payment,
-            TransactionKind.REFUND,
+            kind=TransactionKind.REFUND,
             payment_information=payment_data,
             is_success=True,
         )
@@ -516,7 +513,7 @@ def _fetch_gateway_response(fn, *args, **kwargs):
 
 def _get_past_transaction_token(
     payment: Payment, kind: str  # for kind use "TransactionKind"
-) -> Optional[str]:
+) -> str:
     txn = payment.transactions.filter(kind=kind, is_success=True).last()
     if txn is None:
         raise PaymentError(f"Cannot find successful {kind} transaction.")

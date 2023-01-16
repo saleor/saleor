@@ -2213,7 +2213,7 @@ def test_create_order_raises_insufficient_stock(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     mocked_create_order.side_effect = InsufficientStock(
-        [InsufficientStockData(variant=lines[0].variant)]
+        [InsufficientStockData(variant=lines[0].variant, available_quantity=0)]
     )
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(

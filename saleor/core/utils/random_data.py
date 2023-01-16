@@ -8,11 +8,10 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
-from typing import Type, Union
+from typing import Any, Dict, Type, Union, cast
 from unittest.mock import patch
 
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
 from django.core.files import File
 from django.db import connection
 from django.db.models import F
@@ -23,7 +22,7 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, User
+from ...account.models import Address, Group, User
 from ...account.search import (
     generate_address_search_document_value,
     generate_user_fields_search_document_value,
@@ -67,6 +66,7 @@ from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...permission.models import Permission
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (
     Category,
@@ -97,7 +97,7 @@ from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
 from ..postgres import FlatConcatSearchVector
 
-fake = Factory.create()
+fake = cast(Any, Factory.create())
 fake.seed(0)
 
 PRODUCTS_LIST_DIR = "products-list/"
@@ -351,7 +351,7 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: AttributePage,
+    association_model: Type[AttributePage],
     attributes: list,
 ):
     for value in attributes:
@@ -487,7 +487,7 @@ class SaleorProvider(BaseProvider):
         return Weight(kg=fake.pydecimal(1, 2, positive=True))
 
 
-fake.add_provider(SaleorProvider)  # type: ignore
+fake.add_provider(SaleorProvider)
 
 
 def get_email(first_name, last_name):
@@ -541,7 +541,7 @@ def create_fake_user(user_password, save=True):
         pass
 
     _, max_user_id = connection.ops.integer_field_range(
-        User.id.field.get_internal_type()
+        User.id.field.get_internal_type()  # type: ignore # raw access to field
     )
     user = User(
         id=fake.random_int(min=1, max=max_user_id),
@@ -619,7 +619,7 @@ def create_order_lines(order, discounts, how_many=10):
     ).order_by("?")
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
-        variant = line.variant
+        variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
@@ -673,7 +673,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
 
     preorder_allocations = []
     for line in lines:
-        variant = line.variant
+        variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
@@ -732,7 +732,7 @@ def _get_new_order_line(order, variant, channel, discounts):
     )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     total_price = unit_price * quantity
-    return OrderLine(
+    return OrderLine(  # type: ignore[misc] # see below:
         order=order,
         product_name=str(product),
         variant_name=str(variant),
@@ -742,12 +742,12 @@ def _get_new_order_line(order, variant, channel, discounts):
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price,
-        total_price=total_price,
-        undiscounted_unit_price=unit_price,
-        undiscounted_total_price=total_price,
-        base_unit_price=untaxed_unit_price,
-        undiscounted_base_unit_price=untaxed_unit_price,
+        unit_price=unit_price,  # money field not supported by mypy_django_plugin
+        total_price=total_price,  # money field not supported by mypy_django_plugin
+        undiscounted_unit_price=unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_total_price=total_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        base_unit_price=untaxed_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_base_unit_price=untaxed_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         tax_rate=0,
         **get_tax_class_kwargs_for_order_line(product.tax_class),
     )
@@ -777,6 +777,8 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
         .order_by("?")
         .first()
     )
+    if not channel:
+        raise ValueError("No channel found.")
     customers = (
         User.objects.filter(is_superuser=False)
         .exclude(default_billing_address=None)
@@ -789,26 +791,27 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
         random.choice([0, 0, 0, 0, 1]) if not create_preorder_lines else True
     )
 
-    if customer:
+    if customer and customer.default_shipping_address:
         address = customer.default_shipping_address
-        order_data = {
-            "user": customer,
-            "billing_address": customer.default_billing_address,
-            "shipping_address": address,
-        }
     else:
         address = create_address()
-        order_data = {
-            "billing_address": address,
-            "shipping_address": address,
-            "user_email": get_email(address.first_name, address.last_name),
-        }
+    if customer and customer.default_billing_address:
+        billing_address = customer.default_billing_address
+    else:
+        billing_address = address
+    order_data: Dict[str, Any] = {
+        "billing_address": billing_address or address,
+        "shipping_address": address,
+        "user_email": get_email(address.first_name, address.last_name),
+    }
 
     shipping_method_channel_listing = (
         ShippingMethodChannelListing.objects.filter(channel=channel)
         .order_by("?")
         .first()
     )
+    if not shipping_method_channel_listing:
+        raise Exception(f"No shipping method found for channel {channel.slug}")
     shipping_method = shipping_method_channel_listing.shipping_method
     shipping_price = shipping_method_channel_listing.price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
@@ -834,7 +837,8 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
     for line in order.lines.all():
-        weight += line.variant.get_weight()
+        if line.variant:
+            weight += line.variant.get_weight()
     order.weight = weight
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
@@ -1341,7 +1345,11 @@ def create_shipping_zones():
 
 def create_additional_cc_warehouse():
     channel = Channel.objects.first()
+    if not channel:
+        raise Exception("No channels found")
     shipping_zone = ShippingZone.objects.first()
+    if not shipping_zone:
+        raise Exception("No shipping zones found")
     warehouse_name = f"{shipping_zone.name} for click and collect"
     warehouse, _ = Warehouse.objects.update_or_create(
         name=warehouse_name,
@@ -1487,6 +1495,8 @@ def create_gift_cards(how_many=5):
             },
         )
         order = Order.objects.order_by("?").first()
+        if not order:
+            raise Exception("No orders found")
         gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
         if created:
             yield "Gift card #%d" % gift_card.id

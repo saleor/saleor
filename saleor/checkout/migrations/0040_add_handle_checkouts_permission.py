@@ -7,9 +7,15 @@ from django.db.models.signals import post_migrate
 
 def assign_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Permission = apps.get_model("auth", "Permission")
+        try:
+            apps = kwargs["apps"]
+        except KeyError:
+            # In test when we use use `@pytest.mark.django_db(transaction=True)`
+            # pytest trigger additional post_migrate signal without `apps` in kwargs.
+            return
+        Permission = apps.get_model("permission", "Permission")
         App = apps.get_model("app", "App")
-        Group = apps.get_model("auth", "Group")
+        Group = apps.get_model("account", "Group")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
         ct, _ = ContentType.objects.get_or_create(

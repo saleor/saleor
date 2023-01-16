@@ -3,6 +3,7 @@ import graphene
 from .....core.permissions import ProductTypePermissions
 from .....product import models
 from .....product.tasks import update_variants_names
+from ....core import ResolveInfo
 from ....core.types import ProductError
 from ...types import ProductType
 from .product_type_create import ProductTypeCreate, ProductTypeInput
@@ -28,7 +29,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         return data.get("kind", instance.kind)
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         variant_attr = cleaned_input.get("variant_attributes")
         if variant_attr:
             variant_attr = set(variant_attr)
@@ -37,7 +38,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         super().save(info, instance, cleaned_input)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, _info: ResolveInfo, instance, cleaned_input):
         if (
             "product_attributes" in cleaned_input
             or "variant_attributes" in cleaned_input

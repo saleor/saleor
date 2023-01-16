@@ -1,9 +1,12 @@
 from collections import defaultdict
 from functools import partial, wraps
 
-from ...plugins.manager import get_plugins_manager
+from promise import Promise
+
+from ...plugins.manager import PluginsManager, get_plugins_manager
 from ...plugins.models import EmailTemplate
 from ..app.dataloaders import get_app_promise
+from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 
 
@@ -38,16 +41,18 @@ class AnonymousPluginManagerLoader(DataLoader):
         return [get_plugins_manager() for key in keys]
 
 
-def plugin_manager_promise(request, app):
-    user = request.user
+def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:
+    user = context.user
     requestor = app or user
     if requestor is None:
-        return AnonymousPluginManagerLoader(request).load("Anonymous")
-    return PluginManagerByRequestorDataloader(request).load(requestor)
+        return AnonymousPluginManagerLoader(context).load("Anonymous")
+    return PluginManagerByRequestorDataloader(context).load(requestor)
 
 
-def get_plugin_manager_promise(request):
-    return get_app_promise(request).then(partial(plugin_manager_promise, request))
+def get_plugin_manager_promise(context: SaleorContext) -> Promise[PluginsManager]:
+    return get_app_promise(context).then(
+        partial(plugin_manager_promise, context)  # type: ignore[arg-type] # mypy incorrectly assumes the return type to be a promise of a promise # noqa: E501
+    )
 
 
 def plugin_manager_promise_callback(func):

@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql import ResolveInfo
 
 from ...core.exceptions import CircularSubscriptionSyncEvent
 
@@ -30,7 +29,7 @@ def prevent_sync_event_circular_query(func):
     """
 
     def wrapper(*args, **kwargs):
-        info = next(arg for arg in args if isinstance(arg, ResolveInfo))
+        info = next(arg for arg in args if isinstance(arg, graphene.ResolveInfo))
         if getattr(info.context, "sync_event", False):
             raise CircularSubscriptionSyncEvent(
                 "Resolving this field is not allowed in synchronous events."

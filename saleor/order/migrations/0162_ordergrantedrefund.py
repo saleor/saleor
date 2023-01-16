@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("app", "0016_alter_appextension_mount"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("order", "0159_order_shipping_tax_class_and_more"),
+        ("order", "0161_merge_20221219_1838"),
     ]
 
     operations = [

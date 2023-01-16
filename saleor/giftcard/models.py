@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField, Q
 from django.utils import timezone
@@ -37,8 +38,13 @@ class GiftCardQueryset(models.QuerySet):
         )
 
 
+GiftCardManager = models.Manager.from_queryset(GiftCardQueryset)
+
+
 class GiftCard(ModelWithMetadata):
-    code = models.CharField(max_length=16, unique=True, db_index=True)
+    code = models.CharField(
+        max_length=16, unique=True, validators=[MinLengthValidator(8)], db_index=True
+    )
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -105,7 +111,7 @@ class GiftCard(ModelWithMetadata):
         amount_field="current_balance_amount", currency_field="currency"
     )
 
-    objects = models.Manager.from_queryset(GiftCardQueryset)()
+    objects = GiftCardManager()
 
     class Meta:
         ordering = ("code",)

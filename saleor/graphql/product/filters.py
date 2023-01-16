@@ -1,7 +1,7 @@
 import datetime
 import math
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional
+from typing import DefaultDict, Dict, List, Optional, TypedDict
 
 import django_filters
 import graphene
@@ -65,7 +65,7 @@ from .enums import (
     StockAvailability,
 )
 
-T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
+T_PRODUCT_FILTER_QUERIES = Dict[int, List[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
@@ -114,7 +114,9 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
     )
 
     attributes_map: Dict[str, int] = {}
-    values_map: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(list))
+    values_map: DefaultDict[str, DefaultDict[str, List[int]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
     for value_data in values.values_list(
         "attribute_id", "attribute__slug", "pk", "numeric_value"
     ):
@@ -158,12 +160,17 @@ def _clean_product_attributes_date_time_range_filter_input(filter_value):
     return matching_attributes.filter(**filters)
 
 
+class KeyValueDict(TypedDict):
+    pk: int
+    values: Dict[Optional[bool], int]
+
+
 def _clean_product_attributes_boolean_filter_input(filter_value, queries):
     attribute_slugs = [slug for slug, _ in filter_value]
     attributes = Attribute.objects.filter(
         input_type=AttributeInputType.BOOLEAN, slug__in=attribute_slugs
     ).prefetch_related("values")
-    values_map = {
+    values_map: Dict[str, KeyValueDict] = {
         attr.slug: {
             "pk": attr.pk,
             "values": {val.boolean: val.pk for val in attr.values.all()},
@@ -248,7 +255,7 @@ def filter_products_by_attributes(
     date_range_list,
     date_time_range_list,
 ):
-    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
+    queries: Dict[int, List[int]] = defaultdict(list)
     try:
         if filter_values:
             _clean_product_attributes_filter_input(filter_values, queries)

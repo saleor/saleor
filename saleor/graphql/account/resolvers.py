@@ -1,7 +1,6 @@
 from itertools import chain
 from typing import Optional
 
-from django.contrib.auth import models as auth_models
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
@@ -13,9 +12,10 @@ from ...core.permissions import (
     OrderPermissions,
     has_one_of_permissions,
 )
-from ...core.tracing import traced_resolver
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
+from ..core import ResolveInfo
+from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -43,11 +43,11 @@ def resolve_customers(_info):
 
 
 def resolve_permission_group(id):
-    return auth_models.Group.objects.filter(id=id).first()
+    return models.Group.objects.filter(id=id).first()
 
 
 def resolve_permission_groups(_info):
-    return auth_models.Group.objects.all()
+    return models.Group.objects.all()
 
 
 def resolve_staff_users(_info):
@@ -55,7 +55,7 @@ def resolve_staff_users(_info):
 
 
 @traced_resolver
-def resolve_user(info, id=None, email=None):
+def resolve_user(info, id=None, email=None, external_reference=None):
     requester = get_user_or_app_from_context(info.context)
     if requester:
         filter_kwargs = {}
@@ -63,6 +63,8 @@ def resolve_user(info, id=None, email=None):
             _model, filter_kwargs["pk"] = from_global_id_or_error(id, User)
         if email:
             filter_kwargs["email"] = email
+        if external_reference:
+            filter_kwargs["external_reference"] = external_reference
         if requester.has_perms(
             [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
         ):
@@ -91,7 +93,7 @@ def resolve_users(info, ids=None, emails=None):
     if requester.has_perms(
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
     ):
-        qs = models.User.objects
+        qs = models.User.objects.all()
     elif requester.has_perm(AccountPermissions.MANAGE_STAFF):
         qs = models.User.objects.staff()
     elif requester.has_perm(AccountPermissions.MANAGE_USERS):
@@ -115,7 +117,7 @@ def resolve_users(info, ids=None, emails=None):
 
 @traced_resolver
 def resolve_address_validation_rules(
-    info,
+    info: ResolveInfo,
     country_code: str,
     country_area: Optional[str],
     city: Optional[str],

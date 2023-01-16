@@ -98,6 +98,8 @@ class AddressData:
     country: str
     country_area: str
     phone: str
+    metadata: Optional[dict]
+    private_metadata: Optional[dict]
 
 
 class StorePaymentMethodEnum(str, Enum):

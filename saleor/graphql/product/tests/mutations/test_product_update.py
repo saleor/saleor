@@ -67,6 +67,7 @@ MUTATION_UPDATE_PRODUCT = """
                             }
                         }
                     }
+                    externalReference
                 }
                 errors {
                     message
@@ -113,6 +114,7 @@ def test_update_product(
 
     metadata_key = "md key"
     metadata_value = "md value"
+    external_reference = "test-ext-ref"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -136,6 +138,7 @@ def test_update_product(
             "attributes": [{"id": attribute_id, "values": [attr_value]}],
             "metadata": [{"key": metadata_key, "value": metadata_value}],
             "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+            "externalReference": external_reference,
         },
     }
 
@@ -157,6 +160,11 @@ def test_update_product(
     assert not data["product"]["category"]["name"] == category.name
     assert product.metadata == {metadata_key: metadata_value, **old_meta}
     assert product.private_metadata == {metadata_key: metadata_value, **old_meta}
+    assert (
+        data["product"]["externalReference"]
+        == external_reference
+        == product.external_reference
+    )
 
     attributes = data["product"]["attributes"]
 
@@ -2738,3 +2746,153 @@ def test_update_product_with_multiselect_attribute_by_name_duplicated(
     assert not data["product"]
     assert len(errors) == 1
     assert errors[0]["message"] == AttributeInputErrors.ERROR_DUPLICATED_VALUES[0]
+
+
+MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE = """
+    mutation updateProduct($id: ID, $externalReference: String, $input: ProductInput!) {
+        productUpdate(id: $id, externalReference: $externalReference, input: $input) {
+                product {
+                    name
+                    id
+                    externalReference
+                }
+                errors {
+                    message
+                    field
+                    code
+                }
+            }
+        }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
+def test_update_product_by_external_reference(
+    created_webhook_mock,
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    new_name = "updated name"
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": product.external_reference,
+        "input": {"name": new_name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    product.refresh_from_db()
+
+    # then
+    assert data["errors"] == []
+    assert data["product"]["name"] == new_name
+    assert data["product"]["externalReference"] == product.external_reference
+    assert data["product"]["id"] == graphene.Node.to_global_id(
+        product._meta.model.__name__, product.id
+    )
+
+    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_not_called()
+
+
+def test_update_product_by_both_id_and_external_reference(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    new_name = "updated name"
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": product.external_reference,
+        "id": product.id,
+        "input": {"name": new_name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_product_external_reference_not_existing(
+    staff_api_client,
+    permission_manage_products,
+):
+    # given
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "externalReference": ext_ref,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+
+    # then
+    assert data["errors"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_update_product_with_non_unique_external_reference(
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+):
+    # given
+    product_1 = product_list[0]
+    product_2 = product_list[1]
+    ext_ref = "test-ext-ref"
+    product_1.external_reference = ext_ref
+    product_1.save(update_fields=["external_reference"])
+    product_2_id = graphene.Node.to_global_id("Product", product_2.id)
+
+    variables = {
+        "id": product_2_id,
+        "input": {"externalReference": ext_ref},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["productUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["message"] == "Product with this External reference already exists."

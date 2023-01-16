@@ -44,6 +44,10 @@ class Migration(migrations.Migration):
         ("account", "0045_auto_20200427_0425"),
     ]
 
+    run_before = [
+        ("account", "0072_group"),
+    ]
+
     operations = [
         migrations.RunPython(change_webhook_permission_to_app_permission),
         migrations.AlterModelOptions(

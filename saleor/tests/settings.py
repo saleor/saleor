@@ -36,7 +36,7 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 COUNTRIES_ONLY = None
 
-MEDIA_ROOT = None
+MEDIA_ROOT = ""
 MEDIA_URL = "/media/"
 MAX_CHECKOUT_LINE_QUANTITY = 50
 

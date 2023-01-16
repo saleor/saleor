@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from uuid import UUID
 
 from graphql import GraphQLError
 
@@ -14,11 +15,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class InsufficientStockData:
+    available_quantity: int
     variant: Optional["ProductVariant"] = None
     checkout_line: Optional["CheckoutLine"] = None
     order_line: Optional["OrderLine"] = None
-    warehouse_pk: Union[str, int, None] = None
-    available_quantity: Optional[int] = None
+    warehouse_pk: Union[UUID, None] = None
 
 
 class InsufficientStock(Exception):
@@ -57,7 +58,7 @@ class ProductNotPublished(Exception):
 
 
 class PermissionDenied(Exception):
-    def __init__(self, message=None, *, permissions: Iterable[Enum] = None):
+    def __init__(self, message=None, *, permissions: Optional[Iterable[Enum]] = None):
         if not message:
             if permissions:
                 permission_list = ", ".join(p.name for p in permissions)

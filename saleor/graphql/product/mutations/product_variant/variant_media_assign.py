@@ -6,6 +6,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -29,7 +30,9 @@ class VariantMediaAssign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, media_id, variant_id):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, media_id, variant_id
+    ):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
         )
@@ -50,7 +53,7 @@ class VariantMediaAssign(BaseMutation):
                             {
                                 "media_id": ValidationError(
                                     "This media is already assigned",
-                                    code=ProductErrorCode.MEDIA_ALREADY_ASSIGNED,
+                                    code=ProductErrorCode.MEDIA_ALREADY_ASSIGNED.value,
                                 )
                             }
                         )
@@ -59,7 +62,7 @@ class VariantMediaAssign(BaseMutation):
                         {
                             "media_id": ValidationError(
                                 "This media doesn't belong to that product.",
-                                code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
+                                code=ProductErrorCode.NOT_PRODUCTS_IMAGE.value,
                             )
                         }
                     )

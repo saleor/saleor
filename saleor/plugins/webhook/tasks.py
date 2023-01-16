@@ -87,6 +87,7 @@ def create_deliveries_for_subscriptions(
 
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
+    :param webhooks: sequence of async webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
@@ -195,7 +196,7 @@ def trigger_webhooks_async(
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
             create_event_delivery_list_for_webhooks(
-                webhooks=webhooks,
+                webhooks=regular_webhooks,
                 event_payload=payload,
                 event_type=event_type,
             )
@@ -334,15 +335,22 @@ def send_webhook_using_http(
         response = requests.post(
             target_url, data=message, headers=headers, timeout=timeout
         )
-    except (RequestException,) as e:
-        webhook_response = WebhookResponse(
-            content=str(e), status=EventDeliveryStatus.FAILED, request_headers=headers
-        )
+    except RequestException as e:
         if e.response:
-            webhook_response.content = e.response.text
-            webhook_response.response_headers = dict(e.response.headers)
-            webhook_response.response_status_code = e.response.status_code
-        return webhook_response
+            result = WebhookResponse(
+                content=e.response.text,
+                status=EventDeliveryStatus.FAILED,
+                request_headers=headers,
+                response_headers=dict(e.response.headers),
+                response_status_code=e.response.status_code,
+            )
+        else:
+            result = WebhookResponse(
+                content=str(e),
+                status=EventDeliveryStatus.FAILED,
+                request_headers=headers,
+            )
+        return result
 
     return WebhookResponse(
         content=response.text,
@@ -498,6 +506,7 @@ def handle_webhook_retry(
 
 
 @app.task(
+    queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
@@ -508,11 +517,15 @@ def send_webhook_request_async(self, event_delivery_id):
         return None
 
     webhook = delivery.webhook
-    data = delivery.payload.payload
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
     try:
+        if not delivery.payload:
+            raise ValueError(
+                "Event delivery id: %r has no payload." % event_delivery_id
+            )
+        data = delivery.payload.payload
         with webhooks_opentracing_trace(
             delivery.event_type, domain, app_name=webhook.app.name
         ):

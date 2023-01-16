@@ -40,7 +40,7 @@ class NotApplicable(ValueError):
         self.min_checkout_items_quantity = min_checkout_items_quantity
 
 
-class VoucherQueryset(models.QuerySet):
+class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
         return self.filter(
             Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
@@ -58,6 +58,9 @@ class VoucherQueryset(models.QuerySet):
         return self.filter(
             Q(used__gte=F("usage_limit")) | Q(end_date__lt=date), start_date__lt=date
         )
+
+
+VoucherManager = models.Manager.from_queryset(VoucherQueryset)
 
 
 class Voucher(ModelWithMetadata):
@@ -91,18 +94,11 @@ class Voucher(ModelWithMetadata):
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
 
-    objects = models.Manager.from_queryset(VoucherQueryset)()
+    objects = VoucherManager()
     translated = TranslationProxy()
 
     class Meta:
         ordering = ("code",)
-
-    @property
-    def is_free(self):
-        return (
-            self.discount_value == Decimal(100)
-            and self.discount_value_type == DiscountValueType.PERCENTAGE
-        )
 
     def get_discount(self, channel: Channel):
         """Return proper discount amount for given channel.
@@ -221,7 +217,7 @@ class VoucherCustomer(models.Model):
         unique_together = (("voucher", "customer_email"),)
 
 
-class SaleQueryset(models.QuerySet):
+class SaleQueryset(models.QuerySet["Sale"]):
     def active(self, date=None):
         if date is None:
             date = timezone.now()
@@ -252,6 +248,9 @@ class VoucherTranslation(Translation):
         return {"name": self.name}
 
 
+SaleManager = models.Manager.from_queryset(SaleQueryset)
+
+
 class Sale(ModelWithMetadata):
     name = models.CharField(max_length=255)
     type = models.CharField(
@@ -270,7 +269,7 @@ class Sale(ModelWithMetadata):
 
     notification_sent_datetime = models.DateTimeField(null=True, blank=True)
 
-    objects = models.Manager.from_queryset(SaleQueryset)()
+    objects = SaleManager()
     translated = TranslationProxy()
 
     class Meta:
@@ -328,7 +327,7 @@ class SaleChannelListing(models.Model):
     discount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
@@ -380,13 +379,13 @@ class OrderDiscount(models.Model):
     value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
 
     amount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0.0"),
     )
     amount = MoneyField(amount_field="amount_value", currency_field="currency")
     currency = models.CharField(

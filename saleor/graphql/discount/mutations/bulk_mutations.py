@@ -3,6 +3,7 @@ import graphene
 from ....core.permissions import DiscountPermissions
 from ....discount import models
 from ....discount.utils import fetch_catalogue_info
+from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import DiscountError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -25,7 +26,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         sales_and_catalogues = [
             (sale, convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale)))
             for sale in list(queryset)
@@ -51,7 +52,7 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         vouchers = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()

@@ -30,8 +30,10 @@ def make_full_invoice_number(number=None, month=None, year=None):
     return f"1/{month_and_year}"
 
 
-def parse_invoice_dates(invoice):
-    match = re.match(r"^(\d+)\/(\d+)\/(\d+)", invoice.number)
+def parse_invoice_dates(number: str):
+    match = re.match(r"^(\d+)\/(\d+)\/(\d+)", number)
+    if not match:
+        raise ValueError("Unrecognized invoice number format")
     return int(match.group(1)), int(match.group(2)), int(match.group(3))
 
 
@@ -41,7 +43,7 @@ def generate_invoice_number():
         return make_full_invoice_number()
 
     try:
-        number, month, year = parse_invoice_dates(last_invoice)
+        number, month, year = parse_invoice_dates(last_invoice.number)
         return make_full_invoice_number(number, month, year)
     except (IndexError, ValueError, AttributeError):
         return make_full_invoice_number()
@@ -70,7 +72,7 @@ def get_gift_cards_payment_amount(order):
     events = GiftCardEvent.objects.filter(
         type=GiftCardEvents.USED_IN_ORDER, order_id=order.id
     )
-    total_paid = 0
+    total_paid = Decimal(0)
     for event in events:
         balance = event.parameters["balance"]
         total_paid += Decimal(balance["old_current_balance"]) - Decimal(
