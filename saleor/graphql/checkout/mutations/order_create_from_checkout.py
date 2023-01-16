@@ -1,6 +1,9 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....account.models import User
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -9,6 +12,7 @@ from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
@@ -91,23 +95,32 @@ class OrderCreateFromCheckout(BaseMutation):
         return False
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        checkout_id = data.get("id")
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id,
+        metadata=None,
+        private_metadata=None,
+        remove_checkout
+    ):
+        user = info.context.user
+        user = cast(User, user)
         checkout = cls.get_node_or_error(
             info,
-            checkout_id,
+            id,
             field="id",
             only_type=Checkout,
             code=OrderCreateFromCheckoutErrorCode.CHECKOUT_NOT_FOUND.value,
         )
-        metadata = data.get("metadata")
-        private_metadata = data.get("private_metadata")
 
         if cls._meta.support_meta_field and metadata is not None:
-            cls.check_metadata_permissions(info, checkout_id)
+            cls.check_metadata_permissions(info, id)
             cls.validate_metadata_keys(metadata)
         if cls._meta.support_private_meta_field and private_metadata is not None:
-            cls.check_metadata_permissions(info, checkout_id, private=True)
+            cls.check_metadata_permissions(info, id, private=True)
             cls.validate_metadata_keys(private_metadata)
 
         tracking_code = analytics.get_client_id(info.context)
@@ -133,12 +146,12 @@ class OrderCreateFromCheckout(BaseMutation):
                 checkout_lines=checkout_lines,
                 discounts=discounts,
                 manager=manager,
-                user=info.context.user,
+                user=user,
                 app=app,
-                tracking_code=tracking_code,
-                delete_checkout=data["remove_checkout"],
-                metadata_list=data.get("metadata"),
-                private_metadata_list=data.get("private_metadata"),
+                tracking_code=str(tracking_code),
+                delete_checkout=remove_checkout,
+                metadata_list=metadata,
+                private_metadata_list=private_metadata,
             )
         except NotApplicable:
             code = OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value

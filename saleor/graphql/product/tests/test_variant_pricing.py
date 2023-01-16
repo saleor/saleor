@@ -593,7 +593,7 @@ def test_product_variant_pricing_no_flat_rates_in_one_country(
     _enable_flat_rates(channel_PLN, True)
     _configure_tax_rates(product)
     TaxConfigurationPerCountry.objects.filter(country="PL").update(
-        tax_calculation_strategy=None
+        tax_calculation_strategy="TAX_APP"
     )
 
     # when

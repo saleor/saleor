@@ -7,12 +7,11 @@ from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, zero_taxed_money
+from ..core.taxes import TaxData, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
-    calculate_tax_rate,
     get_charge_taxes_for_checkout,
     get_tax_calculation_strategy_for_checkout,
     normalize_tax_rate_for_db,
@@ -298,9 +297,7 @@ def fetch_checkout_prices_if_expired(
             # Calculate net prices without taxes.
             _get_checkout_base_prices(checkout, checkout_info, lines, discounts)
 
-    checkout.price_expiration = (
-        timezone.now() + settings.CHECKOUT_PRICES_TTL  # type: ignore
-    )
+    checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
             "voucher_code",
@@ -481,43 +478,38 @@ def _get_checkout_base_prices(
         discounts = []
 
     currency = checkout_info.checkout.currency
+    subtotal = zero_money(currency)
 
     for line_info in lines:
         line = line_info.line
+        quantity = line.quantity
 
-        total_price_default = base_calculations.calculate_base_line_total_price(
-            line_info,
-            checkout_info.channel,
-            discounts,
-        )
-        line.total_price = quantize_price(
-            TaxedMoney(net=total_price_default, gross=total_price_default), currency
-        )
-
-        unit_price_default = base_calculations.calculate_base_line_unit_price(
+        unit_price = base_calculations.calculate_base_line_unit_price(
             line_info, checkout_info.channel, discounts
         )
-        unit_price = quantize_price(
-            TaxedMoney(net=unit_price_default, gross=unit_price_default), currency
+        unit_price = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info, lines, line_info, discounts, unit_price
         )
-        line.tax_rate = calculate_tax_rate(unit_price)
+        line_total_price = quantize_price(unit_price * quantity, currency)
+        subtotal += line_total_price
 
-    shipping_price_default = base_calculations.base_checkout_delivery_price(
+        line.total_price = TaxedMoney(net=line_total_price, gross=line_total_price)
+
+        # Set zero tax rate since net and gross are equal.
+        line.tax_rate = Decimal("0.0")
+
+    # Calculate shipping price
+    shipping_price = base_calculations.base_checkout_delivery_price(
         checkout_info, lines
     )
     checkout.shipping_price = quantize_price(
-        TaxedMoney(shipping_price_default, shipping_price_default), currency
+        TaxedMoney(shipping_price, shipping_price), currency
     )
-    checkout.shipping_tax_rate = calculate_tax_rate(checkout.shipping_price)
+    checkout.shipping_tax_rate = Decimal("0.0")
 
-    subtotal_default = sum(
-        [line_info.line.total_price for line_info in lines], zero_taxed_money(currency)
-    )
-    checkout.subtotal = subtotal_default
+    # Set subtotal
+    checkout.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
 
-    total_default = base_calculations.base_checkout_total(
-        checkout_info, discounts, lines
-    )
-    checkout.total = quantize_price(
-        TaxedMoney(net=total_default, gross=total_default), currency
-    )
+    # Calculate checkout total
+    total = subtotal + shipping_price
+    checkout.total = quantize_price(TaxedMoney(net=total, gross=total), currency)

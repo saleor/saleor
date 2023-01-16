@@ -16,7 +16,7 @@ def test_clean_order_refund_payment():
     payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
         clean_refund_payment(payment)
-    assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND
+    assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND.value
 
 
 def test_clean_order_capture():
@@ -41,7 +41,7 @@ def test_clean_order_cancel(status, fulfillment):
     fulfillment.status = status
     fulfillment.save()
     # Shouldn't raise any errors
-    assert clean_order_cancel(order) is None
+    assert clean_order_cancel(order) is order
 
 
 def test_clean_order_cancel_draft_order(
@@ -54,7 +54,9 @@ def test_clean_order_cancel_draft_order(
 
     with pytest.raises(ValidationError) as e:
         clean_order_cancel(order)
-    assert e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER
+    assert (
+        e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER.value
+    )
 
 
 def test_clean_order_cancel_canceled_order(
@@ -67,7 +69,9 @@ def test_clean_order_cancel_canceled_order(
 
     with pytest.raises(ValidationError) as e:
         clean_order_cancel(order)
-    assert e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER
+    assert (
+        e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER.value
+    )
 
 
 def test_clean_order_cancel_order_with_fulfillment(
@@ -80,4 +84,6 @@ def test_clean_order_cancel_order_with_fulfillment(
 
     with pytest.raises(ValidationError) as e:
         clean_order_cancel(order)
-    assert e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER
+    assert (
+        e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER.value
+    )

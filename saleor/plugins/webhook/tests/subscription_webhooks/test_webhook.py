@@ -17,6 +17,26 @@ class FakeDelivery:
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
+def test_trigger_webhooks_async(
+    mocked_send_webhook_request,
+    webhook,
+    subscription_order_created_webhook,
+    order,
+):
+    webhook_type = WebhookEventAsyncType.ORDER_CREATED
+    webhooks, payload = Webhook.objects.all(), {"example": "payload"}
+
+    trigger_webhooks_async(payload, webhook_type, webhooks, order)
+
+    deliveries = EventDelivery.objects.all()
+    assert deliveries.count() == 2
+    assert deliveries[0].webhook == subscription_order_created_webhook
+    assert deliveries[1].webhook == webhook
+    calls = [mock.call(deliveries[1].id), mock.call(deliveries[0].id)]
+    assert mocked_send_webhook_request.mock_calls == calls
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
 @mock.patch("saleor.plugins.webhook.tasks.create_deliveries_for_subscriptions")
 def test_trigger_webhooks_async_no_subscription_webhooks(
     mocked_create_deliveries_for_subscriptions,

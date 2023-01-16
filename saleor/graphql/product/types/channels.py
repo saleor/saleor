@@ -1,11 +1,11 @@
 from dataclasses import asdict
 from decimal import Decimal
+from typing import List, Optional
 
 import graphene
 from promise import Promise
 
 from ....core.permissions import ProductPermissions
-from ....core.tracing import traced_resolver
 from ....core.utils import get_currency_for_country
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
@@ -30,6 +30,7 @@ from ...core.descriptions import (
 )
 from ...core.fields import PermissionsField
 from ...core.scalars import Date
+from ...core.tracing import traced_resolver
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...tax.dataloaders import (
@@ -53,7 +54,7 @@ class Margin(graphene.ObjectType):
     stop = graphene.Int()
 
 
-class ProductChannelListing(ModelObjectType):
+class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
     id = graphene.GlobalID(required=True)
     publication_date = Date(
         deprecation_reason=(
@@ -134,16 +135,18 @@ class ProductChannelListing(ModelObjectType):
 
         def calculate_margin_with_variants(variants):
             def calculate_margin_with_channel(channel):
-                def calculate_margin_with_channel_listings(variant_channel_listings):
-                    variant_channel_listings = list(
-                        filter(None, variant_channel_listings)
-                    )
-                    if not variant_channel_listings:
+                def calculate_margin_with_channel_listings(
+                    variant_channel_listings: List[
+                        Optional[models.ProductVariantChannelListing]
+                    ],
+                ):
+                    existing_listings = list(filter(None, variant_channel_listings))
+                    if not existing_listings:
                         return None
 
                     has_variants = True if len(variant_ids_channel_slug) > 0 else False
                     purchase_cost, _margin = get_product_costs_data(
-                        variant_channel_listings, has_variants, root.currency
+                        existing_listings, has_variants, root.currency
                     )
                     return purchase_cost
 
@@ -171,16 +174,18 @@ class ProductChannelListing(ModelObjectType):
 
         def calculate_margin_with_variants(variants):
             def calculate_margin_with_channel(channel):
-                def calculate_margin_with_channel_listings(variant_channel_listings):
-                    variant_channel_listings = list(
-                        filter(None, variant_channel_listings)
-                    )
-                    if not variant_channel_listings:
+                def calculate_margin_with_channel_listings(
+                    variant_channel_listings: List[
+                        Optional[models.ProductVariantChannelListing]
+                    ],
+                ):
+                    existing_listings = list(filter(None, variant_channel_listings))
+                    if not existing_listings:
                         return None
 
                     has_variants = True if len(variant_ids_channel_slug) > 0 else False
                     _purchase_cost, margin = get_product_costs_data(
-                        variant_channel_listings, has_variants, root.currency
+                        existing_listings, has_variants, root.currency
                     )
                     return Margin(margin[0], margin[1])
 
@@ -332,7 +337,9 @@ class PreorderThreshold(graphene.ObjectType):
         description = "Represents preorder variant data for channel."
 
 
-class ProductVariantChannelListing(ModelObjectType):
+class ProductVariantChannelListing(
+    ModelObjectType[models.ProductVariantChannelListing]
+):
     id = graphene.GlobalID(required=True)
     channel = graphene.Field(Channel, required=True)
     price = graphene.Field(Money)
@@ -371,7 +378,7 @@ class ProductVariantChannelListing(ModelObjectType):
         )
 
 
-class CollectionChannelListing(ModelObjectType):
+class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing]):
     id = graphene.GlobalID(required=True)
     publication_date = Date(
         deprecation_reason=(

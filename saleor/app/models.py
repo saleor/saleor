@@ -1,7 +1,6 @@
-from typing import Collection, Set, Tuple, Union
+from typing import Iterable, Set, Tuple, Union
 
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import Permission
 from django.db import models
 from django.utils.text import Truncator
 from oauthlib.common import generate_token
@@ -10,11 +9,12 @@ from saleor.core.permissions.enums import BasePermissionEnum
 
 from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
+from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import AppExtensionMount, AppExtensionTarget, AppType
 
 
-class AppQueryset(models.QuerySet):
+class AppQueryset(models.QuerySet["App"]):
     def for_event_type(self, event_type: str):
         permissions = {}
         required_permission = WebhookEventAsyncType.PERMISSIONS.get(
@@ -30,6 +30,9 @@ class AppQueryset(models.QuerySet):
             webhooks__events__event_type=event_type,
             **permissions,
         )
+
+
+AppManager = models.Manager.from_queryset(AppQueryset)
 
 
 class App(ModelWithMetadata):
@@ -57,7 +60,7 @@ class App(ModelWithMetadata):
     manifest_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
     audience = models.CharField(blank=True, null=True, max_length=256)
-    objects = models.Manager.from_queryset(AppQueryset)()
+    objects = AppManager()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("name", "pk")
@@ -86,7 +89,7 @@ class App(ModelWithMetadata):
             setattr(self, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(self, perm_cache_name)
 
-    def has_perms(self, perm_list: Collection[Union[BasePermissionEnum, str]]) -> bool:
+    def has_perms(self, perm_list: Iterable[Union[BasePermissionEnum, str]]) -> bool:
         """Return True if the app has each of the specified permissions."""
         if not self.is_active:
             return False
@@ -108,7 +111,7 @@ class App(ModelWithMetadata):
         return perm_value in self.get_permissions()
 
 
-class AppTokenManager(models.Manager):
+class AppTokenManager(models.Manager["AppToken"]):
     def create(self, app, name="", auth_token=None, **extra_fields):
         """Create an app token with the given name."""
         if not auth_token:
@@ -168,5 +171,7 @@ class AppInstallation(Job):
     def set_message(self, message: str, truncate=True):
         if truncate:
             max_length = self._meta.get_field("message").max_length
+            if max_length is None:
+                raise ValueError("Cannot truncate message without max_length")
             message = Truncator(message).chars(max_length)
         self.message = message

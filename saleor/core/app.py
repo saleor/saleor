@@ -1,3 +1,5 @@
+from typing import Callable, Optional
+
 from django.apps import AppConfig
 from django.conf import settings
 from django.db.models import Field
@@ -27,7 +29,9 @@ class CoreAppConfig(AppConfig):
         except ImportError as e:
             raise ImportError(f"Failed to import JWT manager: {e}.")
 
-        validate_method = getattr(jwt_manager, "validate_configuration", NotImplemented)
-        if validate_method is NotImplemented:
+        validate_method: Optional[Callable[[], None]] = getattr(
+            jwt_manager, "validate_configuration", None
+        )
+        if validate_method is None:
             return
         validate_method()

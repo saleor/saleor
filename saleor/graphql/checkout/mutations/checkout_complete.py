@@ -22,6 +22,7 @@ from ....core.permissions import AccountPermissions
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -164,23 +165,29 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             billing_address.save()
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, store_source, checkout_id=None, token=None, id=None, **data
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        checkout_id=None,
+        id=None,
+        metadata=None,
+        payment_data=None,
+        redirect_url=None,
+        store_source,
+        token=None,
     ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
+            "checkout_id", checkout_id, "token", token, "id", id
         )
         tracking_code = analytics.get_client_id(info.context)
 
         try:
             checkout = get_checkout(
-                cls,
-                info,
-                checkout_id=checkout_id,
-                token=token,
-                id=id,
-                error_class=CheckoutErrorCode,
+                cls, info, checkout_id=checkout_id, token=token, id=id
             )
         except ValidationError as e:
             # DEPRECATED
@@ -208,8 +215,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     order=order, confirmation_needed=False, confirmation_data={}
                 )
             raise e
-
-        metadata = data.get("metadata")
         if metadata is not None:
             cls.check_metadata_permissions(
                 info,
@@ -263,15 +268,15 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            payment_data=data.get("payment_data", {}),
+            payment_data=payment_data or {},
             store_source=store_source,
             discounts=discounts,
             user=customer,
             app=get_app_promise(info.context).get(),
             site_settings=site.settings,
             tracking_code=tracking_code,
-            redirect_url=data.get("redirect_url"),
-            metadata_list=data.get("metadata"),
+            redirect_url=redirect_url,
+            metadata_list=metadata,
         )
 
         # If gateway returns information that additional steps are required we need

@@ -1,6 +1,7 @@
 import graphene
 
 from ....core.permissions import OrderPermissions
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types.common import Error
@@ -38,10 +39,12 @@ class OrderGrantRefundCreate(BaseMutation):
         error_type_class = OrderGrantRefundCreateError
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data["id"], only_type=Order)
-        amount = data["input"]["amount"]
-        reason = data["input"].get("reason", "")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
+        amount = input["amount"]
+        reason = input.get("reason", "")
         granted_refund = order.granted_refunds.create(
             amount_value=amount,
             currency=order.currency,

@@ -172,7 +172,7 @@ def test_get_order_line_payload(order_line):
         "total_tax_amount": quantize_price(total_tax.amount, currency),
         "tax_rate": order_line.tax_rate,
         "is_digital": order_line.is_digital,
-        "digital_url": "",
+        "digital_url": None,
         "unit_discount_amount": order_line.unit_discount_amount,
         "unit_discount_reason": order_line.unit_discount_reason,
         "unit_discount_type": order_line.unit_discount_type,
@@ -224,7 +224,6 @@ def test_get_default_order_payload(order_line):
         value=value,
         reason="Discount reason",
         amount=(order.undiscounted_total - order.total).gross,
-        # type: ignore
     )
     order.save()
 

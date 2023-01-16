@@ -16,9 +16,9 @@ class ExportScope(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         description_mapping = {
-            ExportScope.ALL.name: "Export all products.",
-            ExportScope.IDS.name: "Export products with given ids.",
-            ExportScope.FILTER.name: "Export the filtered products.",
+            ExportScope.ALL.name: "Export all products.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ExportScope.IDS.name: "Export products with given ids.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ExportScope.FILTER.name: "Export the filtered products.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in description_mapping:
             return description_mapping[self.name]

@@ -1,6 +1,4 @@
-from django.contrib.auth.models import Group
-
-from ....account.models import User
+from ....account.models import Group, User
 from ....app.models import App
 from ....core.permissions import (
     AccountPermissions,

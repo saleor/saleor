@@ -1,6 +1,6 @@
 from ...checkout import models
 from ...core.permissions import AccountPermissions, CheckoutPermissions
-from ...core.tracing import traced_resolver
+from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..utils import get_user_or_app_from_context

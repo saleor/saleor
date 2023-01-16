@@ -12,7 +12,6 @@ from ...core.permissions import (
     AuthorizationFilters,
     GiftcardPermissions,
 )
-from ...core.tracing import traced_resolver
 from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import (
@@ -27,6 +26,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
 from ..core.scalars import Date
+from ..core.tracing import traced_resolver
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
@@ -64,7 +64,7 @@ class GiftCardEventBalance(graphene.ObjectType):
     )
 
 
-class GiftCardEvent(ModelObjectType):
+class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
@@ -214,7 +214,7 @@ class GiftCardEvent(ModelObjectType):
         )
 
 
-class GiftCardTag(ModelObjectType):
+class GiftCardTag(ModelObjectType[models.GiftCardTag]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
 
@@ -224,7 +224,7 @@ class GiftCardTag(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
 
-class GiftCard(ModelObjectType):
+class GiftCard(ModelObjectType[models.GiftCard]):
     id = graphene.GlobalID(required=True)
     display_code = graphene.String(
         description="Code in format which allows displaying in a user interface.",

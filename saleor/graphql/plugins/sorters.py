@@ -49,7 +49,7 @@ class PluginSortField(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            PluginSortField.NAME.name: "name",
+            PluginSortField.NAME.name: "name",  # type: ignore[attr-defined]
             PluginSortField.ACTIVE.name: "activity status",
         }
         if self.name in descriptions:

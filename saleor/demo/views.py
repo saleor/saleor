@@ -29,7 +29,7 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 
 class DemoGraphQLView(GraphQLView):
     def render_playground(self, request):
-        pwa_origin = settings.PWA_ORIGINS[0]
+        pwa_origin = settings.PWA_ORIGINS[0]  # type: ignore[misc] # set only in demo settings # noqa: E501
         ctx = {
             "query": EXAMPLE_QUERY,
             "api_url": f"https://{pwa_origin}/graphql/",

@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from ..core.exceptions import ReadOnlyException
+from .core import ResolveInfo
 from .views import GraphQLView
 
 
@@ -28,15 +29,15 @@ class ReadOnlyMiddleware:
     ]
 
     @staticmethod
-    def resolve(next_, root, info, **kwargs):
+    def resolve(next_, root, info: ResolveInfo, **kwargs):
         operation = info.operation.operation
         if operation != "mutation":
             return next_(root, info, **kwargs)
 
         # Bypass users authenticated with ROOT_EMAIL
         request = info.context
-        user = getattr(request, "user", None)
-        if user and not user.is_anonymous:
+        user = request.user
+        if user:
             user_email = user.email
             root_email = getattr(settings, "ROOT_EMAIL", None)
             if root_email and user_email == root_email:

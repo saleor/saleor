@@ -58,20 +58,25 @@ class GraphQLView(View):
 
     schema = None
     executor = None
-    backend = None
     middleware = None
     root_value = None
 
     HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
 
     def __init__(
-        self, schema=None, executor=None, middleware=None, root_value=None, backend=None
+        self,
+        schema=None,
+        executor=None,
+        middleware: Optional[List[str]] = None,
+        root_value=None,
+        backend=None,
     ):
         super().__init__()
         if backend is None:
             backend = get_default_backend()
         if middleware is None:
-            if middleware := settings.GRAPHENE.get("MIDDLEWARE"):
+            middleware = settings.GRAPHQL_MIDDLEWARE
+            if middleware:
                 middleware = [
                     self.import_middleware(middleware_name)
                     for middleware_name in middleware
@@ -231,7 +236,7 @@ class GraphQLView(View):
         return self.root_value
 
     def parse_query(
-        self, query: str
+        self, query: Optional[str]
     ) -> Tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
@@ -250,7 +255,7 @@ class GraphQLView(View):
         # Attempt to parse the query, if it fails, return the error
         try:
             return (
-                self.backend.document_from_string(self.schema, query),  # type: ignore
+                self.backend.document_from_string(self.schema, query),
                 None,
             )
         except (ValueError, GraphQLSyntaxError) as e:
@@ -287,32 +292,31 @@ class GraphQLView(View):
                 operation.query = document
                 operation.name = operation_name
                 operation.variables = variables
-            if error:
+            if error or document is None:
                 return error
 
-            if document is not None:
-                raw_query_string = document.document_string
-                span.set_tag("graphql.query", raw_query_string)
-                span.set_tag("graphql.query_identifier", query_identifier(document))
-                span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
-                try:
-                    query_contains_schema = self.check_if_query_contains_only_schema(
-                        document
-                    )
-                except GraphQLError as e:
-                    return ExecutionResult(errors=[e], invalid=True)
-
-                query_cost, cost_errors = validate_query_cost(
-                    schema,
-                    document,
-                    variables,
-                    COST_MAP,
-                    settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+            raw_query_string = document.document_string
+            span.set_tag("graphql.query", raw_query_string)
+            span.set_tag("graphql.query_identifier", query_identifier(document))
+            span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
+            try:
+                query_contains_schema = self.check_if_query_contains_only_schema(
+                    document
                 )
-                span.set_tag("graphql.query_cost", query_cost)
-                if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
-                    result = ExecutionResult(errors=cost_errors, invalid=True)
-                    return set_query_cost_on_result(result, query_cost)
+            except GraphQLError as e:
+                return ExecutionResult(errors=[e], invalid=True)
+
+            query_cost, cost_errors = validate_query_cost(
+                schema,
+                document,
+                variables,
+                COST_MAP,
+                settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+            )
+            span.set_tag("graphql.query_cost", query_cost)
+            if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
+                result = ExecutionResult(errors=cost_errors, invalid=True)
+                return set_query_cost_on_result(result, query_cost)
 
             extra_options: Dict[str, Optional[Any]] = {}
 
@@ -331,7 +335,7 @@ class GraphQLView(View):
                         response = cache.get(key)
 
                     if not response:
-                        response = document.execute(  # type: ignore
+                        response = document.execute(
                             root=self.get_root_value(),
                             variables=variables,
                             operation_name=operation_name,

@@ -2,7 +2,7 @@ from django.db import models
 
 from ...core.models import SortableModel
 from ...page.models import Page, PageType
-from .base import AssociatedAttributeQuerySet, BaseAssignedAttribute
+from .base import AssociatedAttributeManager, BaseAssignedAttribute
 
 
 class AssignedPageAttributeValue(SortableModel):
@@ -58,7 +58,7 @@ class AttributePage(SortableModel):
         related_name="attributesrelated",
     )
 
-    objects = models.Manager.from_queryset(AssociatedAttributeQuerySet)()
+    objects = AssociatedAttributeManager()
 
     class Meta:
         unique_together = (("attribute", "page_type"),)

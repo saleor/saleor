@@ -184,7 +184,7 @@ class CostValidator(ValidationRule):
             for key in accessor:
                 val = val.get(key)
             try:
-                multipliers.append(int(val))  # type: ignore
+                multipliers.append(int(val))
             except (ValueError, TypeError):
                 pass
         multipliers = [
@@ -295,7 +295,11 @@ def validate_query_cost(
         variables=variables,
         cost_map=cost_map,
     )
-    error = validate(schema, query.document_ast, [validator])
+    error = validate(
+        schema,
+        query.document_ast,
+        [validator],  # type: ignore[list-item] # cost validator is an instance that pretends to be a class # noqa: E501
+    )
     if error:
         return validator.cost, error
     return validator.cost, None

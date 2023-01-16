@@ -32,7 +32,7 @@ def sort_queryset_for_connection(iterable, args):
             queryset=iterable,
             sort_by=sort_by,
             reversed=reversed,
-            channel_slug=args.get("channel")
+            channel_slug=args.get("channel")  # type: ignore[arg-type]
             or get_default_channel_slug_or_graphql_error(),
         )
     else:

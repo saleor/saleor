@@ -13,7 +13,6 @@ import graphene
 import pytest
 import pytz
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -27,7 +26,7 @@ from freezegun import freeze_time
 from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
-from ..account.models import Address, StaffNotificationRecipient, User
+from ..account.models import Address, Group, StaffNotificationRecipient, User
 from ..app.models import App, AppExtension, AppInstallation
 from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
@@ -88,6 +87,7 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.models import Payment, TransactionItem
+from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.tasks import WebhookResponse
 from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
@@ -4554,7 +4554,6 @@ def draft_order_with_fixed_discount_order(draft_order):
         value=value,
         reason="Discount reason",
         amount=(draft_order.undiscounted_total - draft_order.total).gross,
-        # type: ignore
     )
     draft_order.save()
     return draft_order
@@ -4724,6 +4723,8 @@ def dummy_address_data(address):
         country=address.country,
         country_area=address.country_area,
         phone=address.phone,
+        metadata=address.metadata,
+        private_metadata=address.private_metadata,
     )
 
 

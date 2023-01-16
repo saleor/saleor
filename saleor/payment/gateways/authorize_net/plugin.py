@@ -8,7 +8,7 @@ from saleor.plugins.error_codes import PluginErrorCode
 
 from ... import PaymentError
 from ...models import Payment
-from ..utils import get_supported_currencies, require_active_plugin
+from ..utils import get_supported_currencies
 from . import (
     GatewayConfig,
     authenticate_test,
@@ -137,22 +137,25 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
                     }
                 )
 
-    @require_active_plugin
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         return authorize(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         return capture(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
         except Payment.DoesNotExist:
@@ -161,37 +164,42 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             payment_information, payment.cc_last_digits, self._get_gateway_config()
         )
 
-    @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         return void(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
         user = User.objects.filter(
             checkouts__payments__id=payment_information.payment_id
         ).first()
         user_id = user.id if user else None
         return process_payment(payment_information, self._get_gateway_config(), user_id)
 
-    @require_active_plugin
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List["CustomerSource"]:
+        if not self.active:
+            return previous_value
         sources = list_client_sources(self._get_gateway_config(), customer_id)
         previous_value.extend(sources)
         return previous_value
 
-    @require_active_plugin
     def get_supported_currencies(self, previous_value):
+        if not self.active:
+            return previous_value
         config = self._get_gateway_config()
         return get_supported_currencies(config, GATEWAY_NAME)
 
-    @require_active_plugin
     def get_payment_config(self, previous_value):
+        if not self.active:
+            return previous_value
         config = self._get_gateway_config()
         return [
             {

@@ -91,3 +91,84 @@ def test_draft_order_delete_non_draft_order(
     assert len(account_errors) == 1
     assert account_errors[0]["field"] == "id"
     assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
+DRAFT_ORDER_DELETE_BY_EXTERNAL_REFERENCE = """
+    mutation draftDelete($id: ID, $externalReference: String) {
+        draftOrderDelete(id: $id, externalReference: $externalReference) {
+            order {
+                id
+                externalReference
+            }
+            errors {
+                field
+                message
+        }
+    }
+}
+"""
+
+
+def test_draft_order_delete_by_external_reference(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    # given
+    order = draft_order
+    query = DRAFT_ORDER_DELETE_BY_EXTERNAL_REFERENCE
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderDelete"]
+    with pytest.raises(order._meta.model.DoesNotExist):
+        order.refresh_from_db()
+    assert graphene.Node.to_global_id("Order", order.id) == data["order"]["id"]
+    assert data["order"]["externalReference"] == order.external_reference
+
+
+def test_draft_order_delete_by_both_id_and_external_reference(
+    staff_api_client, permission_manage_orders
+):
+    # given
+    query = DRAFT_ORDER_DELETE_BY_EXTERNAL_REFERENCE
+    variables = {"externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["draftOrderDelete"]["errors"]
+    assert (
+        errors[0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_draft_order_delete_by_external_reference_not_existing(
+    staff_api_client, permission_manage_orders
+):
+    # given
+    query = DRAFT_ORDER_DELETE_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["draftOrderDelete"]["errors"]
+    assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"

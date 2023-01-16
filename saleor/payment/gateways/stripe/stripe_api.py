@@ -64,7 +64,7 @@ def subscribe_webhook(api_key: str, channel_slug: str) -> Optional[StripeObject]
     )
 
     base_url = build_absolute_uri(api_path)
-    webhook_url = urljoin(base_url, WEBHOOK_PATH)  # type: ignore
+    webhook_url = urljoin(base_url, WEBHOOK_PATH)
 
     with stripe_opentracing_trace("stripe.WebhookEndpoint.create"):
         try:
@@ -136,7 +136,7 @@ def create_payment_intent(
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
-    additional_params = {}  # type: ignore
+    additional_params = {}
 
     if customer:
         additional_params["customer"] = customer

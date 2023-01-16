@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import JSONField  # type: ignore
+from django.db.models import JSONField
 from django.utils import timezone
 
 from ..account.models import User

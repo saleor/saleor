@@ -7,7 +7,6 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
-from django.contrib.auth.models import Permission
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -30,6 +29,7 @@ from ...graphql.account.mutations.authentication import (
     _does_token_match,
     _get_new_csrf_token,
 )
+from ...permission.models import Permission
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from . import PLUGIN_ID

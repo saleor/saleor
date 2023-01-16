@@ -7,13 +7,14 @@ from ..account.types import User
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.types import Job, ModelObjectType, NonNullList
 from ..utils import get_user_or_app_from_context
 from .enums import ExportEventEnum
 
 
-class ExportEvent(ModelObjectType):
+class ExportEvent(ModelObjectType[models.ExportEvent]):
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format.",
         required=True,
@@ -48,7 +49,7 @@ class ExportEvent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_user(root: models.ExportEvent, info):
+    def resolve_user(root: models.ExportEvent, info: ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_STAFF
@@ -56,7 +57,7 @@ class ExportEvent(ModelObjectType):
         return root.user
 
     @staticmethod
-    def resolve_app(root: models.ExportEvent, info):
+    def resolve_app(root: models.ExportEvent, info: ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
@@ -64,11 +65,11 @@ class ExportEvent(ModelObjectType):
         return root.app
 
     @staticmethod
-    def resolve_message(root: models.ExportEvent, _info):
+    def resolve_message(root: models.ExportEvent, _info: ResolveInfo):
         return root.parameters.get("message", None)
 
 
-class ExportFile(ModelObjectType):
+class ExportFile(ModelObjectType[models.ExportFile]):
     id = graphene.GlobalID(required=True)
     url = graphene.String(description="The URL of field to download.")
     events = NonNullList(
@@ -84,14 +85,14 @@ class ExportFile(ModelObjectType):
         model = models.ExportFile
 
     @staticmethod
-    def resolve_url(root: models.ExportFile, info):
+    def resolve_url(root: models.ExportFile, _info: ResolveInfo):
         content_file = root.content_file
         if not content_file:
             return None
         return build_absolute_uri(content_file.url)
 
     @staticmethod
-    def resolve_user(root: models.ExportFile, info):
+    def resolve_user(root: models.ExportFile, info: ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_STAFF
@@ -99,7 +100,7 @@ class ExportFile(ModelObjectType):
         return root.user
 
     @staticmethod
-    def resolve_app(root: models.ExportFile, info):
+    def resolve_app(root: models.ExportFile, info: ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
@@ -107,7 +108,7 @@ class ExportFile(ModelObjectType):
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
-    def resolve_events(root: models.ExportFile, _info):
+    def resolve_events(root: models.ExportFile, _info: ResolveInfo):
         return root.events.all().order_by("pk")
 
 

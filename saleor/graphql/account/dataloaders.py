@@ -1,8 +1,8 @@
 from collections import defaultdict
-
-from django.contrib.auth.models import Permission
+from typing import DefaultDict, Iterable, Optional, Tuple, cast
 
 from ...account.models import Address, CustomerEvent, User
+from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
 from ..core.dataloaders import DataLoader
 
@@ -36,19 +36,23 @@ class CustomerEventsByUserLoader(DataLoader):
         return [events_by_user_map.get(user_id, []) for user_id in keys]
 
 
-class ThumbnailByUserIdSizeAndFormatLoader(DataLoader):
+class ThumbnailByUserIdSizeAndFormatLoader(
+    DataLoader[Tuple[int, int, Optional[str]], Thumbnail]
+):
     context_key = "thumbnail_by_user_size_and_format"
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[Tuple[int, int, Optional[str]]]):
         user_ids = [user_id for user_id, _, _ in keys]
         thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
             user_id__in=user_ids
         )
-        thumbnails_by_user_size_and_format_map = defaultdict()
+        thumbnails_by_user_size_and_format_map: DefaultDict[
+            Tuple[int, int, Optional[str]], Optional[Thumbnail]
+        ] = defaultdict()
         for thumbnail in thumbnails:
             format = thumbnail.format.lower() if thumbnail.format else None
             thumbnails_by_user_size_and_format_map[
-                (thumbnail.user_id, thumbnail.size, format)
+                (cast(int, thumbnail.user_id), thumbnail.size, format)
             ] = thumbnail
         return [thumbnails_by_user_size_and_format_map.get(key) for key in keys]
 

@@ -944,12 +944,16 @@ SALE_TOGGLE = (
 
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceRequested{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -959,12 +963,16 @@ INVOICE_REQUESTED = (
 
 INVOICE_DELETED = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceDeleted{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -974,12 +982,16 @@ INVOICE_DELETED = (
 
 INVOICE_SENT = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceSent{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }

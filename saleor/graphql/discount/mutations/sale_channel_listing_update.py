@@ -12,6 +12,7 @@ from ....discount.models import SaleChannelListing
 from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
+from ...core import ResolveInfo
 from ...core.scalars import PositiveDecimal
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_price_precision
@@ -73,7 +74,13 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             )
 
     @classmethod
-    def clean_discount_values(cls, cleaned_channels, sale_type, errors, error_code):
+    def clean_discount_values(
+        cls,
+        cleaned_channels,
+        sale_type,
+        errors: defaultdict[str, List[ValidationError]],
+        error_code,
+    ):
         channels_with_invalid_value_precision = []
         channels_with_invalid_percentage_value = []
         for cleaned_channel in cleaned_channels.get("add_channels", []):
@@ -118,16 +125,18 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         sale.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    def save(cls, info, sale: "SaleModel", cleaned_input: Dict):
+    def save(cls, info: ResolveInfo, sale: "SaleModel", cleaned_input: Dict):
         with traced_atomic_transaction():
             cls.add_channels(sale, cleaned_input.get("add_channels", []))
             cls.remove_channels(sale, cleaned_input.get("remove_channels", []))
             update_products_discounted_prices_of_discount_task.delay(sale.pk)
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
         sale = cls.get_node_or_error(info, id, only_type=Sale, field="id")
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         cleaned_channels = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
         )

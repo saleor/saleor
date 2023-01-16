@@ -119,22 +119,22 @@ def is_schema_of_common_names(schema: GraphQLSchema) -> bool:
 
 def print_type(type_: GraphQLNamedType) -> str:
     if isinstance(type_, GraphQLScalarType):
-        type_ = cast(GraphQLScalarType, type_)
+        type_ = type_
         return print_scalar(type_)
     if isinstance(type_, GraphQLObjectType):
-        type_ = cast(GraphQLObjectType, type_)
+        type_ = type_
         return print_object(type_)
     if isinstance(type_, GraphQLInterfaceType):
-        type_ = cast(GraphQLInterfaceType, type_)
+        type_ = type_
         return print_interface(type_)
     if isinstance(type_, GraphQLUnionType):
-        type_ = cast(GraphQLUnionType, type_)
+        type_ = type_
         return print_union(type_)
     if isinstance(type_, GraphQLEnumType):
-        type_ = cast(GraphQLEnumType, type_)
+        type_ = type_
         return print_enum(type_)
     if isinstance(type_, GraphQLInputObjectType):
-        type_ = cast(GraphQLInputObjectType, type_)
+        type_ = type_
         return print_input_object(type_)
 
     # Not reachable. All possible types have been considered.

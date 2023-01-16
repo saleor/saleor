@@ -46,8 +46,8 @@ class SiteSettings(models.Model):
     track_inventory_by_default = models.BooleanField(default=True)
     default_weight_unit = models.CharField(
         max_length=30,
-        choices=WeightUnits.CHOICES,  # type: ignore
-        default=WeightUnits.KG,  # type: ignore
+        choices=WeightUnits.CHOICES,
+        default=WeightUnits.KG,
     )
     automatic_fulfillment_digital_products = models.BooleanField(default=False)
     default_digital_max_downloads = models.IntegerField(blank=True, null=True)

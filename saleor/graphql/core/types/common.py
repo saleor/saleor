@@ -1,9 +1,9 @@
+from typing import TYPE_CHECKING
 from urllib.parse import unquote, urlparse
 
 import graphene
 from django.core.files.storage import default_storage
 
-from ....core.tracing import traced_resolver
 from ....core.utils import build_absolute_uri
 from ...account.enums import AddressTypeEnum
 from ..descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
@@ -43,14 +43,20 @@ from ..enums import (
     TranslationErrorCode,
     UploadErrorCode,
     WarehouseErrorCode,
+    WebhookDryRunErrorCode,
     WebhookErrorCode,
     WeightUnitsEnum,
 )
 from ..scalars import Date, PositiveDecimal
+from ..tracing import traced_resolver
 from .money import VAT
+
+if TYPE_CHECKING:
+    from .. import ResolveInfo
 
 # deprecated - this is temporary constant that contains the graphql types
 # which has double id available - uuid and old int id
+
 TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine", "OrderDiscount", "CheckoutLine"]
 
 
@@ -406,6 +412,10 @@ class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.", required=True)
 
 
+class WebhookDryRunError(Error):
+    code = WebhookDryRunErrorCode(description="The error code.", required=True)
+
+
 class TranslationError(Error):
     code = TranslationErrorCode(description="The error code.", required=True)
 
@@ -430,7 +440,7 @@ class Image(graphene.ObjectType):
     class Meta:
         description = "Represents an image."
 
-    def resolve_url(root, info):
+    def resolve_url(root, _info: "ResolveInfo"):
         if urlparse(root.url).netloc:
             return root.url
         return build_absolute_uri(root.url)
@@ -443,7 +453,7 @@ class File(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_url(root, info):
+    def resolve_url(root, _info: "ResolveInfo"):
         # check if URL is absolute:
         if urlparse(root.url).netloc:
             return root.url
@@ -502,12 +512,9 @@ class Job(graphene.Interface):
 
     @classmethod
     @traced_resolver
-    def resolve_type(cls, instance, _info):
+    def resolve_type(cls, instance, _info: "ResolveInfo"):
         """Map a data object to a Graphene type."""
-        MODEL_TO_TYPE_MAP = {
-            # <DjangoModel>: <GrapheneType>
-        }
-        return MODEL_TO_TYPE_MAP.get(type(instance))
+        return None  # FIXME: why do we have this method?
 
 
 class TimePeriod(graphene.ObjectType):

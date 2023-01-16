@@ -10,7 +10,6 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
@@ -20,6 +19,7 @@ from django.db.models import (
     ExpressionWrapper,
     F,
     FilteredRelation,
+    JSONField,
     OuterRef,
     Q,
     Subquery,
@@ -40,7 +40,12 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
+from ..core.models import (
+    ModelWithExternalReference,
+    ModelWithMetadata,
+    PublishableModel,
+    SortableModel,
+)
 from ..core.permissions import (
     DiscountPermissions,
     OrderPermissions,
@@ -88,7 +93,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
-    tree = TreeManager()  # type: ignore
+    tree = TreeManager()  # type: ignore[django-manager-missing]
     translated = TranslationProxy()
 
     class Meta:
@@ -151,7 +156,7 @@ class ProductType(ModelWithMetadata):
     is_digital = models.BooleanField(default=False)
     weight = MeasurementField(
         measurement=Weight,
-        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        unit_choices=WeightUnits.CHOICES,
         default=zero_weight,
     )
     tax_class = models.ForeignKey(
@@ -194,7 +199,7 @@ class ProductType(ModelWithMetadata):
         )
 
 
-class ProductsQueryset(models.QuerySet):
+class ProductsQueryset(models.QuerySet["Product"]):
     def published(self, channel_slug: str):
         today = datetime.datetime.now(pytz.UTC)
         channels = Channel.objects.filter(
@@ -229,7 +234,7 @@ class ProductsQueryset(models.QuerySet):
         )
         return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
-    def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
+    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
@@ -390,7 +395,10 @@ class ProductsQueryset(models.QuerySet):
         return self.prefetch_related("collections", "category", *common_fields)
 
 
-class Product(SeoModel, ModelWithMetadata):
+ProductManager = models.Manager.from_queryset(ProductsQueryset)
+
+
+class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
@@ -414,7 +422,7 @@ class Product(SeoModel, ModelWithMetadata):
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
         measurement=Weight,
-        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        unit_choices=WeightUnits.CHOICES,
         blank=True,
         null=True,
     )
@@ -434,7 +442,7 @@ class Product(SeoModel, ModelWithMetadata):
         on_delete=models.SET_NULL,
     )
 
-    objects = models.Manager.from_queryset(ProductsQueryset)()
+    objects = ProductManager()
     translated = TranslationProxy()
 
     class Meta:
@@ -519,7 +527,7 @@ class ProductTranslation(SeoModelTranslation):
         return translated_keys
 
 
-class ProductVariantQueryset(models.QuerySet):
+class ProductVariantQueryset(models.QuerySet["ProductVariant"]):
     def annotate_quantities(self):
         return self.annotate(
             quantity=Coalesce(Sum("stocks__quantity"), 0),
@@ -585,7 +593,10 @@ class ProductChannelListing(PublishableModel):
         )
 
 
-class ProductVariant(SortableModel, ModelWithMetadata):
+ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
+
+
+class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReference):
     sku = models.CharField(max_length=255, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     product = models.ForeignKey(
@@ -604,12 +615,12 @@ class ProductVariant(SortableModel, ModelWithMetadata):
 
     weight = MeasurementField(
         measurement=Weight,
-        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        unit_choices=WeightUnits.CHOICES,
         blank=True,
         null=True,
     )
 
-    objects = models.Manager.from_queryset(ProductVariantQueryset)()
+    objects = ProductVariantManager()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
@@ -709,13 +720,20 @@ class ProductVariantTranslation(Translation):
         return {"name": self.name}
 
 
-class ProductVariantChannelListingQuerySet(models.QuerySet):
+class ProductVariantChannelListingQuerySet(
+    models.QuerySet["ProductVariantChannelListing"]
+):
     def annotate_preorder_quantity_allocated(self):
         return self.annotate(
             preorder_quantity_allocated=Coalesce(
                 Sum("preorder_allocations__quantity"), 0
             ),
         )
+
+
+ProductVariantChannelListingManager = models.Manager.from_queryset(
+    ProductVariantChannelListingQuerySet
+)
 
 
 class ProductVariantChannelListing(models.Model):
@@ -752,7 +770,7 @@ class ProductVariantChannelListing(models.Model):
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
-    objects = models.Manager.from_queryset(ProductVariantChannelListingQuerySet)()
+    objects = ProductVariantChannelListingManager()
 
     class Meta:
         unique_together = [["variant", "channel"]]
@@ -829,6 +847,8 @@ class ProductMedia(SortableModel):
         app_label = "product"
 
     def get_ordering_queryset(self):
+        if not self.product:
+            return ProductMedia.objects.none()
         return self.product.media.all()
 
     @transaction.atomic
@@ -863,7 +883,7 @@ class CollectionProduct(SortableModel):
         return self.product.collectionproduct.all()
 
 
-class CollectionsQueryset(models.QuerySet):
+class CollectionsQueryset(models.QuerySet["Collection"]):
     def published(self, channel_slug: str):
         today = datetime.datetime.now(pytz.UTC)
         return self.filter(
@@ -874,12 +894,15 @@ class CollectionsQueryset(models.QuerySet):
             channel_listings__is_published=True,
         )
 
-    def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
+    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
         return self.published(channel_slug)
+
+
+CollectionManager = models.Manager.from_queryset(CollectionsQueryset)
 
 
 class Collection(SeoModel, ModelWithMetadata):
@@ -896,9 +919,10 @@ class Collection(SeoModel, ModelWithMetadata):
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
+
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
-    objects = models.Manager.from_queryset(CollectionsQueryset)()
+    objects = CollectionManager()
 
     translated = TranslationProxy()
 

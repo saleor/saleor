@@ -15,10 +15,8 @@ from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
 
 UPDATE_ATTRIBUTE_VALUE_MUTATION = """
-mutation AttributeValueUpdate(
-        $id: ID!, $input: AttributeValueUpdateInput!) {
-    attributeValueUpdate(
-    id: $id, input: $input) {
+mutation AttributeValueUpdate($id: ID!, $input: AttributeValueUpdateInput!) {
+    attributeValueUpdate(id: $id, input: $input) {
         errors {
             field
             message
@@ -28,6 +26,7 @@ mutation AttributeValueUpdate(
             name
             slug
             value
+            externalReference
             file {
                 url
                 contentType
@@ -57,7 +56,14 @@ def test_update_attribute_value(
     value = pink_attribute_value
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     name = "Crimson name"
-    variables = {"input": {"name": name}, "id": node_id}
+    external_reference = "test-ext-ref"
+    variables = {
+        "id": node_id,
+        "input": {
+            "name": name,
+            "externalReference": external_reference,
+        },
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -70,6 +76,11 @@ def test_update_attribute_value(
     value.refresh_from_db()
     assert data["attributeValue"]["name"] == name == value.name
     assert data["attributeValue"]["slug"] == slugify(name)
+    assert (
+        data["attributeValue"]["externalReference"]
+        == external_reference
+        == value.external_reference
+    )
     assert name in [
         value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
     ]
@@ -461,3 +472,146 @@ def test_update_attribute_value_swatch_attr_value(
     assert data["attributeValue"]["name"] == value.name
     assert data["attributeValue"]["slug"] == value.slug
     assert data["attributeValue"]["value"] == new_value
+
+
+UPDATE_ATTRIBUTE_VALUE_BY_EXTERNAL_REFERENCE_MUTATION = """
+mutation AttributeValueUpdate(
+        $id: ID, $externalReference: String, $input: AttributeValueUpdateInput!
+) {
+    attributeValueUpdate(
+        id: $id, externalReference: $externalReference, input: $input
+    ) {
+        errors {
+            field
+            message
+            code
+        }
+        attributeValue {
+            name
+            id
+            externalReference
+        }
+    }
+}
+"""
+
+
+def test_update_attribute_value_by_external_reference(
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_BY_EXTERNAL_REFERENCE_MUTATION
+    value = pink_attribute_value
+    new_name = "updated name"
+    ext_ref = "test-ext-ref"
+    value.external_reference = ext_ref
+    value.save(update_fields=["external_reference"])
+
+    variables = {
+        "input": {"name": new_name},
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    value.refresh_from_db()
+    data = content["data"]["attributeValueUpdate"]
+    assert not data["errors"]
+    assert data["attributeValue"]["name"] == new_name == value.name
+    assert data["attributeValue"]["id"] == graphene.Node.to_global_id(
+        "AttributeValue", value.id
+    )
+    assert data["attributeValue"]["externalReference"] == ext_ref
+
+
+def test_update_attribute_value_by_both_id_and_external_reference(
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_BY_EXTERNAL_REFERENCE_MUTATION
+    variables = {"input": {}, "externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["attributeValueUpdate"]
+    assert not data["attributeValue"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_attribute_value_by_external_reference_not_existing(
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_BY_EXTERNAL_REFERENCE_MUTATION
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "input": {},
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["attributeValueUpdate"]
+    assert not data["attributeValue"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+    assert data["errors"][0]["field"] == "externalReference"
+
+
+def test_update_attribute_value_with_non_unique_external_reference(
+    staff_api_client,
+    color_attribute,
+    numeric_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_BY_EXTERNAL_REFERENCE_MUTATION
+    value_1 = color_attribute.values.first()
+    ext_ref = "test-ext-ref"
+    value_1.external_reference = ext_ref
+    value_1.save(update_fields=["external_reference"])
+    value_2 = numeric_attribute.values.first()
+    value_2_id = graphene.Node.to_global_id("AttributeValue", value_2.id)
+
+    variables = {
+        "input": {"externalReference": ext_ref},
+        "id": value_2_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["attributeValueUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AttributeErrorCode.UNIQUE.name
+    assert (
+        error["message"]
+        == "Attribute value with this External reference already exists."
+    )

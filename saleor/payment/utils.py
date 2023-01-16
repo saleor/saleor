@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -164,9 +164,9 @@ def generate_transactions_data(payment: Payment) -> List[TransactionData]:
 
 def create_payment_information(
     payment: Payment,
-    payment_token: str = None,
-    amount: Decimal = None,
-    customer_id: str = None,
+    payment_token: Optional[str] = None,
+    amount: Optional[Decimal] = None,
+    customer_id: Optional[str] = None,
     store_source: bool = False,
     refund_data: Optional[RefundData] = None,
     additional_data: Optional[dict] = None,
@@ -250,12 +250,12 @@ def create_payment(
     total: Decimal,
     currency: str,
     email: str,
-    customer_ip_address: str = "",
-    payment_token: Optional[str] = "",
-    extra_data: Dict = None,
-    checkout: Checkout = None,
-    order: Order = None,
-    return_url: str = None,
+    customer_ip_address: Optional[str] = None,
+    payment_token: Optional[str] = None,
+    extra_data: Optional[Dict] = None,
+    checkout: Optional[Checkout] = None,
+    order: Optional[Order] = None,
+    return_url: Optional[str] = None,
     external_reference: Optional[str] = None,
     store_payment_method: str = StorePaymentMethod.NONE,
     metadata: Optional[Dict[str, str]] = None,
@@ -271,9 +271,9 @@ def create_payment(
 
     data = {
         "is_active": True,
-        "customer_ip_address": customer_ip_address,
+        "customer_ip_address": customer_ip_address or "",
         "extra_data": json.dumps(extra_data),
-        "token": payment_token,
+        "token": payment_token or "",
     }
 
     if checkout:
@@ -330,12 +330,41 @@ def get_already_processed_transaction(
     return transaction
 
 
+@overload
 def create_transaction(
     payment: Payment,
+    *,
     kind: str,
     payment_information: PaymentData,
     action_required: bool = False,
-    gateway_response: GatewayResponse = None,
+    gateway_response: Optional[GatewayResponse] = None,
+    error_msg=None,
+    is_success=False,
+) -> Transaction:
+    ...
+
+
+@overload
+def create_transaction(
+    payment: Payment,
+    *,
+    kind: str,
+    payment_information: Optional[PaymentData],
+    action_required: bool = False,
+    gateway_response: GatewayResponse,
+    error_msg=None,
+    is_success=False,
+) -> Transaction:
+    ...
+
+
+def create_transaction(
+    payment: Payment,
+    *,
+    kind: str,
+    payment_information: Optional[PaymentData],
+    action_required: bool = False,
+    gateway_response: Optional[GatewayResponse] = None,
     error_msg=None,
     is_success=False,
 ) -> Transaction:
@@ -343,6 +372,8 @@ def create_transaction(
     # Default values for token, amount, currency are only used in cases where
     # response from gateway was invalid or an exception occurred
     if not gateway_response:
+        if not payment_information:
+            raise ValueError("Payment information is required to create a transaction.")
         gateway_response = GatewayResponse(
             kind=kind,
             action_required=False,
@@ -375,7 +406,7 @@ def get_already_processed_transaction_or_create_new_transaction(
     kind: str,
     payment_information: PaymentData,
     action_required: bool = False,
-    gateway_response: GatewayResponse = None,
+    gateway_response: Optional[GatewayResponse] = None,
     error_msg=None,
 ) -> Transaction:
     if gateway_response and gateway_response.transaction_already_processed:
@@ -384,11 +415,11 @@ def get_already_processed_transaction_or_create_new_transaction(
             return txn
     return create_transaction(
         payment,
-        kind,
-        payment_information,
-        action_required,
-        gateway_response,
-        error_msg,
+        kind=kind,
+        payment_information=payment_information,
+        action_required=action_required,
+        gateway_response=gateway_response,
+        error_msg=error_msg,
     )
 
 
@@ -427,11 +458,13 @@ def validate_gateway_response(response: GatewayResponse):
 
 
 @traced_atomic_transaction()
-def gateway_postprocess(transaction, payment):
-    changed_fields = []
+def gateway_postprocess(transaction, payment: Payment):
+    changed_fields: List[str] = []
 
     if not transaction.is_success or transaction.already_processed:
         if changed_fields:
+            # FIXME: verify that we actually want to save the payment here
+            # as with empty changed_fields it won't be saved
             payment.save(update_fields=changed_fields)
         return
 
@@ -626,21 +659,20 @@ def try_void_or_refund_inactive_payment(
     """
     from .gateway import payment_refund_or_void
 
-    if transaction.is_success:
-        channel_slug = get_channel_slug_from_payment(payment)
-        try:
-            payment_refund_or_void(
-                payment,
-                manager,
-                channel_slug=channel_slug,
-                transaction_id=transaction.token,
-            )
-        except PaymentError:
-            logger.exception(
-                "Unable to void/refund an inactive payment %s, %s.",
-                payment.id,
-                payment.psp_reference,
-            )
+    if not transaction.is_success:
+        return
+
+    if not transaction.already_processed:
+        update_payment_charge_status(payment, transaction)
+    channel_slug = get_channel_slug_from_payment(payment)
+    try:
+        payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+    except PaymentError:
+        logger.exception(
+            "Unable to void/refund an inactive payment %s, %s.",
+            payment.id,
+            payment.psp_reference,
+        )
 
 
 def payment_owned_by_user(payment_pk: int, user) -> bool:

@@ -1,5 +1,4 @@
 import jwt
-from django.contrib.auth.backends import ModelBackend
 
 from ..account.models import User
 from ..graphql.account.dataloaders import UserByEmailLoader
@@ -15,7 +14,31 @@ from .jwt import (
 from .permissions import get_permissions_from_codenames, get_permissions_from_names
 
 
-class JSONWebTokenBackend(ModelBackend):
+# Moved from `django.contrib.auth.backends.ModelBackend`
+class BaseBackend:
+    def authenticate(self, request, **kwargs):
+        return None
+
+    def get_user(self, user_id):
+        return None
+
+    def get_user_permissions(self, user_obj, obj=None):
+        return set()
+
+    def get_group_permissions(self, user_obj, obj=None):
+        return set()
+
+    def get_all_permissions(self, user_obj, obj=None):
+        return {
+            *self.get_user_permissions(user_obj, obj=obj),
+            *self.get_group_permissions(user_obj, obj=obj),
+        }
+
+    def has_perm(self, user_obj, perm, obj=None):
+        return perm in self.get_all_permissions(user_obj, obj=obj)
+
+
+class JSONWebTokenBackend(BaseBackend):
     def authenticate(self, request=None, **kwargs):
         return load_user_from_request(request)
 
@@ -48,6 +71,34 @@ class JSONWebTokenBackend(ModelBackend):
             perms = perms.values_list("content_type__app_label", "codename").order_by()
             setattr(user_obj, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(user_obj, perm_cache_name)
+
+    # Moved from `django.contrib.auth.backends.ModelBackend`
+    def get_user_permissions(self, user_obj, obj=None):  # noqa: D205, D212, D400, D415
+        """
+        Return a set of permission strings the user `user_obj` has from their
+        `user_permissions`.
+        """
+        return self._get_permissions(user_obj, obj, "user")
+
+    # Moved from `django.contrib.auth.backends.ModelBackend`
+    def get_group_permissions(self, user_obj, obj=None):  # noqa: D205, D212, D400, D415
+        """
+        Return a set of permission strings the user `user_obj` has from the
+        groups they belong.
+        """
+        return self._get_permissions(user_obj, obj, "group")
+
+    # Moved from `django.contrib.auth.backends.ModelBackend`
+    def get_all_permissions(self, user_obj, obj=None):
+        if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
+            return set()
+        if not hasattr(user_obj, "_perm_cache"):
+            user_obj._perm_cache = super().get_all_permissions(user_obj)
+        return user_obj._perm_cache
+
+    # Moved from `django.contrib.auth.backends.ModelBackend`
+    def has_perm(self, user_obj, perm, obj=None):
+        return user_obj.is_active and super().has_perm(user_obj, perm, obj=obj)
 
 
 class PluginBackend(JSONWebTokenBackend):

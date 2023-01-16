@@ -1,4 +1,5 @@
 from collections import namedtuple
+from typing import Optional
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseNotFound, HttpResponseRedirect
@@ -21,7 +22,9 @@ TYPE_TO_MODEL_DATA_MAPPING = {
 }
 
 
-def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
+def handle_thumbnail(
+    request, instance_id: str, size: str, format: Optional[str] = None
+):
     """Create and return thumbnail for given instance in provided size and format.
 
     If the provided size is not in the available resolution list, the thumbnail with
@@ -43,7 +46,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     if object_type not in TYPE_TO_MODEL_DATA_MAPPING.keys():
         return HttpResponseNotFound("Invalid instance type.")
 
-    size: int = get_thumbnail_size(size)
+    size_px: int = get_thumbnail_size(size)
 
     # return the thumbnail if it's already exist
     model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]
@@ -53,7 +56,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
         instance_id_lookup = model_data.thumbnail_field + "_id"
 
     if thumbnail := Thumbnail.objects.filter(
-        format=format, size=size, **{instance_id_lookup: pk}
+        format=format, size=size_px, **{instance_id_lookup: pk}
     ).first():
         return HttpResponseRedirect(thumbnail.image.url)
 
@@ -70,14 +73,14 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
         return HttpResponseNotFound("There is no image for provided instance.")
 
     # prepare thumbnail
-    processed_image = ProcessedImage(image.name, size, format)
+    processed_image = ProcessedImage(image.name, size_px, format)
     thumbnail_file = processed_image.create_thumbnail()
 
-    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size, format)
+    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size_px, format)
 
     # save image thumbnail
     thumbnail = Thumbnail(
-        size=size, format=format, **{model_data.thumbnail_field: instance}
+        size=size_px, format=format, **{model_data.thumbnail_field: instance}
     )
     thumbnail.image.save(thumbnail_file_name, thumbnail_file)
     thumbnail.save()

@@ -1,13 +1,13 @@
-from typing import List
+from typing import List, TypeVar
 
 import graphene
 from django.conf import settings
+from django.db.models import Model
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...attribute.models import AttributeValue
 from ...core.permissions import DiscountPermissions, ShippingPermissions
-from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -19,6 +19,7 @@ from ..channel import ChannelContext
 from ..core.descriptions import ADDED_IN_39, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
+from ..core.tracing import traced_resolver
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
 from ..core.utils import str_to_enum
 from ..page.dataloaders import SelectedAttributesByPageIdLoader
@@ -42,7 +43,10 @@ def get_translatable_attribute_values(attributes: list) -> List[AttributeValue]:
     return translatable_values
 
 
-class BaseTranslationType(ModelObjectType):
+T = TypeVar("T", bound=Model)
+
+
+class BaseTranslationType(ModelObjectType[T]):
     language = graphene.Field(
         LanguageDisplay, description="Translation language.", required=True
     )
@@ -66,7 +70,9 @@ class BaseTranslationType(ModelObjectType):
         )
 
 
-class AttributeValueTranslation(BaseTranslationType):
+class AttributeValueTranslation(
+    BaseTranslationType[attribute_models.AttributeValueTranslation]
+):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
@@ -77,7 +83,7 @@ class AttributeValueTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class AttributeTranslation(BaseTranslationType):
+class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTranslation]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
 
@@ -86,7 +92,7 @@ class AttributeTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class AttributeTranslatableContent(ModelObjectType):
+class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     translation = TranslationField(AttributeTranslation, type_name="attribute")
@@ -107,7 +113,9 @@ class AttributeTranslatableContent(ModelObjectType):
         return root
 
 
-class AttributeValueTranslatableContent(ModelObjectType):
+class AttributeValueTranslatableContent(
+    ModelObjectType[attribute_models.AttributeValue]
+):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
@@ -140,7 +148,9 @@ class AttributeValueTranslatableContent(ModelObjectType):
         return AttributesByAttributeId(info.context).load(root.attribute_id)
 
 
-class ProductVariantTranslation(BaseTranslationType):
+class ProductVariantTranslation(
+    BaseTranslationType[product_models.ProductVariantTranslation]
+):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
 
@@ -149,7 +159,7 @@ class ProductVariantTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class ProductVariantTranslatableContent(ModelObjectType):
+class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVariant]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     translation = TranslationField(
@@ -187,7 +197,7 @@ class ProductVariantTranslatableContent(ModelObjectType):
         )
 
 
-class ProductTranslation(BaseTranslationType):
+class ProductTranslation(BaseTranslationType[product_models.ProductTranslation]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -212,7 +222,7 @@ class ProductTranslation(BaseTranslationType):
         return description if description is not None else {}
 
 
-class ProductTranslatableContent(ModelObjectType):
+class ProductTranslatableContent(ModelObjectType[product_models.Product]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -260,7 +270,7 @@ class ProductTranslatableContent(ModelObjectType):
         )
 
 
-class CollectionTranslation(BaseTranslationType):
+class CollectionTranslation(BaseTranslationType[product_models.CollectionTranslation]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -285,7 +295,7 @@ class CollectionTranslation(BaseTranslationType):
         return description if description is not None else {}
 
 
-class CollectionTranslatableContent(ModelObjectType):
+class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -325,7 +335,7 @@ class CollectionTranslatableContent(ModelObjectType):
         return description if description is not None else {}
 
 
-class CategoryTranslation(BaseTranslationType):
+class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -350,7 +360,7 @@ class CategoryTranslation(BaseTranslationType):
         return description if description is not None else {}
 
 
-class CategoryTranslatableContent(ModelObjectType):
+class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -385,7 +395,7 @@ class CategoryTranslatableContent(ModelObjectType):
         return description if description is not None else {}
 
 
-class PageTranslation(BaseTranslationType):
+class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -406,7 +416,7 @@ class PageTranslation(BaseTranslationType):
         return content if content is not None else {}
 
 
-class PageTranslatableContent(ModelObjectType):
+class PageTranslatableContent(ModelObjectType[page_models.Page]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -459,7 +469,7 @@ class PageTranslatableContent(ModelObjectType):
         )
 
 
-class VoucherTranslation(BaseTranslationType):
+class VoucherTranslation(BaseTranslationType[discount_models.VoucherTranslation]):
     id = graphene.GlobalID(required=True)
     name = graphene.String()
 
@@ -468,7 +478,7 @@ class VoucherTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class VoucherTranslatableContent(ModelObjectType):
+class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
     id = graphene.GlobalID(required=True)
     name = graphene.String()
     translation = TranslationField(VoucherTranslation, type_name="voucher")
@@ -494,7 +504,7 @@ class VoucherTranslatableContent(ModelObjectType):
         return ChannelContext(node=root, channel_slug=None)
 
 
-class SaleTranslation(BaseTranslationType):
+class SaleTranslation(BaseTranslationType[discount_models.SaleTranslation]):
     id = graphene.GlobalID(required=True)
     name = graphene.String()
 
@@ -503,7 +513,7 @@ class SaleTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class SaleTranslatableContent(ModelObjectType):
+class SaleTranslatableContent(ModelObjectType[discount_models.Sale]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     translation = TranslationField(SaleTranslation, type_name="sale")
@@ -528,7 +538,7 @@ class SaleTranslatableContent(ModelObjectType):
         return ChannelContext(node=root, channel_slug=None)
 
 
-class ShopTranslation(BaseTranslationType):
+class ShopTranslation(BaseTranslationType[site_models.SiteSettingsTranslation]):
     id = graphene.GlobalID(required=True)
     header_text = graphene.String(required=True)
     description = graphene.String(required=True)
@@ -538,7 +548,7 @@ class ShopTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class MenuItemTranslation(BaseTranslationType):
+class MenuItemTranslation(BaseTranslationType[menu_models.MenuItemTranslation]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
 
@@ -547,7 +557,7 @@ class MenuItemTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class MenuItemTranslatableContent(ModelObjectType):
+class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     translation = TranslationField(MenuItemTranslation, type_name="menu item")
@@ -571,7 +581,9 @@ class MenuItemTranslatableContent(ModelObjectType):
         return ChannelContext(node=root, channel_slug=None)
 
 
-class ShippingMethodTranslation(BaseTranslationType):
+class ShippingMethodTranslation(
+    BaseTranslationType[shipping_models.ShippingMethodTranslation]
+):
     id = graphene.GlobalID(required=True)
     name = graphene.String()
     description = JSONString(
@@ -583,7 +595,9 @@ class ShippingMethodTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
 
-class ShippingMethodTranslatableContent(ModelObjectType):
+class ShippingMethodTranslatableContent(
+    ModelObjectType[shipping_models.ShippingMethod]
+):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     description = JSONString(

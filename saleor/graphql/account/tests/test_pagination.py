@@ -1,7 +1,6 @@
 import pytest
-from django.contrib.auth import models as auth_models
 
-from ....account.models import User
+from ....account.models import Group, User
 from ....account.search import prepare_user_search_document_value
 from ....order.models import Order
 from ...tests.utils import get_graphql_content
@@ -289,13 +288,13 @@ def test_query_staff_members_pagination_with_filter_search(
 
 @pytest.fixture
 def permission_groups_for_pagination(db):
-    return auth_models.Group.objects.bulk_create(
+    return Group.objects.bulk_create(
         [
-            auth_models.Group(name="admin"),
-            auth_models.Group(name="customer_manager"),
-            auth_models.Group(name="discount_manager"),
-            auth_models.Group(name="staff"),
-            auth_models.Group(name="accountant"),
+            Group(name="admin"),
+            Group(name="customer_manager"),
+            Group(name="discount_manager"),
+            Group(name="staff"),
+            Group(name="accountant"),
         ]
     )
 

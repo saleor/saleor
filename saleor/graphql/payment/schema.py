@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import OrderPermissions, PaymentPermissions
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
@@ -51,18 +52,18 @@ class PaymentQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_payment(_root, _info, **data):
+    def resolve_payment(_root, _info: ResolveInfo, **data):
         _, id = from_global_id_or_error(data["id"], Payment)
         return resolve_payment_by_id(id)
 
     @staticmethod
-    def resolve_payments(_root, info, **kwargs):
+    def resolve_payments(_root, info: ResolveInfo, **kwargs):
         qs = resolve_payments(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PaymentCountableConnection)
 
     @staticmethod
-    def resolve_transaction(_root, info, **kwargs):
+    def resolve_transaction(_root, info: ResolveInfo, **kwargs):
         _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
         return resolve_transaction(id)
 

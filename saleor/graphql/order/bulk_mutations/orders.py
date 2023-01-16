@@ -4,6 +4,7 @@ from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseBulkMutation
 from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -26,11 +27,11 @@ class OrderBulkCancel(BaseBulkMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, _info: ResolveInfo, instance) -> None:
         clean_order_cancel(instance)
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /) -> None:
         manager = get_plugin_manager_promise(info.context).get()
         for order in queryset:
             cancel_order(

@@ -21,7 +21,7 @@ def test_address_form_for_country(country):
         "phone": "123456789",
     }
 
-    form = forms.get_address_form(data, country_code=country)[0]
+    form = forms.get_address_form(data, country_code=country)
     errors = form.errors
     rules = i18naddress.get_validation_rules({"country_code": country})
     required = rules.required_fields
@@ -54,7 +54,7 @@ def test_address_form_postal_code_validation():
         "country": "PL",
         "postal_code": "XXX",
     }
-    form = forms.get_address_form(data, country_code="PL")[0]
+    form = forms.get_address_form(data, country_code="PL")
     errors = form.errors
     assert "postal_code" in errors
 
@@ -69,7 +69,7 @@ def test_address_form_postal_code_validation():
 )
 def test_address_form_phone_number_validation(country, phone, is_valid):
     data = {"country": country, "phone": phone}
-    form = forms.get_address_form(data, country_code="PL")[0]
+    form = forms.get_address_form(data, country_code="PL")
     errors = form.errors
     if not is_valid:
         assert "phone" in errors
@@ -78,48 +78,43 @@ def test_address_form_phone_number_validation(country, phone, is_valid):
 
 
 @pytest.mark.parametrize(
-    "form_data, form_valid, expected_preview, expected_country",
+    "form_data, form_valid, expected_country",
     [
-        ({"preview": True}, False, True, "PL"),
+        ({}, False, "PL"),
         (
             {
-                "preview": False,
                 "street_address_1": "Foo bar",
                 "postal_code": "00-123",
                 "city": "Warsaw",
             },
             True,
-            False,
             "PL",
         ),
-        ({"preview": True, "country": "US"}, False, True, "US"),
+        ({"country": "US"}, False, "US"),
         (
             {
-                "preview": False,
                 "street_address_1": "Foo bar",
                 "postal_code": "0213",
                 "city": "Warsaw",
             },
             False,
-            False,
             "PL",
         ),
     ],
 )
-def test_get_address_form(form_data, form_valid, expected_preview, expected_country):
+def test_get_address_form(form_data, form_valid, expected_country):
     data = {"first_name": "John", "last_name": "Doe", "country": "PL"}
     data.update(form_data)
     query_dict = urlencode(data)
-    form, preview = forms.get_address_form(
+    form = forms.get_address_form(
         data=QueryDict(query_dict), country_code=data["country"]
     )
-    assert preview is expected_preview
     assert form.is_valid() is form_valid
     assert form.i18n_country_code == expected_country
 
 
 def test_get_address_form_no_country_code():
-    form, _ = forms.get_address_form(data={}, country_code=None)
+    form = forms.get_address_form(data={}, country_code=None)
     assert isinstance(form, i18n.AddressForm)
 
 
@@ -177,6 +172,8 @@ def test_address_as_data(address):
         "country": "PL",
         "country_area": "",
         "phone": "+48713988102",
+        "metadata": {},
+        "private_metadata": {},
     }
 
 

@@ -4,10 +4,12 @@ import os
 import os.path
 import warnings
 from datetime import timedelta
+from typing import List
 
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import django_stubs_ext
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
@@ -25,6 +27,8 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_sale_webhook_schedule
+
+django_stubs_ext.monkeypatch()
 
 
 def get_list(text):
@@ -208,7 +212,6 @@ JWT_MANAGER_PATH = os.environ.get(
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.request_time",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
@@ -220,10 +223,11 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sites",
     "django.contrib.staticfiles",
-    "django.contrib.auth",
     "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
+    "saleor.permission",
+    "saleor.auth",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",
@@ -660,10 +664,8 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     ignore_logger("graphql.execution.executor")
 
 
-GRAPHENE = {
-    "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
-    "RELAY_CONNECTION_MAX_LIMIT": 100,
-}
+GRAPHQL_PAGINATION_LIMIT = 100
+GRAPHQL_MIDDLEWARE: List[str] = []
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(
@@ -794,6 +796,12 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
 
+# Optional queue names for Celery tasks.
+# Set None to route to the default queue, or a string value to use a separate one
+#
+# Queue name for update search vector
 UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
     "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
 )
+# Queue name for "async webhook" events
+WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)

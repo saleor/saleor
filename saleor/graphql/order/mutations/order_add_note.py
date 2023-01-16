@@ -6,6 +6,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...core.validators import validate_required_string_field
@@ -43,22 +44,24 @@ class OrderAddNote(BaseMutation):
     @classmethod
     def clean_input(cls, _info, _instance, data):
         try:
-            cleaned_input = validate_required_string_field(data["input"], "message")
+            cleaned_input = validate_required_string_field(data, "message")
         except ValidationError:
             raise ValidationError(
                 {
                     "message": ValidationError(
                         "Message can't be empty.",
-                        code=OrderErrorCode.REQUIRED,
+                        code=OrderErrorCode.REQUIRED.value,
                     )
                 }
             )
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        cleaned_input = cls.clean_input(info, order, data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
+        cleaned_input = cls.clean_input(info, order, input)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
