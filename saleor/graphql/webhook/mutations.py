@@ -361,14 +361,15 @@ class WebhookDryRun(BaseMutation):
         query = data.get("query")
         object_id = data.get("object_id")
 
-        event_type = get_event_type_from_subscription(query) if query else None
-        if not event_type:
+        event_types = get_event_type_from_subscription(query) if query else None
+        if not event_types:
             raise_validation_error(
                 field="query",
                 message="Can't parse an event type from query.",
                 code=WebhookDryRunErrorCode.UNABLE_TO_PARSE,
             )
 
+        event_type = event_types[0] if event_types else None
         event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
         if not event and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
@@ -460,13 +461,14 @@ class WebhookTrigger(BaseMutation):
                 code=WebhookTriggerErrorCode.MISSING_QUERY,
             )
 
-        event_type = get_event_type_from_subscription(query)
-        if not event_type:
+        event_types = get_event_type_from_subscription(query)
+        if not event_types:
             raise_validation_error(
                 message="Can't parse an event type from webhook's subscription query.",
                 code=WebhookTriggerErrorCode.UNABLE_TO_PARSE,
             )
 
+        event_type = event_types[0] if event_types else None
         event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
         if not event and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
