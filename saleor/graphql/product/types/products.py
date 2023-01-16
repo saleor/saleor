@@ -1274,7 +1274,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             # achieved by adding the number of nonnull fields as firt element of tuple
             def key(x):
                 values_tuple = tuple(
-                    getattr(x, field) for field in sort_by["field"] if getattr(x, field)
+                    getattr(x, field)
+                    for field in sort_by["field"]
+                    if getattr(x, field) is not None
                 )
                 values_tuple = (len(values_tuple),) + values_tuple
                 return values_tuple
