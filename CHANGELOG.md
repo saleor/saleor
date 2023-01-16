@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `webhookDryRun` mutation - #11548 by @zedzior
 - Fix adding invalid label to meta fields - #11718 by @IKarbowiak
 - Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
+- Add `WebhookTrigger` mutation - #11687 by @zedzior
 
 ### Other changes
 
@@ -35,8 +36,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - `Order`
   - `User`
   - `Warehouse`
-- Add `WebhookDryRun` mutation - #11548 by @zedzior
-- Add `WebhookTrigger` mutation - #11687 by @zedzior
 
 ### Other changes
 

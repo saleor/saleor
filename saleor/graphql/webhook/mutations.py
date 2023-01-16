@@ -11,13 +11,11 @@ from ...webhook.error_codes import (
     WebhookTriggerErrorCode,
 )
 from ...webhook.event_types import WebhookEventAsyncType
-from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
-from ...webhook.event_types import WebhookEventAsyncType
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_32,
-    ADDED_IN_310,
+    ADDED_IN_311,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -350,7 +348,7 @@ class WebhookDryRun(BaseMutation):
             "Performs a dry run of a webhook event. "
             "Supports a single event (the first, if multiple provided in the `query`). "
             "Requires permission relevant to processed event."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
@@ -441,7 +439,7 @@ class WebhookTrigger(BaseMutation):
             "Trigger a webhook event. Supports a single event "
             "(the first, if multiple provided in the `webhook.subscription_query`). "
             "Requires permission relevant to processed event."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
