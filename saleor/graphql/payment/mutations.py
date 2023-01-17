@@ -1,12 +1,13 @@
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
 from django.db.models import F, Model
+from django.utils import timezone
 
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
@@ -21,6 +22,7 @@ from ...core.permissions import (
     OrderPermissions,
     PaymentPermissions,
 )
+from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
@@ -60,8 +62,9 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ..core.enums import TransactionEventReportErrorCode
 from ..core.fields import JSONString
-from ..core.mutations import BaseMutation
+from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..discount.dataloaders import load_discounts
@@ -72,9 +75,10 @@ from .enums import (
     StorePaymentMethodEnum,
     TransactionActionEnum,
     TransactionEventStatusEnum,
+    TransactionEventTypeEnum,
 )
-from .types import Payment, PaymentInitialized, TransactionItem
-from .utils import metadata_contains_empty_key
+from .types import Payment, PaymentInitialized, TransactionEvent, TransactionItem
+from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -734,12 +738,8 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        auto_permission_message = False
         description = (
-            "Create transaction for checkout or order. Requires the "
-            f"following permissions: {PaymentPermissions.HANDLE_PAYMENTS.name}."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
+            "Create transaction for checkout or order." + ADDED_IN_34 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -974,11 +974,12 @@ class TransactionUpdate(TransactionCreate):
     class Meta:
         auto_permission_message = False
         description = (
-            "Create transaction for checkout or order. Requires the "
-            f"following permissions: {AuthorizationFilters.OWNER.name} "
-            f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
+            "Create transaction for checkout or order."
             + ADDED_IN_34
             + PREVIEW_FEATURE
+            + "\n\nRequires the following permissions: "
+            + f"{AuthorizationFilters.OWNER.name} "
+            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
         )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -991,21 +992,15 @@ class TransactionUpdate(TransactionCreate):
         user: Optional["User"],
         app: Optional["App"],
     ):
-        # Previously we didn't require app/user attached to transaction. We can't
-        # determine which app/user is an owner of the transaction. So for transaction
-        # without attached owner we require only HANDLE_PAYMENTS.
-        if not transaction.user_id and not transaction.app_id:
-            return
-
-        if user and transaction.user_id == user.id:
-            return
-
-        if app and transaction.app_id == app.id:
-            return
-
-        raise PermissionDenied(
-            permissions=[AuthorizationFilters.OWNER, PaymentPermissions.HANDLE_PAYMENTS]
-        )
+        if not check_if_requestor_has_access(
+            transaction=transaction, user=user, app=app
+        ):
+            raise PermissionDenied(
+                permissions=[
+                    AuthorizationFilters.OWNER,
+                    PaymentPermissions.HANDLE_PAYMENTS,
+                ]
+            )
 
     @classmethod
     def validate_transaction_input(
@@ -1250,3 +1245,165 @@ class TransactionRequestAction(BaseMutation):
             code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
             raise ValidationError(str(e), code=code)
         return TransactionRequestAction(transaction=transaction)
+
+
+class TransactionEventReport(ModelMutation):
+    already_processed = graphene.Boolean(
+        description="Defines if the reported event hasn't been processed earlier."
+    )
+    transaction = graphene.Field(
+        TransactionItem, description="The transaction related to the reported event."
+    )
+    transaction_event = graphene.Field(
+        TransactionEvent,
+        description=(
+            "The event assigned to this report. if `alreadyProcessed` is set to `true`,"
+            " the previously processed event will be returned."
+        ),
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the transaction.",
+            required=True,
+        )
+        psp_reference = graphene.String(
+            description="PSP Reference of the event to report.", required=True
+        )
+        type = graphene.Argument(
+            TransactionEventTypeEnum,
+            required=True,
+            description="Current status of the event to report.",
+        )
+        amount = PositiveDecimal(
+            description="The amount of the event to report.", required=True
+        )
+        time = graphene.DateTime(
+            description=(
+                "The time of the event to report. If not provide, "
+                "the current time will be used."
+            )
+        )
+        external_url = graphene.String(
+            description=(
+                "The url that will allow to redirect user to "
+                "payment provider page with event details."
+            )
+        )
+        message = graphene.String(description="The message related to the event.")
+        available_actions = graphene.List(
+            graphene.NonNull(TransactionActionEnum),
+            description="List of all possible actions for the transaction",
+        )
+
+    class Meta:
+        description = (
+            "Report the event for the transaction."
+            + ADDED_IN_310
+            + PREVIEW_FEATURE
+            + "\n\nRequires the following permissions: "
+            + f"{AuthorizationFilters.OWNER.name} "
+            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
+        )
+        error_type_class = common_types.TransactionEventReportError
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+        model = payment_models.TransactionEvent
+        object_type = TransactionEvent
+        auto_permission_message = False
+
+    @classmethod
+    def _update_mutation_arguments_and_fields(cls, arguments, fields):
+        cls._meta.arguments.update(arguments)
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        root,
+        info: ResolveInfo,
+        /,
+        *,
+        id,
+        psp_reference,
+        type,
+        amount,
+        time=None,
+        external_url=None,
+        message=None,
+        available_actions=None
+    ):
+        user = info.context.user
+        app = get_app_promise(info.context).get()
+        transaction = cls.get_node_or_error(info, id, only_type="TransactionItem")
+        transaction = cast(payment_models.TransactionItem, transaction)
+
+        if not check_if_requestor_has_access(
+            transaction=transaction, user=user, app=app
+        ):
+            raise PermissionDenied(
+                permissions=[
+                    AuthorizationFilters.OWNER,
+                    PaymentPermissions.HANDLE_PAYMENTS,
+                ]
+            )
+
+        transaction_event_data = {
+            "psp_reference": psp_reference,
+            "type": type,
+            "amount_value": amount,
+            "currency": transaction.currency,
+            "created_at": time or timezone.now(),
+            "external_url": external_url or "",
+            "message": message or "",
+            "transaction": transaction,
+            "app": app,
+            "user": user,
+        }
+        transaction_event = cls.get_instance(info, **transaction_event_data)
+        transaction_event = cast(payment_models.TransactionEvent, transaction_event)
+        transaction_event = cls.construct_instance(
+            transaction_event, transaction_event_data
+        )
+
+        cls.clean_instance(info, transaction_event)
+        with traced_atomic_transaction():
+            # The mutation can be called multiple times by the app. That can cause a
+            # thread race. We need to be sure, that we will always create a single event
+            # on our side for specific action.
+            existing_event = (
+                payment_models.TransactionEvent.objects.filter(
+                    transaction_id=transaction.pk,
+                    psp_reference=transaction_event.psp_reference,
+                    type=transaction_event.type,
+                )
+                .select_for_update(of=("self",))
+                .first()
+            )
+            if existing_event:
+                already_processed = True
+                if existing_event.amount != transaction_event.amount:
+                    error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
+                    raise ValidationError(
+                        {
+                            "pspReference": ValidationError(
+                                (
+                                    "The transaction with provided `pspReference` and "
+                                    "`type` already exists with different amount."
+                                ),
+                                code=error_code,
+                            )
+                        }
+                    )
+                transaction_event = existing_event
+            else:
+                already_processed = False
+                transaction_event.save()
+        if not already_processed and available_actions is not None:
+            transaction.available_actions = available_actions
+            transaction.save(update_fields=["available_actions"])
+
+        return cls(
+            already_processed=already_processed,
+            transaction=transaction,
+            transaction_event=payment_models.TransactionEvent.objects.first(),
+            errors=[],
+        )
