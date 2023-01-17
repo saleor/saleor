@@ -417,6 +417,10 @@ class AttributeValueInput(graphene.InputObjectType):
         required=False,
         description="Attribute value ID." + ADDED_IN_39,
     )
+    swatch = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_39,
+    )
     multiselect = NonNullList(
         AttributeValueSelectableTypeInput,
         required=False,
