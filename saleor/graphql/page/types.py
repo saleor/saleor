@@ -5,7 +5,7 @@ import graphene
 from ...attribute import models as attribute_models
 from ...page import models
 from ...permission.enums import PagePermissions
-from ..attribute.filters import AttributeFilterInput
+from ..attribute.filters import AttributeFilterInput, AttributeWhereInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -40,6 +40,7 @@ class PageType(ModelObjectType[models.PageType]):
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
         filter=AttributeFilterInput(),
+        where=AttributeWhereInput(),
         description="Attributes that can be assigned to the page type.",
         permissions=[
             PagePermissions.MANAGE_PAGES,
