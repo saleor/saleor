@@ -1590,6 +1590,9 @@ def test_customer_create(
     last_name = "api_last_name"
     note = "Test user"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("metadata")
+    address_data.pop("privateMetadata")
+
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
     variables = {
@@ -1854,6 +1857,8 @@ def test_customer_update(
     note = "Test update note"
     external_reference = "test-ext-ref"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("metadata")
+    address_data.pop("privateMetadata")
 
     new_street_address = "Updated street address"
     address_data["streetAddress1"] = new_street_address

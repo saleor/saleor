@@ -91,8 +91,9 @@ class Address(ModelObjectType[models.Address]):
 
     class Meta:
         description = "Represents user address data."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
+        metadata_since = ADDED_IN_310
 
     @staticmethod
     def resolve_country(root: models.Address, _info: ResolveInfo):

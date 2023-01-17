@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, List, Union
 
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 
 from ...account import models as account_models
 from ...account.error_codes import AccountErrorCode
@@ -25,6 +26,8 @@ from ...core.permissions import (
     ShippingPermissions,
 )
 from ...payment.utils import payment_owned_by_user
+from ...site import models as site_models
+from ...warehouse import models as warehouse_models
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.utils import from_global_id_or_error
@@ -67,6 +70,80 @@ def private_user_permissions(
         raise PermissionDenied()
     if user.is_staff:
         return [AccountPermissions.MANAGE_STAFF]
+    return [AccountPermissions.MANAGE_USERS]
+
+
+def public_address_permissions(
+    info: ResolveInfo, address_pk: int
+) -> List[BasePermissionEnum]:
+    """Resolve permission for access to public metadata for user addresses.
+
+    Customer have access to the public metadata of their own addresses.
+    Staff user with `MANAGE_USERS` have access to public metadata of customer
+    addresses.
+    Staff user with `MANAGE_STAFF` have access to public metadata of staff user
+    addresses.
+    For now, updating warehouse and shop addresses is forbidden.
+    """
+    address = (
+        account_models.Address.objects.filter(pk=address_pk)
+        .prefetch_related("user_addresses")
+        .first()
+    )
+    if not address:
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Couldn't resolve address.", code=AccountErrorCode.NOT_FOUND.value
+                )
+            }
+        )
+    user = info.context.user
+    # no permission is required when the requestor is the owner of the address
+    if user and address.user_addresses.filter(id=user.id):
+        return []
+    staff_users = account_models.User.objects.filter(is_staff=True)
+
+    if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
+        return [AccountPermissions.MANAGE_STAFF]
+
+    if (
+        warehouse_models.Warehouse.objects.filter(address_id=address.id).exists()
+        or site_models.SiteSettings.objects.filter(
+            company_address_id=address.id
+        ).exists()
+    ):
+        raise PermissionDenied()
+
+    return [AccountPermissions.MANAGE_USERS]
+
+
+def private_address_permissions(
+    _info: ResolveInfo, address_pk: int
+) -> List[BasePermissionEnum]:
+    address = (
+        account_models.Address.objects.filter(pk=address_pk)
+        .prefetch_related("user_addresses")
+        .first()
+    )
+    if not address:
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Couldn't resolve address.", code=AccountErrorCode.NOT_FOUND.value
+                )
+            }
+        )
+    staff_users = account_models.User.objects.filter(is_staff=True)
+    if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
+        return [AccountPermissions.MANAGE_STAFF]
+    if (
+        warehouse_models.Warehouse.objects.filter(address_id=address.id).exists()
+        or site_models.SiteSettings.objects.filter(
+            company_address_id=address.id
+        ).exists()
+    ):
+        raise PermissionDenied()
     return [AccountPermissions.MANAGE_USERS]
 
 
@@ -191,6 +268,7 @@ def tax_permissions(_info: ResolveInfo, _object_pk: int) -> List[BasePermissionE
 PUBLIC_META_PERMISSION_MAP: Dict[
     str, Callable[[ResolveInfo, Any], List[BasePermissionEnum]]
 ] = {
+    "Address": public_address_permissions,
     "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
@@ -226,6 +304,7 @@ PUBLIC_META_PERMISSION_MAP: Dict[
 PRIVATE_META_PERMISSION_MAP: Dict[
     str, Callable[[ResolveInfo, Any], List[BasePermissionEnum]]
 ] = {
+    "Address": private_address_permissions,
     "App": private_app_permssions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,

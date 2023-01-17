@@ -53,7 +53,7 @@ class AddressQueryset(models.QuerySet["Address"]):
 AddressManager = models.Manager.from_queryset(AddressQueryset)
 
 
-class Address(models.Model):
+class Address(ModelWithMetadata):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
     company_name = models.CharField(max_length=256, blank=True)
@@ -71,6 +71,7 @@ class Address(models.Model):
     class Meta:
         ordering = ("pk",)
         indexes = [
+            *ModelWithMetadata.Meta.indexes,
             GinIndex(
                 name="address_search_gin",
                 # `opclasses` and `fields` should be the same length
