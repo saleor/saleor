@@ -3284,6 +3284,34 @@ def product_with_image_list(product, image_list, media_root):
 
 
 @pytest.fixture
+def product_with_image_list_and_one_null_sort_order(product_with_image_list):
+    """
+    As we allow to have `null` in `sort_order` in database, but our logic
+    covers changing any new `null` values to proper `int` need to execute
+    raw SQL query on database to test behaviour of `null` `sort_order`.
+
+    SQL query behaviour:
+    Updates one of the product media `sort_order` to `null`.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE PRODUCT_PRODUCTMEDIA
+            SET SORT_ORDER = NULL
+            WHERE ID IN (
+                SELECT ID FROM PRODUCT_PRODUCTMEDIA
+                WHERE PRODUCT_ID = %s
+                ORDER BY ID
+                LIMIT 1
+            )
+            """,
+            [product_with_image_list.pk],
+        )
+    product_with_image_list.refresh_from_db()
+    return product_with_image_list
+
+
+@pytest.fixture
 def unavailable_product(product_type, category, channel_USD, default_tax_class):
     product = Product.objects.create(
         name="Test product",
