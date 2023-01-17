@@ -1,10 +1,12 @@
 import graphene
+from celery.exceptions import Retry
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from graphene.utils.str_converters import to_camel_case
 
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission
+from ...core import EventDeliveryStatus
 from ...webhook import models
 from ...webhook.error_codes import (
     WebhookDryRunErrorCode,
@@ -437,11 +439,10 @@ class WebhookTrigger(BaseMutation):
 
     class Meta:
         description = (
-            "Trigger a webhook event. Supports a single event "
-            "(the first, if multiple provided in the `webhook.subscription_query`). "
-            "Requires permission relevant to processed event."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
+            "Trigger a webhook event. Supports a single event (the first, if multiple "
+            "provided in the `webhook.subscription_query`). Requires permission "
+            "relevant to processed event. Successfully delivered webhook does not "
+            "return `delivery`." + ADDED_IN_311 + PREVIEW_FEATURE
         )
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookTriggerError
@@ -529,8 +530,11 @@ class WebhookTrigger(BaseMutation):
             )
             if deliveries:
                 delivery = deliveries[0]
-                send_webhook_request_async(delivery.id, clear=False)
-                delivery.refresh_from_db()
-                # clear_successful_delivery(delivery)
+                try:
+                    send_webhook_request_async(delivery.id)
+                    return WebhookTrigger(delivery=None)
+                except Retry:
+                    delivery.status = EventDeliveryStatus.FAILED
+                    delivery.save(update_fields=["status"])
 
         return WebhookTrigger(delivery=delivery)

@@ -12,7 +12,11 @@ class PayloadByIdLoader(DataLoader[str, str]):
         payload = EventPayload.objects.using(self.database_connection_name).in_bulk(
             keys
         )
-        return [payload[payload_id].payload for payload_id in keys]
+
+        return [
+            payload[payload_id].payload if payload.get(payload_id) else None
+            for payload_id in keys
+        ]
 
 
 class WebhookEventsByWebhookIdLoader(DataLoader):
