@@ -113,6 +113,10 @@ def add_hash_to_file_name(file):
     file._name = new_name
 
 
+def raise_validation_error(field=None, message=None, code=None):
+    raise ValidationError({field: ValidationError(message, code=code)})
+
+
 def ext_ref_to_global_id_or_error(model, external_reference):
     """Convert external reference to graphen global id."""
     internal_id = (
@@ -123,11 +127,8 @@ def ext_ref_to_global_id_or_error(model, external_reference):
     if internal_id:
         return graphene.Node.to_global_id(model.__name__, internal_id)
     else:
-        raise ValidationError(
-            {
-                "externalReference": ValidationError(
-                    f"Couldn't resolve to a node: {external_reference}",
-                    code="not_found",
-                )
-            }
+        raise_validation_error(
+            field="externalReference",
+            message=f"Couldn't resolve to a node: {external_reference}",
+            code="not_found",
         )

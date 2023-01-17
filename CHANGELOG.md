@@ -2,6 +2,18 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.11.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+- Add `webhookDryRun` mutation - #11548 by @zedzior
+- Fix adding invalid label to meta fields - #11718 by @IKarbowiak
+- Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
+
+### Other changes
+
 # 3.10.0 [Unreleased]
 
 ### Breaking changes
@@ -11,26 +23,29 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`
-  - Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models:
-    - `Product`
-    - `ProductVariant`
-    - `Attribute`
-    - `AttributeValue`
-    - `Order`
-    - `User`
-    - `Warehouse`
 - Extend invoice object types with `Order` references - #11505 by @przlada
   - Add `Invoice.order` field
   - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
 
 ### Other changes
+
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
-- Move checkout metadata to separate model - #11264  by @jakubkuc
+- Move checkout metadata to separate model - #11264 by @jakubkuc
 - Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
 - Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
 - Drop `Django.Auth` - #11305 by @fowczarek
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
 - Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
+- Fix stock events triggers - #11714 by @jakubkuc
 - Accept the gift card code provided in the input - by @mociepka
 
 # 3.9.0

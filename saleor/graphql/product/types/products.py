@@ -1278,9 +1278,21 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         def sort_media(media) -> list[ProductMedia]:
             reversed = sort_by["direction"] == "-"
+
+            # Nullable first,
+            # achieved by adding the number of nonnull fields as firt element of tuple
+            def key(x):
+                values_tuple = tuple(
+                    getattr(x, field)
+                    for field in sort_by["field"]
+                    if getattr(x, field) is not None
+                )
+                values_tuple = (len(values_tuple),) + values_tuple
+                return values_tuple
+
             media_sorted = sorted(
                 media,
-                key=lambda x: tuple(getattr(x, field) for field in sort_by["field"]),
+                key=key,
                 reverse=reversed,
             )
             return media_sorted

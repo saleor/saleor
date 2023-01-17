@@ -215,7 +215,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     order=order, confirmation_needed=False, confirmation_data={}
                 )
             raise e
-
         if metadata is not None:
             cls.check_metadata_permissions(
                 info,
