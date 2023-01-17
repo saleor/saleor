@@ -240,7 +240,6 @@ class AttributeWhere(MetadataFilterBase):
     class Meta:
         model = Attribute
         fields = [
-            # "name",
             "value_required",
             "visible_in_storefront",
             "filterable_in_dashboard",
