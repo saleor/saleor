@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -19,6 +20,7 @@ WEBHOOK_TRIGGER_MUTATION = """
             delivery {
                 status
                 eventType
+                payload
             }
         }
     }
@@ -26,7 +28,7 @@ WEBHOOK_TRIGGER_MUTATION = """
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
-def test_webhook_trigger(
+def test_webhook_trigger_success(
     mock_send_webhook_using_scheme_method,
     staff_api_client,
     permission_manage_orders,
@@ -53,8 +55,41 @@ def test_webhook_trigger(
     data = content["data"]["webhookTrigger"]
     assert data
     assert not data["errors"]
-    assert data["delivery"]["status"] == EventDeliveryStatus.SUCCESS.upper()
+    assert data["delivery"] is None
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_webhook_trigger_fail(
+    mock_send_webhook_using_scheme_method,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    subscription_order_created_webhook,
+    webhook_response_failed,
+):
+    # given
+    query = WEBHOOK_TRIGGER_MUTATION
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    webhook = subscription_order_created_webhook
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
+
+    mock_send_webhook_using_scheme_method.return_value = webhook_response_failed
+
+    variables = {"webhookId": webhook_id, "objectId": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+
+    # then
+    data = content["data"]["webhookTrigger"]
+    assert data
+    assert not data["errors"]
+    assert data["delivery"]["status"] == EventDeliveryStatus.FAILED.upper()
     assert data["delivery"]["eventType"] == WebhookEventAsyncType.ORDER_CREATED.upper()
+    payload = json.loads(data["delivery"]["payload"])
+    assert payload["order"]["id"] == order_id
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")

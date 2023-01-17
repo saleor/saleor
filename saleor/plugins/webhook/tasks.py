@@ -465,7 +465,7 @@ def send_webhook_using_scheme_method(
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
 )
-def send_webhook_request_async(self, event_delivery_id, clear=True):
+def send_webhook_request_async(self, event_delivery_id):
     try:
         delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
             id=event_delivery_id
@@ -541,8 +541,7 @@ def send_webhook_request_async(self, event_delivery_id, clear=True):
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
     observability.report_event_delivery_attempt(attempt)
-    if clear:
-        clear_successful_delivery(delivery)
+    clear_successful_delivery(delivery)
 
 
 def send_webhook_request_sync(
