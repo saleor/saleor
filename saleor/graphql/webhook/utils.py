@@ -2,6 +2,7 @@ from typing import Dict, List, Optional
 
 from graphene.utils.str_converters import to_snake_case
 from graphql import parse
+from graphql.error import GraphQLSyntaxError
 from graphql.language.ast import Document
 
 
@@ -26,7 +27,7 @@ def get_event_type_from_subscription(query: str) -> List[str]:
 
         return list(map(to_snake_case, events))
 
-    except Exception:
+    except GraphQLSyntaxError:
         return []
 
 
@@ -47,23 +48,29 @@ def get_subscription(ast):
 
 
 def get_events(field):
-    fields = field.selection_set.selections
-    events = []
-    for field in fields:
-        if hasattr(field, "name"):
-            events.append(field.name.value)
-        if hasattr(field, "type_condition"):
-            events.append(field.type_condition.name.value)
-    return events
+    try:
+        fields = field.selection_set.selections
+        events = []
+        for field in fields:
+            if hasattr(field, "name"):
+                events.append(field.name.value)
+            if hasattr(field, "type_condition"):
+                events.append(field.type_condition.name.value)
+        return events
+    except AttributeError:
+        return []
 
 
 def get_event_fragment_names_from_query(ast: Document) -> Optional[Dict[str, str]]:
     fragments = {}
-    for definition in ast.definitions:
-        if (
-            definition.__class__.__name__ == "FragmentDefinition"
-            and definition.type_condition.name.value == "Event"
-        ):
-            event = definition.selection_set.selections[0].type_condition.name.value
-            fragments[definition.name.value] = event
-    return fragments
+    try:
+        for definition in ast.definitions:
+            if (
+                definition.__class__.__name__ == "FragmentDefinition"
+                and definition.type_condition.name.value == "Event"
+            ):
+                event = definition.selection_set.selections[0].type_condition.name.value
+                fragments[definition.name.value] = event
+        return fragments
+    except AttributeError:
+        return fragments
