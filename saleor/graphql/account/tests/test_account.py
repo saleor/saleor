@@ -4574,7 +4574,11 @@ def test_create_address_mutation_the_oldest_address_is_deleted(
 
 
 def test_create_address_validation_fails(
-    staff_api_client, customer_user, graphql_address_data, permission_manage_users, address
+    staff_api_client,
+    customer_user,
+    graphql_address_data,
+    permission_manage_users,
+    address,
 ):
     # given
     query = ADDRESS_CREATE_MUTATION
