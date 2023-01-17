@@ -96,7 +96,7 @@ from ..utils import get_event_type_from_subscription
                 }
             }
             """,
-            None,
+            [],
         ),
         (
             """
