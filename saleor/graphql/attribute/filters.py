@@ -8,6 +8,7 @@ from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.filters import get_channel_slug_from_filter_data
+from ..core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
     EnumFilter,
@@ -260,3 +261,4 @@ class AttributeWhere(MetadataFilterBase):
 class AttributeWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeWhere
+        description = "Where filtering options." + ADDED_IN_311 + PREVIEW_FEATURE

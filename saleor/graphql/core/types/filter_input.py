@@ -7,7 +7,7 @@ from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ..descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..descriptions import ADDED_IN_311, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
@@ -161,7 +161,7 @@ class StringFilterInput(graphene.InputObjectType):
     class Meta:
         description = (
             "Define the filtering options for string fields."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )
 
@@ -176,7 +176,7 @@ class IntFilterInput(graphene.InputObjectType):
     class Meta:
         description = (
             "Define the filtering options for integer fields."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )
 
@@ -191,7 +191,7 @@ class DateFilterInput(graphene.InputObjectType):
     class Meta:
         description = (
             "Define the filtering options for date fields."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )
 
@@ -210,6 +210,6 @@ class DateTimeFilterInput(graphene.InputObjectType):
     class Meta:
         description = (
             "Define the filtering options for date time fields."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )

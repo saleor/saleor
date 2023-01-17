@@ -3,7 +3,7 @@ import graphene
 from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310
+from ..core.descriptions import ADDED_IN_310, ADDED_IN_311, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
@@ -29,7 +29,9 @@ class AttributeQueries(graphene.ObjectType):
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),
         where=AttributeWhereInput(
-            description="Filtering options for attributes." + ADDED_IN_310
+            description="Filtering options for attributes."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
         ),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(
