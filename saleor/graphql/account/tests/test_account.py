@@ -4573,6 +4573,29 @@ def test_create_address_mutation_the_oldest_address_is_deleted(
         address.refresh_from_db()
 
 
+def test_create_address_validation_fails(
+    staff_api_client, customer_user, graphql_address_data, permission_manage_users, address
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data["postalCode"] = "wrong postal code"
+    variables = {"user": user_id, "address": graphql_address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "postalCode"
+    assert data["address"] is None
+
+
 ADDRESS_UPDATE_MUTATION = """
     mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
         addressUpdate(id: $addressId, input: $address) {
