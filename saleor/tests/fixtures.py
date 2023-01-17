@@ -964,6 +964,48 @@ def orders(customer_user, channel_USD, channel_PLN):
 
 
 @pytest.fixture
+def orders_from_checkout(customer_user, checkout):
+    return Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                status=OrderStatus.CANCELED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.UNFULFILLED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.FULFILLED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.FULFILLED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def order_from_checkout_JPY(customer_user, checkout_JPY):
+    return Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.CANCELED,
+        channel=checkout_JPY.channel,
+        checkout_token=checkout_JPY.token,
+    )
+
+
+@pytest.fixture
 def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     order = Order.objects.create(

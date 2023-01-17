@@ -63,6 +63,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_39,
     ADDED_IN_310,
+    ADDED_IN_311,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -1142,6 +1143,12 @@ class Order(ModelObjectType[models.Order]):
     external_reference = graphene.String(
         description=f"External ID of this order. {ADDED_IN_310}", required=False
     )
+    checkout_id = graphene.ID(
+        description=(
+            f"ID of the checkout that the order was created from. {ADDED_IN_311}"
+        ),
+        required=False,
+    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -1795,6 +1802,12 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_tax_class_private_metadata(root: models.Order, info):
         check_private_metadata_privilege(root, info)
         return resolve_metadata(root.shipping_tax_class_private_metadata)
+
+    @staticmethod
+    def resolve_checkout_id(root: models.Order, _info):
+        if root.checkout_token:
+            return graphene.Node.to_global_id("Checkout", root.checkout_token)
+        return None
 
 
 class OrderCountableConnection(CountableConnection):

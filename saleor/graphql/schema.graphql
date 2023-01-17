@@ -9569,6 +9569,13 @@ type Order implements Node & ObjectWithMetadata {
   Added in Saleor 3.10.
   """
   externalReference: String
+
+  """
+  ID of the checkout that the order was created from. 
+  
+  Added in Saleor 3.11.
+  """
+  checkoutId: ID
 }
 
 """An enumeration."""
@@ -11083,6 +11090,7 @@ input OrderFilterInput {
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
+  checkoutIds: [ID!]
 }
 
 enum OrderStatusFilter {
