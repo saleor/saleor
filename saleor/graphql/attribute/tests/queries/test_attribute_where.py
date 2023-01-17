@@ -1613,3 +1613,52 @@ def test_attributes_where_with_multiple_nested_operators(
     nodes = data["data"]["attributes"]["edges"]
     assert len(nodes) == 1
     assert nodes[0]["node"]["slug"] == rich_text_attribute.slug
+
+
+ATTRIBUTES_SEARCH_QUERY = """
+    query($search: String, $channel: String) {
+      attributes(first: 10, search: $search, channel: $channel) {
+        edges {
+          node {
+            name
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "search, indexes",
+    [
+        ("color", [0]),
+        ("size", [1]),
+        ("date", [2, 3]),
+        ("ABCD", []),
+        (None, [0, 1, 2, 3]),
+        ("", [0, 1, 2, 3]),
+    ],
+)
+def test_search_attributes_on_root_level(
+    search,
+    indexes,
+    api_client,
+    color_attribute,
+    size_attribute,
+    date_attribute,
+    date_time_attribute,
+):
+    # given
+    attributes = [color_attribute, size_attribute, date_attribute, date_time_attribute]
+    variables = {"search": search}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_SEARCH_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {attributes[index].slug for index in indexes}

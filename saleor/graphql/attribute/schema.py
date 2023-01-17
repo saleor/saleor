@@ -8,7 +8,7 @@ from ..core.fields import FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
-from .filters import AttributeFilterInput, AttributeWhereInput
+from .filters import AttributeFilterInput, AttributeWhereInput, filter_attribute_search
 from .mutations import (
     AttributeCreate,
     AttributeDelete,
@@ -33,6 +33,9 @@ class AttributeQueries(graphene.ObjectType):
             + ADDED_IN_311
             + PREVIEW_FEATURE
         ),
+        search=graphene.String(
+            description="Search attributes." + ADDED_IN_311 + PREVIEW_FEATURE
+        ),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -48,9 +51,11 @@ class AttributeQueries(graphene.ObjectType):
         description="Look up an attribute by ID, slug or external reference.",
     )
 
-    def resolve_attributes(self, info: ResolveInfo, **kwargs):
+    def resolve_attributes(self, info: ResolveInfo, *, search=None, **kwargs):
         qs = resolve_attributes(info)
         qs = filter_connection_queryset(qs, kwargs, info.context)
+        if search:
+            qs = filter_attribute_search(qs, None, search)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(

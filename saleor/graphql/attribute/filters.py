@@ -66,6 +66,12 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     )
 
 
+def filter_attribute_search(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(Q(slug__ilike=value) | Q(name__ilike=value))
+
+
 def filter_by_attribute_type(qs, _, value):
     if not value:
         return qs
@@ -90,7 +96,7 @@ class AttributeValueFilter(django_filters.FilterSet):
 
 
 class AttributeFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(method="filter_attribute_search")
+    search = django_filters.CharFilter(method=filter_attribute_search)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     type = EnumFilter(input_class=AttributeTypeEnum, method=filter_by_attribute_type)
 
@@ -108,9 +114,6 @@ class AttributeFilter(MetadataFilterBase):
             "filterable_in_dashboard",
             "available_in_grid",
         ]
-
-    def filter_attribute_search(self, qs, _, value):
-        return qs.filter(Q(slug__ilike=value) | Q(name__ilike=value))
 
     def filter_in_collection(self, qs, name, value):
         requestor = get_user_or_app_from_context(self.request)

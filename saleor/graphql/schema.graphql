@@ -1179,6 +1179,15 @@ type Query {
     """
     where: AttributeWhereInput
 
+    """
+    Search attributes.
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    search: String
+
     """Sorting options for attributes."""
     sortBy: AttributeSortingInput
 
