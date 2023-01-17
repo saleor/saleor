@@ -17,7 +17,7 @@ class UserSortField(graphene.Enum):
         if self.name in UserSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort users by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_order_count(queryset: QuerySet, *, channel_slug=None) -> QuerySet:
@@ -39,7 +39,7 @@ class PermissionGroupSortField(graphene.Enum):
         if self in [PermissionGroupSortField.NAME]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort permission group accounts by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class PermissionGroupSortingInput(SortInputObjectType):

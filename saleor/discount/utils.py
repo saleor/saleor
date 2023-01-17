@@ -1,5 +1,7 @@
 import datetime
 from collections import defaultdict
+from decimal import Decimal
+from functools import partial
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -11,20 +13,27 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    Union,
     cast,
 )
 
+from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
 from . import DiscountInfo
-from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
+from .models import (
+    DiscountValueType,
+    NotApplicable,
+    Sale,
+    SaleChannelListing,
+    VoucherCustomer,
+)
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ..account.models import User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
@@ -32,7 +41,7 @@ if TYPE_CHECKING:
     from ..product.models import Collection, Product
     from .models import Voucher
 
-CatalogueInfo = DefaultDict[str, Set[int]]
+CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
@@ -84,12 +93,12 @@ def get_product_discount_on_sale(
     is_product_on_sale = (
         product.id in discount.product_ids
         or product.category_id in discount.category_ids
-        or product_collections.intersection(discount.collection_ids)
+        or bool(product_collections.intersection(discount.collection_ids))
     )
     is_variant_on_sale = variant_id and variant_id in discount.variants_ids
     if is_product_on_sale or is_variant_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
-        return discount.sale.id, discount.sale.get_discount(sale_channel_listing)  # type: ignore
+        return discount.sale.id, discount.sale.get_discount(sale_channel_listing)
     raise NotApplicable("Discount not applicable for this product")
 
 
@@ -99,11 +108,11 @@ def get_product_discounts(
     collections: Iterable["Collection"],
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Iterator[Tuple[int, Callable]]:
     """Return sale ids, discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
-    for discount in discounts or []:
+    for discount in discounts:
         try:
             yield get_product_discount_on_sale(
                 product, product_collections, discount, channel, variant_id=variant_id
@@ -119,7 +128,7 @@ def get_sale_id_with_min_price(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Tuple[Optional[int], Money]:
     """Return a sale_id and minimum product's price."""
     available_discounts = [
@@ -149,7 +158,7 @@ def calculate_discounted_price(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
@@ -171,7 +180,7 @@ def get_sale_id_applied_as_a_discount(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant_id: Optional[int] = None
+    variant_id: Optional[int] = None,
 ) -> Optional[int]:
     """Return an ID of Sale applied to product."""
     if not discounts:
@@ -199,7 +208,7 @@ def validate_voucher_for_checkout(
     from ..checkout.utils import calculate_checkout_quantity
 
     quantity = calculate_checkout_quantity(lines)
-    subtotal = base_calculations.base_checkout_lines_total(
+    subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
@@ -223,8 +232,13 @@ def validate_voucher_in_order(order: "Order"):
     customer_email = order.get_customer_email()
     if not order.voucher:
         return
+
+    tax_configuration = order.channel.tax_configuration
+    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
+    value = subtotal.gross if prices_entered_with_tax else subtotal.net
     validate_voucher(
-        order.voucher, subtotal, quantity, customer_email, order.channel, order.user
+        order.voucher, value, quantity, customer_email, order.channel, order.user
     )
 
 
@@ -255,11 +269,15 @@ def get_products_voucher_discount(
     return total_amount
 
 
-def fetch_categories(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_categories(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     from ..product.models import Category
 
     categories = (
-        Sale.categories.through.objects.filter(sale_id__in=sale_pks)
+        Sale.categories.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "category_id")
     )
@@ -276,9 +294,13 @@ def fetch_categories(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return subcategory_map
 
 
-def fetch_collections(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_collections(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     collections = (
-        Sale.collections.through.objects.filter(sale_id__in=sale_pks)
+        Sale.collections.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "collection_id")
     )
@@ -288,9 +310,13 @@ def fetch_collections(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return collection_map
 
 
-def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_products(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     products = (
-        Sale.products.through.objects.filter(sale_id__in=sale_pks)
+        Sale.products.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "product_id")
     )
@@ -300,9 +326,13 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return product_map
 
 
-def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+def fetch_variants(
+    sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Dict[int, Set[int]]:
     variants = (
-        Sale.variants.through.objects.filter(sale_id__in=sale_pks)
+        Sale.variants.through.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
         .order_by("id")
         .values_list("sale_id", "productvariant_id")
     )
@@ -314,9 +344,12 @@ def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
 
 def fetch_sale_channel_listings(
     sale_pks: Iterable[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    channel_listings = SaleChannelListing.objects.filter(sale_id__in=sale_pks).annotate(
-        channel_slug=F("channel__slug")
+    channel_listings = (
+        SaleChannelListing.objects.using(database_connection_name)
+        .filter(sale_id__in=sale_pks)
+        .annotate(channel_slug=F("channel__slug"))
     )
     channel_listings_map: Dict[int, Dict[str, SaleChannelListing]] = defaultdict(dict)
     for channel_listing in channel_listings:
@@ -359,3 +392,23 @@ def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
                 catalogue_info[field].add(id)
 
     return catalogue_info
+
+
+def apply_discount_to_value(
+    value: Decimal,
+    value_type: str,
+    currency: str,
+    price_to_discount: Union[Money, TaxedMoney],
+):
+    """Calculate the price based on the provided values."""
+    if value_type == DiscountValueType.FIXED:
+        discount_method = fixed_discount
+        discount_kwargs = {"discount": Money(value, currency)}
+    else:
+        discount_method = percentage_discount
+        discount_kwargs = {"percentage": value}
+    discount = partial(
+        discount_method,
+        **discount_kwargs,
+    )
+    return discount(price_to_discount)

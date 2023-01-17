@@ -7,9 +7,14 @@ from django.utils import timezone
 
 from ...discount import DiscountValueType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherQueryset
-from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types import DateTimeRangeInput, IntRangeInput
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_by_id, filter_range_field
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
 
@@ -40,14 +45,14 @@ def filter_discount_type(
         query = Q()
         if VoucherDiscountType.FIXED in values:
             query |= Q(
-                discount_value_type=VoucherDiscountType.FIXED.value  # type: ignore
+                discount_value_type=VoucherDiscountType.FIXED.value  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
             )
         if VoucherDiscountType.PERCENTAGE in values:
             query |= Q(
-                discount_value_type=VoucherDiscountType.PERCENTAGE.value  # type: ignore
-            )  # type: ignore
+                discount_value_type=VoucherDiscountType.PERCENTAGE.value  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
+            )
         if VoucherDiscountType.SHIPPING in values:
-            query |= Q(type=VoucherDiscountType.SHIPPING.value)  # type: ignore
+            query |= Q(type=VoucherDiscountType.SHIPPING.value)  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
         qs = qs.filter(query)
     return qs
 
@@ -90,6 +95,7 @@ class VoucherFilter(MetadataFilterBase):
     )
     started = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_started)
     search = django_filters.CharFilter(method=filter_voucher_search)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Voucher"))
 
     class Meta:
         model = Voucher

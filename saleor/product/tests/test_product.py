@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+import pytz
 from freezegun import freeze_time
 from prices import Money
 
@@ -17,7 +18,7 @@ from ...graphql.product.filters import (
 )
 from .. import ProductTypeKind, models
 from ..models import DigitalContentUrl
-from ..thumbnails import create_product_thumbnails
+from ..tasks import update_variants_names
 from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
 
@@ -145,19 +146,12 @@ def test_clean_product_attributes_date_time_range_filter_input(
     filter_value = [
         (
             date_attribute.slug,
-            {"gte": datetime(2020, 10, 5).date()},
+            {"gte": datetime(2020, 10, 5, tzinfo=pytz.utc)},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(
-        filter_value, queries, is_date=True
-    )
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {
-        date_attribute.pk: list(
-            date_attribute.values.all().values_list("pk", flat=True)
-        )
-    }
+    assert set(date_attribute.values.all()) == set(values_qs.all())
 
     filter_value = [
         (
@@ -165,12 +159,11 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"gte": datetime(2020, 10, 5).date(), "lte": datetime(2020, 11, 4).date()},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(
-        filter_value, queries, is_date=True
-    )
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {date_attribute.pk: [date_attribute.values.first().pk]}
+    assert {date_attribute.values.first().pk} == set(
+        values_qs.values_list("pk", flat=True)
+    )
 
     # filter date time attribute
     filter_value = [
@@ -179,10 +172,11 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 11, 4, tzinfo=timezone.utc)},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {date_attribute.pk: [date_attribute.values.first().pk]}
+    assert {date_attribute.values.first().pk} == set(
+        values_qs.values_list("pk", flat=True)
+    )
 
     filter_value = [
         (
@@ -190,10 +184,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 10, 4, tzinfo=timezone.utc)},
         )
     ]
-    queries = defaultdict(list)
-    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert dict(queries) == {date_attribute.pk: []}
+    assert values_qs.exists() is False
 
 
 def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
@@ -252,27 +245,6 @@ def test_get_price(
     assert price.amount == expected_price
 
 
-def test_product_get_price_do_not_charge_taxes(
-    product_type, category, discount_info, channel_USD
-):
-    product = models.Product.objects.create(
-        product_type=product_type,
-        category=category,
-        charge_taxes=False,
-    )
-    variant = product.variants.create()
-    channel_listing = models.ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
-    )
-    price = variant.get_price(
-        product, [], channel_USD, channel_listing, discounts=[discount_info]
-    )
-    assert price == Money("5.00", "USD")
-
-
 def test_digital_product_view(client, digital_content_url):
     """Ensure a user (anonymous or not) can download a non-expired digital good
     using its associated token and that all associated events
@@ -284,7 +256,7 @@ def test_digital_product_view(client, digital_content_url):
 
     assert response.status_code == 200
     assert response["content-type"] == "image/jpeg"
-    assert response["content-disposition"] == 'attachment; filename="%s"' % filename
+    assert response["content-disposition"] == f'attachment; filename="{filename}"'
 
     # Ensure an event was generated from downloading a digital good.
     # The validity of this event is checked in test_digital_product_increment_download
@@ -379,14 +351,21 @@ def test_costs_get_margin_for_variant_channel_listing(
     assert not get_margin_for_variant_channel_listing(variant_channel_listing)
 
 
-@patch("saleor.product.thumbnails.create_thumbnails")
-def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
-    product_image = product_with_image.media.first()
-    create_product_thumbnails(product_image.pk)
-    assert mock_create_thumbnails.call_count == 1
-    args, kwargs = mock_create_thumbnails.call_args
-    assert kwargs == {
-        "model": models.ProductMedia,
-        "pk": product_image.pk,
-        "size_set": "products",
-    }
+@patch("saleor.product.signals.delete_from_storage_task.delay")
+def test_product_media_delete(delete_from_storage_task_mock, product_with_image):
+    # given
+    media = product_with_image.media.first()
+
+    # when
+    media.delete()
+
+    # then
+    delete_from_storage_task_mock.assert_called_once_with(media.image.name)
+
+
+@patch("saleor.product.tasks._update_variants_names")
+def test_product_update_variants_names(mock__update_variants_names, product_type):
+    variant_attributes = [product_type.variant_attributes.first()]
+    variant_attr_ids = [attr.pk for attr in variant_attributes]
+    update_variants_names(product_type.pk, variant_attr_ids)
+    assert mock__update_variants_names.call_count == 1

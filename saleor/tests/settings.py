@@ -20,6 +20,8 @@ def lazy_re_compile(regex, flags=0):
     return SimpleLazyObject(_compile)
 
 
+POPULATE_DEFAULTS = False
+
 CELERY_TASK_ALWAYS_EAGER = True
 
 SECRET_KEY = "NOTREALLY"
@@ -34,7 +36,7 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 COUNTRIES_ONLY = None
 
-MEDIA_ROOT = None
+MEDIA_ROOT = ""
 MEDIA_URL = "/media/"
 MAX_CHECKOUT_LINE_QUANTITY = 50
 

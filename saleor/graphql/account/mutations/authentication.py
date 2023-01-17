@@ -1,16 +1,20 @@
-from typing import Optional
+from typing import Optional, cast
 
 import graphene
 import jwt
 from django.core.exceptions import ValidationError
-from django.middleware.csrf import _compare_masked_tokens  # type: ignore
-from django.middleware.csrf import _get_new_csrf_token
+from django.middleware.csrf import (  # type: ignore
+    _get_new_csrf_string,
+    _mask_cipher_secret,
+    _unmask_cipher_token,
+)
 from django.utils import timezone
-from django.utils.crypto import get_random_string
+from django.utils.crypto import constant_time_compare, get_random_string
 from graphene.types.generic import GenericScalar
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import retrieve_user_by_email
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
@@ -21,9 +25,12 @@ from ....core.jwt import (
     jwt_decode,
 )
 from ....core.permissions import AuthorizationFilters, get_permissions_from_names
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import User
 
 
@@ -60,12 +67,30 @@ def get_user(payload):
     return user
 
 
+def _does_token_match(token: str, csrf_token: str) -> bool:
+    return constant_time_compare(
+        _unmask_cipher_token(token),
+        _unmask_cipher_token(csrf_token),
+    )
+
+
+def _get_new_csrf_token() -> str:
+    return _mask_cipher_secret(_get_new_csrf_string())
+
+
 class CreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
 
     class Arguments:
         email = graphene.String(required=True, description="Email of a user.")
         password = graphene.String(required=True, description="Password of a user.")
+        audience = graphene.String(
+            required=False,
+            description=(
+                "The audience that will be included to JWT tokens with "
+                "prefix `custom:`." + ADDED_IN_38 + PREVIEW_FEATURE
+            ),
+        )
 
     class Meta:
         description = "Create JWT token."
@@ -83,14 +108,15 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email).first()
+        user = retrieve_user_by_email(email)
+
         if user and user.check_password(password):
             return user
         return None
 
     @classmethod
-    def get_user(cls, _info, data):
-        user = cls._retrieve_user_from_credentials(data["email"], data["password"])
+    def get_user(cls, _info: ResolveInfo, email, password):
+        user = cls._retrieve_user_from_credentials(email, password)
         if not user:
             raise ValidationError(
                 {
@@ -122,12 +148,26 @@ class CreateToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        user = cls.get_user(info, data)
-        access_token = create_access_token(user)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, audience=None, email, password
+    ):
+        user = cls.get_user(info, email, password)
+        additional_paylod = {}
+
         csrf_token = _get_new_csrf_token()
-        refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
-        info.context.refresh_token = refresh_token
+        refresh_additional_payload = {
+            "csrfToken": csrf_token,
+        }
+        if audience:
+            additional_paylod["aud"] = f"custom:{audience}"
+            refresh_additional_payload["aud"] = f"custom:{audience}"
+
+        access_token = create_access_token(user, additional_payload=additional_paylod)
+        refresh_token = create_refresh_token(
+            user, additional_payload=refresh_additional_payload
+        )
+        setattr(info.context, "refresh_token", refresh_token)
+        info.context.user = user
         info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login", "updated_at"])
@@ -175,10 +215,13 @@ class RefreshToken(BaseMutation):
         return payload
 
     @classmethod
-    def get_refresh_token(cls, info, data):
+    def get_refresh_token(
+        cls, info: ResolveInfo, refresh_token: Optional[str] = None
+    ) -> Optional[str]:
         request = info.context
-        refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
-        refresh_token = data.get("refresh_token") or refresh_token
+        refresh_token = refresh_token or request.COOKIES.get(
+            JWT_REFRESH_TOKEN_COOKIE_NAME, None
+        )
         return refresh_token
 
     @classmethod
@@ -216,7 +259,7 @@ class RefreshToken(BaseMutation):
                     )
                 }
             )
-        is_valid = _compare_masked_tokens(csrf_token, payload["csrfToken"])
+        is_valid = _does_token_match(csrf_token, payload["csrfToken"])
         if not is_valid:
             raise ValidationError(
                 {
@@ -236,17 +279,22 @@ class RefreshToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        refresh_token = cls.get_refresh_token(info, data)
+    def perform_mutation(
+        cls, _root, info: ResolveInfo, /, *, csrf_token=None, refresh_token=None
+    ):
+        need_csrf = refresh_token is None
+        refresh_token = cls.get_refresh_token(info, refresh_token)
         payload = cls.clean_refresh_token(refresh_token)
 
         # None when we got refresh_token from cookie.
-        if not data.get("refresh_token"):
-            csrf_token = data.get("csrf_token")
+        if need_csrf:
             cls.clean_csrf_token(csrf_token, payload)
 
         user = get_user(payload)
-        token = create_access_token(user)
+        additional_payload = {}
+        if audience := payload.get("aud"):
+            additional_payload["aud"] = audience
+        token = create_access_token(user, additional_payload=additional_payload)
         return cls(errors=[], user=user, token=token)
 
 
@@ -286,8 +334,9 @@ class VerifyToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        token = data["token"]
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, _info: ResolveInfo, /, *, token
+    ):
         payload = cls.get_payload(token)
         user = cls.get_user(payload)
         return cls(errors=[], user=user, is_valid=True, payload=payload)
@@ -301,9 +350,10 @@ class DeactivateAllUserTokens(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /):
         user = info.context.user
-        user.jwt_token_key = get_random_string()
+        user = cast(models.User, user)
+        user.jwt_token_key = get_random_string(length=12)
         user.save(update_fields=["jwt_token_key", "updated_at"])
         return cls()
 
@@ -332,14 +382,14 @@ class ExternalAuthenticationUrl(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, plugin_id
+    ):
         request = info.context
-        plugin_id = data["plugin_id"]
-        input_data = data["input"]
-        manager = info.context.plugins
+        manager = get_plugin_manager_promise(info.context).get()
         return cls(
             authentication_data=manager.external_authentication_url(
-                plugin_id, input_data, request
+                plugin_id, input, request
             )
         )
 
@@ -371,15 +421,15 @@ class ExternalObtainAccessTokens(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, plugin_id
+    ):
         request = info.context
-        plugin_id = data["plugin_id"]
-        input_data = data["input"]
-        manager = info.context.plugins
+        manager = get_plugin_manager_promise(info.context).get()
         access_tokens_response = manager.external_obtain_access_tokens(
-            plugin_id, input_data, request
+            plugin_id, input, request
         )
-        info.context.refresh_token = access_tokens_response.refresh_token
+        setattr(info.context, "refresh_token", access_tokens_response.refresh_token)
 
         if access_tokens_response.user and access_tokens_response.user.id:
             info.context._cached_user = access_tokens_response.user
@@ -421,15 +471,14 @@ class ExternalRefresh(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, plugin_id
+    ):
         request = info.context
-        plugin_id = data["plugin_id"]
-        input_data = data["input"]
-        manager = info.context.plugins
-        access_tokens_response = manager.external_refresh(
-            plugin_id, input_data, request
-        )
-        info.context.refresh_token = access_tokens_response.refresh_token
+        manager = get_plugin_manager_promise(info.context).get()
+        access_tokens_response = manager.external_refresh(plugin_id, input, request)
+        setattr(info.context, "refresh_token", access_tokens_response.refresh_token)
+
         if access_tokens_response.user and access_tokens_response.user.id:
             info.context._cached_user = access_tokens_response.user
 
@@ -461,12 +510,12 @@ class ExternalLogout(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, plugin_id
+    ):
         request = info.context
-        plugin_id = data["plugin_id"]
-        input_data = data["input"]
-        manager = info.context.plugins
-        return cls(logout_data=manager.external_logout(plugin_id, input_data, request))
+        manager = get_plugin_manager_promise(info.context).get()
+        return cls(logout_data=manager.external_logout(plugin_id, input, request))
 
 
 class ExternalVerify(BaseMutation):
@@ -493,10 +542,10 @@ class ExternalVerify(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, plugin_id
+    ):
         request = info.context
-        plugin_id = data["plugin_id"]
-        input_data = data["input"]
-        manager = info.context.plugins
-        user, data = manager.external_verify(plugin_id, input_data, request)
+        manager = get_plugin_manager_promise(info.context).get()
+        user, data = manager.external_verify(plugin_id, input, request)
         return cls(user=user, is_valid=bool(user), verify_data=data)

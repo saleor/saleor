@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from uuid import UUID
+
+from graphql import GraphQLError
 
 from ..checkout.error_codes import CheckoutErrorCode
 
@@ -12,11 +15,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class InsufficientStockData:
+    available_quantity: int
     variant: Optional["ProductVariant"] = None
     checkout_line: Optional["CheckoutLine"] = None
     order_line: Optional["OrderLine"] = None
-    warehouse_pk: Union[str, int, None] = None
-    available_quantity: Optional[int] = None
+    warehouse_pk: Union[UUID, None] = None
 
 
 class InsufficientStock(Exception):
@@ -55,7 +58,7 @@ class ProductNotPublished(Exception):
 
 
 class PermissionDenied(Exception):
-    def __init__(self, message=None, *, permissions: Sequence[Enum] = None):
+    def __init__(self, message=None, *, permissions: Optional[Iterable[Enum]] = None):
         if not message:
             if permissions:
                 permission_list = ", ".join(p.name for p in permissions)
@@ -73,3 +76,17 @@ class GiftCardNotApplicable(Exception):
         super().__init__(message)
         self.message = message
         self.code = CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
+
+
+class CircularSubscriptionSyncEvent(GraphQLError):
+    pass
+
+
+class SyncEventError(Exception):
+    def __init__(self, message, code=None):
+        super(SyncEventError, self).__init__(message, code)
+        self.message = message
+        self.code = code
+
+    def __str__(self):
+        return self.message

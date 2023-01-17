@@ -1,26 +1,33 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
+from ....order import models
 from ....order.actions import cancel_order
 from ....order.error_codes import OrderErrorCode
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 
 
-def clean_order_cancel(order):
-    if order and not order.can_cancel():
+def clean_order_cancel(order: Optional[models.Order]) -> models.Order:
+    if not order or not order.can_cancel():
         raise ValidationError(
             {
                 "order": ValidationError(
                     "This order can't be canceled.",
-                    code=OrderErrorCode.CANNOT_CANCEL_ORDER,
+                    code=OrderErrorCode.CANNOT_CANCEL_ORDER.value,
                 )
             }
         )
+    return order
 
 
 class OrderCancel(BaseMutation):
@@ -36,17 +43,20 @@ class OrderCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        clean_order_cancel(order)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
+        order = clean_order_cancel(order)
         user = info.context.user
-        app = info.context.app
-        cancel_order(
-            order=order,
-            user=user,
-            app=app,
-            manager=info.context.plugins,
-        )
-        deactivate_order_gift_cards(order.id, user, app)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
+        with traced_atomic_transaction():
+            cancel_order(
+                order=order,
+                user=user,
+                app=app,
+                manager=manager,
+            )
+            deactivate_order_gift_cards(order.id, user, app)
         return OrderCancel(order=order)

@@ -2,10 +2,283 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.6.0 [Unreleased]
+# 3.11.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+- Add `webhookDryRun` mutation - #11548 by @zedzior
+- Fix adding invalid label to meta fields - #11718 by @IKarbowiak
+- Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
 
 ### Other changes
+
+# 3.10.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
+- Extend invoice object types with `Order` references - #11505 by @przlada
+  - Add `Invoice.order` field
+  - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
+
+### Other changes
+
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
+- Move checkout metadata to separate model - #11264 by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
+- Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
+- Drop `Django.Auth` - #11305 by @fowczarek
+- Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
+- Fix stock events triggers - #11714 by @jakubkuc
+- Accept the gift card code provided in the input - by @mociepka
+
+# 3.9.0
+
+### Highlights
+
+- Flat tax rates - #9784 by @maarcingebala
+
+### Breaking changes
+
+- Drop Vatlayer plugin - #9784 by @maarcingebala
+  - The following fields are no longer used:
+    - `Product.chargeTaxes` - from now on, presence of `Product.taxClass` instance decides whether to charge taxes for a product. As a result, the "Charge Taxes" column in CSV product exports returns empty values.
+    - `Shop.chargeTaxesOnShipping` - from now on, presence of `ShippingMethod.taxClass` decides whether to charge taxes for a shipping method.
+    - `Shop.includeTaxesInPrices`, `Shop.displayGrossPrices` - configuration moved to `Channel.taxConfiguration`.
+  - Removed the following plugin manager methods:
+    - `assign_tax_code_to_object_meta`
+    - `apply_taxes_to_product`
+    - `fetch_taxes_data`
+    - `get_tax_rate_percentage_value`
+    - `update_taxes_for_order_lines`
+
+### GraphQL API
+
+- Add `attribute` field to `AttributeValueTranslatableContent` type. #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
+
+### Other changes
+
+- Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
+  <br/>Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
+- Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
+- Add exif image validation - #11224 by @IKarbowiak
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
+- Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
+- Make email authentication case-insensitive. #11284 by @zedzior
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
+- Add HTTP headers filtering to observability reporter. #11285 by @przlada
+- Deactivate Webhook before deleting and handle IntegrityErrors - #11239 @jakubkuc
+
+# 3.8.0
+
+### Highlights
+
+- Add tax exemption API for checkouts (`taxExemptionManage` mutation) - #10344 by @SzymJ
+- Switch GraphQL Playground to GraphiQL V2
+
+### Breaking changes
+
+- Verify JWT tokens whenever they are provided with the request. Before, they were only validated when an operation required any permissions. For example: when refreshing a token, the request shouldn't include the expired one.
+
+### GraphQL API
+
+- Add the ability to filter by slug. #10578 by @kadewu
+  - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
+  - Deprecated `slug` in filter for `menus`. Use `slugs` instead
+- Add new `products` filters. #10784 by @kadewu
+  - `isAvailable`
+  - `publishedFrom`
+  - `availableFrom`
+  - `isVisibleInListing`
+- Add the ability to filter payments by a list of ids. #10821 by @kadewu
+- Add the ability to filter customers by ids. #10694 by @kadewu
+- Add `User.checkouts` field. #10862 by @zedzior
+- Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
+- Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multi-select attributes. - #10881 by @jakubkuc
+- Allow sorting products by `CREATED_AT` field. #10900 by @zedzior
+- Add ability to pass metadata directly in create/update mutations for product app models - #10689 by @SzymJ
+- Add ability to use SKU argument in `productVariantUpdate`, `productVariantDelete`, `productVariantBulkDelete`, `productVariantStocksUpdate`, `productVariantStocksDelete`, `productVariantChannelListingUpdate` mutations - #10861 by @SzymJ
+- Add sorting by `CREATED_AT` field. #10911 by @zedzior
+  - Affected types: GiftCard, Page.
+  - Deprecated `CREATION_DATE` sort field on Page type. Use `CREATED_AT` instead.
+
+### Other changes
+
+- Reference attribute linking to product variants - #10468 by @IKarbowiak
+- Add base shipping price to `Order` - #10771 by @fowczarek
+- GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
+- Add `iss` field to JWT tokens - #10842 by @korycins
+- Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
+
+### Saleor Apps
+
+- Add `iss` field to JWT tokens - #10842 by @korycins
+- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
+- Add new asynchronous events for objects metadata updates - #10520 by @rafalp
+  - `CHECKOUT_METADATA_UPDATED`
+  - `COLLECTION_METADATA_UPDATED`
+  - `CUSTOMER_METADATA_UPDATED`
+  - `FULFILLMENT_METADATA_UPDATED`
+  - `GIFT_CARD_METADATA_UPDATED`
+  - `ORDER_METADATA_UPDATED`
+  - `PRODUCT_METADATA_UPDATED`
+  - `PRODUCT_VARIANT_METADATA_UPDATED`
+  - `SHIPPING_ZONE_METADATA_UPDATED`
+  - `TRANSACTION_ITEM_METADATA_UPDATED`
+  - `WAREHOUSE_METADATA_UPDATED`
+  - `VOUCHER_METADATA_UPDATED`
+
+# 3.7.0
+
+### Highlights
+
+- Allow explicitly setting the name of a product variant - #10456 by @SzymJ
+  - Added `name` parameter to the `ProductVariantInput` input
+- Add a new stock allocation strategy based on the order of warehouses within a channel - #10416 by @IKarbowiak
+  - Add `channelReorderWarehouses` mutation to sort warehouses to set their priority
+  - Extend the `Channel` type with the `stockSettings` field
+  - Extend `ChannelCreateInput` and `ChannelUpdateInput` with `stockSettings`
+
+### Breaking changes
+
+- Refactor warehouse mutations - #10239 by @IKarbowiak
+  - Providing the value in `shippingZone` filed in `WarehouseCreate` mutation will raise a ValidationError.
+    Use `WarehouseShippingZoneAssign` to assign shipping zones to a warehouse.
+
+### GraphQL API
+
+- Hide Subscription type from Apollo Federation (#10439) (f5132dfd3)
+- Mark `Webhook.secretKey` as deprecated (#10436) (ba445e6e8)
+
+### Saleor Apps
+
+- Trigger the `SALE_DELETED` webhook when deleting sales in bulk (#10461) (2052841e9)
+- Add `FULFILLMENT_APPROVED` webhook - #10621 by @IKarbowiak
+
+### Other changes
+
+- Add support for `bcrypt` password hashes - #10346 by @pkucmus
+- Add the ability to set taxes configuration per channel in the Avatax plugin - #10445 by @mociepka
+
+# 3.6.0
+
+### Breaking changes
+
+- Drop `django-versatileimagefield` package; add a proxy view to generate thumbnails on-demand - #9988 by @IKarbowiak
+  - Drop `create_thumbnails` command
+- Change return type from `CheckoutTaxedPricesData` to `TaxedMoney` in plugin manager methods `calculate_checkout_line_total`, `calculate_checkout_line_unit_price` - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+
+### Saleor Apps
+
+- Add GraphQL subscription support for synchronous webhook events - #9763 by @jakubkuc
+- Add support for the CUSTOMER\_\* app mount points (#10163) by @krzysztofwolski
+- Add permission group webhooks: `PERMISSION_GROUP_CREATED`, `PERMISSION_GROUP_UPDATED`, `PERMISSION_GROUP_DELETED` - #10214 by @SzymJ
+- Add `ACCOUNT_ACTIVATED` and `ACCOUNT_DEACTIVATED` events - #10136 by @tomaszszymanski129
+- Allow apps to query data protected by MANAGE_STAFF permission (#10103) (4eb93d3f5)
+- Fix returning sale's GraphQL ID in the `SALE_TOGGLE` payload (#10227) (0625c43bf)
+- Add descriptions to async webhooks event types (#10250) (7a906bf7f)
+
+### GraphQL API
+
+- Add `CHECKOUT_CALCULATE_TAXES` and `ORDER_CALCULATE_TAXES` to `WebhookEventTypeSyncEnum` #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+- Add `forceNewLine` flag to lines input in `CheckoutLinesAdd`, `CheckoutCreate`, `DraftOrderCreate`, `OrderCreate`, `OrderLinesCreate` mutations to support same variant in multiple lines - #10095 by @SzymJ
+- Add `VoucherFilter.ids` filter - #10157 by @Jakubkuc
+- Add API to display shippable countries for a channel - #10111 by @korycins
+- Improve filters' descriptions - #10240 by @dekoza
+- Add query for transaction item and extend transaction item type with order (#10154) (b19423a86)
+
+### Plugins
+
+- Add a new method to plugin manager: `get_taxes_for_checkout`, `get_taxes_for_order` - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
+- Allow promoting customer users to staff (#10115) (2d56af4e3)
+- Allow values of different attributes to share the same slug (#10138) (834d9500b)
+- Fix payment status for orders with total 0 (#10147) (ec2c9a820)
+- Fix failed event delivery request headers (#10108) (d1b652115)
+- Fix create_fake_user ID generation (#10186) (86e2c69a9)
+- Fix returning values in JSONString scalar (#10124) (248d2b604)
+- Fix problem with updating draft order with active Avalara (#10183) (af270b8c9)
+- Make API not strip query params from redirect URL (#10116) (75176e568)
+- Update method for setting filter descriptions (#10240) (65643ec7c)
+- Add expires option to CELERY_BEAT_SCHEDULE (#10205) (c6c5e46bd)
+- Recalculate order prices on marking as paid mutations (#10260) (4e45b83e7)
+- Fix triggering `ORDER_CANCELED` event at the end of transaction (#10242) (d9eecb2ca)
+- Fix post-migrate called for each app module (#10252) (60205eb56)
+- Only handle known URLs (disable appending slash to URLs automatically) - #10290 by @patrys
+
+### Other changes
+
+- Add synchronous tax calculation via webhooks - #9526 by @fowczarek, @mateuszgrzyb, @stnatic
 - Allow values of different attributes to share the same slug - #10138 by @IKarbowiak
+- Add query for transaction item and extend transaction item type with order - #10154 by @IKarbowiak
+- Populate the initial database with default warehouse, channel, category, and product type - #10244 by @jakubkuc
+- Fix inconsistent beat scheduling and compatibility with DB scheduler - #10185 by @NyanKiyoshi<br/>
+  This fixes the following bugs:
+  - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)
+  - `tick()` was sometimes scheduling other schedulers such as observability to be run every 5m instead of every 20s
+  - `is_due()` from `send-sale-toggle-notifications` was being invoked every 5s on django-celery-beat instead of every 60s
+  - `send-sale-toggle-notifications` would crash on django-celery-beat with `Cannot convert schedule type <saleor.core.schedules.sale_webhook_schedule object at 0x7fabfdaacb20> to model`
+    Usage:
+  - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
+  - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+- Fix problem with updating draft order with active Avalara - #10183 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
+- Fix assigning an email address that does not belong to an existing user to draft order (#10320) (97129cf0c)
+- Fix gift cards automatic fulfillment (#10325) (6a528259e)
+
+# 3.5.4 [Unreleased]
+
+- Fix ORM crash when generating hundreds of search vector in SQL - #10261 by @NyanKiyoshi
+- Fix "stack depth limit exceeded" crash when generating thousands of search vector in SQL - #10279 by @NyanKiyoshi
+
+# 3.5.3 [Released]
+
+- Use custom search vector in order search - #10247 by @fowczarek
+- Optimize filtering attributes by dates - #10199 by @tomaszszymanski129
+
+# 3.5.2 [Released]
+
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 @IKarbowiak
+- Fix returning GraphQL IDs in the `SALE_TOGGLE` webhook - #10227 by @IKarbowiak
+
+# 3.5.1 [Released]
+
+- Fix inconsistent beat scheduling and compatibility with db scheduler - #10185 by @NyanKiyoshi<br/>
+  This fixes the following bugs:
+
+  - `tick()` could decide to never schedule anything else than `send-sale-toggle-notifications` if `send-sale-toggle-notifications` doesn't return `is_due = False` (stuck forever until beat restart or a `is_due = True`)
+  - `tick()` was sometimes scheduling other schedulers such as observability to be ran every 5m instead of every 20s
+  - `is_due()` from `send-sale-toggle-notifications` was being invoked every 5s on django-celery-beat instead of every 60s
+  - `send-sale-toggle-notifications` would crash on django-celery-beat with `Cannot convert schedule type <saleor.core.schedules.sale_webhook_schedule object at 0x7fabfdaacb20> to model`
+
+  Usage:
+
+  - Database backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler`
+  - Shelve backend: `celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.PersistentScheduler`
+
+- Fix problem with updating draft order with active avalara - #10183 by @IKarbowiak
+- Fix stock validation and allocation for order with local collection point - #10218 by @IKarbowiak
+- Fix stock allocation for order with global collection point - #10225 by @IKarbowiak
 
 # 3.5.0
 
@@ -16,6 +289,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose manifest in the `App` type (#10055) (f0f944066)
 - Deprecate `configurationUrl` and `dataPrivacy` fields in apps (#10046) (68bd7c8a2)
 - Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
 
 ### Saleor Apps
 

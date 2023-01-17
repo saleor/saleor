@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Union
+
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
@@ -8,12 +10,19 @@ from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
+if TYPE_CHECKING:
+    from ..account.models import User
+    from ..app.models import App
+
 
 class PageQueryset(PublishedQuerySet):
-    def visible_to_user(self, requestor):
-        if requestor.has_perm(PagePermissions.MANAGE_PAGES):
+    def visible_to_user(self, requestor: Union["App", "User", None]):
+        if requestor and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             return self.all()
         return self.published()
+
+
+PageManager = models.Manager.from_queryset(PageQueryset)
 
 
 class Page(ModelWithMetadata, SeoModel, PublishableModel):
@@ -23,11 +32,11 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     translated = TranslationProxy()
 
-    objects = models.Manager.from_queryset(PageQueryset)()
+    objects = PageManager()  # type: ignore[assignment]
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)

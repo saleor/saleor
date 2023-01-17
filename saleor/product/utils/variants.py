@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 from ...attribute import AttributeType
 
@@ -7,7 +7,9 @@ if TYPE_CHECKING:
     from ..models import ProductVariant
 
 
-def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str]):
+def generate_and_set_variant_name(
+    variant: "ProductVariant", sku: Optional[str], save: Optional[bool] = True
+):
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []
 
@@ -15,9 +17,8 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
         assignment__variant_selection=True,
         assignment__attribute__type=AttributeType.PRODUCT_TYPE,
     )
-    for (
-        attribute_rel
-    ) in variant_selection_attributes.iterator():  # type: AssignedVariantAttribute
+    attribute_rel: AssignedVariantAttribute
+    for attribute_rel in variant_selection_attributes.iterator():
         values_qs = attribute_rel.values.all()
         translated_values = [str(value.translated) for value in values_qs]
         attributes_display.append(", ".join(translated_values))
@@ -27,11 +28,13 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
         name = sku or variant.get_global_id()
 
     variant.name = name
-    variant.save(update_fields=["name", "updated_at"])
+    if save:
+        variant.save(update_fields=["name", "updated_at"])
+    return variant
 
 
 def get_variant_selection_attributes(
-    attributes: Sequence[Tuple["Attribute", bool]]
+    attributes: Iterable[Tuple["Attribute", bool]]
 ) -> List[Tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 

@@ -13,9 +13,8 @@ from ...warehouse.models import Stock
 from ..core.enums import ProductErrorCode
 
 if TYPE_CHECKING:
-    from django.db.models import QuerySet
-
     from ...product.models import ProductVariant
+    from ...warehouse.models import Warehouse
 
 import logging
 
@@ -64,13 +63,16 @@ def get_used_variants_attribute_values(product):
     used_attribute_values = []
     for variant in variants:
         attribute_values = get_used_attribute_values_for_variant(variant)
-        used_attribute_values.append(attribute_values)
+        if attribute_values:
+            used_attribute_values.append(attribute_values)
     return used_attribute_values
 
 
 @traced_atomic_transaction()
 def create_stocks(
-    variant: "ProductVariant", stocks_data: List[Dict[str, str]], warehouses: "QuerySet"
+    variant: "ProductVariant",
+    stocks_data: List[Dict[str, str]],
+    warehouses: Iterable["Warehouse"],
 ):
     try:
         new_stocks = Stock.objects.bulk_create(
@@ -128,11 +130,9 @@ def update_ordered_media(ordered_media):
                 media.save(update_fields=["sort_order"])
             except DatabaseError as e:
                 msg = (
-                    "Cannot update media for instance: %s. "
+                    f"Cannot update media for instance: {media}. "
                     "Updating not existing object. "
-                    "Details: %s.",
-                    media,
-                    str(e),
+                    f"Details: {e}."
                 )
                 logger.warning(msg)
                 errors["media"].append(

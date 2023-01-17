@@ -50,7 +50,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
                 {
                     "products": ValidationError(
                         "Cannot manage products without variants.",
-                        code=DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        code=DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value,
                         params={"products": products_ids_without_variants},
                     )
                 }

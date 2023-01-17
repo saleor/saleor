@@ -9,9 +9,11 @@ from django.utils import timezone
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..product.models import ProductVariant, ProductVariantChannelListing
+from .management import sort_stocks
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 if TYPE_CHECKING:
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutLine
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -20,9 +22,10 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 @traced_atomic_transaction()
 def reserve_stocks_and_preorders(
     checkout_lines: Iterable["CheckoutLine"],
+    lines_to_update_reservation_time: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
-    channel_slug: str,
+    channel: "Channel",
     length_in_minutes: int,
     *,
     replace: bool = True,
@@ -42,33 +45,47 @@ def reserve_stocks_and_preorders(
         else:
             stock_lines.append(line)
 
+    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
+
     if stock_lines:
         reserve_stocks(
             stock_lines,
             stock_variants,
             country_code,
-            channel_slug,
-            length_in_minutes,
+            channel,
+            reserved_until,
             replace=replace,
         )
+
+        # Refresh reserved_until for already existing lines
+        if lines_to_update_reservation_time:
+            Reservation.objects.filter(
+                checkout_line__in=lines_to_update_reservation_time
+            ).update(reserved_until=reserved_until)
 
     if preorder_lines:
         reserve_preorders(
             preorder_lines,
             preorder_variants,
             country_code,
-            channel_slug,
-            length_in_minutes,
+            channel.slug,
+            reserved_until,
             replace=replace,
         )
+
+        # Refresh reserved_until for already existing lines
+        if lines_to_update_reservation_time:
+            PreorderReservation.objects.filter(
+                checkout_line__in=lines_to_update_reservation_time
+            ).update(reserved_until=reserved_until)
 
 
 def reserve_stocks(
     checkout_lines: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
     country_code: str,
-    channel_slug: str,
-    length_in_minutes: int,
+    channel: "Channel",
+    reserved_until: datetime,
     *,
     replace: bool = True,
 ):
@@ -83,13 +100,11 @@ def reserve_stocks(
     if not checkout_lines:
         return
 
-    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
-
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
-        .get_variants_stocks_for_country(country_code, channel_slug, variants)
+        .get_variants_stocks_for_country(country_code, channel.slug, variants)
         .order_by("pk")
-        .values("id", "product_variant", "pk", "quantity")
+        .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
     stocks_id = [stock.pop("id") for stock in stocks]
 
@@ -116,12 +131,19 @@ def reserve_stocks(
         .exclude_checkout_lines(checkout_lines)
         .values("stock")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
+    )
     quantity_reservation_for_stocks: Dict = defaultdict(int)
     for reservation in quantity_reservation_list:
         quantity_reservation_for_stocks[reservation["stock"]] += reservation[
             "quantity_reserved_sum"
         ]
+
+    stocks = sort_stocks(
+        channel.allocation_strategy,
+        stocks,
+        channel,
+        quantity_allocation_for_stocks,
+    )
 
     variant_to_stocks: Dict[int, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
@@ -201,7 +223,7 @@ def _create_stock_reservations(
             InsufficientStockData(
                 variant=variant,
                 available_quantity=quantity,
-            )  # type: ignore
+            )
         )
         return insufficient_stocks, []
 
@@ -213,7 +235,7 @@ def reserve_preorders(
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel_slug: str,
-    length_in_minutes: int,
+    reserved_until: datetime,
     *,
     replace: bool = True,
 ):
@@ -221,8 +243,6 @@ def reserve_preorders(
     variants_ids = [line.variant_id for line in checkout_lines]
     variants = [variant for variant in variants if variant.pk in variants_ids]
     variants_map = {variant.id: variant for variant in variants}
-
-    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
 
     all_variants_channel_listings = (
         ProductVariantChannelListing.objects.filter(variant__in=variants)
@@ -268,7 +288,7 @@ def reserve_preorders(
     )
 
     insufficient_stocks: List[InsufficientStockData] = []
-    reservations: List[Reservation] = []
+    reservations: List[PreorderReservation] = []
     for line in checkout_lines_to_reserve:
         insufficient_stocks, reservation = _create_preorder_reservation(
             line,
@@ -371,10 +391,10 @@ def is_reservation_enabled(settings) -> bool:
     )
 
 
-def get_reservation_length(request) -> Optional[int]:
-    if request.user.is_authenticated:
-        return request.site.settings.reserve_stock_duration_authenticated_user
-    return request.site.settings.reserve_stock_duration_anonymous_user
+def get_reservation_length(site, user) -> Optional[int]:
+    if user:
+        return site.settings.reserve_stock_duration_authenticated_user
+    return site.settings.reserve_stock_duration_anonymous_user
 
 
 def get_listings_reservations(
@@ -390,7 +410,7 @@ def get_listings_reservations(
         .exclude_checkout_lines(checkout_lines)
         .values("product_variant_channel_listing")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
+    )
     listings_reservations: Dict = defaultdict(int)
 
     for reservation in quantity_reservation_list:

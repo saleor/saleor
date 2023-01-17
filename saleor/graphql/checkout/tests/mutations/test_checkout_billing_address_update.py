@@ -1,5 +1,8 @@
+from unittest import mock
+
 import pytest
 
+from .....checkout.utils import invalidate_checkout_prices
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -138,8 +141,16 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
     assert checkout.billing_address.city == billing_address["city"].upper()
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_billing_address_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_billing_address_update(
-    user_api_client, checkout_with_item, graphql_address_data
+    mocked_invalidate_checkout_prices,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
@@ -186,6 +197,7 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.country == billing_address["country"]
     assert checkout.billing_address.city == billing_address["city"].upper()
     assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 @pytest.mark.parametrize(
@@ -222,6 +234,39 @@ def test_checkout_billing_address_update_with_skip_required_doesnt_raise_error(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     assert checkout_with_items.billing_address
+
+
+def test_checkout_billing_address_update_with_skip_required_overwrite_address(
+    checkout_with_items, user_api_client, address
+):
+    # given
+    checkout_with_items.billing_address = address
+    checkout_with_items.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": {
+            "postalCode": "",
+            "city": "",
+            "country": "US",
+        },
+        "validationRules": {"checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+
+    assert checkout_with_items.billing_address.city == ""
+    assert checkout_with_items.billing_address.postal_code == ""
 
 
 def test_checkout_billing_address_update_with_skip_required_raises_validation_error(

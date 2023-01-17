@@ -88,8 +88,8 @@ def delete_invalid_warehouse_to_shipping_zone_relations(
     """
     shipping_zone_ids = shipping_zone_ids or []
 
-    ChannelWarehouse = Channel.warehouses.through
-    ShippingZoneWarehouse = ShippingZone.warehouses.through
+    ChannelWarehouse = Channel.warehouses.through  # type: ignore[attr-defined] # raw access to through model # noqa: E501
+    ShippingZoneWarehouse = ShippingZone.warehouses.through  # type: ignore[attr-defined] # raw access to through model # noqa: E501
     ShippingZoneChannel = ShippingZone.channels.through
 
     shipping_zone_warehouses = ShippingZoneWarehouse.objects.filter(

@@ -7,6 +7,7 @@ from ...core.permissions import PagePermissions
 from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
+from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -15,6 +16,7 @@ from ..core.connection import (
 from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
+from ..core.scalars import Date
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -28,7 +30,7 @@ from .dataloaders import (
 
 
 @federated_entity("id")
-class PageType(ModelObjectType):
+class PageType(ModelObjectType[models.PageType]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     slug = graphene.String(required=True)
@@ -64,11 +66,13 @@ class PageType(ModelObjectType):
         return models.PageType
 
     @staticmethod
-    def resolve_attributes(root: models.PageType, info):
+    def resolve_attributes(root: models.PageType, info: ResolveInfo):
         return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_available_attributes(root: models.PageType, info, **kwargs):
+    def resolve_available_attributes(
+        root: models.PageType, info: ResolveInfo, **kwargs
+    ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         )
@@ -76,7 +80,7 @@ class PageType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
-    def resolve_has_pages(root: models.PageType, info):
+    def resolve_has_pages(root: models.PageType, info: ResolveInfo):
         return (
             PagesByPageTypeIdLoader(info.context)
             .load(root.pk)
@@ -84,7 +88,7 @@ class PageType(ModelObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["PageType"], _info):
+    def __resolve_references(roots: List["PageType"], _info: ResolveInfo):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
 
 
@@ -93,13 +97,13 @@ class PageTypeCountableConnection(CountableConnection):
         node = PageType
 
 
-class Page(ModelObjectType):
+class Page(ModelObjectType[models.Page]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String(required=True)
     content = JSONString(description="Content of the page." + RICH_CONTENT)
-    publication_date = graphene.Date(
+    publication_date = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `publishedAt` field to fetch the publication date."
@@ -133,24 +137,24 @@ class Page(ModelObjectType):
         model = models.Page
 
     @staticmethod
-    def resolve_publication_date(root: models.Page, _info):
+    def resolve_publication_date(root: models.Page, _info: ResolveInfo):
         return root.published_at
 
     @staticmethod
-    def resolve_created(root: models.Page, _info):
+    def resolve_created(root: models.Page, _info: ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_page_type(root: models.Page, info):
+    def resolve_page_type(root: models.Page, info: ResolveInfo):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
-    def resolve_content_json(root: models.Page, _info):
+    def resolve_content_json(root: models.Page, _info: ResolveInfo):
         content = root.content
         return content if content is not None else {}
 
     @staticmethod
-    def resolve_attributes(root: models.Page, info):
+    def resolve_attributes(root: models.Page, info: ResolveInfo):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
 

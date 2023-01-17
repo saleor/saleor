@@ -1,15 +1,17 @@
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import cast
 
 import pytz
-from celery.schedules import BaseSchedule
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
+
+from ..schedulers.customschedule import CustomSchedule
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 
 
-class sale_webhook_schedule(BaseSchedule):
+class sale_webhook_schedule(CustomSchedule):
     """Schedule for sale webhook periodic task.
 
     The lowercase with an underscore is used for the name as all celery schedules
@@ -26,9 +28,16 @@ class sale_webhook_schedule(BaseSchedule):
     """
 
     def __init__(self, initial_timedelta=60, nowfun=None, app=None):
-        self.initial_timedelta = maybe_timedelta(initial_timedelta)
-        self.next_run = self.initial_timedelta
-        super().__init__(nowfun=nowfun, app=app)
+        self.initial_timedelta: timedelta = cast(
+            timedelta, maybe_timedelta(initial_timedelta)
+        )
+        self.next_run: timedelta = self.initial_timedelta
+        super().__init__(
+            schedule=self,
+            nowfun=nowfun,
+            app=app,
+            import_path="saleor.core.schedules.initiated_sale_webhook_schedule",
+        )
 
     def remaining_estimate(self, last_run_at):
         """Estimate of next run time.
@@ -81,23 +90,25 @@ class sale_webhook_schedule(BaseSchedule):
             )
         ).order_by("end_date")
 
-        if not upcoming_start_dates and not upcoming_end_dates:
-            self.next_run = self.initial_timedelta
-            return schedstate(is_due, self.next_run.total_seconds())
+        nearest_start_date = upcoming_start_dates.first()
+        nearest_end_date = upcoming_end_dates.first()
 
         # calculate the earliest incoming date of starting or ending sale
-        next_start_date = (
-            upcoming_start_dates.first().start_date if upcoming_start_dates else None
-        )
-        next_end_date = (
-            upcoming_end_dates.first().end_date if upcoming_end_dates else None
-        )
-
-        # get the earlier date
-        if next_start_date and next_end_date:
-            next_upcoming_date = min(next_start_date, next_end_date)
+        next_upcoming_date: datetime
+        if nearest_start_date and nearest_end_date and nearest_end_date.end_date:
+            next_upcoming_date = min(
+                nearest_start_date.start_date, nearest_end_date.end_date
+            )
         else:
-            next_upcoming_date = next_start_date if next_start_date else next_end_date
+            if nearest_start_date:
+                next_upcoming_date = nearest_start_date.start_date
+            elif nearest_end_date and nearest_end_date.end_date:
+                next_upcoming_date = nearest_end_date.end_date
+            else:
+                next_upcoming_date = now + self.initial_timedelta
 
         self.next_run = min((next_upcoming_date - now), self.initial_timedelta)
         return schedstate(is_due, self.next_run.total_seconds())
+
+
+initiated_sale_webhook_schedule = sale_webhook_schedule()

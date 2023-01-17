@@ -47,16 +47,13 @@ def get_product_export_fields_and_headers(
         return export_fields, file_headers
 
     fields_mapping = dict(
-        ChainMap(
-            *reversed(
-                ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
-            )  # type: ignore
-        )
+        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))
     )
 
     for field in fields:
         lookup_field = fields_mapping[field]
-        export_fields.append(lookup_field)
+        if lookup_field:
+            export_fields.append(lookup_field)
         file_headers.append(field)
 
     return export_fields, file_headers

@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import add, mul
-from typing import Any, Dict, List, Optional, Type, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from graphql import (
     GraphQLError,
@@ -184,7 +184,7 @@ class CostValidator(ValidationRule):
             for key in accessor:
                 val = val.get(key)
             try:
-                multipliers.append(int(val))  # type: ignore
+                multipliers.append(int(val))
             except (ValueError, TypeError):
                 pass
         multipliers = [
@@ -257,9 +257,8 @@ def report_error(context: ValidationContext, error: Exception):
 
 
 def cost_analysis_message(maximum_cost: int, cost: int) -> str:
-    return "The query exceeds the maximum cost of %d. Actual cost is %d" % (
-        maximum_cost,
-        cost,
+    return (
+        f"The query exceeds the maximum cost of {maximum_cost}. Actual cost is {cost}"
     )
 
 
@@ -274,16 +273,14 @@ def cost_validator(
     default_complexity: int = 1,
     variables: Optional[Dict] = None,
     cost_map: Optional[Dict[str, Dict[str, Any]]] = None,
-) -> Type[ValidationRule]:
-    validator = CostValidator(
+) -> CostValidator:
+    return CostValidator(
         maximum_cost=maximum_cost,
         default_cost=default_cost,
         default_complexity=default_complexity,
         variables=variables,
         cost_map=cost_map,
     )
-
-    return cast(Type[ValidationRule], validator)
 
 
 def validate_query_cost(
@@ -298,7 +295,11 @@ def validate_query_cost(
         variables=variables,
         cost_map=cost_map,
     )
-    error = validate(schema, query.document_ast, [validator])
+    error = validate(
+        schema,
+        query.document_ast,
+        [validator],  # type: ignore[list-item] # cost validator is an instance that pretends to be a class # noqa: E501
+    )
     if error:
         return validator.cost, error
     return validator.cost, None

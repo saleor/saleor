@@ -11,9 +11,11 @@ from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_user,
     order_with_lines,
     warehouse,
@@ -22,7 +24,7 @@ def test_create_fulfillments(
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -71,14 +73,18 @@ def test_create_fulfillments(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
 
+    flush_post_commit_hooks()
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
+    mock_fulfillment_approved.assert_called_once_with(fulfillment)
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_require_approval(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_user,
     order_with_lines,
     warehouse,
@@ -90,7 +96,7 @@ def test_create_fulfillments_require_approval(
 
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -140,7 +146,9 @@ def test_create_fulfillments_require_approval(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
 
+    flush_post_commit_hooks()
     mock_email_fulfillment.assert_not_called()
+    mock_fulfillment_approved.assert_not_called()
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
@@ -157,7 +165,7 @@ def test_create_fulfillments_require_approval_as_app(
 
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -222,7 +230,7 @@ def test_create_fulfillments_without_notification(
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -286,11 +294,11 @@ def test_create_fulfillments_many_warehouses(
     )
     Stock.objects.bulk_create([stock_w1_l1, stock_w1_l2, stock_w2_l2])
     fulfillment_lines_for_warehouses = {
-        str(warehouse1.pk): [
+        warehouse1.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 1},
         ],
-        str(warehouse2.pk): [{"order_line": order_line2, "quantity": 1}],
+        warehouse2.pk: [{"order_line": order_line2, "quantity": 1}],
     }
 
     [fulfillment1, fulfillment2] = create_fulfillments(
@@ -342,7 +350,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 0},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -399,7 +407,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     stock = order_line.variant.stocks.get()
     stock_quantity_before = stock.quantity
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [{"order_line": order_line, "quantity": 2}]
+        warehouse.pk: [{"order_line": order_line, "quantity": 2}]
     }
 
     manager = get_plugins_manager()
@@ -451,7 +459,7 @@ def test_create_fulfillments_without_allocations(
     )
     Allocation.objects.filter(order_line__order=order).delete()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -508,7 +516,7 @@ def test_create_fulfillments_warehouse_without_stock(
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse_no_shipping_zone.pk): [
+        warehouse_no_shipping_zone.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -532,7 +540,7 @@ def test_create_fulfillments_warehouse_without_stock(
     }
     assert {item.order_line for item in exc.value.items} == {order_line1, order_line2}
     assert {item.warehouse_pk for item in exc.value.items} == {
-        str(warehouse_no_shipping_zone.pk)
+        warehouse_no_shipping_zone.pk
     }
 
     order.refresh_from_db()
@@ -566,7 +574,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     order = order_with_line_without_inventory_tracking
     order_line = order.lines.get()
     fulfillment_lines_for_warehouses = {
-        str(warehouse_no_shipping_zone.pk): [{"order_line": order_line, "quantity": 2}]
+        warehouse_no_shipping_zone.pk: [{"order_line": order_line, "quantity": 2}]
     }
 
     with pytest.raises(InsufficientStock) as exc:
@@ -583,7 +591,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     assert len(exc.value.items) == 1
     assert exc.value.items[0].variant == order_line.variant
     assert exc.value.items[0].order_line == order_line
-    assert exc.value.items[0].warehouse_pk == str(warehouse_no_shipping_zone.pk)
+    assert exc.value.items[0].warehouse_pk == warehouse_no_shipping_zone.pk
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
@@ -616,7 +624,7 @@ def test_create_fullfilment_with_out_of_stock_webhook(
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]
@@ -647,7 +655,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": 1},
             {"order_line": order_line2, "quantity": 1},
         ]
@@ -703,7 +711,7 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     Allocation.objects.bulk_update([allocation_1, allocation_2], ["quantity_allocated"])
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line1, "quantity": line_1_qty},
             {"order_line": order_line2, "quantity": line_2_qty},
         ]

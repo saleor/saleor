@@ -1,5 +1,7 @@
 import graphene
 
+from ....order import OrderStatus
+
 
 def assert_order_and_payment_ids(content, payment):
     data = content["data"]["orderByToken"]
@@ -8,3 +10,12 @@ def assert_order_and_payment_ids(content, payment):
 
     expected_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     assert data["payments"][0]["id"] == expected_payment_id
+
+
+def assert_proper_webhook_called_once(order, status, draft_mock, order_mock):
+    if status == OrderStatus.DRAFT:
+        draft_mock.assert_called_once_with(order)
+        order_mock.assert_not_called()
+    else:
+        draft_mock.assert_not_called()
+        order_mock.assert_called_once_with(order)

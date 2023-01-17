@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Iterable, List, Tuple
 
 from django.db.models import F
 from promise import Promise
@@ -10,12 +11,17 @@ from ...checkout.fetch import (
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
 )
-from ...checkout.models import Checkout, CheckoutLine
+from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...discount import VoucherType
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
-from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
+from ..discount.dataloaders import (
+    VoucherByCodeLoader,
+    VoucherInfoByVoucherCodeLoader,
+    load_discounts,
+)
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -27,10 +33,11 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByChannelSlugLoader,
 )
+from ..tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
 from ..warehouse.dataloaders import WarehouseByIdLoader
 
 
-class CheckoutByTokenLoader(DataLoader):
+class CheckoutByTokenLoader(DataLoader[str, Checkout]):
     context_key = "checkout_by_token"
 
     def batch_load(self, keys):
@@ -38,7 +45,7 @@ class CheckoutByTokenLoader(DataLoader):
         return [checkouts.get(token) for token in keys]
 
 
-class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
+class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineInfo]]):
     context_key = "checkoutlinesinfo_by_checkout"
 
     def batch_load(self, keys):
@@ -58,6 +65,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     products,
                     product_types,
                     collections,
+                    tax_classes,
                     channel_listings,
                     voucher_infos,
                 ) = results
@@ -65,6 +73,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 products_map = dict(zip(variants_pks, products))
                 product_types_map = dict(zip(variants_pks, product_types))
                 collections_map = dict(zip(variants_pks, collections))
+                tax_class_map = dict(zip(variants_pks, tax_classes))
                 channel_listings_map = dict(
                     zip(variant_ids_channel_ids, channel_listings)
                 )
@@ -87,6 +96,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
+                                tax_class=tax_class_map[line.variant_id],
                             )
                             for line in lines
                         ]
@@ -103,11 +113,12 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                         voucher.type == VoucherType.SPECIFIC_PRODUCT
                         or voucher.apply_once_per_order
                     ):
+                        discounts = load_discounts(self.context)
                         apply_voucher_to_checkout_line(
                             voucher_info=voucher_info,
                             checkout=checkout,
                             lines_info=lines_info_map[checkout.pk],
-                            discounts=self.context.discounts,
+                            discounts=discounts,
                         )
                 return [lines_info_map[key] for key in keys]
 
@@ -117,6 +128,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 variants_pks
             )
             collections = CollectionsByVariantIdLoader(self.context).load_many(
+                variants_pks
+            )
+            tax_classes = TaxClassByVariantIdLoader(self.context).load_many(
                 variants_pks
             )
 
@@ -142,6 +156,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     products,
                     product_types,
                     collections,
+                    tax_classes,
                     channel_listings,
                     voucher_infos,
                 ]
@@ -154,7 +169,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
         return Promise.all([checkouts, checkout_lines]).then(with_checkout_lines)
 
 
-class CheckoutByUserLoader(DataLoader):
+class CheckoutByUserLoader(DataLoader[int, List[Checkout]]):
     context_key = "checkout_by_user"
 
     def batch_load(self, keys):
@@ -164,13 +179,13 @@ class CheckoutByUserLoader(DataLoader):
         checkout_by_user_map = defaultdict(list)
         for checkout in checkouts:
             checkout_by_user_map[checkout.user_id].append(checkout)
-        return [checkout_by_user_map.get(user_id) for user_id in keys]
+        return [checkout_by_user_map[user_id] for user_id in keys]
 
 
-class CheckoutByUserAndChannelLoader(DataLoader):
+class CheckoutByUserAndChannelLoader(DataLoader[Tuple[int, str], List[Checkout]]):
     context_key = "checkout_by_user_and_channel"
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[Tuple[int, str]]):
         user_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
         checkouts = (
@@ -186,15 +201,15 @@ class CheckoutByUserAndChannelLoader(DataLoader):
         for checkout in checkouts:
             key = (checkout.user_id, checkout.channel_slug)
             checkout_by_user_and_channel_map[key].append(checkout)
-        return [checkout_by_user_and_channel_map.get(key) for key in keys]
+        return [checkout_by_user_and_channel_map[key] for key in keys]
 
 
-class CheckoutInfoByCheckoutTokenLoader(DataLoader):
+class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
     context_key = "checkoutinfo_by_checkout"
 
     def batch_load(self, keys):
         def with_checkout(data):
-            checkouts, checkout_line_infos = data
+            checkouts, checkout_line_infos, manager = data
             from ..channel.dataloaders import ChannelByIdLoader
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
@@ -244,6 +259,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     if checkout.voucher_code
                 }
                 vouchers = VoucherByCodeLoader(self.context).load_many(voucher_codes)
+                channel_ids = [channel.id for channel in channels]
+                tax_configurations = TaxConfigurationByChannelId(
+                    self.context
+                ).load_many(channel_ids)
 
                 def with_checkout_info(results):
                     (
@@ -253,6 +272,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         listings_for_channels,
                         collection_points,
                         vouchers,
+                        tax_configurations,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -265,6 +285,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         for collection_point in collection_points
                     }
                     voucher_map = {voucher.code: voucher for voucher in vouchers}
+                    tax_configuration_by_channel_map = {
+                        tax_configuration.channel_id: tax_configuration
+                        for tax_configuration in tax_configurations
+                    }
 
                     checkout_info_map = {}
                     for key, checkout, channel, checkout_lines in zip(
@@ -292,13 +316,14 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 checkout.shipping_address_id
                             ),
                             delivery_method_info=delivery_method_info,
+                            tax_configuration=tax_configuration_by_channel_map[
+                                channel.id
+                            ],
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
                             voucher=voucher,
                         )
-
-                        manager = self.context.plugins
-                        discounts = self.context.discounts
+                        discounts = load_discounts(self.context)
                         shipping_method_listings = [
                             listing
                             for channel_listings in listings_for_channels
@@ -327,6 +352,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method_channel_listings,
                         collection_points,
                         vouchers,
+                        tax_configurations,
                     ]
                 ).then(with_checkout_info)
 
@@ -340,10 +366,13 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
         checkout_line_infos = CheckoutLinesInfoByCheckoutTokenLoader(
             self.context
         ).load_many(keys)
-        return Promise.all([checkouts, checkout_line_infos]).then(with_checkout)
+        manager = get_plugin_manager_promise(self.context)
+        return Promise.all([checkouts, checkout_line_infos, manager]).then(
+            with_checkout
+        )
 
 
-class CheckoutLineByIdLoader(DataLoader):
+class CheckoutLineByIdLoader(DataLoader[str, CheckoutLine]):
     context_key = "checkout_line_by_id"
 
     def batch_load(self, keys):
@@ -353,7 +382,7 @@ class CheckoutLineByIdLoader(DataLoader):
         return [checkout_lines.get(line_id) for line_id in keys]
 
 
-class CheckoutLinesByCheckoutTokenLoader(DataLoader):
+class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, List[CheckoutLine]]):
     context_key = "checkoutlines_by_checkout"
 
     def batch_load(self, keys):
@@ -366,7 +395,7 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader):
         return [line_map.get(checkout_id, []) for checkout_id in keys]
 
 
-class TransactionItemsByCheckoutIDLoader(DataLoader):
+class TransactionItemsByCheckoutIDLoader(DataLoader[str, List[TransactionItem]]):
     context_key = "transaction_items_by_checkout_id"
 
     def batch_load(self, keys):
@@ -379,3 +408,13 @@ class TransactionItemsByCheckoutIDLoader(DataLoader):
         for transaction in transactions:
             transactions_map[transaction.checkout_id].append(transaction)
         return [transactions_map[checkout_id] for checkout_id in keys]
+
+
+class CheckoutMetadataByCheckoutIdLoader(DataLoader[str, CheckoutMetadata]):
+    context_key = "checkout_metadata_by_checkout_id"
+
+    def batch_load(self, keys):
+        checkout_metadata = CheckoutMetadata.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys, field_name="checkout_id")
+        return [checkout_metadata.get(checkout_id) for checkout_id in keys]

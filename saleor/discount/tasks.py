@@ -1,11 +1,14 @@
 from collections import defaultdict
 from datetime import datetime
+from typing import Dict
 
+import graphene
 import pytz
 from celery.utils.log import get_task_logger
 from django.db.models import F, Q
 
 from ..celeryconf import app
+from ..graphql.discount.mutations.utils import CATALOGUE_FIELD_TO_TYPE_NAME
 from ..plugins.manager import get_plugins_manager
 from .models import Sale
 from .utils import CATALOGUE_FIELDS, CatalogueInfo
@@ -36,7 +39,7 @@ def send_sale_toggle_notifications():
 
 
 def fetch_catalogue_infos(sales):
-    catalogue_info: CatalogueInfo = {}
+    catalogue_info: Dict[int, CatalogueInfo] = {}
     for sale_data in sales.values("id", *CATALOGUE_FIELDS):
         sale_id = sale_data["id"]
         if sale_id not in catalogue_info:
@@ -44,7 +47,9 @@ def fetch_catalogue_infos(sales):
 
         for field in CATALOGUE_FIELDS:
             if id := sale_data.get(field):
-                catalogue_info[sale_data["id"]][field].add(id)
+                type_name = CATALOGUE_FIELD_TO_TYPE_NAME[field]
+                global_id = graphene.Node.to_global_id(type_name, id)
+                catalogue_info[sale_data["id"]][field].add(global_id)
 
     return catalogue_info
 

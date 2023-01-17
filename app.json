@@ -44,8 +44,8 @@
     "postdeploy": "python manage.py migrate && python manage.py populatedb --createsuperuser --withoutimages"
   },
   "addons": [
-    "heroku-postgresql:hobby-dev",
-    "heroku-redis:hobby-dev",
+    "heroku-postgresql:mini",
+    "heroku-redis:mini",
     "cloudamqp:lemur",
     "sendgrid:starter",
     "scheduler:standard"

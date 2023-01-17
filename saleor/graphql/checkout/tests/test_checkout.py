@@ -6,7 +6,6 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
-from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
@@ -776,6 +775,7 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_check
 def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_all(
     api_client, checkout_with_items_for_cc, stocks_for_cc
 ):
+    # given
     expected_collection_points = [
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse4"},
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"},
@@ -783,7 +783,11 @@ def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_
 
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
     variables = {"id": to_global_id_or_none(checkout_with_items_for_cc)}
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     received_collection_points = content["data"]["checkout"][
         "availableCollectionPoints"
@@ -805,6 +809,36 @@ def test_checkout_available_collection_points_with_line_avail_in_2_local_and_1_a
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
     variables = {"id": to_global_id_or_none(checkout_with_item_for_cc)}
     response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    received_collection_points = content["data"]["checkout"][
+        "availableCollectionPoints"
+    ]
+
+    assert len(received_collection_points) == len(expected_collection_points)
+    assert all(c in expected_collection_points for c in received_collection_points)
+
+
+def test_checkout_available_collection_points_two_lines_for_same_checkout(
+    api_client, checkout_with_items_for_cc, stocks_for_cc
+):
+    # given
+    expected_collection_points = [
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse4"},
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"},
+    ]
+
+    line = checkout_with_items_for_cc.lines.first()
+    line_2 = checkout_with_items_for_cc.lines.all()[1]
+    line_2.variant = line.variant
+    line_2.save(update_fields=["variant"])
+
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    variables = {"id": to_global_id_or_none(checkout_with_items_for_cc)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     received_collection_points = content["data"]["checkout"][
         "availableCollectionPoints"
@@ -1303,7 +1337,8 @@ def test_fetch_checkout_invalid_token(user_api_client, channel_USD, checkout):
 QUERY_CHECKOUT_PRICES = """
     query getCheckout($id: ID) {
         checkout(id: $id) {
-           token,
+           displayGrossPrices
+           token
            totalPrice {
                 currency
                 gross {
@@ -1384,7 +1419,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         lines=lines,
         checkout_line_info=line_info,
         discounts=[],
-    ).price_with_discounts
+    )
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
         == line_total_price.gross.amount / line_info.line.quantity
@@ -1441,7 +1476,7 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
     assert (
         data["totalPrice"]["gross"]["amount"]
-        == checkout_line.quantity * price_override + shipping_price.gross.amount
+        == checkout_line.quantity * price_override + shipping_price.amount
     )
     assert (
         data["subtotalPrice"]["gross"]["amount"]
@@ -1503,7 +1538,7 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         lines=lines,
         checkout_line_info=line_info,
         discounts=[discount_info],
-    ).price_with_discounts
+    )
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
         == line_total_price.gross.amount / line_info.line.quantity
@@ -1528,6 +1563,42 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         data["lines"][0]["undiscountedTotalPrice"]["amount"]
         == undiscounted_unit_price.amount * line_info.line.quantity
     )
+
+
+def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):
+    # given
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    tax_config = checkout_with_item.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_config.display_gross_prices
+
+
+def test_checkout_display_gross_prices_use_country_exception(
+    user_api_client, checkout_with_item
+):
+    # given
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    tax_config = checkout_with_item.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+    country_code = checkout_with_item.get_country()
+    tax_country_config = tax_config.country_exceptions.create(
+        country=country_code, display_gross_prices=False
+    )
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_country_config.display_gross_prices
 
 
 def test_checkout_prices_with_specific_voucher(
@@ -1567,17 +1638,12 @@ def test_checkout_prices_with_specific_voucher(
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
     assert line_info.line.quantity > 0
-    line_total_prices = calculations.checkout_line_total(
+    line_total_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        line_total_prices.price_with_discounts != line_total_prices.undiscounted_price
-    )
-    assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
-    line_total_price = line_total_prices.price_with_discounts
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
         == line_total_price.gross.amount / line_info.line.quantity
@@ -1639,17 +1705,12 @@ def test_checkout_prices_with_voucher_once_per_order(
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
     assert line_info.line.quantity > 0
-    line_total_prices = calculations.checkout_line_total(
+    line_total_price = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        line_total_prices.price_with_discounts != line_total_prices.undiscounted_price
-    )
-    assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
-    line_total_price = line_total_prices.price_with_discounts
     assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
         quantize_price(
             line_total_price.gross.amount / line_info.line.quantity, checkout.currency
@@ -1981,31 +2042,6 @@ def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["lines"][0]["variant"]["id"]
-
-
-@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_get_checkout_with_vatlayer_set(
-    checkout_with_item, api_client, vatlayer, site_settings, shipping_zone
-):
-    # given
-    site_settings.include_taxes_in_prices = True
-    site_settings.save()
-
-    query = QUERY_CHECKOUT
-    checkout = checkout_with_item
-    checkout.shipping_method = shipping_zone.shipping_methods.get()
-    checkout.save()
-
-    variant = checkout.lines.get().variant
-    variant.product.channel_listings.update(visible_in_listings=False)
-    variables = {"id": to_global_id_or_none(checkout)}
-
-    # when
-    response = api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    assert content["data"]["checkout"]["token"] == str(checkout.token)
 
 
 QUERY_CHECKOUT_TRANSACTIONS = """

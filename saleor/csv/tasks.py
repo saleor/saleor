@@ -42,6 +42,8 @@ class ExportTask(celery.Task):
         )
 
         data_type = ExportTask.TASK_NAME_TO_DATA_TYPE_MAPPING.get(self.name)
+        if not data_type:
+            data_type = "unknown data"
         send_export_failed_info(export_file, data_type)
 
     def on_success(self, retval, task_id, args, kwargs):

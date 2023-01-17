@@ -2,15 +2,18 @@ import base64
 import json
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from django.core.cache import cache
 from django.db.models import QuerySet
 from graphql import GraphQLError
 from prices import Money
 
+from ...app.models import App
+from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
+from ...order.models import Order
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
@@ -18,17 +21,35 @@ from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEO
 from .tasks import trigger_webhook_sync
 from .utils import APP_ID_PREFIX
 
-if TYPE_CHECKING:
-    from ...app.models import App
-
-
 logger = logging.getLogger(__name__)
 
 
 def to_shipping_app_id(app: "App", shipping_method_id: str) -> "str":
+    app_identifier = app.identifier or app.id
     return base64.b64encode(
-        str.encode(f"{APP_ID_PREFIX}:{app.pk}:{shipping_method_id}")
+        str.encode(f"{APP_ID_PREFIX}:{app_identifier}:{shipping_method_id}")
     ).decode("utf-8")
+
+
+def convert_to_app_id_with_identifier(shipping_app_id: str):
+    """Prepare the shipping_app_id in format `app:<app-identifier>/method_id>`.
+
+    The format of shipping_app_id has been changes so we need to support both of them.
+    This method is preparing the new shipping_app_id format based on assumptions
+    that right now the old one is used which is `app:<app-pk>:method_id>`
+    """
+    decoded_id = base64.b64decode(shipping_app_id).decode()
+    splitted_id = decoded_id.split(":")
+    if len(splitted_id) != 3:
+        return
+    try:
+        app_id = int(splitted_id[1])
+    except (TypeError, ValueError):
+        return None
+    app = App.objects.filter(id=app_id).first()
+    if app is None:
+        return None
+    return to_shipping_app_id(app, splitted_id[2])
 
 
 def parse_list_shipping_methods_response(
@@ -67,7 +88,11 @@ def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
 
 
 def get_excluded_shipping_methods_or_fetch(
-    webhooks: QuerySet, event_type: str, payload: str, cache_key: str
+    webhooks: QuerySet,
+    event_type: str,
+    payload: str,
+    cache_key: str,
+    subscribable_object: Optional[Union["Order", "Checkout"]],
 ) -> Dict[str, List[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
@@ -88,8 +113,9 @@ def get_excluded_shipping_methods_or_fetch(
         response_data = trigger_webhook_sync(
             event_type,
             payload,
-            webhook.app,
-            EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            webhook,
+            subscribable_object=subscribable_object,
+            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
         )
         if response_data:
             excluded_methods.extend(
@@ -104,6 +130,7 @@ def get_excluded_shipping_data(
     previous_value: List[ExcludedShippingMethod],
     payload_fun: Callable[[], str],
     cache_key: str,
+    subscribable_object: Optional[Union["Order", "Checkout"]],
 ) -> List[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
@@ -123,7 +150,7 @@ def get_excluded_shipping_data(
         payload = payload_fun()
 
         excluded_methods_map = get_excluded_shipping_methods_or_fetch(
-            webhooks, event_type, payload, cache_key
+            webhooks, event_type, payload, cache_key, subscribable_object
         )
 
     # Gather responses for previous plugins

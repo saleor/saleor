@@ -6,33 +6,61 @@ from ..obfuscation import (
     MASK,
     anonymize_event_payload,
     anonymize_gql_operation_response,
-    hide_sensitive_headers,
+    filter_and_hide_headers,
+    obfuscate_url,
     validate_sensitive_fields_map,
 )
 
 
 @pytest.mark.parametrize(
-    "headers,sensitive,expected",
+    "headers,allowed,sensitive,expected",
     [
+        ({}, {"header"}, {"header"}, {}),
+        ({"Header": "val"}, {}, {}, {}),
+        ({"HeAdEr": "val"}, {"header"}, {}, {"HeAdEr": "val"}),
         (
-            {"header1": "text", "header2": "text"},
-            ("AUTHORIZATION", "AUTHORIZATION_BEARER"),
-            {"header1": "text", "header2": "text"},
+            {"Header": "val", "AuThOrIzAtIoN": "secret"},
+            {"header"},
+            {"authorization"},
+            {"Header": "val"},
         ),
         (
-            {"header1": "text", "authorization": "secret"},
-            ("AUTHORIZATION", "AUTHORIZATION_BEARER"),
-            {"header1": "text", "authorization": MASK},
-        ),
-        (
-            {"HEADER1": "text", "authorization-bearer": "secret"},
-            ("AUTHORIZATION", "AUTHORIZATION_BEARER"),
-            {"HEADER1": "text", "authorization-bearer": MASK},
+            {"Content-Length": "10", "AuThOrIzAtIoN": "secret", "Not-Allowed": "val"},
+            {"content-length", "authorization"},
+            {"authorization"},
+            {"Content-Length": "10", "AuThOrIzAtIoN": MASK},
         ),
     ],
 )
-def test_hide_sensitive_headers(headers, sensitive, expected):
-    assert hide_sensitive_headers(headers, sensitive_headers=sensitive) == expected
+def test_filter_and_hide_headers(headers, allowed, sensitive, expected):
+    assert (
+        filter_and_hide_headers(headers, allowed=allowed, sensitive=sensitive)
+        == expected
+    )
+
+
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        ("http://example.com/test", "http://example.com/test"),
+        (
+            "https://example.com:8000/test/path?q=val&k=val",
+            "https://example.com:8000/test/path?q=val&k=val",
+        ),
+        ("https://user@example.com/test", "https://user@example.com/test"),
+        ("https://:password@example.com/test", f"https://:{MASK}@example.com/test"),
+        (
+            "http://user:password@example.com:8000/test",
+            f"http://user:{MASK}@example.com:8000/test",
+        ),
+        (
+            "awssqs://key:secret@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",
+            f"awssqs://key:{MASK}@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",
+        ),
+    ],
+)
+def test_obfuscate_url(url, expected):
+    assert obfuscate_url(url) == expected
 
 
 def test_anonymize_gql_operation_response(gql_operation_factory):

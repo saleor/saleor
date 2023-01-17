@@ -1,14 +1,21 @@
 import django.db.models.deletion
 from django.db import migrations, models
 from django.db.models.signals import post_migrate
+from django.apps import apps as registry
 
 import saleor.core.utils.json_serializer
 
 
 def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Group = apps.get_model("auth", "Group")
-        Permission = apps.get_model("auth", "Permission")
+        try:
+            apps = kwargs["apps"]
+        except KeyError:
+            # In test when we use use `@pytest.mark.django_db(transaction=True)`
+            # pytest trigger additional post_migrate signal without `apps` in kwargs.
+            return
+        Group = apps.get_model("account", "Group")
+        Permission = apps.get_model("permission", "Permission")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
         ct, _ = ContentType.objects.get_or_create(app_label="page", model="pagetype")
@@ -25,7 +32,8 @@ def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
         for group in groups:
             group.permissions.add(manage_page_types_and_attributes_perm)
 
-    post_migrate.connect(on_migrations_complete, weak=False)
+    sender = registry.get_app_config("page")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 def add_page_types_to_existing_pages(apps, schema_editor):

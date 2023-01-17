@@ -43,14 +43,11 @@ class SiteSettings(models.Model):
     bottom_menu = models.ForeignKey(
         "menu.Menu", on_delete=models.SET_NULL, related_name="+", blank=True, null=True
     )
-    include_taxes_in_prices = models.BooleanField(default=True)
-    display_gross_prices = models.BooleanField(default=True)
-    charge_taxes_on_shipping = models.BooleanField(default=True)
     track_inventory_by_default = models.BooleanField(default=True)
     default_weight_unit = models.CharField(
         max_length=30,
-        choices=WeightUnits.CHOICES,  # type: ignore
-        default=WeightUnits.KG,  # type: ignore
+        choices=WeightUnits.CHOICES,
+        default=WeightUnits.KG,
     )
     automatic_fulfillment_digital_products = models.BooleanField(default=False)
     default_digital_max_downloads = models.IntegerField(blank=True, null=True)
@@ -96,6 +93,11 @@ class SiteSettings(models.Model):
     )
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(default=True)
+
+    # deprecated
+    charge_taxes_on_shipping = models.BooleanField(default=True)
+    include_taxes_in_prices = models.BooleanField(default=True)
+    display_gross_prices = models.BooleanField(default=True)
 
     translated = TranslationProxy()
 

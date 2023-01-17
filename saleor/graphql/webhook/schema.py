@@ -1,11 +1,19 @@
 import graphene
 
 from ...core.permissions import AppPermission, AuthorizationFilters
+from ..app.dataloaders import app_promise_callback
+from ..core import ResolveInfo
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import NonNullList
 from .enums import WebhookSampleEventTypeEnum
-from .mutations import EventDeliveryRetry, WebhookCreate, WebhookDelete, WebhookUpdate
+from .mutations import (
+    EventDeliveryRetry,
+    WebhookCreate,
+    WebhookDelete,
+    WebhookDryRun,
+    WebhookUpdate,
+)
 from .resolvers import resolve_sample_payload, resolve_webhook, resolve_webhook_events
 from .types import Webhook, WebhookEvent
 
@@ -44,15 +52,17 @@ class WebhookQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_webhook_sample_payload(_root, info, **data):
-        return resolve_sample_payload(info, data["event_type"])
+    @app_promise_callback
+    def resolve_webhook_sample_payload(_root, info: ResolveInfo, app, **data):
+        return resolve_sample_payload(info, data["event_type"], app)
 
     @staticmethod
-    def resolve_webhook(_root, info, **data):
-        return resolve_webhook(info, data["id"])
+    @app_promise_callback
+    def resolve_webhook(_root, info: ResolveInfo, app, **data):
+        return resolve_webhook(info, data["id"], app)
 
     @staticmethod
-    def resolve_webhook_events(_root, _info):
+    def resolve_webhook_events(_root, _info: ResolveInfo):
         return resolve_webhook_events()
 
 
@@ -61,3 +71,4 @@ class WebhookMutations(graphene.ObjectType):
     webhook_delete = WebhookDelete.Field()
     webhook_update = WebhookUpdate.Field()
     event_delivery_retry = EventDeliveryRetry.Field()
+    webhook_dry_run = WebhookDryRun.Field()

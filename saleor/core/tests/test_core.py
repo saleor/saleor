@@ -1,10 +1,7 @@
-import io
-from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
-from django.core.files.storage import default_storage
 from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
@@ -19,13 +16,11 @@ from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannel
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
 from ...product import ProductTypeKind
-from ...product.models import ProductMedia, ProductType
+from ...product.models import ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
 from ..utils import (
     build_absolute_uri,
-    create_thumbnails,
-    delete_versatile_image,
     generate_unique_slug,
     get_client_ip,
     get_currency_for_country,
@@ -196,37 +191,6 @@ def test_create_gift_card(
     assert GiftCardEvent.objects.count() == amount * 2
 
 
-@override_settings(VERSATILEIMAGEFIELD_SETTINGS={"create_images_on_demand": False})
-def test_create_thumbnails(product_with_image, settings, monkeypatch):
-    monkeypatch.setattr("django.core.cache.cache.get", Mock(return_value=None))
-    sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS["products"]
-    product_image = product_with_image.media.first()
-
-    # There's no way to list images created by versatile prewarmer
-    # So we delete all created thumbnails/crops and count them
-    log_deleted_images = io.StringIO()
-    with redirect_stdout(log_deleted_images):
-        product_image.image.delete_all_created_images()
-    log_deleted_images = log_deleted_images.getvalue()
-    # Image didn't have any thumbnails/crops created, so there's no log
-    assert not log_deleted_images
-
-    create_thumbnails(product_image.pk, ProductMedia, "products")
-    log_deleted_images = io.StringIO()
-    with redirect_stdout(log_deleted_images):
-        product_image.image.delete_all_created_images()
-    log_deleted_images = log_deleted_images.getvalue()
-
-    for image_name, method_size in sizeset:
-        method, size = method_size.split("__")
-        if method == "crop":
-            assert product_image.image.crop[size].name in log_deleted_images
-        elif method == "thumbnail":
-            assert (
-                product_image.image.thumbnail[size].name in log_deleted_images
-            )  # noqa
-
-
 @patch("storages.backends.s3boto3.S3Boto3Storage")
 def test_storages_set_s3_bucket_domain(storage, settings):
     settings.AWS_MEDIA_BUCKET_NAME = "media-bucket"
@@ -254,9 +218,21 @@ def test_build_absolute_uri(site_settings, settings):
     # Case when static url is resolved to relative url
     logo_url = build_absolute_uri(static("images/close.svg"))
     protocol = "https" if settings.ENABLE_SSL else "http"
-    current_url = "%s://%s" % (protocol, site_settings.site.domain)
+    current_url = f"{protocol}://{site_settings.site.domain}"
     logo_location = urljoin(current_url, static("images/close.svg"))
     assert logo_url == logo_location
+
+
+def test_build_absolute_uri_with_host(site_settings, settings):
+    # given
+    host = "test.com"
+    location = "images/close.svg"
+
+    # when
+    url = build_absolute_uri(location, host)
+
+    # then
+    assert url == f"http://{host}/{location}"
 
 
 def test_delete_sort_order_with_null_value(menu_item):
@@ -278,8 +254,10 @@ def test_delete_sort_order_with_null_value(menu_item):
         ("Shirt", "shirt"),
         ("40.5", "405-2"),
         ("FM1+", "fm1-2"),
-        ("زيوت", "زيوت"),
-        ("わたし-わ にっぽん です", "わたし-わ-にっぽん-です-2"),
+        ("Ładny", "ladny"),
+        ("زيوت", "zywt"),
+        ("わたし-わ にっぽん です", "watasi-wa-nitupon-desu-2"),
+        ("Салеор", "saleor-2"),
     ],
 )
 def test_generate_unique_slug_with_slugable_field(
@@ -289,9 +267,10 @@ def test_generate_unique_slug_with_slugable_field(
         ("Paint", "paint"),
         ("Paint blue", "paint-blue"),
         ("Paint test", "paint-2"),
+        ("Saleor", "saleor"),
         ("405", "405"),
         ("FM1", "fm1"),
-        ("わたし わ にっぽん です", "わたし-わ-にっぽん-です"),
+        ("わたし わ にっぽん です", "watasi-wa-nitupon-desu"),
     ]
     for name, slug in product_names_and_slugs:
         ProductType.objects.create(
@@ -385,23 +364,3 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
-
-
-def test_delete_versatile_image(product_with_image, media_root):
-    # given
-    media = product_with_image.media.first()
-    thumb_200x200 = media.image.thumbnail["200x200"].name
-    thumb_400x400 = media.image.thumbnail["400x400"].name
-    img_name = media.image.name
-
-    assert default_storage.exists(img_name)
-    assert default_storage.exists(thumb_200x200)
-    assert default_storage.exists(thumb_400x400)
-
-    # when
-    delete_versatile_image(media.image)
-
-    # then
-    assert not default_storage.exists(img_name)
-    assert not default_storage.exists(thumb_400x400)
-    assert not default_storage.exists(thumb_400x400)

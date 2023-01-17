@@ -2,7 +2,6 @@ import logging
 from collections import defaultdict
 from typing import Dict, Iterable, List
 
-from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -14,6 +13,7 @@ from ..core.permissions import (
 )
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_payload import validate_subscription_query
+from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
@@ -99,7 +99,8 @@ def clean_manifest_data(manifest_data):
 
     validate_required_fields(manifest_data, errors)
     try:
-        _clean_app_url(manifest_data["tokenTargetUrl"])
+        if "tokenTargetUrl" in manifest_data:
+            _clean_app_url(manifest_data["tokenTargetUrl"])
     except (ValidationError, AttributeError):
         errors["tokenTargetUrl"].append(
             ValidationError(
@@ -134,6 +135,8 @@ def _clean_extension_permissions(extension, app_permissions, errors):
     try:
         extension_permissions = clean_permissions(permissions_data, app_permissions)
     except ValidationError as e:
+        if e.params is None:
+            e.params = {}
         e.params["label"] = extension.get("label")
         errors["extensions"].append(e)
         return
@@ -255,8 +258,8 @@ def validate_required_fields(manifest_data, errors):
         if missing_fields := extension_required_fields.difference(extension_fields):
             errors["extensions"].append(
                 ValidationError(
-                    "Missing required fields for app extension: %s."
-                    % ", ".join(missing_fields),
+                    "Missing required fields for app extension: "
+                    f'{", ".join(missing_fields)}.',
                     code=AppErrorCode.REQUIRED.value,
                 )
             )
@@ -267,8 +270,8 @@ def validate_required_fields(manifest_data, errors):
         if missing_fields := webhook_required_fields.difference(webhook_fields):
             errors["webhooks"].append(
                 ValidationError(
-                    "Missing required fields for webhook: %s."
-                    % ", ".join(missing_fields),
+                    f"Missing required fields for webhook: "
+                    f'{", ".join(missing_fields)}.',
                     code=AppErrorCode.REQUIRED.value,
                 )
             )

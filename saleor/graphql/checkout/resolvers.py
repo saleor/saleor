@@ -1,6 +1,6 @@
 from ...checkout import models
 from ...core.permissions import AccountPermissions, CheckoutPermissions
-from ...core.tracing import traced_resolver
+from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..utils import get_user_or_app_from_context
@@ -36,11 +36,15 @@ def resolve_checkout(info, token, id):
             return checkout
 
         # resolve checkout for logged-in customer
-        if checkout.user == info.context.user:
+        user = info.context.user
+        if user and checkout.user == user:
             return checkout
 
     # resolve checkout for staff user
     requester = get_user_or_app_from_context(info.context)
+
+    if not requester:
+        return None
 
     has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)

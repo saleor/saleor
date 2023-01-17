@@ -1,16 +1,16 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Union
+from typing import TYPE_CHECKING, Iterable, TypeVar
 
 from babel.numbers import get_currency_precision
+from prices import Money, TaxedMoney, TaxedMoneyRange
 
 if TYPE_CHECKING:
     from django.db.models import Model
-    from prices import Money, TaxedMoney, TaxedMoneyRange
 
-MoneyTypes = Union["TaxedMoney", "Money", Decimal, "TaxedMoneyRange"]
+PriceType = TypeVar("PriceType", TaxedMoney, Money, Decimal, TaxedMoneyRange)
 
 
-def quantize_price(price: MoneyTypes, currency: str) -> MoneyTypes:
+def quantize_price(price: PriceType, currency: str) -> PriceType:
     precision = get_currency_precision(currency)
     number_places = Decimal(10) ** -precision
     return price.quantize(number_places)

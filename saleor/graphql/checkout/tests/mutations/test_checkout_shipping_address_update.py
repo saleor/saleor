@@ -8,7 +8,11 @@ from django.utils import timezone
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from .....checkout.utils import (
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+    invalidate_checkout_prices,
+)
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
 from .....warehouse.models import Reservation, Stock
@@ -49,7 +53,13 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_shipping_address_update(
+    mocked_invalidate_checkout_prices,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,
@@ -89,6 +99,7 @@ def test_checkout_shipping_address_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 @mock.patch(
@@ -191,6 +202,47 @@ def test_checkout_shipping_address_update_insufficient_stocks(
     assert errors[0]["field"] == "quantity"
     checkout.refresh_from_db()
     assert checkout.last_change == previous_last_change
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+@override_settings(DEFAULT_COUNTRY="DE")
+def test_checkout_shipping_address_update_doesnt_raise_error(
+    mocked_update_shipping_method,
+    channel_USD,
+    user_api_client,
+    product_list,
+    graphql_address_data,
+):
+    variant_a = product_list[0].variants.first()
+    variant_b = product_list[1].variants.first()
+    Stock.objects.filter(product_variant=variant_a).update(quantity=4)
+    Stock.objects.filter(product_variant=variant_b).update(quantity=1)
+    checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
+    checkout.set_country("PL", commit=True)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant_b, 1)
+    add_variant_to_checkout(checkout_info, variant_a, 4)
+    assert checkout.shipping_address is None
+
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = "10001"
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
 
 
 @mock.patch(
@@ -435,6 +487,7 @@ def test_checkout_shipping_address_update_exclude_shipping_method(
     "address_data",
     [
         {"country": "PL"},  # missing postalCode, streetAddress
+        {"country": "PL", "postalCode": ""},
         {"country": "PL", "postalCode": "53-601"},  # missing streetAddress
         {"country": "US"},
         {
@@ -465,6 +518,39 @@ def test_checkout_shipping_address_update_with_skip_required_doesnt_raise_error(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     assert checkout_with_items.shipping_address
+
+
+def test_checkout_shipping_address_update_with_skip_required_overwrite_address(
+    checkout_with_items, user_api_client, address
+):
+    # given
+    checkout_with_items.shipping_address = address
+    checkout_with_items.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": {
+            "postalCode": "",
+            "city": "",
+            "country": "US",
+        },
+        "validationRules": {"checkRequiredFields": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+
+    assert checkout_with_items.shipping_address.city == ""
+    assert checkout_with_items.shipping_address.postal_code == ""
 
 
 def test_checkout_shipping_address_update_with_skip_required_raises_validation_error(

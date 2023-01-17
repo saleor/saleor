@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
@@ -1319,6 +1320,34 @@ def test_handle_webhook_events(
     )
 
 
+def test_handle_webhook_events_when_secret_is_missing(stripe_plugin, rf):
+    # given
+    webhook_type = WEBHOOK_SUCCESS_EVENT
+
+    dummy_payload = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+
+    request = rf.post(
+        path="/webhooks/", data=dummy_payload, content_type="application/json"
+    )
+
+    stripe_signature = "1234"
+    request.META["HTTP_STRIPE_SIGNATURE"] = stripe_signature
+
+    event = Mock()
+    event.type = webhook_type
+    event.data.object = StripeObject()
+
+    plugin = stripe_plugin(webhook_secret_key=None)
+
+    # when
+    response = plugin.webhook(request, "/webhooks/", None)
+
+    # then
+    assert response.status_code == 500
+
+
 @patch("saleor.payment.gateway.refund")
 @patch("saleor.checkout.complete_checkout._get_order_data")
 def test_finalize_checkout_not_created_order_payment_refund(
@@ -1360,6 +1389,8 @@ def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_re
     checkout = payment_stripe_for_checkout.checkout
 
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     _finalize_checkout(
         checkout,
@@ -1417,6 +1448,8 @@ def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_vo
     checkout = payment_stripe_for_checkout.checkout
 
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     _finalize_checkout(
         checkout,

@@ -179,8 +179,10 @@ def test_generate_sample_checkout_payload(user_checkouts):
             != payload[0]["shipping_address"]["street_address_1"]
         )
         assert "note" not in payload[0]
-        assert checkout.metadata != payload[0]["metadata"]
-        assert checkout.private_metadata != payload[0]["private_metadata"]
+        assert checkout.metadata_storage.metadata != payload[0]["metadata"]
+        assert (
+            checkout.metadata_storage.private_metadata != payload[0]["private_metadata"]
+        )
         # Remove anonymized data
         payload = _remove_anonymized_checkout_data(payload)
         checkout_payload = _remove_anonymized_checkout_data(checkout_payload)

@@ -11,10 +11,14 @@ from django.conf import settings
 from django_countries.fields import Country
 from requests.exceptions import ConnectTimeout
 
-from .....checkout.calculations import checkout_shipping_price, checkout_total
+from .....checkout.calculations import (
+    checkout_line_unit_price,
+    checkout_shipping_price,
+    checkout_total,
+)
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import is_shipping_required
+from .....checkout.utils import get_or_create_checkout_metadata, is_shipping_required
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
@@ -266,14 +270,13 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
 
     line_items = []
     for line_info in lines:
-        address = checkout_info.shipping_address or checkout_info.billing_address
-        unit_price = manager.calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            line_info,
-            address,
-            discounts,
-        ).price_with_sale
+        unit_price = checkout_line_unit_price(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
+            discounts=discounts,
+        )
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
         tax_amount = unit_price.tax.amount
@@ -349,7 +352,9 @@ def request_data_for_gateway_config(
         country_code = country.code
     else:
         country_code = Country(settings.DEFAULT_COUNTRY).code
-    channel = checkout.get_value_from_metadata("channel", "web")
+    channel = get_or_create_checkout_metadata(checkout).get_value_from_metadata(
+        "channel", "web"
+    )
     return {
         "merchantAccount": merchant_account,
         "countryCode": country_code,
@@ -492,7 +497,7 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
     amount_input = data["card"].get("money")
     security_code = data["card"].get("cvc")
 
-    request_data = {
+    request_data: Dict[str, Any] = {
         "merchantAccount": merchant_account,
         "paymentMethod": {
             "type": data["method"],
@@ -509,6 +514,6 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
         }
 
     if security_code:
-        request_data["paymentMethod"]["securityCode"] = security_code  # type: ignore
+        request_data["paymentMethod"]["securityCode"] = security_code
 
     return request_data

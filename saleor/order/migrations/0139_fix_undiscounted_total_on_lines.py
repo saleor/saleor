@@ -1,9 +1,10 @@
 from functools import partial
 
+from django.apps import apps as registry
 from django.db import migrations
 from django.db.models import F, Q
 from django.db.models.signals import post_migrate
-from saleor.order.app import OrderAppConfig
+
 from saleor.order.tasks import send_order_updated
 
 BATCH_SIZE = 500
@@ -30,11 +31,8 @@ def queryset_in_batches(queryset):
 
 def set_order_line_base_prices(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        # The `post_migrate`` signal is sent once for every app migrated
-        # we should execute it only once after update `order` module.
-        if isinstance(sender, OrderAppConfig):
-            order_ids = list(kwargs.get("updated_orders_pks"))
-            send_order_updated.delay(order_ids)
+        order_ids = list(kwargs.get("updated_orders_pks"))
+        send_order_updated.delay(order_ids)
 
     OrderLine = apps.get_model("order", "OrderLine")
     order_lines_to_update = OrderLine.objects.filter(
@@ -83,10 +81,12 @@ def set_order_line_base_prices(apps, schema_editor):
     # If we updated any order we should trigger `order_updated` after migrations
     if updated_orders_pks:
         updated_orders_pks = set(updated_orders_pks)
+        sender = registry.get_app_config("order")
         post_migrate.connect(
             partial(on_migrations_complete, updated_orders_pks=updated_orders_pks),
             weak=False,
             dispatch_uid="send_order_updated",
+            sender=sender,
         )
 
 

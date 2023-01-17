@@ -3,22 +3,28 @@ from typing import cast
 import graphene
 from django.db.models import QuerySet
 
-from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...attribute import AttributeInputType, models
 from ...core.permissions import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
 )
-from ...core.tracing import traced_resolver
+from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_39,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_FIELD,
+)
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
+from ..core.scalars import Date
 from ..core.types import (
     DateRangeInput,
     DateTimeRangeInput,
@@ -36,9 +42,10 @@ from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import AttributeValueFilterInput
 from .sorters import AttributeChoicesSortingInput
+from .utils import AttributeAssignmentMixin
 
 
-class AttributeValue(ModelObjectType):
+class AttributeValue(ModelObjectType[models.AttributeValue]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
@@ -60,9 +67,13 @@ class AttributeValue(ModelObjectType):
     boolean = graphene.Boolean(
         description=AttributeValueDescriptions.BOOLEAN, required=False
     )
-    date = graphene.Date(description=AttributeValueDescriptions.DATE, required=False)
+    date = Date(description=AttributeValueDescriptions.DATE, required=False)
     date_time = graphene.DateTime(
         description=AttributeValueDescriptions.DATE_TIME, required=False
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this attribute value. {ADDED_IN_310}",
+        required=False,
     )
 
     class Meta:
@@ -71,8 +82,7 @@ class AttributeValue(ModelObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
-    def resolve_input_type(root: models.AttributeValue, info):
+    def resolve_input_type(root: models.AttributeValue, info: ResolveInfo):
         return (
             AttributesByAttributeId(info.context)
             .load(root.attribute_id)
@@ -80,21 +90,21 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_file(root: models.AttributeValue, _info):
+    def resolve_file(root: models.AttributeValue, _info: ResolveInfo):
         if not root.file_url:
             return
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
-    def resolve_reference(root: models.AttributeValue, info):
+    def resolve_reference(root: models.AttributeValue, info: ResolveInfo):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                reference_pk = root.reference_page_id
-            elif attribute.entity_type == AttributeEntityType.PRODUCT:
-                reference_pk = root.reference_product_id
-            else:
+            reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
+                attribute.entity_type
+            ].value_field
+            reference_pk = getattr(root, f"{reference_field}_id", None)
+            if reference_pk is None:
                 return
             reference_id = graphene.Node.to_global_id(
                 attribute.entity_type, reference_pk
@@ -108,7 +118,7 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_date_time(root: models.AttributeValue, info):
+    def resolve_date_time(root: models.AttributeValue, info: ResolveInfo):
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE_TIME:
                 return root.date_time
@@ -121,7 +131,7 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_date(root: models.AttributeValue, info):
+    def resolve_date(root: models.AttributeValue, info: ResolveInfo):
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE:
                 return root.date_time
@@ -139,7 +149,7 @@ class AttributeValueCountableConnection(CountableConnection):
         node = AttributeValue
 
 
-class Attribute(ModelObjectType):
+class Attribute(ModelObjectType[models.Attribute]):
     id = graphene.GlobalID(required=True)
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(
@@ -231,6 +241,10 @@ class Attribute(ModelObjectType):
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
     )
+    external_reference = graphene.String(
+        description=f"External ID of this attribute. {ADDED_IN_310}",
+        required=False,
+    )
 
     class Meta:
         description = (
@@ -241,7 +255,7 @@ class Attribute(ModelObjectType):
         model = models.Attribute
 
     @staticmethod
-    def resolve_choices(root: models.Attribute, info, **kwargs):
+    def resolve_choices(root: models.Attribute, info: ResolveInfo, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
             qs = cast(QuerySet[models.AttributeValue], root.values.all())
         else:
@@ -256,47 +270,49 @@ class Attribute(ModelObjectType):
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_value_required(root: models.Attribute, _info):
+    def resolve_value_required(root: models.Attribute, _info: ResolveInfo):
         return root.value_required
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_visible_in_storefront(root: models.Attribute, _info):
+    def resolve_visible_in_storefront(root: models.Attribute, _info: ResolveInfo):
         return root.visible_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_storefront(root: models.Attribute, _info):
+    def resolve_filterable_in_storefront(root: models.Attribute, _info: ResolveInfo):
         return root.filterable_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_dashboard(root: models.Attribute, _info):
+    def resolve_filterable_in_dashboard(root: models.Attribute, _info: ResolveInfo):
         return root.filterable_in_dashboard
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_storefront_search_position(root: models.Attribute, _info):
+    def resolve_storefront_search_position(root: models.Attribute, _info: ResolveInfo):
         return root.storefront_search_position
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_available_in_grid(root: models.Attribute, _info):
+    def resolve_available_in_grid(root: models.Attribute, _info: ResolveInfo):
         return root.available_in_grid
 
     @staticmethod
-    def resolve_with_choices(root: models.Attribute, _info):
+    def resolve_with_choices(root: models.Attribute, _info: ResolveInfo):
         return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
 
     @staticmethod
-    def resolve_product_types(root: models.Attribute, info, **kwargs):
+    def resolve_product_types(root: models.Attribute, info: ResolveInfo, **kwargs):
         from ..product.types import ProductTypeCountableConnection
 
         qs = root.product_types.all()
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
     @staticmethod
-    def resolve_product_variant_types(root: models.Attribute, info, **kwargs):
+    def resolve_product_variant_types(
+        root: models.Attribute, info: ResolveInfo, **kwargs
+    ):
         from ..product.types import ProductTypeCountableConnection
 
         qs = root.product_variant_types.all()
@@ -369,6 +385,23 @@ class AttributeInput(graphene.InputObjectType):
     )
 
 
+class AttributeValueSelectableTypeInput(graphene.InputObjectType):
+    id = graphene.ID(required=False, description="ID of an attribute value.")
+    value = graphene.String(
+        required=False,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+
+    class Meta:
+        description = (
+            "Represents attribute value. If no ID provided, value will be resolved. "
+            + ADDED_IN_39
+        )
+
+
 class AttributeValueInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = NonNullList(
@@ -376,8 +409,22 @@ class AttributeValueInput(graphene.InputObjectType):
         required=False,
         description=(
             "The value or slug of an attribute to resolve. "
-            "If the passed value is non-existent, it will be created."
+            "If the passed value is non-existent, it will be created. "
+            + DEPRECATED_IN_3X_FIELD
         ),
+    )
+    dropdown = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_39,
+    )
+    multiselect = NonNullList(
+        AttributeValueSelectableTypeInput,
+        required=False,
+        description="List of attribute value IDs." + ADDED_IN_39,
+    )
+    numeric = graphene.String(
+        required=False,
+        description="Numeric value of an attribute." + ADDED_IN_39,
     )
     file = graphene.String(
         required=False,
@@ -394,7 +441,7 @@ class AttributeValueInput(graphene.InputObjectType):
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )
-    date = graphene.Date(required=False, description=AttributeValueDescriptions.DATE)
+    date = Date(required=False, description=AttributeValueDescriptions.DATE)
     date_time = graphene.DateTime(
         required=False, description=AttributeValueDescriptions.DATE_TIME
     )

@@ -1,17 +1,21 @@
 import json
 import logging
 from os.path import exists, join
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.color import color_style
+from django.urls import reverse
 from django.utils.module_loading import import_string
 from jwt import api_jws
 from jwt.algorithms import RSAAlgorithm
+
+from .utils import build_absolute_uri
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +24,10 @@ KID = "1"
 
 
 class JWTManagerBase:
+    @classmethod
+    def get_domain(cls) -> str:
+        return NotImplemented
+
     @classmethod
     def get_private_key(cls) -> rsa.RSAPrivateKey:
         return NotImplemented
@@ -37,7 +45,9 @@ class JWTManagerBase:
         return NotImplemented
 
     @classmethod
-    def decode(cls, token: str, verify_expiration: bool = True) -> dict:
+    def decode(
+        cls, token: str, verify_expiration: bool = True, verify_aud: bool = False
+    ) -> dict:
         return NotImplemented
 
     @classmethod
@@ -48,31 +58,44 @@ class JWTManagerBase:
     def get_jwks(cls) -> dict:
         return NotImplemented
 
+    @classmethod
+    def get_issuer(cls) -> str:
+        return NotImplemented
+
 
 class JWTManager(JWTManagerBase):
     KEY_FILE_FOR_DEBUG = ".jwt_key.pem"
 
     @classmethod
-    def get_private_key(cls) -> rsa.RSAPrivateKey:
-        pem = settings.RSA_PRIVATE_KEY
-        if not pem and settings.DEBUG:
-            return cls._load_debug_private_key()
-        return cls._get_private_key(pem)  # type: ignore
+    def get_domain(cls) -> str:
+        return Site.objects.get_current().domain
 
     @classmethod
-    def _get_private_key(cls, pem: Union[str, bytes]):
+    def get_private_key(cls) -> rsa.RSAPrivateKey:
+        pem = settings.RSA_PRIVATE_KEY
+        if not pem:
+            if settings.DEBUG:
+                return cls._load_debug_private_key()
+            raise ImproperlyConfigured(
+                "RSA_PRIVATE_KEY is required when DEBUG mode is disabled."
+            )
+        return cls._get_private_key(pem)
+
+    @classmethod
+    def _get_private_key(cls, pem: Union[str, bytes]) -> rsa.RSAPrivateKey:
         if isinstance(pem, str):
             pem = pem.encode("utf-8")
 
-        password = settings.RSA_PRIVATE_PASSWORD
+        password: Union[str, bytes, None] = settings.RSA_PRIVATE_PASSWORD
         if isinstance(password, str):
-            password = password.encode("utf-8")  # type: ignore
-        return serialization.load_pem_private_key(
-            pem, password=password  # type: ignore
+            password = password.encode("utf-8")
+        return cast(
+            rsa.RSAPrivateKey,
+            serialization.load_pem_private_key(pem, password=password),
         )
 
     @classmethod
-    def _load_debug_private_key(cls):
+    def _load_debug_private_key(cls) -> rsa.RSAPrivateKey:
         key_path = join(settings.PROJECT_ROOT, cls.KEY_FILE_FOR_DEBUG)
         if exists(key_path):
             return cls._load_local_private_key(key_path)
@@ -80,14 +103,15 @@ class JWTManager(JWTManagerBase):
         return cls._create_local_private_key(key_path)
 
     @classmethod
-    def _load_local_private_key(cls, path) -> "rsa.RSAPrivateKey":
+    def _load_local_private_key(cls, path) -> rsa.RSAPrivateKey:
         with open(path, "rb") as key_file:
-            return serialization.load_pem_private_key(
-                key_file.read(), password=None
-            )  # type: ignore
+            return cast(
+                rsa.RSAPrivateKey,
+                serialization.load_pem_private_key(key_file.read(), password=None),
+            )
 
     @classmethod
-    def _create_local_private_key(cls, path) -> "rsa.RSAPrivateKey":
+    def _create_local_private_key(cls, path) -> rsa.RSAPrivateKey:
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -120,34 +144,39 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def encode(cls, payload):
         return jwt.encode(
-            payload, cls.get_private_key(), algorithm="RS256", headers={"kid": KID}
+            payload,
+            cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+            algorithm="RS256",
+            headers={"kid": KID},
         )
 
     @classmethod
     def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> str:
         return api_jws.encode(
             payload,
-            key=cls.get_private_key(),  # type: ignore
+            key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
             headers={"kid": KID},
             is_payload_detached=is_payload_detached,
         )
 
     @classmethod
-    def decode(cls, token, verify_expiration: bool = True):
+    def decode(cls, token, verify_expiration: bool = True, verify_aud: bool = False):
+        # `verify_aud` set to false as we decode our own tokens
+        # we can have `aud` defined for app or custom.
         headers = jwt.get_unverified_header(token)
         if headers.get("alg") == "RS256":
             return jwt.decode(
                 token,
-                cls.get_public_key(),  # type: ignore
+                cls.get_public_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
                 algorithms=["RS256"],
-                options={"verify_exp": verify_expiration},
+                options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
             )
         return jwt.decode(
             token,
-            settings.SECRET_KEY,  # type: ignore
+            cast(str, settings.SECRET_KEY),
             algorithms=["HS256"],
-            options={"verify_exp": verify_expiration},
+            options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
         )
 
     @classmethod
@@ -169,6 +198,10 @@ class JWTManager(JWTManagerBase):
             cls.get_private_key()
         except Exception as e:
             raise ImproperlyConfigured(f"Unable to load provided PEM private key. {e}")
+
+    @classmethod
+    def get_issuer(cls) -> str:
+        return build_absolute_uri(reverse("api"), domain=cls.get_domain())
 
 
 def get_jwt_manager() -> JWTManagerBase:

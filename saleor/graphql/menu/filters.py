@@ -3,7 +3,7 @@ import graphene
 from django.db.models import Q
 
 from ...menu.models import Menu, MenuItem
-from ..core.filters import ListObjectTypeFilter, MetadataFilterBase
+from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, filter_slug_list
 from ..core.types import FilterInputObjectType
 
 
@@ -22,6 +22,7 @@ def filter_menu_item_search(qs, _, value):
 class MenuFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_menu_search)
     slug = ListObjectTypeFilter(input_class=graphene.String, method=filter_menu_slug)
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Menu

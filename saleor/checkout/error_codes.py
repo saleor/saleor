@@ -29,6 +29,7 @@ class CheckoutErrorCode(Enum):
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     EMAIL_NOT_SET = "email_not_set"
     NO_LINES = "no_lines"
+    INACTIVE_PAYMENT = "inactive_payment"
 
 
 class OrderCreateFromCheckoutErrorCode(Enum):

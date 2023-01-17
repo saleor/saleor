@@ -4,7 +4,7 @@ from prices import Money
 
 from ....order import models
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import recalculate_order_discounts, recalculate_order_prices
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...discount.enums import DiscountValueTypeEnum
@@ -30,7 +30,7 @@ class OrderDiscountCommon(BaseMutation):
         abstract = True
 
     @classmethod
-    def validate_order(cls, info, order):
+    def validate_order(cls, _info: ResolveInfo, order: models.Order) -> models.Order:
         if not (order.is_draft() or order.is_unconfirmed()):
             error_msg = "Only draft and unconfirmed order can be modified."
             raise ValidationError(
@@ -40,6 +40,7 @@ class OrderDiscountCommon(BaseMutation):
                     )
                 }
             )
+        return order
 
     @classmethod
     def _validation_error_for_input_value(
@@ -61,18 +62,3 @@ class OrderDiscountCommon(BaseMutation):
         elif value > 100:
             error_msg = f"The percentage value ({value}) cannot be higher than 100."
             raise cls._validation_error_for_input_value(error_msg)
-
-    @classmethod
-    def recalculate_order(cls, order: models.Order):
-        """Recalculate order data and save them."""
-        recalculate_order_prices(order)
-        recalculate_order_discounts(order)
-        order.save(
-            update_fields=[
-                "total_net_amount",
-                "total_gross_amount",
-                "undiscounted_total_net_amount",
-                "undiscounted_total_gross_amount",
-                "updated_at",
-            ]
-        )

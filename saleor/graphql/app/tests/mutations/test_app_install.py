@@ -39,7 +39,7 @@ def test_install_app_mutation(
 ):
     mocked_task = Mock()
     monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+        "saleor.graphql.app.mutations.app_install.install_app_task.delay", mocked_task
     )
     query = INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])

@@ -5,9 +5,9 @@ from unittest.mock import patch
 import pytest
 
 from .....order.actions import create_refund_fulfillment
-from .....order.utils import recalculate_order
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
+from .....tests.fixtures import recalculate_order
 from ....interface import AddressData, PaymentLineData, PaymentLinesData
 from ..api_types import get_api_config
 from ..const import (
@@ -97,6 +97,8 @@ def np_address_data():
         city_area="本宿",
         street_address_1="2-16-3",
         street_address_2="",
+        metadata={},
+        private_metadata={},
     )
 
 

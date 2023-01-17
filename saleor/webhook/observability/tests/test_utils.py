@@ -1,13 +1,13 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
-import pytz
 from celery.exceptions import Retry
 from django.http import HttpResponse
 from freezegun import freeze_time
 
+from ..exceptions import ApiCallTruncationError, EventDeliveryAttemptTruncationError
 from ..payload_schema import JsonTruncText
 from ..payloads import CustomJsonEncoder
 from ..utils import (
@@ -131,7 +131,7 @@ def test_json_truncate_text_comparison():
     "retry, next_retry_date",
     [
         (Retry(), None),
-        (Retry(when=60 * 10), datetime(1914, 6, 28, 11, tzinfo=pytz.utc)),
+        (Retry(when=60 * 10), datetime(1914, 6, 28, 11, tzinfo=timezone.utc)),
         (Retry(when=datetime(1914, 6, 28, 11)), datetime(1914, 6, 28, 11)),
     ],
 )
@@ -208,6 +208,20 @@ def test_api_call_response_report_when_request_not_from_app(
 
 
 @patch("saleor.webhook.observability.utils.put_event")
+def test_api_call_response_report_when_no_gql_response(
+    mock_put_event,
+    observability_enabled,
+    patch_get_webhooks,
+    api_call,
+):
+    api_call.response = None
+    api_call.report()
+
+    patch_get_webhooks.assert_not_called()
+    mock_put_event.assert_not_called()
+
+
+@patch("saleor.webhook.observability.utils.put_event")
 def test_report_event_delivery_attempt(
     mock_put_event,
     observability_enabled,
@@ -234,8 +248,21 @@ def test_put_event(patch_get_buffer, buffer):
     assert buffer.size() == 1
 
 
-def test_put_event_catch_exceptions(patch_get_buffer, buffer):
-    put_event(lambda: 1 / 0)
+@pytest.mark.parametrize(
+    "error",
+    [
+        Exception("Unknown error"),
+        ApiCallTruncationError("operation_name", 100, 102, extra_kwarg="extra"),
+        EventDeliveryAttemptTruncationError(
+            "operation_name", 100, 102, extra_kwarg="extra"
+        ),
+    ],
+)
+def test_put_event_catch_exceptions(patch_get_buffer, buffer, error):
+    def error_source():
+        raise error
+
+    put_event(error_source)
     assert buffer.size() == 0
 
 

@@ -7,7 +7,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
+from django.db.models import JSONField
 from django_prices.models import MoneyField
 from prices import Money
 
@@ -207,11 +207,9 @@ class Payment(ModelWithMetadata):
         ]
 
     def __repr__(self):
-        return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (
-            self.gateway,
-            self.is_active,
-            self.created_at,
-            self.charge_status,
+        return (
+            f"Payment(gateway={self.gateway}, is_active={self.is_active}, "
+            f"created={self.created_at}, charge_status={self.charge_status})"
         )
 
     def get_last_transaction(self):
@@ -326,10 +324,7 @@ class Transaction(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
-    error = models.CharField(
-        max_length=256,
-        null=True,
-    )
+    error = models.TextField(null=True)
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
@@ -338,10 +333,9 @@ class Transaction(models.Model):
         ordering = ("pk",)
 
     def __repr__(self):
-        return "Transaction(type=%s, is_success=%s, created=%s)" % (
-            self.kind,
-            self.is_success,
-            self.created_at,
+        return (
+            f"Transaction(type={self.kind}, is_success={self.is_success}, "
+            f"created={self.created_at})"
         )
 
     def get_amount(self):

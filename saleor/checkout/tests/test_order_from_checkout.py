@@ -2,8 +2,8 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
+from prices import TaxedMoney
 
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money, zero_taxed_money
@@ -41,7 +41,7 @@ def test_create_order_insufficient_stock(
             checkout_lines=checkout_lines,
             discounts=[],
             manager=manager,
-            user=AnonymousUser(),
+            user=None,
             app=app,
             tracking_code="tracking_code",
         )
@@ -87,7 +87,7 @@ def test_create_order_with_gift_card(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -136,7 +136,7 @@ def test_create_order_with_gift_card_partial_use(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -199,7 +199,7 @@ def test_create_order_with_many_gift_cards(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser,
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -231,7 +231,9 @@ def test_create_order_gift_card_bought(
     is_anonymous_user,
     non_shippable_gift_card_product,
     app,
+    payment_txn_captured,
 ):
+    # given
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card_items
     checkout.user = checkout_user
@@ -260,16 +262,24 @@ def test_create_order_gift_card_bought(
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
+    payment = payment_txn_captured
+    payment.checkout = checkout
+    payment.captured_amount = total_gross.amount
+    payment.total = total_gross.amount
+    payment.save(update_fields=["checkout", "captured_amount", "total"])
+
+    # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
 
+    # then
     flush_post_commit_hooks()
     assert order.total.gross == total_gross
     flush_post_commit_hooks()
@@ -281,6 +291,7 @@ def test_create_order_gift_card_bought(
         ).unit_price_gross
     )
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         None,
         app,
@@ -340,7 +351,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -396,7 +407,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -425,7 +436,7 @@ def test_note_in_created_order(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -471,7 +482,7 @@ def test_create_order_use_translations(
         checkout_lines=lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -507,7 +518,7 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
@@ -546,10 +557,138 @@ def test_create_order_from_checkout_updates_total_charged_amount(
         checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
-        user=AnonymousUser(),
+        user=None,
         app=app,
         tracking_code="tracking_code",
     )
 
     # then
     assert order.total_charged_amount == charged_value
+
+
+def test_create_order_from_checkout_update_display_gross_prices(
+    checkout_with_item, app
+):
+    # given
+    checkout = checkout_with_item
+    channel = checkout.channel
+    tax_configuration = channel.tax_configuration
+
+    tax_configuration.display_gross_prices = False
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines,
+        discounts=[],
+        manager=manager,
+        user=None,
+        app=app,
+        tracking_code="tracking_code",
+    )
+
+    # then
+    assert not order.display_gross_prices
+
+
+def test_create_order_from_checkout_store_shipping_prices(
+    checkout_with_items_and_shipping, shipping_method, customer_user, app
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+
+    expected_base_shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
+    expected_shipping_price = TaxedMoney(
+        net=expected_base_shipping_price * Decimal("0.9"),
+        gross=expected_base_shipping_price,
+    )
+    expected_shipping_tax_rate = Decimal("0.1")
+
+    manager = get_plugins_manager()
+    manager.get_checkout_shipping_tax_rate = mock.Mock(
+        return_value=expected_shipping_tax_rate
+    )
+    manager.calculate_checkout_shipping = mock.Mock(
+        return_value=expected_shipping_price
+    )
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        discounts=[],
+        manager=manager,
+        user=None,
+        app=app,
+        tracking_code="tracking_code",
+    )
+
+    # then
+    assert order.base_shipping_price == expected_base_shipping_price
+    assert order.shipping_price == expected_shipping_price
+    manager.calculate_checkout_shipping.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, []
+    )
+    assert order.shipping_tax_rate == expected_shipping_tax_rate
+    manager.get_checkout_shipping_tax_rate.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
+    )
+
+
+def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
+    checkout_with_voucher_free_shipping,
+    shipping_method,
+    customer_user,
+    voucher_free_shipping,
+    app,
+):
+    # given
+    checkout = checkout_with_voucher_free_shipping
+
+    expected_base_shipping_price = zero_money(checkout.currency)
+    expected_shipping_price = zero_taxed_money(checkout.currency)
+    expected_shipping_tax_rate = Decimal("0.0")
+
+    manager = get_plugins_manager()
+    manager.get_checkout_shipping_tax_rate = mock.Mock(
+        return_value=expected_shipping_tax_rate
+    )
+    manager.calculate_checkout_shipping = mock.Mock(
+        return_value=expected_shipping_price
+    )
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        discounts=[],
+        manager=manager,
+        user=None,
+        app=app,
+        tracking_code="tracking_code",
+    )
+
+    # then
+    assert order.base_shipping_price == expected_base_shipping_price
+    assert order.shipping_price == expected_shipping_price
+    manager.calculate_checkout_shipping.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, []
+    )
+    assert order.shipping_tax_rate == expected_shipping_tax_rate
+    manager.get_checkout_shipping_tax_rate.assert_called_once_with(
+        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
+    )

@@ -3,10 +3,10 @@ from django_countries import countries
 from django_prices_vatlayer.models import VAT
 
 from ...account.models import Address
-from ...core.tracing import traced_resolver
 from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ...shipping.postal_codes import filter_shipping_methods_by_postal_code_rules
 from ...shipping.utils import convert_to_shipping_method_data
+from ..core.tracing import traced_resolver
 from ..core.types import CountryDisplay
 from .utils import get_countries_codes_list
 

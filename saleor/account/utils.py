@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 
 from ..checkout import AddressType
-from ..core.utils import create_thumbnails
 from .models import User
 
 if TYPE_CHECKING:
@@ -96,9 +95,6 @@ def create_superuser(credentials):
     if created:
         user.set_password(credentials["password"])
         user.save()
-        create_thumbnails(
-            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
-        )
         msg = "Superuser - %(email)s/%(password)s" % credentials
     else:
         msg = "Superuser already exists - %(email)s" % credentials
@@ -116,3 +112,21 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
+
+
+def retrieve_user_by_email(email):
+    """Retrieve user by email.
+
+    Email lookup is case-insensitive, unless the query returns more than one user. In
+    such a case, function return case-sensitive result.
+    """
+    users = list(User.objects.filter(email__iexact=email))
+
+    if len(users) > 1:
+        users_exact = [user for user in users if user.email == email]
+        users_iexact = [user for user in users if user.email == email.lower()]
+        users = users_exact or users_iexact
+
+    if users:
+        return users[0]
+    return None

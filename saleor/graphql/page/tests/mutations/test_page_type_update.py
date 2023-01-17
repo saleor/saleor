@@ -1,9 +1,11 @@
+import json
 from unittest import mock
 
 import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....page.error_codes import PageErrorCode
 from .....page.models import PageType
 from .....webhook.event_types import WebhookEventAsyncType
@@ -123,14 +125,19 @@ def test_page_type_update_trigger_webhook(
     assert not data["errors"]
     assert data["pageType"]["slug"] == slug
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("PageType", page_type.id),
-            "name": page_type.name,
-            "slug": page_type.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(SimpleLazyObject(lambda: staff_user))
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("PageType", page_type.id),
+                "name": page_type.name,
+                "slug": page_type.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.PAGE_TYPE_UPDATED,
         [any_webhook],
         page_type,

@@ -16,14 +16,16 @@ class SaleSortField(graphene.Enum):
 
     @property
     def description(self):
-        descrption_extras = {SaleSortField.VALUE.name: [CHANNEL_REQUIRED]}
+        descrption_extras = {
+            SaleSortField.VALUE.name: [CHANNEL_REQUIRED]  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        }
         if self.name in SaleSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             description = f"Sort sales by {sort_name}."
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
@@ -53,8 +55,8 @@ class VoucherSortField(graphene.Enum):
     @property
     def description(self):
         descrption_extras = {
-            VoucherSortField.VALUE.name: [CHANNEL_REQUIRED],
-            VoucherSortField.MINIMUM_SPENT_AMOUNT.name: [CHANNEL_REQUIRED],
+            VoucherSortField.VALUE.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            VoucherSortField.MINIMUM_SPENT_AMOUNT.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in VoucherSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
@@ -62,7 +64,7 @@ class VoucherSortField(graphene.Enum):
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_minimum_spent_amount(queryset: QuerySet, channel_slug: str) -> QuerySet:

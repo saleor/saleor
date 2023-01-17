@@ -1,12 +1,16 @@
+from typing import Tuple, Type
+
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Model
+from django.template.defaultfilters import truncatechars
 from graphql import GraphQLError
 
+from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.editorjs import clean_editor_js
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -15,6 +19,7 @@ from ...shipping import models as shipping_models
 from ...site.models import SiteSettings
 from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
+from ..core import ResolveInfo
 from ..core.descriptions import RICH_CONTENT
 from ..core.enums import LanguageCodeEnum, TranslationErrorCode
 from ..core.fields import JSONString
@@ -23,9 +28,11 @@ from ..core.types import TranslationError
 from ..core.utils import from_global_id_or_error
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
+from ..site.dataloaders import get_site_promise
 from . import types as translation_types
 
 TRANSLATABLE_CONTENT_TO_MODEL = {
@@ -64,9 +71,9 @@ TRANSLATABLE_CONTENT_TO_MODEL = {
 }
 
 
-def validate_input_against_model(model: Model, input_data: dict):
+def validate_input_against_model(model: Type[Model], input_data: dict):
     data_to_validate = {key: value for key, value in input_data.items() if value}
-    instance = model(**data_to_validate)  # type: ignore
+    instance = model(**data_to_validate)
     all_fields = [field.name for field in model._meta.fields]
     exclude_fields = set(all_fields) - set(data_to_validate)
     instance.full_clean(exclude=exclude_fields, validate_unique=False)
@@ -77,15 +84,14 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def clean_node_id(cls, **data):
-        if "id" in data and not data["id"]:
+    def clean_node_id(cls, id: str) -> Tuple[str, Type[graphene.ObjectType]]:
+        if not id:
             raise ValidationError(
                 {"id": ValidationError("This field is required", code="required")}
             )
 
-        node_id = data["id"]
         try:
-            node_type, node_pk = from_global_id_or_error(node_id)
+            node_type, node_pk = from_global_id_or_error(id)
         except GraphQLError:
             raise ValidationError(
                 {
@@ -103,31 +109,38 @@ class BaseTranslateMutation(ModelMutation):
         tc_model_type = TRANSLATABLE_CONTENT_TO_MODEL.get(node_type)
 
         if tc_model_type and tc_model_type == str(cls._meta.object_type):
-            node_id = graphene.Node.to_global_id(tc_model_type, node_pk)
+            id = graphene.Node.to_global_id(tc_model_type, node_pk)
 
-        return node_id, cls._meta.object_type
+        return id, cls._meta.object_type
 
     @classmethod
     def validate_input(cls, input_data):
         validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        node_id, model_type = cls.clean_node_id(**data)
+    def pre_update_or_create(cls, instance, input_data):
+        return input_data
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        node_id, model_type = cls.clean_node_id(id)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
-        cls.validate_input(data["input"])
+        cls.validate_input(input)
+
+        input = cls.pre_update_or_create(instance, input)
 
         translation, created = instance.translations.update_or_create(
-            language_code=data["language_code"], defaults=data["input"]
+            language_code=language_code, defaults=input
         )
+        manager = get_plugin_manager_promise(info.context).get()
 
-        def on_commit():
-            if created:
-                info.context.plugins.translation_created(translation)
-            else:
-                info.context.plugins.translation_updated(translation)
+        if created:
+            cls.call_event(manager.translation_created, translation)
+        else:
+            cls.call_event(manager.translation_updated, translation)
 
-        transaction.on_commit(on_commit)
         return cls(**{cls._meta.return_field_name: instance})
 
 
@@ -195,24 +208,22 @@ class ProductTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        node_id = cls.clean_node_id(**data)[0]
-        product = cls.get_node_or_error(info, node_id, only_type=Product)
-        cls.validate_input(data["input"])
-
-        translation, created = product.translations.update_or_create(
-            language_code=data["language_code"], defaults=data["input"]
-        )
-        product = ChannelContext(node=product, channel_slug=None)
-
-        def on_commit():
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        node_id = cls.clean_node_id(id)[0]
+        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+        cls.validate_input(input)
+        manager = get_plugin_manager_promise(info.context).get()
+        with traced_atomic_transaction():
+            translation, created = instance.translations.update_or_create(
+                language_code=language_code, defaults=input
+            )
+            product = ChannelContext(node=instance, channel_slug=None)
             if created:
-                info.context.plugins.translation_created(translation)
+                cls.call_event(manager.translation_created, translation)
             else:
-                info.context.plugins.translation_updated(translation)
-
-        transaction.on_commit(on_commit)
+                cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: product})
 
@@ -237,8 +248,12 @@ class CollectionTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        response = super().perform_mutation(
+            root, info, id=id, input=input, language_code=language_code
+        )
         instance = ChannelContext(node=response.collection, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
@@ -263,28 +278,27 @@ class ProductVariantTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        node_id = cls.clean_node_id(**data)[0]
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        node_id = cls.clean_node_id(id)[0]
         variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
-        cls.validate_input(data["input"])
-        translation, created = variant.translations.update_or_create(
-            language_code=data["language_code"], defaults=data["input"]
-        )
-        variant = ChannelContext(node=variant, channel_slug=None)
+        cls.validate_input(input)
+        manager = get_plugin_manager_promise(info.context).get()
+        with traced_atomic_transaction():
+            translation, created = variant.translations.update_or_create(
+                language_code=language_code, defaults=input
+            )
+            variant = ChannelContext(node=variant, channel_slug=None)
+        cls.call_event(manager.product_variant_updated, variant.node)
 
-        def on_commit():
-            info.context.plugins.product_variant_updated(variant.node)
-
-            if created:
-                info.context.plugins.translation_created(translation)
-            else:
-                info.context.plugins.translation_updated(translation)
-
-        transaction.on_commit(on_commit)
+        if created:
+            cls.call_event(manager.translation_created, translation)
+        else:
+            cls.call_event(manager.translation_updated, translation)
 
         return cls(**{cls._meta.return_field_name: variant})
 
@@ -328,6 +342,17 @@ class AttributeValueTranslate(BaseTranslateMutation):
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
+    @classmethod
+    def pre_update_or_create(cls, instance, input_data):
+        if "name" not in input_data.keys() or input_data["name"] is None:
+            if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
+                input_data["name"] = truncatechars(
+                    clean_editor_js(input_data["rich_text"], to_string=True), 100
+                )
+            elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
+                input_data["name"] = truncatechars(input_data["plain_text"], 100)
+        return input_data
+
 
 class SaleTranslate(BaseTranslateMutation):
     class Arguments:
@@ -348,8 +373,12 @@ class SaleTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        response = super().perform_mutation(
+            root, info, id=id, input=input, language_code=language_code
+        )
         instance = ChannelContext(node=response.sale, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
@@ -373,8 +402,12 @@ class VoucherTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        response = super().perform_mutation(
+            root, info, id=id, input=input, language_code=language_code
+        )
         instance = ChannelContext(node=response.voucher, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
@@ -401,15 +434,34 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        response = super().perform_mutation(
+            root, info, id=id, input=input, language_code=language_code
+        )
         instance = ChannelContext(node=response.shippingMethod, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
     @classmethod
-    def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
+    def get_node_or_error(  # type: ignore[override]
+        cls,
+        info: ResolveInfo,
+        node_id,
+        *,
+        field="id",
+        only_type=None,
+        code="not_found",
+    ):
+        if only_type is ShippingMethodType:
+            only_type = None
         return super().get_node_or_error(
-            info, node_id, field, qs=shipping_models.ShippingMethod.objects
+            info,
+            node_id,
+            field=field,
+            only_type=only_type,
+            qs=shipping_models.ShippingMethod.objects,
+            code=code,
         )
 
 
@@ -432,8 +484,12 @@ class MenuItemTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id, input, language_code
+    ):
+        response = super().perform_mutation(
+            root, info, id=id, input=input, language_code=language_code
+        )
         instance = ChannelContext(node=response.menuItem, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
@@ -487,20 +543,21 @@ class ShopSettingsTranslate(BaseMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, language_code, **data):
-        instance = info.context.site.settings
-        validate_input_against_model(SiteSettings, data["input"])
-        translation, created = instance.translations.update_or_create(
-            language_code=language_code, defaults=data.get("input")
-        )
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, input, language_code
+    ):
+        site = get_site_promise(info.context).get()
+        instance = site.settings
+        validate_input_against_model(SiteSettings, input)
+        manager = get_plugin_manager_promise(info.context).get()
+        with traced_atomic_transaction():
+            translation, created = instance.translations.update_or_create(
+                language_code=language_code, defaults=input
+            )
 
-        def on_commit():
-            if created:
-                info.context.plugins.translation_created(translation)
-            else:
-                info.context.plugins.translation_updated(translation)
-
-        transaction.on_commit(on_commit)
+        if created:
+            cls.call_event(manager.translation_created, translation)
+        else:
+            cls.call_event(manager.translation_updated, translation)
 
         return ShopSettingsTranslate(shop=Shop())

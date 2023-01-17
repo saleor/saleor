@@ -12,6 +12,7 @@ from ...utils.random_data import (
     create_channels,
     create_checkout_with_custom_prices,
     create_checkout_with_preorders,
+    create_checkout_with_same_variant_in_multiple_lines,
     create_gift_cards,
     create_menus,
     create_orders,
@@ -22,6 +23,7 @@ from ...utils.random_data import (
     create_products_by_schema,
     create_shipping_zones,
     create_staffs,
+    create_tax_classes,
     create_users,
     create_vouchers,
     create_warehouses,
@@ -113,6 +115,10 @@ class Command(BaseCommand):
         for msg in create_checkout_with_preorders():
             self.stdout.write(msg)
         for msg in create_checkout_with_custom_prices():
+            self.stdout.write(msg)
+        for msg in create_tax_classes():
+            self.stdout.write(msg)
+        for msg in create_checkout_with_same_variant_in_multiple_lines():
             self.stdout.write(msg)
 
         if options["createsuperuser"]:

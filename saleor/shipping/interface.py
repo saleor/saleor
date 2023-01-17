@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import graphene
 import graphql
@@ -8,6 +8,9 @@ from prices import Money
 
 from ..graphql.core.utils import from_global_id_or_error
 from ..plugins.webhook.utils import APP_ID_PREFIX
+
+if TYPE_CHECKING:
+    from ..tax.models import TaxClass
 
 
 @dataclass
@@ -27,6 +30,7 @@ class ShippingMethodData:
     minimum_delivery_days: Optional[int] = None
     metadata: Dict[str, str] = field(default_factory=dict)
     private_metadata: Dict[str, str] = field(default_factory=dict)
+    tax_class: Optional["TaxClass"] = None
     active: bool = True
     message: str = ""
 

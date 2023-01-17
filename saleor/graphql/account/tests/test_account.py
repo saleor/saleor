@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import re
 from collections import defaultdict
@@ -8,7 +9,7 @@ from urllib.parse import urlencode
 
 import graphene
 import pytest
-from django.contrib.auth.models import Group
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -19,7 +20,7 @@ from freezegun import freeze_time
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
-from ....account.models import Address, User
+from ....account.models import Address, Group, User
 from ....account.notifications import get_default_user_payload
 from ....account.search import (
     generate_address_search_document_value,
@@ -30,17 +31,21 @@ from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
+from ....core.tests.utils import get_site_context_payload
 from ....core.tokens import account_delete_token_generator
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
+from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
     generate_customer_payload,
     generate_meta,
     generate_requestor,
 )
+from ...core.enums import ThumbnailFormatEnum
 from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
@@ -56,15 +61,20 @@ from ..tests.utils import convert_dict_keys_to_camel_case
 
 def generate_address_webhook_call_args(address, event, requestor, webhook):
     return [
-        {
-            "id": graphene.Node.to_global_id("Address", address.id),
-            "city": address.city,
-            "country": address.country,
-            "company_name": address.company_name,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(SimpleLazyObject(lambda: requestor))
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("Address", address.id),
+                "city": address.city,
+                "country": {"code": address.country.code, "name": address.country.name},
+                "company_name": address.company_name,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: requestor)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         event,
         [webhook],
         address,
@@ -194,6 +204,13 @@ FULL_USER_QUERY = """
                     }
                 }
             }
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
         }
     }
 """
@@ -293,8 +310,10 @@ def test_query_customer_user(
     assert data["giftCards"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_used.pk
     )
-
     assert data["checkoutIds"] == [to_global_id_or_none(checkout)]
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
 
 
 def test_query_customer_user_with_orders(
@@ -407,36 +426,6 @@ def test_query_customer_user_app(
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert data["email"] == user.email
-
-
-def test_query_customer_user_app_no_permission(
-    app_api_client,
-    customer_user,
-    address,
-    permission_manage_users,
-    permission_manage_staff,
-    media_root,
-    app,
-):
-    user = customer_user
-    user.default_shipping_address.country = "US"
-    user.default_shipping_address.save()
-    user.addresses.add(address.get_copy())
-
-    avatar_mock = MagicMock(spec=File)
-    avatar_mock.name = "image.jpg"
-    user.avatar = avatar_mock
-    user.save()
-
-    Group.objects.create(name="empty group")
-
-    query = FULL_USER_QUERY
-    ID = graphene.Node.to_global_id("User", customer_user.id)
-    variables = {"id": ID}
-    app.permissions.add(permission_manage_staff)
-    response = app_api_client.post_graphql(query, variables)
-
-    assert_no_permission(response)
 
 
 def test_query_customer_user_with_orders_by_app_no_manage_orders_perm(
@@ -632,10 +621,11 @@ def test_query_staff_user_with_orders_and_manage_orders_perm(
 
 
 USER_QUERY = """
-    query User($id: ID $email: String) {
-        user(id: $id, email: $email) {
+    query User($id: ID $email: String, $externalReference: String) {
+        user(id: $id, email: $email, externalReference: $externalReference) {
             id
             email
+            externalReference
         }
     }
 """
@@ -652,6 +642,27 @@ def test_query_user_by_email_address(
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert customer_user.email == data["email"]
+
+
+def test_query_user_by_external_reference(
+    user_api_client, customer_user, permission_manage_users
+):
+    # given
+    user = customer_user
+    ext_ref = "test-ext-ref"
+    user.external_reference = ext_ref
+    user.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = user_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["user"]
+    assert data["externalReference"] == user.external_reference
 
 
 def test_query_user_by_id_and_email(
@@ -786,6 +797,184 @@ def test_user_query_object_with_invalid_object_type(
     assert content["data"]["user"] is None
 
 
+USER_AVATAR_QUERY = """
+    query User($id: ID, $size: Int, $format: ThumbnailFormatEnum) {
+        user(id: $id) {
+            id
+            avatar(size: $size, format: $format) {
+                url
+                alt
+            }
+        }
+    }
+"""
+
+
+def test_query_user_avatar_with_size_and_format_proxy_url_returned(
+    staff_api_client, media_root, permission_manage_staff, site_settings
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    user_id = graphene.Node.to_global_id("User", user.id)
+    user_uuid = graphene.Node.to_global_id("User", user.uuid)
+    variables = {"id": user_id, "size": 120, "format": format}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    domain = site_settings.site.domain
+    assert (
+        data["avatar"]["url"]
+        == f"http://{domain}/thumbnail/{user_uuid}/128/{format.lower()}/"
+    )
+
+
+def test_query_user_avatar_with_size_proxy_url_returned(
+    staff_api_client, media_root, permission_manage_staff, site_settings
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    user_id = graphene.Node.to_global_id("User", user.id)
+    user_uuid = graphene.Node.to_global_id("User", user.uuid)
+    variables = {"id": user_id, "size": 120}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{user_uuid}/128/"
+    )
+
+
+def test_query_user_avatar_with_size_thumbnail_url_returned(
+    staff_api_client, media_root, permission_manage_staff, site_settings
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "size": 120}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_query_user_avatar_only_format_provided_original_image_returned(
+    staff_api_client, media_root, permission_manage_staff, site_settings
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "format": format}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
+    )
+
+
+def test_query_user_avatar_no_size_value(
+    staff_api_client, media_root, permission_manage_staff, site_settings
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
+    )
+
+
+def test_query_user_avatar_no_image(staff_api_client, permission_manage_staff):
+    # given
+    user = staff_api_client.user
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["id"]
+    assert not data["avatar"]
+
+
 def test_query_customers(staff_api_client, user_api_client, permission_manage_users):
     query = """
     query Users {
@@ -887,6 +1076,14 @@ ME_QUERY = """
                 code
                 name
             }
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+                totalCount
+            }
         }
     }
 """
@@ -954,6 +1151,9 @@ def test_me_query_checkout(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
 
 
 def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
@@ -968,6 +1168,42 @@ def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert not data["checkout"]
+    assert not data["checkouts"]["edges"]
+
+
+def test_me_query_checkouts_with_channel(user_api_client, checkout, checkout_JPY):
+    query = """
+        query Me($channel: String) {
+            me {
+                checkouts(first: 10, channel: $channel) {
+                    edges {
+                        node {
+                            id
+                            channel {
+                                slug
+                            }
+                        }
+                    }
+                    totalCount
+                }
+            }
+        }
+    """
+
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+
+    response = user_api_client.post_graphql(query, {"channel": checkout.channel.slug})
+
+    content = get_graphql_content(response)
+    data = content["data"]["me"]["checkouts"]
+    assert data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout.pk
+    )
+    assert data["totalCount"] == 1
+    assert data["edges"][0]["node"]["channel"]["slug"] == checkout.channel.slug
 
 
 QUERY_ME_CHECKOUT_TOKENS = """
@@ -1011,7 +1247,7 @@ def test_me_checkout_tokens_without_channel_param_inactive_channel(
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert str(checkouts[0].token) in data["checkoutTokens"]
-    assert not str(checkouts[1].token) in data["checkoutTokens"]
+    assert str(checkouts[1].token) not in data["checkoutTokens"]
 
 
 def test_me_checkout_tokens_with_channel(
@@ -1029,7 +1265,7 @@ def test_me_checkout_tokens_with_channel(
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert str(checkouts[0].token) in data["checkoutTokens"]
-    assert not str(checkouts[1].token) in data["checkoutTokens"]
+    assert str(checkouts[1].token) not in data["checkoutTokens"]
 
 
 def test_me_checkout_tokens_with_inactive_channel(
@@ -1170,6 +1406,7 @@ ACCOUNT_REGISTER_MUTATION = """
             }
             user {
                 id
+                email
             }
         }
     }
@@ -1187,6 +1424,7 @@ def test_customer_register(
     api_client,
     channel_PLN,
     order,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
@@ -1218,9 +1456,8 @@ def test_customer_register(
         "token": "token",
         "confirm_url": confirm_url,
         "recipient_email": new_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
@@ -1274,11 +1511,29 @@ def test_customer_register_no_redirect_url(mocked_notify, api_client):
     mocked_notify.assert_not_called()
 
 
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
+def test_customer_register_upper_case_email(api_client):
+    # given
+    email = "CUSTOMER@example.com"
+    variables = {"email": email, "password": "Password"}
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    assert not data["errors"]
+    assert data["user"]["email"].lower()
+
+
 CUSTOMER_CREATE_MUTATION = """
     mutation CreateCustomer(
         $email: String, $firstName: String, $lastName: String, $channel: String
         $note: String, $billing: AddressInput, $shipping: AddressInput,
-        $redirect_url: String, $languageCode: LanguageCodeEnum) {
+        $redirect_url: String, $languageCode: LanguageCodeEnum,
+        $externalReference: String
+    ) {
         customerCreate(input: {
             email: $email,
             firstName: $firstName,
@@ -1289,6 +1544,7 @@ CUSTOMER_CREATE_MUTATION = """
             redirectUrl: $redirect_url,
             languageCode: $languageCode,
             channel: $channel,
+            externalReference: $externalReference
         }) {
             errors {
                 field
@@ -1310,6 +1566,7 @@ CUSTOMER_CREATE_MUTATION = """
                 isActive
                 isStaff
                 note
+                externalReference
             }
         }
     }
@@ -1325,6 +1582,7 @@ def test_customer_create(
     address,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1332,7 +1590,11 @@ def test_customer_create(
     last_name = "api_last_name"
     note = "Test user"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("metadata")
+    address_data.pop("privateMetadata")
+
     redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
     variables = {
         "email": email,
         "firstName": first_name,
@@ -1343,6 +1605,7 @@ def test_customer_create(
         "redirect_url": redirect_url,
         "languageCode": "PL",
         "channel": channel_PLN.slug,
+        "externalReference": external_reference,
     }
 
     response = staff_api_client.post_graphql(
@@ -1367,6 +1630,7 @@ def test_customer_create(
     assert data["user"]["lastName"] == last_name
     assert data["user"]["note"] == note
     assert data["user"]["languageCode"] == "PL"
+    assert data["user"]["externalReference"] == external_reference
     assert not data["user"]["isStaff"]
     assert data["user"]["isActive"]
 
@@ -1382,9 +1646,8 @@ def test_customer_create(
         "token": "token",
         "password_set_url": password_set_url,
         "recipient_email": new_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
@@ -1406,6 +1669,7 @@ def test_customer_create_send_password_with_url(
     staff_api_client,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1432,9 +1696,8 @@ def test_customer_create_send_password_with_url(
         "password_set_url": password_set_url,
         "token": "token",
         "recipient_email": new_customer.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
@@ -1493,6 +1756,48 @@ def test_customer_create_with_not_allowed_url(
     assert not staff_user
 
 
+def test_customer_create_with_upper_case_email(
+    staff_api_client, permission_manage_users
+):
+    # given
+    email = "UPPERCASE@example.com"
+    variables = {"email": email}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerCreate"]
+    assert not data["errors"]
+    assert data["user"]["email"] == email.lower()
+
+
+def test_customer_create_with_non_unique_external_reference(
+    staff_api_client, permission_manage_users, customer_user
+):
+    # given
+    ext_ref = "test-ext-ref"
+    customer_user.external_reference = ext_ref
+    customer_user.save(update_fields=["external_reference"])
+
+    variables = {"email": "mail.test@exampale.com", "externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["customerCreate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AccountErrorCode.UNIQUE.name
+    assert error["message"] == "User with this External reference already exists."
+
+
 def test_customer_update(
     staff_api_client, staff_user, customer_user, address, permission_manage_users
 ):
@@ -1500,16 +1805,22 @@ def test_customer_update(
     mutation UpdateCustomer(
             $id: ID!, $firstName: String, $lastName: String,
             $isActive: Boolean, $note: String, $billing: AddressInput,
-            $shipping: AddressInput, $languageCode: LanguageCodeEnum) {
-        customerUpdate(id: $id, input: {
-            isActive: $isActive,
-            firstName: $firstName,
-            lastName: $lastName,
-            note: $note,
-            defaultBillingAddress: $billing
-            defaultShippingAddress: $shipping,
-            languageCode: $languageCode
-        }) {
+            $shipping: AddressInput, $languageCode: LanguageCodeEnum,
+            $externalReference: String
+        ) {
+        customerUpdate(
+            id: $id,
+            input: {
+                isActive: $isActive,
+                firstName: $firstName,
+                lastName: $lastName,
+                note: $note,
+                defaultBillingAddress: $billing
+                defaultShippingAddress: $shipping,
+                languageCode: $languageCode,
+                externalReference: $externalReference
+                }
+            ) {
             errors {
                 field
                 message
@@ -1527,6 +1838,7 @@ def test_customer_update(
                 languageCode
                 isActive
                 note
+                externalReference
             }
         }
     }
@@ -1543,7 +1855,10 @@ def test_customer_update(
     first_name = "new_first_name"
     last_name = "new_last_name"
     note = "Test update note"
+    external_reference = "test-ext-ref"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("metadata")
+    address_data.pop("privateMetadata")
 
     new_street_address = "Updated street address"
     address_data["streetAddress1"] = new_street_address
@@ -1557,6 +1872,7 @@ def test_customer_update(
         "billing": address_data,
         "shipping": address_data,
         "languageCode": "PL",
+        "externalReference": external_reference,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
@@ -1582,13 +1898,22 @@ def test_customer_update(
     assert data["user"]["lastName"] == last_name
     assert data["user"]["note"] == note
     assert data["user"]["languageCode"] == "PL"
+    assert data["user"]["externalReference"] == external_reference
     assert not data["user"]["isActive"]
 
-    # The name was changed, an event should have been triggered
-    name_changed_event = account_events.CustomerEvent.objects.get()
+    (
+        name_changed_event,
+        deactivated_event,
+    ) = account_events.CustomerEvent.objects.order_by("pk")
+
     assert name_changed_event.type == account_events.CustomerEvents.NAME_ASSIGNED
     assert name_changed_event.user.pk == staff_user.pk
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
+
+    assert deactivated_event.type == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
+    assert deactivated_event.user.pk == staff_user.pk
+    assert deactivated_event.parameters == {"account_id": customer_user.id}
+
     customer_user.refresh_from_db()
     assert (
         generate_address_search_document_value(billing_address)
@@ -1598,6 +1923,130 @@ def test_customer_update(
         generate_address_search_document_value(shipping_address)
         in customer_user.search_document
     )
+
+
+UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE = """
+    mutation UpdateCustomer(
+        $id: ID, $externalReference: String, $input: CustomerInput!
+    ) {
+        customerUpdate(id: $id, externalReference: $externalReference, input: $input) {
+            errors {
+                field
+                message
+                code
+            }
+            user {
+                id
+                externalReference
+                firstName
+            }
+        }
+    }
+    """
+
+
+def test_customer_update_by_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+    user = customer_user
+    new_name = "updated name"
+    ext_ref = "test-ext-ref"
+    user.external_reference = ext_ref
+    user.save(update_fields=["external_reference"])
+
+    variables = {
+        "externalReference": ext_ref,
+        "input": {"firstName": new_name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    user.refresh_from_db()
+    data = content["data"]["customerUpdate"]
+    assert not data["errors"]
+    assert data["user"]["firstName"] == new_name == user.first_name
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", user.id)
+    assert data["user"]["externalReference"] == ext_ref
+
+
+def test_update_customer_by_both_id_and_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+    variables = {"input": {}, "externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerUpdate"]
+    assert not data["user"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_customer_by_external_reference_not_existing(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {
+        "input": {},
+        "externalReference": ext_ref,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerUpdate"]
+    assert not data["user"]
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+    assert data["errors"][0]["field"] == "externalReference"
+
+
+def test_update_customer_with_non_unique_external_reference(
+    staff_api_client, permission_manage_users, user_list
+):
+    # given
+    query = UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE
+
+    ext_ref = "test-ext-ref"
+    user_1 = user_list[0]
+    user_1.external_reference = ext_ref
+    user_1.save(update_fields=["external_reference"])
+    user_2_id = graphene.Node.to_global_id("User", user_list[1].id)
+
+    variables = {"input": {"externalReference": ext_ref}, "id": user_2_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["customerUpdate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == AccountErrorCode.UNIQUE.name
+    assert error["message"] == "User with this External reference already exists."
 
 
 UPDATE_CUSTOMER_EMAIL_MUTATION = """
@@ -1643,6 +2092,107 @@ def test_customer_update_generates_event_when_changing_email(
     assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
     assert email_changed_event.user.pk == staff_user.pk
     assert email_changed_event.parameters == {"message": "mirumee@example.com"}
+
+
+UPDATE_CUSTOMER_IS_ACTIVE_MUTATION = """
+    mutation UpdateCustomer(
+        $id: ID!, $isActive: Boolean) {
+            customerUpdate(id: $id, input: {
+            isActive: $isActive,
+        }) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_customer_update_generates_event_when_deactivating(
+    staff_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": False}
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    account_deactivated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_deactivated_event.type
+        == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
+    )
+    assert account_deactivated_event.user.pk == staff_user.pk
+    assert account_deactivated_event.parameters == {"account_id": customer_user.id}
+
+
+def test_customer_update_generates_event_when_activating(
+    staff_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    customer_user.is_active = False
+    customer_user.save(update_fields=["is_active"])
+
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": True}
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    account_activated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_activated_event.type == account_events.CustomerEvents.ACCOUNT_ACTIVATED
+    )
+    assert account_activated_event.user.pk == staff_user.pk
+    assert account_activated_event.parameters == {"account_id": customer_user.id}
+
+
+def test_customer_update_generates_event_when_deactivating_as_app(
+    app_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": False}
+    app_api_client.post_graphql(query, variables, permissions=[permission_manage_users])
+
+    account_deactivated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_deactivated_event.type
+        == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
+    )
+    assert account_deactivated_event.user is None
+    assert account_deactivated_event.app.pk == app_api_client.app.pk
+    assert account_deactivated_event.parameters == {"account_id": customer_user.id}
+
+
+def test_customer_update_generates_event_when_activating_as_app(
+    app_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    customer_user.is_active = False
+    customer_user.save(update_fields=["is_active"])
+
+    query = UPDATE_CUSTOMER_IS_ACTIVE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    variables = {"id": user_id, "isActive": True}
+    app_api_client.post_graphql(query, variables, permissions=[permission_manage_users])
+
+    account_activated_event = account_events.CustomerEvent.objects.get()
+    assert (
+        account_activated_event.type == account_events.CustomerEvents.ACCOUNT_ACTIVATED
+    )
+    assert account_activated_event.user is None
+    assert account_activated_event.app.pk == app_api_client.app.pk
+    assert account_activated_event.parameters == {"account_id": customer_user.id}
 
 
 def test_customer_update_without_any_changes_generates_no_event(
@@ -1910,7 +2460,7 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 @patch("saleor.account.notifications.account_delete_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion(
-    mocked_notify, mocked_token, user_api_client, channel_PLN
+    mocked_notify, mocked_token, user_api_client, channel_PLN, site_settings
 ):
     mocked_token.return_value = "token"
     user = user_api_client.user
@@ -1929,9 +2479,8 @@ def test_account_request_deletion(
         "delete_url": delete_url,
         "token": "token",
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -1944,7 +2493,7 @@ def test_account_request_deletion(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_token_validation(
-    mocked_notify, user_api_client, channel_PLN
+    mocked_notify, user_api_client, channel_PLN, site_settings
 ):
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
@@ -1963,9 +2512,8 @@ def test_account_request_deletion_token_validation(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2005,7 +2553,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, settings, channel_PLN
+    mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
     user = user_api_client.user
     user.last_login = timezone.now()
@@ -2029,9 +2577,8 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2044,7 +2591,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_subdomain(
-    mocked_notify, user_api_client, settings, channel_PLN
+    mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
@@ -2064,9 +2611,8 @@ def test_account_request_deletion_subdomain(
         "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2088,19 +2634,38 @@ ACCOUNT_DELETE_MUTATION = """
 """
 
 
+@patch("saleor.core.tasks.delete_from_storage_task.delay")
 @freeze_time("2018-05-31 12:00:01")
-def test_account_delete(user_api_client):
+def test_account_delete(delete_from_storage_task_mock, user_api_client, media_root):
+    # given
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "image.jpg"
+
     user = user_api_client.user
     user.last_login = timezone.now()
     user.save(update_fields=["last_login"])
+
+    user_id = user.id
+
+    # create thumbnail
+    thumbnail = Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
+    assert user.thumbnails.all()
+    img_path = thumbnail.image.name
+
     token = account_delete_token_generator.make_token(user)
     variables = {"token": token}
 
+    # when
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
     assert not data["errors"]
     assert not User.objects.filter(pk=user.id).exists()
+    # ensure all related thumbnails have been deleted
+    assert not Thumbnail.objects.filter(user_id=user_id).exists()
+    delete_from_storage_task_mock.assert_called_once_with(img_path)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2185,25 +2750,26 @@ def test_account_delete_other_customer_token(user_api_client):
 
 
 CUSTOMER_DELETE_MUTATION = """
-    mutation CustomerDelete($id: ID!) {
-        customerDelete(id: $id){
+    mutation CustomerDelete($id: ID, $externalReference: String) {
+        customerDelete(id: $id, externalReference: $externalReference) {
             errors {
                 field
                 message
             }
             user {
                 id
+                externalReference
             }
         }
     }
 """
 
 
-@patch("saleor.account.signals.delete_versatile_image")
+@patch("saleor.account.signals.delete_from_storage_task.delay")
 @patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete(
     mocked_deletion_event,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     staff_user,
     customer_user,
@@ -2232,7 +2798,7 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, app=None, deleted_count=1
     )
-    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2273,11 +2839,11 @@ def test_customer_delete_trigger_webhook(
     )
 
 
-@patch("saleor.account.signals.delete_versatile_image")
+@patch("saleor.account.signals.delete_from_storage_task.delay")
 @patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete_by_app(
     mocked_deletion_event,
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     app_api_client,
     app,
     customer_user,
@@ -2306,9 +2872,9 @@ def test_customer_delete_by_app(
     assert mocked_deletion_event.call_count == 1
     args, kwargs = mocked_deletion_event.call_args
     assert kwargs["deleted_count"] == 1
-    assert kwargs["staff_user"].is_anonymous
+    assert kwargs["staff_user"] is None
     assert kwargs["app"] == app
-    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+    delete_from_storage_task_mock.assert_called_once_with(customer_user.avatar.name)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
@@ -2321,6 +2887,72 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
     # should not raise any errors
     CustomerDelete.clean_instance(info, customer_user)
+
+
+def test_customer_delete_by_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    user = customer_user
+    query = CUSTOMER_DELETE_MUTATION
+    ext_ref = "test-ext-ref"
+    user.external_reference = ext_ref
+    user.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerDelete"]
+    with pytest.raises(user._meta.model.DoesNotExist):
+        user.refresh_from_db()
+    assert not data["errors"]
+    assert data["user"]["externalReference"] == ext_ref
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", user.id)
+
+
+def test_delete_customer_by_both_id_and_external_reference(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = CUSTOMER_DELETE_MUTATION
+    variables = {"externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["customerDelete"]["errors"]
+    assert (
+        errors[0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_delete_customer_by_external_reference_not_existing(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    query = CUSTOMER_DELETE_MUTATION
+    ext_ref = "non-existing-ext-ref"
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["customerDelete"]["errors"]
+    assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
 
 
 STAFF_CREATE_MUTATION = """
@@ -2371,6 +3003,7 @@ def test_staff_create(
     permission_manage_staff,
     permission_manage_users,
     channel_PLN,
+    site_settings,
 ):
     group = permission_group_manage_users
     group.permissions.add(permission_manage_products)
@@ -2417,9 +3050,8 @@ def test_staff_create(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2524,15 +3156,18 @@ def test_staff_create_trigger_webhook(
     assert not data["errors"]
     assert data["user"]
     expected_call = call(
-        {
-            "id": graphene.Node.to_global_id("User", new_staff_user.id),
-            "email": email,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("User", new_staff_user.id),
+                "email": email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.STAFF_CREATED,
         [any_webhook],
         new_staff_user,
@@ -2579,6 +3214,7 @@ def test_staff_create_out_of_scope_group(
     permission_manage_users,
     permission_group_manage_users,
     channel_PLN,
+    site_settings,
 ):
     """Ensure user can't create staff with groups which are out of user scope.
     Ensure superuser pass restrictions.
@@ -2659,9 +3295,8 @@ def test_staff_create_out_of_scope_group(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2674,10 +3309,7 @@ def test_staff_create_out_of_scope_group(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create_send_password_with_url(
-    mocked_notify,
-    staff_api_client,
-    media_root,
-    permission_manage_staff,
+    mocked_notify, staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
@@ -2701,9 +3333,8 @@ def test_staff_create_send_password_with_url(
         "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -2765,6 +3396,25 @@ def test_staff_create_with_not_allowed_url(
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
+
+
+def test_staff_create_with_upper_case_email(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    email = "api_user@example.com"
+    variables = {"email": email}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["staffCreate"]
+    assert not data["errors"]
+    assert data["user"]["email"] == email.lower()
 
 
 STAFF_UPDATE_MUTATIONS = """
@@ -2847,15 +3497,18 @@ def test_staff_update_trigger_webhook(
     assert not data["errors"]
     assert data["user"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("User", staff_user.id),
-            "email": staff_user.email,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("User", staff_user.id),
+                "email": staff_user.email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.STAFF_UPDATED,
         [any_webhook],
         staff_user,
@@ -3376,15 +4029,18 @@ def test_staff_delete_trigger_webhook(
     assert not data["errors"]
     assert not User.objects.filter(pk=staff_user.id).exists()
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("User", staff_user.id),
-            "email": staff_user.email,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("User", staff_user.id),
+                "email": staff_user.email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.STAFF_DELETED,
         [any_webhook],
         staff_user,
@@ -3392,9 +4048,9 @@ def test_staff_delete_trigger_webhook(
     )
 
 
-@patch("saleor.account.signals.delete_versatile_image")
+@patch("saleor.account.signals.delete_from_storage_task.delay")
 def test_staff_delete_with_avatar(
-    delete_versatile_image_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     image,
     permission_manage_staff,
@@ -3414,7 +4070,7 @@ def test_staff_delete_with_avatar(
     data = content["data"]["staffDelete"]
     assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
-    delete_versatile_image_mock.assert_called_once_with(staff_user.avatar)
+    delete_from_storage_task_mock.assert_called_once_with(staff_user.avatar.name)
 
 
 def test_staff_delete_app_no_permission(app_api_client, permission_manage_staff):
@@ -3586,14 +4242,14 @@ def test_user_delete_errors(staff_user, admin_user):
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
-    info = Mock(context=Mock(user=staff_user))
+    info = Mock(context=Mock(user=staff_user, app=None))
     with pytest.raises(ValidationError) as e:
         StaffDelete.clean_instance(info, customer_user)
     msg = "Cannot delete a non-staff users."
     assert e.value.error_dict["id"][0].message == msg
 
     # should not raise any errors
-    info = Mock(context=Mock(user=admin_user))
+    info = Mock(context=Mock(user=admin_user, app=None))
     StaffDelete.clean_instance(info, staff_user)
 
 
@@ -3990,6 +4646,34 @@ def test_address_update_mutation_trigger_webhook(
     )
 
 
+@patch("saleor.graphql.account.mutations.base.prepare_user_search_document_value")
+def test_address_update_mutation_no_user_assigned(
+    prepare_user_search_document_value_mock,
+    staff_api_client,
+    address,
+    permission_manage_users,
+    graphql_address_data,
+):
+    # given
+    query = ADDRESS_UPDATE_MUTATION
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address.id),
+        "address": graphql_address_data,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["addressUpdate"]
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
+    prepare_user_search_document_value_mock.assert_not_called()
+
+
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
     mutation updateAccountAddress($addressId: ID!, $address: AddressInput!) {
         accountAddressUpdate(id: $addressId, input: $address) {
@@ -4061,7 +4745,7 @@ def test_customer_address_update_trigger_webhook(
 
     # then
     assert content["data"]["accountAddressUpdate"]
-    mocked_webhook_trigger.assert_called_with(
+    mocked_webhook_trigger.assert_called_once_with(
         *generate_address_webhook_call_args(
             address,
             WebhookEventAsyncType.ADDRESS_UPDATED,
@@ -4187,7 +4871,7 @@ def test_address_delete_mutation_trigger_webhook(
 
     # then
     assert content["data"]["addressDelete"]
-    mocked_webhook_trigger.assert_called_with(
+    mocked_webhook_trigger.assert_called_once_with(
         *generate_address_webhook_call_args(
             address,
             WebhookEventAsyncType.ADDRESS_DELETED,
@@ -4512,7 +5196,12 @@ CONFIRM_ACCOUNT_MUTATION = """
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password(
-    mocked_notify, user_api_client, customer_user, channel_PLN, channel_USD
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
 ):
     redirect_url = "https://www.example.com"
     variables = {
@@ -4532,9 +5221,47 @@ def test_account_reset_password(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_reset_password_with_upper_case_email(
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
+):
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email.upper(),
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestPasswordReset"]
+    assert not data["errors"]
+    token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "reset_url": reset_url,
+        "token": token,
+        "recipient_email": customer_user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4626,7 +5353,7 @@ def test_account_confirmation_invalid_token(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_request_password_reset_email_for_staff(
-    mocked_notify, staff_api_client, channel_USD
+    mocked_notify, staff_api_client, channel_USD, site_settings
 ):
     redirect_url = "https://www.example.com"
     variables = {"email": staff_api_client.user.email, "redirectUrl": redirect_url}
@@ -4642,9 +5369,8 @@ def test_request_password_reset_email_for_staff(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": staff_api_client.user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4684,11 +5410,12 @@ def test_account_reset_password_user_is_inactive(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["requestPasswordReset"]
-    assert data["errors"] == [
-        {"field": "email", "message": "User with this email is inactive"}
-    ]
+    results = response.json()
+    assert "errors" in results
+    assert (
+        results["errors"][0]["message"]
+        == "Invalid token. User does not exist or is inactive."
+    )
     assert not mocked_notify.called
 
 
@@ -4712,7 +5439,13 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, customer_user, settings, channel_PLN, channel_USD
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    settings,
+    channel_PLN,
+    channel_USD,
+    site_settings,
 ):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
@@ -4734,9 +5467,8 @@ def test_account_reset_password_all_storefront_hosts_allowed(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -4749,7 +5481,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_subdomain(
-    mocked_notify, user_api_client, customer_user, settings, channel_PLN
+    mocked_notify, user_api_client, customer_user, settings, channel_PLN, site_settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
@@ -4771,9 +5503,8 @@ def test_account_reset_password_subdomain(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
         "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
@@ -5084,24 +5815,21 @@ def test_user_avatar_update_mutation_permission(api_client):
     assert_no_permission(response)
 
 
-def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
+def test_user_avatar_update_mutation(
+    monkeypatch, staff_api_client, media_root, site_settings
+):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
 
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.graphql.account.mutations.staff."
-            "create_user_avatar_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     image_file, image_name = create_image("avatar")
     variables = {"image": image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
+    # when
     response = staff_api_client.post_multipart(body)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["userAvatarUpdate"]
@@ -5109,7 +5837,7 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
 
     assert user.avatar
     assert data["user"]["avatar"]["url"].startswith(
-        "http://testserver/media/user-avatars/avatar"
+        f"http://{site_settings.site.domain}/media/user-avatars/avatar"
     )
     img_name, format = os.path.splitext(image_file._name)
     file_name = user.avatar.name
@@ -5117,11 +5845,10 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
     assert file_name.startswith(f"user-avatars/{img_name}")
     assert file_name.endswith(format)
 
-    # The image creation should have triggered a warm-up
-    mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
 
-
-def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
+def test_user_avatar_update_mutation_image_exists(
+    staff_api_client, media_root, site_settings
+):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -5130,10 +5857,18 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
     user.avatar = avatar_mock
     user.save()
 
+    # create thumbnail for old avatar
+    Thumbnail.objects.create(user=staff_api_client.user, size=128)
+    assert user.thumbnails.exists()
+
     image_file, image_name = create_image("new_image")
     variables = {"image": image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
+    # when
     response = staff_api_client.post_multipart(body)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["userAvatarUpdate"]
@@ -5141,8 +5876,9 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
 
     assert user.avatar != avatar_mock
     assert data["user"]["avatar"]["url"].startswith(
-        "http://testserver/media/user-avatars/new_image"
+        f"http://{site_settings.site.domain}/media/user-avatars/new_image"
     )
+    assert not user.thumbnails.exists()
 
 
 USER_AVATAR_DELETE_MUTATION = """
@@ -5169,17 +5905,23 @@ def test_user_avatar_delete_mutation_permission(api_client):
 
 
 def test_user_avatar_delete_mutation(staff_api_client):
+    # given
     query = USER_AVATAR_DELETE_MUTATION
 
     user = staff_api_client.user
+    Thumbnail.objects.create(user=staff_api_client.user, size=128)
+    assert user.thumbnails.all()
 
+    # when
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
 
+    # then
     user.refresh_from_db()
 
     assert not user.avatar
     assert not content["data"]["userAvatarDelete"]["user"]["avatar"]
+    assert not user.thumbnails.exists()
 
 
 @pytest.mark.parametrize(
@@ -5499,6 +6241,111 @@ def test_query_customer_members_with_filter_search(
     assert len(users) == count
 
 
+def test_query_customers_with_filter_by_one_id(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    search_user = customer_users[0]
+
+    variables = {
+        "filter": {
+            "ids": [graphene.Node.to_global_id("User", search_user.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_user = content["data"]["customers"]["edges"][0]
+    _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+    assert id == str(search_user.pk)
+
+
+def test_query_customers_with_filter_by_multiple_ids(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    search_users = [customer_users[0], customer_users[1]]
+    search_users_ids = [
+        graphene.Node.to_global_id("User", user.pk) for user in search_users
+    ]
+
+    variables = {"filter": {"ids": search_users_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_users = content["data"]["customers"]["edges"]
+    expected_ids = [str(user.pk) for user in customer_users]
+
+    assert len(result_users) == len(search_users)
+    for result_user in result_users:
+        _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+        assert id in expected_ids
+
+
+def test_query_customers_with_filter_by_empty_list(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    variables = {"filter": {"ids": []}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_users = content["data"]["customers"]["edges"]
+    expected_ids = [str(user.pk) for user in customer_users]
+
+    assert len(result_users) == len(customer_users)
+    for result_user in result_users:
+        _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+        assert id in expected_ids
+
+
+def test_query_customers_with_filter_by_not_existing_id(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+):
+    # given
+    search_pk = max([user.pk for user in customer_users]) + 1
+    search_id = graphene.Node.to_global_id("User", search_pk)
+    variables = {"filter": {"ids": [search_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    result_users = content["data"]["customers"]["edges"]
+
+    assert len(result_users) == 0
+
+
 @pytest.mark.parametrize(
     "staff_member_filter, count",
     [({"status": "DEACTIVATED"}, 1), ({"status": "ACTIVE"}, 2)],
@@ -5511,7 +6358,6 @@ def test_query_staff_members_with_filter_status(
     permission_manage_staff,
     staff_user,
 ):
-
     User.objects.bulk_create(
         [
             User(email="second@example.com", is_staff=True, is_active=False),
@@ -5551,27 +6397,6 @@ def test_query_staff_members_with_filter_by_ids(
     # then
     users = content["data"]["staffUsers"]["edges"]
     assert len(users) == 1
-
-
-def test_query_staff_members_app_no_permission(
-    query_staff_users_with_filter,
-    app_api_client,
-    permission_manage_staff,
-):
-
-    User.objects.bulk_create(
-        [
-            User(email="second@example.com", is_staff=True, is_active=False),
-            User(email="third@example.com", is_staff=True, is_active=True),
-        ]
-    )
-
-    variables = {"filter": {"status": "DEACTIVATED"}}
-    response = app_api_client.post_graphql(
-        query_staff_users_with_filter, variables, permissions=[permission_manage_staff]
-    )
-
-    assert_no_permission(response)
 
 
 @pytest.mark.parametrize(
@@ -5912,6 +6737,59 @@ mutation requestEmailChange(
   }
 }
 """
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_request_email_change_with_upper_case_email(
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    site_settings,
+    channel_PLN,
+):
+    # given
+    new_email = "NEW_EMAIL@example.com"
+    redirect_url = "https://www.example.com"
+    variables = {
+        "new_email": new_email,
+        "redirect_url": redirect_url,
+        "password": "password",
+        "channel": channel_PLN.slug,
+    }
+    token_payload = {
+        "old_email": customer_user.email,
+        "new_email": new_email.lower(),
+        "user_pk": customer_user.pk,
+    }
+    token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
+
+    # when
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["requestEmailChange"]
+    assert not data["errors"]
+
+    params = urlencode({"token": token})
+    redirect_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "recipient_email": new_email.lower(),
+        "token": token,
+        "redirect_url": redirect_url,
+        "old_email": customer_user.email,
+        "new_email": new_email.lower(),
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_CHANGE_EMAIL_REQUEST,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
 
 
 def test_request_email_change(user_api_client, customer_user, channel_PLN):

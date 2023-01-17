@@ -5,7 +5,6 @@ import pytest
 from authlib.jose.errors import JoseError
 from django.core import signing
 from django.core.exceptions import ValidationError
-from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
 from ....core.jwt import (
@@ -16,6 +15,7 @@ from ....core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
+from ....graphql.account.mutations.authentication import _get_new_csrf_token
 from ...base_plugin import ExternalAccessTokens
 from ...models import PluginConfiguration
 from ..utils import (

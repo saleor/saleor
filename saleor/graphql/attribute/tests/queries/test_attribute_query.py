@@ -85,7 +85,6 @@ QUERY_ATTRIBUTE = """
                         }
                     }
                 }
-
             }
             valueRequired
             visibleInStorefront
@@ -713,3 +712,38 @@ def test_attributes_with_choice_flag(
         "-", "_"
     )
     assert content["data"]["attribute"]["withChoices"] == expected_with_choice_return
+
+
+QUERY_ATTRIBUTE_BY_EXTERNAL_REFERENCE = """
+    query($id: ID, $externalReference: String) {
+        attribute(id: $id, externalReference: $externalReference) {
+            id
+            externalReference
+        }
+    }
+"""
+
+
+def test_get_attribute_by_external_reference(
+    staff_api_client, color_attribute_without_values, permission_manage_products
+):
+    # given
+    attribute = color_attribute_without_values
+    ext_ref = "test-ext-id"
+    attribute.external_reference = ext_ref
+    attribute.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_ATTRIBUTE_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["attribute"]
+    assert data["externalReference"] == ext_ref
+    assert data["id"] == graphene.Node.to_global_id("Attribute", attribute.id)

@@ -6,6 +6,8 @@ class CustomerEvents:
 
     # Account related events
     ACCOUNT_CREATED = "account_created"
+    ACCOUNT_ACTIVATED = "account_activated"
+    ACCOUNT_DEACTIVATED = "account_deactivated"
     PASSWORD_RESET_LINK_SENT = "password_reset_link_sent"
     PASSWORD_RESET = "password_reset"
     PASSWORD_CHANGED = "password_changed"
@@ -25,6 +27,8 @@ class CustomerEvents:
 
     CHOICES = [
         (ACCOUNT_CREATED, "The account was created"),
+        (ACCOUNT_ACTIVATED, "The account was activated"),
+        (ACCOUNT_DEACTIVATED, "The account was deactivated"),
         (PASSWORD_RESET_LINK_SENT, "Password reset link was sent to the customer"),
         (PASSWORD_RESET, "The account password was reset"),
         (

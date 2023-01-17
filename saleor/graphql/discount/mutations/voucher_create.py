@@ -6,10 +6,12 @@ from ....core.utils.promo_code import generate_promo_code, is_available_promo_co
 from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
 from ...channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ..types import Voucher
 
@@ -83,7 +85,7 @@ class VoucherCreate(ModelMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         code = data.get("code", None)
         if code == "":
             data["code"] = generate_promo_code()
@@ -92,11 +94,11 @@ class VoucherCreate(ModelMutation):
                 {
                     "code": ValidationError(
                         "Promo code already exists.",
-                        code=DiscountErrorCode.ALREADY_EXISTS,
+                        code=DiscountErrorCode.ALREADY_EXISTS.value,
                     )
                 }
             )
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         return cleaned_input
 
@@ -106,7 +108,7 @@ class VoucherCreate(ModelMutation):
         return super().success_response(instance)
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         super().clean_instance(info, instance)
         start_date = instance.start_date
         end_date = instance.end_date
@@ -117,5 +119,6 @@ class VoucherCreate(ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.voucher_created(instance)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.voucher_created, instance)

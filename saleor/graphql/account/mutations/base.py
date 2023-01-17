@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
@@ -11,8 +13,8 @@ from ....account.notifications import (
     send_set_password_notification,
 )
 from ....account.search import prepare_user_search_document_value
+from ....account.utils import retrieve_user_by_email
 from ....checkout import AddressType
-from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
@@ -22,7 +24,11 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
+from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
+from ...core import ResolveInfo
+from ...core.context import set_mutation_flag_in_context
+from ...core.descriptions import ADDED_IN_310
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
@@ -31,6 +37,7 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.types import AccountError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -47,10 +54,11 @@ def check_can_edit_address(context, address):
     - customers associated to the given address.
     """
     requester = get_user_or_app_from_context(context)
-    if requester.has_perm(AccountPermissions.MANAGE_USERS):
+    if requester and requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
-    if not context.app and not context.user.is_anonymous:
-        is_owner = requester.addresses.filter(pk=address.pk).exists()
+    app = get_app_promise(context).get()
+    if not app and context.user:
+        is_owner = context.user.addresses.filter(pk=address.pk).exists()
         if is_owner:
             return True
     raise PermissionDenied(
@@ -75,24 +83,26 @@ class SetPassword(CreateToken):
         error_type_field = "account_errors"
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def mutate(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, email, password, token
+    ):
         set_mutation_flag_in_context(info.context)
-        result = info.context.plugins.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
+        manager = get_plugin_manager_promise(info.context).get()
+        result = manager.perform_mutation(
+            mutation_cls=cls,
+            root=root,
+            info=info,
+            data={"email": email, "password": password, "token": token},
         )
         if result is not None:
             return result
-
-        email = data["email"]
-        password = data["password"]
-        token = data["token"]
 
         try:
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
             errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
-        return super().mutate(root, info, **data)
+        return super().mutate(root, info, email=email, password=password)
 
     @classmethod
     def _set_password_for_user(cls, email, password, token):
@@ -102,13 +112,17 @@ class SetPassword(CreateToken):
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND
+                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND.value
                     )
                 }
             )
         if not default_token_generator.check_token(user, token):
             raise ValidationError(
-                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
+                {
+                    "token": ValidationError(
+                        INVALID_TOKEN, code=AccountErrorCode.INVALID.value
+                    )
+                }
             )
         try:
             password_validation.validate_password(password, user)
@@ -151,17 +165,16 @@ class RequestPasswordReset(BaseMutation):
             validate_storefront_url(redirect_url)
         except ValidationError as error:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID
+                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
 
-        try:
-            user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
+        user = retrieve_user_by_email(email)
+        if not user:
             raise ValidationError(
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.NOT_FOUND,
+                        code=AccountErrorCode.NOT_FOUND.value,
                     )
                 }
             )
@@ -170,14 +183,14 @@ class RequestPasswordReset(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email is inactive",
-                        code=AccountErrorCode.INACTIVE,
+                        code=AccountErrorCode.INACTIVE.value,
                     )
                 }
             )
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
         channel_slug = data.get("channel")
@@ -191,11 +204,11 @@ class RequestPasswordReset(BaseMutation):
             channel_slug = validate_channel(
                 channel_slug, error_class=AccountErrorCode
             ).slug
-
+        manager = get_plugin_manager_promise(info.context).get()
         send_password_reset_notification(
             redirect_url,
             user,
-            info.context.plugins,
+            manager,
             channel_slug=channel_slug,
             staff=user.is_staff,
         )
@@ -223,7 +236,7 @@ class ConfirmAccount(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         try:
             user = models.User.objects.get(email=data["email"])
         except ObjectDoesNotExist:
@@ -231,14 +244,18 @@ class ConfirmAccount(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.NOT_FOUND,
+                        code=AccountErrorCode.NOT_FOUND.value,
                     )
                 }
             )
 
         if not default_token_generator.check_token(user, data["token"]):
             raise ValidationError(
-                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
+                {
+                    "token": ValidationError(
+                        INVALID_TOKEN, code=AccountErrorCode.INVALID.value
+                    )
+                }
             )
 
         user.is_active = True
@@ -266,8 +283,9 @@ class PasswordChange(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         user = info.context.user
+        user = cast(models.User, user)
         old_password = data["old_password"]
         new_password = data["new_password"]
 
@@ -276,7 +294,7 @@ class PasswordChange(BaseMutation):
                 {
                     "old_password": ValidationError(
                         "Old password isn't valid.",
-                        code=AccountErrorCode.INVALID_CREDENTIALS,
+                        code=AccountErrorCode.INVALID_CREDENTIALS.value,
                     )
                 }
             )
@@ -308,14 +326,14 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         abstract = True
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         check_can_edit_address(info.context, instance)
-        return super().clean_input(info, instance, data)
+        return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
@@ -326,12 +344,12 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cls._save_m2m(info, address, cleaned_input)
 
         user = address.user_addresses.first()
-        user.search_document = prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document", "updated_at"])
-
-        info.context.plugins.customer_updated(user)
-        address = info.context.plugins.change_user_address(address, None, user)
-        info.context.plugins.address_updated(address)
+        if user:
+            user.search_document = prepare_user_search_document_value(user)
+            user.save(update_fields=["search_document", "updated_at"])
+        manager = get_plugin_manager_promise(info.context).get()
+        address = manager.change_user_address(address, None, user)
+        cls.call_event(manager.address_updated, address)
 
         success_response = cls.success_response(address)
         success_response.user = user
@@ -353,19 +371,20 @@ class BaseAddressDelete(ModelDeleteMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         check_can_edit_address(info.context, instance)
         return super().clean_instance(info, instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
         if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, Address)
+        instance = cls.get_node_or_error(info, id, only_type=Address)
         if instance:
             cls.clean_instance(info, instance)
 
@@ -379,20 +398,21 @@ class BaseAddressDelete(ModelDeleteMutation):
         instance.delete()
         instance.id = db_id
 
-        # Refresh the user instance to clear the default addresses. If the
-        # deleted address was used as default, it would stay cached in the
-        # user instance and the invalid ID returned in the response might cause
-        # an error.
-        user.refresh_from_db()
+        if user:
+            # Refresh the user instance to clear the default addresses. If the
+            # deleted address was used as default, it would stay cached in the
+            # user instance and the invalid ID returned in the response might cause
+            # an error.
+            user.refresh_from_db()
 
-        user.search_document = prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document", "updated_at"])
+            user.search_document = prepare_user_search_document_value(user)
+            user.save(update_fields=["search_document", "updated_at"])
 
         response = cls.success_response(instance)
 
         response.user = user
-        info.context.plugins.customer_updated(user)
-        info.context.plugins.address_deleted(instance)
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.address_deleted, instance)
         return response
 
 
@@ -416,6 +436,9 @@ class UserAddressInput(graphene.InputObjectType):
 class CustomerInput(UserInput, UserAddressInput):
     language_code = graphene.Field(
         LanguageCodeEnum, required=False, description="User language code."
+    )
+    external_reference = graphene.String(
+        description="External ID of the customer." + ADDED_IN_310, required=False
     )
 
 
@@ -446,10 +469,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         abstract = True
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         shipping_address_data = data.pop(SHIPPING_ADDRESS_FIELD, None)
         billing_address_data = data.pop(BILLING_ADDRESS_FIELD, None)
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
             shipping_address = cls.validate_address(
@@ -474,24 +497,29 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 validate_storefront_url(cleaned_input.get("redirect_url"))
             except ValidationError as error:
                 raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID.value
                 )
+
+        email = cleaned_input.get("email")
+        if email:
+            cleaned_input["email"] = email.lower()
 
         return cleaned_input
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
+        manager = get_plugin_manager_promise(info.context).get()
         if default_shipping_address:
-            default_shipping_address = info.context.plugins.change_user_address(
+            default_shipping_address = manager.change_user_address(
                 default_shipping_address, "shipping", instance
             )
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
-            default_billing_address = info.context.plugins.change_user_address(
+            default_billing_address = manager.change_user_address(
                 default_billing_address, "billing", instance
             )
             default_billing_address.save()
@@ -509,10 +537,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
-            info.context.plugins.customer_created(customer=instance)
+            manager.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
         else:
-            info.context.plugins.customer_updated(instance)
+            manager.customer_updated(instance)
 
         if cleaned_input.get("redirect_url"):
             channel_slug = cleaned_input.get("channel")
@@ -527,6 +555,6 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             send_set_password_notification(
                 cleaned_input.get("redirect_url"),
                 instance,
-                info.context.plugins,
+                manager,
                 channel_slug,
             )

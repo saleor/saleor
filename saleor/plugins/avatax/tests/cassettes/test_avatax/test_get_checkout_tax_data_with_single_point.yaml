@@ -1,0 +1,69 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "O9999999", "taxIncluded":
+      true, "itemCode": "123", "discounted": false, "description": "Test product",
+      "ref1": "123"}], "code": "4f12c392-a11d-495d-832e-d19dc82d6b7e", "date": "2022-09-15",
+      "customerCode": 0, "discount": null, "addresses": {"singleLocation": {"line1":
+      "4371 Lucas Knoll Apt. 791", "line2": "", "city": "BENNETTMOUTH", "region":
+      "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
+      "USD", "email": "user@email.com"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '592'
+      User-Agent:
+      - python-requests/2.28.1
+    method: POST
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: '{"id":0,"code":"4f12c392-a11d-495d-832e-d19dc82d6b7e","companyId":7799660,"date":"2022-09-15","paymentDate":"2022-09-15","status":"Temporary","type":"SalesOrder","batchCode":"","currencyCode":"USD","exchangeRateCurrencyCode":"USD","customerUsageType":"","entityUseCode":"","customerVendorCode":"0","customerCode":"0","exemptNo":"","reconciled":false,"locationCode":"","reportingLocationCode":"","purchaseOrderNo":"","referenceCode":"","salespersonCode":"","totalAmount":24.39,"totalExempt":0.0,"totalDiscount":0.0,"totalTax":5.61,"totalTaxable":24.39,"totalTaxCalculated":5.61,"adjustmentReason":"NotAdjusted","locked":false,"version":1,"exchangeRateEffectiveDate":"2022-09-15","exchangeRate":1.0,"email":"user@email.com","modifiedDate":"2022-09-15T08:41:19.7426832Z","modifiedUserId":6479978,"taxDate":"2022-09-15","lines":[{"id":0,"transactionId":0,"lineNumber":"1","customerUsageType":"","entityUseCode":"","description":"Test
+        product","discountAmount":0.0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"itemCode":"123","lineAmount":24.3900,"quantity":3.0,"ref1":"123","ref2":"","reportingDate":"2022-09-15","tax":5.61,"taxableAmount":24.39,"taxCalculated":5.61,"taxCode":"O9999999","taxCodeId":9111,"taxDate":"2022-09-15","taxIncluded":true,"details":[{"id":0,"transactionLineId":0,"transactionId":0,"country":"PL","region":"PL","exemptAmount":0.0,"jurisCode":"PL","jurisName":"POLAND","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"rate":0.230000,"tax":5.61,"taxableAmount":24.39,"taxType":"Output","taxSubTypeId":"O","taxName":"Standard
+        Rate","taxAuthorityTypeId":45,"taxCalculated":5.61,"rateType":"Standard","rateTypeCode":"S","unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":24.39,"reportingNonTaxableUnits":0.0,"reportingExemptUnits":0.0,"reportingTax":5.61,"reportingTaxCalculated":5.61,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230C","vatNumberTypeId":0}],"addresses":[{"id":0,"transactionId":0,"boundaryLevel":"Zip5","line1":"4371
+        Lucas Knoll Apt. 791","line2":"","line3":"","city":"BENNETTMOUTH","region":"","postalCode":"53-601","country":"PL","taxRegionId":205102,"latitude":"","longitude":""}],"summary":[{"country":"PL","region":"PL","jurisType":"Country","jurisCode":"PL","jurisName":"POLAND","taxAuthorityType":45,"stateAssignedNo":"","taxType":"Output","taxSubType":"O","taxName":"Standard
+        Rate","rateType":"Standard","taxable":24.39,"rate":0.230000,"tax":5.61,"taxCalculated":5.61,"nonTaxable":0.0,"exemption":0.0}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 15 Sep 2022 08:41:19 GMT
+      Location:
+      - /api/v2/companies/7799660/transactions/0
+      ServerDuration:
+      - '00:00:00.0100454'
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      api-supported-versions:
+      - '2.0'
+      cache-control:
+      - private, no-cache, no-store
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - d44035ff-332d-4fa6-8aa2-76ca07d86cc3
+      x-correlation-id:
+      - d44035ff-332d-4fa6-8aa2-76ca07d86cc3
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1

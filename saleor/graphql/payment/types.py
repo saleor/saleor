@@ -3,16 +3,17 @@ from graphene import relay
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
-from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE
 from ..core.fields import JSONString, PermissionsField
+from ..core.tracing import traced_resolver
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..order.dataloaders import OrderByIdLoader
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     TransactionByPaymentIdLoader,
@@ -27,7 +28,7 @@ from .enums import (
 )
 
 
-class Transaction(ModelObjectType):
+class Transaction(ModelObjectType[models.Transaction]):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
     payment = graphene.Field(lambda: Payment, required=True)
@@ -93,7 +94,7 @@ class PaymentSource(graphene.ObjectType):
     )
 
 
-class Payment(ModelObjectType):
+class Payment(ModelObjectType[models.Payment]):
     id = graphene.GlobalID(required=True)
     gateway = graphene.String(required=True)
     is_active = graphene.Boolean(required=True)
@@ -216,7 +217,7 @@ class Payment(ModelObjectType):
     def resolve_metadata(root: models.Payment, info):
         permissions = public_payment_permissions(info, root.pk)
         requester = get_user_or_app_from_context(info.context)
-        if not requester.has_perms(permissions):
+        if not requester or not requester.has_perms(permissions):
             raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 
@@ -244,7 +245,7 @@ class PaymentInitialized(graphene.ObjectType):
     data = JSONString(description="Initialized data by gateway.", required=False)
 
 
-class TransactionEvent(ModelObjectType):
+class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     created_at = graphene.DateTime(required=True)
     status = graphene.Field(
         TransactionStatusEnum,
@@ -262,7 +263,7 @@ class TransactionEvent(ModelObjectType):
         model = models.TransactionEvent
 
 
-class TransactionItem(ModelObjectType):
+class TransactionItem(ModelObjectType[models.TransactionItem]):
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
     actions = NonNullList(
@@ -287,6 +288,10 @@ class TransactionItem(ModelObjectType):
     status = graphene.String(description="Status of transaction.", required=True)
     type = graphene.String(description="Type of transaction.", required=True)
     reference = graphene.String(description="Reference of transaction.", required=True)
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="The related order." + ADDED_IN_36,
+    )
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
     )
@@ -317,6 +322,12 @@ class TransactionItem(ModelObjectType):
     @staticmethod
     def resolve_refunded_amount(root: models.TransactionItem, _info):
         return root.amount_refunded
+
+    @staticmethod
+    def resolve_order(root: models.TransactionItem, info):
+        if not root.order_id:
+            return
+        return OrderByIdLoader(info.context).load(root.order_id)
 
     @staticmethod
     def resolve_events(root: models.TransactionItem, info):

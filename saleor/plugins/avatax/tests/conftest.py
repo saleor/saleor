@@ -25,7 +25,7 @@ def plugin_configuration(db, channel_USD):
     def set_configuration(
         username=default_username,
         password=default_password,
-        sandbox=False,
+        sandbox=True,
         channel=None,
         active=True,
         from_street_address="Teczowa 7",
@@ -104,6 +104,7 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
             convert_to_shipping_method_data(shipping_method, shipping_channel_listing),
             shipping_address,
         ),
+        tax_configuration=channel.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
     )

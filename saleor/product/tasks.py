@@ -2,6 +2,7 @@ import logging
 from typing import Iterable, List, Optional
 
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
@@ -11,6 +12,7 @@ from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Sale
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
+from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
     update_product_discounted_price,
     update_products_discounted_prices,
@@ -21,6 +23,8 @@ from .utils.variants import generate_and_set_variant_name
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
+
+VARIANTS_UPDATE_BATCH = 500
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
@@ -33,15 +37,23 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     attributes_changed = initial_attributes.intersection(saved_attributes)
     if not attributes_changed:
         return
-    variants_to_be_updated = ProductVariant.objects.filter(
+
+    variants = ProductVariant.objects.filter(
         product__in=instance.products.all(),
         product__product_type__variant_attributes__in=attributes_changed,
     )
-    variants_to_be_updated = variants_to_be_updated.prefetch_related(
-        "attributes__values__translations"
-    ).all()
-    for variant in variants_to_be_updated:
-        generate_and_set_variant_name(variant, variant.sku)
+
+    variants_to_update = []
+    for variant in variants:
+        variants_to_update.append(
+            generate_and_set_variant_name(variant, variant.sku, save=False)
+        )
+        if len(variants_to_update) > VARIANTS_UPDATE_BATCH:
+            ProductVariant.objects.bulk_update(
+                variants_to_update, ["name", "updated_at"]
+            )
+            variants_to_update = []
+    ProductVariant.objects.bulk_update(variants_to_update, ["name", "updated_at"])
 
 
 @app.task
@@ -108,3 +120,11 @@ def _get_preorder_variants_to_clean():
     return ProductVariant.objects.filter(
         is_preorder=True, preorder_end_date__lt=timezone.now()
     )
+
+
+@app.task(queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME, expires=20)
+def update_products_search_vector_task():
+    products = Product.objects.filter(search_index_dirty=True).order_by()[
+        :PRODUCTS_BATCH_SIZE
+    ]
+    update_products_search_vector(products, use_batches=False)

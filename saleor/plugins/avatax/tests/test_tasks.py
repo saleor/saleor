@@ -24,7 +24,7 @@ def test_api_post_request_task_sends_request(
     config = AvataxConfiguration(
         username_or_account="",
         password_or_license="",
-        use_sandbox=False,
+        use_sandbox=True,
         from_street_address="Tęczowa 7",
         from_city="WROCŁAW",
         from_postal_code="53-601",
@@ -56,7 +56,7 @@ def test_api_post_request_task_creates_order_event(
     config = AvataxConfiguration(
         username_or_account="",
         password_or_license="",
-        use_sandbox=False,
+        use_sandbox=True,
         from_street_address="Tęczowa 7",
         from_city="WROCŁAW",
         from_postal_code="53-601",

@@ -13,7 +13,8 @@ from ..discount import OrderDiscountType
 from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
-from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
+from ..thumbnail import THUMBNAIL_SIZES
+from ..thumbnail.utils import get_image_or_proxy_url
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
@@ -22,10 +23,12 @@ if TYPE_CHECKING:
 
 
 def get_image_payload(instance: ProductMedia):
-    image_file = instance.image if instance else None
     return {
-        size: get_thumbnail(image_file, size, "thumbnail")
-        for size in AVAILABLE_PRODUCT_SIZES
+        # This is temporary solution, the get_product_image_thumbnail_url
+        # should be optimize - we should fetch all thumbnails at once instead of
+        # fetching thumbnails by one for each size
+        size: get_image_or_proxy_url(None, str(instance.id), "ProductMedia", size, None)
+        for size in THUMBNAIL_SIZES
     }
 
 
@@ -91,10 +94,10 @@ def get_product_variant_payload(variant: ProductVariant):
 
 
 def get_order_line_payload(line: "OrderLine"):
-    digital_url = ""
+    digital_url: Optional[str] = None
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
-        digital_url = content.get_absolute_url() if content else None  # type: ignore
+        digital_url = content.get_absolute_url() if content else None
     variant_dependent_fields = {}
     if line.variant:
         variant_dependent_fields = {
@@ -105,11 +108,11 @@ def get_order_line_payload(line: "OrderLine"):
 
     return {
         "id": to_global_id_or_none(line),
-        "product": variant_dependent_fields.get("product"),  # type: ignore
+        "product": variant_dependent_fields.get("product"),
         "product_name": line.product_name,
         "translated_product_name": line.translated_product_name or line.product_name,
         "variant_name": line.variant_name,
-        "variant": variant_dependent_fields.get("variant"),  # type: ignore
+        "variant": variant_dependent_fields.get("variant"),
         "translated_variant_name": line.translated_variant_name or line.variant_name,
         "product_sku": line.product_sku,
         "product_variant_id": line.product_variant_id,
@@ -132,6 +135,7 @@ def get_order_line_payload(line: "OrderLine"):
         "unit_discount_reason": line.unit_discount_reason,
         "unit_discount_type": line.unit_discount_type,
         "unit_discount_amount": line.unit_discount_amount,
+        "metadata": line.metadata,
     }
 
 

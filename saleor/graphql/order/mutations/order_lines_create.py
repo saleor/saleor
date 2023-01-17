@@ -1,21 +1,31 @@
-from typing import List, Tuple
+from collections import defaultdict
+from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import fetch_order_lines
 from ....order.search import update_order_search_vector
-from ....order.utils import add_variant_to_order, recalculate_order
+from ....order.utils import (
+    add_variant_to_order,
+    invalidate_order_prices,
+    recalculate_order_weight,
+)
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
+from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
+    OrderLineData,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
@@ -45,17 +55,46 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         errors_mapping = {"lines": "input", "channel": "input"}
 
     @classmethod
-    def validate_lines(cls, info, data):
-        lines_to_add = []
+    def validate_lines(cls, info: ResolveInfo, data, existing_lines_info):
+        grouped_lines_data: List[OrderLineData] = []
+        lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
+
+        variants_from_existing_lines = [
+            line_info.line.variant_id for line_info in existing_lines_info
+        ]
+
         invalid_ids = []
-        for input_line in data.get("input"):
-            variant_id = input_line["variant_id"]
+        for input_line in data:
+            variant_id: str = input_line["variant_id"]
+            force_new_line = input_line["force_new_line"]
             variant = cls.get_node_or_error(
-                info, variant_id, "variant_id", only_type=ProductVariant
+                info, variant_id, field="variant_id", only_type=ProductVariant
             )
             quantity = input_line["quantity"]
+
             if quantity > 0:
-                lines_to_add.append((quantity, variant))
+                if force_new_line or variants_from_existing_lines.count(variant.pk) > 1:
+                    grouped_lines_data.append(
+                        OrderLineData(
+                            variant_id=str(variant.id),
+                            variant=variant,
+                            quantity=quantity,
+                        )
+                    )
+                else:
+                    line_id = cls._find_line_id_for_variant_if_exist(
+                        variant.pk, existing_lines_info
+                    )
+
+                    if line_id:
+                        line_data = lines_data_map[line_id]
+                        line_data.line_id = line_id
+                    else:
+                        line_data = lines_data_map[str(variant.id)]
+                        line_data.variant_id = str(variant.id)
+
+                    line_data.variant = variant
+                    line_data.quantity += quantity
             else:
                 invalid_ids.append(variant_id)
         if invalid_ids:
@@ -63,12 +102,14 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 {
                     "quantity": ValidationError(
                         "Variants quantity must be greater than 0.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                         params={"variants": invalid_ids},
                     ),
                 }
             )
-        return lines_to_add
+
+        grouped_lines_data += list(lines_data_map.values())
+        return grouped_lines_data
 
     @classmethod
     def validate_variants(cls, order, variants):
@@ -81,64 +122,86 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(
-        order, lines_to_add, user, app, manager, settings, discounts
-    ):
-        added_lines: List[Tuple[int, OrderLine]] = []
+    def add_lines_to_order(order, lines_data, user, app, manager, discounts):
+        added_lines: List[OrderLine] = []
         try:
-            for quantity, variant in lines_to_add:
+            for line_data in lines_data:
                 line = add_variant_to_order(
                     order,
-                    variant,
-                    quantity,
+                    line_data,
                     user,
                     app,
                     manager,
-                    settings,
                     discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
-                added_lines.append((quantity, line))
+                added_lines.append(line)
         except TaxError as tax_error:
             raise ValidationError(
-                "Unable to calculate taxes - %s" % str(tax_error),
+                f"Unable to calculate taxes - {str(tax_error)}",
                 code=OrderErrorCode.TAX_ERROR.value,
             )
         return added_lines
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
         cls.validate_order(order)
-        lines_to_add = cls.validate_lines(info, data)
-        variants = [line[1] for line in lines_to_add]
+        existing_lines_info = fetch_order_lines(order)
+
+        lines_to_add = cls.validate_lines(info, input, existing_lines_info)
+        variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
+        with traced_atomic_transaction():
+            added_lines = cls.add_lines_to_order(
+                order,
+                lines_to_add,
+                info.context.user,
+                app,
+                manager,
+                discounts,
+            )
 
-        added_lines = cls.add_lines_to_order(
-            order,
-            lines_to_add,
-            info.context.user,
-            info.context.app,
-            info.context.plugins,
-            info.context.site.settings,
-            info.context.discounts,
+            # Create the products added event
+            events.order_added_products_event(
+                order=order,
+                user=info.context.user,
+                app=app,
+                order_lines=added_lines,
+            )
+
+            invalidate_order_prices(order)
+            recalculate_order_weight(order)
+            update_order_search_vector(order, save=False)
+            order.save(
+                update_fields=[
+                    "should_refresh_prices",
+                    "weight",
+                    "search_vector",
+                    "updated_at",
+                ]
+            )
+            func = get_webhook_handler_by_order_status(order.status, manager)
+            cls.call_event(func, order)
+
+        return OrderLinesCreate(order=order, order_lines=added_lines)
+
+    @classmethod
+    def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info):
+        """Return line id by using provided variantId parameter."""
+        if not lines_info:
+            return
+
+        line_info = list(
+            filter(lambda x: (x.variant.pk == int(variant_id)), lines_info)
         )
 
-        # Create the products added event
-        events.order_added_products_event(
-            order=order,
-            user=info.context.user,
-            app=info.context.app,
-            order_lines=added_lines,
-        )
+        if not line_info or len(line_info) > 1:
+            return
 
-        lines = [line for _, line in added_lines]
-
-        recalculate_order(order)
-        update_order_search_vector(order)
-
-        func = get_webhook_handler_by_order_status(order.status, info)
-        transaction.on_commit(lambda: func(order))
-
-        return OrderLinesCreate(order=order, order_lines=lines)
+        return str(line_info[0].line.id)

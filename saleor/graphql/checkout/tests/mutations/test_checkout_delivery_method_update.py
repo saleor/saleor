@@ -7,7 +7,7 @@ import pytest
 from .....account.models import Address
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
+from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout_prices
 from .....plugins.manager import get_plugins_manager
 from .....shipping import models as shipping_models
 from .....shipping.utils import convert_to_shipping_method_data
@@ -60,7 +60,13 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_delivery_method_update(
+    mock_invalidate_checkout_prices,
     mock_clean_delivery,
     api_client,
     delivery_method,
@@ -101,6 +107,7 @@ def test_checkout_delivery_method_update(
     if is_valid_delivery_method:
         assert not errors
         assert getattr(checkout, attribute_name) == delivery_method
+        assert mock_invalidate_checkout_prices.call_count == 1
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "deliveryMethodId"
@@ -157,7 +164,9 @@ def test_checkout_delivery_method_update_external_shipping(
     errors = data["errors"]
     if is_valid_delivery_method:
         assert not errors
-        assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+        assert (
+            PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
+        )
         assert data["checkout"]["deliveryMethod"]["id"] == method_id
     else:
         assert len(errors) == 1
@@ -165,7 +174,10 @@ def test_checkout_delivery_method_update_external_shipping(
         assert (
             errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
         )
-        assert PRIVATE_META_APP_SHIPPING_ID not in checkout.private_metadata
+        assert (
+            PRIVATE_META_APP_SHIPPING_ID
+            not in checkout.metadata_storage.private_metadata
+        )
 
 
 @patch(
@@ -311,6 +323,7 @@ def test_checkout_delivery_method_update_shipping_zone_without_channel(
     address,
 ):
     shipping_method.shipping_zone.channels.clear()
+    shipping_method.channel_listings.all().delete()
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])

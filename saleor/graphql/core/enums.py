@@ -28,6 +28,7 @@ from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...site import error_codes as site_error_codes
+from ...thumbnail import ThumbnailFormat
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
@@ -46,7 +47,7 @@ class OrderDirection(graphene.Enum):
             return "Specifies an ascending sort order."
         if self == OrderDirection.DESC:
             return "Specifies a descending sort order."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ReportingPeriod(graphene.Enum):
@@ -90,6 +91,7 @@ LanguageCodeEnum = graphene.Enum(
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
 TimePeriodTypeEnum = to_enum(TimePeriodType)
+ThumbnailFormatEnum = to_enum(ThumbnailFormat)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)
@@ -147,3 +149,6 @@ UploadErrorCode = graphene.Enum.from_enum(core_error_codes.UploadErrorCode)
 WarehouseErrorCode = graphene.Enum.from_enum(warehouse_error_codes.WarehouseErrorCode)
 WebhookErrorCode = graphene.Enum.from_enum(webhook_error_codes.WebhookErrorCode)
 TranslationErrorCode = graphene.Enum.from_enum(core_error_codes.TranslationErrorCode)
+WebhookDryRunErrorCode = graphene.Enum.from_enum(
+    webhook_error_codes.WebhookDryRunErrorCode
+)

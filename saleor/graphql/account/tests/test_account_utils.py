@@ -1,6 +1,4 @@
-from django.contrib.auth.models import Group
-
-from ....account.models import User
+from ....account.models import Group, User
 from ....app.models import App
 from ....core.permissions import (
     AccountPermissions,
@@ -738,8 +736,7 @@ def test_get_not_manageable_permissions_after_removing_perms_from_group_no_perms
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure no permissions are returned when all perms will be manageable after removing
-    permissions from group."""
+    """Ensure no permissions are lost when after removing permissions from group."""
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users and products"),

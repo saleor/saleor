@@ -1,9 +1,9 @@
 import uuid
-from typing import List
+from functools import partial
+from typing import List, cast
 
 import graphene
 from django.contrib.auth import get_user_model
-from django.contrib.auth import models as auth_models
 from graphene import relay
 
 from ...account import models
@@ -15,26 +15,39 @@ from ...core.permissions import (
     AuthorizationFilters,
     OrderPermissions,
 )
-from ...core.tracing import traced_resolver
 from ...order import OrderStatus
+from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.utils import check_is_owner_or_has_one_of_perms
-from ..app.dataloaders import AppByIdLoader
+from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
-from ..checkout.types import Checkout
+from ..checkout.types import Checkout, CheckoutCountableConnection
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
-from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
+from ..core.tracing import traced_resolver
+from ..core.types import (
+    CountryDisplay,
+    Image,
+    ModelObjectType,
+    NonNullList,
+    Permission,
+    ThumbnailField,
+)
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from .dataloaders import CustomerEventsByUserLoader
+from .dataloaders import (
+    CustomerEventsByUserLoader,
+    ThumbnailByUserIdSizeAndFormatLoader,
+)
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
@@ -54,7 +67,7 @@ class AddressInput(graphene.InputObjectType):
 
 
 @federated_entity("id")
-class Address(ModelObjectType):
+class Address(ModelObjectType[models.Address]):
     id = graphene.GlobalID(required=True)
     first_name = graphene.String(required=True)
     last_name = graphene.String(required=True)
@@ -78,15 +91,16 @@ class Address(ModelObjectType):
 
     class Meta:
         description = "Represents user address data."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
+        metadata_since = ADDED_IN_310
 
     @staticmethod
-    def resolve_country(root: models.Address, _info):
+    def resolve_country(root: models.Address, _info: ResolveInfo):
         return CountryDisplay(code=root.country.code, country=root.country.name)
 
     @staticmethod
-    def resolve_is_default_shipping_address(root: models.Address, _info):
+    def resolve_is_default_shipping_address(root: models.Address, _info: ResolveInfo):
         """Look if the address is the default shipping address of the user.
 
         This field is added through annotation when using the
@@ -105,7 +119,7 @@ class Address(ModelObjectType):
         return False
 
     @staticmethod
-    def resolve_is_default_billing_address(root: models.Address, _info):
+    def resolve_is_default_billing_address(root: models.Address, _info: ResolveInfo):
         """Look if the address is the default billing address of the user.
 
         This field is added through annotation when using the
@@ -124,22 +138,25 @@ class Address(ModelObjectType):
         return False
 
     @staticmethod
-    def __resolve_references(roots: List["Address"], info):
+    def __resolve_references(roots: List["Address"], info: ResolveInfo):
         from .resolvers import resolve_addresses
+
+        app = get_app_promise(info.context).get()
 
         root_ids = [root.id for root in roots]
         addresses = {
-            address.id: address for address in resolve_addresses(info, root_ids)
+            address.id: address for address in resolve_addresses(info, root_ids, app)
         }
 
         result = []
         for root_id in root_ids:
             _, root_id = from_global_id_or_error(root_id, Address)
             result.append(addresses.get(int(root_id)))
+
         return result
 
 
-class CustomerEvent(ModelObjectType):
+class CustomerEvent(ModelObjectType[models.CustomerEvent]):
     id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
@@ -162,8 +179,9 @@ class CustomerEvent(ModelObjectType):
         model = models.CustomerEvent
 
     @staticmethod
-    def resolve_user(root: models.CustomerEvent, info):
+    def resolve_user(root: models.CustomerEvent, info: ResolveInfo):
         user = info.context.user
+        user = cast(User, user)
         if (
             user == root.user
             or user.has_perm(AccountPermissions.MANAGE_USERS)
@@ -179,7 +197,7 @@ class CustomerEvent(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_app(root: models.CustomerEvent, info):
+    def resolve_app(root: models.CustomerEvent, info: ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
@@ -187,15 +205,15 @@ class CustomerEvent(ModelObjectType):
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
-    def resolve_message(root: models.CustomerEvent, _info):
+    def resolve_message(root: models.CustomerEvent, _info: ResolveInfo):
         return root.parameters.get("message", None)
 
     @staticmethod
-    def resolve_count(root: models.CustomerEvent, _info):
+    def resolve_count(root: models.CustomerEvent, _info: ResolveInfo):
         return root.parameters.get("count", None)
 
     @staticmethod
-    def resolve_order_line(root: models.CustomerEvent, info):
+    def resolve_order_line(root: models.CustomerEvent, info: ResolveInfo):
         if "order_line_pk" in root.parameters:
             return OrderLineByIdLoader(info.context).load(
                 uuid.UUID(root.parameters["order_line_pk"])
@@ -217,9 +235,9 @@ class UserPermission(Permission):
 
     @staticmethod
     @traced_resolver
-    def resolve_source_permission_groups(root: Permission, _info, user_id):
+    def resolve_source_permission_groups(root: Permission, _info: ResolveInfo, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
-        groups = auth_models.Group.objects.filter(
+        groups = models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
         )
         return groups
@@ -227,14 +245,16 @@ class UserPermission(Permission):
 
 @federated_entity("id")
 @federated_entity("email")
-class User(ModelObjectType):
+class User(ModelObjectType[models.User]):
     id = graphene.GlobalID(required=True)
     email = graphene.String(required=True)
     first_name = graphene.String(required=True)
     last_name = graphene.String(required=True)
     is_staff = graphene.Boolean(required=True)
     is_active = graphene.Boolean(required=True)
-    addresses = NonNullList(Address, description="List of all user's addresses.")
+    addresses = NonNullList(
+        Address, description="List of all user's addresses.", required=True
+    )
     checkout = graphene.Field(
         Checkout,
         description="Returns the last open checkout of this user.",
@@ -254,6 +274,13 @@ class User(ModelObjectType):
     checkout_ids = NonNullList(
         graphene.ID,
         description="Returns the checkout ID's assigned to this user.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+    )
+    checkouts = ConnectionField(
+        CheckoutCountableConnection,
+        description="Returns checkouts assigned to this user." + ADDED_IN_38,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -286,7 +313,7 @@ class User(ModelObjectType):
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
-    avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
+    avatar = ThumbnailField()
     events = PermissionsField(
         NonNullList(CustomerEvent),
         description="List of events associated with the user.",
@@ -304,6 +331,9 @@ class User(ModelObjectType):
     )
     default_shipping_address = graphene.Field(Address)
     default_billing_address = graphene.Field(Address)
+    external_reference = graphene.String(
+        description=f"External ID of this user. {ADDED_IN_310}", required=False
+    )
 
     last_login = graphene.DateTime()
     date_joined = graphene.DateTime(required=True)
@@ -315,16 +345,16 @@ class User(ModelObjectType):
         model = get_user_model()
 
     @staticmethod
-    def resolve_addresses(root: models.User, _info):
-        return root.addresses.annotate_default(root).all()  # type: ignore
+    def resolve_addresses(root: models.User, _info: ResolveInfo):
+        return root.addresses.annotate_default(root).all()  # type: ignore[attr-defined] # mypy does not properly recognize the related manager # noqa: E501
 
     @staticmethod
-    def resolve_checkout(root: models.User, _info):
+    def resolve_checkout(root: models.User, _info: ResolveInfo):
         return get_user_checkout(root)
 
     @staticmethod
     @traced_resolver
-    def resolve_checkout_tokens(root: models.User, info, channel=None):
+    def resolve_checkout_tokens(root: models.User, info: ResolveInfo, channel=None):
         def return_checkout_tokens(checkouts):
             if not checkouts:
                 return []
@@ -347,7 +377,7 @@ class User(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_checkout_ids(root: models.User, info, channel=None):
+    def resolve_checkout_ids(root: models.User, info: ResolveInfo, channel=None):
         def return_checkout_ids(checkouts):
             if not checkouts:
                 return []
@@ -369,7 +399,22 @@ class User(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.User, info, **kwargs):
+    def resolve_checkouts(root: models.User, info: ResolveInfo, **kwargs):
+        def _resolve_checkouts(checkouts):
+            return create_connection_slice(
+                checkouts, info, kwargs, CheckoutCountableConnection
+            )
+
+        if channel := kwargs.get("channel"):
+            return (
+                CheckoutByUserAndChannelLoader(info.context)
+                .load((root.id, channel))
+                .then(_resolve_checkouts)
+            )
+        return CheckoutByUserLoader(info.context).load(root.id).then(_resolve_checkouts)
+
+    @staticmethod
+    def resolve_gift_cards(root: models.User, info: ResolveInfo, **kwargs):
         from ..giftcard.types import GiftCardCountableConnection
 
         def _resolve_gift_cards(gift_cards):
@@ -382,46 +427,50 @@ class User(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_user_permissions(root: models.User, _info):
+    def resolve_user_permissions(root: models.User, _info: ResolveInfo):
         from .resolvers import resolve_permissions
 
         return resolve_permissions(root)
 
     @staticmethod
-    def resolve_permission_groups(root: models.User, _info):
+    def resolve_permission_groups(root: models.User, _info: ResolveInfo):
         return root.groups.all()
 
     @staticmethod
-    def resolve_editable_groups(root: models.User, _info):
+    def resolve_editable_groups(root: models.User, _info: ResolveInfo):
         return get_groups_which_user_can_manage(root)
 
     @staticmethod
-    def resolve_note(root: models.User, info):
+    def resolve_note(root: models.User, _info: ResolveInfo):
         return root.note
 
     @staticmethod
-    def resolve_events(root: models.User, info):
+    def resolve_events(root: models.User, info: ResolveInfo):
         return CustomerEventsByUserLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_orders(root: models.User, info, **kwargs):
+    def resolve_orders(root: models.User, info: ResolveInfo, **kwargs):
         from ..order.types import OrderCountableConnection
 
+        user_or_app = get_user_or_app_from_context(info.context)
+        if not user_or_app or (
+            root != user_or_app
+            and not user_or_app.has_perm(OrderPermissions.MANAGE_ORDERS)
+        ):
+            raise PermissionDenied(
+                permissions=[
+                    AuthorizationFilters.OWNER,
+                    OrderPermissions.MANAGE_ORDERS,
+                ]
+            )
+        requester = user_or_app
+
         def _resolve_orders(orders):
-            requester = get_user_or_app_from_context(info.context)
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 # allow fetch requestor orders (except drafts)
-                if root == info.context.user:
-                    orders = [
-                        order for order in orders if order.status != OrderStatus.DRAFT
-                    ]
-                else:
-                    raise PermissionDenied(
-                        permissions=[
-                            AuthorizationFilters.OWNER,
-                            OrderPermissions.MANAGE_ORDERS,
-                        ]
-                    )
+                orders = [
+                    order for order in orders if order.status != OrderStatus.DRAFT
+                ]
 
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection
@@ -430,30 +479,47 @@ class User(ModelObjectType):
         return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
-    def resolve_avatar(root: models.User, info, size=None):
-        if root.avatar:
-            return Image.get_adjusted(
-                image=root.avatar,
-                alt=None,
-                size=size,
-                rendition_key_set="user_avatars",
-                info=info,
+    def resolve_avatar(root: models.User, info: ResolveInfo, size=None, format=None):
+        if not root.avatar:
+            return
+
+        if not size:
+            return Image(url=root.avatar.url, alt=None)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_avatar(thumbnail):
+            url = get_image_or_proxy_url(
+                thumbnail, str(root.uuid), "User", size, format
             )
+            return Image(url=url, alt=None)
+
+        return (
+            ThumbnailByUserIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_avatar)
+        )
 
     @staticmethod
-    def resolve_stored_payment_sources(root: models.User, info, channel=None):
+    def resolve_stored_payment_sources(
+        root: models.User, info: ResolveInfo, channel=None
+    ):
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
-            return resolve_payment_sources(info, root, channel_slug=channel)
+            return get_plugin_manager_promise(info.context).then(
+                partial(resolve_payment_sources, info, root, channel_slug=channel)
+            )
+
         raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
     @staticmethod
-    def resolve_language_code(root, _info):
+    def resolve_language_code(root, _info: ResolveInfo):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def __resolve_references(roots: List["User"], info):
+    def __resolve_references(roots: List["User"], info: ResolveInfo):
         from .resolvers import resolve_users
 
         ids = set()
@@ -533,15 +599,16 @@ class StaffNotificationRecipient(graphene.ObjectType):
         model = models.StaffNotificationRecipient
 
     @staticmethod
-    def get_node(info, id):
+    def get_node(info: ResolveInfo, id):
         try:
             return models.StaffNotificationRecipient.objects.get(pk=id)
         except models.StaffNotificationRecipient.DoesNotExist:
             return None
 
     @staticmethod
-    def resolve_user(root: models.StaffNotificationRecipient, info):
+    def resolve_user(root: models.StaffNotificationRecipient, info: ResolveInfo):
         user = info.context.user
+        user = cast(models.User, user)
         if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
             return root.user
         raise PermissionDenied(
@@ -549,12 +616,12 @@ class StaffNotificationRecipient(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_email(root: models.StaffNotificationRecipient, _info):
+    def resolve_email(root: models.StaffNotificationRecipient, _info: ResolveInfo):
         return root.get_email()
 
 
 @federated_entity("id")
-class Group(ModelObjectType):
+class Group(ModelObjectType[models.Group]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     users = PermissionsField(
@@ -575,31 +642,33 @@ class Group(ModelObjectType):
     class Meta:
         description = "Represents permission group data."
         interfaces = [relay.Node]
-        model = auth_models.Group
+        model = models.Group
 
     @staticmethod
-    def resolve_users(root: auth_models.Group, _info):
+    def resolve_users(root: models.Group, _info: ResolveInfo):
         return root.user_set.all()
 
     @staticmethod
-    def resolve_permissions(root: auth_models.Group, _info):
+    def resolve_permissions(root: models.Group, _info: ResolveInfo):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_user_can_manage(root: auth_models.Group, info):
+    def resolve_user_can_manage(root: models.Group, info: ResolveInfo) -> bool:
         user = info.context.user
+        if not user:
+            return False
         return can_user_manage_group(user, root)
 
     @staticmethod
-    def __resolve_references(roots: List["Group"], info):
+    def __resolve_references(roots: List["Group"], info: ResolveInfo):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
-            qs = auth_models.Group.objects.none()
+        if not requestor or not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
+            qs = models.Group.objects.none()
         else:
             qs = resolve_permission_groups(info)
 

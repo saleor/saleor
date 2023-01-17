@@ -417,9 +417,7 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError({"token": e})
         permissions = payload.get(PERMISSIONS_FIELD)
         if permissions is not None:
-            user.effective_permissions = get_permissions_from_names(  # type: ignore
-                permissions
-            )
+            user.effective_permissions = get_permissions_from_names(permissions)
             user.is_staff = True
         return user, payload
 
@@ -435,7 +433,7 @@ class OpenIDConnectPlugin(BasePlugin):
         ):
             # Check if the token is created by this plugin
             payload = jwt_decode(token)
-            user = get_user_from_access_payload(payload)
+            user = get_user_from_access_payload(payload, request)
             return user
 
         if self.use_oauth_access_token:

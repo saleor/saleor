@@ -42,6 +42,9 @@ subscription{
         status
         type
         reference
+        order {
+          id
+        }
       }
       action{
         actionType
@@ -107,6 +110,7 @@ def test_transaction_refund_action_request(
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
             "actionType": "REFUND",
@@ -169,6 +173,7 @@ def test_transaction_charge_action_request(
             "status": "Authorized",
             "type": "Credit card",
             "reference": "PSP ref",
+            "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
             "actionType": "CHARGE",
@@ -230,6 +235,7 @@ def test_transaction_void_action_request(
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {"actionType": "VOID", "amount": None},
     }

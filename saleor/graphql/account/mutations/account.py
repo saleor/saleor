@@ -1,9 +1,10 @@
+from typing import cast
+
 import graphene
 import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, notifications, search, utils
@@ -17,12 +18,13 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
-from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...channel.utils import clean_channel
+from ...core import ResolveInfo
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList
 from ...meta.mutations import MetadataInput
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User
@@ -86,25 +88,23 @@ class AccountRegister(ModelMutation):
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def mutate(cls, root, info: ResolveInfo, **data):
         response = super().mutate(root, info, **data)
         response.requires_confirmation = settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
         return response
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        data["metadata"] = {
-            item["key"]: item["value"] for item in data.get("metadata") or []
-        }
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
-            return super().clean_input(info, instance, data, input_cls=None)
+            return super().clean_input(info, instance, data, **kwargs)
         elif not data.get("redirect_url"):
             raise ValidationError(
                 {
                     "redirect_url": ValidationError(
-                        "This field is required.", code=AccountErrorCode.REQUIRED
+                        "This field is required.", code=AccountErrorCode.REQUIRED.value
                     )
                 }
             )
@@ -115,7 +115,7 @@ class AccountRegister(ModelMutation):
             raise ValidationError(
                 {
                     "redirect_url": ValidationError(
-                        error.message, code=AccountErrorCode.INVALID
+                        error.message, code=AccountErrorCode.INVALID.value
                     )
                 }
             )
@@ -124,6 +124,8 @@ class AccountRegister(ModelMutation):
             data.get("channel"), error_class=AccountErrorCode
         ).slug
 
+        data["email"] = data["email"].lower()
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
@@ -131,30 +133,30 @@ class AccountRegister(ModelMutation):
             raise ValidationError({"password": error})
 
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
-        return super().clean_input(info, instance, data, input_cls=None)
+        return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
-    @traced_atomic_transaction()
-    def save(cls, info, user, cleaned_input):
+    def save(cls, info: ResolveInfo, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
         user.search_document = search.prepare_user_search_document_value(
             user, attach_addresses_data=False
         )
-        if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
-            user.is_active = False
-            user.save()
-            notifications.send_account_confirmation(
-                user,
-                cleaned_input["redirect_url"],
-                info.context.plugins,
-                channel_slug=cleaned_input["channel"],
-            )
-        else:
-            user.save()
-
+        manager = get_plugin_manager_promise(info.context).get()
+        with traced_atomic_transaction():
+            if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+                user.is_active = False
+                user.save()
+                notifications.send_account_confirmation(
+                    user,
+                    cleaned_input["redirect_url"],
+                    manager,
+                    channel_slug=cleaned_input["channel"],
+                )
+            else:
+                user.save()
+            cls.call_event(manager.customer_created, user)
         account_events.customer_account_created_event(user=user)
-        info.context.plugins.customer_created(customer=user)
 
 
 class AccountInput(AccountBaseInput):
@@ -183,8 +185,9 @@ class AccountUpdate(BaseCustomerCreate):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         user = info.context.user
+        user = cast(models.User, user)
         data["id"] = graphene.Node.to_global_id("User", user.id)
         return super().perform_mutation(root, info, **data)
 
@@ -214,20 +217,20 @@ class AccountRequestDeletion(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, channel=None, redirect_url
+    ):
         user = info.context.user
-        redirect_url = data["redirect_url"]
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID
+                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
-        channel_slug = clean_channel(
-            data.get("channel"), error_class=AccountErrorCode
-        ).slug
+        channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
+        manager = get_plugin_manager_promise(info.context).get()
         notifications.send_account_delete_confirmation_notification(
-            redirect_url, user, info.context.plugins, channel_slug=channel_slug
+            redirect_url, user, manager, channel_slug=channel_slug
         )
         return AccountRequestDeletion()
 
@@ -251,23 +254,29 @@ class AccountDelete(ModelDeleteMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         super().clean_instance(info, instance)
         if instance.is_staff:
             raise ValidationError(
                 "Cannot delete a staff account.",
-                code=AccountErrorCode.DELETE_STAFF_ACCOUNT,
+                code=AccountErrorCode.DELETE_STAFF_ACCOUNT.value,
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, token
+    ):
         user = info.context.user
+        user = cast(models.User, user)
         cls.clean_instance(info, user)
 
-        token = data.pop("token")
         if not account_delete_token_generator.check_token(user, token):
             raise ValidationError(
-                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
+                {
+                    "token": ValidationError(
+                        INVALID_TOKEN, code=AccountErrorCode.INVALID.value
+                    )
+                }
             )
 
         db_id = user.id
@@ -306,41 +315,35 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        address_type = data.get("type", None)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, type=None
+    ):
+        address_type = type
         user = info.context.user
-        cleaned_input = cls.clean_input(
-            info=info, instance=Address(), data=data.get("input")
-        )
-        address = cls.validate_address(cleaned_input, address_type=address_type)
-        cls.clean_instance(info, address)
-        cls.save(info, address, cleaned_input)
-        cls._save_m2m(info, address, cleaned_input)
-        if address_type:
-            utils.change_user_default_address(
-                user, address, address_type, info.context.plugins
-            )
+        user = cast(models.User, user)
+        cleaned_input = cls.clean_input(info=info, instance=Address(), data=input)
+        with traced_atomic_transaction():
+            address = cls.validate_address(cleaned_input, address_type=address_type)
+            cls.clean_instance(info, address)
+            cls.save(info, address, cleaned_input)
+            cls._save_m2m(info, address, cleaned_input)
+            if address_type:
+                manager = get_plugin_manager_promise(info.context).get()
+                utils.change_user_default_address(user, address, address_type, manager)
         return AccountAddressCreate(user=user, address=address)
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         user = info.context.user
+        user = cast(models.User, user)
         remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
-        transaction.on_commit(
-            lambda: cls.trigger_post_account_address_create_webhooks(
-                info, instance, user
-            )
-        )
-
-    @classmethod
-    def trigger_post_account_address_create_webhooks(cls, info, address, user):
-        info.context.plugins.customer_updated(user)
-        info.context.plugins.address_created(address)
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.customer_updated, user)
+        cls.call_event(manager.address_created, instance)
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -385,29 +388,30 @@ class AccountSetDefaultAddress(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        address = cls.get_node_or_error(info, data.get("id"), Address)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, type
+    ):
+        address = cls.get_node_or_error(info, id, only_type=Address)
         user = info.context.user
+        user = cast(models.User, user)
 
         if not user.addresses.filter(pk=address.pk).exists():
             raise ValidationError(
                 {
                     "id": ValidationError(
                         "The address doesn't belong to that user.",
-                        code=AccountErrorCode.INVALID,
+                        code=AccountErrorCode.INVALID.value,
                     )
                 }
             )
 
-        if data.get("type") == AddressTypeEnum.BILLING.value:
+        if type == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
-
-        utils.change_user_default_address(
-            user, address, address_type, info.context.plugins
-        )
-        info.context.plugins.customer_updated(user)
+        manager = get_plugin_manager_promise(info.context).get()
+        utils.change_user_default_address(user, address, address_type, manager)
+        cls.call_event(manager.customer_updated, user)
         return cls(user=user)
 
 
@@ -438,18 +442,27 @@ class RequestEmailChange(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        channel=None,
+        new_email,
+        password,
+        redirect_url
+    ):
         user = info.context.user
-        password = data["password"]
-        new_email = data["new_email"]
-        redirect_url = data["redirect_url"]
+        user = cast(models.User, user)
+        new_email = new_email.lower()
 
         if not user.check_password(password):
             raise ValidationError(
                 {
                     "password": ValidationError(
                         "Password isn't valid.",
-                        code=AccountErrorCode.INVALID_CREDENTIALS,
+                        code=AccountErrorCode.INVALID_CREDENTIALS.value,
                     )
                 }
             )
@@ -457,7 +470,8 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {
                     "new_email": ValidationError(
-                        "Email is used by other user.", code=AccountErrorCode.UNIQUE
+                        "Email is used by other user.",
+                        code=AccountErrorCode.UNIQUE.value,
                     )
                 }
             )
@@ -465,25 +479,23 @@ class RequestEmailChange(BaseMutation):
             validate_storefront_url(redirect_url)
         except ValidationError as error:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID
+                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
-        channel_slug = clean_channel(
-            data.get("channel"),
-            error_class=AccountErrorCode,
-        ).slug
+        channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
 
         token_payload = {
             "old_email": user.email,
             "new_email": new_email,
             "user_pk": user.pk,
         }
-        token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
+        token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
+        manager = get_plugin_manager_promise(info.context).get()
         notifications.send_request_user_change_email_notification(
             redirect_url,
             user,
             new_email,
             token,
-            info.context.plugins,
+            manager,
             channel_slug=channel_slug,
         )
         return RequestEmailChange(user=user)
@@ -518,26 +530,29 @@ class ConfirmEmailChange(BaseMutation):
                 {
                     "token": ValidationError(
                         "Invalid or expired token.",
-                        code=AccountErrorCode.JWT_INVALID_TOKEN,
+                        code=AccountErrorCode.JWT_INVALID_TOKEN.value,
                     )
                 }
             )
         return payload
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, channel=None, token
+    ):
         user = info.context.user
-        token = data["token"]
+        user = cast(models.User, user)
 
         payload = cls.get_token_payload(token)
-        new_email = payload["new_email"]
+        new_email = payload["new_email"].lower()
         old_email = payload["old_email"]
 
         if models.User.objects.filter(email=new_email).exists():
             raise ValidationError(
                 {
                     "new_email": ValidationError(
-                        "Email is used by other user.", code=AccountErrorCode.UNIQUE
+                        "Email is used by other user.",
+                        code=AccountErrorCode.UNIQUE.value,
                     )
                 }
             )
@@ -546,15 +561,13 @@ class ConfirmEmailChange(BaseMutation):
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["email", "search_document", "updated_at"])
 
-        channel_slug = clean_channel(
-            data.get("channel"), error_class=AccountErrorCode
-        ).slug
+        channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
 
         assign_user_gift_cards(user)
         match_orders_with_new_user(user)
-
+        manager = get_plugin_manager_promise(info.context).get()
         notifications.send_user_change_email_notification(
-            old_email, user, info.context.plugins, channel_slug=channel_slug
+            old_email, user, manager, channel_slug=channel_slug
         )
-        info.context.plugins.customer_updated(user)
+        cls.call_event(manager.customer_updated, user)
         return ConfirmEmailChange(user=user)

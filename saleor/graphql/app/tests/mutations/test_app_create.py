@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -6,6 +7,7 @@ from freezegun import freeze_time
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import PermissionEnum
@@ -103,16 +105,19 @@ def test_app_create_trigger_webhook(
     # then
     assert content["data"]["appCreate"]["app"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": graphene.Node.to_global_id("App", app.id),
-            "is_active": app.is_active,
-            "name": app.name,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
-        },
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("App", app.id),
+                "is_active": app.is_active,
+                "name": app.name,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.APP_INSTALLED,
         [any_webhook],
         app,

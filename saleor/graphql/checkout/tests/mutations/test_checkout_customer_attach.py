@@ -22,6 +22,32 @@ MUTATION_CHECKOUT_CUSTOMER_ATTACH = """
 
 
 def test_checkout_customer_attach(
+    user_api_client, checkout_with_item, customer_user2, permission_impersonate_user
+):
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+    assert checkout.user is None
+    previous_last_change = checkout.last_change
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    customer_id = graphene.Node.to_global_id("User", customer_user2.pk)
+    variables = {"id": to_global_id_or_none(checkout), "customerId": customer_id}
+
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutCustomerAttach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user2
+    assert checkout.email == customer_user2.email
+    assert checkout.last_change != previous_last_change
+
+
+def test_checkout_customer_attach_with_customer_id_same_as_in_request(
     user_api_client, checkout_with_item, customer_user, permission_impersonate_user
 ):
     checkout = checkout_with_item
@@ -35,9 +61,10 @@ def test_checkout_customer_attach(
     variables = {"id": to_global_id_or_none(checkout), "customerId": customer_id}
 
     response = user_api_client.post_graphql(
-        query, variables, permissions=[permission_impersonate_user]
+        query,
+        variables,
     )
-    content = get_graphql_content(response)
+    content = get_graphql_content(response, ignore_errors=True)
 
     data = content["data"]["checkoutCustomerAttach"]
     assert not data["errors"]

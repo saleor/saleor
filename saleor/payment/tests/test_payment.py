@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -77,6 +76,19 @@ def transaction_data(payment_dummy, gateway_response):
         ),
         "kind": TransactionKind.CAPTURE,
         "gateway_response": gateway_response,
+    }
+
+
+@pytest.fixture
+def transaction_data_long_error_message(payment_dummy):
+    error_msg = "This is very very long response from payment gateway. " * 10
+    return {
+        "payment": payment_dummy,
+        "payment_information": create_payment_information(
+            payment_dummy, "payment-token"
+        ),
+        "error_msg": error_msg,
+        "kind": TransactionKind.CAPTURE_FAILED,
     }
 
 
@@ -250,8 +262,8 @@ def test_create_payment_information_for_empty_payment(payment_dummy):
 
 def test_create_payment_information_for_checkout_metadata(payment_dummy, checkout):
     metadata = {"test_key": "test_val"}
-    checkout.metadata = metadata
-    checkout.save(update_fields=["metadata"])
+    checkout.metadata_storage.metadata = metadata
+    checkout.metadata_storage.save(update_fields=["metadata"])
     payment_dummy.order = None
     payment_dummy.checkout = checkout
     payment_dummy.save(update_fields=["order", "checkout"])
@@ -395,6 +407,14 @@ def test_create_transaction(transaction_data):
     assert txn.token == gateway_response.transaction_id
     assert txn.is_success == gateway_response.is_success
     assert txn.gateway_response == gateway_response.raw_response
+
+
+def test_create_transaction_long_error_message(transaction_data_long_error_message):
+    transaction_data = transaction_data_long_error_message
+    txn = create_transaction(**transaction_data)
+
+    assert txn.payment == transaction_data["payment"]
+    assert txn.error == transaction_data["error_msg"]
 
 
 def test_create_transaction_no_gateway_response(transaction_data):
@@ -751,7 +771,7 @@ def test_payment_is_not_owned_by_user_for_checkout(payment, checkout, customer_u
 
 def test_payment_owned_by_user_anonymous_user(payment):
     # given
-    user = AnonymousUser()
+    user = None
 
     # when
     is_owned = payment_owned_by_user(payment.pk, user)

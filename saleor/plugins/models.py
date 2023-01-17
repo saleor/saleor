@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import JSONField  # type: ignore
+from django.db.models import JSONField
 
 from ..channel.models import Channel
 from ..core.permissions import PluginsPermissions

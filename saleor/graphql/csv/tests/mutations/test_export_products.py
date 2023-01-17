@@ -82,7 +82,7 @@ EXPORT_PRODUCTS_BY_APP_MUTATION = """
         ),
     ],
 )
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation(
     export_products_mock,
     staff_api_client,
@@ -119,7 +119,7 @@ def test_export_products_mutation(
     ).exists()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_by_app(
     export_products_mock,
     app_api_client,
@@ -162,7 +162,7 @@ def test_export_products_mutation_by_app(
     ).exists()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_ids_scope(
     export_products_mock,
     staff_api_client,
@@ -223,7 +223,7 @@ def test_export_products_mutation_ids_scope(
     ).exists()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_ids_scope_invalid_object_type(
     export_products_mock,
     staff_api_client,
@@ -268,7 +268,7 @@ def test_export_products_mutation_ids_scope_invalid_object_type(
     export_products_mock.assert_not_called()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_with_warehouse_and_attribute_ids(
     export_products_mock,
     staff_api_client,
@@ -349,7 +349,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     ).exists()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_with_warehouse_ids_invalid_object_type(
     export_products_mock,
     staff_api_client,
@@ -405,7 +405,7 @@ def test_export_products_mutation_with_warehouse_ids_invalid_object_type(
     export_products_mock.assert_not_called()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_with_attribute_ids_invalid_object_type(
     export_products_mock,
     staff_api_client,
@@ -461,7 +461,7 @@ def test_export_products_mutation_with_attribute_ids_invalid_object_type(
     export_products_mock.assert_not_called()
 
 
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_with_channel_ids_invalid_object_type(
     export_products_mock,
     staff_api_client,
@@ -538,7 +538,7 @@ def test_export_products_mutation_with_channel_ids_invalid_object_type(
         ),
     ],
 )
-@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+@patch("saleor.graphql.csv.mutations.export_products.export_products_task.delay")
 def test_export_products_mutation_failed(
     export_products_mock,
     staff_api_client,

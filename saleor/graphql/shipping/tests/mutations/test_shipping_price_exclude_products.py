@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -5,6 +6,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -131,10 +133,13 @@ def test_exclude_products_for_shipping_method_trigger_webhook(
     # then
     assert content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
     mocked_webhook_trigger.assert_called_once_with(
-        {
-            "id": shipping_method_id,
-            "meta": generate_meta(requestor_data=generate_requestor(issuer)),
-        },
+        json.dumps(
+            {
+                "id": shipping_method_id,
+                "meta": generate_meta(requestor_data=generate_requestor(issuer)),
+            },
+            cls=CustomJsonEncoder,
+        ),
         WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
         [any_webhook],
         shipping_method,

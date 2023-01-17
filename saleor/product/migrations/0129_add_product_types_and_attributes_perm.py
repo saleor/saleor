@@ -2,12 +2,19 @@
 
 from django.db import migrations
 from django.db.models.signals import post_migrate
+from django.apps import apps as registry
 
 
 def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        Group = apps.get_model("auth", "Group")
-        Permission = apps.get_model("auth", "Permission")
+        try:
+            apps = kwargs["apps"]
+        except KeyError:
+            # In test when we use use `@pytest.mark.django_db(transaction=True)`
+            # pytest trigger additional post_migrate signal without `apps` in kwargs.
+            return
+        Group = apps.get_model("account", "Group")
+        Permission = apps.get_model("permission", "Permission")
         ContentType = apps.get_model("contenttypes", "ContentType")
 
         ct, _ = ContentType.objects.get_or_create(
@@ -26,7 +33,8 @@ def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
         for group in groups:
             group.permissions.add(product_type_and_attribute_permission)
 
-    post_migrate.connect(on_migrations_complete, weak=False)
+    sender = registry.get_app_config("product")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 class Migration(migrations.Migration):

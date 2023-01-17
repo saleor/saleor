@@ -1,13 +1,14 @@
+from typing import Optional
+
 from django.core.exceptions import ValidationError
 
-from ....order import OrderStatus, events
+from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError
+from ....payment import models as payment_models
 from ....plugins.manager import PluginsManager
 from ....shipping.interface import ShippingMethodData
 from ..utils import get_shipping_method_availability_error
-
-ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 class EditableOrderValidationMixin:
@@ -21,10 +22,11 @@ class EditableOrderValidationMixin:
                 {
                     "id": ValidationError(
                         "Only draft and unconfirmed orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
+                        code=OrderErrorCode.NOT_EDITABLE.value,
                     )
                 }
             )
+        return order
 
 
 def clean_order_update_shipping(
@@ -46,11 +48,11 @@ def clean_order_update_shipping(
         raise ValidationError({"shipping_method": error})
 
 
-def get_webhook_handler_by_order_status(status, info):
+def get_webhook_handler_by_order_status(status, manager):
     if status == OrderStatus.DRAFT:
-        return info.context.plugins.draft_order_updated
+        return manager.draft_order_updated
     else:
-        return info.context.plugins.order_updated
+        return manager.order_updated
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):
@@ -65,17 +67,22 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
             order=order, user=user, app=app, message=message, payment=payment
         )
         raise ValidationError(
-            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+            {
+                "payment": ValidationError(
+                    message, code=OrderErrorCode.PAYMENT_ERROR.value
+                )
+            }
         )
 
 
-def clean_payment(payment):
+def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.Payment:
     if not payment:
         raise ValidationError(
             {
                 "payment": ValidationError(
                     "There's no payment associated with the order.",
-                    code=OrderErrorCode.PAYMENT_MISSING,
+                    code=OrderErrorCode.PAYMENT_MISSING.value,
                 )
             }
         )
+    return payment

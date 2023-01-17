@@ -16,6 +16,7 @@ from django.db.models import F, QuerySet, Sum
 from django.db.models.functions import Coalesce
 
 from ..checkout.error_codes import CheckoutErrorCode
+from ..checkout.fetch import DeliveryMethodBase
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..product.models import ProductVariantChannelListing
 from .models import Reservation, Stock, StockQuerySet
@@ -106,13 +107,17 @@ def check_stock_quantity(
             country_code, channel_slug, variant
         )
         if not stocks:
-            raise InsufficientStock([InsufficientStockData(variant=variant)])
+            raise InsufficientStock(
+                [InsufficientStockData(variant=variant, available_quantity=0)]
+            )
 
         available_quantity = _get_available_quantity(
             stocks, checkout_lines, check_reservations
         )
         if quantity > available_quantity:
-            raise InsufficientStock([InsufficientStockData(variant=variant)])
+            raise InsufficientStock(
+                [InsufficientStockData(variant=variant, available_quantity=0)]
+            )
 
 
 def check_stock_and_preorder_quantity_bulk(
@@ -121,6 +126,7 @@ def check_stock_and_preorder_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: Optional[int],
+    delivery_method_info: Optional["DeliveryMethodBase"] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     replace: bool = False,
@@ -144,6 +150,7 @@ def check_stock_and_preorder_quantity_bulk(
             stock_quantities,
             channel_slug,
             global_quantity_limit,
+            delivery_method_info,
             additional_filter_lookup,
             existing_lines,
             replace,
@@ -211,8 +218,9 @@ def check_stock_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: Optional[int],
+    delivery_method_info: Optional["DeliveryMethodBase"] = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
-    existing_lines: Iterable["CheckoutLineInfo"] = None,
+    existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     replace=False,
     check_reservations: bool = False,
 ):
@@ -224,9 +232,26 @@ def check_stock_quantity_bulk(
     if additional_filter_lookup is not None:
         filter_lookup.update(additional_filter_lookup)
 
-    all_variants_stocks = Stock.objects.for_channel_and_country(
-        channel_slug, country_code
-    ).filter(**filter_lookup)
+    # in case when the delivery method is not set yet, we should check the stock
+    # quantity in standard warehouses available in a given channel and country, and
+    # in the collection point warehouses for the channel
+    include_cc_warehouses = (
+        not delivery_method_info.delivery_method if delivery_method_info else True
+    )
+    # in case of click and collect order, we need to check local or global stock
+    # regardless of the country code
+    collection_point = (
+        delivery_method_info.warehouse_pk if delivery_method_info else None
+    )
+    stocks = (
+        Stock.objects.for_channel_and_click_and_collect(channel_slug)
+        if collection_point
+        else Stock.objects.for_channel_and_country(
+            channel_slug, country_code, include_cc_warehouses
+        )
+    )
+
+    all_variants_stocks = stocks.filter(**filter_lookup).annotate_available_quantity()
 
     variant_stocks: Dict[int, List[Stock]] = defaultdict(list)
     for stock in all_variants_stocks:
@@ -250,9 +275,7 @@ def check_stock_quantity_bulk(
             quantity += variants_quantities.get(variant.pk, 0)
 
         stocks = variant_stocks.get(variant.pk, [])
-        available_quantity = sum(
-            [(stock.quantity - stock.quantity_allocated) for stock in stocks]
-        )
+        available_quantity = sum([stock.available_quantity for stock in stocks])
         available_quantity = max(
             available_quantity - variant_reservations[variant.pk], 0
         )
@@ -506,7 +529,7 @@ def get_reserved_stock_quantity(
         .aggregate(
             quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
         )
-    )  # type: ignore
+    )
 
     return result["quantity_reserved"]
 
@@ -529,7 +552,7 @@ def get_reserved_stock_quantity_bulk(
         .annotate(
             quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
         )
-    )  # type: ignore
+    )
 
     stocks_variants = {stock.id: stock.product_variant_id for stock in stocks}
     for stock_reservations in result:
