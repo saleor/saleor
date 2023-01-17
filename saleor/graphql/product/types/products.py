@@ -895,6 +895,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
         description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use top-level `variant` query.",
     )
     variants = NonNullList(
         ProductVariant,

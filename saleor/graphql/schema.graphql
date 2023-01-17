@@ -4939,7 +4939,7 @@ type Product implements Node & ObjectWithMetadata {
 
     """SKU of the variant."""
     sku: String
-  ): ProductVariant
+  ): ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Use top-level `variant` query.")
 
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
