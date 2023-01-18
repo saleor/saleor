@@ -395,6 +395,8 @@ class Group(models.Model):
         verbose_name="permissions",
         blank=True,
     )
+    restrictedAccessToChannel = models.BooleanField(default=False)
+    channels = models.ManyToManyField("channel.Channel", blank=True)
 
     objects = GroupManager()
 
