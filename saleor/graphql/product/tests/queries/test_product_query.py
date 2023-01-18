@@ -2197,6 +2197,34 @@ def test_query_product_media_sorting_default(
     assert media1 <= media2
 
 
+def test_query_product_media_sorting_default_and_one_sort_order_null(
+    staff_api_client, product_with_image_list_and_one_null_sort_order, channel_USD
+):
+    # given
+    sort_by = None
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "Product", product_with_image_list_and_one_null_sort_order.pk
+        ),
+        "channel": channel_USD.slug,
+        "sort_by": sort_by,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITH_SORTED_MEDIA,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    media = content["data"]["product"]["media"]
+    media1 = media[0]["sortOrder"]
+    media2 = media[1]["sortOrder"]
+    assert media1 is None
+    assert media2 is not None
+
+
 QUERY_PRODUCT_WITH_ATTRIBUTE = """
 query Product($id: ID!, $channel: String, $slug: String!){
         product(id: $id, channel: $channel){
