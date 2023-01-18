@@ -169,6 +169,39 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
     assert Webhook.objects.count() == 0
 
 
+def test_webhook_create_inherit_events_from_query(
+    app_api_client, permission_manage_orders, subscription_order_created_webhook
+):
+    # given
+    query = WEBHOOK_CREATE
+    subscription_query = subscription_order_created_webhook.subscription_query
+    variables = {
+        "input": {
+            "name": "New integration",
+            "targetUrl": "https://www.example.com",
+            "query": subscription_query,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["webhookCreate"]
+    assert not data["errors"]
+    _, id = graphene.Node.from_global_id(data["webhook"]["id"])
+    new_webhook = Webhook.objects.filter(id=id).get()
+    events = new_webhook.events.all()
+    assert len(events) == 1
+    assert WebhookEventTypeAsyncEnum.ORDER_CREATED.value == events[0].event_type
+
+
 def test_webhook_create_by_staff_invalid_query(
     app_api_client, permission_manage_orders
 ):
@@ -434,6 +467,39 @@ def test_webhook_update_by_staff_without_permission(staff_api_client, app, webho
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_webhook_update_inherit_events_from_query(
+    staff_api_client,
+    app,
+    webhook,
+    permission_manage_apps,
+    subscription_order_updated_webhook,
+):
+    # given
+    query = WEBHOOK_UPDATE
+    subscription_query = subscription_order_updated_webhook.subscription_query
+    initial_event = webhook.events.all()[0].event_type
+    assert WebhookEventTypeAsyncEnum.ORDER_CREATED.value == initial_event
+
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {
+        "id": webhook_id,
+        "input": {"query": subscription_query},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    webhook.refresh_from_db()
+
+    # then
+    data = content["data"]["webhookUpdate"]
+    assert not data["errors"]
+    events = webhook.events.all()
+    assert len(events) == 1
+    assert WebhookEventTypeAsyncEnum.ORDER_UPDATED.value == events[0].event_type
 
 
 QUERY_WEBHOOK = """

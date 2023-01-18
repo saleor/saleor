@@ -19,7 +19,7 @@ from ..utils import get_event_type_from_subscription
               }
             }
             """,
-            "order_created",
+            ["order_created"],
         ),
         (
             """
@@ -40,7 +40,7 @@ from ..utils import get_event_type_from_subscription
               }
             }
             """,
-            "order_created",
+            ["order_created"],
         ),
         (
             """
@@ -62,7 +62,7 @@ from ..utils import get_event_type_from_subscription
               }
             }
             """,
-            "order_updated",
+            ["order_updated"],
         ),
         (
             """
@@ -84,7 +84,7 @@ from ..utils import get_event_type_from_subscription
               }
             }
             """,
-            "order_updated",
+            ["order_updated"],
         ),
         (
             """
@@ -96,7 +96,31 @@ from ..utils import get_event_type_from_subscription
                 }
             }
             """,
-            None,
+            [],
+        ),
+        (
+            """
+            subscription {
+              event{
+                ... on OrderCreated{
+                  order{
+                    id
+                  }
+                }
+                ... on OrderFullyPaid{
+                  order{
+                    id
+                  }
+                }
+                ... on ProductCreated{
+                  product{
+                    id
+                  }
+                }
+              }
+            }
+            """,
+            ["order_created", "order_fully_paid", "product_created"],
         ),
     ],
 )
