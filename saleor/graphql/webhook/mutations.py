@@ -441,8 +441,10 @@ class WebhookTrigger(BaseMutation):
         description = (
             "Trigger a webhook event. Supports a single event (the first, if multiple "
             "provided in the `webhook.subscription_query`). Requires permission "
-            "relevant to processed event. Successfully delivered webhook does not "
-            "return `delivery`." + ADDED_IN_311 + PREVIEW_FEATURE
+            "relevant to processed event. Successfully delivered webhook returns "
+            "`delivery` with status='PENDING' and empty paylaod."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
         )
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookTriggerError
@@ -532,7 +534,7 @@ class WebhookTrigger(BaseMutation):
                 delivery = deliveries[0]
                 try:
                     send_webhook_request_async(delivery.id)
-                    return WebhookTrigger(delivery=None)
+                    return WebhookTrigger(delivery=delivery)
                 except Retry:
                     delivery.status = EventDeliveryStatus.FAILED
                     delivery.save(update_fields=["status"])

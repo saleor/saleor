@@ -55,7 +55,9 @@ def test_webhook_trigger_success(
     data = content["data"]["webhookTrigger"]
     assert data
     assert not data["errors"]
-    assert data["delivery"] is None
+    assert data["delivery"]["status"] == EventDeliveryStatus.PENDING.upper()
+    assert data["delivery"]["eventType"] == WebhookEventAsyncType.ORDER_CREATED.upper()
+    assert not data["delivery"]["payload"]
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
@@ -80,7 +82,7 @@ def test_webhook_trigger_fail(
 
     # when
     response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response, ignore_errors=True)
+    content = get_graphql_content(response)
 
     # then
     data = content["data"]["webhookTrigger"]

@@ -11964,7 +11964,7 @@ type Mutation {
   ): WebhookDryRun
 
   """
-  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook does not return `delivery`.
+  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty paylaod.
   
   Added in Saleor 3.11.
   
@@ -15964,7 +15964,7 @@ enum WebhookDryRunErrorCode {
 }
 
 """
-Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook does not return `delivery`.
+Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty paylaod.
 
 Added in Saleor 3.11.
 
