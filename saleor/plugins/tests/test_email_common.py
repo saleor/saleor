@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import pytest
@@ -71,4 +72,16 @@ def test_get_product_image_thumbnail(product_with_image):
     thumbnail = get_product_image_thumbnail(None, 100, image_data)
 
     # then
-    assert thumbnail == image_data["original"][128]
+    assert thumbnail == image_data["original"]["128"]
+
+
+def test_get_product_image_thumbnail_simulate_json_dump_and_load(product_with_image):
+    # given
+    image_data = {"original": get_image_payload(product_with_image.media.first())}
+    image_data = json.dumps(image_data)
+    image_data = json.loads(image_data)
+    # when
+    thumbnail = get_product_image_thumbnail(None, 100, image_data)
+
+    # then
+    assert thumbnail == image_data["original"]["128"]
