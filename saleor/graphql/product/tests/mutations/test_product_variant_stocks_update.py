@@ -431,6 +431,7 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
     product_variant_back_in_stock_webhook.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(

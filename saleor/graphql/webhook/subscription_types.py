@@ -41,9 +41,11 @@ from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
+from ..product.dataloaders import ProductVariantByIdLoader
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
+from ..warehouse.dataloaders import WarehouseByIdLoader
 from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {
@@ -837,7 +839,7 @@ class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
         return stock.warehouse
 
 
-class ProductVariantStockUpdated(ObjectType, ProductVariantBase):
+class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
     )
@@ -853,13 +855,16 @@ class ProductVariantStockUpdated(ObjectType, ProductVariantBase):
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
         _, stock = root
-        variant = stock.product_variant
-        return ChannelContext(node=variant, channel_slug=channel)
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(stock.product_variant.id)
+            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
+        )
 
     @staticmethod
-    def resolve_warehouse(root, _info: ResolveInfo):
+    def resolve_warehouse(root, info: ResolveInfo):
         _, stock = root
-        return stock.warehouse
+        return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
 
 class SaleBase(AbstractType):
