@@ -168,6 +168,15 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("storefront_search_position", "slug")
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="attribute_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["slug", "name", "type", "input_type", "entity_type", "unit"],
+                opclasses=["gin_trgm_ops"] * 6,
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name
