@@ -358,10 +358,7 @@ class WebhookDryRun(BaseMutation):
         error_type_class = WebhookDryRunError
 
     @classmethod
-    def validate_input(cls, info, **data):
-        query = data.get("query")
-        object_id = data.get("object_id")
-
+    def validate_query(cls, query):
         event_type = get_event_type_from_subscription(query) if query else None
         if not event_type:
             raise_validation_error(
@@ -369,7 +366,10 @@ class WebhookDryRun(BaseMutation):
                 message="Can't parse an event type from query.",
                 code=WebhookDryRunErrorCode.UNABLE_TO_PARSE,
             )
+        return event_type
 
+    @classmethod
+    def validate_event_type(cls, event_type, object_id):
         event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
         if not event and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
@@ -397,8 +397,8 @@ class WebhookDryRun(BaseMutation):
                 code=WebhookDryRunErrorCode.INVALID_ID,
             )
 
-        object = cls.get_node_or_error(info, object_id, field="objectId")
-
+    @classmethod
+    def validate_permissions(cls, info, event_type):
         if (
             permission := WebhookEventAsyncType.PERMISSIONS.get(event_type)
             if event_type
@@ -413,6 +413,17 @@ class WebhookDryRun(BaseMutation):
                     message=f"The user doesn't have required permission: {codename}.",
                     code=WebhookDryRunErrorCode.MISSING_PERMISSION,
                 )
+
+    @classmethod
+    def validate_input(cls, info, **data):
+        query = data.get("query")
+        object_id = data.get("object_id")
+
+        event_type = cls.validate_query(query)
+        cls.validate_event_type(event_type, object_id)
+        cls.validate_permissions(info, event_type)
+
+        object = cls.get_node_or_error(info, object_id, field="objectId")
 
         return event_type, object, query
 
@@ -450,11 +461,7 @@ class WebhookTrigger(BaseMutation):
         error_type_class = WebhookTriggerError
 
     @classmethod
-    def validate_input(cls, info, **data):
-        object_id = data.get("object_id")
-        webhook_id = data.get("webhook_id")
-
-        webhook = cls.get_node_or_error(info, webhook_id, field="webhookId")
+    def validate_subscription_query(cls, webhook):
         query = getattr(webhook, "subscription_query")
         if not query:
             raise_validation_error(
@@ -469,7 +476,10 @@ class WebhookTrigger(BaseMutation):
                 message="Can't parse an event type from webhook's subscription query.",
                 code=WebhookTriggerErrorCode.UNABLE_TO_PARSE,
             )
+        return event_type
 
+    @classmethod
+    def validate_event_type(cls, event_type, object_id):
         event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
         if not event and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
@@ -497,6 +507,8 @@ class WebhookTrigger(BaseMutation):
                 code=WebhookTriggerErrorCode.INVALID_ID,
             )
 
+    @classmethod
+    def validate_permissions(cls, info, event_type):
         if (
             permission := WebhookEventAsyncType.PERMISSIONS.get(event_type)
             if event_type
@@ -511,6 +523,16 @@ class WebhookTrigger(BaseMutation):
                     message=f"The user doesn't have required permission: {codename}.",
                     code=WebhookTriggerErrorCode.MISSING_PERMISSION,
                 )
+
+    @classmethod
+    def validate_input(cls, info, **data):
+        object_id = data.get("object_id")
+        webhook_id = data.get("webhook_id")
+        webhook = cls.get_node_or_error(info, webhook_id, field="webhookId")
+
+        event_type = cls.validate_subscription_query(webhook)
+        cls.validate_event_type(event_type, object_id)
+        cls.validate_permissions(info, event_type)
 
         object = cls.get_node_or_error(info, object_id, field="objectId")
 
