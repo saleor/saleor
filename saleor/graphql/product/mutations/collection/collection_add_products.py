@@ -1,8 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
 from .....product.tasks import update_products_discounted_prices_of_catalogues_task

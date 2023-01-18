@@ -1,8 +1,8 @@
 import graphene
 
-from ....core.permissions import DiscountPermissions
 from ....discount import models
 from ....discount.utils import fetch_catalogue_info
+from ....permission.enums import DiscountPermissions
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import DiscountError, NonNullList

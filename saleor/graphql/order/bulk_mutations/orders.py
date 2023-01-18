@@ -1,8 +1,8 @@
 import graphene
 
-from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseBulkMutation

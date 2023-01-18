@@ -4,7 +4,7 @@ import graphene
 from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, models
-from ...core.permissions import (
+from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,

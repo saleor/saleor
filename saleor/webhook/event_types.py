@@ -1,4 +1,4 @@
-from ..core.permissions import (
+from ..permission.enums import (
     AccountPermissions,
     AppPermission,
     ChannelPermissions,

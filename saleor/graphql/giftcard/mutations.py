@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
 from ...account.models import User
-from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...core.utils.validators import is_date_in_future
@@ -18,6 +17,7 @@ from ...giftcard.utils import (
     deactivate_gift_card,
     is_gift_card_expired,
 )
+from ...permission.enums import GiftcardPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE

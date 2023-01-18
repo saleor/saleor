@@ -3,12 +3,12 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards
 from ....order import models
 from ....order.actions import cancel_order
 from ....order.error_codes import OrderErrorCode
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation

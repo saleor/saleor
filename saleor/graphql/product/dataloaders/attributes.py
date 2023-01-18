@@ -10,7 +10,7 @@ from ....attribute.models import (
     AttributeProduct,
     AttributeVariant,
 )
-from ....core.permissions import ProductPermissions
+from ....permission.enums import ProductPermissions
 from ...attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ...core.dataloaders import DataLoader
 from ...utils import get_user_or_app_from_context

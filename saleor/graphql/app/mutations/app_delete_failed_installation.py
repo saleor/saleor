@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....app import models
 from ....app.error_codes import AppErrorCode
 from ....core import JobStatus
-from ....core.permissions import AppPermission
+from ....permission.enums import AppPermission
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import AppError

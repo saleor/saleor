@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import (
+from ...permission.enums import (
     OrderPermissions,
     ProductPermissions,
     ShippingPermissions,

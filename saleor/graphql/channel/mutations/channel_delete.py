@@ -6,9 +6,9 @@ from django.core.exceptions import ValidationError
 from ....channel import models
 from ....channel.error_codes import ChannelErrorCode
 from ....checkout.models import Checkout
-from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order.models import Order
+from ....permission.enums import ChannelPermissions
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import ChannelError

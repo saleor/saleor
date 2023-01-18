@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.permissions import ProductTypePermissions
+from ....permission.enums import ProductTypePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.enums import MeasurementUnitsEnum

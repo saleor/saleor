@@ -7,10 +7,10 @@ from django.core.exceptions import ValidationError
 from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
-from ....core.permissions import OrderPermissions
 from ....order import models as order_models
 from ....order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ....order.error_codes import OrderErrorCode
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_36

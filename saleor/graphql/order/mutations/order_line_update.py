@@ -2,7 +2,6 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.exceptions import InsufficientStock
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import models
 from ....order.error_codes import OrderErrorCode
@@ -12,6 +11,7 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation

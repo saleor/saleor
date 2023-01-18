@@ -3,8 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.permissions import ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ProductTypePermissions
 from ...core import ResolveInfo
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation

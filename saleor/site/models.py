@@ -9,9 +9,9 @@ from django.core.validators import MaxLengthValidator, MinValueValidator, RegexV
 from django.db import models
 
 from ..core import TimePeriodType
-from ..core.permissions import SitePermissions
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation, TranslationProxy
+from ..permission.enums import SitePermissions
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
@@ -116,7 +116,7 @@ class SiteSettings(models.Model):
         sender_address: Optional[str] = self.default_mail_sender_address
 
         if not sender_address:
-            sender_address = settings.DEFAULT_FROM_EMAIL
+            sender_address = settings.DEFAULT_FROM_EMAIL  # type: ignore[misc] # circular import # noqa: E501
 
             if not sender_address:
                 raise ImproperlyConfigured("No sender email address has been set-up")

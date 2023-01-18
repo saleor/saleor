@@ -3,7 +3,7 @@ import graphene
 from ....app import models
 from ....app.manifest_validations import clean_manifest_url
 from ....app.tasks import install_app_task
-from ....core.permissions import AppPermission, get_permissions
+from ....permission.enums import AppPermission, get_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
 from ...core.types import AppError, NonNullList

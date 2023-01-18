@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....account.models import User
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.actions import order_captured, order_confirmed
@@ -14,6 +13,7 @@ from ....order.fetch import fetch_order_info
 from ....order.utils import update_order_display_gross_prices
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation

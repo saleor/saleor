@@ -30,13 +30,13 @@ from ....account.search import (
 from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
-from ....core.permissions import AccountPermissions, OrderPermissions
 from ....core.tests.utils import get_site_context_payload
 from ....core.tokens import account_delete_token_generator
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
+from ....permission.enums import AccountPermissions, OrderPermissions
 from ....product.tests.utils import create_image
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType

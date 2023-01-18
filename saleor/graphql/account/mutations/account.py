@@ -12,12 +12,12 @@ from ....account.error_codes import AccountErrorCode
 from ....account.utils import remove_the_oldest_user_address_if_address_limit_is_reached
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
-from ....core.permissions import AuthorizationFilters
 from ....core.tokens import account_delete_token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
+from ....permission.auth_filters import AuthorizationFilters
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.enums import LanguageCodeEnum

@@ -1,6 +1,7 @@
 import graphene
 
-from ...core.permissions import AppPermission, AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AppPermission
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD

@@ -5,8 +5,8 @@ from django.urls import reverse
 from requests import HTTPError, Response
 
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
-from ..core.permissions import get_permission_names
 from ..core.utils import build_absolute_uri
+from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..webhook.models import Webhook, WebhookEvent
 from .manifest_validations import clean_manifest_data

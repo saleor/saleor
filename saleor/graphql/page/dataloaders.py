@@ -7,8 +7,8 @@ from ...attribute.models import (
     AssignedPageAttributeValue,
     AttributePage,
 )
-from ...core.permissions import PagePermissions
 from ...page.models import Page, PageType
+from ...permission.enums import PagePermissions
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader
 from ..utils import get_user_or_app_from_context

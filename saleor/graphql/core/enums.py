@@ -8,7 +8,6 @@ from ...channel import error_codes as channel_error_codes
 from ...checkout import error_codes as checkout_error_codes
 from ...core import JobStatus, TimePeriodType
 from ...core import error_codes as core_error_codes
-from ...core.permissions import get_permissions_enum_list
 from ...core.units import (
     AreaUnits,
     DistanceUnits,
@@ -24,6 +23,7 @@ from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
+from ...permission.enums import get_permissions_enum_list
 from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes

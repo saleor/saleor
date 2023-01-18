@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from ....app.error_codes import AppErrorCode
 from ....app.installation_utils import REQUEST_TIMEOUT
 from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
-from ....core.permissions import AppPermission
+from ....permission.enums import AppPermission
 from ...core import types as grapqhl_types
 from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation

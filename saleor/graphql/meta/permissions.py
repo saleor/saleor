@@ -9,7 +9,8 @@ from ...attribute import AttributeType
 from ...attribute import models as attribute_models
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
-from ...core.permissions import (
+from ...payment.utils import payment_owned_by_user
+from ...permission.enums import (
     AccountPermissions,
     AppPermission,
     BasePermissionEnum,
@@ -25,7 +26,6 @@ from ...core.permissions import (
     ProductTypePermissions,
     ShippingPermissions,
 )
-from ...payment.utils import payment_owned_by_user
 from ...site import models as site_models
 from ...warehouse import models as warehouse_models
 from ..app.dataloaders import get_app_promise

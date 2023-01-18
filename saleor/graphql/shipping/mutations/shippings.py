@@ -7,8 +7,8 @@ from django.db.models import Exists, OuterRef
 from django.db.utils import IntegrityError
 
 from ....channel import models as channel_models
-from ....core.permissions import ShippingPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ShippingPermissions
 from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode

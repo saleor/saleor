@@ -16,9 +16,9 @@ from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
 from ..app.models import App
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
-from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
+from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
 from ..permission.models import Permission, PermissionsMixin, _user_has_perm
 from . import CustomerEvents
 from .validators import validate_possible_number

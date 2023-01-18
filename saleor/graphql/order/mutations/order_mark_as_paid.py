@@ -4,11 +4,11 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
-from ....core.permissions import OrderPermissions
 from ....order.actions import clean_mark_order_as_paid, mark_order_as_paid
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation

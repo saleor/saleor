@@ -3,7 +3,7 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
-from ....core.permissions import ProductTypePermissions
+from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310

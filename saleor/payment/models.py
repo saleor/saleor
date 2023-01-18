@@ -13,8 +13,8 @@ from prices import Money
 
 from ..checkout.models import Checkout
 from ..core.models import ModelWithMetadata
-from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
+from ..permission.enums import PaymentPermissions
 from . import (
     ChargeStatus,
     CustomPaymentChoices,

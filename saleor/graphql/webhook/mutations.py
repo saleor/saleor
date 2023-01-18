@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from graphene.utils.str_converters import to_camel_case
 
-from ...core.permissions import AppPermission, AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AppPermission
 from ...webhook import models
 from ...webhook.error_codes import WebhookDryRunErrorCode, WebhookErrorCode
 from ...webhook.event_types import WebhookEventAsyncType

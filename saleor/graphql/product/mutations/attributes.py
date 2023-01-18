@@ -7,8 +7,8 @@ from django.db.models import Q
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ProductPermissions, ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.search import update_products_search_vector

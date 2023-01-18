@@ -2,8 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....core.exceptions import PreorderAllocationError
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....warehouse.management import deactivate_preorder_for_variant

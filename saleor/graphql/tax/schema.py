@@ -3,7 +3,7 @@ from collections import defaultdict
 import graphene
 from django_countries.fields import Country
 
-from ...core.permissions import AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters
 from ...tax import models
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo

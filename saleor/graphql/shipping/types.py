@@ -4,8 +4,8 @@ import graphene
 from django.db.models import QuerySet
 from graphene import relay
 
-from ...core.permissions import CheckoutPermissions, ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
+from ...permission.enums import CheckoutPermissions, ShippingPermissions
 from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData

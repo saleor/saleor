@@ -1,8 +1,8 @@
 import graphene
 from graphql.error import GraphQLError
 
-from ...core.permissions import GiftcardPermissions
 from ...giftcard import models
+from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE

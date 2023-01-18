@@ -7,8 +7,8 @@ from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
