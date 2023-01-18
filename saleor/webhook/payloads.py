@@ -1464,7 +1464,10 @@ def generate_transaction_action_request_payload(
                 transaction.refunded_value, transaction.currency
             ),
             "voided_value": quantize_price(
-                transaction.voided_value, transaction.currency
+                transaction.canceled_value, transaction.currency
+            ),
+            "canceled_value": quantize_price(
+                transaction.canceled_value, transaction.currency
             ),
             "order_id": graphql_order_id,
             "checkout_id": graphql_checkout_id,

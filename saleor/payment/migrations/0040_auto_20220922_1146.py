@@ -59,6 +59,11 @@ class Migration(migrations.Migration):
             old_name="reference",
             new_name="psp_reference",
         ),
+        migrations.RenameField(
+            model_name="transactionitem",
+            old_name="voided_value",
+            new_name="canceled_value",
+        ),
         migrations.AddField(
             model_name="transactionitem",
             name="external_url",

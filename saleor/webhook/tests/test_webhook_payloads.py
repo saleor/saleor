@@ -2076,7 +2076,8 @@ def test_generate_transaction_action_request_payload_for_order(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.voided_value, currency)),
+            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
+            "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": graphene.Node.to_global_id("Order", order.pk),
             "checkout_id": None,
             "created_at": parse_django_datetime(transaction.created_at),
@@ -2166,7 +2167,8 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.voided_value, currency)),
+            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
+            "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": None,
             "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
             "created_at": parse_django_datetime(transaction.created_at),

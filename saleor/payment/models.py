@@ -62,8 +62,10 @@ class TransactionItem(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
     )
-    amount_voided = MoneyField(amount_field="voided_value", currency_field="currency")
-    voided_value = models.DecimalField(
+    amount_canceled = MoneyField(
+        amount_field="canceled_value", currency_field="currency"
+    )
+    canceled_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),

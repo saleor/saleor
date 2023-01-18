@@ -9354,8 +9354,13 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   refundPendingAmount: Money!
 
-  """Total amount voided for this payment."""
+  """
+  Total amount voided for this payment. This field will be removed in Saleor 4.0.Use `canceledAmount` instead.
+  """
   voidedAmount: Money!
+
+  """Total amount canceled for this payment."""
+  canceledAmount: Money!
 
   """
   Total amount of ongoing cancel requests for the transaction.
@@ -9667,8 +9672,16 @@ type Order implements Node & ObjectWithMetadata {
   """Amount authorized for the order."""
   totalAuthorized: Money!
 
-  """Amount captured by payment."""
+  """
+  Amount captured for the order. This field will be removed in Saleor 4.0.Use `totalCharged` instead
+  """
   totalCaptured: Money!
+
+  """Amount charged for the order."""
+  totalCharged: Money!
+
+  """Amount canceled for the order."""
+  totalCanceled: Money!
 
   """
   List of events associated with the order.
@@ -19720,8 +19733,15 @@ input TransactionCreateInput {
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """Amount voided by this transaction."""
+  """
+  Amount voided by this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.Use `amountCanceled` instead.
+  """
   amountVoided: MoneyInput
+
+  """Amount canceled by this transaction."""
+  amountCanceled: MoneyInput
 
   """Payment public metadata."""
   metadata: [MetadataInput!]
@@ -19825,8 +19845,15 @@ input TransactionUpdateInput {
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """Amount voided by this transaction."""
+  """
+  Amount voided by this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.Use `amountCanceled` instead.
+  """
   amountVoided: MoneyInput
+
+  """Amount canceled by this transaction."""
+  amountCanceled: MoneyInput
 
   """Payment public metadata."""
   metadata: [MetadataInput!]

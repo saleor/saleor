@@ -672,7 +672,12 @@ class TransactionUpdateInput(graphene.InputObjectType):
     amount_authorized = MoneyInput(description="Amount authorized by this transaction.")
     amount_charged = MoneyInput(description="Amount charged by this transaction.")
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
-    amount_voided = MoneyInput(description="Amount voided by this transaction.")
+    amount_voided = MoneyInput(
+        description="Amount voided by this transaction."
+        + DEPRECATED_IN_3X_INPUT
+        + "Use `amountCanceled` instead."
+    )
+    amount_canceled = MoneyInput(description="Amount canceled by this transaction.")
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -780,8 +785,11 @@ class TransactionCreate(BaseMutation):
             cleaned_data["charged_value"] = amount_charged["amount"]
         if amount_refunded := cleaned_data.pop("amount_refunded", None):
             cleaned_data["refunded_value"] = amount_refunded["amount"]
-        if amount_voided := cleaned_data.pop("amount_voided", None):
-            cleaned_data["voided_value"] = amount_voided["amount"]
+
+        if amount_canceled := cleaned_data.pop("amount_canceled", None):
+            cleaned_data["canceled_value"] = amount_canceled["amount"]
+        elif amount_voided := cleaned_data.pop("amount_voided", None):
+            cleaned_data["canceled_value"] = amount_voided["amount"]
 
     @classmethod
     def cleanup_metadata_data(cls, cleaned_data: dict):
@@ -818,6 +826,7 @@ class TransactionCreate(BaseMutation):
             "amount_authorized",
             "amount_charged",
             "amount_refunded",
+            "amount_canceled",
             "amount_voided",
         ]
         errors = {}

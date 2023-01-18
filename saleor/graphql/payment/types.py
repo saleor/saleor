@@ -367,7 +367,15 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         ),
     )
     voided_amount = graphene.Field(
-        Money, required=True, description="Total amount voided for this payment."
+        Money,
+        required=True,
+        description="Total amount voided for this payment. "
+        + DEPRECATED_IN_3X_FIELD
+        + "Use `canceledAmount` instead.",
+    )
+
+    canceled_amount = graphene.Field(
+        Money, required=True, description="Total amount canceled for this payment."
     )
     cancel_pending_amount = graphene.Field(
         Money,
@@ -449,7 +457,11 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
 
     @staticmethod
     def resolve_voided_amount(root: models.TransactionItem, _info):
-        return root.amount_voided
+        return root.amount_canceled
+
+    @staticmethod
+    def resolve_canceled_amount(root: models.TransactionItem, _info):
+        return root.amount_canceled
 
     @staticmethod
     def resolve_cancel_pending_amount(root: models.TransactionItem, _info):
