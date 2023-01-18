@@ -13,7 +13,7 @@ from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
-from ....warehouse.models import Allocation
+from ....warehouse.models import Allocation, Reservation
 
 
 class Command(BaseCommand):
@@ -27,8 +27,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, **options):
-        self.delete_checkouts()
         self.delete_payments()
+        self.delete_checkouts()
         self.delete_invoices()
         self.delete_gift_cards()
         self.delete_orders()
@@ -38,6 +38,9 @@ class Command(BaseCommand):
             self.delete_customers()
 
     def delete_checkouts(self):
+        reservations = Reservation.objects.all()
+        reservations._raw_delete(reservations.db)
+
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)
 
