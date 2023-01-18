@@ -17739,6 +17739,13 @@ input AttributeValueInput {
   dropdown: AttributeValueSelectableTypeInput
 
   """
+  Attribute value ID.
+  
+  Added in Saleor 3.9.
+  """
+  swatch: AttributeValueSelectableTypeInput
+
+  """
   List of attribute value IDs.
   
   Added in Saleor 3.9.
