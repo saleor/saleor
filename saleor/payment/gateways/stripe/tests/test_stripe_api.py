@@ -189,6 +189,7 @@ def test_update_payment_method(mocked_payment_method):
         payment_method_id,
         api_key=api_key,
         metadata=metadata,
+        stripe_version=STRIPE_API_VERSION,
     )
 
 
