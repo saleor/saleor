@@ -44,6 +44,7 @@ from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
+    ORDER_EDITABLE_STATUS,
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
@@ -4944,6 +4945,7 @@ ORDER_UPDATE_MUTATION = """
                 code
             }
             order {
+                status
                 userEmail
             }
         }
@@ -4988,6 +4990,41 @@ def test_order_update(
     assert graphql_address_data["lastName"].lower() in order.search_document
     assert email.lower() in order.search_document
     order_updated_webhook_mock.assert_called_once_with(order)
+
+
+@patch("saleor.graphql.order.mutations.orders.update_order_prices")
+def test_order_update_confirmed_order_does_not_change_price(
+    mocked_update_order_prices, staff_api_client, permission_manage_orders, order
+):
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    response = staff_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION, {"id": order_id}, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    assert not content["data"]["orderUpdate"]["errors"]
+    data = content["data"]["orderUpdate"]["order"]
+    assert data["status"].lower() not in ORDER_EDITABLE_STATUS
+    assert not mocked_update_order_prices.called
+
+
+@patch("saleor.graphql.order.mutations.orders.update_order_prices")
+def test_order_update_unconfirmed_order_changes_price(
+    mocked_update_order_prices,
+    staff_api_client,
+    permission_manage_orders,
+    order_unconfirmed,
+):
+    order_id = graphene.Node.to_global_id("Order", order_unconfirmed.id)
+    response = staff_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION, {"id": order_id}, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    assert not content["data"]["orderUpdate"]["errors"]
+    data = content["data"]["orderUpdate"]["order"]
+    assert data["status"].lower() in ORDER_EDITABLE_STATUS
+    assert mocked_update_order_prices.called
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
