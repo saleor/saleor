@@ -105,10 +105,12 @@ unit_enums = [DistanceUnitsEnum, AreaUnitsEnum, VolumeUnitsEnum, WeightUnitsEnum
 class ErrorPolicy:
     IGNORE_FAILED = "ignore_failed"
     REJECT_EVERYTHING = "reject_everything"
+    REJECT_FAILED_ROWS = "reject_failed_rows"
 
     CHOICES = [
         (IGNORE_FAILED, "Ignore failed"),
-        (REJECT_EVERYTHING, "Reject_everything"),
+        (REJECT_EVERYTHING, "Reject everything"),
+        (REJECT_FAILED_ROWS, "Reject failed rows"),
     ]
 
 

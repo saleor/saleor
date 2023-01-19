@@ -8,51 +8,54 @@ from ....tests.utils import get_graphql_content
 
 PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
     mutation ProductVariantBulkUpdate(
-        $variants: [ProductVariantBulkUpdateInput!]!, $productId: ID!
+        $variants: [ProductVariantBulkUpdateInput!]!,
+        $productId: ID!,
+        $errorPolicy: ErrorPolicyEnum
     ) {
-        productVariantBulkUpdate(variants: $variants, product: $productId) {
-            errors {
-                field
-                message
-                code
-                index
-                warehouses
-                channels
-            }
-            results{
-                productVariant{
-                    id
-                    name
-                    sku
-                    stocks {
-                        warehouse {
-                            slug
-                        }
-                        quantity
+        productVariantBulkUpdate(
+            variants: $variants, product: $productId, errorPolicy: $errorPolicy
+            ) {
+                results{
+                    errors {
+                        field
+                        message
+                        code
+                        warehouses
+                        channels
                     }
-                    channelListings {
-                        channel {
-                            slug
-                        }
-                        price {
-                            currency
-                            amount
-                        }
-                        costPrice {
-                            currency
-                            amount
-                        }
-                        preorderThreshold {
+                    productVariant{
+                        id
+                        name
+                        sku
+                        stocks {
+                            warehouse {
+                                slug
+                            }
                             quantity
                         }
-                    }
-                    preorder {
-                        globalThreshold
-                        endDate
+                        channelListings {
+                            channel {
+                                slug
+                            }
+                            price {
+                                currency
+                                amount
+                            }
+                            costPrice {
+                                currency
+                                amount
+                            }
+                            preorderThreshold {
+                                quantity
+                            }
+                        }
+                        preorder {
+                            globalThreshold
+                            endDate
+                        }
                     }
                 }
-            }
-            count
+                count
         }
     }
 """
@@ -87,7 +90,7 @@ def test_product_variant_bulk_update(
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
-    assert not data["errors"]
+    assert not data["results"][0]["errors"]
     assert data["count"] == 1
     assert data["results"][0]["productVariant"]["name"] == new_name
     assert product_with_single_variant.variants.count() == 1
@@ -144,7 +147,7 @@ def test_product_variant_bulk_update_stocks(
 
     # then
     stock_to_update.refresh_from_db()
-    assert not data["errors"]
+    assert not data["results"][0]["errors"]
     assert data["count"] == 1
     assert stock_to_update.quantity == new_quantity
     assert variant.stocks.count() == 3
@@ -200,7 +203,7 @@ def test_product_variant_bulk_update_channel_listings_input(
     existing_variant_listing.refresh_from_db()
 
     # then
-    assert not data["errors"]
+    assert not data["results"][0]["errors"]
     assert data["count"] == 1
     assert variant.channel_listings.count() == 2
     new_variant_channel_listing = variant.channel_listings.last()

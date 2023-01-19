@@ -12920,7 +12920,7 @@ type Mutation {
   """
   productVariantBulkCreate(
     """Policies of error handling."""
-    errorPolicy: ErrorPolicyEnum = REJECT_EVERYTHING
+    errorPolicy: ErrorPolicyEnum = reject_everything
 
     """ID of the product to create the variants for."""
     product: ID!
@@ -12936,7 +12936,7 @@ type Mutation {
   """
   productVariantBulkUpdate(
     """Policies of error handling."""
-    errorPolicy: ErrorPolicyEnum = REJECT_EVERYTHING
+    errorPolicy: ErrorPolicyEnum = reject_everything
 
     """ID of the product to update the variants for."""
     product: ID!
@@ -18602,6 +18602,7 @@ type BulkProductError {
 enum ErrorPolicyEnum {
   IGNORE_FAILED
   REJECT_EVERYTHING
+  REJECT_FAILED_ROWS
 }
 
 input ProductVariantBulkCreateInput {

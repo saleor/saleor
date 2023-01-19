@@ -1,18 +1,22 @@
 from collections import defaultdict
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from graphene.utils.str_converters import to_camel_case
 
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models
 from ....product.error_codes import ProductErrorCode
+from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
 from ...core.enums import ErrorPolicyEnum
-from ...core.types import BulkProductError, NonNullList
+from ...core.types import BulkProductError, NonNullList, ProductVariantBulkError
+from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_used_variants_attribute_values
 from .product_variant_bulk_create import (
@@ -61,6 +65,11 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
             name="product",
             required=True,
         )
+        error_policy = ErrorPolicyEnum(
+            required=False,
+            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
+            description="Policies of error handling.",
+        )
 
     class Meta:
         description = "Update a given product variants."
@@ -70,67 +79,107 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
 
     @classmethod
     def clean_variants(
-        cls, info, variants, product, variants_global_id_to_instance_map, errors
+        cls,
+        info,
+        variants,
+        product,
+        variants_global_id_to_instance_map,
+        index_error_map,
     ):
-        cleaned_inputs = []
-        sku_list = []
+        cleaned_inputs_map = {}
+        warehouse_global_id_to_instance_map = {
+            graphene.Node.to_global_id("Warehouse", warehouse.id): warehouse
+            for warehouse in warehouse_models.Warehouse.objects.all()
+        }
+        product_channel_global_id_to_instance_map = {
+            graphene.Node.to_global_id("Channel", listing.channel_id): listing.channel
+            for listing in models.ProductChannelListing.objects.select_related(
+                "channel"
+            ).filter(product=product.id)
+        }
         used_attribute_values = get_used_variants_attribute_values(product)
-        warehouses = warehouse_models.Warehouse.objects.all()
+        variant_attributes_ids = {
+            graphene.Node.to_global_id("Attribute", attr_id)
+            for attr_id in list(
+                product.product_type.variant_attributes.all().values_list(
+                    "pk", flat=True
+                )
+            )
+        }
+        duplicated_sku = get_duplicated_values(
+            [variant.sku for variant in variants if variant.sku]
+        )
 
         for index, variant_data in enumerate(variants):
             variant_id = variant_data["id"]
+            variant_data["product_type"] = product.product_type
+            variant_data["product"] = product
+
             if variant_id not in variants_global_id_to_instance_map.keys():
-                message = f'Variant #{variant_data["id"]} does not exist.'
-                errors["id"].append(
-                    ValidationError(
-                        message, ProductErrorCode.INVALID, params={"index": index}
+                message = f"Variant #{variant_id} does not exist."
+                index_error_map[index].append(
+                    ProductVariantBulkError(
+                        field="id", message=message, code=ProductErrorCode.INVALID
                     )
                 )
                 continue
 
-            if variant_data.attributes:
-                try:
-                    cls.validate_duplicated_attribute_values(
-                        variant_data.attributes, used_attribute_values
-                    )
-                except ValidationError as exc:
-                    errors["attributes"].append(
-                        ValidationError(exc.message, exc.code, params={"index": index})
-                    )
-
-            variant = variants_global_id_to_instance_map[variant_id]
-            cleaned_input = cls.clean_variant_input(
-                info, variant, variant_data, warehouses, errors, index
+            cleaned_input = cls.clean_variant(
+                info,
+                variant_data,
+                product_channel_global_id_to_instance_map,
+                warehouse_global_id_to_instance_map,
+                used_attribute_values,
+                variant_attributes_ids,
+                duplicated_sku,
+                index_error_map,
+                index,
+                errors=None,
+                input_class=ProductVariantBulkUpdateInput,
             )
-            cleaned_input["instance"] = variant
-            cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
-            if cleaned_input["sku"]:
-                cls.validate_duplicated_sku(
-                    cleaned_input["sku"], index, sku_list, errors
-                )
-        return cleaned_inputs
+            cleaned_inputs_map[index] = cleaned_input
+        return cleaned_inputs_map
 
     @classmethod
-    def update_variants(cls, info, cleaned_inputs, errors):
-        instances = []
-        for index, cleaned_input in enumerate(cleaned_inputs):
-            if not cleaned_input:
-                continue
+    def update_variants(cls, info, cleaned_inputs_map, index_error_map):
+        instances_data_and_errors_list = []
 
+        for index, cleaned_input in cleaned_inputs_map.items():
+            if not cleaned_input:
+                instances_data_and_errors_list.append(
+                    {"instance": None, "errors": index_error_map[index]}
+                )
+                continue
             try:
                 metadata_list = cleaned_input.pop("metadata", None)
                 private_metadata_list = cleaned_input.pop("private_metadata", None)
-                instance = cleaned_input.pop("instance")
+                instance = cleaned_input.pop("id")
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.validate_and_update_metadata(
                     instance, metadata_list, private_metadata_list
                 )
                 cls.clean_instance(info, instance)
-                instances.append(instance)
+                instances_data_and_errors_list.append(
+                    {
+                        "instance": instance,
+                        "errors": index_error_map[index],
+                        "cleaned_input": cleaned_input,
+                    }
+                )
             except ValidationError as exc:
-                cls.add_indexes_to_errors(index, exc, errors)
-        return instances
+                for key, value in exc.error_dict.items():
+                    index_error_map[index].append(
+                        ProductVariantBulkError(
+                            field=to_camel_case(key),
+                            message=exc.message,
+                            code=exc.code,
+                        )
+                    )
+                instances_data_and_errors_list.append(
+                    {"instance": None, "errors": index_error_map[index]}
+                )
+        return instances_data_and_errors_list
 
     @classmethod
     @traced_atomic_transaction()
@@ -186,54 +235,88 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, info, manager, instances, cleaned_inputs):
-        assert len(instances) == len(
-            cleaned_inputs
-        ), "There should be the same number of instances and cleaned inputs."
-        for instance, cleaned_input in zip(instances, cleaned_inputs):
-            cls.save(info, instance, cleaned_input)
-            cls.update_or_create_variant_stocks(instance, cleaned_input, manager)
-            cls.update_or_create_variant_channel_listings(instance, cleaned_input)
+    def save_variants(cls, info, manager, instances_data_with_errors_list):
+        for instance_data in instances_data_with_errors_list:
+            instance = instance_data["instance"]
+            if instance:
+                cleaned_input = instance_data.pop("cleaned_input")
+                cls.save(info, instance, cleaned_input)
+                cls.update_or_create_variant_stocks(instance, cleaned_input, manager)
+                cls.update_or_create_variant_channel_listings(instance, cleaned_input)
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        errors = defaultdict(list)
-        product = cls.get_node_or_error(info, data["product_id"], only_type="Product")
-        variants = product.variants.all()
+        index_error_map: dict = defaultdict(list)
+        error_policy = data["error_policy"]
+
+        product = cast(
+            models.Product,
+            cls.get_node_or_error(info, data["product_id"], only_type="Product"),
+        )
         variants_global_id_to_instance_map = {
             graphene.Node.to_global_id("ProductVariant", variant.id): variant
-            for variant in variants
+            for variant in product.variants.all()
         }
 
-        cleaned_inputs = cls.clean_variants(
-            info, data["variants"], product, variants_global_id_to_instance_map, errors
+        cleaned_inputs_map = cls.clean_variants(
+            info,
+            data["variants"],
+            product,
+            variants_global_id_to_instance_map,
+            index_error_map,
         )
-        instances = cls.update_variants(info, cleaned_inputs, errors)
 
-        if errors:
-            raise ValidationError(errors)
+        instances_data_with_errors_list = cls.update_variants(
+            info, cleaned_inputs_map, index_error_map
+        )
+
+        has_errors = any([True if error else False for error in index_error_map])
+        if has_errors:
+            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
+                results = [
+                    ProductVariantBulkResult(
+                        product_variant=None, errors=data.get("errors")
+                    )
+                    for data in instances_data_with_errors_list
+                ]
+                return ProductVariantBulkUpdate(count=0, results=results)
+
+            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
+                for data in instances_data_with_errors_list:
+                    if data["errors"] and data["instance"]:
+                        data["instance"] = None
 
         manager = get_plugin_manager_promise(info.context).get()
-        cls.save_variants(info, manager, instances, cleaned_inputs)
+        cls.save_variants(info, manager, instances_data_with_errors_list)
+
+        instances = [
+            ChannelContext(node=instance_data["instance"], channel_slug=None)
+            for instance_data in instances_data_with_errors_list
+            if instance_data["instance"]
+        ]
 
         # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(product.pk)
-
-        variants = [
-            ChannelContext(node=instance, channel_slug=None) for instance in instances
-        ]
-
+        update_product_search_vector(product)
         transaction.on_commit(
             lambda: [
-                manager.product_variant_updated(instance) for instance in instances
+                manager.product_variant_updated(instance.node) for instance in instances
             ]
         )
 
-        return ProductVariantBulkUpdate(
-            count=len(variants),
-            results=[
-                ProductVariantBulkResult(product_variant=variant)
-                for variant in variants
-            ],
-        )
+        results = [
+            ProductVariantBulkResult(
+                product_variant=ChannelContext(
+                    node=data.get("instance"), channel_slug=None
+                ),
+                errors=data.get("errors"),
+            )
+            if data.get("instance")
+            else ProductVariantBulkResult(
+                product_variant=None, errors=data.get("errors")
+            )
+            for data in instances_data_with_errors_list
+        ]
+
+        return ProductVariantBulkCreate(count=len(instances), results=results)

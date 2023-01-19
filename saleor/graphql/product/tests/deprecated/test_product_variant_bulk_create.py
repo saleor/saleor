@@ -936,11 +936,11 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["errors"]) == 1
+    assert len(data["errors"]) == 2
     error = data["errors"][0]
     assert error["field"] == "sku"
     assert error["code"] == ProductErrorCode.UNIQUE.name
-    assert error["index"] == 1
+    assert error["index"] == 0
     assert product_variant_count == ProductVariant.objects.count()
 
 
@@ -1014,7 +1014,7 @@ def test_product_variant_bulk_create_many_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["errors"]) == 2
+    assert len(data["errors"]) == 3
     errors = data["errors"]
     expected_errors = [
         {
@@ -1028,7 +1028,7 @@ def test_product_variant_bulk_create_many_errors(
         {
             "field": "attributes",
             "index": 3,
-            "code": ProductErrorCode.NOT_FOUND.name,
+            "code": ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
             "message": ANY,
             "warehouses": None,
             "channels": None,
