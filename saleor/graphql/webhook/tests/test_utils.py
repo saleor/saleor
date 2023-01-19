@@ -2,7 +2,9 @@ import pytest
 from graphql import parse
 
 from ..utils import (
+    get_event_field_from_subscription,
     get_event_type_from_subscription,
+    get_events,
     get_fragments_from_field,
     get_subscription,
 )
@@ -142,7 +144,7 @@ def test_get_event_type_from_subscription(query, event):
     assert get_event_type_from_subscription(query) == event
 
 
-def test_fragments():
+def test_get_fragments_from_field():
     # given
     query = """
         subscription {
@@ -175,3 +177,46 @@ def test_fragments():
     assert result["SecondFragment"]
     assert result["ThirdFragment"]
     assert len(result) == 3
+
+
+def test_get_events():
+    # given
+    query = """
+        fragment EventFragment on Event {
+          ... on OrderUpdated {
+            order {
+                id
+            }
+          }
+        }
+        subscription {
+          event {
+            ... on OrderCreated {
+              order {
+                id
+              }
+            }
+            something
+            somethingElse
+            ... on OrderFullyPaid {
+              order {
+                id
+              }
+            }
+            ... EventFragment
+          }
+        }
+        """
+
+    # when
+    ast = parse(query)
+    subscription = get_subscription(ast)
+    event_field = get_event_field_from_subscription(subscription)
+    result = get_events(event_field)
+
+    # then
+    assert result == {
+        "OrderCreated": "event",
+        "OrderFullyPaid": "event",
+        "EventFragment": "fragment",
+    }
