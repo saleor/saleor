@@ -234,11 +234,13 @@ class OrderUpdate(DraftOrderCreate):
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
         instance.save()
-        update_order_prices(
-            instance,
-            info.context.plugins,
-            info.context.site.settings.include_taxes_in_prices,
-        )
+
+        if instance.status in ORDER_EDITABLE_STATUS:
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
 
