@@ -11947,9 +11947,9 @@ type Mutation {
   ): EventDeliveryRetry
 
   """
-  Performs a dry run of a webhook event. Supports a single event (the first if multiple provided in the `query`). Requires permission relevant to processed event.
+  Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.11.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -11962,6 +11962,23 @@ type Mutation {
     """The subscription query that defines the webhook event and its payload."""
     query: String!
   ): WebhookDryRun
+
+  """
+  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  webhookTrigger(
+    """The ID of an object to serialize."""
+    objectId: ID!
+
+    """The ID of the webhook."""
+    webhookId: ID!
+  ): WebhookTrigger
 
   """
   Creates new warehouse. 
@@ -15909,9 +15926,9 @@ type EventDeliveryRetry {
 }
 
 """
-Performs a dry run of a webhook event. Supports a single event (the first if multiple provided in the `query`). Requires permission relevant to processed event.
+Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
 
-Added in Saleor 3.10.
+Added in Saleor 3.11.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -15944,6 +15961,44 @@ enum WebhookDryRunErrorCode {
   INVALID_ID
   MISSING_PERMISSION
   TYPE_NOT_SUPPORTED
+}
+
+"""
+Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
+type WebhookTrigger {
+  delivery: EventDelivery
+  errors: [WebhookTriggerError!]!
+}
+
+type WebhookTriggerError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: WebhookTriggerErrorCode!
+}
+
+"""An enumeration."""
+enum WebhookTriggerErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INVALID_ID
+  MISSING_PERMISSION
+  MISSING_QUERY
+  TYPE_NOT_SUPPORTED
+  UNABLE_TO_PARSE
 }
 
 """
