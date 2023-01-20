@@ -144,9 +144,14 @@ class UserManager(BaseUserManager["User"]):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        return self.create_user(
+        user = self.create_user(
             email, password, is_staff=True, is_superuser=True, **extra_fields
         )
+        group, created = Group.objects.get_or_create(name="Full Access")
+        if created:
+            group.permissions.add(*get_permissions())
+        group.user_set.add(user)
+        return user
 
     def customers(self):
         orders = Order.objects.values("user_id")
