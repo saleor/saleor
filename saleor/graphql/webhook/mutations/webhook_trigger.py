@@ -10,9 +10,9 @@ from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
 from ...core.utils import raise_validation_error
+from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
-from ..utils import SubscriptionQuery
 
 # from ..utils import get_events_from_subscription
 

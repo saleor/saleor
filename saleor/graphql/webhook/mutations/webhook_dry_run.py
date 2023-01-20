@@ -13,8 +13,8 @@ from ..subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
 )
+from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
-from ..utils import SubscriptionQuery
 
 
 class WebhookDryRun(BaseMutation):

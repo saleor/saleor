@@ -3,7 +3,11 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 from graphql.error import GraphQLSyntaxError
 
-from ..utils import IsFragment, SubscriptionQuery, SubscriptionQueryErrorCode
+from ..subscription_query import (
+    IsFragment,
+    SubscriptionQuery,
+    SubscriptionQueryErrorCode,
+)
 
 
 def test_subscription_query():
