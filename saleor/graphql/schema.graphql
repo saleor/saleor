@@ -16089,7 +16089,6 @@ type WebhookDryRunError {
 """An enumeration."""
 enum WebhookDryRunErrorCode {
   GRAPHQL_ERROR
-  UNABLE_TO_PARSE
   NOT_FOUND
   INVALID_ID
   MISSING_PERMISSION
@@ -16131,7 +16130,6 @@ enum WebhookTriggerErrorCode {
   MISSING_PERMISSION
   MISSING_QUERY
   TYPE_NOT_SUPPORTED
-  UNABLE_TO_PARSE
 }
 
 """

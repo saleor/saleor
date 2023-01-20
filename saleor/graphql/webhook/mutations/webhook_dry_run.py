@@ -14,8 +14,7 @@ from ..subscription_payload import (
     initialize_request,
 )
 from ..subscription_types import WEBHOOK_TYPES_MAP
-
-# from ..utils import get_events_from_subscription
+from ..utils import SubscriptionQuery
 
 
 class WebhookDryRun(BaseMutation):
@@ -46,31 +45,24 @@ class WebhookDryRun(BaseMutation):
 
     @classmethod
     def validate_query(cls, query):
-        # event_types = get_events_from_subscription(query) if query else None
-        event_types = []  # type: ignore
-        event_type = event_types[0] if event_types else None
-        if not event_type:
+        subscription_query = SubscriptionQuery(query)
+        if not subscription_query.is_valid:
+            error_msg = ";".join([err.message for err in subscription_query.errors])
             raise_validation_error(
                 field="query",
-                message="Can't parse an event type from query.",
-                code=WebhookDryRunErrorCode.UNABLE_TO_PARSE,
-            )
-        return event_type
-
-    @classmethod
-    def validate_event_type(cls, event_type, object_id):
-        event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
-        if not event and event_type:
-            event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
-            raise_validation_error(
-                field="query",
-                message=f"Event type: {event_name} is not defined in graphql schema.",
+                message=error_msg,
                 code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
             )
 
+        events = subscription_query.events
+        return events[0] if events else None
+
+    @classmethod
+    def validate_event_type(cls, event_type, object_id):
+        event = WEBHOOK_TYPES_MAP[event_type]
         model, _ = graphene.Node.from_global_id(object_id)
-        model_name = event._meta.root_type  # type: ignore[union-attr]
-        enable_dry_run = event._meta.enable_dry_run  # type: ignore[union-attr]
+        model_name = event._meta.root_type  # type: ignore[attr-defined]
+        enable_dry_run = event._meta.enable_dry_run  # type: ignore[attr-defined]
 
         if not (model_name or enable_dry_run) and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]

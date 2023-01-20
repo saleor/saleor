@@ -12,7 +12,6 @@ class WebhookErrorCode(Enum):
 
 class WebhookDryRunErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
-    UNABLE_TO_PARSE = "unable_to_parse"
     NOT_FOUND = "not_found"
     INVALID_ID = "invalid_id"
     MISSING_PERMISSION = "missing_permission"
@@ -26,4 +25,3 @@ class WebhookTriggerErrorCode(Enum):
     MISSING_PERMISSION = "missing_app_permission"
     MISSING_QUERY = "missing_query"
     TYPE_NOT_SUPPORTED = "type_not_supported"
-    UNABLE_TO_PARSE = "unable_to_parse"

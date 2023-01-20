@@ -30,7 +30,7 @@ class SubscriptionQuery:
     def __init__(self, query: str):
         self.query: str = query
         self.is_valid: bool = False
-        self.ast: Optional[Document] = None
+        self.ast: Document = Document("")
         self.events: List[str] = []
         self.errors = self.validate_query()
 

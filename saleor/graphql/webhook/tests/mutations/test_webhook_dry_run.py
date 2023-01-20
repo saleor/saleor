@@ -119,33 +119,7 @@ def test_webhook_dry_run_non_existing_id(
     assert error["message"] == f"Couldn't resolve to a node: {order_id}"
 
 
-def test_webhook_dry_run_wrong_subscription_query(
-    staff_api_client,
-    permission_manage_orders,
-    order,
-    subscription_order_created_webhook,
-):
-    # given
-    query = WEBHOOK_DRY_RUN_MUTATION
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
-    subscription = webhook.subscription_query.replace("subscription", "whatever")
-
-    variables = {"objectId": order_id, "query": subscription}
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-
-    # then
-    error = content["data"]["webhookDryRun"]["errors"][0]
-    assert error["field"] == "query"
-    assert error["code"] == WebhookDryRunErrorCode.UNABLE_TO_PARSE.name
-    assert error["message"] == "Can't parse an event type from query."
-
-
-def test_webhook_dry_run_event_type_doesnt_exist(
+def test_webhook_dry_run_invalid_query(
     staff_api_client,
     permission_manage_orders,
     order,
@@ -168,10 +142,7 @@ def test_webhook_dry_run_event_type_doesnt_exist(
     error = content["data"]["webhookDryRun"]["errors"][0]
     assert error["field"] == "query"
     assert error["code"] == WebhookDryRunErrorCode.GRAPHQL_ERROR.name
-    assert (
-        error["message"]
-        == "Event type: UndefinedEvent is not defined in graphql schema."
-    )
+    assert 'Unknown type "UndefinedEvent"' in error["message"]
 
 
 def test_webhook_dry_run_object_id_does_not_match_event(
