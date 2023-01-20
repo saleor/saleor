@@ -1,7 +1,7 @@
 import graphene
 
-from ....core.permissions import DiscountPermissions
 from ....discount import models
+from ....permission.enums import DiscountPermissions
 from ...core import ResolveInfo
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise

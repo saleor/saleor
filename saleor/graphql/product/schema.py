@@ -3,7 +3,8 @@ from typing import List, Optional
 import graphene
 from graphql import GraphQLError
 
-from ...core.permissions import ProductPermissions, has_one_of_permissions
+from ...permission.enums import ProductPermissions
+from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
@@ -379,7 +380,7 @@ class ProductQueries(graphene.ObjectType):
         id=None,
         slug=None,
         external_reference=None,
-        channel=None
+        channel=None,
     ):
         validate_one_of_args_is_in_query(
             "id", id, "slug", slug, "external_reference", external_reference

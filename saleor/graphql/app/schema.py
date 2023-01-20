@@ -1,7 +1,8 @@
 import graphene
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AppPermission, AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AppPermission
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE

@@ -45,13 +45,6 @@ from ...checkout import AddressType
 from ...checkout.fetch import fetch_checkout_info
 from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
-from ...core.permissions import (
-    AccountPermissions,
-    CheckoutPermissions,
-    GiftcardPermissions,
-    OrderPermissions,
-    get_permissions,
-)
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
@@ -66,6 +59,13 @@ from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...permission.enums import (
+    AccountPermissions,
+    CheckoutPermissions,
+    GiftcardPermissions,
+    OrderPermissions,
+    get_permissions,
+)
 from ...permission.models import Permission
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (

@@ -6,13 +6,13 @@ from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
 
-from ..core.permissions import (
+from ..graphql.core.utils import str_to_enum
+from ..graphql.webhook.subscription_payload import validate_subscription_query
+from ..permission.enums import (
     get_permissions,
     get_permissions_enum_list,
     split_permission_codename,
 )
-from ..graphql.core.utils import str_to_enum
-from ..graphql.webhook.subscription_payload import validate_subscription_query
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .error_codes import AppErrorCode

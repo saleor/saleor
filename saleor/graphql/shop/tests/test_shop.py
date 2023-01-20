@@ -9,7 +9,7 @@ from .... import __version__
 from ....account.models import Address
 from ....core import TimePeriodType
 from ....core.error_codes import ShopErrorCode
-from ....core.permissions import get_permissions_codename
+from ....permission.enums import get_permissions_codename
 from ....shipping import PostalCodeRuleInclusionType
 from ....shipping.models import ShippingMethod
 from ....site import GiftCardSettingsExpiryType

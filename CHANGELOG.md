@@ -11,8 +11,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `webhookDryRun` mutation - #11548 by @zedzior
 - Fix adding invalid label to meta fields - #11718 by @IKarbowiak
 - Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
+- Add `WebhookTrigger` mutation - #11687 by @zedzior
 
 ### Other changes
+- Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
 
 # 3.10.0 [Unreleased]
 
@@ -43,6 +45,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
 - Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
 - Drop `Django.Auth` - #11305 by @fowczarek
+- Add address validation to AddressCreate - #11639 by @jakubkuc
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
 - Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
 - Fix stock events triggers - #11714 by @jakubkuc

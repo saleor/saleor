@@ -11,12 +11,12 @@ from graphene.types import InputObjectType
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
-from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
+from ....permission.enums import ProductPermissions, ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.search import (

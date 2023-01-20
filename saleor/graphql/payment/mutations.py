@@ -14,7 +14,6 @@ from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_s
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
-from ...core.permissions import OrderPermissions, PaymentPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
@@ -34,6 +33,7 @@ from ...payment.gateway import (
     request_void_action,
 )
 from ...payment.utils import create_payment, is_currency_supported
+from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
 from ..channel.utils import validate_channel

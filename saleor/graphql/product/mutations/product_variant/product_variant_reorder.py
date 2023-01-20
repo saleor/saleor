@@ -1,8 +1,8 @@
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext

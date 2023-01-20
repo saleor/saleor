@@ -1,6 +1,6 @@
 import graphene
 
-from ....core.permissions import DiscountPermissions
+from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31

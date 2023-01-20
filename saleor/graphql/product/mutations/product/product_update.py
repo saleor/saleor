@@ -3,7 +3,7 @@ from typing import List, Tuple
 import graphene
 
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.search import update_product_search_vector
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput

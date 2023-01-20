@@ -6,8 +6,8 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.permissions import ProductPermissions
 from ....core.utils import generate_unique_slug
+from ....permission.enums import ProductPermissions
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError

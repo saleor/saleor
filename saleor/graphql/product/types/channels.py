@@ -5,9 +5,9 @@ from typing import List, Optional
 import graphene
 from promise import Promise
 
-from ....core.permissions import ProductPermissions
 from ....core.utils import get_currency_for_country
 from ....graphql.core.types import Money, MoneyRange
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.utils.availability import get_product_availability
 from ....product.utils.costs import (

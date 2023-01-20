@@ -2,8 +2,8 @@ import graphene
 from django.utils.text import slugify
 
 from ....channel import models
-from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ChannelPermissions
 from ....tax.models import TaxConfiguration
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo

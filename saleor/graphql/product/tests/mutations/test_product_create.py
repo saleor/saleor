@@ -2133,7 +2133,7 @@ def test_create_product_with_swatch_attribute_new_attribute_value(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": attr_id, "values": [new_value]}],
+            "attributes": [{"id": attr_id, "swatch": {"value": new_value}}],
         }
     }
 
@@ -2160,7 +2160,120 @@ def test_create_product_with_swatch_attribute_new_attribute_value(
     assert swatch_attribute.values.count() == values_count + 1
 
 
+def test_create_product_with_swatch_attribute_new_value_using_values_field(
+    staff_api_client,
+    product_type,
+    category,
+    swatch_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = swatch_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.set([swatch_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.id)
+    values_count = swatch_attribute.values.count()
+    new_value = "Yellow"
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "values": [new_value]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert (
+        data["product"]["attributes"][0]["attribute"]["slug"] == swatch_attribute.slug
+    )
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 1
+    assert len(values) == 1
+    assert values[0]["name"] == new_value
+    assert values[0]["slug"] == slugify(new_value)
+
+    swatch_attribute.refresh_from_db()
+    assert swatch_attribute.values.count() == values_count + 1
+
+
 def test_create_product_with_swatch_attribute_existing_value(
+    staff_api_client,
+    product_type,
+    category,
+    swatch_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = swatch_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.set([swatch_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.id)
+    existing_value = swatch_attribute.values.first()
+    existing_value_id = graphene.Node.to_global_id("AttributeValue", existing_value.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "swatch": {"id": existing_value_id}}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert (
+        data["product"]["attributes"][0]["attribute"]["slug"] == swatch_attribute.slug
+    )
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 1
+    assert values[0]["name"] == existing_value.name
+    assert values[0]["slug"] == existing_value.slug
+
+    swatch_attribute.refresh_from_db()
+    assert swatch_attribute.values.count() == values_count
+
+
+def test_create_product_with_swatch_attribute_existing_value_using_values_field(
     staff_api_client,
     product_type,
     category,

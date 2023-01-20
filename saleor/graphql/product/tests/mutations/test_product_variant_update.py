@@ -898,6 +898,193 @@ def test_update_variant_with_boolean_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_swatch_attribute_new_value_created(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    warehouse,
+    swatch_attribute,
+):
+    # given
+    product_type.variant_attributes.add(swatch_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    swatch_attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
+
+    value = "NEW"
+    values_count = swatch_attribute.values.count()
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {
+                "id": swatch_attr_id,
+                "swatch": {"value": value},
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == value
+    assert swatch_attribute.values.count() == values_count + 1
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_swatch_attribute_existing_value(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    warehouse,
+    swatch_attribute,
+):
+    # given
+    product_type.variant_attributes.add(swatch_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    swatch_attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
+
+    value = swatch_attribute.values.first()
+    value_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    values_count = swatch_attribute.values.count()
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {
+                "id": swatch_attr_id,
+                "swatch": {"id": value_id},
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == value.name
+    assert swatch_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_swatch_attribute_use_values(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    warehouse,
+    swatch_attribute,
+):
+    # given
+    product_type.variant_attributes.add(swatch_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    swatch_attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
+
+    value = "NEW"
+    values_count = swatch_attribute.values.count()
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": swatch_attr_id, "values": [value]},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == value
+    assert swatch_attribute.values.count() == values_count + 1
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_swatch_attribute_no_values_given(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    warehouse,
+    swatch_attribute,
+):
+    # given
+    product_type.variant_attributes.add(swatch_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    swatch_attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": swatch_attr_id},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
+    assert not data["attributes"][-1]["values"]
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_rich_text_attribute(
     product_variant_updated,
     permission_manage_products,

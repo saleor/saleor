@@ -1,12 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.types import OrderError

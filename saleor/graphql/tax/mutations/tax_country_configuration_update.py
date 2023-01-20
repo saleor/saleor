@@ -6,7 +6,7 @@ from django.db.models import Q
 from django_countries.fields import Country
 from graphql import GraphQLError
 
-from ....core.permissions import CheckoutPermissions
+from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo

@@ -54,6 +54,7 @@ from .common import (
     WarehouseError,
     WebhookDryRunError,
     WebhookError,
+    WebhookTriggerError,
     Weight,
 )
 from .event import SubscriptionObjectType
@@ -127,6 +128,7 @@ __all__ = [
     "WarehouseError",
     "WebhookError",
     "WebhookDryRunError",
+    "WebhookTriggerError",
     "FilterInputObjectType",
     "SortInputObjectType",
     "ChannelFilterInputObjectType",

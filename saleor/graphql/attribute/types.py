@@ -4,7 +4,7 @@ import graphene
 from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, models
-from ...core.permissions import (
+from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
@@ -414,6 +414,10 @@ class AttributeValueInput(graphene.InputObjectType):
         ),
     )
     dropdown = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_39,
+    )
+    swatch = AttributeValueSelectableTypeInput(
         required=False,
         description="Attribute value ID." + ADDED_IN_39,
     )

@@ -1,9 +1,9 @@
 from typing import cast
 
-from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....discount.utils import fetch_catalogue_info
+from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.types import DiscountError

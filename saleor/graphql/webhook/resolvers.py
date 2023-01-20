@@ -4,7 +4,7 @@ from ...checkout.fetch import (
     get_all_shipping_methods_list,
 )
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AppPermission
+from ...permission.enums import AppPermission
 from ...webhook import models, payloads
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType

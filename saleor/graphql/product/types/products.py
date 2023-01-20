@@ -9,14 +9,11 @@ from graphene import relay
 from promise import Promise
 
 from ....attribute import models as attribute_models
-from ....core.permissions import (
-    AuthorizationFilters,
-    OrderPermissions,
-    ProductPermissions,
-    has_one_of_permissions,
-)
 from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import OrderPermissions, ProductPermissions
+from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....product.utils import calculate_revenue_for_variant

@@ -1,9 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310

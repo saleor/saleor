@@ -5,11 +5,11 @@ from django.core.exceptions import ValidationError
 
 from ...account.models import User
 from ...core import JobStatus
-from ...core.permissions import OrderPermissions
 from ...invoice import events, models
 from ...invoice.error_codes import InvoiceErrorCode
 from ...invoice.notifications import send_invoice
 from ...order import events as order_events
+from ...permission.enums import OrderPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.mutations import ModelDeleteMutation, ModelMutation

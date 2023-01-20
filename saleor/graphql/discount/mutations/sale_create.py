@@ -4,11 +4,11 @@ import graphene
 import pytz
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.utils import fetch_catalogue_info
+from ....permission.enums import DiscountPermissions
 from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...core import ResolveInfo

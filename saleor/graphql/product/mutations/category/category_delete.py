@@ -1,6 +1,6 @@
 import graphene
 
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.utils import delete_categories
 from ....core import ResolveInfo

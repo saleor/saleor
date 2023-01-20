@@ -43,6 +43,7 @@ class AttrValuesInput:
     global_id: str
     values: Optional[List[str]] = None
     dropdown: Optional[AttrValuesForSelectableFieldInput] = None
+    swatch: Optional[AttrValuesForSelectableFieldInput] = None
     multiselect: Optional[List[AttrValuesForSelectableFieldInput]] = None
     numeric: Optional[str] = None
     references: Union[List[str], List[page_models.Page], None] = None
@@ -322,6 +323,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.DATE: cls._pre_save_date_time_values,
             AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
             AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
+            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
             AttributeInputType.FILE: cls._pre_save_file_value,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
             AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
@@ -376,6 +378,29 @@ class AttributeAssignmentMixin:
             return (model,)
 
         if attr_value := attr_values.dropdown.value:
+            model = prepare_attribute_values(attribute, [attr_value])
+            return model
+
+        return tuple()
+
+    @classmethod
+    def _pre_save_swatch_value(
+        cls,
+        _,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        if not attr_values.swatch:
+            return tuple()
+
+        if id := attr_values.swatch.id:
+            _, attr_value_id = from_global_id_or_error(id)
+            model = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
+            if not model:
+                raise ValidationError("Attribute value with given ID can't be found")
+            return (model,)
+
+        if attr_value := attr_values.swatch.value:
             model = prepare_attribute_values(attribute, [attr_value])
             return model
 
@@ -739,6 +764,7 @@ def validate_attributes_input(
         AttributeInputType.DATE: validate_date_time_input,
         AttributeInputType.DATE_TIME: validate_date_time_input,
         AttributeInputType.DROPDOWN: validate_dropdown_input,
+        AttributeInputType.SWATCH: validate_swatch_input,
         AttributeInputType.FILE: validate_file_attributes_input,
         AttributeInputType.NUMERIC: validate_numeric_input,
         AttributeInputType.MULTISELECT: validate_multiselect_input,
@@ -926,6 +952,26 @@ def validate_dropdown_input(
         validate_single_selectable_field(
             attribute,
             attr_values.dropdown,
+            attribute_errors,
+            attribute_id,
+        )
+
+
+def validate_swatch_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+):
+    attribute_id = attr_values.global_id
+    if not attr_values.swatch:
+        if attribute.value_required:
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+                attribute_id
+            )
+    else:
+        validate_single_selectable_field(
+            attribute,
+            attr_values.swatch,
             attribute_errors,
             attribute_id,
         )

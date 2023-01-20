@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import AttributeType
-from .....core.permissions import ProductTypePermissions
+from .....permission.enums import ProductTypePermissions
 from .....product import ProductTypeKind, models
 from .....product.error_codes import ProductErrorCode
 from ....core import ResolveInfo

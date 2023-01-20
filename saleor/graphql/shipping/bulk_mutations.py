@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import ShippingPermissions
+from ...permission.enums import ShippingPermissions
 from ...shipping import models
 from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation

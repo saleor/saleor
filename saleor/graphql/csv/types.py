@@ -1,8 +1,9 @@
 import graphene
 
-from ...core.permissions import AccountPermissions, AppPermission, AuthorizationFilters
 from ...core.utils import build_absolute_uri
 from ...csv import models
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AccountPermissions, AppPermission
 from ..account.types import User
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader

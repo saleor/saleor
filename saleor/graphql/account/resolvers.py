@@ -6,14 +6,11 @@ from i18naddress import get_validation_rules
 
 from ...account import models
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AccountPermissions,
-    AuthorizationFilters,
-    OrderPermissions,
-    has_one_of_permissions,
-)
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AccountPermissions, OrderPermissions
+from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
