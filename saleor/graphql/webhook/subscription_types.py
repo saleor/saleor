@@ -33,6 +33,7 @@ from ..core.descriptions import (
     ADDED_IN_37,
     ADDED_IN_38,
     ADDED_IN_310,
+    ADDED_IN_311,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -848,7 +849,7 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
         interfaces = (Event,)
         description = (
             "Event sent when product variant stock is updated."
-            + ADDED_IN_310
+            + ADDED_IN_311
             + PREVIEW_FEATURE
         )
 

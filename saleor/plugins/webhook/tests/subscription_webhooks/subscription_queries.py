@@ -768,6 +768,9 @@ PRODUCT_VARIANT_STOCK_UPDATED = """
           productVariant{
             id
           }
+          warehouse{
+            id
+          }
         }
       }
     }

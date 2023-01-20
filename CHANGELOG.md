@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
+- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
 
 # 3.10.0 [Unreleased]
 
@@ -47,7 +48,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `Django.Auth` - #11305 by @fowczarek
 - Add address validation to AddressCreate - #11639 by @jakubkuc
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
-- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
 - Fix stock events triggers - #11714 by @jakubkuc
 - Accept the gift card code provided in the input - by @mociepka
 
