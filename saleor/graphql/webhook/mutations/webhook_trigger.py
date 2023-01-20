@@ -12,7 +12,7 @@ from ...core.types.common import WebhookTriggerError
 from ...core.utils import raise_validation_error
 from ..subscription_types import WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
-from ..utils import get_event_type_from_subscription
+from ..utils import get_events_from_subscription
 
 
 class WebhookTrigger(BaseMutation):
@@ -46,7 +46,7 @@ class WebhookTrigger(BaseMutation):
                 code=WebhookTriggerErrorCode.MISSING_QUERY,
             )
 
-        event_types = get_event_type_from_subscription(query)
+        event_types = get_events_from_subscription(query)
         if not event_types:
             raise_validation_error(
                 message="Can't parse an event type from webhook's subscription query.",

@@ -13,7 +13,7 @@ from ...core.types import NonNullList, WebhookError
 from .. import enums
 from ..subscription_payload import validate_query
 from ..types import Webhook
-from ..utils import get_event_type_from_subscription
+from ..utils import get_events_from_subscription
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -66,7 +66,7 @@ def clean_webhook_events(_info, _instance, data):
 
     query = data.get("query", [])
     if not events and query:
-        events = get_event_type_from_subscription(query)
+        events = get_events_from_subscription(query)
 
     data["events"] = events
     return data

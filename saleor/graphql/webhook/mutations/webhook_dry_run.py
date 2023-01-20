@@ -14,7 +14,7 @@ from ..subscription_payload import (
     initialize_request,
 )
 from ..subscription_types import WEBHOOK_TYPES_MAP
-from ..utils import get_event_type_from_subscription
+from ..utils import get_events_from_subscription
 
 
 class WebhookDryRun(BaseMutation):
@@ -45,7 +45,7 @@ class WebhookDryRun(BaseMutation):
 
     @classmethod
     def validate_query(cls, query):
-        event_types = get_event_type_from_subscription(query) if query else None
+        event_types = get_events_from_subscription(query) if query else None
         event_type = event_types[0] if event_types else None
         if not event_type:
             raise_validation_error(

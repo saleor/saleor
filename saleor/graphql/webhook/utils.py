@@ -1,7 +1,8 @@
-from typing import Dict, List, Optional
+from enum import Enum
+from typing import Dict, List, Optional, Union
 
 from graphene.utils.str_converters import to_snake_case
-from graphql import parse
+from graphql import get_default_backend, validate
 from graphql.error import GraphQLSyntaxError
 from graphql.language.ast import (
     Document,
@@ -9,55 +10,53 @@ from graphql.language.ast import (
     FragmentDefinition,
     FragmentSpread,
     InlineFragment,
-    Node,
     OperationDefinition,
 )
 
 
-def get_event_type_from_subscription(query: str) -> List[str]:
+class IsFragment(Enum):
+    TRUE = True
+    FALSE = False
+
+
+def get_events_from_subscription(query: str) -> List[str]:
+    from ..api import schema
+
+    graphql_backend = get_default_backend()
     try:
-        ast = parse(query)
+        document = graphql_backend.document_from_string(schema, query)
     except GraphQLSyntaxError:
         return []
-    breakpoint()
+
+    ast = document.document_ast
+    validation_errors = validate(schema, ast)
+
+    if validation_errors:
+        return []
+
     subscription = get_subscription(ast)
     if not subscription:
         return []
 
-    event_field = get_event_field_from_subscription(subscription)
-    if not event_field:
+    event_type = get_event_type_from_subscription(subscription)
+    if not event_type:
         return []
 
-    events = get_events(event_field)
-    if not events:
+    events_and_fragments: Dict[str, IsFragment] = get_events_from_field(event_type)
+    if not events_and_fragments:
         return []
 
-    # fragments = get_event_fragment_names_from_query(ast)
-    # if fragments:
-    #     events = [fragments.get(event, event) for event in events]
+    fragment_definitions = get_fragment_definitions(ast)
+    unpacked_events: Dict[str, IsFragment] = {}
+    for event_name, is_fragment in events_and_fragments.items():
+        if not is_fragment.value:
+            continue
+        event_definition = fragment_definitions[event_name]
+        unpacked_events.update(get_events_from_field(event_definition))
+    events_and_fragments.update(unpacked_events)
 
+    events = [k for k, v in events_and_fragments.items() if not v == IsFragment.TRUE]
     return list(map(to_snake_case, events))
-
-
-def get_event_field_from_subscription(field: Node) -> Optional[Field]:
-    if hasattr(field, "selection_set") and field.selection_set:
-        fields = field.selection_set.selections
-        for f in fields:
-            if f.name.value == "event" and isinstance(f, Field):
-                return f
-            get_event_field_from_subscription(f)
-    return None
-
-
-def get_fragments_from_field(field: Node, fragments) -> Dict[str, FragmentSpread]:
-    if hasattr(field, "selection_set") and field.selection_set:
-        fields = field.selection_set.selections
-        for f in fields:
-            if isinstance(f, FragmentSpread):
-                fragments[f.name.value] = f
-            else:
-                get_fragments_from_field(f, fragments)
-    return fragments
 
 
 def get_subscription(ast: Document) -> Optional[OperationDefinition]:
@@ -67,29 +66,32 @@ def get_subscription(ast: Document) -> Optional[OperationDefinition]:
     return None
 
 
-def get_events(field: Field) -> Dict[str, str]:
-    events: Dict[str, str] = {}
+def get_event_type_from_subscription(
+    subscription: OperationDefinition,
+) -> Optional[Field]:
+    for field in subscription.selection_set.selections:
+        if field.name.value == "event" and isinstance(field, Field):
+            return field
+    return None
+
+
+def get_events_from_field(
+    field: Union[Field, FragmentDefinition]
+) -> Dict[str, IsFragment]:
+    events: Dict[str, IsFragment] = {}
     if field.selection_set:
         for field in field.selection_set.selections:
             if isinstance(field, InlineFragment) and field.type_condition:
-                events[field.type_condition.name.value] = "event"
+                events[field.type_condition.name.value] = IsFragment.FALSE
             if isinstance(field, FragmentSpread):
-                events[field.name.value] = "fragment"
+                events[field.name.value] = IsFragment.TRUE
         return events
     return events
 
 
-def get_event_fragment_names_from_query(ast: Document) -> Optional[Dict[str, str]]:
-    fragments = {}
-    try:
-        for definition in ast.definitions:
-            if (
-                isinstance(definition, FragmentDefinition)
-                and definition.type_condition
-                and definition.type_condition.name.value == "Event"
-            ):
-                event = definition.selection_set.selections[0].type_condition.name.value
-                fragments[definition.name.value] = event
-        return fragments
-    except AttributeError:
-        return fragments
+def get_fragment_definitions(ast: Document) -> Dict[str, FragmentDefinition]:
+    fragments: Dict[str, FragmentDefinition] = {}
+    for definition in ast.definitions:
+        if isinstance(definition, FragmentDefinition):
+            fragments[definition.name.value] = definition
+    return fragments
