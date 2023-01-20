@@ -27,7 +27,9 @@ def get_image_payload(instance: ProductMedia):
         # This is temporary solution, the get_product_image_thumbnail_url
         # should be optimize - we should fetch all thumbnails at once instead of
         # fetching thumbnails by one for each size
-        size: get_image_or_proxy_url(None, str(instance.id), "ProductMedia", size, None)
+        str(size): get_image_or_proxy_url(
+            None, str(instance.id), "ProductMedia", size, None
+        )
         for size in THUMBNAIL_SIZES
     }
 

@@ -145,7 +145,7 @@ def format_datetime(this, date, date_format=None):
 def get_product_image_thumbnail(this, size, image_data):
     """Use provided size to get a correct image."""
     expected_size = get_thumbnail_size(size)
-    return image_data["original"][expected_size]
+    return image_data["original"][str(expected_size)]
 
 
 def compare(this, val1, compare_operator, val2):
