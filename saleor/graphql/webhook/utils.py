@@ -1,6 +1,7 @@
-from enum import Flag
+from enum import Enum, Flag
 from typing import Dict, List, Optional, Union
 
+from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
 from graphql import get_default_backend, validate
 from graphql.error import GraphQLSyntaxError
@@ -19,6 +20,12 @@ class IsFragment(Flag):
     FALSE = False
 
 
+class SubscriptionQueryErrorCode(Enum):
+    MISSING_SUBSCRIPTION = "Subscription operation can't be found."
+    MISSING_EVENT_FIELD = "Event field can't be found."
+    MISSING_EVENTS = "Can't find a single event."
+
+
 class SubscriptionQuery:
     def __init__(self, query: str):
         self.query: str = query
@@ -26,8 +33,6 @@ class SubscriptionQuery:
         self.ast: Optional[Document] = None
         self.events: List[str] = []
         self.errors = self.validate_query()
-        if self.is_valid:
-            self.events = self.get_events_from_subscription()
 
     def validate_query(self):
         from ..api import schema
@@ -37,27 +42,37 @@ class SubscriptionQuery:
             document = graphql_backend.document_from_string(schema, self.query)
             self.ast = document.document_ast
             errors = validate(schema, self.ast)
-        except GraphQLSyntaxError:
-            errors = ["Syntax Error"]
+        except GraphQLSyntaxError as e:
+            return [e]
+
+        if errors:
+            return errors
+
+        try:
+            self.events = self.get_events_from_subscription()
+        except Exception as err:
+            return [err]
 
         self.is_valid = not bool(errors)
-
-        return errors
+        return []
 
     def get_events_from_subscription(self) -> List[str]:
         subscription = self._get_subscription(self.ast)
         if not subscription:
-            return []
+            err = SubscriptionQueryErrorCode.MISSING_SUBSCRIPTION
+            raise ValidationError(err.value)
 
         event_type = self._get_event_type_from_subscription(subscription)
         if not event_type:
-            return []
+            err = SubscriptionQueryErrorCode.MISSING_EVENT_FIELD
+            raise ValidationError(err.value)
 
         events_and_fragments: Dict[str, IsFragment] = self._get_events_from_field(
             event_type
         )
         if not events_and_fragments:
-            return []
+            err = SubscriptionQueryErrorCode.MISSING_EVENTS
+            raise ValidationError(err.value)
 
         fragment_definitions = self._get_fragment_definitions(self.ast)
         unpacked_events: Dict[str, IsFragment] = {}
