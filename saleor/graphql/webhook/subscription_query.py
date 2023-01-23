@@ -68,12 +68,8 @@ class SubscriptionQuery:
             err = SubscriptionQueryError.MISSING_EVENT_FIELD
             raise ValidationError(err.value)
 
-        events_and_fragments: Dict[str, IsFragment] = self._get_events_from_field(
-            event_type
-        )
-        if not events_and_fragments:
-            err = SubscriptionQueryError.MISSING_EVENTS
-            raise ValidationError(err.value)
+        events_and_fragments: Dict[str, IsFragment] = {}
+        self._get_events_from_field(event_type, events_and_fragments)
 
         fragment_definitions = self._get_fragment_definitions(self.ast)
         unpacked_events: Dict[str, IsFragment] = {}
@@ -81,8 +77,12 @@ class SubscriptionQuery:
             if not is_fragment:
                 continue
             event_definition = fragment_definitions[event_name]
-            unpacked_events.update(self._get_events_from_field(event_definition))
+            self._get_events_from_field(event_definition, unpacked_events)
         events_and_fragments.update(unpacked_events)
+
+        if not events_and_fragments:
+            err = SubscriptionQueryError.MISSING_EVENTS
+            raise ValidationError(err.value)
 
         events = [k for k, v in events_and_fragments.items() if not v]
         return sorted(list(map(to_snake_case, events)))
@@ -108,16 +108,25 @@ class SubscriptionQuery:
 
     @staticmethod
     def _get_events_from_field(
-        field: Union[Field, FragmentDefinition]
+        field: Union[Field, FragmentDefinition],
+        events: Dict[str, IsFragment],
     ) -> Dict[str, IsFragment]:
-        events: Dict[str, IsFragment] = {}
-        if field.selection_set:
-            for field in field.selection_set.selections:
-                if isinstance(field, InlineFragment) and field.type_condition:
-                    events[field.type_condition.name.value] = IsFragment.FALSE
-                if isinstance(field, FragmentSpread):
-                    events[field.name.value] = IsFragment.TRUE
+        if (
+            isinstance(field, FragmentDefinition)
+            and field.type_condition
+            and field.type_condition.name.value != "Event"
+        ):
+            events[field.type_condition.name.value] = IsFragment.FALSE
             return events
+
+        if field.selection_set:
+            for f in field.selection_set.selections:
+                if isinstance(f, InlineFragment) and f.type_condition:
+                    events[f.type_condition.name.value] = IsFragment.FALSE
+                if isinstance(f, FragmentSpread):
+                    events[f.name.value] = IsFragment.TRUE
+            return events
+
         return events
 
     @staticmethod

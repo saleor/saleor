@@ -188,6 +188,21 @@ def test_subscription_query():
             """,
             ["order_updated", "order_created", "product_created"],
         ),
+        (
+            """
+            subscription InvoiceRequested {
+              event {
+                ...InvoiceRequestedPayload
+                }
+              }
+              fragment InvoiceRequestedPayload on InvoiceRequested {
+                invoice {
+                  id
+                }
+              }
+            """,
+            ["invoice_requested"],
+        ),
     ],
 )
 def test_get_event_type_from_subscription(query, events):
@@ -314,7 +329,8 @@ def test_get_events_from_field():
     subscription_query = SubscriptionQuery(query)
     subscription = subscription_query._get_subscription(subscription_query.ast)
     event_field = subscription_query._get_event_type_from_subscription(subscription)
-    result = subscription_query._get_events_from_field(event_field)
+    result = {}
+    subscription_query._get_events_from_field(event_field, result)
 
     # then
     assert result == {

@@ -406,7 +406,7 @@ def test_install_app_webhook_incorrect_query(
 
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
-    assert error_dict["webhooks"][0].message == "Subscription query is not valid."
+    assert "Subscription query is not valid:" in error_dict["webhooks"][0].message
 
 
 def test_install_app_lack_of_token_target_url_in_manifest_data(
