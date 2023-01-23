@@ -14,9 +14,8 @@ from typing import (
 
 import graphene
 from django.conf import settings
-from django.db.models import Exists
 from django.db.models import Model as DjangoModel
-from django.db.models import OuterRef, Q, QuerySet
+from django.db.models import Q, QuerySet
 from graphene.relay import Connection
 from graphql import GraphQLError
 from graphql.language.ast import FragmentSpread
@@ -539,7 +538,8 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
 
     and_filter_input = filter_input.pop("AND", None)
     or_filter_input = filter_input.pop("OR", None)
-    not_filter_input = filter_input.pop("NOT", None)
+    # TODO: needs optimization
+    # not_filter_input = filter_input.pop("NOT", None)
 
     if isinstance(iterable, ChannelQsContext):
         queryset = iterable.qs
@@ -556,10 +556,11 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
             or_filter_input, queryset, args, filterset_class, request
         )
 
-    if not_filter_input:
-        queryset = _handle_not_filter_input(
-            not_filter_input, queryset, args, filterset_class, request
-        )
+    # TODO: needs optimization
+    # if not_filter_input:
+    #     queryset = _handle_not_filter_input(
+    #         not_filter_input, queryset, args, filterset_class, request
+    #     )
 
     if filter_input:
         queryset &= filter_qs(iterable, args, filterset_class, filter_input, request)
@@ -598,13 +599,14 @@ def _handle_or_filter_input(filter_input, queryset, args, filterset_class, reque
     return queryset
 
 
-def _handle_not_filter_input(filter_input, queryset, args, filterset_class, request):
-    if contains_filter_operator(filter_input):
-        qs = where_filter_qs(queryset, args, filterset_class, filter_input, request)
-    else:
-        qs = filter_qs(queryset, args, filterset_class, filter_input, request)
-    queryset = queryset.exclude(Exists(qs.filter(id=OuterRef("id"))))
-    return queryset
+# TODO: needs optimization
+# def _handle_not_filter_input(filter_input, queryset, args, filterset_class, request):
+#     if contains_filter_operator(filter_input):
+#         qs = where_filter_qs(queryset, args, filterset_class, filter_input, request)
+#     else:
+#         qs = filter_qs(queryset, args, filterset_class, filter_input, request)
+#     queryset = queryset.exclude(Exists(qs.filter(id=OuterRef("id"))))
+#     return queryset
 
 
 class NonNullConnection(Connection):

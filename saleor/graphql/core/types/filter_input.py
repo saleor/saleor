@@ -137,9 +137,10 @@ class WhereInputObjectType(FilterInputObjectType):
                         "A list of conditions of which at least one must be met."
                     ),
                 ),
-                "NOT": graphene.Field(
-                    cls, description="A condition that cannot be met."
-                ),
+                # TODO: needs optimization
+                # "NOT": graphene.Field(
+                #     cls, description="A condition that cannot be met."
+                # ),
             }
         )
 

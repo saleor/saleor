@@ -1426,13 +1426,13 @@ def test_attributes_filter_invalid_input(
 @pytest.mark.parametrize(
     "where",
     [
-        {"name": {"eq": "Text"}, "NOT": {"slug": {"eq": "test"}}},
+        # {"name": {"eq": "Text"}, "NOT": {"slug": {"eq": "test"}}},
         {"name": {"eq": "Text"}, "AND": [{"slug": {"eq": "test"}}]},
         {"name": {"eq": "Text"}, "OR": [{"slug": {"eq": "test"}}]},
         {"AND": [{"name": {"eq": "Text"}}], "OR": [{"slug": {"eq": "test"}}]},
-        {"AND": [{"name": {"eq": "Text"}}], "NOT": {"slug": {"eq": "test"}}},
-        {"OR": [{"name": {"eq": "Text"}}], "NOT": {"slug": {"eq": "test"}}},
-        {"NOT": {"slug": {"eq": "test"}, "AND": [{"name": {"eq": "Text"}}]}},
+        # {"AND": [{"name": {"eq": "Text"}}], "NOT": {"slug": {"eq": "test"}}},
+        # {"OR": [{"name": {"eq": "Text"}}], "NOT": {"slug": {"eq": "test"}}},
+        # {"NOT": {"slug": {"eq": "test"}, "AND": [{"name": {"eq": "Text"}}]}},
         {"OR": [{"slug": {"eq": "test"}, "AND": [{"name": {"eq": "Text"}}]}]},
         {"AND": [{"slug": {"eq": "test"}, "OR": [{"name": {"eq": "Text"}}]}]},
     ],
@@ -1460,7 +1460,7 @@ def test_attributes_where_with_and_operator(
         "where": {
             "AND": [
                 {"type": {"eq": AttributeTypeEnum.PRODUCT_TYPE.name}},
-                {"NOT": {"inputType": {"eq": AttributeInputTypeEnum.DATE.name}}},
+                {"inputType": {"eq": AttributeInputTypeEnum.DATE.name}},
             ]
         }
     }
@@ -1471,61 +1471,58 @@ def test_attributes_where_with_and_operator(
     # then
     data = get_graphql_content(response)
     nodes = data["data"]["attributes"]["edges"]
-    assert len(nodes) == 2
-    assert {node["node"]["slug"] for node in nodes} == {
-        color_attribute.slug,
-        rich_text_attribute.slug,
-    }
-
-
-def test_attributes_where_with_not_operator(
-    api_client, color_attribute, date_attribute, rich_text_attribute
-):
-    # given
-    variables = {
-        "where": {
-            "NOT": {
-                "inputType": {"eq": AttributeInputTypeEnum.RICH_TEXT.name},
-            }
-        }
-    }
-
-    # when
-    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
-
-    # then
-    data = get_graphql_content(response)
-    nodes = data["data"]["attributes"]["edges"]
-    assert len(nodes) == 2
-    assert {node["node"]["slug"] for node in nodes} == {
-        color_attribute.slug,
-        date_attribute.slug,
-    }
-
-
-def test_attributes_where_with_not_operator_nested_query(
-    api_client, color_attribute, date_attribute, rich_text_attribute
-):
-    # given
-    variables = {
-        "where": {
-            "NOT": {
-                "OR": [
-                    {"inputType": {"eq": AttributeInputTypeEnum.DATE.name}},
-                    {"name": {"eq": "Color"}},
-                ]
-            }
-        }
-    }
-
-    # when
-    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
-
-    # then
-    data = get_graphql_content(response)
-    nodes = data["data"]["attributes"]["edges"]
     assert len(nodes) == 1
-    assert nodes[0]["node"]["slug"] == rich_text_attribute.slug
+    assert nodes[0]["node"]["slug"] == date_attribute.slug
+
+
+# def test_attributes_where_with_not_operator(
+#     api_client, color_attribute, date_attribute, rich_text_attribute
+# ):
+#     # given
+#     variables = {
+#         "where": {
+#             "NOT": {
+#                 "inputType": {"eq": AttributeInputTypeEnum.RICH_TEXT.name},
+#             }
+#         }
+#     }
+
+#     # when
+#     response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+#     # then
+#     data = get_graphql_content(response)
+#     nodes = data["data"]["attributes"]["edges"]
+#     assert len(nodes) == 2
+#     assert {node["node"]["slug"] for node in nodes} == {
+#         color_attribute.slug,
+#         date_attribute.slug,
+#     }
+
+
+# def test_attributes_where_with_not_operator_nested_query(
+#     api_client, color_attribute, date_attribute, rich_text_attribute
+# ):
+#     # given
+#     variables = {
+#         "where": {
+#             "NOT": {
+#                 "OR": [
+#                     {"inputType": {"eq": AttributeInputTypeEnum.DATE.name}},
+#                     {"name": {"eq": "Color"}},
+#                 ]
+#             }
+#         }
+#     }
+
+#     # when
+#     response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+#     # then
+#     data = get_graphql_content(response)
+#     nodes = data["data"]["attributes"]["edges"]
+#     assert len(nodes) == 1
+#     assert nodes[0]["node"]["slug"] == rich_text_attribute.slug
 
 
 def test_attributes_where_with_or_operator(
@@ -1594,12 +1591,10 @@ def test_attributes_where_with_multiple_nested_operators(
                     ]
                 },
                 {
-                    "NOT": {
-                        "OR": [
-                            {"inputType": {"eq": AttributeInputTypeEnum.DATE.name}},
-                            {"name": {"eq": "Color"}},
-                        ]
-                    }
+                    "OR": [
+                        {"inputType": {"eq": AttributeInputTypeEnum.DATE.name}},
+                        {"name": {"eq": "Color"}},
+                    ]
                 },
             ]
         }
@@ -1612,7 +1607,7 @@ def test_attributes_where_with_multiple_nested_operators(
     data = get_graphql_content(response)
     nodes = data["data"]["attributes"]["edges"]
     assert len(nodes) == 1
-    assert nodes[0]["node"]["slug"] == rich_text_attribute.slug
+    assert nodes[0]["node"]["slug"] == color_attribute.slug
 
 
 ATTRIBUTES_SEARCH_QUERY = """

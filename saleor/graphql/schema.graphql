@@ -5700,9 +5700,6 @@ input AttributeWhereInput {
 
   """A list of conditions of which at least one must be met."""
   OR: [AttributeWhereInput!]
-
-  """A condition that cannot be met."""
-  NOT: AttributeWhereInput
 }
 
 """
