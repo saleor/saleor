@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
+- Disable websocket support by default in uvicorn worker configuration - #XXXX by @NyanKiyoshi
 
 # 3.10.0 [Unreleased]
 
