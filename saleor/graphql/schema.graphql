@@ -1717,6 +1717,9 @@ enum WebhookEventTypeEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """A product variant stock is updated"""
+  PRODUCT_VARIANT_STOCK_UPDATED
+
   """
   A product variant metadata is updated.
   
@@ -2235,6 +2238,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
+
+  """A product variant stock is updated"""
+  PRODUCT_VARIANT_STOCK_UPDATED
 
   """
   A product variant metadata is updated.
@@ -2928,6 +2934,7 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_VARIANT_DELETED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
+  PRODUCT_VARIANT_STOCK_UPDATED
   PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
@@ -24876,6 +24883,36 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantBackInStock implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+
+  """Look up a warehouse."""
+  warehouse: Warehouse
+}
+
+"""
+Event sent when product variant stock is updated.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductVariantStockUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

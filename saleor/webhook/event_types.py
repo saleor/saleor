@@ -106,6 +106,7 @@ class WebhookEventAsyncType:
 
     PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
     PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
+    PRODUCT_VARIANT_STOCK_UPDATED = "product_variant_stock_updated"
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
@@ -224,6 +225,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_METADATA_UPDATED: "Product variant metadata updated",
         PRODUCT_VARIANT_OUT_OF_STOCK: "Product variant stock changed",
         PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant back in stock",
+        PRODUCT_VARIANT_STOCK_UPDATED: "Product variant stock updated",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
         CHECKOUT_METADATA_UPDATED: "Checkout metadata updated",
@@ -333,6 +335,7 @@ class WebhookEventAsyncType:
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
         (PRODUCT_VARIANT_OUT_OF_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_OUT_OF_STOCK]),
         (PRODUCT_VARIANT_BACK_IN_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_BACK_IN_STOCK]),
+        (PRODUCT_VARIANT_STOCK_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_STOCK_UPDATED]),
         (
             PRODUCT_VARIANT_METADATA_UPDATED,
             DISPLAY_LABELS[PRODUCT_VARIANT_METADATA_UPDATED],
@@ -454,6 +457,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_BACK_IN_STOCK: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_OUT_OF_STOCK: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_VARIANT_STOCK_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_METADATA_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
