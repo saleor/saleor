@@ -33,6 +33,7 @@ from ..core.descriptions import (
     ADDED_IN_37,
     ADDED_IN_38,
     ADDED_IN_310,
+    ADDED_IN_311,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -41,9 +42,11 @@ from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
+from ..product.dataloaders import ProductVariantByIdLoader
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
+from ..warehouse.dataloaders import WarehouseByIdLoader
 from .resolvers import resolve_shipping_methods_for_checkout
 
 TRANSLATIONS_TYPES_MAP = {
@@ -835,6 +838,34 @@ class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
     def resolve_warehouse(root, _info):
         _, stock = root
         return stock.warehouse
+
+
+class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
+    warehouse = graphene.Field(
+        "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
+    )
+
+    class Meta:
+        interfaces = (Event,)
+        description = (
+            "Event sent when product variant stock is updated."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
+        _, stock = root
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(stock.product_variant.id)
+            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
+        )
+
+    @staticmethod
+    def resolve_warehouse(root, info: ResolveInfo):
+        _, stock = root
+        return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
 
 class SaleBase(AbstractType):
@@ -1898,6 +1929,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
+    WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: ProductVariantStockUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         ProductVariantMetadataUpdated

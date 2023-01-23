@@ -1042,6 +1042,26 @@ def test_product_variant_back_in_stock(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_product_variant_stock_updated(
+    stock, subscription_product_variant_stock_updated_webhook
+):
+    webhooks = [subscription_product_variant_stock_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
+    variant_id = graphene.Node.to_global_id("ProductVariant", stock.product_variant.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, stock, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productVariant": {"id": variant_id},
+            "warehouse": {"id": warehouse_id},
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_order_created(order, subscription_order_created_webhook):
     webhooks = [subscription_order_created_webhook]
     event_type = WebhookEventAsyncType.ORDER_CREATED

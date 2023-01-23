@@ -129,6 +129,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: (
         "A product variant is back in stock."
     ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: (
+        "A product variant stock is updated"
+    ),
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED: "A new shipping price is created.",
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: "A shipping price is updated.",
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED: "A shipping price is deleted.",

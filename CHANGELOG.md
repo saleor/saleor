@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
+- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
 
 # 3.10.0 [Unreleased]
 
