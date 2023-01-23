@@ -50,9 +50,8 @@ class WebhookTrigger(BaseMutation):
 
         subscription_query = SubscriptionQuery(query)
         if not subscription_query.is_valid:
-            error_msg = ";".join([err.message for err in subscription_query.errors])
             raise_validation_error(
-                message=error_msg,
+                message=subscription_query.error_msg,
                 code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
             )
 

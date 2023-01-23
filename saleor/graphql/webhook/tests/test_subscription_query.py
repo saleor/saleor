@@ -3,11 +3,7 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 from graphql.error import GraphQLSyntaxError
 
-from ..subscription_query import (
-    IsFragment,
-    SubscriptionQuery,
-    SubscriptionQueryErrorCode,
-)
+from ..subscription_query import IsFragment, SubscriptionQuery, SubscriptionQueryError
 
 
 def test_subscription_query():
@@ -261,7 +257,7 @@ def test_get_event_type_from_subscription(query, events):
               }
             }
             """,
-            SubscriptionQueryErrorCode.MISSING_SUBSCRIPTION.value,
+            SubscriptionQueryError.MISSING_SUBSCRIPTION.value,
             ValidationError,
         ),
         (
@@ -272,7 +268,7 @@ def test_get_event_type_from_subscription(query, events):
               }
             }
             """,
-            SubscriptionQueryErrorCode.MISSING_EVENTS.value,
+            SubscriptionQueryError.MISSING_EVENTS.value,
             ValidationError,
         ),
     ],

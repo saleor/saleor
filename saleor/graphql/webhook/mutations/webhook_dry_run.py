@@ -47,10 +47,9 @@ class WebhookDryRun(BaseMutation):
     def validate_query(cls, query):
         subscription_query = SubscriptionQuery(query)
         if not subscription_query.is_valid:
-            error_msg = ";".join([err.message for err in subscription_query.errors])
             raise_validation_error(
                 field="query",
-                message=error_msg,
+                message=subscription_query.error_msg,
                 code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
             )
 
