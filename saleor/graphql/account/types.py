@@ -20,11 +20,18 @@ from ...thumbnail.utils import (
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
+from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    ADDED_IN_311,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
@@ -312,6 +319,19 @@ class User(ModelObjectType[models.User]):
     editable_groups = NonNullList(
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
+    )
+    # TODO Owczar: Verify Added IN
+    accessibleChannels = NonNullList(
+        Channel,
+        description="List of channels the user has access."
+        + ADDED_IN_311
+        + PREVIEW_FEATURE,
+    )
+    restrictedAccessToChannel = graphene.Boolean(
+        required=True,
+        description="Determine if user have restricted access to channels."
+        + ADDED_IN_311
+        + PREVIEW_FEATURE,
     )
     avatar = ThumbnailField()
     events = PermissionsField(
@@ -642,6 +662,19 @@ class Group(ModelObjectType[models.Group]):
         description=(
             "True, if the currently authenticated user has rights to manage a group."
         ),
+    )
+    # TODO Owczar: Verify Added IN
+    accessibleChannels = NonNullList(
+        Channel,
+        description="List of channels the group has access."
+        + ADDED_IN_311
+        + PREVIEW_FEATURE,
+    )
+    restrictedAccessToChannel = graphene.Boolean(
+        required=True,
+        description="Determine if group have restricted access to channels."
+        + ADDED_IN_311
+        + PREVIEW_FEATURE,
     )
 
     class Meta:

@@ -8856,6 +8856,24 @@ type User implements Node & ObjectWithMetadata {
 
   """List of user's permission groups which user can manage."""
   editableGroups: [Group!]
+
+  """
+  List of channels the user has access.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  accessibleChannels: [Channel!]
+
+  """
+  Determine if user have restricted access to channels.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  restrictedAccessToChannel: Boolean!
   avatar(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -10832,6 +10850,24 @@ type Group implements Node {
   True, if the currently authenticated user has rights to manage a group.
   """
   userCanManage: Boolean!
+
+  """
+  List of channels the group has access.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  accessibleChannels: [Channel!]
+
+  """
+  Determine if group have restricted access to channels.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  restrictedAccessToChannel: Boolean!
 }
 
 """History log of the customer."""
