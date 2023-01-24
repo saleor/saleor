@@ -12919,7 +12919,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkCreate(
-    """Policies of error handling."""
+    """
+    Policies of error handling. DEFAULT: REJECT_EVERYTHING
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
     errorPolicy: ErrorPolicyEnum = reject_everything
 
     """ID of the product to create the variants for."""
@@ -12930,12 +12936,16 @@ type Mutation {
   ): ProductVariantBulkCreate
 
   """
-  Update a given product variants. 
+  Update multiple product variants.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkUpdate(
-    """Policies of error handling."""
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum = reject_everything
 
     """ID of the product to update the variants for."""
@@ -18529,16 +18539,21 @@ type ProductVariantBulkCreate {
   """Returns how many objects were created."""
   count: Int!
 
-  """List of the created variants."""
+  """List of the created variants.This field will be removed in Saleor 4.0."""
   productVariants: [ProductVariant!]!
 
-  """List of the created variants."""
+  """
+  List of the created variants.
+  
+  Added in Saleor 3.11.
+  """
   results: [ProductVariantBulkResult!]!
   bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [BulkProductError!]!
 }
 
 type ProductVariantBulkResult {
+  """Product variant data."""
   productVariant: ProductVariant
 
   """List of errors occurred on create attempt."""
@@ -18555,7 +18570,7 @@ type ProductVariantBulkError {
   message: String
 
   """The error code."""
-  code: ProductErrorCode!
+  code: ProductVariantBulkErrorCode!
 
   """List of attributes IDs which causes the error."""
   attributes: [ID!]
@@ -18570,6 +18585,22 @@ type ProductVariantBulkError {
   channels: [ID!]
 }
 
+"""An enumeration."""
+enum ProductVariantBulkErrorCode {
+  ATTRIBUTE_ALREADY_ASSIGNED
+  ATTRIBUTE_CANNOT_BE_ASSIGNED
+  ATTRIBUTE_VARIANTS_DISABLED
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  INVALID_PRICE
+  NOT_PRODUCTS_VARIANT
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  PRODUCT_NOT_ASSIGNED_TO_CHANNEL
+}
+
 type BulkProductError {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
@@ -18580,7 +18611,7 @@ type BulkProductError {
   message: String
 
   """The error code."""
-  code: ProductErrorCode!
+  code: ProductVariantBulkErrorCode!
 
   """List of attributes IDs which causes the error."""
   attributes: [ID!]
@@ -18598,10 +18629,14 @@ type BulkProductError {
   channels: [ID!]
 }
 
-"""An enumeration."""
 enum ErrorPolicyEnum {
+  """Save what is possible."""
   IGNORE_FAILED
+
+  """Reject everything if at least one object is invalid."""
   REJECT_EVERYTHING
+
+  """Reject rows with errors."""
   REJECT_FAILED_ROWS
 }
 
@@ -18705,7 +18740,11 @@ input ProductVariantChannelListingAddInput {
 }
 
 """
-Update a given product variants. 
+Update multiple product variants.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -18713,15 +18752,16 @@ type ProductVariantBulkUpdate {
   """Returns how many objects were updated."""
   count: Int!
 
-  """List of the created variants."""
-  productVariants: [ProductVariant!]!
-
   """List of the updated variants."""
   results: [ProductVariantBulkResult!]!
-  bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [BulkProductError!]!
+  errors: [ProductVariantBulkError!]!
 }
 
+"""
+Input fields to update product variants.
+
+Added in Saleor 3.11.
+"""
 input ProductVariantBulkUpdateInput {
   """List of attributes specific to this variant."""
   attributes: [BulkAttributeValueInput!]

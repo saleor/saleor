@@ -5,11 +5,11 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
-from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo

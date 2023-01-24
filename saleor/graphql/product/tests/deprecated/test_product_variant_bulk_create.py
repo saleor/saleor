@@ -5,7 +5,7 @@ from uuid import uuid4
 import graphene
 
 from .....attribute import AttributeInputType
-from .....product.error_codes import ProductErrorCode
+from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing, ProductVariant
 from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
@@ -491,7 +491,7 @@ def test_product_variant_bulk_create_duplicated_warehouses(
     error = errors[0]
     assert error["field"] == "stocks"
     assert error["index"] == 1
-    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert error["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["warehouses"] == [warehouse1_id]
 
 
@@ -771,7 +771,7 @@ def test_product_variant_bulk_create_duplicated_channels(
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "channelListings"
-    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert error["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 0
     assert error["channels"] == [channel_id]
     assert product_variant_count == ProductVariant.objects.count()
@@ -813,19 +813,19 @@ def test_product_variant_bulk_create_too_many_decimal_places_in_price(
     assert len(data["errors"]) == 4
     errors = data["errors"]
     assert errors[0]["field"] == "price"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductVariantBulkErrorCode.INVALID_PRICE.name
     assert errors[0]["index"] == 0
     assert errors[0]["channels"] == [channel_id]
     assert errors[1]["field"] == "price"
-    assert errors[1]["code"] == ProductErrorCode.INVALID.name
+    assert errors[1]["code"] == ProductVariantBulkErrorCode.INVALID_PRICE.name
     assert errors[1]["index"] == 0
     assert errors[1]["channels"] == [channel_pln_id]
     assert errors[2]["field"] == "costPrice"
-    assert errors[2]["code"] == ProductErrorCode.INVALID.name
+    assert errors[2]["code"] == ProductVariantBulkErrorCode.INVALID_PRICE.name
     assert errors[2]["index"] == 0
     assert errors[2]["channels"] == [channel_id]
     assert errors[3]["field"] == "costPrice"
-    assert errors[3]["code"] == ProductErrorCode.INVALID.name
+    assert errors[3]["code"] == ProductVariantBulkErrorCode.INVALID_PRICE.name
     assert errors[3]["index"] == 0
     assert errors[3]["channels"] == [channel_pln_id]
     assert product_variant_count == ProductVariant.objects.count()
@@ -864,8 +864,9 @@ def test_product_variant_bulk_create_product_not_assigned_to_channel(
     data = content["data"]["productVariantBulkCreate"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
+    code = ProductVariantBulkErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.name
     assert error["field"] == "channelId"
-    assert error["code"] == ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.name
+    assert error["code"] == code
     assert error["index"] == 0
     assert error["channels"] == [channel_id]
     assert product_variant_count == ProductVariant.objects.count()
@@ -906,7 +907,7 @@ def test_product_variant_bulk_create_duplicated_sku(
     errors = data["errors"]
     for index, error in enumerate(errors):
         assert error["field"] == "sku"
-        assert error["code"] == ProductErrorCode.UNIQUE.name
+        assert error["code"] == ProductVariantBulkErrorCode.UNIQUE.name
         assert error["index"] == index
     assert product_variant_count == ProductVariant.objects.count()
 
@@ -939,7 +940,7 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
     assert len(data["errors"]) == 2
     error = data["errors"][0]
     assert error["field"] == "sku"
-    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["code"] == ProductVariantBulkErrorCode.UNIQUE.name
     assert error["index"] == 0
     assert product_variant_count == ProductVariant.objects.count()
 
@@ -1020,7 +1021,7 @@ def test_product_variant_bulk_create_many_errors(
         {
             "field": "sku",
             "index": 2,
-            "code": ProductErrorCode.UNIQUE.name,
+            "code": ProductVariantBulkErrorCode.UNIQUE.name,
             "message": ANY,
             "warehouses": None,
             "channels": None,
@@ -1028,7 +1029,7 @@ def test_product_variant_bulk_create_many_errors(
         {
             "field": "attributes",
             "index": 3,
-            "code": ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
+            "code": ProductVariantBulkErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
             "message": ANY,
             "warehouses": None,
             "channels": None,
@@ -1070,7 +1071,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributes"
-    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert error["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 0
     assert product_variant_count == ProductVariant.objects.count()
 
@@ -1105,7 +1106,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributes"
-    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert error["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 1
     assert product_variant_count == ProductVariant.objects.count()
 

@@ -6,16 +6,18 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphene.utils.str_converters import to_camel_case
 
-from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
+from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.enums import ErrorPolicyEnum
-from ...core.types import BulkProductError, NonNullList, ProductVariantBulkError
+from ...core.mutations import BaseMutation
+from ...core.types import NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_used_variants_attribute_values
@@ -35,8 +37,11 @@ class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
         description="List of attributes specific to this variant.",
     )
 
+    class Meta:
+        description = "Input fields to update product variants." + ADDED_IN_311
 
-class ProductVariantBulkUpdate(ProductVariantBulkCreate):
+
+class ProductVariantBulkUpdate(BaseMutation):
     count = graphene.Int(
         required=True,
         default_value=0,
@@ -50,11 +55,6 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
     )
 
     class Arguments:
-        error_policy = ErrorPolicyEnum(
-            required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.name,
-            description="Policies of error handling.",
-        )
         variants = NonNullList(
             ProductVariantBulkUpdateInput,
             required=True,
@@ -68,14 +68,22 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
         error_policy = ErrorPolicyEnum(
             required=False,
             default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
-            description="Policies of error handling.",
+            description=(
+                "Policies of error handling. DEFAULT: "
+                + ErrorPolicyEnum.REJECT_EVERYTHING.name
+            ),
         )
 
     class Meta:
-        description = "Update a given product variants."
+        description = (
+            "Update multiple product variants." + ADDED_IN_311 + PREVIEW_FEATURE
+        )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = BulkProductError
-        error_type_field = "bulk_product_errors"
+        error_type_class = ProductVariantBulkError
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        ProductVariantBulkCreate.save(info, instance, cleaned_input)
 
     @classmethod
     def clean_variants(
@@ -124,7 +132,7 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
                 )
                 continue
 
-            cleaned_input = cls.clean_variant(
+            cleaned_input = ProductVariantBulkCreate.clean_variant(
                 info,
                 variant_data,
                 product_channel_global_id_to_instance_map,
@@ -273,7 +281,7 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
 
         has_errors = any([True if error else False for error in index_error_map])
         if has_errors:
-            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
+            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING:
                 results = [
                     ProductVariantBulkResult(
                         product_variant=None, errors=data.get("errors")
@@ -282,7 +290,7 @@ class ProductVariantBulkUpdate(ProductVariantBulkCreate):
                 ]
                 return ProductVariantBulkUpdate(count=0, results=results)
 
-            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
+            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS:
                 for data in instances_data_with_errors_list:
                     if data["errors"] and data["instance"]:
                         data["instance"] = None

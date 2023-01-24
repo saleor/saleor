@@ -32,6 +32,7 @@ from ..enums import (
     PermissionGroupErrorCode,
     PluginErrorCode,
     ProductErrorCode,
+    ProductVariantBulkErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
@@ -303,6 +304,7 @@ class CollectionChannelListingError(ProductError):
 
 
 class BulkProductError(ProductError):
+    code = ProductVariantBulkErrorCode(description="The error code.", required=True)
     index = graphene.Int(
         description="Index of an input list item that caused the error."
     )
@@ -318,7 +320,18 @@ class BulkProductError(ProductError):
     )
 
 
-class ProductVariantBulkError(ProductError):
+class ProductVariantBulkError(Error):
+    code = ProductVariantBulkErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
+    values = NonNullList(
+        graphene.ID,
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
     warehouses = NonNullList(
         graphene.ID,
         description="List of warehouse IDs which causes the error.",

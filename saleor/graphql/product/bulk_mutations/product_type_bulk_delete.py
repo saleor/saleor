@@ -4,8 +4,8 @@ from django.db.models import Q
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
-from ....core.permissions import ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ProductTypePermissions
 from ....product import models
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation

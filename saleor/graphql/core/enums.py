@@ -114,7 +114,18 @@ class ErrorPolicy:
     ]
 
 
-ErrorPolicyEnum = to_enum(ErrorPolicy)
+def error_policy_enum_description(enum):
+    if enum == ErrorPolicyEnum.IGNORE_FAILED:
+        return "Save what is possible."
+    if enum == ErrorPolicyEnum.REJECT_FAILED_ROWS:
+        return "Reject rows with errors."
+    if enum == ErrorPolicyEnum.REJECT_EVERYTHING:
+        return "Reject everything if at least one object is invalid."
+    return None
+
+
+ErrorPolicyEnum = to_enum(ErrorPolicy, description=error_policy_enum_description)
+
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
@@ -155,6 +166,9 @@ PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
+ProductVariantBulkErrorCode = graphene.Enum.from_enum(
+    product_error_codes.ProductVariantBulkErrorCode
+)
 CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
