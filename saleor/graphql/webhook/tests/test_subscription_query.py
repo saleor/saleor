@@ -203,6 +203,27 @@ def test_subscription_query():
             """,
             ["invoice_requested"],
         ),
+        (
+            """
+            subscription{
+              event{
+                ...on ProductUpdated{
+                  product{
+                    id
+                  }
+                }
+              }
+              event{
+                ...on ProductCreated{
+                  product{
+                    id
+                  }
+                }
+              }
+            }
+            """,
+            ["product_updated", "product_created"],
+        ),
     ],
 )
 def test_get_event_type_from_subscription(query, events):
@@ -328,9 +349,10 @@ def test_get_events_from_field():
     # when
     subscription_query = SubscriptionQuery(query)
     subscription = subscription_query._get_subscription(subscription_query.ast)
-    event_field = subscription_query._get_event_type_from_subscription(subscription)
+    event_fields = subscription_query._get_event_types_from_subscription(subscription)
     result = {}
-    subscription_query._get_events_from_field(event_field, result)
+    for event_field in event_fields:
+        subscription_query._get_events_from_field(event_field, result)
 
     # then
     assert result == {

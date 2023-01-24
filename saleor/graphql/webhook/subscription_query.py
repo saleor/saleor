@@ -33,7 +33,7 @@ class SubscriptionQuery:
         self.ast: Document = Document("")
         self.events: List[str] = []
         self.errors = self.validate_query()
-        self.error_msg = ";".join([err.message for err in self.errors])
+        self.error_msg = ";".join(set([err.message for err in self.errors]))
 
     def validate_query(self):
         from ..api import schema
@@ -63,13 +63,14 @@ class SubscriptionQuery:
             err = SubscriptionQueryError.MISSING_SUBSCRIPTION
             raise ValidationError(err.value)
 
-        event_type = self._get_event_type_from_subscription(subscription)
-        if not event_type:
+        event_types = self._get_event_types_from_subscription(subscription)
+        if not event_types:
             err = SubscriptionQueryError.MISSING_EVENT_FIELD
             raise ValidationError(err.value)
 
         events_and_fragments: Dict[str, IsFragment] = {}
-        self._get_events_from_field(event_type, events_and_fragments)
+        for event_type in event_types:
+            self._get_events_from_field(event_type, events_and_fragments)
 
         fragment_definitions = self._get_fragment_definitions(self.ast)
         unpacked_events: Dict[str, IsFragment] = {}
@@ -98,13 +99,14 @@ class SubscriptionQuery:
         return None
 
     @staticmethod
-    def _get_event_type_from_subscription(
+    def _get_event_types_from_subscription(
         subscription: OperationDefinition,
-    ) -> Optional[Field]:
-        for field in subscription.selection_set.selections:
-            if field.name.value == "event" and isinstance(field, Field):
-                return field
-        return None
+    ) -> List[Field]:
+        return [
+            field
+            for field in subscription.selection_set.selections
+            if field.name.value == "event" and isinstance(field, Field)
+        ]
 
     @staticmethod
     def _get_events_from_field(
