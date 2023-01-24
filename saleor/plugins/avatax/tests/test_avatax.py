@@ -2621,6 +2621,46 @@ def test_preprocess_order_creation_wrong_data(
 
 
 @pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_preprocess_order_creation_shipping_voucher_no_tax_class_on_delivery_method(
+    checkout_with_item,
+    monkeypatch,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    shipping_zone,
+    discount_info,
+    plugin_configuration,
+    voucher_free_shipping,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager()
+    site_settings.company_address = address
+    site_settings.save()
+
+    shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.voucher_code = voucher_free_shipping.code
+    checkout_with_item.discount = shipping_method.channel_listings.first().price
+    checkout_with_item.save()
+
+    shipping_method.tax_class.delete()
+    shipping_method.refresh_from_db()
+    assert not shipping_method.tax_class
+
+    discounts = [discount_info]
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+
+    manager.preprocess_order_creation(checkout_info, discounts)
+
+
+@pytest.mark.vcr
 def test_get_cached_tax_codes_or_fetch(monkeypatch, avatax_config):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x, y: {})
     config = avatax_config
