@@ -14,7 +14,12 @@ from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
-from ....warehouse.models import Allocation, PreorderAllocation, PreorderReservation, Reservation
+from ....warehouse.models import (
+    Allocation,
+    PreorderAllocation,
+    PreorderReservation,
+    Reservation,
+)
 
 
 class Command(BaseCommand):
@@ -35,6 +40,7 @@ class Command(BaseCommand):
         self.delete_invoices()
         self.delete_gift_cards()
         self.delete_orders()
+        self.delete_unassigned_addresses()
 
         should_delete_customers = options.get("delete_customers")
         if should_delete_customers:
@@ -124,6 +130,15 @@ class Command(BaseCommand):
         orders = Order.objects.all()
         orders._raw_delete(orders.db)  # type: ignore[attr-defined] # raw access # noqa: E501
         self.stdout.write("Removed orders")
+
+    def delete_unassigned_addresses(self):
+        addresses = Address.objects.filter(
+            user_addresses__isnull=True,
+            warehouse__isnull=True,
+            sitesettings__isnull=True,
+        )
+        addresses._raw_delete(addresses.db)
+        self.stdout.write("Removed unassigned addresses")
 
     def delete_customers(self):
         customers = User.objects.filter(is_staff=False, is_superuser=False)
