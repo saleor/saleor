@@ -209,10 +209,6 @@ def filter_attribute_unit(qs, _, value):
     return filter_by_string_field(qs, "unit", value)
 
 
-def filter_attribute_value_required(qs, _, value):
-    return qs
-
-
 class AttributeWhere(MetadataFilterBase):
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Attribute"))
     name = OperationObjectTypeFilter(
