@@ -2,6 +2,7 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
+from .....app.installation_utils import PENDING_APP_INSTALLATION
 from .....app.models import App
 from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
@@ -314,6 +315,22 @@ def test_app_with_extensions_query(
         assigned_permissions = [p.codename for p in app_extension.permissions.all()]
         assigned_permissions = [{"code": p.upper()} for p in assigned_permissions]
         assert assigned_permissions in returned_permission_codes
+
+
+def test_app_query_pending_installation(staff_api_client, app):
+    # given
+    app.type = AppType.THIRDPARTY
+    app.store_value_in_metadata({PENDING_APP_INSTALLATION: True})
+    app.save()
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_APP, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["app"] is None
 
 
 QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """

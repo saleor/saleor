@@ -1,6 +1,7 @@
 from urllib.parse import urljoin, urlparse
 
 from ...app import models
+from ...app.installation_utils import PENDING_APP_INSTALLATION
 from ...app.types import AppExtensionTarget
 from ...core.jwt import (
     create_access_token_for_app,
@@ -15,7 +16,7 @@ def resolve_apps_installations(info):
 
 
 def resolve_apps(info):
-    return models.App.objects.all()
+    return models.App.objects.exclude(metadata__has_key=PENDING_APP_INSTALLATION).all()
 
 
 def resolve_access_token_for_app(info, root):
@@ -45,7 +46,11 @@ def resolve_app(_info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
-    return models.App.objects.filter(id=id).first()
+    return (
+        models.App.objects.filter(id=id)
+        .exclude(metadata__has_key=PENDING_APP_INSTALLATION)
+        .first()
+    )
 
 
 def resolve_app_extensions(_info):

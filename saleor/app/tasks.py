@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 def install_app_task(job_id, activate=False):
     app_installation = AppInstallation.objects.get(id=job_id)
     try:
-        install_app(app_installation, activate=activate)
+        app, _ = install_app(app_installation, activate=activate)
         app_installation.delete()
+        app.delete_value_from_private_metadata("pending_installation")
         return
     except ValidationError as e:
         msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])

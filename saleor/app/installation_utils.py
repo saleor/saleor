@@ -14,6 +14,7 @@ from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
 REQUEST_TIMEOUT = 25
+PENDING_APP_INSTALLATION = "pending_app_installation"
 
 
 class AppInstallationError(HTTPError):
@@ -73,6 +74,8 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         type=AppType.THIRDPARTY,
         audience=manifest_data.get("audience"),
     )
+
+    app.store_value_in_private_metadata({"pending_installation": True})
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
         extension = AppExtension.objects.create(
