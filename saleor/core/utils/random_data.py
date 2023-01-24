@@ -876,7 +876,6 @@ def create_fake_sale():
 def create_users(user_password, how_many=10):
     for _ in range(how_many):
         user = create_fake_user(user_password)
-        print(user, repr(user.default_billing_address), repr(user.addresses.all()))
         yield f"User: {user.email}"
 
 
