@@ -10,6 +10,7 @@ class ProductErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
+    INVALID_PRICE = "invalid_price"
     PRODUCT_WITHOUT_CATEGORY = "product_without_category"
     NOT_PRODUCTS_IMAGE = "not_products_image"
     NOT_PRODUCTS_VARIANT = "not_products_variant"

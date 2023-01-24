@@ -304,7 +304,6 @@ class CollectionChannelListingError(ProductError):
 
 
 class BulkProductError(ProductError):
-    code = ProductVariantBulkErrorCode(description="The error code.", required=True)
     index = graphene.Int(
         description="Index of an input list item that caused the error."
     )

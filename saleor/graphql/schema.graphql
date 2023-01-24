@@ -17228,6 +17228,7 @@ enum ProductErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
+  INVALID_PRICE
   PRODUCT_WITHOUT_CATEGORY
   NOT_PRODUCTS_IMAGE
   NOT_PRODUCTS_VARIANT
@@ -18611,7 +18612,7 @@ type BulkProductError {
   message: String
 
   """The error code."""
-  code: ProductVariantBulkErrorCode!
+  code: ProductErrorCode!
 
   """List of attributes IDs which causes the error."""
   attributes: [ID!]
