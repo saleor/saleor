@@ -49,6 +49,8 @@ DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
 
 TAX_CODE_NON_TAXABLE_PRODUCT = "NT"
 
+SHIPPING_ITEM_CODE = "Shipping"
+
 
 @dataclass
 class AvataxConfiguration:
@@ -262,7 +264,7 @@ def append_shipping_to_data(
             quantity=1,
             amount=shipping_price_amount,
             tax_code=shipping_tax_code,
-            item_code="Shipping",
+            item_code=SHIPPING_ITEM_CODE,
             prices_entered_with_tax=prices_entered_with_tax,
             discounted=discounted,
         )
@@ -515,15 +517,27 @@ def generate_request_data_from_checkout(
     )
     if not lines:
         return {}
-    voucher = checkout_info.voucher
-    # for apply_once_per_order vouchers the discount is already applied on lines
-    discount_amount = (
-        checkout_info.checkout.discount.amount
-        if voucher
-        and voucher.type != VoucherType.SPECIFIC_PRODUCT
-        and not voucher.apply_once_per_order
-        else 0
-    )
+
+    discount_amount = Decimal("0")
+    if voucher := checkout_info.voucher:
+        # for apply_once_per_order vouchers the discount is already applied on lines
+        applicable_discount = (
+            voucher.type != VoucherType.SPECIFIC_PRODUCT
+            and not voucher.apply_once_per_order
+        )
+
+        if voucher.type == VoucherType.SHIPPING:
+            # when the taxes are not calculated on shipping method, the shipping
+            # discount cannot by applied by plugin
+            applicable_discount = applicable_discount and SHIPPING_ITEM_CODE in {
+                line["itemCode"] for line in lines
+            }
+
+        discount_amount = (
+            checkout_info.checkout.discount.amount
+            if applicable_discount
+            else Decimal("0")
+        )
 
     currency = checkout_info.checkout.currency
     customer_email = cast(str, checkout_info.get_customer_email())
