@@ -518,7 +518,7 @@ def generate_request_data_from_checkout(
     if not lines:
         return {}
 
-    discount_amount = 0
+    discount_amount = Decimal("0")
     if voucher := checkout_info.voucher:
         # for apply_once_per_order vouchers the discount is already applied on lines
         applicable_discount = (
@@ -534,7 +534,9 @@ def generate_request_data_from_checkout(
             }
 
         discount_amount = (
-            checkout_info.checkout.discount.amount if applicable_discount else 0
+            checkout_info.checkout.discount.amount
+            if applicable_discount
+            else Decimal("0")
         )
 
     currency = checkout_info.checkout.currency
