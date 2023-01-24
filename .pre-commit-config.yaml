@@ -16,7 +16,7 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.222
+    rev: v0.0.230
     hooks:
       - id: ruff
 
@@ -26,7 +26,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.2.3
+    rev: 6.3.0
     hooks:
       - id: pydocstyle
         files: ^saleor/
