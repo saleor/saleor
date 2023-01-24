@@ -177,13 +177,14 @@ class ProductVariantBulkUpdate(BaseMutation):
                 )
             except ValidationError as exc:
                 for key, value in exc.error_dict.items():
-                    index_error_map[index].append(
-                        ProductVariantBulkError(
-                            field=to_camel_case(key),
-                            message=exc.message,
-                            code=exc.code,
+                    for e in value:
+                        index_error_map[index].append(
+                            ProductVariantBulkError(
+                                field=to_camel_case(key),
+                                message=e.messages[0],
+                                code=e.code,
+                            )
                         )
-                    )
                 instances_data_and_errors_list.append(
                     {"instance": None, "errors": index_error_map[index]}
                 )

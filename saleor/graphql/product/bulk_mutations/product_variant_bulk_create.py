@@ -425,14 +425,14 @@ class ProductVariantBulkCreate(BaseMutation):
                     e.params["index"] = index
                 else:
                     e.params = {"index": index}
-            error_dict[key].extend(value)
-            index_error_map[index].append(
-                ProductVariantBulkError(
-                    field=to_camel_case(key),
-                    message=e.message,
-                    code=e.code,
+                index_error_map[index].append(
+                    ProductVariantBulkError(
+                        field=to_camel_case(key),
+                        message=e.messages[0],
+                        code=e.code,
+                    )
                 )
-            )
+            error_dict[key].extend(value)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):

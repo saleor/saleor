@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import graphene
 
+from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing
 from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
@@ -214,3 +215,36 @@ def test_product_variant_bulk_update_channel_listings_input(
     assert (
         existing_variant_listing.price_amount == new_price_for_existing_variant_listing
     )
+
+
+def test_product_variant_bulk_update_with_already_existing_sku(
+    staff_api_client,
+    product_with_two_variants,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    variants = product_with_two_variants.variants.all()
+    variant_1 = variants[0]
+    variant_2 = variants[1]
+    product_id = graphene.Node.to_global_id("Product", product_with_two_variants.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant_1.pk)
+
+    variants = [{"id": variant_id, "sku": variant_2.sku}]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["field"] == "sku"
+    assert error["code"] == ProductVariantBulkErrorCode.UNIQUE.name
