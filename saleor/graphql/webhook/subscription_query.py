@@ -54,7 +54,7 @@ class SubscriptionQuery:
         except Exception as err:
             return [err]
 
-        self.is_valid = not bool(errors)
+        self.is_valid = True
         return []
 
     def get_events_from_subscription(self) -> List[str]:
@@ -79,12 +79,12 @@ class SubscriptionQuery:
             event_definition = fragment_definitions[event_name]
             self._get_events_from_field(event_definition, unpacked_events)
         events_and_fragments.update(unpacked_events)
+        events = [k for k, v in events_and_fragments.items() if not v]
 
-        if not events_and_fragments:
+        if not events:
             err = SubscriptionQueryError.MISSING_EVENTS
             raise ValidationError(err.value)
 
-        events = [k for k, v in events_and_fragments.items() if not v]
         return sorted(list(map(to_snake_case, events)))
 
     @staticmethod
