@@ -9,11 +9,12 @@ from django.core.management.base import BaseCommand
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
 from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
+from ....discount.models import OrderDiscount
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
-from ....warehouse.models import Allocation, Reservation
+from ....warehouse.models import Allocation, PreorderAllocation, PreorderReservation, Reservation
 
 
 class Command(BaseCommand):
@@ -23,11 +24,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--delete-customers",
             action="store_true",
-            help="Delete cutomers user accounts (doesn't delete staff accounts).",
+            help="Delete customers user accounts (doesn't delete staff accounts).",
         )
 
     def handle(self, **options):
         self.delete_payments()
+        self.delete_allocations()
+        self.delete_reservations()
         self.delete_checkouts()
         self.delete_invoices()
         self.delete_gift_cards()
@@ -37,12 +40,27 @@ class Command(BaseCommand):
         if should_delete_customers:
             self.delete_customers()
 
+    def delete_allocations(self):
+        allocations = Allocation.objects.all()
+        allocations._raw_delete(allocations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
+        preorder_allocations = PreorderAllocation.objects.all()
+        preorder_allocations._raw_delete(preorder_allocations.db)
+
+        self.stdout.write("Removed allocations")
+
+    def delete_reservations(self):
+        reservations = Reservation.objects.all()
+        reservations._raw_delete(reservations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
+        preorder_reservations = PreorderReservation.objects.all()
+        preorder_reservations._raw_delete(preorder_reservations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
+        self.stdout.write("Removed reservations")
+
     def delete_checkouts(self):
         metadata = CheckoutMetadata.objects.all()
         metadata._raw_delete(metadata.db)  # type: ignore[attr-defined] # raw access # noqa: E501
-
-        reservations = Reservation.objects.all()
-        reservations._raw_delete(reservations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)  # type: ignore[attr-defined] # raw access # noqa: E501
@@ -85,14 +103,14 @@ class Command(BaseCommand):
         self.stdout.write("Removed gift cards")
 
     def delete_orders(self):
+        discounts = OrderDiscount.objects.all()
+        discounts._raw_delete(discounts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
         fulfillment_lines = FulfillmentLine.objects.all()
         fulfillment_lines._raw_delete(fulfillment_lines.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
         fulfillments = Fulfillment.objects.all()
         fulfillments._raw_delete(fulfillments.db)  # type: ignore[attr-defined] # raw access # noqa: E501
-
-        allocations = Allocation.objects.all()
-        allocations._raw_delete(allocations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
         order_lines = OrderLine.objects.all()
         order_lines._raw_delete(order_lines.db)  # type: ignore[attr-defined] # raw access # noqa: E501
