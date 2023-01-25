@@ -51,7 +51,7 @@ class Command(BaseCommand):
         allocations._raw_delete(allocations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
         preorder_allocations = PreorderAllocation.objects.all()
-        preorder_allocations._raw_delete(preorder_allocations.db)
+        preorder_allocations._raw_delete(preorder_allocations.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
         self.stdout.write("Removed allocations")
 
@@ -137,7 +137,7 @@ class Command(BaseCommand):
             warehouse__isnull=True,
             sitesettings__isnull=True,
         )
-        addresses._raw_delete(addresses.db)
+        addresses._raw_delete(addresses.db)  # type: ignore[attr-defined] # raw access # noqa: E501
         self.stdout.write("Removed unassigned addresses")
 
     def delete_customers(self):
