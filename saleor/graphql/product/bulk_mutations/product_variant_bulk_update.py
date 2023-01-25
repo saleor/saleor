@@ -280,9 +280,11 @@ class ProductVariantBulkUpdate(BaseMutation):
             info, cleaned_inputs_map, index_error_map
         )
 
-        has_errors = any([True if error else False for error in index_error_map])
+        has_errors = any(
+            [True if error else False for error in index_error_map.values()]
+        )
         if has_errors:
-            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING:
+            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = [
                     ProductVariantBulkResult(
                         product_variant=None, errors=data.get("errors")
@@ -291,7 +293,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 ]
                 return ProductVariantBulkUpdate(count=0, results=results)
 
-            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS:
+            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
                 for data in instances_data_with_errors_list:
                     if data["errors"] and data["instance"]:
                         data["instance"] = None

@@ -155,6 +155,51 @@ def test_product_variant_bulk_update_stocks(
     assert variant.stocks.last().quantity == new_stock_quantity
 
 
+def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
+    staff_api_client,
+    variant_with_many_stocks,
+    warehouse,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    product_id = graphene.Node.to_global_id("Product", variant.product_id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = variant.stocks.all()
+    assert len(stocks) == 2
+    stock_to_update = stocks[0]
+    not_existing_warehouse_id = "aaa="
+
+    variants = [
+        {
+            "id": variant_id,
+            "stocks": [{"quantity": 10, "warehouse": not_existing_warehouse_id}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkUpdate"]
+    stock_to_update.refresh_from_db()
+
+    # then
+    assert not data["results"][0]["productVariant"]
+    assert data["results"][0]["errors"]
+    assert data["count"] == 0
+    error = data["results"][0]["errors"][0]
+    assert error["field"] == "warehouses"
+    assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
+    assert error["warehouses"] == [not_existing_warehouse_id]
+
+
 def test_product_variant_bulk_update_channel_listings_input(
     staff_api_client,
     variant,
@@ -215,6 +260,56 @@ def test_product_variant_bulk_update_channel_listings_input(
     assert (
         existing_variant_listing.price_amount == new_price_for_existing_variant_listing
     )
+
+
+def test_product_variant_bulk_update_channel_listings_with_invalid_price(
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    warehouses,
+    size_attribute,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    product = variant.product
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    ProductChannelListing.objects.create(product=product, channel=channel_PLN)
+    existing_variant_listing = variant.channel_listings.last()
+
+    assert variant.channel_listings.count() == 1
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variants = [
+        {
+            "id": variant_id,
+            "name": "RandomName",
+            "channelListings": [
+                {
+                    "price": 0.99999,
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                },
+            ],
+        },
+    ]
+
+    # when
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["productVariantBulkUpdate"]
+    existing_variant_listing.refresh_from_db()
+
+    # then
+    assert data["results"][0]["errors"]
+    assert data["count"] == 0
+    assert not data["results"][0]["productVariant"]
+    error = data["results"][0]["errors"][0]
+    assert error["field"] == "price"
+    assert error["code"] == ProductVariantBulkErrorCode.INVALID_PRICE.name
 
 
 def test_product_variant_bulk_update_with_already_existing_sku(

@@ -379,11 +379,12 @@ class ProductVariantBulkCreate(BaseMutation):
                     warehouses=wrong_warehouse_ids,
                 )
             )
-            errors["warehouses"] = ValidationError(
-                message,
-                code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                params={"warehouses": wrong_warehouse_ids, "index": variant_index},
-            )
+            if errors is not None:
+                errors["warehouses"] = ValidationError(
+                    message,
+                    code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                    params={"warehouses": wrong_warehouse_ids, "index": variant_index},
+                )
 
         duplicates = get_duplicated_values(warehouse_ids)
         if duplicates:
@@ -396,11 +397,12 @@ class ProductVariantBulkCreate(BaseMutation):
                     warehouses=duplicates,
                 )
             )
-            errors["stocks"] = ValidationError(
-                message,
-                code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
-                params={"warehouses": duplicates, "index": variant_index},
-            )
+            if errors is not None:
+                errors["stocks"] = ValidationError(
+                    message,
+                    code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    params={"warehouses": duplicates, "index": variant_index},
+                )
 
         for stock_data in stocks:
             if (
