@@ -519,7 +519,8 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
             base_fields_errors_count += 1
 
-        if cleaned_input["sku"] and cleaned_input["sku"] in duplicated_sku:
+        sku = cleaned_input.get("sku")
+        if sku is not None and sku in duplicated_sku:
             message = "Duplicated SKU."
             code = ProductVariantBulkErrorCode.UNIQUE.value
             index_error_map[index].append(
@@ -552,7 +553,9 @@ class ProductVariantBulkCreate(BaseMutation):
             info, None, variant_data, input_cls=input_class
         )
 
-        cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+        sku = cleaned_input.get("sku")
+        if sku is not None:
+            cleaned_input["sku"] = clean_variant_sku(sku)
 
         preorder_settings = cleaned_input.get("preorder")
         if preorder_settings:

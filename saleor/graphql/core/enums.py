@@ -116,11 +116,14 @@ class ErrorPolicy:
 
 def error_policy_enum_description(enum):
     if enum == ErrorPolicyEnum.IGNORE_FAILED:
-        return "Save what is possible."
+        return (
+            "Save what is possible within a single row. If there are errors in an "
+            "input data row, try to save it partially and skip the invalid part."
+        )
     if enum == ErrorPolicyEnum.REJECT_FAILED_ROWS:
         return "Reject rows with errors."
     if enum == ErrorPolicyEnum.REJECT_EVERYTHING:
-        return "Reject everything if at least one object is invalid."
+        return "Reject all rows if there is at least one error in any of them."
     return None
 
 

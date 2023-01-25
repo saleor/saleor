@@ -18631,10 +18631,12 @@ type BulkProductError {
 }
 
 enum ErrorPolicyEnum {
-  """Save what is possible."""
+  """
+  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
+  """
   IGNORE_FAILED
 
-  """Reject everything if at least one object is invalid."""
+  """Reject all rows if there is at least one error in any of them."""
   REJECT_EVERYTHING
 
   """Reject rows with errors."""
