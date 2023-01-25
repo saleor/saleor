@@ -122,7 +122,10 @@ def _get_preorder_variants_to_clean():
     )
 
 
-@app.task(queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME, expires=20)
+@app.task(
+    queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME,
+    expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
+)
 def update_products_search_vector_task():
     products = Product.objects.filter(search_index_dirty=True).order_by()[
         :PRODUCTS_BATCH_SIZE

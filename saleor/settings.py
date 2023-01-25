@@ -546,6 +546,16 @@ CELERY_TASK_ROUTES = {
     },
 }
 
+# Defines after how many seconds should the task triggered by the Celery beat
+# entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
+BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = 20
+
+# Defines the Celery beat scheduler entries.
+#
+# Note: if a Celery task triggered by a Celery beat entry has an expiration
+# @task(expires=...), the Celery beat scheduler entry should also define
+# the expiration value. This makes sure if the task or scheduling is wrapped
+# by custom code (e.g., a Saleor fork), the expiration is still present.
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
@@ -586,6 +596,7 @@ CELERY_BEAT_SCHEDULE = {
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
         "schedule": timedelta(seconds=20),
+        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
     },
 }
 
