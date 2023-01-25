@@ -101,6 +101,34 @@ VolumeUnitsEnum = to_enum(VolumeUnits)
 WeightUnitsEnum = to_enum(WeightUnits)
 unit_enums = [DistanceUnitsEnum, AreaUnitsEnum, VolumeUnitsEnum, WeightUnitsEnum]
 
+
+class ErrorPolicy:
+    IGNORE_FAILED = "ignore_failed"
+    REJECT_EVERYTHING = "reject_everything"
+    REJECT_FAILED_ROWS = "reject_failed_rows"
+
+    CHOICES = [
+        (IGNORE_FAILED, "Ignore failed"),
+        (REJECT_EVERYTHING, "Reject everything"),
+        (REJECT_FAILED_ROWS, "Reject failed rows"),
+    ]
+
+
+def error_policy_enum_description(enum):
+    if enum == ErrorPolicyEnum.IGNORE_FAILED:
+        return (
+            "Save what is possible within a single row. If there are errors in an "
+            "input data row, try to save it partially and skip the invalid part."
+        )
+    if enum == ErrorPolicyEnum.REJECT_FAILED_ROWS:
+        return "Reject rows with errors."
+    if enum == ErrorPolicyEnum.REJECT_EVERYTHING:
+        return "Reject all rows if there is at least one error in any of them."
+    return None
+
+
+ErrorPolicyEnum = to_enum(ErrorPolicy, description=error_policy_enum_description)
+
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
@@ -141,6 +169,9 @@ PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
+ProductVariantBulkErrorCode = graphene.Enum.from_enum(
+    product_error_codes.ProductVariantBulkErrorCode
+)
 CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
