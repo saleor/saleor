@@ -60,7 +60,14 @@ from .common import (
     Weight,
 )
 from .event import SubscriptionObjectType
-from .filter_input import ChannelFilterInputObjectType, FilterInputObjectType
+from .filter_input import (
+    ChannelFilterInputObjectType,
+    DateFilterInput,
+    DateTimeFilterInput,
+    FilterInputObjectType,
+    IntFilterInput,
+    StringFilterInput,
+)
 from .model import ModelObjectType
 from .money import VAT, Money, MoneyRange, ReducedRate, TaxedMoney, TaxedMoneyRange
 from .sort_input import ChannelSortInputObjectType, SortInputObjectType
@@ -139,4 +146,8 @@ __all__ = [
     "ChannelSortInputObjectType",
     "Upload",
     "TYPES_WITH_DOUBLE_ID_AVAILABLE",
+    "StringFilterInput",
+    "IntFilterInput",
+    "DateFilterInput",
+    "DateTimeFilterInput",
 ]

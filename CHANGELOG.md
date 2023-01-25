@@ -16,6 +16,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix adding invalid label to meta fields - #11718 by @IKarbowiak
 - Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
 - Add `WebhookTrigger` mutation - #11687 by @zedzior
+- Attribute filters improvement - #11737 by @IKarbowiak
+  - introduce `where` option on `attributes` query
+  - add `search` option on `attributes` query
+  - deprecate `product.variant` field
+  - deprecate the following `Attribute` fields: `filterableInStorefront`, `storefrontSearchPosition`, `availableInGrid`.
 
 ### Other changes
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior

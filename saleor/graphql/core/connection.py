@@ -38,6 +38,8 @@ ConnectionArguments = Dict[str, Any]
 EPSILON = Decimal("0.000001")
 FILTERS_NAME = "_FILTERS_NAME"
 FILTERSET_CLASS = "_FILTERSET_CLASS"
+WHERE_NAME = "_WHERE_NAME"
+WHERE_FILTERSET_CLASS = "_WHERE_FILTERSET_CLASS"
 
 
 def to_global_cursor(values):
@@ -447,40 +449,164 @@ def slice_connection_iterable(
 
 
 def filter_connection_queryset(iterable, args, request=None, root=None):
-    filterset_class = args[FILTERSET_CLASS]
-    filter_field_name = args[FILTERS_NAME]
-    filter_input = args.get(filter_field_name)
-
-    if filter_input:
-        # for nested filters get channel from ChannelContext object
-        if "channel" not in args and root and hasattr(root, "channel_slug"):
-            args["channel"] = root.channel_slug
-
-        try:
-            filter_channel = str(filter_input["channel"])
-        except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
-            filter_channel = None
-        filter_input["channel"] = (
-            args.get("channel")
-            or filter_channel
-            or get_default_channel_slug_or_graphql_error()
+    update_args_with_channel(args, root)
+    if args.get(args[FILTERS_NAME]) and args.get(args[WHERE_NAME]):
+        raise GraphQLError(
+            "Only one filtering argument (filter or where) can be specified."
         )
 
-        if isinstance(iterable, ChannelQsContext):
-            queryset = iterable.qs
-        else:
-            queryset = iterable
+    if filter_input := args.get(args[FILTERS_NAME]):
+        filterset_class = args[FILTERSET_CLASS]
+        filter_func = filter_qs
+    else:
+        filter_input = args.get(args[WHERE_NAME])
+        filterset_class = args[WHERE_FILTERSET_CLASS]
+        filter_func = where_filter_qs
 
-        filterset = filterset_class(filter_input, queryset=queryset, request=request)
-        if not filterset.is_valid():
-            raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
-
-        if isinstance(iterable, ChannelQsContext):
-            return ChannelQsContext(filterset.qs, iterable.channel_slug)
-
-        return filterset.qs
+    if filter_input:
+        return filter_func(iterable, args, filterset_class, filter_input, request)
 
     return iterable
+
+
+def update_args_with_channel(args, root):
+    # for nested filters get channel from ChannelContext object
+    if "channel" not in args and root and hasattr(root, "channel_slug"):
+        args["channel"] = root.channel_slug
+
+
+def filter_qs(iterable, args, filterset_class, filter_input, request):
+    try:
+        filter_channel = str(filter_input["channel"])
+    except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
+        filter_channel = None
+    filter_input["channel"] = (
+        args.get("channel")
+        or filter_channel
+        or get_default_channel_slug_or_graphql_error()
+    )
+
+    if isinstance(iterable, ChannelQsContext):
+        queryset = iterable.qs
+    else:
+        queryset = iterable
+
+    filterset = filterset_class(filter_input, queryset=queryset, request=request)
+    if not filterset.is_valid():
+        raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+
+    if isinstance(iterable, ChannelQsContext):
+        return ChannelQsContext(filterset.qs, iterable.channel_slug)
+
+    return filterset.qs
+
+
+def where_filter_qs(iterable, args, filterset_class, filter_input, request):
+    """Filter queryset by complex statement provided in where argument.
+
+    Handle `AND`, `OR`, `NOT` operators, as well as flat filter input.
+    The returned queryset contains data that fulfill all specified statements.
+    The condition can be nested, the operators cannot be mixed in
+    a single filter object.
+    Multiple operators can be provided with use of nesting. See the example below.
+
+    E.g.
+    {
+        'where': {
+            'AND': [
+                {'input_type': {'one_of': ['rich-text', 'dropdown']}}
+                {
+                    'OR': [
+                        {'name': {'eq': 'Author'}},
+                        {'slug': {'one_of': ['a-rich', 'abv']}}
+                    ]
+                },
+                {
+                    'NOT': {'name': {'eq': 'ABV'}}
+                }
+            ],
+        }
+    }
+    For above example the returned instances will fulfill following conditions:
+        - it must be a type o 'rich-text'or 'dropdown'
+        - the name must equal to 'Author' or the slug must be equal to `a-rich` or `abv`
+        - the name cannot be equal to `ABV`
+    """
+    # when any operator appear there cannot be any more data in filter input
+    if contains_filter_operator(filter_input) and len(filter_input) > 1:
+        raise GraphQLError("Cannot mix operators with other filter inputs.")
+
+    and_filter_input = filter_input.pop("AND", None)
+    or_filter_input = filter_input.pop("OR", None)
+    # TODO: needs optimization
+    # not_filter_input = filter_input.pop("NOT", None)
+
+    if isinstance(iterable, ChannelQsContext):
+        queryset = iterable.qs
+    else:
+        queryset = iterable
+
+    if and_filter_input:
+        queryset = _handle_add_filter_input(
+            and_filter_input, queryset, args, filterset_class, request
+        )
+
+    if or_filter_input:
+        queryset = _handle_or_filter_input(
+            or_filter_input, queryset, args, filterset_class, request
+        )
+
+    # TODO: needs optimization
+    # if not_filter_input:
+    #     queryset = _handle_not_filter_input(
+    #         not_filter_input, queryset, args, filterset_class, request
+    #     )
+
+    if filter_input:
+        queryset &= filter_qs(iterable, args, filterset_class, filter_input, request)
+
+    return queryset
+
+
+def contains_filter_operator(input: Dict[str, Union[dict, str]]):
+    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+
+
+def _handle_add_filter_input(filter_input, queryset, args, filterset_class, request):
+    for input in filter_input:
+        if contains_filter_operator(input):
+            # when the input contains the operator run the where_filter_qs method again
+            # to properly handle the nested input
+            queryset &= where_filter_qs(queryset, args, filterset_class, input, request)
+        else:
+            queryset &= filter_qs(queryset, args, filterset_class, input, request)
+    return queryset
+
+
+def _handle_or_filter_input(filter_input, queryset, args, filterset_class, request):
+    # for the OR operator the instanced that passed one of specified condition are
+    # found, then the return queryset is joined with the use of AND operator with
+    # main qs
+    qs = queryset.model.objects.none()
+    for input in filter_input:
+        if contains_filter_operator(input):
+            # when the input contains the operator run the where_filter_qs method again
+            # to properly handle the nested input
+            qs |= where_filter_qs(queryset, args, filterset_class, input, request)
+        else:
+            qs |= filter_qs(queryset, args, filterset_class, input, request)
+    queryset &= qs
+    return queryset
+
+
+# TODO: needs optimization
+# def _handle_not_filter_input(filter_input, queryset, args, filterset_class, request):
+#     if contains_filter_operator(filter_input):
+#         qs = where_filter_qs(queryset, args, filterset_class, filter_input, request)
+#     else:
+#         qs = filter_qs(queryset, args, filterset_class, filter_input, request)
+#     queryset = queryset.exclude(Exists(qs.filter(id=OuterRef("id"))))
+#     return queryset
 
 
 class NonNullConnection(Connection):

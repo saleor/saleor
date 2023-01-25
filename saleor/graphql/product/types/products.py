@@ -31,7 +31,7 @@ from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
-from ...attribute.filters import AttributeFilterInput
+from ...attribute.filters import AttributeFilterInput, AttributeWhereInput
 from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import (
     AssignedVariantAttribute,
@@ -895,6 +895,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
         description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use top-level `variant` query.",
     )
     variants = NonNullList(
         ProductVariant,
@@ -1612,6 +1613,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
         filter=AttributeFilterInput(),
+        where=AttributeWhereInput(),
         description="List of attributes which can be assigned to this product type.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )

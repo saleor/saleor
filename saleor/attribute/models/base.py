@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, TypeVar, Union
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import F, OrderBy, Q
+from django.db.models import Exists, F, OrderBy, OuterRef, Q
 
 from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
@@ -50,7 +50,8 @@ class BaseAttributeQuerySet(models.QuerySet[T]):
 
 class AssociatedAttributeQuerySet(BaseAttributeQuerySet[T]):
     def get_public_attributes(self):
-        return self.filter(attribute__visible_in_storefront=True)
+        attributes = Attribute.objects.filter(visible_in_storefront=True)
+        return self.filter(Exists(attributes.filter(id=OuterRef("attribute_id"))))
 
 
 AssociatedAttributeManager = models.Manager.from_queryset(AssociatedAttributeQuerySet)
@@ -168,6 +169,15 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("storefront_search_position", "slug")
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="attribute_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["slug", "name", "type", "input_type", "entity_type", "unit"],
+                opclasses=["gin_trgm_ops"] * 6,
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name
