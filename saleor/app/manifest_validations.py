@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
 
+from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
     get_permissions,
@@ -13,6 +14,7 @@ from ..permission.enums import (
     split_permission_codename,
 )
 from ..permission.models import Permission
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
@@ -186,11 +188,40 @@ def clean_extensions(manifest_data, app_permissions, errors):
 def clean_webhooks(manifest_data, errors):
     webhooks = manifest_data.get("webhooks", [])
 
+    async_types = {
+        str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventAsyncType.CHOICES
+    }
+    sync_types = {
+        str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventSyncType.CHOICES
+    }
+
     target_url_validator = AppURLValidator(
         schemes=["http", "https", "awssqs", "gcpubsub"]
     )
 
     for webhook in webhooks:
+        webhook["events"] = []
+        for e_type in webhook.get("asyncEvents", []):
+            try:
+                webhook["events"].append(async_types[e_type])
+            except KeyError:
+                errors["webhooks"].append(
+                    ValidationError(
+                        "Invalid asynchronous event.",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                )
+        for e_type in webhook.get("syncEvents", []):
+            try:
+                webhook["events"].append(sync_types[e_type])
+            except KeyError:
+                errors["webhooks"].append(
+                    ValidationError(
+                        "Invalid synchronous event.",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                )
+
         subscription_query = SubscriptionQuery(webhook["query"])
         if not subscription_query.is_valid:
             errors["webhooks"].append(
@@ -200,7 +231,17 @@ def clean_webhooks(manifest_data, errors):
                 )
             )
 
-        webhook["events"] = subscription_query.events
+        if not webhook["events"]:
+            webhook["events"] = subscription_query.events
+        else:
+            if sorted(webhook["events"]) != sorted(subscription_query.events):
+                errors["webhooks"].append(
+                    ValidationError(
+                        "Events provided in `syncEvents` and `asyncEvents` does not "
+                        "match events from `query`",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                )
 
         try:
             target_url_validator(webhook["targetUrl"])
