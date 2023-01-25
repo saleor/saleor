@@ -5,16 +5,17 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
-from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
+from ....permission.enums import ProductPermissions
 from ....product import models
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Product
 from ..utils import get_draft_order_lines_data_for_variants
 
@@ -35,7 +36,9 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids
+    ):
         try:
             pks = cls.get_global_ids_or_error(ids, Product)
         except ValidationError as error:
@@ -52,11 +55,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_ids)
 
         response = super().perform_mutation(
-            _root,
-            info,
-            ids,
-            product_to_variant=product_to_variant,
-            **data,
+            _root, info, ids=ids, product_to_variant=product_to_variant
         )
 
         # delete order lines for deleted variants
@@ -64,7 +63,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_product_removed_event(
@@ -85,14 +84,16 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         ).delete()
 
     @classmethod
-    def bulk_action(cls, info, queryset, product_to_variant):
+    def bulk_action(  # type: ignore[override]
+        cls, info: ResolveInfo, queryset, /, *, product_to_variant
+    ):
         product_variant_map = defaultdict(list)
         for product, variant in product_to_variant:
             product_variant_map[product].append(variant)
 
         products = [product for product in queryset]
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             variants = product_variant_map.get(product.id, [])
             manager.product_deleted(product, variants)

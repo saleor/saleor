@@ -1,11 +1,11 @@
 import graphene
 
-from ....core.permissions import ProductPermissions
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.utils import delete_categories
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Category
 
 
@@ -25,5 +25,5 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         delete_categories(queryset.values_list("pk", flat=True), manager)

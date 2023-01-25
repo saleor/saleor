@@ -1,10 +1,10 @@
 import graphene
 
-from ....core.permissions import ProductPermissions
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import CollectionError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Collection
 
 
@@ -30,7 +30,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             .filter(collections__in=collections_ids)
             .distinct()
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for collection in queryset.iterator():
             manager.collection_deleted(collection)
         queryset.delete()

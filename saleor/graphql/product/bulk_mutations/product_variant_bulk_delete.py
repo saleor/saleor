@@ -9,21 +9,21 @@ from django.db.models.functions import Coalesce
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
-from ....core.permissions import ProductPermissions
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
+from ....permission.enums import ProductPermissions
 from ....product import models
-from ....product.error_codes import ProductErrorCode
 from ....product.search import prepare_product_search_vector_value
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ProductVariant
 from ..utils import get_draft_order_lines_data_for_variants
 
@@ -51,15 +51,15 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids=None, skus=None, **data):
-        validate_one_of_args_is_in_mutation(ProductErrorCode, "skus", skus, "ids", ids)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, ids=None, skus=None, **data):
+        validate_one_of_args_is_in_mutation("skus", skus, "ids", ids)
 
         if ids:
             try:
                 pks = cls.get_global_ids_or_error(ids, ProductVariant)
             except ValidationError as error:
                 return 0, error
-        if skus:
+        else:
             pks = models.ProductVariant.objects.filter(sku__in=skus).values_list(
                 "pk", flat=True
             )
@@ -84,8 +84,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
         cls.delete_assigned_attribute_values(pks)
         cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
-        response = super().perform_mutation(_root, info, ids, **data)
-        manager = load_plugin_manager(info.context)
+        response = super().perform_mutation(_root, info, ids=ids, **data)
+        manager = get_plugin_manager_promise(info.context).get()
         transaction.on_commit(
             lambda: [manager.product_variant_deleted(variant) for variant in variants]
         )
@@ -95,7 +95,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_variant_removed_event(
