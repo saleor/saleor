@@ -16,7 +16,7 @@ def test_install_app_task(app_installation):
     app = App.objects.filter(name=app_installation.app_name).first()
     assert app
     assert app.is_active is False
-    assert not app.private_metadata.get(PENDING_APP_INSTALLATION.value)
+    assert not app.private_metadata.get(PENDING_APP_INSTALLATION)
 
 
 @pytest.mark.vcr
