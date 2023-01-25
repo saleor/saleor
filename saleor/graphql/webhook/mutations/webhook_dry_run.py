@@ -50,7 +50,7 @@ class WebhookDryRun(BaseMutation):
             raise_validation_error(
                 field="query",
                 message=subscription_query.error_msg,
-                code=WebhookDryRunErrorCode.GRAPHQL_ERROR,
+                code=subscription_query.error_code,
             )
 
         events = subscription_query.events

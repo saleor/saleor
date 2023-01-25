@@ -3,7 +3,9 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 from graphql.error import GraphQLSyntaxError
 
-from ..subscription_query import IsFragment, SubscriptionQuery, SubscriptionQueryError
+from saleor.webhook.error_codes import WebhookErrorCode
+
+from ..subscription_query import IsFragment, SubscriptionQuery
 
 
 def test_subscription_query():
@@ -233,7 +235,7 @@ def test_get_event_type_from_subscription(query, events):
 
 
 @pytest.mark.parametrize(
-    "query,error_msg,error_type",
+    "query,error_msg,error_type,error_code",
     [
         (
             """
@@ -247,6 +249,7 @@ def test_get_event_type_from_subscription(query, events):
             """,
             'Cannot query field "someMutation" on type "Mutation".',
             GraphQLError,
+            WebhookErrorCode.GRAPHQL_ERROR,
         ),
         (
             """
@@ -258,6 +261,7 @@ def test_get_event_type_from_subscription(query, events):
             """,
             'Unknown fragment "MyFragment".',
             GraphQLError,
+            WebhookErrorCode.GRAPHQL_ERROR,
         ),
         (
             """
@@ -276,6 +280,7 @@ def test_get_event_type_from_subscription(query, events):
             """,
             'Fragment "NotUsedEvents" is never used.',
             GraphQLError,
+            WebhookErrorCode.GRAPHQL_ERROR,
         ),
         (
             """
@@ -284,6 +289,7 @@ def test_get_event_type_from_subscription(query, events):
             """,
             "Syntax Error GraphQL (2:20) Expected Name, found",
             GraphQLSyntaxError,
+            WebhookErrorCode.SYNTAX,
         ),
         (
             """
@@ -293,8 +299,9 @@ def test_get_event_type_from_subscription(query, events):
               }
             }
             """,
-            SubscriptionQueryError.MISSING_SUBSCRIPTION.value,
+            "Subscription operation can't be found.",
             ValidationError,
+            WebhookErrorCode.MISSING_SUBSCRIPTION,
         ),
         (
             """
@@ -304,17 +311,19 @@ def test_get_event_type_from_subscription(query, events):
               }
             }
             """,
-            SubscriptionQueryError.MISSING_EVENTS.value,
+            "Can't find a single event.",
             ValidationError,
+            WebhookErrorCode.UNABLE_TO_PARSE,
         ),
     ],
 )
-def test_query_validation(query, error_msg, error_type):
+def test_query_validation(query, error_msg, error_type, error_code):
     subscription_query = SubscriptionQuery(query)
     assert not subscription_query.is_valid
     error = subscription_query.errors[0]
     assert isinstance(error, error_type)
     assert error_msg in error.message
+    assert error_code.value == subscription_query.error_code
 
 
 def test_get_events_from_field():

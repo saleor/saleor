@@ -14,8 +14,6 @@ from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
 
-# from ..utils import get_events_from_subscription
-
 
 class WebhookTrigger(BaseMutation):
     delivery = graphene.Field(EventDelivery)
@@ -52,7 +50,7 @@ class WebhookTrigger(BaseMutation):
         if not subscription_query.is_valid:
             raise_validation_error(
                 message=subscription_query.error_msg,
-                code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
+                code=subscription_query.error_code,
             )
 
         events = subscription_query.events

@@ -106,7 +106,7 @@ class WebhookCreate(ModelMutation):
                 raise_validation_error(
                     field="query",
                     message=subscription_query.error_msg,
-                    code=WebhookErrorCode.INVALID.value,
+                    code=subscription_query.error_code,
                 )
             instance.subscription_query = query
 

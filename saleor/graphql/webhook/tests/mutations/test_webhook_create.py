@@ -220,7 +220,7 @@ def test_webhook_create_by_app_invalid_query(app_api_client, permission_manage_o
     error = data["errors"][0]
     assert error["field"] == "query"
     assert 'Unexpected Name "invalid_query"' in error["message"]
-    assert error["code"] == WebhookErrorCode.INVALID.name
+    assert error["code"] == WebhookErrorCode.SYNTAX.name
 
 
 SUBSCRIPTION_QUERY_WITH_MULTIPLE_EVENTS = """
