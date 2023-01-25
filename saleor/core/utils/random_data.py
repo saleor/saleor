@@ -951,6 +951,7 @@ def _create_staff_user(staff_password, email=None, superuser=False):
             User(email=email, first_name=first_name, last_name=last_name), address
         ),
     )
+    staff_user.addresses.add(address)
     return staff_user
 
 
