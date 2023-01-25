@@ -9,11 +9,17 @@ from django.core.management.base import BaseCommand
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
 from ....checkout.models import Checkout, CheckoutLine
+from ....discount.models import OrderDiscount
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
-from ....warehouse.models import Allocation, Reservation
+from ....warehouse.models import (
+    Allocation,
+    PreorderAllocation,
+    PreorderReservation,
+    Reservation,
+)
 
 
 class Command(BaseCommand):
@@ -23,24 +29,42 @@ class Command(BaseCommand):
         parser.add_argument(
             "--delete-customers",
             action="store_true",
-            help="Delete cutomers user accounts (doesn't delete staff accounts).",
+            help="Delete customers user accounts (doesn't delete staff accounts).",
         )
 
     def handle(self, **options):
         self.delete_payments()
+        self.delete_allocations()
+        self.delete_reservations()
         self.delete_checkouts()
         self.delete_invoices()
         self.delete_gift_cards()
         self.delete_orders()
+        self.delete_unassigned_addresses()
 
         should_delete_customers = options.get("delete_customers")
         if should_delete_customers:
             self.delete_customers()
 
-    def delete_checkouts(self):
+    def delete_allocations(self):
+        allocations = Allocation.objects.all()
+        allocations._raw_delete(allocations.db)
+
+        preorder_allocations = PreorderAllocation.objects.all()
+        preorder_allocations._raw_delete(preorder_allocations.db)
+
+        self.stdout.write("Removed allocations")
+
+    def delete_reservations(self):
         reservations = Reservation.objects.all()
         reservations._raw_delete(reservations.db)
 
+        preorder_reservations = PreorderReservation.objects.all()
+        preorder_reservations._raw_delete(preorder_reservations.db)
+
+        self.stdout.write("Removed reservations")
+
+    def delete_checkouts(self):
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)
 
@@ -82,14 +106,14 @@ class Command(BaseCommand):
         self.stdout.write("Removed gift cards")
 
     def delete_orders(self):
+        discounts = OrderDiscount.objects.all()
+        discounts._raw_delete(discounts.db)
+
         fulfillment_lines = FulfillmentLine.objects.all()
         fulfillment_lines._raw_delete(fulfillment_lines.db)
 
         fulfillments = Fulfillment.objects.all()
         fulfillments._raw_delete(fulfillments.db)
-
-        allocations = Allocation.objects.all()
-        allocations._raw_delete(allocations.db)
 
         order_lines = OrderLine.objects.all()
         order_lines._raw_delete(order_lines.db)
@@ -103,6 +127,15 @@ class Command(BaseCommand):
         orders = Order.objects.all()
         orders._raw_delete(orders.db)
         self.stdout.write("Removed orders")
+
+    def delete_unassigned_addresses(self):
+        addresses = Address.objects.filter(
+            user_addresses__isnull=True,
+            warehouse__isnull=True,
+            sitesettings__isnull=True,
+        )
+        addresses._raw_delete(addresses.db)
+        self.stdout.write("Removed unassigned addresses")
 
     def delete_customers(self):
         customers = User.objects.filter(is_staff=False, is_superuser=False)
