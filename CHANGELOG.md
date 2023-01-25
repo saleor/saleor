@@ -6,6 +6,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+### Preview
+- Add new error handling policies in `ProductVariantBulkCreate`- #11392 by @SzymJ
+- Add `ProductVariantBulkUpdate` mutation - #11392 by @SzymJ
+
 ### GraphQL API
 
 - Add `webhookDryRun` mutation - #11548 by @zedzior
