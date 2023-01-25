@@ -197,7 +197,13 @@ def graphql_log_handler():
 
 @pytest.fixture
 def superuser():
-    superuser = User.objects.create_superuser("superuser@example.com", "pass")
+    superuser = User.objects.create_user(
+        "superuser@example.com",
+        "pass",
+        is_staff=True,
+        is_active=True,
+        is_superuser=True,
+    )
     return superuser
 
 
