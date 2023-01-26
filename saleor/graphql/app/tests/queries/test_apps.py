@@ -2,7 +2,6 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
-from .....app.installation_utils import PENDING_APP_INSTALLATION
 from .....app.models import App
 from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app
@@ -216,13 +215,10 @@ query {
 """
 
 
-def test_apps_query_pending_installation(
-    staff_api_client, permission_manage_users, permission_manage_staff, app
-):
+def test_apps_query_pending_installation(staff_api_client, app):
     # given
-    app.type = AppType.THIRDPARTY
-    app.store_value_in_metadata({PENDING_APP_INSTALLATION: True})
-    app.save()
+    app.is_installed = False
+    app.save(update_fields=["is_installed"])
 
     # when
     response = staff_api_client.post_graphql(QUERY_APPS)

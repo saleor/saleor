@@ -17,7 +17,8 @@ def install_app_task(job_id, activate=False):
     try:
         app, _ = install_app(app_installation, activate=activate)
         app_installation.delete()
-        app.delete_value_from_private_metadata("pending_installation")
+        app.is_installed = True
+        app.save(update_fields=["is_installed"])
         return
     except ValidationError as e:
         msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])
