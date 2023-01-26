@@ -10,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11816 by @d-wysocki
+
 # 3.11.0
 
 ### Highlights
