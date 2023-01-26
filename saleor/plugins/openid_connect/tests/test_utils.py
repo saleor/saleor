@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 import pytz
 import requests
+from authlib.jose import JWTClaims
 from django.core.exceptions import ValidationError
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
@@ -32,6 +33,7 @@ from ..utils import (
     get_or_create_user_from_payload,
     get_saleor_permission_names,
     get_saleor_permissions_qs_from_scope,
+    get_user_from_oauth_access_token_in_jwt_format,
     get_user_from_token,
     get_user_info,
     validate_refresh_token,
@@ -331,3 +333,27 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
     )
     assert user_from_payload.email == customer_user.email
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+
+
+def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        lambda *args, **kwargs: {
+            "email": "test@example.org",
+            "sub": token_payload["sub"],
+            "scope": token_payload["scope"],
+        },
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(
+        decoded_access_token,
+        {},
+    )
+    user = get_user_from_oauth_access_token_in_jwt_format(
+        token_payload,
+        "https://example.com",
+        access_token="fake-token",
+        use_scope_permissions=False,
+        audience="",
+    )
+    assert user.email == "test@example.org"
