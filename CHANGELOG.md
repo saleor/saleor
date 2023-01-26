@@ -2,30 +2,43 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.11.0 [Unreleased]
+# 3.12.0 [Unreleased]
 
 ### Breaking changes
 
-### Preview
-- Add new error handling policies in `ProductVariantBulkCreate`- #11392 by @SzymJ
-- Add `ProductVariantBulkUpdate` mutation - #11392 by @SzymJ
+### GraphQL API
+
+### Other changes
+
+# 3.11.0
+
+### Highlights
+
+Just so you know, changes mentioned in this section are in a preview state and can be subject to changes in the future.
+
+- Bulk mutations for creating and updating multiple product variants in one mutation call - #11392 by @SzymJ
+- Ability to run subscription webhooks in a dry-run mode - #11548 by @zedzior
+- Preview of new `where` filtering API which allows joining multiple filters with `AND`/`OR` operators; currently available only in the `attributes` query - #11737 by @IKarbowiak
 
 ### GraphQL API
 
-- Add `webhookDryRun` mutation - #11548 by @zedzior
-- Fix adding invalid label to meta fields - #11718 by @IKarbowiak
+- [Preview] Add `productVariantBulkUpdate` mutation - #11392 by @SzymJ
+- [Preview] Add new error handling policies in `productVariantBulkCreate` mutation - #11392 by @SzymJ
+- [Preview] Add `webhookDryRun` mutation - #11548 by @zedzior
+- [Preview] Add `webhookTrigger` mutation - #11687 by @zedzior
+- Fix adding an invalid label to meta fields - #11718 by @IKarbowiak
 - Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
-- Add `WebhookTrigger` mutation - #11687 by @zedzior
-- Attribute filters improvement - #11737 by @IKarbowiak
+- [Preview] Attribute filters improvement - #11737 by @IKarbowiak
   - introduce `where` option on `attributes` query
   - add `search` option on `attributes` query
   - deprecate `product.variant` field
   - deprecate the following `Attribute` fields: `filterableInStorefront`, `storefrontSearchPosition`, `availableInGrid`.
 
 ### Other changes
+
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
-- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event  - #11665 by @jakubkuc
-- Disable websocket support by default in uvicorn worker configuration - #11785 by @NyanKiyoshi
+- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
+- Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
 
 # 3.10.0 [Unreleased]
 
