@@ -30,7 +30,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `Django.Auth` - #11305 by @fowczarek
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
 - Accept the gift card code provided in the input - by @mociepka
-- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11816 by @d-wysocki
 
 # 3.9.0
 
