@@ -482,9 +482,9 @@ def approve_fulfillment(
         update_order_status(order)
 
         call_event(manager.order_updated, order)
+        call_event(manager.fulfillment_approved, fulfillment)
         if order.status == OrderStatus.FULFILLED:
             call_event(manager.order_fulfilled, order)
-            transaction.on_commit(lambda f=fulfillment: manager.fulfillment_approved(f))
 
         if gift_card_lines_info:
             gift_cards_create(
