@@ -167,7 +167,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     user_info = get_user_info_from_cache_or_fetch(
         user_info_url,
         access_token,
-        token_payload["exp"],
+        token_payload.get("exp"),
     )
     if not user_info:
         logger.info(
