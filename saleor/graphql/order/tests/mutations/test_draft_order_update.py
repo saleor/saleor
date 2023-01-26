@@ -1,5 +1,8 @@
 import graphene
+from prices import TaxedMoney
 
+from .....core.prices import quantize_price
+from .....core.taxes import zero_money
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
@@ -489,3 +492,114 @@ def test_draft_order_update_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == OrderErrorCode.UNIQUE.name
     assert error["message"] == "Order with this External reference already exists."
+
+
+DRAFT_ORDER_UPDATE_MUTATION_SHIPPING_METHOD = """
+    mutation draftUpdate($id: ID!, $shippingMethod: ID){
+        draftOrderUpdate(
+            id: $id,
+            input: {
+                shippingMethod: $shippingMethod
+            }) {
+            errors {
+                field
+                message
+                code
+            }
+            order {
+                shippingMethodName
+                shippingPrice {
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
+                }
+                userEmail
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_update_shipping_method(
+    staff_api_client, permission_manage_orders, draft_order, shipping_method
+):
+    # given
+    order = draft_order
+    order.shipping_method = None
+    order.base_shipping_price = zero_money(order.currency)
+    order.save()
+
+    query = DRAFT_ORDER_UPDATE_MUTATION_SHIPPING_METHOD
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "id": order_id,
+        "shippingMethod": method_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order.refresh_from_db()
+
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["shippingMethodName"] == shipping_method.name
+    assert data["order"]["shippingPrice"]["net"]["amount"] == quantize_price(
+        shipping_price.net.amount, shipping_price.currency
+    )
+    assert data["order"]["shippingPrice"]["gross"]["amount"] == quantize_price(
+        shipping_price.gross.amount, shipping_price.currency
+    )
+
+    assert order.base_shipping_price == shipping_total
+    assert order.shipping_method == shipping_method
+    assert order.base_shipping_price == shipping_total
+    assert order.shipping_price_net == shipping_price.net
+    assert order.shipping_price_gross == shipping_price.gross
+
+
+def test_draft_order_update_no_shipping_method_channel_listings(
+    staff_api_client, permission_manage_orders, draft_order, shipping_method
+):
+    # given
+    order = draft_order
+    order.shipping_method = None
+    order.base_shipping_price = zero_money(order.currency)
+    order.save()
+
+    shipping_method.channel_listings.all().delete()
+
+    query = DRAFT_ORDER_UPDATE_MUTATION_SHIPPING_METHOD
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "id": order_id,
+        "shippingMethod": method_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert errors[0]["field"] == "shippingMethod"

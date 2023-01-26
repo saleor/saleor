@@ -7,7 +7,7 @@ from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....checkout import AddressType
-from ....core.taxes import TaxError
+from ....core.taxes import TaxError, zero_money
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....order import OrderOrigin, OrderStatus, events, models
@@ -20,6 +20,8 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
+from ....shipping import models as shipping_models
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
@@ -35,6 +37,7 @@ from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
 from ..utils import (
     OrderLineData,
+    get_shipping_method_availability_error,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
@@ -309,7 +312,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def _commit_changes(
         cls, info: ResolveInfo, instance, cleaned_input, is_new_instance, app
     ):
-        if shipping_method := cleaned_input.get("shipping_method"):
+        if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
             tax_class = shipping_method.tax_class
             if tax_class:
@@ -324,6 +327,57 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             events.draft_order_created_event(
                 order=instance, user=info.context.user, app=app
             )
+
+    @classmethod
+    def _update_shipping_price(
+        cls,
+        info: ResolveInfo,
+        instance: models.Order,
+        cleaned_input,
+        shipping_channel_listing,
+    ) -> bool:
+        if shipping_address := cleaned_input.get("shipping_address"):
+            instance.shipping_address = shipping_address
+        if (
+            instance.shipping_method
+            and instance.shipping_address
+            and instance.is_shipping_required()
+        ):
+            shipping_method_data = convert_to_shipping_method_data(
+                instance.shipping_method,
+                shipping_channel_listing,
+            )
+            manager = get_plugin_manager_promise(info.context).get()
+            error = get_shipping_method_availability_error(
+                instance, shipping_method_data, manager
+            )
+            if error:
+                raise ValidationError({"shipping_method": error})
+            instance.base_shipping_price = shipping_channel_listing.price
+            return True
+        else:
+            instance.base_shipping_price = zero_money(instance.currency)
+            return False
+
+    @classmethod
+    def _get_shipping_channel_listing(cls, instance, cleaned_input):
+        if shipping_method := cleaned_input["shipping_method"]:
+            shipping_channel_listing = (
+                shipping_models.ShippingMethodChannelListing.objects.filter(
+                    shipping_method=shipping_method, channel=instance.channel
+                ).first()
+            )
+            if not shipping_channel_listing:
+                raise ValidationError(
+                    {
+                        "shipping_method": ValidationError(
+                            "Shipping method not available in the given channel.",
+                            code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                        )
+                    }
+                )
+            return shipping_channel_listing
+        return None
 
     @classmethod
     def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
@@ -355,6 +409,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         manager
     ):
         with traced_atomic_transaction():
+            shipping_channel_listing = cls._get_shipping_channel_listing(
+                instance, cleaned_input
+            )
+
             # Process addresses
             cls._save_addresses(instance, cleaned_input)
 
@@ -390,6 +448,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
                 updated_fields.append("should_refresh_prices")
+
+                if cls._update_shipping_price(
+                    info, instance, cleaned_input, shipping_channel_listing
+                ):
+                    updated_fields.append("base_shipping_price_amount")
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
 
