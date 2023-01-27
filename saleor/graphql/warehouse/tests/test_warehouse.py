@@ -1063,6 +1063,42 @@ def test_mutation_update_warehouse_can_update_address(
     assert address.street_address_2 == "Ground floor"
 
 
+def test_mutation_update_warehouse_to_country_with_different_validation_rules(
+    staff_api_client, warehouse, permission_manage_products, address_usa
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    warehouse.address = address_usa
+    warehouse.save(update_fields=["address"])
+    address_id = graphene.Node.to_global_id("Address", warehouse.address.pk)
+    variables = {
+        "id": warehouse_id,
+        "input": {
+            "name": warehouse.name,
+            "address": {
+                "streetAddress1": "Fake street",
+                "city": "London",
+                "country": "GB",
+                "postalCode": "B52 1AA",
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    content_address = content["data"]["updateWarehouse"]["warehouse"]["address"]
+
+    # then
+    assert len(content["data"]["updateWarehouse"]["errors"]) == 0
+    assert content_address["streetAddress1"] == "Fake street"
+    assert content_address["id"] == address_id
+
+
 @pytest.mark.parametrize(
     "input_slug, expected_slug, error_message",
     [
