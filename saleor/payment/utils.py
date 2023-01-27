@@ -44,6 +44,7 @@ from .interface import (
     TransactionRequestResponse,
 )
 from .models import Payment, Transaction, TransactionEvent
+from .transaction_item_calculations import recalculate_transaction_amounts
 
 logger = logging.getLogger(__name__)
 
@@ -818,8 +819,9 @@ def create_transaction_event_from_request_and_webhook_response(
     psp_reference = transaction_request_response.psp_reference
     request_event.psp_reference = psp_reference
     request_event.save()
+    event = None
     if response_event := transaction_request_response.event:
-        return TransactionEvent.objects.create(
+        event = TransactionEvent.objects.create(
             psp_reference=response_event.psp_reference,
             created_at=response_event.time or timezone.now(),
             type=response_event.type,  # type:ignore
@@ -829,3 +831,5 @@ def create_transaction_event_from_request_and_webhook_response(
             transaction_id=request_event.transaction_id,
             message=response_event.message,
         )
+    recalculate_transaction_amounts(request_event.transaction)
+    return event

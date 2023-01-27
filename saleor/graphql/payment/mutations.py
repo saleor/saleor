@@ -47,6 +47,7 @@ from ...payment.gateway import (
     request_charge_action,
     request_refund_action,
 )
+from ...payment.transaction_item_calculations import recalculate_transaction_amounts
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
@@ -1397,9 +1398,11 @@ class TransactionEventReport(ModelMutation):
             else:
                 already_processed = False
                 transaction_event.save()
-        if not already_processed and available_actions is not None:
-            transaction.available_actions = available_actions
-            transaction.save(update_fields=["available_actions"])
+        if not already_processed:
+            if available_actions is not None:
+                transaction.available_actions = available_actions
+                transaction.save(update_fields=["available_actions"])
+            recalculate_transaction_amounts(transaction)
 
         return cls(
             already_processed=already_processed,

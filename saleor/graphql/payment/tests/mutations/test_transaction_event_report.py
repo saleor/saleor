@@ -1,8 +1,10 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.utils import timezone
 
 from .....payment.models import TransactionEvent
+from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -17,7 +19,7 @@ fragment TransactionEventData on TransactionEventReport {
         id
         actions
         events {
-        id
+            id
         }
     }
     transactionEvent {
@@ -471,3 +473,69 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
     assert error["field"] == "pspReference"
 
     assert TransactionEvent.objects.count() == 1
+
+
+@patch(
+    "saleor.graphql.payment.mutations.recalculate_transaction_amounts",
+    wraps=recalculate_transaction_amounts,
+)
+def test_transaction_event_report_calls_amount_recalculations(
+    mocked_recalculation,
+    transaction_item_created_by_app,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    mocked_recalculation.assert_called_once_with(transaction_item_created_by_app)
+    transaction_item_created_by_app.refresh_from_db()
+    assert transaction_item_created_by_app.charged_value == amount
