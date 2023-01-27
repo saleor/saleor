@@ -15,4 +15,8 @@ class Migration(migrations.Migration):
             name="is_installed",
             field=models.BooleanField(default=True),
         ),
+        migrations.RunSQL(
+            "ALTER TABLE app_app ALTER COLUMN is_installed SET DEFAULT true;",
+            migrations.RunSQL.noop,
+        ),
     ]
