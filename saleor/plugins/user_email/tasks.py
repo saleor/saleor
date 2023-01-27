@@ -77,8 +77,8 @@ def send_user_change_email_notification_task(
         template_str=template,
     )
     event_parameters = {
-        "old_email": payload["old_email"],
-        "new_email": payload["new_email"],
+        "old_email": payload.get("old_email"),
+        "new_email": payload.get("new_email"),
     }
 
     account_events.customer_email_changed_event(
