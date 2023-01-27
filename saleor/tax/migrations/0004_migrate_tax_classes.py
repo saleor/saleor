@@ -47,7 +47,7 @@ def _populate_tax_class_name_and_metadata(obj):
         name = avatax_description or avatax_code
         metadata = {
             AVATAX_CODE_META_KEY: avatax_code,
-            AVATAX_DESCRIPTION_META_KEY: avatax_description,
+            AVATAX_DESCRIPTION_META_KEY: avatax_description or "",
         }
     elif vatlayer_code:
         name = vatlayer_code
