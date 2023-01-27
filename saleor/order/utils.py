@@ -3,6 +3,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
+from django.db.models import QuerySet
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -56,6 +57,7 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
+    from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
 
@@ -886,17 +888,33 @@ def update_order_charge_status(order: Order):
         order.charge_status = OrderChargeStatus.OVERCHARGED
 
 
-def _update_order_total_charged(order: Order):
+def _update_order_total_charged(
+    order: Order,
+    order_payments: QuerySet["Payment"],
+    order_transactions: QuerySet["TransactionItem"],
+):
     order.total_charged_amount = (
-        sum(order.payments.values_list("captured_amount", flat=True)) or 0
+        sum(order_payments.values_list("captured_amount", flat=True)) or 0
     )
     order.total_charged_amount += sum(
-        order.payment_transactions.values_list("charged_value", flat=True)
+        order_transactions.values_list("charged_value", flat=True)
     )
 
 
-def update_order_charge_data(order: Order, with_save=True):
-    _update_order_total_charged(order)
+def update_order_charge_data(
+    order: Order,
+    order_payments: Optional[QuerySet["Payment"]] = None,
+    order_transactions: Optional[QuerySet["TransactionItem"]] = None,
+    with_save=True,
+):
+    if order_payments is None:
+        order_payments = order.payments.all()
+    if order_transactions is None:
+        order_transactions = order.payment_transactions.all()
+
+    _update_order_total_charged(
+        order, order_payments=order_payments, order_transactions=order_transactions
+    )
     update_order_charge_status(order)
     if with_save:
         order.save(
@@ -904,31 +922,32 @@ def update_order_charge_data(order: Order, with_save=True):
         )
 
 
-def _update_order_total_authorized(order: Order):
+def _update_order_total_authorized(
+    order: Order,
+    order_payments: QuerySet["Payment"],
+    order_transactions: QuerySet["TransactionItem"],
+):
     order.total_authorized_amount = get_total_authorized(
-        order.payments.all(), order.currency
+        order_payments, order.currency
     ).amount
     order.total_authorized_amount += (
-        sum(order.payment_transactions.values_list("authorized_value", flat=True)) or 0
+        sum(order_transactions.values_list("authorized_value", flat=True)) or 0
     )
 
 
 def update_order_authorize_status(order: Order):
     """Update the current authorize status for the order.
 
-    We treat the order as fully authorized when the sum of authorized and charged funds
-    cover the order.total.
-    We treat the order as partially authorized when the sum of authorized and charged
-    funds covers only part of the order.total
-    We treat the order as not authorized when the sum of authorized and charged funds is
-    0.
+    The order is fully authorized when total_authorized or total_charged funds
+    cover the order.total
+    The order is partially authorized when total_authorized or total_charged
+    funds cover only part of the order.total
+    The order is not authorized when total_authorized and total_charged funds are 0.
     """
-    total_covered = (
-        order.total_authorized_amount + order.total_charged_amount or Decimal("0")
-    )
-    total_covered = quantize_price(total_covered, order.currency)
+    total_covered = order.total_authorized_amount or Decimal("0")
+    if order.total_charged_amount and total_covered > order.total_charged_amount:
+        total_covered = order.total_charged_amount
     total_gross = order.total_gross_amount or Decimal("0")
-    total_gross = quantize_price(total_gross, order.currency)
 
     if total_covered == 0:
         order.authorize_status = OrderAuthorizeStatus.NONE
@@ -938,13 +957,50 @@ def update_order_authorize_status(order: Order):
         order.authorize_status = OrderAuthorizeStatus.PARTIAL
 
 
-def update_order_authorize_data(order: Order, with_save=True):
-    _update_order_total_authorized(order)
+def update_order_authorize_data(
+    order: Order,
+    order_payments: Optional[QuerySet["Payment"]] = None,
+    order_transactions: Optional[QuerySet["TransactionItem"]] = None,
+    with_save=True,
+):
+    if order_payments is None:
+        order_payments = order.payments.all()
+    if order_transactions is None:
+        order_transactions = order.payment_transactions.all()
+    _update_order_total_authorized(
+        order, order_payments=order_payments, order_transactions=order_transactions
+    )
     update_order_authorize_status(order)
     if with_save:
         order.save(
             update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
         )
+
+
+def updates_amounts_for_order(order: Order):
+    order_payments = order.payments.all()
+    order_transactions = order.payment_transactions.all()
+    update_order_charge_data(
+        order=order,
+        order_payments=order_payments,
+        order_transactions=order_transactions,
+        with_save=False,
+    )
+    update_order_authorize_data(
+        order=order,
+        order_payments=order_payments,
+        order_transactions=order_transactions,
+        with_save=False,
+    )
+    order.save(
+        update_fields=[
+            "total_charged_amount",
+            "charge_status",
+            "updated_at",
+            "total_authorized_amount",
+            "authorize_status",
+        ]
+    )
 
 
 def update_order_display_gross_prices(order: "Order"):

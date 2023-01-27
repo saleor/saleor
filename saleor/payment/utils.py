@@ -19,7 +19,11 @@ from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
 from ..order.models import Order
-from ..order.utils import update_order_authorize_data, update_order_charge_data
+from ..order.utils import (
+    update_order_authorize_data,
+    update_order_charge_data,
+    updates_amounts_for_order,
+)
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -831,5 +835,9 @@ def create_transaction_event_from_request_and_webhook_response(
             transaction_id=request_event.transaction_id,
             message=response_event.message,
         )
-    recalculate_transaction_amounts(request_event.transaction)
+    transaction = request_event.transaction
+    recalculate_transaction_amounts(transaction)
+    if transaction.order_id:
+        order = cast(Order, transaction.order)
+        updates_amounts_for_order(order)
     return event

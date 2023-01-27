@@ -7,6 +7,7 @@ from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.utils import to_global_id_or_none
+from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 
@@ -539,3 +540,117 @@ def test_transaction_event_report_calls_amount_recalculations(
     mocked_recalculation.assert_called_once_with(transaction_item_created_by_app)
     transaction_item_created_by_app.refresh_from_db()
     assert transaction_item_created_by_app.charged_value == amount
+
+
+def test_transaction_event_updates_order_total_charged(
+    transaction_item_created_by_app,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    current_charged_value = Decimal("20")
+    transaction_item_created_by_app.order = order
+    transaction_item_created_by_app.save()
+    order.payment_transactions.create(
+        charged_value=current_charged_value, currency="USD"
+    )
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order = transaction_item_created_by_app.order
+    order.refresh_from_db()
+
+    assert order.total_charged.amount == current_charged_value + amount
+    assert order.charge_status == OrderChargeStatusEnum.PARTIAL.value
+
+
+def test_transaction_event_updates_order_total_authorized(
+    transaction_item_created_by_app,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    transaction_item_created_by_app.order = order
+    transaction_item_created_by_app.save()
+    current_authorized_value = order.total.gross.amount
+    order.payment_transactions.create(
+        authorized_value=current_authorized_value, currency="USD"
+    )
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.AUTHORIZATION_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order = transaction_item_created_by_app.order
+    order.refresh_from_db()
+
+    assert order.total_authorized.amount == current_authorized_value + amount
+    assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value

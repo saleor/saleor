@@ -394,13 +394,16 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
+    transaction.authorized_value = Decimal("10")
+    transaction.order_id = order_with_lines.pk
+    transaction.save()
     previously_authorized_value = Decimal("90")
     old_transaction = order_with_lines.payment_transactions.create(
         authorized_value=previously_authorized_value, currency=order_with_lines.currency
     )
-    update_order_authorize_data(
-        order_with_lines,
-    )
+
+    update_order_authorize_data(order_with_lines)
+
     assert (
         order_with_lines.total_authorized_amount
         == previously_authorized_value + transaction.authorized_value
