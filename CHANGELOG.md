@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `PRODUCT_MEDIA_DELETED`
   - `THUMBNAIL_CREATED`
 - CORS is now handled in the ASGI layer - #11415 by @patrys
+- Added native support for gzip compression - #11833 by @patrys
 
 # 3.11.0
 
