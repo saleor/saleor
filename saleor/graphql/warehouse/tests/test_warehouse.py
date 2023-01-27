@@ -1063,7 +1063,7 @@ def test_mutation_update_warehouse_can_update_address(
     assert address.street_address_2 == "Ground floor"
 
 
-def test_mutation_update_warehouse_to_country_with_different_validation_rulse(
+def test_mutation_update_warehouse_to_country_with_different_validation_rules(
     staff_api_client, warehouse, permission_manage_products, address_usa
 ):
     # given
