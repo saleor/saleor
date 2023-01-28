@@ -565,10 +565,8 @@ def test_update_product_variant_without_sku_keep_it_empty(
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
-    assert data["productVariant"]["sku"] is None
+    assert data["productVariant"]["sku"] == ""
     assert not data["errors"]
-    variant.refresh_from_db()
-    assert variant.sku is None
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")

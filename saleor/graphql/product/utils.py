@@ -117,8 +117,8 @@ def get_draft_order_lines_data_for_variants(
 
 def clean_variant_sku(sku: Optional[str]) -> Optional[str]:
     if sku:
-        return sku.strip() or None
-    return None
+        return sku.strip() or ""
+    return ""
 
 
 def update_ordered_media(ordered_media):

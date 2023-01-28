@@ -18,6 +18,7 @@ from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ...types import ProductVariant
 from ...utils import get_used_attribute_values_for_variant
+from ...utils import clean_variant_sku
 from .product_variant_create import ProductVariantCreate, ProductVariantInput
 
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
@@ -48,6 +49,20 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         errors_mapping = {"price_amount": "price"}
         support_meta_field = True
         support_private_meta_field = True
+
+    @classmethod
+    def clean_input(
+        cls,
+        info: ResolveInfo,
+        instance: models.ProductVariant,
+        data: dict,
+        **kwargs,
+    ):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+
+        return cleaned_input
 
     @classmethod
     def clean_attributes(
