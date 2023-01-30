@@ -183,11 +183,18 @@ class ProductVariantBulkCreate(BaseMutation):
                     )
                     cleaned_input["attributes"] = cleaned_attributes
                 except ValidationError as exc:
-                    index_error_map[variant_index].append(
-                        ProductVariantBulkError(
-                            field="attributes", message=exc.message, code=exc.code
+                    for error in exc.error_list:
+                        attributes = (
+                            error.params.get("attributes") if error.params else None
                         )
-                    )
+                        index_error_map[variant_index].append(
+                            ProductVariantBulkError(
+                                field="attributes",
+                                message=error.message,
+                                code=error.code,
+                                attributes=attributes,
+                            )
+                        )
                     if errors is not None:
                         exc.params = {"index": variant_index}
                         errors["attributes"].append(exc)
