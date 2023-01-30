@@ -74,7 +74,9 @@ def get_payment(
         logger.warning("Missing payment ID. Reference %s", transaction_id)
         return None
     try:
-        _type, db_payment_id = from_global_id_or_error(payment_id)
+        _type, db_payment_id = from_global_id_or_error(
+            payment_id, only_type="Payment", raise_error=True
+        )
     except (UnicodeDecodeError, binascii.Error, GraphQLError):
         logger.warning(
             "Unable to decode the payment ID %s. Reference %s",
