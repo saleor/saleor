@@ -10,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Add `metadata` fields to `Thumbnail` model - #11865 by @zedzior
+
 # 3.11.0
 
 ### Highlights
