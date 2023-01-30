@@ -5,9 +5,9 @@ from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
-from ..core.permissions import PagePermissions, PageTypePermissions
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
+from ..permission.enums import PagePermissions, PageTypePermissions
 from ..seo.models import SeoModel, SeoModelTranslation
 
 if TYPE_CHECKING:

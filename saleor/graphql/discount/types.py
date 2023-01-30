@@ -1,8 +1,8 @@
 import graphene
 from graphene import relay
 
-from ...core.permissions import DiscountPermissions, OrderPermissions
 from ...discount import models
+from ...permission.enums import DiscountPermissions, OrderPermissions
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (

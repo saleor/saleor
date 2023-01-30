@@ -10,7 +10,7 @@ from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
-from ...bulk_mutations.products import ProductVariantStocksUpdate
+from ...bulk_mutations import ProductVariantStocksUpdate
 from ...utils import create_stocks
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
@@ -323,11 +323,13 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     product_variant_stock_out_of_stock_webhook.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     product_variant_stock_out_of_stock_webhook,
     product_variant_back_in_stock_webhook,
+    product_variant_stock_update_webhook,
     settings,
     variant,
     warehouses,
@@ -358,13 +360,84 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     product_variant_stock_out_of_stock_webhook.assert_called_once_with(
         Stock.objects.all()[1]
     )
+    assert product_variant_stock_update_webhook.call_count == 1
+    product_variant_stock_update_webhook.assert_called_with(Stock.objects.all()[1])
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouse,
+):
+    stock_quantity = 4
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=stock_quantity
+    )
+
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    plugins = get_plugins_manager()
+    stock.quantity_allocated = stock_quantity
+    stock.save(update_fields=["quantity_allocated"])
+    stocks_data = [
+        {"quantity": stock.quantity_allocated + 1},
+    ]
+
+    # when
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, [warehouse], plugins
+    )
+    # then
+    flush_post_commit_hooks()
+    product_variant_back_in_stock_webhook.assert_called_once_with(stock)
+    product_variant_stock_out_of_stock_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouse,
+):
+    stock_quantity = 4
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=stock_quantity
+    )
+
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    plugins = get_plugins_manager()
+    stock.quantity_allocated = stock_quantity - 1
+    stock.save(update_fields=["quantity_allocated"])
+    stocks_data = [
+        {"quantity": stock.quantity_allocated},
+    ]
+
+    # when
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, [warehouse], plugins
+    )
+    # then
+    flush_post_commit_hooks()
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(stock)
+    product_variant_back_in_stock_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     product_variant_stock_out_of_stock_webhook,
     product_variant_back_in_stock_webhook,
+    product_variant_stock_update_webhook,
     settings,
     variant,
     warehouses,
@@ -399,6 +472,8 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     product_variant_stock_out_of_stock_webhook.assert_called_once_with(
         Stock.objects.last()
     )
+    assert product_variant_stock_update_webhook.call_count == 2
+    product_variant_stock_update_webhook.assert_called_with(Stock.objects.last())
     product_variant_back_in_stock_webhook.assert_not_called()
 
 

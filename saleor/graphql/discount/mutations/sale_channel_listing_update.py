@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import SaleChannelListing
+from ....permission.enums import DiscountPermissions
 from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation

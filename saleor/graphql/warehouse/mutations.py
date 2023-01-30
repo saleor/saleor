@@ -5,8 +5,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...channel import models as channel_models
-from ...core.permissions import ProductPermissions
 from ...core.tracing import traced_atomic_transaction
+from ...permission.enums import ProductPermissions
 from ...warehouse import WarehouseClickAndCollectOption, models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count

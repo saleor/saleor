@@ -4,9 +4,9 @@ from django.db import transaction
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
-from ...core.permissions import PagePermissions, PageTypePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...page import models
+from ...permission.enums import PagePermissions, PageTypePermissions
 from ..core import ResolveInfo
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import NonNullList, PageError

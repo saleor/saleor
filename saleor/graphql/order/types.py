@@ -13,15 +13,6 @@ from ...account.models import Address
 from ...account.models import User as UserModel
 from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
-from ...core.permissions import (
-    AccountPermissions,
-    AppPermission,
-    AuthorizationFilters,
-    OrderPermissions,
-    PaymentPermissions,
-    ProductPermissions,
-    has_one_of_permissions,
-)
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import OrderDiscountType
@@ -38,6 +29,15 @@ from ...order.utils import (
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import get_last_payment, get_total_authorized
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    OrderPermissions,
+    PaymentPermissions,
+    ProductPermissions,
+)
+from ...permission.utils import has_one_of_permissions
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
@@ -61,9 +61,11 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
     ADDED_IN_38,
     ADDED_IN_39,
     ADDED_IN_310,
+    ADDED_IN_311,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -683,6 +685,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         description = "Represents order line of particular order."
         model = models.OrderLine
         interfaces = [relay.Node, ObjectWithMetadata]
+        metadata_since = ADDED_IN_35
 
     @staticmethod
     @traced_resolver
@@ -1190,6 +1193,12 @@ class Order(ModelObjectType[models.Order]):
     )
     external_reference = graphene.String(
         description=f"External ID of this order. {ADDED_IN_310}", required=False
+    )
+    checkout_id = graphene.ID(
+        description=(
+            f"ID of the checkout that the order was created from. {ADDED_IN_311}"
+        ),
+        required=False,
     )
 
     granted_refunds = PermissionsField(
@@ -2068,6 +2077,12 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_tax_class_private_metadata(root: models.Order, info):
         check_private_metadata_privilege(root, info)
         return resolve_metadata(root.shipping_tax_class_private_metadata)
+
+    @staticmethod
+    def resolve_checkout_id(root: models.Order, _info):
+        if root.checkout_token:
+            return graphene.Node.to_global_id("Checkout", root.checkout_token)
+        return None
 
 
 class OrderCountableConnection(CountableConnection):

@@ -3,8 +3,8 @@ from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
-from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
+from ...permission.enums import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...site import GiftCardSettingsExpiryType
 from ...site.error_codes import GiftCardSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT

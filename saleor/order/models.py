@@ -19,7 +19,6 @@ from measurement.measures import Weight
 from ..app.models import App
 from ..channel.models import Channel
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
-from ..core.permissions import OrderPermissions
 from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import zero_weight
@@ -29,6 +28,7 @@ from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
+from ..permission.enums import OrderPermissions
 from ..shipping.models import ShippingMethod
 from . import (
     FulfillmentStatus,

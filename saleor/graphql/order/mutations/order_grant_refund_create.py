@@ -1,6 +1,6 @@
 import graphene
 
-from ....core.permissions import OrderPermissions
+from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal

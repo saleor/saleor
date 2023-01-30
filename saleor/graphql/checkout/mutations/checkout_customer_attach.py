@@ -3,7 +3,8 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, AuthorizationFilters
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import AccountPermissions
 from ...account.types import User
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT

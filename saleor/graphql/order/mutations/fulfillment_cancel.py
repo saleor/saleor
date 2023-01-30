@@ -4,11 +4,11 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
-from ....core.permissions import OrderPermissions
 from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
 from ....order.actions import cancel_fulfillment, cancel_waiting_fulfillment
 from ....order.error_codes import OrderErrorCode
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation

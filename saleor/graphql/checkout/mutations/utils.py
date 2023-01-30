@@ -30,7 +30,7 @@ from ....checkout.utils import (
     is_shipping_required,
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
-from ....core.permissions import CheckoutPermissions
+from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import interface as shipping_interface

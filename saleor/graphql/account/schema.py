@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import AccountPermissions, OrderPermissions
+from ...permission.enums import AccountPermissions, OrderPermissions
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset

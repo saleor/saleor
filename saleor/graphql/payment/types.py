@@ -2,8 +2,8 @@ import graphene
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import OrderPermissions
 from ...payment import models
+from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
 from ..app.dataloaders import AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader

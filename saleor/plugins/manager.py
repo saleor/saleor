@@ -649,6 +649,12 @@ class PluginsManager(PaymentInterface):
             "product_variant_back_in_stock", default_value, stock
         )
 
+    def product_variant_stock_updated(self, stock: "Stock"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_stock_updated", default_value, stock
+        )
+
     def product_variant_metadata_updated(self, product_variant: "ProductVariant"):
         default_value = None
         self.__run_method_on_plugins(

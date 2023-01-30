@@ -7,12 +7,12 @@ from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_unit_price,
 )
 from ...checkout.utils import get_valid_collection_points_for_checkout
-from ...core.permissions import (
+from ...core.taxes import zero_taxed_money
+from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
     PaymentPermissions,
 )
-from ...core.taxes import zero_taxed_money
 from ...shipping.interface import ShippingMethodData
 from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
@@ -27,6 +27,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
     ADDED_IN_38,
     ADDED_IN_39,
     DEPRECATED_IN_3X_FIELD,
@@ -136,6 +137,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         description = "Represents an item in the checkout."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.CheckoutLine
+        metadata_since = ADDED_IN_35
 
     @staticmethod
     def resolve_variant(root: models.CheckoutLine, info: ResolveInfo):

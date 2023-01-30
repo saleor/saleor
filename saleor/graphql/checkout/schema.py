@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import CheckoutPermissions
+from ...permission.enums import CheckoutPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (

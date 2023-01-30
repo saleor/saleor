@@ -2,8 +2,8 @@ from django.db import models
 from django.db.models import JSONField
 
 from ..channel.models import Channel
-from ..core.permissions import PluginsPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..permission.enums import PluginsPermissions
 
 
 class PluginConfiguration(models.Model):

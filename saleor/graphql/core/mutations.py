@@ -34,13 +34,13 @@ from graphql.error import GraphQLError
 
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AuthorizationFilters,
+from ...core.utils.events import call_event
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import BasePermissionEnum
+from ...permission.utils import (
     message_one_of_permissions_required,
     one_of_permissions_or_auth_filter_required,
 )
-from ...core.permissions.enums import BasePermissionEnum
-from ...core.utils.events import call_event
 from ..core import ResolveInfo
 from ..core.utils import ext_ref_to_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_mutation

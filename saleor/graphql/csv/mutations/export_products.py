@@ -1,9 +1,9 @@
 import graphene
 
-from ....core.permissions import ProductPermissions
 from ....csv import models as csv_models
 from ....csv.events import export_started_event
 from ....csv.tasks import export_products_task
+from ....permission.enums import ProductPermissions
 from ...app.dataloaders import get_app_promise
 from ...attribute.types import Attribute
 from ...channel.types import Channel

@@ -32,6 +32,7 @@ from ..enums import (
     PermissionGroupErrorCode,
     PluginErrorCode,
     ProductErrorCode,
+    ProductVariantBulkErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
@@ -46,18 +47,19 @@ from ..enums import (
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
+    WebhookTriggerErrorCode,
     WeightUnitsEnum,
 )
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
 from .money import VAT
+from .upload import Upload
 
 if TYPE_CHECKING:
     from .. import ResolveInfo
 
 # deprecated - this is temporary constant that contains the graphql types
 # which has double id available - uuid and old int id
-
 TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine", "OrderDiscount", "CheckoutLine"]
 
 
@@ -318,6 +320,30 @@ class BulkProductError(ProductError):
     )
 
 
+class ProductVariantBulkError(Error):
+    code = ProductVariantBulkErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
+    values = NonNullList(
+        graphene.ID,
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
+    warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channel IDs which causes the error.",
+        required=False,
+    )
+
+
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
 
@@ -419,6 +445,10 @@ class WebhookError(Error):
 
 class WebhookDryRunError(Error):
     code = WebhookDryRunErrorCode(description="The error code.", required=True)
+
+
+class WebhookTriggerError(Error):
+    code = WebhookTriggerErrorCode(description="The error code.", required=True)
 
 
 class TranslationError(Error):
@@ -546,3 +576,13 @@ class ThumbnailField(graphene.Field):
         kwargs["size"] = self.size
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
+
+
+class MediaInput(graphene.InputObjectType):
+    alt = graphene.String(description="Alt text for a product media.")
+    image = Upload(
+        required=False, description="Represents an image file in a multipart request."
+    )
+    media_url = graphene.String(
+        required=False, description="Represents an URL to an external media."
+    )

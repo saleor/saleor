@@ -1,11 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_money, zero_taxed_money
 from ....order import models
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
+from ....permission.enums import OrderPermissions
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ...core import ResolveInfo

@@ -1,9 +1,9 @@
 from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
-from ...core.permissions import has_one_of_permissions
 from ...order import OrderStatus
 from ...order.models import Order
+from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelQsContext

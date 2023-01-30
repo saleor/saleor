@@ -7,13 +7,13 @@ from django.conf import settings
 
 from ..account.models import User
 from ..app.models import App, AppExtension
-from ..permission.models import Permission
-from .jwt_manager import get_jwt_manager
-from .permissions import (
+from ..permission.enums import (
     get_permission_names,
     get_permissions_from_codenames,
     get_permissions_from_names,
 )
+from ..permission.models import Permission
+from .jwt_manager import get_jwt_manager
 
 JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"

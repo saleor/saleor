@@ -4,7 +4,7 @@ import graphene
 from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, models
-from ...core.permissions import (
+from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
@@ -198,6 +198,7 @@ class Attribute(ModelObjectType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     filterable_in_dashboard = graphene.Boolean(
         description=(
@@ -218,6 +219,7 @@ class Attribute(ModelObjectType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     storefront_search_position = graphene.Int(
         description=(
@@ -228,6 +230,7 @@ class Attribute(ModelObjectType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     translation = TranslationField(AttributeTranslation, type_name="attribute")
     with_choices = graphene.Boolean(
@@ -414,6 +417,10 @@ class AttributeValueInput(graphene.InputObjectType):
         ),
     )
     dropdown = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_39,
+    )
+    swatch = AttributeValueSelectableTypeInput(
         required=False,
         description="Attribute value ID." + ADDED_IN_39,
     )

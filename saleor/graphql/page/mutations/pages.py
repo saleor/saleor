@@ -8,10 +8,10 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.permissions import PagePermissions, PageTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....page import models
 from ....page.error_codes import PageErrorCode
+from ....permission.enums import PagePermissions, PageTypePermissions
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core import ResolveInfo

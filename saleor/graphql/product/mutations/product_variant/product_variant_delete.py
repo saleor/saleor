@@ -6,11 +6,11 @@ from django.db.models import Exists, OuterRef
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
 from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.search import update_product_search_vector
 from .....product.tasks import update_product_discounted_price_task

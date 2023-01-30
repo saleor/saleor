@@ -3,7 +3,8 @@ from typing import List, Optional
 import graphene
 from graphql import GraphQLError
 
-from ...core.permissions import ProductPermissions, has_one_of_permissions
+from ...permission.enums import ProductPermissions
+from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
@@ -23,7 +24,7 @@ from ..translations.mutations import (
     ProductVariantTranslate,
 )
 from ..utils import get_user_or_app_from_context
-from .bulk_mutations.products import (
+from .bulk_mutations import (
     CategoryBulkDelete,
     CollectionBulkDelete,
     ProductBulkDelete,
@@ -31,6 +32,7 @@ from .bulk_mutations.products import (
     ProductTypeBulkDelete,
     ProductVariantBulkCreate,
     ProductVariantBulkDelete,
+    ProductVariantBulkUpdate,
     ProductVariantStocksCreate,
     ProductVariantStocksDelete,
     ProductVariantStocksUpdate,
@@ -379,7 +381,7 @@ class ProductQueries(graphene.ObjectType):
         id=None,
         slug=None,
         external_reference=None,
-        channel=None
+        channel=None,
     ):
         validate_one_of_args_is_in_query(
             "id", id, "slug", slug, "external_reference", external_reference
@@ -564,6 +566,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()
     product_variant_bulk_create = ProductVariantBulkCreate.Field()
+    product_variant_bulk_update = ProductVariantBulkUpdate.Field()
     product_variant_bulk_delete = ProductVariantBulkDelete.Field()
     product_variant_stocks_create = ProductVariantStocksCreate.Field()
     product_variant_stocks_delete = ProductVariantStocksDelete.Field()

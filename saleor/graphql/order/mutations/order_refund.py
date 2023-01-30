@@ -3,13 +3,13 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus, models
 from ....order.actions import order_refunded
 from ....order.error_codes import OrderErrorCode
 from ....payment import TransactionKind, gateway
 from ....payment import models as payment_models
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation

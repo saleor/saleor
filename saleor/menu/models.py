@@ -3,9 +3,9 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
 from ..core.models import ModelWithMetadata, SortableModel
-from ..core.permissions import MenuPermissions
 from ..core.utils.translations import Translation, TranslationProxy
 from ..page.models import Page
+from ..permission.enums import MenuPermissions
 from ..product.models import Category, Collection
 
 

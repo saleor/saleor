@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import PluginsPermissions
+from ...permission.enums import PluginsPermissions
 from ...plugins.error_codes import PluginErrorCode
 from ...plugins.manager import get_plugins_manager
 from ..channel.types import Channel

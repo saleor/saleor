@@ -4,10 +4,10 @@ from django.core.exceptions import ValidationError
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....checkout.utils import invalidate_checkout_prices
-from ....core.permissions import CheckoutPermissions
 from ....graphql.core.mutations import BaseMutation
 from ....order import ORDER_EDITABLE_STATUS
 from ....order.models import Order
+from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE

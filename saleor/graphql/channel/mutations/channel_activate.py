@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....channel.error_codes import ChannelErrorCode
-from ....core.permissions import ChannelPermissions
+from ....permission.enums import ChannelPermissions
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError

@@ -30,6 +30,44 @@ All notable, unreleased changes to this project will be documented in this file.
   - Drop calling `transaction-request-action` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
 
 # 3.9.0 [Unreleased]
+# 3.12.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+### Other changes
+
+# 3.11.0
+
+### Highlights
+
+Just so you know, changes mentioned in this section are in a preview state and can be subject to changes in the future.
+
+- Bulk mutations for creating and updating multiple product variants in one mutation call - #11392 by @SzymJ
+- Ability to run subscription webhooks in a dry-run mode - #11548 by @zedzior
+- Preview of new `where` filtering API which allows joining multiple filters with `AND`/`OR` operators; currently available only in the `attributes` query - #11737 by @IKarbowiak
+
+### GraphQL API
+
+- [Preview] Add `productVariantBulkUpdate` mutation - #11392 by @SzymJ
+- [Preview] Add new error handling policies in `productVariantBulkCreate` mutation - #11392 by @SzymJ
+- [Preview] Add `webhookDryRun` mutation - #11548 by @zedzior
+- [Preview] Add `webhookTrigger` mutation - #11687 by @zedzior
+- Fix adding an invalid label to meta fields - #11718 by @IKarbowiak
+- Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
+- [Preview] Attribute filters improvement - #11737 by @IKarbowiak
+  - introduce `where` option on `attributes` query
+  - add `search` option on `attributes` query
+  - deprecate `product.variant` field
+  - deprecate the following `Attribute` fields: `filterableInStorefront`, `storefrontSearchPosition`, `availableInGrid`.
+
+### Other changes
+
+- Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
+- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
+- Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
+
 # 3.10.0 [Unreleased]
 
 ### Breaking changes
@@ -51,15 +89,17 @@ All notable, unreleased changes to this project will be documented in this file.
   - `Order`
   - `User`
   - `Warehouse`
-- Add `WebhookDryRun` mutation - #11548 by @zedzior
 
 ### Other changes
+
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
-- Move checkout metadata to separate model - #11264  by @jakubkuc
+- Move checkout metadata to separate model - #11264 by @jakubkuc
 - Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
 - Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
 - Drop `Django.Auth` - #11305 by @fowczarek
+- Add address validation to AddressCreate - #11639 by @jakubkuc
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
+- Fix stock events triggers - #11714 by @jakubkuc
 - Accept the gift card code provided in the input - by @mociepka
 
 # 3.9.0

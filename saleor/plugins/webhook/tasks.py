@@ -536,6 +536,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 delivery.event_type,
                 data,
             )
+
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
             handle_webhook_retry(self, webhook, response.content, delivery, attempt)

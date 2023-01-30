@@ -5,8 +5,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....channel.error_codes import ChannelErrorCode
-from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ChannelPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_37, PREVIEW_FEATURE
 from ...core.inputs import ReorderInput

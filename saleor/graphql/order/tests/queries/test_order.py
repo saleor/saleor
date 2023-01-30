@@ -229,6 +229,7 @@ query OrdersQuery {
                         id
                     }
                 }
+                checkoutId
             }
         }
     }
@@ -241,6 +242,7 @@ def test_order_query(
     permission_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
+    checkout,
     shipping_zone,
 ):
     # given
@@ -253,6 +255,7 @@ def test_order_query(
     order.shipping_tax_rate = shipping_tax_rate
     private_value = "abc123"
     public_value = "123abc"
+    order.checkout_token = checkout.token
     order.shipping_method.store_value_in_metadata({"test": public_value})
     order.shipping_method.store_value_in_private_metadata({"test": private_value})
     order.shipping_method.save()
@@ -342,6 +345,9 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
+    assert order_data["checkoutId"] == (
+        graphene.Node.to_global_id("Checkout", checkout.token)
+    )
 
 
 def test_order_query_denormalized_shipping_tax_class_data(

@@ -964,6 +964,48 @@ def orders(customer_user, channel_USD, channel_PLN):
 
 
 @pytest.fixture
+def orders_from_checkout(customer_user, checkout):
+    return Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                status=OrderStatus.CANCELED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.UNFULFILLED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.FULFILLED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.FULFILLED,
+                channel=checkout.channel,
+                checkout_token=checkout.token,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def order_from_checkout_JPY(customer_user, checkout_JPY):
+    return Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.CANCELED,
+        channel=checkout_JPY.channel,
+        checkout_token=checkout_JPY.token,
+    )
+
+
+@pytest.fixture
 def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     order = Order.objects.create(
@@ -1014,7 +1056,13 @@ def order_unconfirmed(order):
 @pytest.fixture
 def admin_user(db):
     """Return a Django admin user."""
-    return User.objects.create_superuser("admin@example.com", "password")
+    return User.objects.create_user(
+        "admin@example.com",
+        "password",
+        is_staff=True,
+        is_active=True,
+        is_superuser=True,
+    )
 
 
 @pytest.fixture
@@ -3239,6 +3287,34 @@ def product_with_image_list(product, image_list, media_root):
     ProductMedia.objects.create(product=product, image=image_list[0])
     ProductMedia.objects.create(product=product, image=image_list[1])
     return product
+
+
+@pytest.fixture
+def product_with_image_list_and_one_null_sort_order(product_with_image_list):
+    """
+    As we allow to have `null` in `sort_order` in database, but our logic
+    covers changing any new `null` values to proper `int` need to execute
+    raw SQL query on database to test behaviour of `null` `sort_order`.
+
+    SQL query behaviour:
+    Updates one of the product media `sort_order` to `null`.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE PRODUCT_PRODUCTMEDIA
+            SET SORT_ORDER = NULL
+            WHERE ID IN (
+                SELECT ID FROM PRODUCT_PRODUCTMEDIA
+                WHERE PRODUCT_ID = %s
+                ORDER BY ID
+                LIMIT 1
+            )
+            """,
+            [product_with_image_list.pk],
+        )
+    product_with_image_list.refresh_from_db()
+    return product_with_image_list
 
 
 @pytest.fixture

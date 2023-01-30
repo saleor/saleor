@@ -3,7 +3,7 @@ from datetime import timedelta
 import graphene
 from django.utils import timezone
 
-from ....core.permissions import ProductPermissions
+from ....permission.enums import ProductPermissions
 from ....warehouse.models import Reservation, Stock, Warehouse
 from ....warehouse.tests.utils import get_quantity_allocated_for_stock
 from ...tests.utils import (

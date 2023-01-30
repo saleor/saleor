@@ -2,13 +2,13 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
-from ....core.permissions import OrderPermissions
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import invalidate_order_prices
+from ....permission.enums import OrderPermissions
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310

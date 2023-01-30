@@ -1,8 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....core.permissions import ProductPermissions
 from .....core.utils.editorjs import clean_editor_js
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....core import ResolveInfo

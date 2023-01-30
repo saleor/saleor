@@ -1,8 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....order import models
+from ....permission.enums import OrderPermissions
 from ...core.mutations import ModelMutation
 from ...core.scalars import Decimal
 from ...core.types.common import Error

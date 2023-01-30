@@ -7,6 +7,7 @@ import pytest
 from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookDryRunErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
+from ....tests.utils import assert_no_permission
 from ...subscription_types import WEBHOOK_TYPES_MAP
 
 WEBHOOK_DRY_RUN_MUTATION = """
@@ -70,6 +71,27 @@ def test_webhook_dry_run_missing_user_permission(
     assert (
         error["message"] == "The user doesn't have required permission: manage_orders."
     )
+
+
+def test_webhook_dry_run_staff_user_not_authorized(
+    user_api_client,
+    permission_manage_orders,
+    order,
+    subscription_order_created_webhook,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    webhook = subscription_order_created_webhook
+
+    variables = {"objectId": order_id, "query": webhook.subscription_query}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
 
 
 def test_webhook_dry_run_non_existing_id(
