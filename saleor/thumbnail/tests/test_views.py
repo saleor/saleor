@@ -1,4 +1,7 @@
+from unittest.mock import MagicMock
+
 import graphene
+from django.core.files import File
 
 from .. import ThumbnailFormat
 from ..models import Thumbnail
@@ -242,3 +245,22 @@ def test_handle_thumbnail_view_object_does_not_exists(client):
 
     # then
     assert response.status_code == 404
+
+
+def test_handle_thumbnail_view_with_metadata(image, media_root):
+    # given
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    thumbnail = Thumbnail.objects.create(size=128, image=thumbnail_mock)
+    metadata = {"label": "image-name"}
+    private_metadata = {"private-label": "private-name"}
+
+    # when
+    thumbnail.store_value_in_metadata(metadata)
+    thumbnail.store_value_in_private_metadata(private_metadata)
+
+    # then
+    assert thumbnail.metadata == metadata
+    assert thumbnail.get_value_from_metadata("label") == "image-name"
+    assert thumbnail.private_metadata == private_metadata
+    assert thumbnail.get_value_from_private_metadata("private-label") == "private-name"

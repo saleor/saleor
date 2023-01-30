@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from ..account.models import User
+from ..core.models import ModelWithMetadata
 from ..product.models import Category, Collection, ProductMedia
 from . import THUMBNAIL_SIZES, ThumbnailFormat
 
@@ -14,7 +15,7 @@ def validate_thumbnail_size(size: int):
         )
 
 
-class Thumbnail(models.Model):
+class Thumbnail(ModelWithMetadata):
     image = models.ImageField(upload_to="thumbnails")
     size = models.PositiveIntegerField(validators=[validate_thumbnail_size])
     format = models.CharField(
