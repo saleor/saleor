@@ -19946,6 +19946,7 @@ enum TransactionEventReportErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INCORRECT_DETAILS
+  ALREADY_EXISTS
 }
 
 """

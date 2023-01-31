@@ -375,7 +375,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
 
     # when
     create_transaction_event_from_request_and_webhook_response(
-        request_event, response_data
+        request_event, transaction_item_created_by_app.app, response_data
     )
 
     # then
@@ -405,13 +405,14 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
 
     # when
     event = create_transaction_event_from_request_and_webhook_response(
-        request_event, response_data
+        request_event, transaction_item_created_by_app.app, response_data
     )
 
     # then
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == request_event.amount_value
     assert event.created_at == timezone.now()
@@ -450,7 +451,7 @@ def test_create_transaction_event_from_request_updates_order_charge(
 
     # when
     create_transaction_event_from_request_and_webhook_response(
-        request_event, response_data
+        request_event, transaction_item_created_by_app.app, response_data
     )
 
     # then
@@ -489,7 +490,7 @@ def test_create_transaction_event_from_request_updates_order_authorize(
 
     # when
     create_transaction_event_from_request_and_webhook_response(
-        request_event, response_data
+        request_event, transaction_item_created_by_app.app, response_data
     )
 
     # then
@@ -531,13 +532,14 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
     # when
     event = create_transaction_event_from_request_and_webhook_response(
-        request_event, response_data
+        request_event, transaction_item_created_by_app.app, response_data
     )
 
     # then
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == event_amount
     assert event.created_at == datetime.fromisoformat(event_time)
@@ -560,14 +562,162 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
 
     # when
     failed_event = create_transaction_event_from_request_and_webhook_response(
-        request_event, response_data
+        request_event, transaction_item_created_by_app.app, response_data
     )
 
     # then
     request_event.refresh_from_db()
     assert TransactionEvent.objects.count() == 2
 
+    assert failed_event
     assert failed_event.type == TransactionEventType.CHARGE_FAILURE
     assert failed_event.amount_value == request_event.amount_value
     assert failed_event.currency == request_event.currency
     assert failed_event.transaction_id == transaction_item_created_by_app.id
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
+    transaction_item_created_by_app,
+):
+    # given
+    transaction_item_created_by_app.events.create(
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        amount_value=Decimal(22.00),
+        currency="USD",
+    )
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction_item_created_by_app.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "event": {
+            "amount": event_amount,
+            "type": event_type.upper(),
+            "time": event_time,
+            "externalUrl": event_url,
+        },
+    }
+
+    # when
+    failed_event = create_transaction_event_from_request_and_webhook_response(
+        request_event, transaction_item_created_by_app.app, response_data
+    )
+
+    # then
+    assert TransactionEvent.objects.count() == 3
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
+    assert failed_event
+    assert failed_event.psp_reference == expected_psp_reference
+    assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_and_webhook_response_same_event(
+    transaction_item_created_by_app,
+):
+    # given
+    expected_psp_reference = "psp:122:222"
+    event_amount = 12.00
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+
+    existing_authorize_success = transaction_item_created_by_app.events.create(
+        type=event_type,
+        amount_value=event_amount,
+        currency="USD",
+        psp_reference=expected_psp_reference,
+    )
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=event_amount,
+        currency="USD",
+        transaction_id=transaction_item_created_by_app.id,
+    )
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "event": {
+            "amount": event_amount,
+            "type": event_type.upper(),
+            "time": event_time,
+            "externalUrl": event_url,
+        },
+    }
+
+    # when
+    event = create_transaction_event_from_request_and_webhook_response(
+        request_event, transaction_item_created_by_app.app, response_data
+    )
+
+    # then
+    assert TransactionEvent.objects.count() == 2
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
+    assert event
+    assert event.pk == existing_authorize_success.pk
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_and_webhook_response_differnt_amout(
+    transaction_item_created_by_app,
+):
+    # given
+    expected_psp_reference = "psp:122:222"
+    authorize_event_amount = Decimal(12.00)
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+
+    transaction_item_created_by_app.events.create(
+        type=event_type,
+        amount_value=authorize_event_amount,
+        currency="USD",
+        psp_reference=expected_psp_reference,
+    )
+
+    second_authorize_event_amount = Decimal(33.00)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=second_authorize_event_amount,
+        currency="USD",
+        transaction_id=transaction_item_created_by_app.id,
+    )
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "event": {
+            "amount": second_authorize_event_amount,
+            "type": event_type.upper(),
+            "time": event_time,
+            "externalUrl": event_url,
+        },
+    }
+
+    # when
+    failed_event = create_transaction_event_from_request_and_webhook_response(
+        request_event, transaction_item_created_by_app.app, response_data
+    )
+
+    # then
+    assert TransactionEvent.objects.count() == 3
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
+    assert failed_event
+    assert failed_event.psp_reference == expected_psp_reference
+    assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE

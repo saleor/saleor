@@ -180,6 +180,7 @@ class TransactionEvent(models.Model):
     app = models.ForeignKey(
         "app.App", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
     )
+    include_in_calculations = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("pk",)

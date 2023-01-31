@@ -8,10 +8,12 @@ from typing import Any, Dict, List, Optional, cast, overload
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from ..account.models import User
+from ..app.models import App
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
@@ -794,18 +796,120 @@ def get_failed_transaction_event_type_for_request_event(
     return None
 
 
-def create_failed_transaction_event(request_event: TransactionEvent, cause: str):
+def get_failed_type_based_on_event(event: TransactionEvent):
+    event_type = get_failed_transaction_event_type_for_request_event(event)
+    if event_type:
+        return event_type
+    if event.type in [
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.AUTHORIZATION_ADJUSTMENT,
+    ]:
+        return TransactionEventType.AUTHORIZATION_FAILURE
+    elif event.type in [
+        TransactionEventType.CHARGE_BACK,
+        TransactionEventType.CHARGE_SUCCESS,
+    ]:
+        return TransactionEventType.CHARGE_FAILURE
+    elif event.type in [
+        TransactionEventType.REFUND_REVERSE,
+        TransactionEventType.REFUND_SUCCESS,
+    ]:
+        return TransactionEventType.REFUND_FAILURE
+    elif event.type == TransactionEventType.CANCEL_SUCCESS:
+        return TransactionEventType.CANCEL_FAILURE
+    return event.type
+
+
+def create_failed_transaction_event(
+    event: TransactionEvent,
+    cause: str,
+):
     return TransactionEvent.objects.create(
-        type=get_failed_transaction_event_type_for_request_event(request_event),
-        amount_value=request_event.amount_value,
-        currency=request_event.currency,
-        transaction_id=request_event.transaction_id,
+        type=get_failed_type_based_on_event(event),
+        amount_value=event.amount_value,
+        currency=event.currency,
+        transaction_id=event.transaction_id,
         message=cause,
+        include_in_calculations=False,
+        psp_reference=event.psp_reference,
     )
+
+
+def authorization_success_already_exists(transaction_id: int) -> bool:
+    return TransactionEvent.objects.filter(
+        transaction_id=transaction_id,
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+    ).exists()
+
+
+def get_already_existing_event(event: TransactionEvent) -> Optional[TransactionEvent]:
+    existing_event = (
+        TransactionEvent.objects.filter(
+            transaction_id=event.transaction_id,
+            psp_reference=event.psp_reference,
+            type=event.type,
+        )
+        .select_for_update(of=("self",))
+        .first()
+    )
+    if existing_event:
+        return existing_event
+    return None
+
+
+error_msg = str
+
+
+def deduplicate_event(
+    event: TransactionEvent, app: App
+) -> tuple[TransactionEvent, Optional[error_msg]]:
+    """Deduplicate the TransactionEvent.
+
+    In case of having an existing event with the same type, psp reference
+    and amount, the event will be treated as a duplicate.
+    In case of a mismatch between the amounts, the failure TransactionEvent
+    will be created.
+    In case of already having `AUTHORIZATION_SUCCESS` event and trying to
+    create a new one, the failure TransactionEvent will be created.
+    """
+    error_message = None
+
+    already_existing_event = get_already_existing_event(event)
+    if already_existing_event:
+        if already_existing_event.amount != event.amount:
+            error_message = (
+                "The transaction with provided `pspReference` and "
+                "`type` already exists with different amount."
+            )
+        event = already_existing_event
+
+    elif event.type == TransactionEventType.AUTHORIZATION_SUCCESS:
+        already_existing_authorization = authorization_success_already_exists(
+            event.transaction_id
+        )
+        if already_existing_authorization:
+            error_message = (
+                "Event with `AUTHORIZATION_SUCCESS` already "
+                "reported for the transaction. Use "
+                "`AUTHORIZATION_ADJUSTMENT` to change the "
+                "authorization amount."
+            )
+    if error_message:
+        logger.error(
+            msg=error_message,
+            extra={
+                "transaction_id": event.transaction_id,
+                "psp_reference": event.psp_reference,
+                "app_identifier": app.identifier,
+                "app_id": app.pk,
+            },
+        )
+    return event, error_message
 
 
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
+    app: App,
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
     if transaction_webhook_response is None:
@@ -825,7 +929,7 @@ def create_transaction_event_from_request_and_webhook_response(
     request_event.save()
     event = None
     if response_event := transaction_request_response.event:
-        event = TransactionEvent.objects.create(
+        event = TransactionEvent(
             psp_reference=response_event.psp_reference,
             created_at=response_event.time or timezone.now(),
             type=response_event.type,  # type:ignore
@@ -834,10 +938,18 @@ def create_transaction_event_from_request_and_webhook_response(
             currency=request_event.currency,
             transaction_id=request_event.transaction_id,
             message=response_event.message,
+            app=app,
+            include_in_calculations=True,
         )
-    transaction = request_event.transaction
-    recalculate_transaction_amounts(transaction)
-    if transaction.order_id:
-        order = cast(Order, transaction.order)
+        with transaction.atomic():
+            event, error_msg = deduplicate_event(event, app)
+            if error_msg:
+                return create_failed_transaction_event(request_event, cause=error_msg)
+            if not event.pk:
+                event.save()
+    transaction_item = request_event.transaction
+    recalculate_transaction_amounts(transaction_item)
+    if transaction_item.order_id:
+        order = cast(Order, transaction_item.order)
         updates_amounts_for_order(order)
     return event

@@ -28,6 +28,7 @@ def transaction_events_generator(
                 psp_reference=reference,
                 type=event_type,
                 amount_value=amount,
+                include_in_calculations=True,
             )
             for reference, event_type, amount in zip(psp_references, types, amounts)
         )
@@ -1141,4 +1142,34 @@ def test_event_multiple_events(
         refunded_value=first_refund_value - refund_reverse_value,
         charge_pending_value=charge_pending_value,
         refund_pending_value=second_refund_pending_value,
+    )
+
+
+def test_skips_event_that_should_not_be_taken_into_account(
+    transaction_item_created_by_app, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_created_by_app
+    first_value = Decimal("11.00")
+    second_value = Decimal("12.00")
+    transaction_events = transaction_events_generator(
+        psp_references=["1", "2", "2"],
+        types=[
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ],
+        amounts=[first_value, second_value, second_value],
+    )
+    transaction_event_to_skip = transaction_events[-1]
+    transaction_event_to_skip.include_in_calculations = False
+    transaction_event_to_skip.save()
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    transaction.refresh_from_db()
+    _assert_amounts(
+        transaction, authorized_value=first_value, authorize_pending_value=second_value
     )

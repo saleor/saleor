@@ -42,9 +42,15 @@ from ...payment.gateway import (
     request_refund_action,
 )
 from ...payment.transaction_item_calculations import recalculate_transaction_amounts
-from ...payment.utils import create_payment, is_currency_supported
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import OrderPermissions, PaymentPermissions
+from ...payment.utils import (
+    authorization_success_already_exists,
+    create_failed_transaction_event,
+    create_payment,
+    get_already_existing_event,
+    is_currency_supported,
+)
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
 from ..channel.utils import validate_channel
@@ -1325,6 +1331,7 @@ class TransactionEventReport(ModelMutation):
             "transaction": transaction,
             "app": app,
             "user": user,
+            "include_in_calculations": True,
         }
         transaction_event = cls.get_instance(info, **transaction_event_data)
         transaction_event = cast(payment_models.TransactionEvent, transaction_event)
@@ -1333,38 +1340,43 @@ class TransactionEventReport(ModelMutation):
         )
 
         cls.clean_instance(info, transaction_event)
+        already_processed = False
+        error_code = None
+        error_msg = None
+        error_field = None
         with traced_atomic_transaction():
             # The mutation can be called multiple times by the app. That can cause a
             # thread race. We need to be sure, that we will always create a single event
             # on our side for specific action.
-            existing_event = (
-                payment_models.TransactionEvent.objects.filter(
-                    transaction_id=transaction.pk,
-                    psp_reference=transaction_event.psp_reference,
-                    type=transaction_event.type,
+            existing_event = get_already_existing_event(transaction_event)
+            if existing_event and existing_event.amount != transaction_event.amount:
+                error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
+                error_msg = (
+                    "The transaction with provided `pspReference` and "
+                    "`type` already exists with different amount."
                 )
-                .select_for_update(of=("self",))
-                .first()
-            )
-            if existing_event:
+                error_field = "pspReference"
+            elif existing_event:
                 already_processed = True
-                if existing_event.amount != transaction_event.amount:
-                    error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
-                    raise ValidationError(
-                        {
-                            "pspReference": ValidationError(
-                                (
-                                    "The transaction with provided `pspReference` and "
-                                    "`type` already exists with different amount."
-                                ),
-                                code=error_code,
-                            )
-                        }
-                    )
                 transaction_event = existing_event
+            elif (
+                transaction_event.type == TransactionEventType.AUTHORIZATION_SUCCESS
+                and authorization_success_already_exists(transaction.pk)
+            ):
+                error_code = TransactionEventReportErrorCode.ALREADY_EXISTS.value
+                error_msg = (
+                    "Event with `AUTHORIZATION_SUCCESS` already "
+                    "reported for the transaction. Use "
+                    "`AUTHORIZATION_ADJUSTMENT` to change the "
+                    "authorization amount."
+                )
+                error_field = "type"
             else:
-                already_processed = False
                 transaction_event.save()
+
+        if error_msg and error_code and error_field:
+            create_failed_transaction_event(transaction_event, cause=error_msg)
+            raise ValidationError({error_field: ValidationError(error_msg, error_code)})
         if not already_processed:
             if available_actions is not None:
                 transaction.available_actions = available_actions

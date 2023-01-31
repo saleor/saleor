@@ -473,7 +473,12 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
     assert error["code"] == TransactionEventReportErrorCode.INCORRECT_DETAILS.name
     assert error["field"] == "pspReference"
 
-    assert TransactionEvent.objects.count() == 1
+    assert TransactionEvent.objects.count() == 2
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventTypeEnum.CHARGE_FAILURE.value
+    ).first()
+    assert event
+    assert event.include_in_calculations is False
 
 
 @patch(
@@ -654,3 +659,84 @@ def test_transaction_event_updates_order_total_authorized(
 
     assert order.total_authorized.amount == current_authorized_value + amount
     assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
+
+
+def test_transaction_event_report_authorize_event_already_exists(
+    transaction_item_created_by_app,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    event_type = TransactionEventTypeEnum.AUTHORIZATION_SUCCESS
+    transaction_item_created_by_app.events.create(
+        psp_reference="Different psp reference",
+        amount_value=amount + Decimal(1),
+        type=event_type.value,
+        currency=transaction_item_created_by_app.currency,
+    )
+    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert len(transaction_report_data["errors"]) == 1
+    assert transaction_report_data["errors"][0]["field"] == "type"
+    assert (
+        transaction_report_data["errors"][0]["code"]
+        == TransactionEventReportErrorCode.ALREADY_EXISTS.name
+    )
+
+    assert TransactionEvent.objects.count() == 2
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventTypeEnum.AUTHORIZATION_FAILURE.value
+    ).first()
+    assert event
+    assert event.include_in_calculations is False

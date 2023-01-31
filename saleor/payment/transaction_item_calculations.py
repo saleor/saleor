@@ -96,7 +96,6 @@ def _recalculate_base_amounts(
     pending_amount_field_name: str,
     amount_field_name: str,
 ):
-
     if _should_increase_pending_amount(request, success, failure):
         request = cast(TransactionEvent, request)
         pending_value = getattr(transaction, pending_amount_field_name)
@@ -330,7 +329,7 @@ def recalculate_transaction_amounts(transaction: TransactionItem):
 
     events: Iterable[TransactionEvent] = transaction.events.order_by(
         "created_at"
-    ).exclude(type__isnull=True)
+    ).exclude(include_in_calculations=False)
 
     action_map = _initilize_action_map(events)
     _set_transaction_amounts_to_zero(transaction)
