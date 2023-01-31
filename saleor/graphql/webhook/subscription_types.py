@@ -34,10 +34,11 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
     ADDED_IN_311,
+    ADDED_IN_312,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
-from ..core.types import NonNullList, SubscriptionObjectType
+from ..core.types import NonNullList, SubscriptionObjectType, ThumbnailField
 from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
@@ -846,6 +847,8 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     )
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when product variant stock is updated."
@@ -1879,6 +1882,23 @@ class Subscription(SubscriptionObjectType):
         return Observable.from_([root])
 
 
+class ThumbnailUpdated(SubscriptionObjectType):
+    thumbnail = ThumbnailField()
+
+    @staticmethod
+    def resolve_thumbnail(root, _info: ResolveInfo):
+        _, thumbnail = root
+        return thumbnail
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when thumbnail is updated." + ADDED_IN_312 + PREVIEW_FEATURE
+        )
+
+
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
@@ -1988,6 +2008,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
+    WebhookEventAsyncType.THUMBNAIL_UPDATED: ThumbnailUpdated,
     WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
     WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
     WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,

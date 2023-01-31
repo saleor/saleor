@@ -38,6 +38,7 @@ from ..product.models import Collection, Product
 from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
+from ..thumbnail.models import Thumbnail
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -1473,3 +1474,9 @@ def generate_transaction_action_request_payload(
         "meta": generate_meta(requestor_data=generate_requestor(requestor)),
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+@traced_payload_generator
+def generate_thumbnail_payload(thumbnail: Thumbnail):
+    payload = {"url": thumbnail.image.url}
+    return json.dumps(payload)

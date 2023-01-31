@@ -1,7 +1,7 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ..core.descriptions import ADDED_IN_36, ADDED_IN_38, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_36, ADDED_IN_38, ADDED_IN_312, PREVIEW_FEATURE
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -166,6 +166,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
+    WebhookEventAsyncType.THUMBNAIL_UPDATED: "A thumbnail is updated."
+    + ADDED_IN_312
+    + PREVIEW_FEATURE,
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         "Fetch external shipping methods for checkout."
     ),

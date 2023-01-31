@@ -33,6 +33,7 @@ from ..payment.interface import (
     PaymentGateway,
     TransactionActionData,
 )
+from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -908,6 +909,9 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # deleted.
     staff_deleted: Callable[["User", Any], Any]
+
+    # Trigger when thumbnail is updated.
+    thumbnail_updated: Callable[["Thumbnail", None], None]
 
     # Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]

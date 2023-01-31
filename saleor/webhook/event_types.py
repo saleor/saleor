@@ -157,6 +157,8 @@ class WebhookEventAsyncType:
 
     OBSERVABILITY = "observability"
 
+    THUMBNAIL_UPDATED = "thumbnail_updated"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ADDRESS_CREATED: "Address created",
@@ -266,6 +268,7 @@ class WebhookEventAsyncType:
         VOUCHER_DELETED: "Voucher deleted",
         VOUCHER_METADATA_UPDATED: "Voucher metadata updated",
         OBSERVABILITY: "Observability",
+        THUMBNAIL_UPDATED: "Thumbnail updated",
     }
 
     CHOICES = [
@@ -386,6 +389,7 @@ class WebhookEventAsyncType:
         (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
         (VOUCHER_METADATA_UPDATED, DISPLAY_LABELS[VOUCHER_METADATA_UPDATED]),
         (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
+        (THUMBNAIL_UPDATED, DISPLAY_LABELS[THUMBNAIL_UPDATED]),
     ]
 
     ALL = [event[0] for event in CHOICES]

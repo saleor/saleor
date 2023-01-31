@@ -1905,6 +1905,15 @@ enum WebhookEventTypeEnum {
   """An observability event is created."""
   OBSERVABILITY
 
+  """
+  A thumbnail is updated.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  THUMBNAIL_UPDATED
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
@@ -2426,6 +2435,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is updated.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  THUMBNAIL_UPDATED
 }
 
 """Represents app data."""
@@ -2994,6 +3012,7 @@ enum WebhookSampleEventTypeEnum {
   VOUCHER_DELETED
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
+  THUMBNAIL_UPDATED
 }
 
 """Represents warehouse."""
@@ -26796,6 +26815,42 @@ type WarehouseMetadataUpdated implements Event {
 
   """The warehouse the event relates to."""
   warehouse: Warehouse
+}
+
+"""
+Event sent when thumbnail is updated.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ThumbnailUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  thumbnail(
+    """
+    Size of the image. If not provided, the original image will be returned.
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    
+    Added in Saleor 3.6.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: ThumbnailFormatEnum
+  ): Image
 }
 
 """

@@ -70,6 +70,7 @@ if TYPE_CHECKING:
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..tax.models import TaxClass
+    from ..thumbnail.models import Thumbnail
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
@@ -1130,6 +1131,12 @@ class PluginsManager(PaymentInterface):
     def staff_deleted(self, staff_user: "User"):
         default_value = None
         return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+
+    def thumbnail_updated(self, thumbnail: "Thumbnail"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "thumbnail_updated", default_value, thumbnail
+        )
 
     def warehouse_created(self, warehouse: "Warehouse"):
         default_value = None
