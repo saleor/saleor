@@ -182,6 +182,22 @@ def get_payment_status_for_order(order):
     return status
 
 
+def get_total_charged(root: models.Order, info):
+    def _resolve_total_charged(transactions):
+        if transactions:
+            charged_money = prices.Money(Decimal(0), root.currency)
+            for transaction in transactions:
+                charged_money += transaction.amount_charged
+            return quantize_price(charged_money, root.currency)
+        return root.total_charged
+
+    return (
+        TransactionItemsByOrderIDLoader(info.context)
+        .load(root.id)
+        .then(_resolve_total_charged)
+    )
+
+
 class OrderGrantedRefund(ModelObjectType):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(required=True, description="Time of creation.")
@@ -1111,8 +1127,20 @@ class Order(ModelObjectType[models.Order]):
         Money, description="Amount authorized for the order.", required=True
     )
     total_captured = graphene.Field(
-        Money, description="Amount captured by payment.", required=True
+        Money,
+        description="Amount captured for the order. "
+        + DEPRECATED_IN_3X_FIELD
+        + "Use `totalCharged` instead",
+        required=True,
     )
+    total_charged = graphene.Field(
+        Money, description="Amount charged for the order.", required=True
+    )
+
+    total_canceled = graphene.Field(
+        Money, description="Amount canceled for the order.", required=True
+    )
+
     events = PermissionsField(
         NonNullList(OrderEvent),
         description="List of events associated with the order.",
@@ -1497,20 +1525,27 @@ class Order(ModelObjectType[models.Order]):
         )
 
     @staticmethod
-    def resolve_total_captured(root: models.Order, info):
-        def _resolve_total_captured(transactions):
+    def resolve_total_canceled(root: models.Order, info):
+        def _resolve_total_canceled(transactions):
+            canceled_money = prices.Money(Decimal(0), root.currency)
             if transactions:
-                charged_money = prices.Money(Decimal(0), root.currency)
                 for transaction in transactions:
-                    charged_money += transaction.amount_charged
-                return quantize_price(charged_money, root.currency)
-            return root.total_charged
+                    canceled_money += transaction.amount_canceled
+            return quantize_price(canceled_money, root.currency)
 
         return (
             TransactionItemsByOrderIDLoader(info.context)
             .load(root.id)
-            .then(_resolve_total_captured)
+            .then(_resolve_total_canceled)
         )
+
+    @staticmethod
+    def resolve_total_captured(root: models.Order, info):
+        return get_total_charged(root, info)
+
+    @staticmethod
+    def resolve_total_charged(root: models.Order, info):
+        return get_total_charged(root, info)
 
     @staticmethod
     def resolve_total_balance(root: models.Order, info):

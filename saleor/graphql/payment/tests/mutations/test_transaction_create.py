@@ -38,6 +38,10 @@ mutation TransactionCreate(
                     amount
                     currency
                 }
+                canceledAmount{
+                    currency
+                    amount
+                }
                 voidedAmount{
                     currency
                     amount
@@ -311,7 +315,8 @@ def test_transaction_create_for_checkout_by_app(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "voided_value"),
+        ("amountVoided", "canceled_value"),
+        ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
 )
@@ -368,7 +373,7 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
     refunded_value = Decimal("12")
-    voided_value = Decimal("13")
+    canceled_value = Decimal("13")
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -389,8 +394,8 @@ def test_transaction_create_multiple_amounts_provided_by_app(
                 "amount": refunded_value,
                 "currency": "USD",
             },
-            "amountVoided": {
-                "amount": voided_value,
+            "amountCanceled": {
+                "amount": canceled_value,
                 "currency": "USD",
             },
         },
@@ -411,11 +416,11 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == voided_value
+    assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
-    assert transaction.voided_value == voided_value
+    assert transaction.canceled_value == canceled_value
     assert transaction.refunded_value == refunded_value
 
 
@@ -512,7 +517,8 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "voided_value"),
+        ("amountVoided", "canceled_value"),
+        ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
 )
@@ -991,7 +997,8 @@ def test_transaction_create_for_checkout_by_staff(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "voided_value"),
+        ("amountVoided", "canceled_value"),
+        ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
 )
@@ -1048,7 +1055,7 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
     refunded_value = Decimal("12")
-    voided_value = Decimal("13")
+    canceled_value = Decimal("13")
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1070,7 +1077,7 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
                 "currency": "USD",
             },
             "amountVoided": {
-                "amount": voided_value,
+                "amount": canceled_value,
                 "currency": "USD",
             },
         },
@@ -1091,11 +1098,12 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == voided_value
+    assert data["voidedAmount"]["amount"] == canceled_value
+    assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
-    assert transaction.voided_value == voided_value
+    assert transaction.canceled_value == canceled_value
     assert transaction.refunded_value == refunded_value
 
 
@@ -1193,7 +1201,8 @@ def test_transaction_create_missing_permission_by_staff(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "voided_value"),
+        ("amountVoided", "canceled_value"),
+        ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
 )

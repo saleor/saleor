@@ -40,7 +40,7 @@ def _assert_amounts(
     authorized_value=Decimal("0"),
     charged_value=Decimal("0"),
     refunded_value=Decimal("0"),
-    voided_value=Decimal("0"),
+    canceled_value=Decimal("0"),
     authorize_pending_value=Decimal("0"),
     charge_pending_value=Decimal("0"),
     refund_pending_value=Decimal("0"),
@@ -49,7 +49,7 @@ def _assert_amounts(
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
     assert transaction.refunded_value == refunded_value
-    assert transaction.voided_value == voided_value
+    assert transaction.canceled_value == canceled_value
     assert transaction.authorize_pending_value == authorize_pending_value
     assert transaction.charge_pending_value == charge_pending_value
     assert transaction.refund_pending_value == refund_pending_value
@@ -813,7 +813,7 @@ def test_with_only_cancel_success_event(
 ):
     # given
     transaction = transaction_item_created_by_app
-    cancelled_value = Decimal("11.00")
+    canceled_value = Decimal("11.00")
     transaction_events_generator(
         psp_references=[
             "1",
@@ -822,7 +822,7 @@ def test_with_only_cancel_success_event(
             TransactionEventType.CANCEL_SUCCESS,
         ],
         amounts=[
-            cancelled_value,
+            canceled_value,
         ],
     )
 
@@ -831,7 +831,7 @@ def test_with_only_cancel_success_event(
 
     # then
     transaction.refresh_from_db()
-    _assert_amounts(transaction, voided_value=cancelled_value)
+    _assert_amounts(transaction, canceled_value=canceled_value)
 
 
 def test_with_only_cancel_request_event(
@@ -884,7 +884,7 @@ def test_with_only_cancel_failure_event(
     # then
     transaction.refresh_from_db()
     _assert_amounts(
-        transaction, cancel_pending_value=Decimal("0"), voided_value=Decimal("0")
+        transaction, cancel_pending_value=Decimal("0"), canceled_value=Decimal("0")
     )
 
 
@@ -911,7 +911,7 @@ def test_with_cancel_request_and_success_events(
     _assert_amounts(
         transaction,
         cancel_pending_value=Decimal("0"),
-        voided_value=cancel_value,
+        canceled_value=cancel_value,
     )
 
 
@@ -936,7 +936,7 @@ def test_with_cancel_request_and_failure_events(
     # then
     transaction.refresh_from_db()
     _assert_amounts(
-        transaction, cancel_pending_value=Decimal("0"), voided_value=Decimal("0")
+        transaction, cancel_pending_value=Decimal("0"), canceled_value=Decimal("0")
     )
 
 
@@ -961,7 +961,7 @@ def test_with_cancel_success_and_failure_events(
     # then
     transaction.refresh_from_db()
     _assert_amounts(
-        transaction, cancel_pending_value=Decimal("0"), voided_value=Decimal("0")
+        transaction, cancel_pending_value=Decimal("0"), canceled_value=Decimal("0")
     )
 
 
@@ -992,7 +992,7 @@ def test_with_cancel_success_and_older_failure_events(
     _assert_amounts(
         transaction,
         cancel_pending_value=Decimal("0"),
-        voided_value=cancel_value,
+        canceled_value=cancel_value,
     )
 
 
@@ -1021,7 +1021,7 @@ def test_with_cancel_request_and_success_events_different_psp_references(
     _assert_amounts(
         transaction,
         cancel_pending_value=first_cancel_value,
-        voided_value=second_cancel_value,
+        canceled_value=second_cancel_value,
     )
 
 

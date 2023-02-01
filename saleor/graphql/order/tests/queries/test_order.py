@@ -51,7 +51,15 @@ query OrdersQuery {
                     amount
                     currency
                 }
+                totalCharged{
+                    amount
+                    currency
+                }
                 totalCaptured{
+                    amount
+                    currency
+                }
+                totalCanceled{
                     amount
                     currency
                 }
@@ -667,6 +675,15 @@ def test_order_query_with_transactions_details(
                 charged_value=Decimal("15"),
                 available_actions=[TransactionAction.REFUND],
             ),
+            TransactionItem(
+                order_id=order.id,
+                status="Captured",
+                type="Credit card",
+                psp_reference="111",
+                currency="USD",
+                canceled_value=Decimal("19"),
+                available_actions=[],
+            ),
         ]
     )
     update_order_authorize_data(order)
@@ -707,6 +724,8 @@ def test_order_query_with_transactions_details(
     assert len(order_data["payments"]) == order.payments.count()
     assert Decimal(order_data["totalAuthorized"]["amount"]) == Decimal("25")
     assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal("15")
+    assert Decimal(order_data["totalCharged"]["amount"]) == Decimal("15")
+    assert Decimal(order_data["totalCanceled"]["amount"]) == Decimal("19")
 
     assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
 

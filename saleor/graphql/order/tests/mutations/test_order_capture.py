@@ -18,6 +18,9 @@ ORDER_CAPTURE_MUTATION = """
                     paymentStatus
                     paymentStatusDisplay
                     isPaid
+                    totalCharged {
+                        amount
+                    }
                     totalCaptured {
                         amount
                     }
@@ -64,6 +67,7 @@ def test_order_capture(
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
+    assert data["totalCharged"]["amount"] == float(amount)
 
     event_captured, event_order_fully_paid = order.events.all()
 

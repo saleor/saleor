@@ -42,6 +42,10 @@ mutation TransactionUpdate(
                     currency
                     amount
                 }
+                canceledAmount{
+                    currency
+                    amount
+                }
                 chargedAmount{
                     currency
                     amount
@@ -348,7 +352,8 @@ def test_transaction_update_available_actions_by_app(
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
-        ("amountVoided", "voidedAmount", "voided_value", Decimal("14")),
+        ("amountCanceled", "canceledAmount", "canceled_value", Decimal("14")),
+        ("amountVoided", "voidedAmount", "canceled_value", Decimal("14")),
         ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
     ],
 )
@@ -697,7 +702,7 @@ def test_transaction_update_multiple_amounts_provided_by_app(
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
     refunded_value = Decimal("12")
-    voided_value = Decimal("13")
+    canceled_value = Decimal("13")
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -714,8 +719,8 @@ def test_transaction_update_multiple_amounts_provided_by_app(
                 "amount": refunded_value,
                 "currency": "USD",
             },
-            "amountVoided": {
-                "amount": voided_value,
+            "amountCanceled": {
+                "amount": canceled_value,
                 "currency": "USD",
             },
         },
@@ -733,11 +738,12 @@ def test_transaction_update_multiple_amounts_provided_by_app(
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == voided_value
+    assert data["voidedAmount"]["amount"] == canceled_value
+    assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
-    assert transaction.voided_value == voided_value
+    assert transaction.canceled_value == canceled_value
     assert transaction.refunded_value == refunded_value
 
 
@@ -769,7 +775,8 @@ def test_transaction_update_for_order_missing_permission_by_app(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "voided_value"),
+        ("amountVoided", "canceled_value"),
+        ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
 )
@@ -1150,7 +1157,8 @@ def test_transaction_update_available_actions_by_staff(
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
-        ("amountVoided", "voidedAmount", "voided_value", Decimal("14")),
+        ("amountVoided", "voidedAmount", "canceled_value", Decimal("14")),
+        ("amountCanceled", "canceledAmount", "canceled_value", Decimal("14")),
         ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
     ],
 )
@@ -1499,7 +1507,7 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
     refunded_value = Decimal("12")
-    voided_value = Decimal("13")
+    canceled_value = Decimal("13")
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -1516,8 +1524,8 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
                 "amount": refunded_value,
                 "currency": "USD",
             },
-            "amountVoided": {
-                "amount": voided_value,
+            "amountCanceled": {
+                "amount": canceled_value,
                 "currency": "USD",
             },
         },
@@ -1535,11 +1543,12 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == voided_value
+    assert data["voidedAmount"]["amount"] == canceled_value
+    assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
-    assert transaction.voided_value == voided_value
+    assert transaction.canceled_value == canceled_value
     assert transaction.refunded_value == refunded_value
 
 
@@ -1571,7 +1580,8 @@ def test_transaction_update_for_order_missing_permission_by_staff(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "voided_value"),
+        ("amountVoided", "canceled_value"),
+        ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
 )

@@ -23,6 +23,10 @@ TRANSACTION_QUERY = """
                 currency
                 amount
             }
+            canceledAmount{
+                currency
+                amount
+            }
             voidedAmount{
                 currency
                 amount
@@ -98,7 +102,8 @@ def _assert_transaction_fields(content, transaction_item, event):
         data["authorizedAmount"]["amount"] == transaction_item.amount_authorized.amount
     )
     assert data["refundedAmount"]["amount"] == transaction_item.amount_refunded.amount
-    assert data["voidedAmount"]["amount"] == transaction_item.amount_voided.amount
+    assert data["voidedAmount"]["amount"] == transaction_item.amount_canceled.amount
+    assert data["canceledAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["chargedAmount"]["amount"] == transaction_item.amount_charged.amount
     assert len(data["events"]) == 1
     assert data["events"][0]["id"] == to_global_id_or_none(event)

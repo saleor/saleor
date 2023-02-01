@@ -188,7 +188,7 @@ def _recalculate_cancel_amounts(
         success,
         failure,
         pending_amount_field_name="cancel_pending_value",
-        amount_field_name="voided_value",
+        amount_field_name="canceled_value",
     )
 
 
@@ -233,7 +233,7 @@ def _handle_events_without_psp_reference(
             transaction.refunded_value -= event.amount_value
 
         elif event.type == TransactionEventType.CANCEL_SUCCESS:
-            transaction.voided_value += event.amount_value
+            transaction.canceled_value += event.amount_value
 
 
 def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
@@ -292,7 +292,7 @@ def _set_transaction_amounts_to_zero(transaction: TransactionItem):
     transaction.authorized_value = Decimal("0")
     transaction.charged_value = Decimal("0")
     transaction.refunded_value = Decimal("0")
-    transaction.voided_value = Decimal("0")
+    transaction.canceled_value = Decimal("0")
 
     transaction.authorize_pending_value = Decimal("0")
     transaction.charge_pending_value = Decimal("0")
@@ -354,7 +354,7 @@ def recalculate_transaction_amounts(transaction: TransactionItem):
             "authorized_value",
             "charged_value",
             "refunded_value",
-            "voided_value",
+            "canceled_value",
             "authorize_pending_value",
             "charge_pending_value",
             "refund_pending_value",

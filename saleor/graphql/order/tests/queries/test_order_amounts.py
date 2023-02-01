@@ -12,6 +12,14 @@ query OrdersQuery {
                     amount
                     currency
                 }
+                totalCanceled{
+                    amount
+                    currency
+                }
+                totalCharged{
+                    amount
+                    currency
+                }
                 totalCaptured{
                     amount
                     currency
