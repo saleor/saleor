@@ -6,6 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...order import OrderAuthorizeStatus, OrderChargeStatus
 from ...plugins.manager import get_plugins_manager
 from .. import TransactionEventType
 from ..interface import (
@@ -417,6 +418,84 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert event.external_url == ""
     assert event.message == ""
     assert event.type == TransactionEventType.CHARGE_SUCCESS
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_updates_order_charge(
+    transaction_item_created_by_app, order_with_lines
+):
+    # given
+    order = order_with_lines
+    transaction_item_created_by_app.order = order
+    transaction_item_created_by_app.save()
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction_item_created_by_app.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "event": {
+            "amount": event_amount,
+            "type": event_type.upper(),
+        },
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, response_data
+    )
+
+    # then
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal(event_amount)
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_updates_order_authorize(
+    transaction_item_created_by_app, order_with_lines
+):
+    # given
+    order = order_with_lines
+    transaction_item_created_by_app.order = order
+    transaction_item_created_by_app.save()
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction_item_created_by_app.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "event": {
+            "amount": event_amount,
+            "type": event_type.upper(),
+        },
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, response_data
+    )
+
+    # then
+    order.refresh_from_db()
+    assert order.total_authorized_amount == Decimal(event_amount)
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
 
 
 @freeze_time("2018-05-31 12:00:01")

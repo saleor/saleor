@@ -93,6 +93,51 @@ mutation TransactionCreate(
 """
 
 
+def test_transaction_create_updates_order_authorize_amounts(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.VOID.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = order_with_lines.payment_transactions.first()
+    get_graphql_content(response)
+    transaction.order.total_authorized.amount == authorized_value
+    transaction.order.authorize_status == ""
+
+
 def test_transaction_create_for_order_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):

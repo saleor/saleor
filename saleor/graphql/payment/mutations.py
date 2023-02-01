@@ -1,4 +1,3 @@
-import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
 
@@ -6,7 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
-from django.db.models import F, Model
+from django.db.models import Model
 from django.utils import timezone
 
 from ...channel.models import Channel
@@ -22,7 +21,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
-from ...order.models import Order
+from ...order.utils import updates_amounts_for_order
 from ...payment import (
     PaymentError,
     StorePaymentMethod,
@@ -81,17 +80,6 @@ from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 if TYPE_CHECKING:
     from ...account.models import User
     from ...app.models import App
-
-
-def add_to_order_total_authorized_and_total_charged(
-    order_id: uuid.UUID,
-    authorized_amount_to_add: Decimal,
-    charged_amount_to_add: Decimal,
-):
-    Order.objects.filter(id=order_id).update(
-        total_authorized_amount=F("total_authorized_amount") + authorized_amount_to_add,
-        total_charged_amount=F("total_charged_amount") + charged_amount_to_add,
-    )
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -907,16 +895,15 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
-    def add_amounts_to_order(cls, order_id: uuid.UUID, transaction_data: dict):
-        authorized_amount = transaction_data.get("authorized_value", Decimal("0"))
-        charged_amount = transaction_data.get("charged_value", Decimal("0"))
-        if not authorized_amount and not charged_amount:
+    def update_amounts_for_order(
+        cls, order: order_models.Order, transaction_data: dict
+    ):
+        authorized_amount = transaction_data.get("authorized_value")
+        charged_amount = transaction_data.get("charged_value")
+        if authorized_amount is None and charged_amount is None:
             return
-        add_to_order_total_authorized_and_total_charged(
-            order_id=order_id,
-            authorized_amount_to_add=authorized_amount,
-            charged_amount_to_add=charged_amount,
-        )
+
+        updates_amounts_for_order(order)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -955,8 +942,9 @@ class TransactionCreate(BaseMutation):
                     message=transaction_event.get("name", ""),
                 )
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
-        if order_id := transaction_data.get("order_id"):
-            cls.add_amounts_to_order(order_id, transaction_data)
+        if transaction_data.get("order_id"):
+            order = cast(order_models.Order, new_transaction.order)
+            cls.update_amounts_for_order(order, transaction_data)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)
@@ -1035,36 +1023,7 @@ class TransactionUpdate(TransactionCreate):
         )
 
     @classmethod
-    def update_amounts_for_order(
-        cls,
-        transaction: payment_models.TransactionItem,
-        order_id: uuid.UUID,
-        transaction_data: dict,
-    ):
-        current_authorized_amount = transaction.authorized_value
-        updated_authorized_amount = transaction_data.get(
-            "authorized_value", current_authorized_amount
-        )
-        authorized_amount_to_add = updated_authorized_amount - current_authorized_amount
-
-        current_charged_amount = transaction.charged_value
-        updated_charged_amount = transaction_data.get(
-            "charged_value", current_charged_amount
-        )
-        charged_amount_to_add = updated_charged_amount - current_charged_amount
-
-        if not authorized_amount_to_add and not charged_amount_to_add:
-            return
-        add_to_order_total_authorized_and_total_charged(
-            order_id=order_id,
-            authorized_amount_to_add=authorized_amount_to_add,
-            charged_amount_to_add=charged_amount_to_add,
-        )
-
-    @classmethod
     def update_transaction(cls, instance, transaction_data):
-        if instance.order_id:
-            cls.update_amounts_for_order(instance, instance.order_id, transaction_data)
         psp_reference = transaction_data.get(
             "psp_reference", transaction_data.pop("reference", None)
         )
@@ -1083,6 +1042,8 @@ class TransactionUpdate(TransactionCreate):
         transaction_data["psp_reference"] = psp_reference
         instance = cls.construct_instance(instance, transaction_data)
         instance.save()
+        if instance.order_id:
+            cls.update_amounts_for_order(instance.order, transaction_data)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -1409,6 +1370,9 @@ class TransactionEventReport(ModelMutation):
                 transaction.available_actions = available_actions
                 transaction.save(update_fields=["available_actions"])
             recalculate_transaction_amounts(transaction)
+            if transaction.order_id:
+                order = cast(order_models.Order, transaction.order)
+                updates_amounts_for_order(order)
 
         return cls(
             already_processed=already_processed,
