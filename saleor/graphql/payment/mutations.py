@@ -42,8 +42,6 @@ from ...payment.gateway import (
     request_refund_action,
 )
 from ...payment.transaction_item_calculations import recalculate_transaction_amounts
-from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import OrderPermissions, PaymentPermissions
 from ...payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
@@ -51,6 +49,8 @@ from ...payment.utils import (
     get_already_existing_event,
     is_currency_supported,
 )
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
 from ..channel.utils import validate_channel
