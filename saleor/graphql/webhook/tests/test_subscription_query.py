@@ -313,7 +313,7 @@ def test_get_event_type_from_subscription(query, events):
             """,
             "Can't find a single event.",
             ValidationError,
-            WebhookErrorCode.UNABLE_TO_PARSE,
+            WebhookErrorCode.MISSING_EVENT,
         ),
     ],
 )

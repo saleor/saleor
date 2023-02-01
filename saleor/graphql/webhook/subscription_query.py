@@ -30,7 +30,7 @@ class SubscriptionQuery:
         self.events: List[str] = []
         self.error_code: Optional[str] = None
         self.errors = self.validate_query()
-        self.error_msg: str = ";".join(set([err.message for err in self.errors]))
+        self.error_msg: str = ";".join(set([str(err.message) for err in self.errors]))
 
     def validate_query(self) -> List[Union[GraphQLSyntaxError, ValidationError]]:
         from ..api import schema
