@@ -842,7 +842,7 @@ class ProductMedia(SortableModel, ModelWithMetadata):
     # DEPRECATED
     to_remove = models.BooleanField(default=False)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "pk")
         app_label = "product"
 
