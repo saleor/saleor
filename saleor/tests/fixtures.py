@@ -5482,7 +5482,7 @@ def transaction_item_created_by_app(order, app):
         currency="USD",
         order_id=order.pk,
         charged_value=Decimal("10"),
-        app=app,
+        app_identifier=app.identifier,
     )
 
 

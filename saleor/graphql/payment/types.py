@@ -5,7 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...payment import models
 from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
-from ..app.dataloaders import AppByIdLoader
+from ..app.dataloaders import AppsByAppIdentifierLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -327,8 +327,18 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     @staticmethod
     def resolve_created_by(root: models.TransactionItem, info):
-        if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+        if root.app_identifier:
+
+            def get_first_app(apps):
+                if apps:
+                    return apps[0]
+                return None
+
+            return (
+                AppsByAppIdentifierLoader(info.context)
+                .load(root.app_identifier)
+                .then(get_first_app)
+            )
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
@@ -487,8 +497,18 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
 
     @staticmethod
     def resolve_created_by(root: models.TransactionItem, info):
-        if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+        if root.app_identifier:
+
+            def get_first_app(apps):
+                if apps:
+                    return apps[0]
+                return None
+
+            return (
+                AppsByAppIdentifierLoader(info.context)
+                .load(root.app_identifier)
+                .then(get_first_app)
+            )
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None

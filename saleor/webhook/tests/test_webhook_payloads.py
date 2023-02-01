@@ -2050,6 +2050,7 @@ def test_generate_transaction_action_request_payload_for_order(
                 action_type=action_type,
                 action_value=action_value,
                 event=requested_event,
+                transaction_app_owner=None,
             ),
             requestor=requestor,
         )
@@ -2141,6 +2142,7 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 action_type=action_type,
                 action_value=action_value,
                 event=requested_event,
+                transaction_app_owner=None,
             ),
             requestor=requestor,
         )

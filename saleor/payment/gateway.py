@@ -194,11 +194,15 @@ def _create_transaction_data(
     action_value: Optional[Decimal],
     request_event: TransactionEvent,
 ):
+    app_owner = None
+    if transaction.app_identifier:
+        app_owner = App.objects.filter(identifier=transaction.app_identifier).first()
     return TransactionActionData(
         transaction=transaction,
         action_type=action_type,
         action_value=action_value,
         event=request_event,
+        transaction_app_owner=app_owner,
     )
 
 
@@ -220,10 +224,10 @@ def _request_payment_action(
     )
 
     webhooks = None
-    if transaction_action_data.transaction.app_id:
+    if transaction_action_data.transaction_app_owner:
         webhooks = get_webhooks_for_event(
             event_type=event_type,
-            apps_ids=[transaction_action_data.transaction.app_id],
+            apps_ids=[transaction_action_data.transaction_app_owner.pk],
         )
 
     if (

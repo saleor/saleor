@@ -938,7 +938,7 @@ def create_transaction_event_from_request_and_webhook_response(
             currency=request_event.currency,
             transaction_id=request_event.transaction_id,
             message=response_event.message,
-            app=app,
+            app_identifier=app.identifier,
             include_in_calculations=True,
         )
         with transaction.atomic():

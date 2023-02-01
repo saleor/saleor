@@ -195,7 +195,7 @@ def test_transaction_create_for_order_by_app(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
-    assert transaction.app == app_api_client.app
+    assert transaction.app_identifier == app_api_client.app.identifier
     assert transaction.user is None
     assert transaction.external_url == external_url
 
@@ -351,7 +351,7 @@ def test_transaction_create_for_checkout_by_app(
         private_metadata["key"]: private_metadata["value"]
     }
     assert transaction.external_url == external_url
-    assert transaction.app == app_api_client.app
+    assert transaction.app_identifier == app_api_client.app.identifier
     assert transaction.user is None
 
 
@@ -757,7 +757,7 @@ def test_creates_transaction_event_for_order_by_app(
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
-    assert event.app == app_api_client.app
+    assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
 
@@ -824,7 +824,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
-    assert event.app == app_api_client.app
+    assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
 
@@ -883,7 +883,7 @@ def test_transaction_create_for_order_by_staff(
         private_metadata["key"]: private_metadata["value"]
     }
     assert transaction.user == staff_api_client.user
-    assert not transaction.app
+    assert not transaction.app_identifier
 
 
 def test_transaction_create_for_order_updates_order_total_authorized_by_staff(
@@ -1033,7 +1033,7 @@ def test_transaction_create_for_checkout_by_staff(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
-    assert transaction.app is None
+    assert transaction.app_identifier is None
     assert transaction.user == staff_api_client.user
 
 
@@ -1440,7 +1440,7 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
     assert event.user == staff_api_client.user
-    assert event.app is None
+    assert event.app_identifier is None
 
 
 def test_creates_transaction_event_for_checkout_by_staff(
@@ -1507,7 +1507,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
     assert event.user == staff_api_client.user
-    assert event.app is None
+    assert event.app_identifier is None
 
 
 def test_transaction_create_external_url_incorrect_url_format_by_app(

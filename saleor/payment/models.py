@@ -127,9 +127,7 @@ class TransactionItem(ModelWithMetadata):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-    app = models.ForeignKey(
-        "app.App", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    app_identifier = models.CharField(blank=True, null=True, max_length=256)
 
     class Meta:
         ordering = ("pk",)
@@ -176,10 +174,8 @@ class TransactionEvent(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    app_identifier = models.CharField(blank=True, null=True, max_length=256)
 
-    app = models.ForeignKey(
-        "app.App", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
-    )
     include_in_calculations = models.BooleanField(default=False)
 
     class Meta:

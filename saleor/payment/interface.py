@@ -3,13 +3,15 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from functools import cached_property
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
 from ..payment.models import TransactionEvent, TransactionItem
 from . import TransactionEventType
 
+if TYPE_CHECKING:
+    from ..app.models import App
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
@@ -19,6 +21,7 @@ class TransactionActionData:
     action_type: str
     transaction: TransactionItem
     event: "TransactionEvent"
+    transaction_app_owner: Optional["App"]
     action_value: Optional[Decimal] = None
 
 

@@ -19,13 +19,13 @@ def check_if_requestor_has_access(
     # Previously we didn't require app/user attached to transaction. We can't
     # determine which app/user is an owner of the transaction. So for transaction
     # without attached owner we require only HANDLE_PAYMENTS.
-    if not transaction.user_id and not transaction.app_id:
+    if not transaction.user_id and not transaction.app_identifier:
         return True
 
     if user and transaction.user_id == user.id:
         return True
 
-    if app and transaction.app_id == app.id:
+    if app and transaction.app_identifier == app.identifier:
         return True
 
     return False

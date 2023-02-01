@@ -122,7 +122,7 @@ def _assert_transaction_fields_created_by(content, transaction_item, event, crea
 
 
 def test_transaction_created_by_app_query_by_app(
-    app_api_client, transaction_item_created_by_app, permission_manage_payments
+    app_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
     event = TransactionEvent.objects.create(transaction=transaction_item_created_by_app)
@@ -140,12 +140,12 @@ def test_transaction_created_by_app_query_by_app(
         content,
         transaction_item_created_by_app,
         event,
-        transaction_item_created_by_app.app,
+        app,
     )
 
 
 def test_transaction_creted_by_app_query_no_order(
-    app_api_client, transaction_item_created_by_app, permission_manage_payments
+    app_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
     transaction_item_created_by_app.order = None
@@ -166,12 +166,12 @@ def test_transaction_creted_by_app_query_no_order(
         content,
         transaction_item_created_by_app,
         event,
-        transaction_item_created_by_app.app,
+        app,
     )
 
 
 def test_transaction_created_by_app_query_by_staff(
-    staff_api_client, transaction_item_created_by_app, permission_manage_payments
+    staff_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
     event = TransactionEvent.objects.create(transaction=transaction_item_created_by_app)
@@ -189,7 +189,7 @@ def test_transaction_created_by_app_query_by_staff(
         content,
         transaction_item_created_by_app,
         event,
-        transaction_item_created_by_app.app,
+        app,
     )
 
 
@@ -412,7 +412,7 @@ def test_transaction_event_by_app(
         type=TransactionEventType.CHARGE_SUCCESS,
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
-        app=app_api_client.app,
+        app_identifier=app_api_client.app.identifier,
     )
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}

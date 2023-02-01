@@ -362,6 +362,7 @@ def test_create_failed_transaction_event(transaction_item_created_by_app):
 
 def test_create_transaction_event_from_request_and_webhook_response_with_psp_reference(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     request_event = TransactionEvent.objects.create(
@@ -375,7 +376,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
 
     # when
     create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -387,6 +388,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_part_event(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     request_event = TransactionEvent.objects.create(
@@ -405,7 +407,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
 
     # when
     event = create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -423,7 +425,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_updates_order_charge(
-    transaction_item_created_by_app, order_with_lines
+    transaction_item_created_by_app, app, order_with_lines
 ):
     # given
     order = order_with_lines
@@ -451,7 +453,7 @@ def test_create_transaction_event_from_request_updates_order_charge(
 
     # when
     create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -462,7 +464,7 @@ def test_create_transaction_event_from_request_updates_order_charge(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_updates_order_authorize(
-    transaction_item_created_by_app, order_with_lines
+    transaction_item_created_by_app, app, order_with_lines
 ):
     # given
     order = order_with_lines
@@ -490,7 +492,7 @@ def test_create_transaction_event_from_request_updates_order_authorize(
 
     # when
     create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -502,6 +504,7 @@ def test_create_transaction_event_from_request_updates_order_authorize(
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_full_event(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     request_event = TransactionEvent.objects.create(
@@ -532,7 +535,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
     # when
     event = create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -550,6 +553,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     request_event = TransactionEvent.objects.create(
@@ -562,7 +566,7 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
 
     # when
     failed_event = create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -579,6 +583,7 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     transaction_item_created_by_app.events.create(
@@ -613,7 +618,7 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
 
     # when
     failed_event = create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -628,6 +633,7 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_same_event(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     expected_psp_reference = "psp:122:222"
@@ -662,7 +668,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
     # when
     event = create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then
@@ -676,6 +682,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_differnt_amout(
     transaction_item_created_by_app,
+    app,
 ):
     # given
     expected_psp_reference = "psp:122:222"
@@ -711,7 +718,7 @@ def test_create_transaction_event_from_request_and_webhook_response_differnt_amo
 
     # when
     failed_event = create_transaction_event_from_request_and_webhook_response(
-        request_event, transaction_item_created_by_app.app, response_data
+        request_event, app, response_data
     )
 
     # then

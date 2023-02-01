@@ -733,7 +733,7 @@ def trigger_transaction_request(
             transaction_data.transaction.id,
         )
         return None
-    if not transaction_data.transaction.app_id:
+    if not transaction_data.transaction_app_owner:
         create_failed_transaction_event(
             transaction_data.event,
             cause=(
@@ -743,7 +743,7 @@ def trigger_transaction_request(
         )
         return None
     webhook = get_webhooks_for_event(
-        event_type, apps_ids=[transaction_data.transaction.app_id]
+        event_type, apps_ids=[transaction_data.transaction_app_owner.pk]
     ).first()
     if not webhook:
         create_failed_transaction_event(

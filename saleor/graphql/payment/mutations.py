@@ -878,7 +878,7 @@ class TransactionCreate(BaseMutation):
         return payment_models.TransactionItem.objects.create(
             **transaction_input,
             user=user if user and user.is_authenticated else None,
-            app=app,
+            app_identifier=app.identifier if app else None,
         )
 
     @classmethod
@@ -897,7 +897,7 @@ class TransactionCreate(BaseMutation):
             message=transaction_event_input.get("name", ""),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
-            app=app,
+            app_identifier=app.identifier if app else None,
         )
 
     @classmethod
@@ -1329,7 +1329,7 @@ class TransactionEventReport(ModelMutation):
             "external_url": external_url or "",
             "message": message or "",
             "transaction": transaction,
-            "app": app,
+            "app_identifier": app.identifier if app else None,
             "user": user,
             "include_in_calculations": True,
         }
