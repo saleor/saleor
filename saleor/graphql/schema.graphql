@@ -15940,6 +15940,7 @@ enum WebhookErrorCode {
   SYNTAX
   MISSING_SUBSCRIPTION
   UNABLE_TO_PARSE
+  MISSING_EVENT
 }
 
 input WebhookCreateInput {
@@ -16099,6 +16100,7 @@ enum WebhookDryRunErrorCode {
   SYNTAX
   MISSING_SUBSCRIPTION
   UNABLE_TO_PARSE
+  MISSING_EVENT
 }
 
 """
@@ -16139,6 +16141,7 @@ enum WebhookTriggerErrorCode {
   MISSING_SUBSCRIPTION
   UNABLE_TO_PARSE
   MISSING_QUERY
+  MISSING_EVENT
 }
 
 """

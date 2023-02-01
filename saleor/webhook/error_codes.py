@@ -11,6 +11,7 @@ class WebhookErrorCode(Enum):
     SYNTAX = "syntax"
     MISSING_SUBSCRIPTION = "missing_subscription"
     UNABLE_TO_PARSE = "unable_to_parse"
+    MISSING_EVENT = "missing_event"
 
 
 class WebhookDryRunErrorCode(Enum):
@@ -22,6 +23,7 @@ class WebhookDryRunErrorCode(Enum):
     SYNTAX = "syntax"
     MISSING_SUBSCRIPTION = "missing_subscription"
     UNABLE_TO_PARSE = "unable_to_parse"
+    MISSING_EVENT = "missing_event"
 
 
 class WebhookTriggerErrorCode(Enum):
@@ -34,3 +36,4 @@ class WebhookTriggerErrorCode(Enum):
     MISSING_SUBSCRIPTION = "missing_subscription"
     UNABLE_TO_PARSE = "unable_to_parse"
     MISSING_QUERY = "missing_query"
+    MISSING_EVENT = "missing_event"

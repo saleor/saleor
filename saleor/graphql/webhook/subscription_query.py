@@ -14,7 +14,7 @@ from graphql.language.ast import (
     OperationDefinition,
 )
 
-from saleor.webhook.error_codes import WebhookErrorCode
+from ...webhook.error_codes import WebhookErrorCode
 
 
 class IsFragment(Flag):
@@ -32,7 +32,7 @@ class SubscriptionQuery:
         self.errors = self.validate_query()
         self.error_msg: str = ";".join(set([err.message for err in self.errors]))
 
-    def validate_query(self):
+    def validate_query(self) -> List[Union[GraphQLSyntaxError, ValidationError]]:
         from ..api import schema
 
         graphql_backend = get_default_backend()
@@ -89,7 +89,7 @@ class SubscriptionQuery:
         if not events:
             raise ValidationError(
                 message="Can't find a single event.",
-                code=WebhookErrorCode.UNABLE_TO_PARSE.value,
+                code=WebhookErrorCode.MISSING_EVENT.value,
             )
 
         return sorted(list(map(to_snake_case, events)))

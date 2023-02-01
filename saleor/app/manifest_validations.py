@@ -233,15 +233,14 @@ def clean_webhooks(manifest_data, errors):
 
         if not webhook["events"]:
             webhook["events"] = subscription_query.events
-        else:
-            if sorted(webhook["events"]) != sorted(subscription_query.events):
-                errors["webhooks"].append(
-                    ValidationError(
-                        "Events provided in `syncEvents` and `asyncEvents` does not "
-                        "match events from `query`",
-                        code=AppErrorCode.INVALID.value,
-                    )
+        elif sorted(webhook["events"]) != sorted(subscription_query.events):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Events provided in `syncEvents` and `asyncEvents` does not "
+                    "match events from `query`",
+                    code=AppErrorCode.INVALID.value,
                 )
+            )
 
         try:
             target_url_validator(webhook["targetUrl"])
