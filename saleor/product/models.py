@@ -821,7 +821,7 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class ProductMedia(SortableModel):
+class ProductMedia(SortableModel, ModelWithMetadata):
     product = models.ForeignKey(
         Product,
         related_name="media",

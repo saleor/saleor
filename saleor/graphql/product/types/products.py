@@ -1761,7 +1761,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
 
     class Meta:
         description = "Represents a product media."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
 
     @staticmethod
