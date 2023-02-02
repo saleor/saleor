@@ -31,7 +31,8 @@ class TransactionItem(ModelWithMetadata):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, default="")
-    type = models.CharField(max_length=512, blank=True, default="")
+    name = models.CharField(max_length=512, blank=True, default="")
+    message = models.CharField(max_length=512, blank=True, default="")
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
     available_actions = ArrayField(
         models.CharField(max_length=128, choices=TransactionAction.CHOICES),

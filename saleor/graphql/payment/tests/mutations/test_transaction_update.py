@@ -30,6 +30,8 @@ mutation TransactionUpdate(
                 actions
                 pspReference
                 type
+                name
+                message
                 status
                 modifiedAt
                 createdAt
@@ -66,6 +68,7 @@ mutation TransactionUpdate(
                     status
                     pspReference
                     name
+                    message
                     createdAt
                     externalUrl
                     amount{
@@ -290,7 +293,63 @@ def test_transaction_update_type_by_app(
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["type"] == type
-    assert transaction.type == type
+    assert data["name"] == type
+    assert transaction.name == type
+
+
+def test_transaction_update_name_by_app(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    name = "New credit card"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "name": name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["name"] == name
+    assert data["type"] == name
+    assert transaction.name == name
+
+
+def test_transaction_update_message_by_app(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    message = "Message"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "message": message,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["message"] == message
+    assert transaction.message == message
 
 
 def test_transaction_update_psp_reference_by_app(
@@ -744,6 +803,7 @@ def test_transaction_update_multiple_amounts_provided_by_app(
     assert data["voidedAmount"]["amount"] == canceled_value
     assert data["canceledAmount"]["amount"] == canceled_value
 
+    assert transaction
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
     assert transaction.canceled_value == canceled_value
@@ -835,7 +895,7 @@ def test_transaction_update_adds_transaction_event_to_order_by_app(
         "transaction_event": {
             "status": transaction_status,
             "pspReference": transaction_reference,
-            "name": transaction_name,
+            "message": transaction_name,
         },
     }
 
@@ -874,7 +934,7 @@ def test_creates_transaction_event_for_order_by_app(
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
-            "name": event_name,
+            "message": event_name,
         },
     }
 
@@ -890,6 +950,7 @@ def test_creates_transaction_event_for_order_by_app(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
+    assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference
@@ -1098,7 +1159,63 @@ def test_transaction_update_type_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["type"] == type
-    assert transaction.type == type
+    assert data["name"] == type
+    assert transaction.name == type
+
+
+def test_transaction_update_name_by_staff(
+    transaction_item_created_by_user, permission_manage_payments, staff_api_client
+):
+    # given
+    transaction = transaction_item_created_by_user
+    name = "New credit card"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "name": name,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["type"] == name
+    assert data["name"] == name
+    assert transaction.name == name
+
+
+def test_transaction_update_message_by_staff(
+    transaction_item_created_by_user, permission_manage_payments, staff_api_client
+):
+    # given
+    transaction = transaction_item_created_by_user
+    message = "Message"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "message": message,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["message"] == message
+    assert transaction.message == message
 
 
 def test_transaction_update_psp_reference_by_staff(
@@ -1549,6 +1666,7 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
     assert data["voidedAmount"]["amount"] == canceled_value
     assert data["canceledAmount"]["amount"] == canceled_value
 
+    assert transaction
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
     assert transaction.canceled_value == canceled_value
@@ -1640,7 +1758,7 @@ def test_transaction_update_adds_transaction_event_to_order_by_staff(
         "transaction_event": {
             "status": transaction_status,
             "pspReference": transaction_reference,
-            "name": transaction_name,
+            "message": transaction_name,
         },
     }
 
@@ -1695,6 +1813,7 @@ def test_creates_transaction_event_for_order_by_staff(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
+    assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_reference

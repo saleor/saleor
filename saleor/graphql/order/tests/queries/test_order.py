@@ -651,7 +651,7 @@ def test_order_query_with_transactions_details(
             TransactionItem(
                 order_id=order.id,
                 status="Authorized",
-                type="Credit card",
+                name="Credit card",
                 psp_reference="123",
                 currency="USD",
                 authorized_value=Decimal("15"),
@@ -660,7 +660,7 @@ def test_order_query_with_transactions_details(
             TransactionItem(
                 order_id=order.id,
                 status="Authorized second credit card",
-                type="Credit card",
+                name="Credit card",
                 psp_reference="321",
                 currency="USD",
                 authorized_value=Decimal("10"),
@@ -669,7 +669,7 @@ def test_order_query_with_transactions_details(
             TransactionItem(
                 order_id=order.id,
                 status="Captured",
-                type="Credit card",
+                name="Credit card",
                 psp_reference="111",
                 currency="USD",
                 charged_value=Decimal("15"),
@@ -678,7 +678,7 @@ def test_order_query_with_transactions_details(
             TransactionItem(
                 order_id=order.id,
                 status="Captured",
-                type="Credit card",
+                name="Credit card",
                 psp_reference="111",
                 currency="USD",
                 canceled_value=Decimal("19"),

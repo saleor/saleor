@@ -40,7 +40,7 @@ def test_transaction_void_request(order, webhook_app, permission_manage_payments
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["void"],
         currency="USD",

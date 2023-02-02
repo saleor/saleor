@@ -66,6 +66,7 @@ mutation TransactionCreate(
                     status
                     pspReference
                     name
+                    message
                     createdAt
                     externalUrl
                     amount{
@@ -500,7 +501,7 @@ def test_transaction_create_create_event_for_order_by_app(
         "transaction_event": {
             "status": transaction_status,
             "pspReference": transaction_reference,
-            "name": transaction_name,
+            "message": transaction_name,
         },
     }
 
@@ -710,8 +711,8 @@ def test_creates_transaction_event_for_order_by_app(
 
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
-
+    event_message = "Failed authorization"
+    event_name = "Depreceated field attached to message."
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -729,6 +730,7 @@ def test_creates_transaction_event_for_order_by_app(
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
+            "message": event_message,
             "name": event_name,
         },
     }
@@ -746,7 +748,8 @@ def test_creates_transaction_event_for_order_by_app(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
-    assert event_data["name"] == event_name
+    assert event_data["message"] == event_message + " " + event_name
+    assert event_data["name"] == event_message + " " + event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["externalUrl"] == ""
@@ -754,7 +757,7 @@ def test_creates_transaction_event_for_order_by_app(
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.message == event_name
+    assert event.message == event_message + " " + event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
     assert event.app_identifier == app_api_client.app.identifier
@@ -814,6 +817,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
+    assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
@@ -1183,7 +1187,7 @@ def test_transaction_create_create_event_for_order_by_staff(
         "transaction_event": {
             "status": transaction_status,
             "pspReference": transaction_reference,
-            "name": transaction_name,
+            "message": transaction_name,
         },
     }
 
@@ -1412,7 +1416,7 @@ def test_creates_transaction_event_for_order_by_staff(
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
-            "name": event_name,
+            "message": event_name,
         },
     }
 
@@ -1429,6 +1433,7 @@ def test_creates_transaction_event_for_order_by_staff(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
+    assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
@@ -1479,7 +1484,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
-            "name": event_name,
+            "message": event_name,
         },
     }
 
@@ -1496,6 +1501,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
+    assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference

@@ -17,6 +17,16 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="transactionitem",
+            name="message",
+            field=models.CharField(blank=True, default="", max_length=512),
+        ),
+        migrations.RenameField(
+            model_name="transactionitem",
+            old_name="type",
+            new_name="name",
+        ),
+        migrations.AddField(
+            model_name="transactionitem",
             name="app_identifier",
             field=models.CharField(blank=True, max_length=256, null=True),
         ),

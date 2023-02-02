@@ -638,11 +638,21 @@ class PaymentCheckBalance(BaseMutation):
 
 class TransactionUpdateInput(graphene.InputObjectType):
     status = graphene.String(
-        description="Status of the transaction.",
+        description=(
+            "Status of the transaction."
+            + DEPRECATED_IN_3X_INPUT
+            + " The `status` is not needed. The amounts can be used to define "
+            "the current status of transactions."
+        ),
     )
     type = graphene.String(
-        description="Payment type used for this transaction.",
+        description="Payment type used for this transaction."
+        + DEPRECATED_IN_3X_INPUT
+        + " Use `name` and `message` instead.",
     )
+    name = graphene.String(description="Payment name of the transaction.")
+    message = graphene.String(description="The message of the transaction.")
+
     reference = graphene.String(
         description=(
             "Reference of the transaction. "
@@ -692,17 +702,16 @@ class TransactionUpdateInput(graphene.InputObjectType):
 
 
 class TransactionCreateInput(TransactionUpdateInput):
-    status = graphene.String(description="Status of the transaction.", required=True)
-    type = graphene.String(
-        description="Payment type used for this transaction.", required=True
-    )
+    ...
 
 
 class TransactionEventInput(graphene.InputObjectType):
     status = graphene.Field(
         TransactionEventStatusEnum,
-        required=True,
-        description="Current status of the payment transaction.",
+        required=False,
+        description="Current status of the payment transaction."
+        + DEPRECATED_IN_3X_INPUT
+        + " Status will be calculated by Saleor.",
     )
     reference = graphene.String(
         description=(
@@ -715,7 +724,12 @@ class TransactionEventInput(graphene.InputObjectType):
     psp_reference = graphene.String(
         description=("PSP Reference related to this action." + ADDED_IN_310)
     )
-    name = graphene.String(description="Name of the transaction.")
+    name = graphene.String(
+        description="Name of the transaction."
+        + DEPRECATED_IN_3X_INPUT
+        + " Use `message` instead. `name` field will be added to `message`."
+    )
+    message = graphene.String(description="The message related to the event.")
 
 
 class TransactionCreate(BaseMutation):
@@ -871,6 +885,8 @@ class TransactionCreate(BaseMutation):
         cls.cleanup_money_data(transaction_input)
         cls.cleanup_metadata_data(transaction_input)
 
+        transaction_type = transaction_input.pop("type", None)
+        transaction_input["name"] = transaction_input.get("name", transaction_type)
         reference = transaction_input.pop("reference", None)
         transaction_input["psp_reference"] = transaction_input.get(
             "psp_reference", reference
@@ -894,7 +910,7 @@ class TransactionCreate(BaseMutation):
         return transaction.events.create(
             status=transaction_event_input["status"],
             psp_reference=psp_reference,
-            message=transaction_event_input.get("name", ""),
+            message=cls.create_event_message(transaction_event_input),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app.identifier if app else None,
@@ -910,6 +926,18 @@ class TransactionCreate(BaseMutation):
             return
 
         updates_amounts_for_order(order)
+
+    @classmethod
+    def create_event_message(cls, transaction_event: dict) -> str:
+        message = transaction_event.get("message")
+        name = transaction_event.get("name")
+        if message and name:
+            return message + " " + name
+        elif message:
+            return message
+        elif name:
+            return name
+        return ""
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -945,7 +973,7 @@ class TransactionCreate(BaseMutation):
                     app=app,
                     reference=psp_reference,
                     status=transaction_event["status"],
-                    message=transaction_event.get("name", ""),
+                    message=cls.create_event_message(transaction_event),
                 )
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
         if transaction_data.get("order_id"):
@@ -1045,6 +1073,9 @@ class TransactionUpdate(TransactionCreate):
                         )
                     }
                 )
+        transaction_data["name"] = transaction_data.get(
+            "name", transaction_data.pop("type", None)
+        )
         transaction_data["psp_reference"] = psp_reference
         instance = cls.construct_instance(instance, transaction_data)
         instance.save()
@@ -1089,7 +1120,7 @@ class TransactionUpdate(TransactionCreate):
                     app=app,
                     reference=psp_reference or "",
                     status=transaction_event["status"],
-                    message=transaction_event.get("name", ""),
+                    message=cls.create_event_message(transaction_event),
                 )
         return TransactionUpdate(transaction=instance)
 

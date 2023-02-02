@@ -75,6 +75,8 @@ TRANSACTION_QUERY = """
             }
             status
             type
+            name
+            message
             reference
             order {
                 id
@@ -108,7 +110,9 @@ def _assert_transaction_fields(content, transaction_item, event):
     assert len(data["events"]) == 1
     assert data["events"][0]["id"] == to_global_id_or_none(event)
     assert data["status"] == transaction_item.status
-    assert data["type"] == transaction_item.type
+    assert data["type"] == transaction_item.name
+    assert data["name"] == transaction_item.name
+    assert data["message"] == transaction_item.message
     if transaction_item.order_id:
         assert data["order"]["id"] == to_global_id_or_none(transaction_item.order)
     else:

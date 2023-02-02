@@ -1438,7 +1438,7 @@ def test_transaction_action_request(
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -1501,7 +1501,7 @@ def test_transaction_charge_requested(
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -1553,7 +1553,7 @@ def test_transaction_refund_requested(
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=[
             "refund",
@@ -1607,7 +1607,7 @@ def test_transaction_cancelation_requested(
     manager = get_plugins_manager()
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=[
             "refund",

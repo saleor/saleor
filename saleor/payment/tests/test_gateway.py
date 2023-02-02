@@ -339,7 +339,7 @@ def test_request_charge_action_missing_active_event(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -375,7 +375,7 @@ def test_request_charge_action_with_transaction_action_request(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -429,7 +429,7 @@ def test_request_charge_action_on_order(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -483,7 +483,7 @@ def test_request_charge_action_by_app(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -537,7 +537,7 @@ def test_request_charge_action_on_checkout(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -584,7 +584,7 @@ def test_request_refund_action_missing_active_event(
     # given
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
@@ -620,7 +620,7 @@ def test_request_refund_action_with_transaction_action_request(
     # given
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
@@ -674,7 +674,7 @@ def test_request_refund_action_on_order(
     # given
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
@@ -728,7 +728,7 @@ def test_request_refund_action_by_app(
     # given
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
@@ -783,7 +783,7 @@ def test_request_refund_action_on_checkout(
     # given
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
@@ -830,7 +830,7 @@ def test_request_cancelation_action_missing_active_event(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -866,7 +866,7 @@ def test_request_cancelation_action_on_order(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -918,7 +918,7 @@ def test_request_cancelation_action_with_transaction_action_request(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -969,7 +969,7 @@ def test_request_cancelation_action_by_app(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -1021,7 +1021,7 @@ def test_request_cancelation_action_on_checkout(
     # given
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",

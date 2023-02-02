@@ -1449,7 +1449,9 @@ def generate_transaction_action_request_payload(
         },
         "transaction": {
             "status": transaction.status,
-            "type": transaction.type,
+            "type": transaction.name,
+            "name": transaction.name,
+            "message": transaction.message,
             "reference": transaction.psp_reference,
             "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,

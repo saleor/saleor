@@ -406,8 +406,28 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
             + ADDED_IN_310
         ),
     )
-    status = graphene.String(description="Status of transaction.", required=True)
-    type = graphene.String(description="Type of transaction.", required=True)
+    status = graphene.String(
+        description="Status of transaction.",
+        deprecation_reason=(
+            DEPRECATED_IN_3X_FIELD
+            + " The `status` is not needed. The amounts can be used to define "
+            "the current status of transactions."
+        ),
+        required=True,
+    )
+
+    type = graphene.String(
+        description="Type of transaction.",
+        deprecation_reason=(
+            DEPRECATED_IN_3X_FIELD + " Use `name` or `message` instead."
+        ),
+        required=True,
+    )
+    name = graphene.String(description="Name of the transaction.", required=True)
+    message = graphene.String(
+        description="Message related to the transaction.", required=True
+    )
+
     reference = graphene.String(
         description="Reference of transaction.",
         required=True,
@@ -524,3 +544,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     @staticmethod
     def resolve_external_url(root: models.TransactionItem, info):
         return root.external_url or ""
+
+    @staticmethod
+    def resolve_type(root: models.TransactionItem, info) -> str:
+        return root.name
