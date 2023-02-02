@@ -88,6 +88,6 @@ def handle_thumbnail(
     thumbnail.save()
 
     manager = get_plugins_manager()
-    call_event(manager.thumbnail_created, thumbnail)
+    call_event(manager.thumbnail_created, thumbnail, instance)
 
     return HttpResponseRedirect(thumbnail.image.url)

@@ -3,7 +3,17 @@ import uuid
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Union,
+)
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -34,7 +44,7 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
-from ..product.models import Collection, Product, ProductMedia
+from ..product.models import Category, Collection, Product, ProductMedia
 from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
@@ -1477,8 +1487,11 @@ def generate_transaction_action_request_payload(
 
 
 @traced_payload_generator
-def generate_thumbnail_payload(thumbnail: Thumbnail):
-    payload = {"url": thumbnail.image.url}
+def generate_thumbnail_payload(
+    thumbnail: Thumbnail,
+    instance: Union["User", "Category", "Collection", "ProductMedia"],
+):
+    payload = {"url": thumbnail.image.url, "instance_id": instance.id}
     return json.dumps(payload)
 
 
