@@ -116,7 +116,7 @@ class SiteSettings(models.Model):
         sender_address: Optional[str] = self.default_mail_sender_address
 
         if not sender_address:
-            sender_address = settings.DEFAULT_FROM_EMAIL  # type: ignore[misc]
+            sender_address = settings.DEFAULT_FROM_EMAIL
 
             if not sender_address:
                 raise ImproperlyConfigured("No sender email address has been set-up")
