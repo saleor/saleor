@@ -4,7 +4,6 @@ from typing import cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.utils import IntegrityError
 from graphene.types import InputObjectType
 from graphene.utils.str_converters import to_camel_case
 
@@ -37,6 +36,35 @@ from ..mutations.product_variant.product_variant_create import (
 )
 from ..types import ProductVariant
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
+
+
+def clean_price(
+    price,
+    field_name,
+    currency,
+    channel_id,
+    variant_index,
+    errors,
+    index_error_map,
+):
+    try:
+        validate_price_precision(price, currency)
+    except ValidationError as error:
+        index_error_map[variant_index].append(
+            ProductVariantBulkError(
+                field=to_camel_case(field_name),
+                message=error.message,
+                code=ProductVariantBulkErrorCode.INVALID_PRICE.value,
+                channels=[channel_id],
+            )
+        )
+        if errors is not None:
+            error.code = ProductVariantBulkErrorCode.INVALID_PRICE.value
+            error.params = {
+                "channels": [channel_id],
+                "index": variant_index,
+            }
+            errors[field_name].append(error)
 
 
 class ProductVariantBulkResult(graphene.ObjectType):
@@ -222,45 +250,14 @@ class ProductVariantBulkCreate(BaseMutation):
         return attributes_errors_count
 
     @classmethod
-    def clean_price(
-        cls,
-        price,
-        field_name,
-        currency,
-        channel_id,
-        variant_index,
-        errors,
-        index_error_map,
-    ):
-        try:
-            validate_price_precision(price, currency)
-        except ValidationError as error:
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field=to_camel_case(field_name),
-                    message=error.message,
-                    code=ProductVariantBulkErrorCode.INVALID_PRICE.value,
-                    channels=[channel_id],
-                )
-            )
-            if errors is not None:
-                error.code = ProductVariantBulkErrorCode.INVALID_PRICE.value
-                error.params = {
-                    "channels": [channel_id],
-                    "index": variant_index,
-                }
-                errors[field_name].append(error)
-
-    @classmethod
     def clean_channel_listings(
         cls,
-        cleaned_input,
+        channel_listings,
         product_channel_global_id_to_instance_map,
         errors,
         variant_index,
         index_error_map,
     ):
-        channel_listings = cleaned_input.get("channel_listings")
         channel_ids = [
             channel_listing["channel_id"] for channel_listing in channel_listings
         ]
@@ -330,7 +327,7 @@ class ProductVariantBulkCreate(BaseMutation):
             currency_code = channel_listing["channel"].currency_code
 
             errors_count_before_prices = len(index_error_map[variant_index])
-            cls.clean_price(
+            clean_price(
                 price,
                 "price",
                 currency_code,
@@ -339,7 +336,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 errors,
                 index_error_map,
             )
-            cls.clean_price(
+            clean_price(
                 cost_price,
                 "cost_price",
                 currency_code,
@@ -354,20 +351,19 @@ class ProductVariantBulkCreate(BaseMutation):
 
             listings_to_create.append(channel_listing)
 
-        cleaned_input["channel_listings"] = listings_to_create
+        return listings_to_create
 
     @classmethod
     def clean_stocks(
         cls,
-        cleaned_input,
+        stocks_data,
         warehouse_global_id_to_instance_map,
         errors,
         variant_index,
         index_error_map,
     ):
-        stocks = cleaned_input.get("stocks")
         stocks_to_create = []
-        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
 
         wrong_warehouse_ids = {
             warehouse_id
@@ -410,7 +406,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     params={"warehouses": duplicates, "index": variant_index},
                 )
 
-        for stock_data in stocks:
+        for stock_data in stocks_data:
             if (
                 stock_data["warehouse"] in duplicates
                 or stock_data["warehouse"] in wrong_warehouse_ids
@@ -422,7 +418,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 ]
                 stocks_to_create.append(stock_data)
 
-        cleaned_input["stocks"] = stocks_to_create
+        return stocks_to_create
 
     @classmethod
     def add_indexes_to_errors(cls, index, error, error_dict, index_error_map):
@@ -553,10 +549,9 @@ class ProductVariantBulkCreate(BaseMutation):
         index_error_map,
         index,
         errors,
-        input_class=ProductVariantBulkCreateInput,
     ):
         cleaned_input = ModelMutation.clean_input(
-            info, None, variant_data, input_cls=input_class
+            info, None, variant_data, input_cls=ProductVariantBulkCreateInput
         )
 
         sku = cleaned_input.get("sku")
@@ -585,18 +580,18 @@ class ProductVariantBulkCreate(BaseMutation):
             index_error_map,
         )
 
-        if cleaned_input.get("channel_listings"):
-            cls.clean_channel_listings(
-                cleaned_input,
+        if listings_data := cleaned_input.get("channel_listings"):
+            cleaned_input["channel_listings"] = cls.clean_channel_listings(
+                listings_data,
                 product_channel_global_id_to_instance_map,
                 errors,
                 index,
                 index_error_map,
             )
 
-        if cleaned_input.get("stocks"):
-            cls.clean_stocks(
-                cleaned_input,
+        if stocks_data := cleaned_input.get("stocks"):
+            cleaned_input["stocks"] = cls.clean_stocks(
+                stocks_data,
                 warehouse_global_id_to_instance_map,
                 errors,
                 index,
@@ -655,68 +650,60 @@ class ProductVariantBulkCreate(BaseMutation):
         return cleaned_inputs_map
 
     @classmethod
-    def create_variant_channel_listings(cls, variant, cleaned_input):
-        channel_listings_data = cleaned_input.get("channel_listings")
-
-        if not channel_listings_data:
-            return
-
-        variant_channel_listings = []
-        for channel_listing_data in channel_listings_data:
-            channel = channel_listing_data["channel"]
-            price = channel_listing_data["price"]
-            cost_price = channel_listing_data.get("cost_price")
-            preorder_quantity_threshold = channel_listing_data.get("preorder_threshold")
-            variant_channel_listings.append(
-                models.ProductVariantChannelListing(
-                    channel=channel,
-                    variant=variant,
-                    price_amount=price,
-                    cost_price_amount=cost_price,
-                    currency=channel.currency_code,
-                    preorder_quantity_threshold=preorder_quantity_threshold,
-                )
+    def prepare_channel_listings(cls, variant, listings_input, listings_to_create):
+        listings_to_create += [
+            models.ProductVariantChannelListing(
+                channel=listing_data["channel"],
+                variant=variant,
+                price_amount=listing_data["price"],
+                cost_price_amount=listing_data.get("cost_price"),
+                currency=listing_data["channel"].currency_code,
+                preorder_quantity_threshold=listing_data.get("preorder_threshold"),
             )
-        models.ProductVariantChannelListing.objects.bulk_create(
-            variant_channel_listings
-        )
+            for listing_data in listings_input
+        ]
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, info, instances_data_with_errors_list, product):
-        for instance_data in instances_data_with_errors_list:
-            instance = instance_data["instance"]
-            if instance:
-                cleaned_input = instance_data.pop("cleaned_input")
-                cls.save(info, instance_data["instance"], cleaned_input)
-                cls.create_variant_stocks(instance, cleaned_input)
-                cls.create_variant_channel_listings(instance, cleaned_input)
+    def save_variants(cls, info, variants_data_with_errors_list, product):
+        variants_to_create: list = []
+        stocks_to_create: list = []
+        listings_to_create: list = []
 
-                if not product.default_variant:
-                    product.default_variant = instance
-                    product.save(update_fields=["default_variant", "updated_at"])
+        for variant_data in variants_data_with_errors_list:
+            variant = variant_data["instance"]
+
+            if variant:
+                variants_to_create.append(variant)
+                cleaned_input = variant_data.pop("cleaned_input")
+                cls.save(info, variant_data["instance"], cleaned_input)
+
+                if stocks_input := cleaned_input.get("stocks"):
+                    cls.prepare_stocks(variant, stocks_input, stocks_to_create)
+
+                if listings_input := cleaned_input.get("channel_listings"):
+                    cls.prepare_channel_listings(
+                        variant, listings_input, listings_to_create
+                    )
+
+        # models.ProductVariant.objects.bulk_create(variants_to_create)
+        warehouse_models.Stock.objects.bulk_create(stocks_to_create)
+        models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
+
+        if not product.default_variant and variants_to_create:
+            product.default_variant = variants_to_create[0]
+            product.save(update_fields=["default_variant", "updated_at"])
 
     @classmethod
-    def create_variant_stocks(cls, variant, cleaned_input):
-        stocks = cleaned_input.get("stocks")
-
-        if not stocks:
-            return
-
-        try:
-            warehouse_models.Stock.objects.bulk_create(
-                [
-                    warehouse_models.Stock(
-                        product_variant=variant,
-                        warehouse=stock_data["warehouse"],
-                        quantity=stock_data["quantity"],
-                    )
-                    for stock_data in stocks
-                ]
+    def prepare_stocks(cls, variant, stocks_input, stocks_to_create):
+        stocks_to_create += [
+            warehouse_models.Stock(
+                product_variant=variant,
+                warehouse=stock_data["warehouse"],
+                quantity=stock_data["quantity"],
             )
-        except IntegrityError:
-            msg = "Stock for one of warehouses already exists for this product variant."
-            raise ValidationError(msg)
+            for stock_data in stocks_input
+        ]
 
     @classmethod
     @traced_atomic_transaction()

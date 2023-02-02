@@ -336,9 +336,19 @@ class ProductVariantBulkError(Error):
         description="List of warehouse IDs which causes the error.",
         required=False,
     )
+    stocks = NonNullList(
+        graphene.ID,
+        description="List of stocks IDs which causes the error.",
+        required=False,
+    )
     channels = NonNullList(
         graphene.ID,
         description="List of channel IDs which causes the error.",
+        required=False,
+    )
+    channel_listings = NonNullList(
+        graphene.ID,
+        description="List of channel listings IDs which causes the error.",
         required=False,
     )
 
