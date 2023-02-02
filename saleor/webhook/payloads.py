@@ -34,7 +34,7 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
-from ..product.models import Collection, Product
+from ..product.models import Collection, Product, ProductMedia
 from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
@@ -1479,4 +1479,10 @@ def generate_transaction_action_request_payload(
 @traced_payload_generator
 def generate_thumbnail_payload(thumbnail: Thumbnail):
     payload = {"url": thumbnail.image.url}
+    return json.dumps(payload)
+
+
+@traced_payload_generator
+def generate_product_media_payload(media: ProductMedia):
+    payload = {"url": media.image.url}
     return json.dumps(payload)

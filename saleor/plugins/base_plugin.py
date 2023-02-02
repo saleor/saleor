@@ -58,6 +58,7 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -792,6 +793,24 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a product is
     # updated.
     product_updated: Callable[["Product", Any], Any]
+
+    # Trigger when product media is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product media
+    # is created.
+    product_media_created: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when product media is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product media
+    # is updated.
+    product_media_updated: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when product media is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product media
+    # is deleted.
+    product_media_deleted: Callable[["ProductMedia", Any], Any]
 
     # Trigger when product metadata is updated.
     #

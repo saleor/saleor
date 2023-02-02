@@ -64,6 +64,7 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -617,6 +618,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "product_deleted", default_value, product, variants
+        )
+
+    def product_media_created(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_created", default_value, media
+        )
+
+    def product_media_updated(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_updated", default_value, media
+        )
+
+    def product_media_deleted(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_deleted", default_value, media
         )
 
     def product_metadata_updated(self, product: "Product"):

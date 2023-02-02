@@ -1710,6 +1710,9 @@ enum WebhookEventTypeEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
 
   """
   A product metadata is updated.
@@ -1909,8 +1912,6 @@ enum WebhookEventTypeEnum {
   A thumbnail is created.
   
   Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   THUMBNAIL_CREATED
 
@@ -2241,6 +2242,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
 
   """
   A product metadata is updated.
@@ -2440,8 +2444,6 @@ enum WebhookEventTypeAsyncEnum {
   A thumbnail is created.
   
   Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   THUMBNAIL_CREATED
 }
@@ -2964,6 +2966,9 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
   PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED

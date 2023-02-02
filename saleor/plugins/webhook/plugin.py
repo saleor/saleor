@@ -31,6 +31,7 @@ from ...webhook.payloads import (
     generate_page_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
+    generate_product_media_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
@@ -85,6 +86,7 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -812,6 +814,48 @@ class WebhookPlugin(BasePlugin):
                 event_type,
                 webhooks,
                 product,
+                self.requestor,
+            )
+
+    def product_media_created(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
+    def product_media_updated(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
+    def product_media_deleted(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_DELETED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
                 self.requestor,
             )
 

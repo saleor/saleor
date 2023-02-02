@@ -166,9 +166,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
-    WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created."
-    + ADDED_IN_312
-    + PREVIEW_FEATURE,
+    WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created." + ADDED_IN_312,
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         "Fetch external shipping methods for checkout."
     ),
