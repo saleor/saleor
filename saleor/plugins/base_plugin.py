@@ -911,7 +911,7 @@ class BasePlugin:
     staff_deleted: Callable[["User", Any], Any]
 
     # Trigger when thumbnail is updated.
-    thumbnail_updated: Callable[["Thumbnail", None], None]
+    thumbnail_created: Callable[["Thumbnail", None], None]
 
     # Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]

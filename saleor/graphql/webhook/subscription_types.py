@@ -1882,7 +1882,7 @@ class Subscription(SubscriptionObjectType):
         return Observable.from_([root])
 
 
-class ThumbnailUpdated(SubscriptionObjectType):
+class ThumbnailCreated(SubscriptionObjectType):
     thumbnail = ThumbnailField()
 
     @staticmethod
@@ -2008,7 +2008,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
-    WebhookEventAsyncType.THUMBNAIL_UPDATED: ThumbnailUpdated,
+    WebhookEventAsyncType.THUMBNAIL_CREATED: ThumbnailCreated,
     WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
     WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
     WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,

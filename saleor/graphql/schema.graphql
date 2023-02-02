@@ -1906,13 +1906,13 @@ enum WebhookEventTypeEnum {
   OBSERVABILITY
 
   """
-  A thumbnail is updated.
+  A thumbnail is created.
   
   Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  THUMBNAIL_UPDATED
+  THUMBNAIL_CREATED
 
   """Authorize payment."""
   PAYMENT_AUTHORIZE
@@ -2437,13 +2437,13 @@ enum WebhookEventTypeAsyncEnum {
   OBSERVABILITY
 
   """
-  A thumbnail is updated.
+  A thumbnail is created.
   
   Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  THUMBNAIL_UPDATED
+  THUMBNAIL_CREATED
 }
 
 """Represents app data."""
@@ -3012,7 +3012,7 @@ enum WebhookSampleEventTypeEnum {
   VOUCHER_DELETED
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
-  THUMBNAIL_UPDATED
+  THUMBNAIL_CREATED
 }
 
 """Represents warehouse."""
@@ -26824,7 +26824,7 @@ Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ThumbnailUpdated implements Event {
+type ThumbnailCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

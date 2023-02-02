@@ -1132,10 +1132,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
 
-    def thumbnail_updated(self, thumbnail: "Thumbnail"):
+    def thumbnail_created(self, thumbnail: "Thumbnail"):
         default_value = None
         return self.__run_method_on_plugins(
-            "thumbnail_updated", default_value, thumbnail
+            "thumbnail_created", default_value, thumbnail
         )
 
     def warehouse_created(self, warehouse: "Warehouse"):

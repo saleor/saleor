@@ -166,7 +166,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
-    WebhookEventAsyncType.THUMBNAIL_UPDATED: "A thumbnail is updated."
+    WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created."
     + ADDED_IN_312
     + PREVIEW_FEATURE,
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (

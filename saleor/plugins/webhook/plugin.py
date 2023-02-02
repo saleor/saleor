@@ -1175,10 +1175,10 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_staff_event(WebhookEventAsyncType.STAFF_DELETED, staff_user)
 
-    def thumbnail_updated(self, thumbnail: Thumbnail, previous_value: None) -> None:
+    def thumbnail_created(self, thumbnail: Thumbnail, previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.THUMBNAIL_UPDATED
+        event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
         if webhooks := get_webhooks_for_event(event_type):
             thumbnail_data = generate_thumbnail_payload(thumbnail)
             trigger_webhooks_async(thumbnail_data, event_type, webhooks, thumbnail)
