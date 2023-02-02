@@ -25234,6 +25234,78 @@ type ProductMetadataUpdated implements Event {
 }
 
 """
+Event sent when new product media is created.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductMediaCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is updated.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductMediaUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is deleted.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductMediaDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
@@ -26820,42 +26892,6 @@ type WarehouseMetadataUpdated implements Event {
 
   """The warehouse the event relates to."""
   warehouse: Warehouse
-}
-
-"""
-Event sent when thumbnail is updated.
-
-Added in Saleor 3.12.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type ThumbnailCreated implements Event {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-  thumbnail(
-    """
-    Size of the image. If not provided, the original image will be returned.
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
-    
-    Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
-    format: ThumbnailFormatEnum
-  ): Image
 }
 
 """

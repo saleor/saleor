@@ -515,6 +515,7 @@ class WebhookEventAsyncType:
         WAREHOUSE_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         WAREHOUSE_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
+        THUMBNAIL_CREATED: ProductPermissions.MANAGE_PRODUCTS,
     }
 
 
