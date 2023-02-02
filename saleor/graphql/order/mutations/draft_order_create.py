@@ -335,7 +335,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         instance: models.Order,
         cleaned_input,
         shipping_channel_listing,
-    ) -> bool:
+    ):
         if shipping_address := cleaned_input.get("shipping_address"):
             instance.shipping_address = shipping_address
         if (
@@ -353,18 +353,17 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
             if error:
                 raise ValidationError({"shipping_method": error})
+
             instance.base_shipping_price = shipping_channel_listing.price
-            return True
         else:
             instance.base_shipping_price = zero_money(instance.currency)
-            return False
 
     @classmethod
     def _get_shipping_channel_listing(cls, instance, cleaned_input):
         if shipping_method := cleaned_input["shipping_method"]:
             shipping_channel_listing = (
                 shipping_models.ShippingMethodChannelListing.objects.filter(
-                    shipping_method=shipping_method, channel=instance.channel
+                    shipping_method=shipping_method, channel__id=instance.channel_id
                 ).first()
             )
             if not shipping_channel_listing:
@@ -447,12 +446,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             ]
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
-                updated_fields.append("should_refresh_prices")
-
-                if cls._update_shipping_price(
+                cls._update_shipping_price(
                     info, instance, cleaned_input, shipping_channel_listing
-                ):
-                    updated_fields.append("base_shipping_price_amount")
+                )
+                updated_fields.extend(
+                    ["should_refresh_prices", "base_shipping_price_amount"]
+                )
+
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
 
