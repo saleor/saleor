@@ -24,6 +24,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.fields import PermissionsField
+from ..core.scalars import Minute
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
@@ -176,6 +177,12 @@ class OrderSettings(ObjectType):
         description=(
             "When enabled, all non-shippable gift card orders "
             "will be fulfilled automatically."
+        ),
+    )
+    expire_orders_after = Minute(
+        required=True,
+        description=(
+            "Expiration time in minutes. Default null - means do not expire any orders"
         ),
     )
 

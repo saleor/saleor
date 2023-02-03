@@ -15,6 +15,7 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ...core.mutations import ModelMutation
+from ...core.scalars import Minute
 from ...core.types import ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AllocationStrategyEnum
@@ -42,6 +43,12 @@ class OrderSettingsInput(graphene.InputObjectType):
         required=False,
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically. By defualt set to True.",
+    )
+    expire_orders_after = Minute(
+        required=False,
+        description=(
+            "Expiration time in minutes. Default null - means do not expire any orders"
+        ),
     )
 
 

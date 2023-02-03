@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -16,6 +16,7 @@ from ...checkout.utils import cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
+from ...order import OrderStatus
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
 from ...order.models import Order
@@ -62,7 +63,7 @@ from .utils import metadata_contains_empty_key
 def order_total_authorized_and_total_charged(
     authorized_amount_to_add: Decimal,
     charged_amount_to_add: Decimal,
-):
+) -> dict[str, Any]:
     return {
         "total_authorized_amount": (
             F("total_authorized_amount") + authorized_amount_to_add
@@ -832,15 +833,22 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
-    def updated_amounts_for_order(cls, transaction_data: dict):
-        authorized_amount = transaction_data.get("authorized_value", 0)
-        charged_amount = transaction_data.get("charged_value", 0)
-        if not authorized_amount and not charged_amount:
-            return {}
-        return order_total_authorized_and_total_charged(
-            authorized_amount_to_add=authorized_amount,
-            charged_amount_to_add=charged_amount,
-        )
+    def update_order(cls, order: order_models.Order, transaction_data: dict):
+        order_id = transaction_data["order_id"]
+        authorized_amount = transaction_data.get("authorized_value", Decimal(0))
+        charged_amount = transaction_data.get("charged_value", Decimal(0))
+        updated_fields = {}
+        if authorized_amount or charged_amount:
+            updated_fields = order_total_authorized_and_total_charged(
+                authorized_amount_to_add=authorized_amount,
+                charged_amount_to_add=charged_amount,
+            )
+        if (
+            order.channel.automatically_confirm_all_new_orders
+            and order.status is OrderStatus.UNCONFIRMED
+        ):
+            updated_fields["status"] = OrderStatus.UNFULFILLED
+        update_order(order_id, **updated_fields)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -875,9 +883,8 @@ class TransactionCreate(BaseMutation):
                     name=transaction_event.get("name", ""),
                 )
         new_transaction = cls.create_transaction(transaction_data)
-        if order_id := transaction_data.get("order_id"):
-            updated_fields = cls.updated_amounts_for_order(transaction_data)
-            update_order(order_id, **updated_fields)
+        if isinstance(order_or_checkout_instance, order_models.Order):
+            cls.update_order(order_or_checkout_instance, transaction_data)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction)

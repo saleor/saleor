@@ -310,6 +310,20 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_and_transaction_item(checkout_with_item):
+    TransactionItem.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        checkout_id=checkout_with_item.pk,
+        charged_value=Decimal("10"),
+    )
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_tax_exemption(checkout_with_item):
     checkout_with_item.tax_exemption = True
     checkout_with_item.save(update_fields=["tax_exemption"])

@@ -4828,7 +4828,17 @@ type OrderSettings {
   When enabled, all non-shippable gift card orders will be fulfilled automatically.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean!
+
+  """
+  Expiration time in minutes. Default null - means do not expire any orders
+  """
+  expireOrdersAfter: Minute!
 }
+
+"""
+The `Minute` scalar type represents number of minutes by integer value.
+"""
+scalar Minute
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node {
@@ -22540,6 +22550,11 @@ input OrderSettingsInput {
   When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
+
+  """
+  Expiration time in minutes. Default null - means do not expire any orders
+  """
+  expireOrdersAfter: Minute
 }
 
 """

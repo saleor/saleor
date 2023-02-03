@@ -143,3 +143,7 @@ class Date(graphene.Date):
         if isinstance(value, string_types) and not value:
             return None
         return super(Date, Date).parse_value(value)
+
+
+class Minute(graphene.Int):
+    """The `Minute` scalar type represents number of minutes by integer value."""
