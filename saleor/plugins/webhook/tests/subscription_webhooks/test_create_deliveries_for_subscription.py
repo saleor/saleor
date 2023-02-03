@@ -964,6 +964,72 @@ def test_product_metadata_updated(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_product_media_created(
+    product_media_image, subscription_product_media_created_webhook
+):
+    media = product_media_image
+    webhooks = [subscription_product_media_created_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_MEDIA_CREATED
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, media, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productMedia": {
+                "id": media_id,
+                "url": f"http://mirumee.com{media.image.url}",
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_media_updated(
+    product_media_image, subscription_product_media_updated_webhook
+):
+    media = product_media_image
+    webhooks = [subscription_product_media_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, media, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productMedia": {
+                "id": media_id,
+                "url": f"http://mirumee.com{media.image.url}",
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_media_deleted(
+    product_media_image, subscription_product_media_deleted_webhook
+):
+    media = product_media_image
+    webhooks = [subscription_product_media_deleted_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_MEDIA_DELETED
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, media, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productMedia": {
+                "id": media_id,
+                "url": f"http://mirumee.com{media.image.url}",
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_product_variant_created(variant, subscription_product_variant_created_webhook):
     webhooks = [subscription_product_variant_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_CREATED

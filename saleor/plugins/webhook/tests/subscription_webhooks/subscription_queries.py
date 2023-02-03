@@ -688,6 +688,45 @@ PRODUCT_METADATA_UPDATED = """
     }
 """
 
+PRODUCT_MEDIA_CREATED = """
+    subscription{
+      event{
+        ...on ProductMediaCreated{
+          productMedia{
+            id
+            url
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductMediaUpdated{
+          productMedia{
+            id
+            url
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_DELETED = """
+    subscription{
+      event{
+        ...on ProductMediaDeleted{
+          productMedia{
+            id
+            url
+          }
+        }
+      }
+    }
+"""
+
 PRODUCT_VARIANT_CREATED = """
     subscription{
       event{
