@@ -21,6 +21,7 @@ class OrderStatus:
     )
     RETURNED = "returned"  # order with all items marked as returned
     CANCELED = "canceled"  # permanently canceled order
+    EXPIRED = "expired"  # order marked as expired
 
     CHOICES = [
         (DRAFT, "Draft"),
@@ -31,6 +32,7 @@ class OrderStatus:
         (RETURNED, "Returned"),
         (FULFILLED, "Fulfilled"),
         (CANCELED, "Canceled"),
+        (EXPIRED, "Expired"),
     ]
 
 

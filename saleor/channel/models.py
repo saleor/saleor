@@ -22,6 +22,7 @@ class Channel(models.Model):
         default=True,
         null=True,
     )
+    expire_orders_after = models.IntegerField(default=None, null=True, blank=True)
 
     class Meta:
         ordering = ("slug",)

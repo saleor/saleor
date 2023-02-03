@@ -9839,6 +9839,7 @@ enum OrderStatus {
   RETURNED
   FULFILLED
   CANCELED
+  EXPIRED
 }
 
 """Represents order fulfillment."""
