@@ -11,7 +11,7 @@ from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_37,
-    ADDED_IN_310,
+    ADDED_IN_312,
     PREVIEW_FEATURE,
 )
 from ...core.mutations import ModelMutation
@@ -66,7 +66,7 @@ class ChannelInput(graphene.InputObjectType):
     )
     order_settings = graphene.Field(
         OrderSettingsInput,
-        description="The channel order settings" + ADDED_IN_310,
+        description="The channel order settings" + ADDED_IN_312,
         required=False,
     )
 

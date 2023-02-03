@@ -20,7 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_36,
     ADDED_IN_37,
-    ADDED_IN_310,
+    ADDED_IN_312,
     PREVIEW_FEATURE,
 )
 from ..core.fields import PermissionsField
@@ -276,7 +276,7 @@ class Channel(ModelObjectType):
     )
     order_settings = PermissionsField(
         OrderSettings,
-        description="Channel-specific order settings." + ADDED_IN_310,
+        description="Channel-specific order settings." + ADDED_IN_312,
         required=True,
         permissions=[
             ChannelPermissions.MANAGE_CHANNELS,

@@ -4353,7 +4353,7 @@ type Channel implements Node {
   """
   Channel-specific order settings.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
@@ -22375,7 +22375,7 @@ input ChannelCreateInput {
   """
   The channel order settings
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   orderSettings: OrderSettingsInput
 
@@ -22457,7 +22457,7 @@ input ChannelUpdateInput {
   """
   The channel order settings
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   orderSettings: OrderSettingsInput
 
