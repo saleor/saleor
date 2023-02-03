@@ -4,11 +4,12 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY, patch, sentinel
+from unittest.mock import ANY, patch, sentinel, MagicMock
 
 import graphene
 import pytest
 import pytz
+from django.core.files import File
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from freezegun import freeze_time
@@ -32,8 +33,11 @@ from ...payment.interface import RefundData, TransactionActionData, TransactionD
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
+from ...product import ProductMediaTypes
 from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
+from ...thumbnail import ThumbnailFormat
+from ...thumbnail.models import Thumbnail
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
@@ -61,6 +65,8 @@ from ..payloads import (
     generate_sale_toggle_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
+    generate_thumbnail_payload,
+    generate_product_media_payload,
 )
 from ..serializers import serialize_checkout_lines
 
@@ -2171,3 +2177,157 @@ def test_generate_warehouse_metadata_updated_payload(
         "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
+
+
+def test_generate_thumbnail_payload_collection(collection_with_image, media_root):
+    # given
+    collection = collection_with_image
+    image = collection.background_image
+    thumbnail = Thumbnail.objects.create(
+        collection=collection,
+        size=128,
+        image=image,
+        format=ThumbnailFormat.WEBP,
+    )
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+
+    expected_payload = {
+        "type": "Thumbnail",
+        "id": thumbnail_id,
+        "url": "thumbnails/product_thumbnail_128.webp",
+        "url_origin": "/media/collection-backgrounds/product.jpg",
+        "object": {
+            "type": "Collection",
+            "id": collection_id,
+        },
+        "size": 128,
+        "format": ThumbnailFormat.WEBP
+    }
+
+    # when
+    payload = json.loads(generate_thumbnail_payload(thumbnail, collection))[0]
+
+    # then
+    assert payload == expected_payload
+
+
+def test_generate_thumbnail_payload_category(category_with_image, media_root):
+    # given
+    category = category_with_image
+    image = category.background_image
+    thumbnail = Thumbnail.objects.create(
+        category=category,
+        size=128,
+        image=image,
+        format=ThumbnailFormat.WEBP,
+    )
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+
+    expected_payload = {
+        "type": "Thumbnail",
+        "id": thumbnail_id,
+        "url": "thumbnails/product_thumbnail_128.webp",
+        "url_origin": "/media/category-backgrounds/product.jpg",
+        "object": {
+            "type": "Category",
+            "id": category_id,
+        },
+        "size": 128,
+        "format": ThumbnailFormat.WEBP
+    }
+
+    # when
+    payload = json.loads(generate_thumbnail_payload(thumbnail, category))[0]
+
+    # then
+    assert payload == expected_payload
+
+
+def test_generate_thumbnail_payload_user(customer_user, image, media_root):
+    # given
+    user = customer_user
+    thumbnail = Thumbnail.objects.create(
+        user=user,
+        size=128,
+        image=image,
+        format=ThumbnailFormat.WEBP,
+    )
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    user_id = graphene.Node.to_global_id("User", user.id)
+
+    expected_payload = {
+        "type": "Thumbnail",
+        "id": thumbnail_id,
+        "url": "thumbnails/product_thumbnail_128.webp",
+        "url_origin": "/media/thumbnails/product.jpg",
+        "object": {
+            "type": "User",
+            "id": user_id,
+        },
+        "size": 128,
+        "format": ThumbnailFormat.WEBP
+    }
+
+    # when
+    payload = json.loads(generate_thumbnail_payload(thumbnail, user))[0]
+
+    # then
+    assert payload == expected_payload
+
+
+def test_generate_thumbnail_payload_product_media(product_media_image, media_root):
+    # given
+    media = product_media_image
+    image = media.image
+    thumbnail = Thumbnail.objects.create(
+        product_media=media,
+        size=128,
+        image=image,
+        format=ThumbnailFormat.WEBP,
+    )
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+
+    expected_payload = {
+        "type": "Thumbnail",
+        "id": thumbnail_id,
+        "url": "products/product_thumbnail_128.webp",
+        "url_origin": "/media/products/product.jpg",
+        "object": {
+            "type": "ProductMedia",
+            "id": media_id,
+        },
+        "size": 128,
+        "format": ThumbnailFormat.WEBP
+    }
+
+    # when
+    payload = json.loads(generate_thumbnail_payload(thumbnail, media))[0]
+
+    # then
+    assert payload == expected_payload
+
+
+def test_generate_product_media_payload(product_media_image):
+    # given
+    media = product_media_image
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    product_id = graphene.Node.to_global_id("Product", media.product.id)
+
+    expected_payload = {
+        "type": ProductMediaTypes.IMAGE,
+        "id": media_id,
+        "url": "/media/products/product.jpg",
+        "product_id": product_id,
+        "product_name": "Test product",
+        "alt": "image",
+        "sort_order": 0,
+    }
+
+    # when
+    payload = json.loads(generate_product_media_payload(media))[0]
+
+    # then
+    assert payload == expected_payload

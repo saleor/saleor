@@ -49,6 +49,7 @@ from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
 from ..thumbnail.models import Thumbnail
+from ..thumbnail.utils import prepare_thumbnail_file_name
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -1491,13 +1492,20 @@ def generate_thumbnail_payload(
     thumbnail: Thumbnail,
     instance: Union["User", "Category", "Collection", "ProductMedia"],
 ):
+    thumbnail_url = prepare_thumbnail_file_name(thumbnail.image.name, thumbnail.size, thumbnail.format)
+    type = instance.__class__.__name__
+
     serializer = PayloadSerializer()
-    object_payload = serializer.serialize([instance], fields=["id"])
+    object_payload = {
+        "type": type,
+        "id": graphene.Node.to_global_id(type, instance.id)
+    }
     payload = serializer.serialize(
         [thumbnail],
         fields=("size", "format"),
         extra_dict_data={
-            "url": thumbnail.image.url,
+            "url": thumbnail_url,
+            "url_origin": thumbnail.image.url,
             "object": object_payload,
         },
     )
@@ -1506,17 +1514,15 @@ def generate_thumbnail_payload(
 
 @traced_payload_generator
 def generate_product_media_payload(media: ProductMedia):
+    product_id = graphene.Node.to_global_id("Product", media.product.id) if media.product else None
     serializer = PayloadSerializer()
-    product_payload = serializer.serialize(
-        [media.product],
-        fields=PRODUCT_FIELDS,
-    )
     payload = serializer.serialize(
         [media],
         fields=("id", "sort_order", "product_id", "alt", "type"),
         extra_dict_data={
             "url": media.image.url,
-            "product": product_payload,
+            "product_id": product_id,
+            "product_name": media.product.name if media.product else None,
         },
     )
     return payload

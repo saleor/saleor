@@ -6570,3 +6570,25 @@ def action_required_gateway_response():
         transaction_id="1234",
         error=None,
     )
+
+
+@pytest.fixture
+def product_media_video(product, media_root):
+    return ProductMedia.objects.create(
+        product=product,
+        external_url="https://www.youtube.com/watch?v=di8_dJ3Clyo",
+        alt="video",
+        type=ProductMediaTypes.VIDEO,
+        oembed_data="{}",
+    )
+
+
+@pytest.fixture
+def product_media_image(image, product, media_root):
+    return ProductMedia.objects.create(
+        product=product,
+        image=image,
+        alt="image",
+        type=ProductMediaTypes.IMAGE,
+        oembed_data="{}",
+    )
