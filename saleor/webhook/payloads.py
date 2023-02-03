@@ -1491,11 +1491,32 @@ def generate_thumbnail_payload(
     thumbnail: Thumbnail,
     instance: Union["User", "Category", "Collection", "ProductMedia"],
 ):
-    payload = {"url": thumbnail.image.url, "instance_id": instance.id}
-    return json.dumps(payload)
+    serializer = PayloadSerializer()
+    object_payload = serializer.serialize([instance], fields=["id"])
+    payload = serializer.serialize(
+        [thumbnail],
+        fields=("size", "format"),
+        extra_dict_data={
+            "url": thumbnail.image.url,
+            "object": object_payload,
+        },
+    )
+    return payload
 
 
 @traced_payload_generator
 def generate_product_media_payload(media: ProductMedia):
-    payload = {"url": media.image.url}
-    return json.dumps(payload)
+    serializer = PayloadSerializer()
+    product_payload = serializer.serialize(
+        [media.product],
+        fields=PRODUCT_FIELDS,
+    )
+    payload = serializer.serialize(
+        [media],
+        fields=("id", "sort_order", "product_id", "alt", "type"),
+        extra_dict_data={
+            "url": media.image.url,
+            "product": product_payload,
+        },
+    )
+    return payload

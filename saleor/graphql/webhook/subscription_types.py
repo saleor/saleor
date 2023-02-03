@@ -725,6 +725,7 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
 
 
 class ProductMediaBase(AbstractType):
+    # TODO: add product type
     product_media = graphene.Field(
         "saleor.graphql.product.types.ProductMedia",
         description="The product media the event relates to.",
