@@ -233,12 +233,11 @@ type Query {
   shop: Shop!
 
   """
-  Order related settings from site settings.
-   Returns `orderSettings` for the first `channel` in alphabetical order.
+  Order related settings from site settings. Returns `orderSettings` for the first `channel` in alphabetical order.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0.Use the `channel` query to fetch the `orderSettings` field instead.")
+  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` query to fetch the `orderSettings` field instead.")
 
   """
   Gift card related settings from site settings.
@@ -12356,14 +12355,14 @@ type Mutation {
   ): ShopAddressUpdate
 
   """
-  Update shop order settings across all channels Returns `orderSettings` for the first `channel` in alphabetical order. Use `channelUpdate` mutation instead. 
+  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderSettingsUpdate(
     """Fields required to update shop order settings."""
     input: OrderSettingsUpdateInput!
-  ): OrderSettingsUpdate @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
+  ): OrderSettingsUpdate @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Use `channelUpdate` mutation instead.")
 
   """
   Update gift card settings. 
@@ -16917,7 +16916,7 @@ type ShopAddressUpdate {
 }
 
 """
-Update shop order settings across all channels Returns `orderSettings` for the first `channel` in alphabetical order. Use `channelUpdate` mutation instead. 
+Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -16953,7 +16952,7 @@ input OrderSettingsUpdateInput {
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -22412,7 +22411,7 @@ input OrderSettingsInput {
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }

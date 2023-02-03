@@ -41,7 +41,7 @@ class OrderSettingsInput(graphene.InputObjectType):
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
         required=False,
         description="When enabled, all non-shippable gift card orders "
-        "will be fulfilled automatically. By defualt set to True",
+        "will be fulfilled automatically. By defualt set to True.",
     )
 
 

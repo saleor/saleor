@@ -30,12 +30,12 @@ class ShopQueries(graphene.ObjectType):
     order_settings = PermissionsField(
         OrderSettings,
         description=(
-            "Order related settings from site settings."
-            "\n Returns `orderSettings` for the first `channel` in "
+            "Order related settings from site settings. "
+            "Returns `orderSettings` for the first `channel` in "
             "alphabetical order."
         ),
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD}"
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `channel` query to fetch the `orderSettings` field instead."
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
@@ -86,6 +86,8 @@ class ShopMutations(graphene.ObjectType):
     shop_address_update = ShopAddressUpdate.Field()
 
     order_settings_update = OrderSettingsUpdate.Field(
-        deprecation_reason=DEPRECATED_IN_3X_MUTATION
+        deprecation_reason=(
+            DEPRECATED_IN_3X_MUTATION + " Use `channelUpdate` mutation instead."
+        )
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
