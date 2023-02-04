@@ -280,7 +280,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `message` instead."),
     )
     message = graphene.String(
-        description="Message related to the transaction's event.",
+        description="Message related to the transaction's event.", required=True
     )
     external_url = graphene.String(
         description=(
@@ -323,7 +323,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     @staticmethod
     def resolve_name(root: models.TransactionEvent, info):
-        return root.message
+        return root.message or ""
+
+    @staticmethod
+    def resolve_message(root: models.TransactionEvent, info):
+        return root.message or ""
 
     @staticmethod
     def resolve_created_by(root: models.TransactionItem, info):
@@ -547,4 +551,12 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
 
     @staticmethod
     def resolve_type(root: models.TransactionItem, info) -> str:
-        return root.name
+        return root.name or ""
+
+    @staticmethod
+    def resolve_name(root: models.TransactionItem, info) -> str:
+        return root.name or ""
+
+    @staticmethod
+    def resolve_message(root: models.TransactionItem, info) -> str:
+        return root.message or ""

@@ -30,9 +30,9 @@ from . import (
 class TransactionItem(ModelWithMetadata):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=512, blank=True, default="")
-    name = models.CharField(max_length=512, blank=True, default="")
-    message = models.CharField(max_length=512, blank=True, default="")
+    status = models.CharField(max_length=512, blank=True, null=True, default="")
+    name = models.CharField(max_length=512, blank=True, null=True, default="")
+    message = models.CharField(max_length=512, blank=True, null=True, default="")
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
     available_actions = ArrayField(
         models.CharField(max_length=128, choices=TransactionAction.CHOICES),
@@ -149,8 +149,7 @@ class TransactionEvent(models.Model):
         null=True,
     )
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
-    message = models.CharField(max_length=512, blank=True, default="")
-
+    message = models.CharField(max_length=512, blank=True, null=True, default="")
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE
     )

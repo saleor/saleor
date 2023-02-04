@@ -15,10 +15,15 @@ class Migration(migrations.Migration):
         ("payment", "0039_transactionevent_currency"),
     ]
     operations = [
+        migrations.AlterField(
+            model_name="transactionitem",
+            name="status",
+            field=models.CharField(blank=True, default="", max_length=512, null=True),
+        ),
         migrations.AddField(
             model_name="transactionitem",
             name="message",
-            field=models.CharField(blank=True, default="", max_length=512),
+            field=models.CharField(blank=True, default="", null=True, max_length=512),
         ),
         migrations.RenameField(
             model_name="transactionitem",
