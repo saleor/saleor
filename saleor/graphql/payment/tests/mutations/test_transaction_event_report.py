@@ -52,17 +52,18 @@ fragment TransactionEventData on TransactionEventReport {
 
 
 def test_transaction_event_report_by_app(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app_api_client,
     permission_manage_payments,
 ):
     # given
+    transaction = transaction_item_generator(app=app_api_client.app)
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     message = "Sucesfull charge"
     psp_reference = "111-abc"
     amount = Decimal("11.00")
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
@@ -115,26 +116,25 @@ def test_transaction_event_report_by_app(
     assert event.psp_reference == psp_reference
     assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
     assert event.amount_value == amount
-    assert event.currency == transaction_item_created_by_app.currency
+    assert event.currency == transaction.currency
     assert event.created_at == event_time
     assert event.external_url == external_url
-    assert event.transaction == transaction_item_created_by_app
+    assert event.transaction == transaction
     assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
 
 def test_transaction_event_report_by_user(
-    transaction_item_created_by_user,
-    staff_api_client,
-    permission_manage_payments,
+    staff_api_client, permission_manage_payments, staff_user, transaction_item_generator
 ):
     # given
+    transaction = transaction_item_generator(user=staff_user)
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     message = "Sucesfull charge"
     psp_reference = "111-abc"
     amount = Decimal("11.00")
-    transaction_id = to_global_id_or_none(transaction_item_created_by_user)
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
@@ -185,17 +185,15 @@ def test_transaction_event_report_by_user(
     assert event.psp_reference == psp_reference
     assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
     assert event.amount_value == amount
-    assert event.currency == transaction_item_created_by_user.currency
+    assert event.currency == transaction.currency
     assert event.created_at == event_time
     assert event.external_url == external_url
-    assert event.transaction == transaction_item_created_by_user
+    assert event.transaction == transaction
     assert event.app_identifier is None
     assert event.user == staff_api_client.user
 
-    transaction_item_created_by_user.refresh_from_db()
-    assert transaction_item_created_by_user.available_actions == [
-        TransactionActionEnum.CANCEL.value
-    ]
+    transaction.refresh_from_db()
+    assert transaction.available_actions == [TransactionActionEnum.CANCEL.value]
 
 
 def test_transaction_event_report_no_permission(
@@ -328,9 +326,7 @@ def test_transaction_event_report_called_by_non_user_owner(
 
 
 def test_transaction_event_report_event_already_exists(
-    transaction_item_created_by_app,
-    app_api_client,
-    permission_manage_payments,
+    transaction_item_generator, app_api_client, permission_manage_payments, app
 ):
     # given
     event_time = timezone.now()
@@ -339,13 +335,13 @@ def test_transaction_event_report_event_already_exists(
     psp_reference = "111-abc"
     amount = Decimal("11.00")
     event_type = TransactionEventTypeEnum.CHARGE_SUCCESS
-    already_existing_event = transaction_item_created_by_app.events.create(
+    transaction = transaction_item_generator(app=app, charged_value=amount)
+    transaction.events.update(
         psp_reference=psp_reference,
-        amount_value=amount,
-        type=event_type.value,
-        currency=transaction_item_created_by_app.currency,
     )
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+
+    already_existing_event = transaction.events.get()
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": event_type.name,
@@ -401,9 +397,7 @@ def test_transaction_event_report_event_already_exists(
 
 
 def test_transaction_event_report_incorrect_amount_for_already_existing(
-    transaction_item_created_by_app,
-    app_api_client,
-    permission_manage_payments,
+    app_api_client, permission_manage_payments, transaction_item_generator, app
 ):
     # given
     event_time = timezone.now()
@@ -413,13 +407,14 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
     already_existing_amount = Decimal("11.00")
     new_amount = Decimal("12.00")
     event_type = TransactionEventTypeEnum.CHARGE_SUCCESS
-    transaction_item_created_by_app.events.create(
-        psp_reference=psp_reference,
-        amount_value=already_existing_amount,
-        type=event_type.value,
-        currency=transaction_item_created_by_app.currency,
+    transaction = transaction_item_generator(
+        app=app, charged_value=already_existing_amount
     )
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    transaction.events.update(
+        psp_reference=psp_reference,
+    )
+    transaction_id = to_global_id_or_none(transaction)
+
     variables = {
         "id": transaction_id,
         "type": event_type.name,
@@ -488,7 +483,7 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
 )
 def test_transaction_event_report_calls_amount_recalculations(
     mocked_recalculation,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app_api_client,
     permission_manage_payments,
 ):
@@ -498,7 +493,8 @@ def test_transaction_event_report_calls_amount_recalculations(
     message = "Sucesfull charge"
     psp_reference = "111-abc"
     amount = Decimal("11.00")
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    transaction = transaction_item_generator(app=app_api_client.app)
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
@@ -543,13 +539,13 @@ def test_transaction_event_report_calls_amount_recalculations(
     )
 
     # then
-    mocked_recalculation.assert_called_once_with(transaction_item_created_by_app)
-    transaction_item_created_by_app.refresh_from_db()
-    assert transaction_item_created_by_app.charged_value == amount
+    mocked_recalculation.assert_called_once_with(transaction)
+    transaction.refresh_from_db()
+    assert transaction.charged_value == amount
 
 
 def test_transaction_event_updates_order_total_charged(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app_api_client,
     permission_manage_payments,
     order_with_lines,
@@ -557,14 +553,15 @@ def test_transaction_event_updates_order_total_charged(
     # given
     order = order_with_lines
     current_charged_value = Decimal("20")
-    transaction_item_created_by_app.order = order
-    transaction_item_created_by_app.save()
-    order.payment_transactions.create(
-        charged_value=current_charged_value, currency="USD"
-    )
     psp_reference = "111-abc"
     amount = Decimal("11.00")
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
+    transaction_item_generator(
+        app=app_api_client.app,
+        order_id=order.pk,
+        charged_value=current_charged_value,
+    )
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
@@ -598,7 +595,6 @@ def test_transaction_event_updates_order_total_charged(
 
     # then
     get_graphql_content(response)
-    order = transaction_item_created_by_app.order
     order.refresh_from_db()
 
     assert order.total_charged.amount == current_charged_value + amount
@@ -606,22 +602,22 @@ def test_transaction_event_updates_order_total_charged(
 
 
 def test_transaction_event_updates_order_total_authorized(
-    transaction_item_created_by_app,
     app_api_client,
     permission_manage_payments,
     order_with_lines,
+    transaction_item_generator,
 ):
     # given
     order = order_with_lines
-    transaction_item_created_by_app.order = order
-    transaction_item_created_by_app.save()
-    current_authorized_value = order.total.gross.amount
-    order.payment_transactions.create(
-        authorized_value=current_authorized_value, currency="USD"
-    )
     psp_reference = "111-abc"
     amount = Decimal("11.00")
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
+    transaction_item_generator(
+        app=app_api_client.app,
+        order_id=order.pk,
+        authorized_value=order.total.gross.amount,
+    )
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": TransactionEventTypeEnum.AUTHORIZATION_SUCCESS.name,
@@ -655,17 +651,14 @@ def test_transaction_event_updates_order_total_authorized(
 
     # then
     get_graphql_content(response)
-    order = transaction_item_created_by_app.order
     order.refresh_from_db()
 
-    assert order.total_authorized.amount == current_authorized_value + amount
+    assert order.total_authorized.amount == order.total.gross.amount + amount
     assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
 
 
 def test_transaction_event_report_authorize_event_already_exists(
-    transaction_item_created_by_app,
-    app_api_client,
-    permission_manage_payments,
+    app_api_client, permission_manage_payments, transaction_item_generator
 ):
     # given
     event_time = timezone.now()
@@ -674,13 +667,14 @@ def test_transaction_event_report_authorize_event_already_exists(
     psp_reference = "111-abc"
     amount = Decimal("11.00")
     event_type = TransactionEventTypeEnum.AUTHORIZATION_SUCCESS
-    transaction_item_created_by_app.events.create(
-        psp_reference="Different psp reference",
-        amount_value=amount + Decimal(1),
-        type=event_type.value,
-        currency=transaction_item_created_by_app.currency,
+    transaction = transaction_item_generator(
+        app=app_api_client.app,
+        authorized_value=amount + Decimal(1),
     )
-    transaction_id = to_global_id_or_none(transaction_item_created_by_app)
+    transaction.events.update(
+        psp_reference="Different psp reference",
+    )
+    transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
         "type": event_type.name,

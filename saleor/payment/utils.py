@@ -49,7 +49,7 @@ from .interface import (
     TransactionRequestEventResponse,
     TransactionRequestResponse,
 )
-from .models import Payment, Transaction, TransactionEvent
+from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .transaction_item_calculations import recalculate_transaction_amounts
 
 logger = logging.getLogger(__name__)
@@ -953,3 +953,106 @@ def create_transaction_event_from_request_and_webhook_response(
         order = cast(Order, transaction_item.order)
         updates_amounts_for_order(order)
     return event
+
+
+def prepare_manual_event(
+    transaction: TransactionItem,
+    transaction_amount: Decimal,
+    input_amount: Decimal,
+    event_type: str,
+    user: Optional["User"],
+    app: Optional["App"],
+) -> TransactionEvent:
+    amount_to_update = input_amount - transaction_amount
+    return TransactionEvent(
+        type=event_type,
+        amount_value=amount_to_update,
+        currency=transaction.currency,
+        transaction_id=transaction.pk,
+        include_in_calculations=True,
+        app_identifier=app.identifier if app else None,
+        user=user,
+        created_at=timezone.now(),
+        message="Manual adjustment of the transaction.",
+    )
+
+
+def create_manual_adjustment_events(
+    transaction: TransactionItem,
+    money_data: Dict[str, Decimal],
+    user: Optional["User"],
+    app: Optional["App"],
+) -> List[TransactionEvent]:
+    """Create TransactionEvent used to recalculate the transaction amounts.
+
+    The transaction amounts are calculated based on the amounts stored in
+    the TransactionEvents assigned to the given transaction. To properly
+    match the amounts, the manual events are created in case of calling
+    transactionCreate or transactionUpdate
+    """
+    events_to_create = []
+    if "authorized_value" in money_data:
+        authorized_value = money_data["authorized_value"]
+        event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+        current_authorized_value = transaction.authorized_value
+        if transaction.events.filter(type=event_type).exists():
+            event_type = TransactionEventType.AUTHORIZATION_ADJUSTMENT
+            # adjust overwrite the amount of authorization so we need to set
+            # current auth value to 0, to match calculations
+            current_authorized_value = Decimal(0)
+        if transaction.authorized_value != authorized_value:
+            events_to_create.append(
+                prepare_manual_event(
+                    transaction,
+                    current_authorized_value,
+                    authorized_value,
+                    event_type,
+                    user,
+                    app,
+                )
+            )
+    if "charged_value" in money_data:
+        charged_value = money_data["charged_value"]
+        event_type = TransactionEventType.CHARGE_SUCCESS
+        if transaction.charged_value != charged_value:
+            events_to_create.append(
+                prepare_manual_event(
+                    transaction,
+                    transaction.charged_value,
+                    charged_value,
+                    event_type,
+                    user,
+                    app,
+                )
+            )
+    if "refunded_value" in money_data:
+        refunded_value = money_data["refunded_value"]
+        event_type = TransactionEventType.REFUND_SUCCESS
+        if transaction.refunded_value != refunded_value:
+            events_to_create.append(
+                prepare_manual_event(
+                    transaction,
+                    transaction.refunded_value,
+                    refunded_value,
+                    event_type,
+                    user,
+                    app,
+                )
+            )
+    if "canceled_value" in money_data:
+        canceled_value = money_data["canceled_value"]
+        event_type = TransactionEventType.CANCEL_SUCCESS
+        if transaction.canceled_value != canceled_value:
+            events_to_create.append(
+                prepare_manual_event(
+                    transaction,
+                    transaction.canceled_value,
+                    canceled_value,
+                    event_type,
+                    user,
+                    app,
+                )
+            )
+    if events_to_create:
+        return TransactionEvent.objects.bulk_create(events_to_create)
+    return []

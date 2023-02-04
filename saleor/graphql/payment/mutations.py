@@ -45,6 +45,7 @@ from ...payment.transaction_item_calculations import recalculate_transaction_amo
 from ...payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
+    create_manual_adjustment_events,
     create_payment,
     get_already_existing_event,
     is_currency_supported,
@@ -786,18 +787,20 @@ class TransactionCreate(BaseMutation):
             )
 
     @classmethod
-    def cleanup_money_data(cls, cleaned_data: dict):
+    def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
+        money_data = {}
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
-            cleaned_data["authorized_value"] = amount_authorized["amount"]
+            money_data["authorized_value"] = amount_authorized["amount"]
         if amount_charged := cleaned_data.pop("amount_charged", None):
-            cleaned_data["charged_value"] = amount_charged["amount"]
+            money_data["charged_value"] = amount_charged["amount"]
         if amount_refunded := cleaned_data.pop("amount_refunded", None):
-            cleaned_data["refunded_value"] = amount_refunded["amount"]
+            money_data["refunded_value"] = amount_refunded["amount"]
 
         if amount_canceled := cleaned_data.pop("amount_canceled", None):
-            cleaned_data["canceled_value"] = amount_canceled["amount"]
+            money_data["canceled_value"] = amount_canceled["amount"]
         elif amount_voided := cleaned_data.pop("amount_voided", None):
-            cleaned_data["canceled_value"] = amount_voided["amount"]
+            money_data["canceled_value"] = amount_voided["amount"]
+        return money_data
 
     @classmethod
     def cleanup_metadata_data(cls, cleaned_data: dict):
@@ -882,7 +885,6 @@ class TransactionCreate(BaseMutation):
     def create_transaction(
         cls, transaction_input: dict, user, app
     ) -> payment_models.TransactionItem:
-        cls.cleanup_money_data(transaction_input)
         cls.cleanup_metadata_data(transaction_input)
 
         transaction_type = transaction_input.pop("type", None)
@@ -915,17 +917,6 @@ class TransactionCreate(BaseMutation):
             user=user if user and user.is_authenticated else None,
             app_identifier=app.identifier if app else None,
         )
-
-    @classmethod
-    def update_amounts_for_order(
-        cls, order: order_models.Order, transaction_data: dict
-    ):
-        authorized_amount = transaction_data.get("authorized_value")
-        charged_amount = transaction_data.get("charged_value")
-        if authorized_amount is None and charged_amount is None:
-            return
-
-        updates_amounts_for_order(order)
 
     @classmethod
     def create_event_message(cls, transaction_event: dict) -> str:
@@ -975,10 +966,16 @@ class TransactionCreate(BaseMutation):
                     status=transaction_event["status"],
                     message=cls.create_event_message(transaction_event),
                 )
+        money_data = cls.get_money_data_from_input(transaction_data)
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
-        if transaction_data.get("order_id"):
+        if money_data:
+            create_manual_adjustment_events(
+                transaction=new_transaction, money_data=money_data, user=user, app=app
+            )
+            recalculate_transaction_amounts(new_transaction)
+        if transaction_data.get("order_id") and money_data:
             order = cast(order_models.Order, new_transaction.order)
-            cls.update_amounts_for_order(order, transaction_data)
+            updates_amounts_for_order(order)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)
@@ -1057,7 +1054,14 @@ class TransactionUpdate(TransactionCreate):
         )
 
     @classmethod
-    def update_transaction(cls, instance, transaction_data):
+    def update_transaction(
+        cls,
+        instance: payment_models.TransactionItem,
+        transaction_data: dict,
+        user: Optional["User"],
+        app: Optional["App"],
+    ):
+        money_data = cls.get_money_data_from_input(transaction_data)
         psp_reference = transaction_data.get(
             "psp_reference", transaction_data.pop("reference", None)
         )
@@ -1079,8 +1083,14 @@ class TransactionUpdate(TransactionCreate):
         transaction_data["psp_reference"] = psp_reference
         instance = cls.construct_instance(instance, transaction_data)
         instance.save()
-        if instance.order_id:
-            cls.update_amounts_for_order(instance.order, transaction_data)
+        if money_data:
+            create_manual_adjustment_events(
+                transaction=instance, money_data=money_data, user=user, app=app
+            )
+            recalculate_transaction_amounts(instance)
+        if instance.order_id and money_data:
+            order = cast(order_models.Order, instance.order)
+            updates_amounts_for_order(order)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -1105,9 +1115,8 @@ class TransactionUpdate(TransactionCreate):
 
         if transaction:
             cls.validate_transaction_input(instance, transaction)
-            cls.cleanup_money_data(transaction)
             cls.cleanup_metadata_data(transaction)
-            cls.update_transaction(instance, transaction)
+            cls.update_transaction(instance, transaction, user, app)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, instance, user, app)

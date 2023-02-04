@@ -99,7 +99,6 @@ def test_trigger_transaction_request_with_webhook_subscription(
             ...on TransactionRefundRequested{
                 transaction{
                     id
-                    status
                 }
                 action{
                     amount
@@ -140,10 +139,11 @@ def test_trigger_transaction_request_with_webhook_subscription(
     generated_payload = EventPayload.objects.first()
     generated_delivery = EventDelivery.objects.first()
 
+    assert generated_payload
+    assert generated_delivery
     assert json.loads(generated_payload.payload) == {
         "transaction": {
             "id": Node.to_global_id("TransactionItem", transaction_data.transaction.id),
-            "status": "Captured",
         },
         "action": {"amount": 10.0, "actionType": "REFUND"},
     }
@@ -163,13 +163,14 @@ def test_trigger_transaction_request_with_webhook_subscription(
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_handle_transaction_request_task_with_only_psp_reference(
     mocked_post_request,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     expected_psp_reference = "psp:ref:123"
     mocked_webhook_response.text = json.dumps({"pspReference": expected_psp_reference})
     mocked_webhook_response.content = json.dumps(
@@ -179,9 +180,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
 
     target_url = "http://localhost:3000/"
 
-    event = transaction_item_created_by_app.events.create(
-        type=TransactionEventType.REFUND_REQUEST
-    )
+    event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -192,7 +191,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
-        transaction=transaction_item_created_by_app,
+        transaction=transaction,
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
@@ -435,13 +434,14 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_handle_transaction_request_task_with_result_event(
     mocked_post_request,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_psp_reference = "psp:123:111"
     event_amount = 12.00
     event_type = TransactionEventType.CHARGE_SUCCESS
@@ -465,9 +465,7 @@ def test_handle_transaction_request_task_with_result_event(
 
     target_url = "http://localhost:3000/"
 
-    request_event = transaction_item_created_by_app.events.create(
-        type=TransactionEventType.CHARGE_REQUEST
-    )
+    request_event = transaction.events.create(type=TransactionEventType.CHARGE_REQUEST)
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -478,7 +476,7 @@ def test_handle_transaction_request_task_with_result_event(
     webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED)
 
     transaction_data = TransactionActionData(
-        transaction=transaction_item_created_by_app,
+        transaction=transaction,
         action_type="refund",
         action_value=Decimal("10.00"),
         event=request_event,
@@ -514,6 +512,7 @@ def test_handle_transaction_request_task_with_result_event(
     success_event = TransactionEvent.objects.filter(
         type=TransactionEventType.CHARGE_SUCCESS
     ).first()
+    assert success_event
     request_event.refresh_from_db()
     assert request_event.psp_reference == request_psp_reference
     assert success_event.psp_reference == request_psp_reference
@@ -531,13 +530,14 @@ def test_handle_transaction_request_task_with_result_event(
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_handle_transaction_request_task_with_only_required_fields_for_result_event(
     mocked_post_request,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_psp_reference = "psp:123:111"
 
     response_payload = {
@@ -550,9 +550,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
 
     target_url = "http://localhost:3000/"
 
-    request_event = transaction_item_created_by_app.events.create(
-        type=TransactionEventType.REFUND_REQUEST
-    )
+    request_event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -563,7 +561,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
 
     transaction_data = TransactionActionData(
-        transaction=transaction_item_created_by_app,
+        transaction=transaction,
         action_type="refund",
         action_value=Decimal("10.00"),
         event=request_event,
@@ -600,6 +598,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
         type=TransactionEventType.REFUND_SUCCESS
     ).first()
     request_event.refresh_from_db()
+    assert success_event
     assert request_event.psp_reference == request_psp_reference
     assert success_event.type == TransactionEventType.REFUND_SUCCESS
     assert success_event.psp_reference == request_psp_reference
@@ -622,13 +621,14 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
 def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     mocked_post_request,
     mocked_recalculation,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_psp_reference = "psp:123:111"
     event_amount = 12.00
     event_type = TransactionEventType.CHARGE_SUCCESS
@@ -652,9 +652,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
 
     target_url = "http://localhost:3000/"
 
-    request_event = transaction_item_created_by_app.events.create(
-        type=TransactionEventType.CHARGE_REQUEST
-    )
+    request_event = transaction.events.create(type=TransactionEventType.CHARGE_REQUEST)
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -665,7 +663,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED)
 
     transaction_data = TransactionActionData(
-        transaction=transaction_item_created_by_app,
+        transaction=transaction,
         action_type="charge",
         action_value=Decimal("12.00"),
         event=request_event,
@@ -685,6 +683,6 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
 
     # then
-    mocked_recalculation.assert_called_once_with(transaction_item_created_by_app)
-    transaction_item_created_by_app.refresh_from_db()
-    assert transaction_item_created_by_app.charged_value == event_amount
+    mocked_recalculation.assert_called_once_with(transaction)
+    transaction.refresh_from_db()
+    assert transaction.charged_value == event_amount
