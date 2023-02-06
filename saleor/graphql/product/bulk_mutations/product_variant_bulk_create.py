@@ -3,17 +3,17 @@ from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db.models import F
 from graphene.types import InputObjectType
 from graphene.utils.str_converters import to_camel_case
 
+from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
 from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
-from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
@@ -65,6 +65,25 @@ def clean_price(
                 "index": variant_index,
             }
             errors[field_name].append(error)
+
+
+def get_results(instances_data_with_errors_list, reject_everything=False):
+    if reject_everything:
+        return [
+            ProductVariantBulkResult(product_variant=None, errors=data.get("errors"))
+            for data in instances_data_with_errors_list
+        ]
+    return [
+        ProductVariantBulkResult(
+            product_variant=ChannelContext(
+                node=data.get("instance"), channel_slug=None
+            ),
+            errors=data.get("errors"),
+        )
+        if data.get("instance")
+        else ProductVariantBulkResult(product_variant=None, errors=data.get("errors"))
+        for data in instances_data_with_errors_list
+    ]
 
 
 class ProductVariantBulkResult(graphene.ObjectType):
@@ -169,6 +188,7 @@ class ProductVariantBulkCreate(BaseMutation):
         cls,
         cleaned_input,
         product_type,
+        variant_attributes,
         variant_attributes_ids,
         used_attribute_values,
         errors,
@@ -176,8 +196,8 @@ class ProductVariantBulkCreate(BaseMutation):
         index_error_map,
     ):
         attributes_errors_count = 0
-        if attributes := cleaned_input.get("attributes"):
-            attributes_ids = {attr["id"] for attr in attributes or []}
+        if attributes_input := cleaned_input.get("attributes"):
+            attributes_ids = {attr["id"] for attr in attributes_input or []}
             invalid_attributes = attributes_ids - variant_attributes_ids
             if len(invalid_attributes) > 0:
                 message = "Given attributes are not a variant attributes."
@@ -202,8 +222,8 @@ class ProductVariantBulkCreate(BaseMutation):
 
             if product_type.has_variants:
                 try:
-                    cleaned_attributes = ProductVariantCreate.clean_attributes(
-                        attributes, product_type
+                    cleaned_attributes = AttributeAssignmentMixin.clean_input(
+                        attributes_input, variant_attributes
                     )
                     ProductVariantCreate.validate_duplicated_attribute_values(
                         cleaned_attributes, used_attribute_values, None
@@ -439,16 +459,6 @@ class ProductVariantBulkCreate(BaseMutation):
             error_dict[key].extend(value)
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
-        instance.save()
-
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            AttributeAssignmentMixin.save(instance, attributes)
-            if not instance.name:
-                generate_and_set_variant_name(instance, cleaned_input.get("sku"))
-
-    @classmethod
     def create_variants(
         cls, info, cleaned_inputs_map, product, errors, index_error_map
     ):
@@ -543,6 +553,7 @@ class ProductVariantBulkCreate(BaseMutation):
         variant_data,
         product_channel_global_id_to_instance_map,
         warehouse_global_id_to_instance_map,
+        variant_attributes,
         used_attribute_values,
         variant_attributes_ids,
         duplicated_sku,
@@ -573,6 +584,7 @@ class ProductVariantBulkCreate(BaseMutation):
         attributes_errors_count = cls.clean_attributes(
             cleaned_input,
             variant_data["product_type"],
+            variant_attributes,
             variant_attributes_ids,
             used_attribute_values,
             errors,
@@ -606,6 +618,8 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     def clean_variants(cls, info, variants, product, errors, index_error_map):
         cleaned_inputs_map = {}
+        product_type = product.product_type
+
         warehouse_global_id_to_instance_map = {
             graphene.Node.to_global_id("Warehouse", warehouse.id): warehouse
             for warehouse in warehouse_models.Warehouse.objects.all()
@@ -616,21 +630,22 @@ class ProductVariantBulkCreate(BaseMutation):
                 "channel"
             ).filter(product=product.id)
         }
-        used_attribute_values = get_used_variants_attribute_values(product)
+
+        variant_attributes = product_type.variant_attributes.annotate(
+            variant_selection=F("attributevariant__variant_selection")
+        )
         variant_attributes_ids = {
-            graphene.Node.to_global_id("Attribute", attr_id)
-            for attr_id in list(
-                product.product_type.variant_attributes.all().values_list(
-                    "pk", flat=True
-                )
-            )
+            graphene.Node.to_global_id("Attribute", variant_attribute.id)
+            for variant_attribute in variant_attributes
         }
+        used_attribute_values = get_used_variants_attribute_values(product)
+
         duplicated_sku = get_duplicated_values(
             [variant.sku for variant in variants if variant.sku]
         )
 
         for index, variant_data in enumerate(variants):
-            variant_data["product_type"] = product.product_type
+            variant_data["product_type"] = product_type
             variant_data["product"] = product
 
             cleaned_input = cls.clean_variant(
@@ -638,6 +653,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 variant_data,
                 product_channel_global_id_to_instance_map,
                 warehouse_global_id_to_instance_map,
+                variant_attributes,
                 used_attribute_values,
                 variant_attributes_ids,
                 duplicated_sku,
@@ -664,19 +680,40 @@ class ProductVariantBulkCreate(BaseMutation):
         ]
 
     @classmethod
+    def set_variant_name(cls, variant, cleaned_input):
+        attributes_input = cleaned_input.get("attributes", [])
+        sku = cleaned_input.get("sku")
+        attributes_display: list = []
+
+        for attribute_data in attributes_input:
+            if (
+                attribute_data[0].type == AttributeType.PRODUCT_TYPE
+                and attribute_data[0].variant_selection
+            ):
+                attributes_display.append(
+                    ", ".join([value for value in attribute_data[1].values])
+                )
+
+        name = " / ".join(sorted(attributes_display))
+        if not name:
+            name = sku or variant.get_global_id()
+
+        variant.name = name
+
+    @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, info, variants_data_with_errors_list, product):
+    def save_variants(cls, variants_data_with_errors_list, product):
         variants_to_create: list = []
         stocks_to_create: list = []
         listings_to_create: list = []
+        attributes_to_save: list = []
 
         for variant_data in variants_data_with_errors_list:
             variant = variant_data["instance"]
 
             if variant:
                 variants_to_create.append(variant)
-                cleaned_input = variant_data.pop("cleaned_input")
-                cls.save(info, variant_data["instance"], cleaned_input)
+                cleaned_input = variant_data["cleaned_input"]
 
                 if stocks_input := cleaned_input.get("stocks"):
                     cls.prepare_stocks(variant, stocks_input, stocks_to_create)
@@ -686,7 +723,17 @@ class ProductVariantBulkCreate(BaseMutation):
                         variant, listings_input, listings_to_create
                     )
 
-        # models.ProductVariant.objects.bulk_create(variants_to_create)
+                if attributes := variant_data["cleaned_input"].get("attributes"):
+                    attributes_to_save.append((variant, attributes))
+
+                if not variant.name:
+                    cls.set_variant_name(variant, cleaned_input)
+
+        models.ProductVariant.objects.bulk_create(variants_to_create)
+
+        for variant, attributes in attributes_to_save:
+            AttributeAssignmentMixin.save(variant, attributes)
+
         warehouse_models.Stock.objects.bulk_create(stocks_to_create)
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
 
@@ -704,6 +751,17 @@ class ProductVariantBulkCreate(BaseMutation):
             )
             for stock_data in stocks_input
         ]
+
+    @classmethod
+    def post_save_actions(cls, info, instances, product):
+        manager = get_plugin_manager_promise(info.context).get()
+
+        # Recalculate the "discounted price" for the parent product
+        update_product_discounted_price_task.delay(product.pk)
+        update_product_search_vector(product)
+
+        for instance in instances:
+            cls.call_event(manager.product_variant_created, instance.node)
 
     @classmethod
     @traced_atomic_transaction()
@@ -725,12 +783,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
         if errors:
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
-                results = [
-                    ProductVariantBulkResult(
-                        product_variant=None, errors=data.get("errors")
-                    )
-                    for data in instances_data_with_errors_list
-                ]
+                results = get_results(instances_data_with_errors_list, True)
                 return ProductVariantBulkCreate(
                     count=0,
                     results=results,
@@ -744,38 +797,14 @@ class ProductVariantBulkCreate(BaseMutation):
                     if data["errors"] and data["instance"]:
                         data["instance"] = None
 
-        cls.save_variants(info, instances_data_with_errors_list, product)
+        cls.save_variants(instances_data_with_errors_list, product)
 
+        # prepare and return data
+        results = get_results(instances_data_with_errors_list)
         instances = [
-            ChannelContext(node=instance_data["instance"], channel_slug=None)
-            for instance_data in instances_data_with_errors_list
-            if instance_data["instance"]
+            result.product_variant for result in results if result.product_variant
         ]
-
-        # Recalculate the "discounted price" for the parent product
-        update_product_discounted_price_task.delay(product.pk)
-
-        update_product_search_vector(product)
-        manager = get_plugin_manager_promise(info.context).get()
-        transaction.on_commit(
-            lambda: [
-                manager.product_variant_created(instance.node) for instance in instances
-            ]
-        )
-
-        results = [
-            ProductVariantBulkResult(
-                product_variant=ChannelContext(
-                    node=data.get("instance"), channel_slug=None
-                ),
-                errors=data.get("errors"),
-            )
-            if data.get("instance")
-            else ProductVariantBulkResult(
-                product_variant=None, errors=data.get("errors")
-            )
-            for data in instances_data_with_errors_list
-        ]
+        cls.post_save_actions(info, instances, product)
 
         return ProductVariantBulkCreate(
             count=len(instances),

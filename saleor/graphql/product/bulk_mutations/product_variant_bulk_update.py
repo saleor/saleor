@@ -3,6 +3,7 @@ from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import F
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
@@ -13,7 +14,6 @@ from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
 from ...attribute.utils import AttributeAssignmentMixin
-from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
@@ -32,6 +32,7 @@ from .product_variant_bulk_create import (
     ProductVariantBulkCreateInput,
     ProductVariantBulkResult,
     clean_price,
+    get_results,
 )
 
 
@@ -43,7 +44,7 @@ class ProductVariantStocksUpdateInput(graphene.InputObjectType):
     )
     update = NonNullList(
         StockUpdateInput,
-        description="List od stocks that should be updated.",
+        description="List od stocks to updated.",
         required=False,
     )
     remove = NonNullList(
@@ -67,7 +68,7 @@ class ProductVariantChannelListingUpdateInput(graphene.InputObjectType):
     )
     remove = NonNullList(
         graphene.ID,
-        description="List of product variant channel listings to remove.",
+        description="List of channel listings to remove.",
         required=False,
     )
 
@@ -156,6 +157,8 @@ class ProductVariantBulkUpdate(BaseMutation):
         variant_index,
         index_error_map,
     ):
+        wrong_listings_ids: list = []
+
         if listings_data := cleaned_input["channel_listings"].get("create"):
             cleaned_input["channel_listings"][
                 "create"
@@ -170,67 +173,62 @@ class ProductVariantBulkUpdate(BaseMutation):
             listings_to_update = []
             for listing_data in listings_data:
                 listing_id = listing_data["channel_listing"]
+
                 if listing_id not in listings_global_id_to_instance_map.keys():
-                    message = "Channel listing was not found."
-                    index_error_map[variant_index].append(
-                        ProductVariantBulkError(
-                            field="channelListing",
-                            message=message,
-                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                            channel_listings=[listing_id],
-                        )
-                    )
-                else:
-                    channel_listing = listings_global_id_to_instance_map[listing_id]
-                    price = listing_data.get("price")
-                    cost_price = listing_data.get("cost_price")
-                    currency_code = channel_listing.currency
-                    channel_id = channel_listing.channel_id
-                    errors_count_before_prices = len(index_error_map[variant_index])
-                    clean_price(
-                        price,
-                        "price",
-                        currency_code,
-                        channel_id,
-                        variant_index,
-                        None,
-                        index_error_map,
-                    )
-                    clean_price(
-                        cost_price,
-                        "cost_price",
-                        currency_code,
-                        channel_id,
-                        variant_index,
-                        None,
-                        index_error_map,
-                    )
+                    wrong_listings_ids.append(listing_id)
+                    continue
 
-                    if len(index_error_map[variant_index]) > errors_count_before_prices:
-                        continue
+                channel_listing = listings_global_id_to_instance_map[listing_id]
+                price = listing_data.get("price")
+                cost_price = listing_data.get("cost_price")
+                currency_code = channel_listing.currency
+                channel_id = channel_listing.channel_id
+                errors_count_before_prices = len(index_error_map[variant_index])
+                clean_price(
+                    price,
+                    "price",
+                    currency_code,
+                    channel_id,
+                    variant_index,
+                    None,
+                    index_error_map,
+                )
+                clean_price(
+                    cost_price,
+                    "cost_price",
+                    currency_code,
+                    channel_id,
+                    variant_index,
+                    None,
+                    index_error_map,
+                )
 
-                    listing_data["channel_listings"] = channel_listing
-                    listings_to_update.append(listing_data)
+                if len(index_error_map[variant_index]) > errors_count_before_prices:
+                    continue
+
+                listing_data["channel_listings"] = channel_listing
+                listings_to_update.append(listing_data)
             cleaned_input["channel_listings"]["update"] = listings_to_update
 
         if listings_ids := cleaned_input["channel_listings"].get("remove"):
             listings_to_remove = []
             for listing_id in listings_ids:
                 if listing_id not in listings_global_id_to_instance_map.keys():
-                    message = "Channel listing was not found."
-                    index_error_map[variant_index].append(
-                        ProductVariantBulkError(
-                            field="channelListing",
-                            message=message,
-                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                            channel_listings=[listing_id],
-                        )
-                    )
-                else:
-                    listings_to_remove.append(
-                        graphene.Node.from_global_id(listing_id)[1]
-                    )
+                    wrong_listings_ids.append(listing_id)
+                    continue
+
+                listings_to_remove.append(graphene.Node.from_global_id(listing_id)[1])
             cleaned_input["channel_listings"]["remove"] = listings_to_remove
+
+        if wrong_listings_ids:
+            index_error_map[variant_index].append(
+                ProductVariantBulkError(
+                    field="channelListing",
+                    message="Channel listing was not found.",
+                    code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                    channel_listings=[wrong_listings_ids],
+                )
+            )
 
     @classmethod
     def clean_stocks(
@@ -241,6 +239,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         variant_index,
         index_error_map,
     ):
+        wrong_socks_ids: list = []
 
         if stocks_data := cleaned_input["stocks"].get("create"):
             cleaned_input["stocks"]["create"] = ProductVariantBulkCreate.clean_stocks(
@@ -256,19 +255,12 @@ class ProductVariantBulkUpdate(BaseMutation):
             for stock_data in stocks_data:
                 stock_id = stock_data["stock"]
                 if stock_id not in stock_global_id_to_instance_map.keys():
-                    message = "Stock was not found."
-                    index_error_map[variant_index].append(
-                        ProductVariantBulkError(
-                            field="stock",
-                            message=message,
-                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                            stocks=[stock_id],
-                        )
-                    )
-                else:
-                    stock_data["stock"] = stock_global_id_to_instance_map[stock_id]
-                    stock_data["stock"].quantity = stock_data["quantity"]
-                    stocks_to_update.append(stock_data)
+                    wrong_socks_ids.append(stock_id)
+                    continue
+
+                stock_data["stock"] = stock_global_id_to_instance_map[stock_id]
+                stock_data["stock"].quantity = stock_data["quantity"]
+                stocks_to_update.append(stock_data)
 
             cleaned_input["stocks"]["update"] = stocks_to_update
 
@@ -276,18 +268,20 @@ class ProductVariantBulkUpdate(BaseMutation):
             stocks_to_remove = []
             for stock_id in stocks_ids:
                 if stock_id not in stock_global_id_to_instance_map.keys():
-                    message = "Stock was not found."
-                    index_error_map[variant_index].append(
-                        ProductVariantBulkError(
-                            field="stock",
-                            message=message,
-                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                            stocks=[stock_id],
-                        )
-                    )
-                else:
-                    stocks_to_remove.append(graphene.Node.from_global_id(stock_id)[1])
+                    wrong_socks_ids.append(stock_id)
+                    continue
+                stocks_to_remove.append(graphene.Node.from_global_id(stock_id)[1])
             cleaned_input["stocks"]["remove"] = stocks_to_remove
+
+        if wrong_socks_ids:
+            index_error_map[variant_index].append(
+                ProductVariantBulkError(
+                    field="stock",
+                    message="Stock was not found.",
+                    code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                    stocks=[wrong_socks_ids],
+                )
+            )
 
     @classmethod
     def clean_variant(
@@ -298,6 +292,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         warehouse_global_id_to_instance_map,
         stock_global_id_to_instance_map,
         listings_global_id_to_instance_map,
+        variant_attributes,
         used_attribute_values,
         variant_attributes_ids,
         duplicated_sku,
@@ -327,6 +322,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         attributes_errors_count = ProductVariantBulkCreate.clean_attributes(
             cleaned_input,
             variant_data["product_type"],
+            variant_attributes,
             variant_attributes_ids,
             used_attribute_values,
             None,
@@ -367,6 +363,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         cleaned_inputs_map = {}
+        product_type = product.product_type
 
         # fetch existing data required to validate inputs
         warehouse_global_id_to_instance_map = {
@@ -394,13 +391,12 @@ class ProductVariantBulkUpdate(BaseMutation):
             ).filter(product=product.id)
         }
         used_attribute_values = get_used_variants_attribute_values(product)
+        variant_attributes = product_type.variant_attributes.annotate(
+            variant_selection=F("attributevariant__variant_selection")
+        )
         variant_attributes_ids = {
-            graphene.Node.to_global_id("Attribute", attr_id)
-            for attr_id in list(
-                product.product_type.variant_attributes.all().values_list(
-                    "pk", flat=True
-                )
-            )
+            graphene.Node.to_global_id("Attribute", variant_attribute.id)
+            for variant_attribute in variant_attributes
         }
         duplicated_sku = get_duplicated_values(
             [variant.sku for variant in variants if variant.sku]
@@ -409,7 +405,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         # clean variants inputs
         for index, variant_data in enumerate(variants):
             variant_id = variant_data["id"]
-            variant_data["product_type"] = product.product_type
+            variant_data["product_type"] = product_type
             variant_data["product"] = product
 
             if variant_id not in variants_global_id_to_instance_map.keys():
@@ -428,6 +424,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 warehouse_global_id_to_instance_map,
                 stock_global_id_to_instance_map,
                 listings_global_id_to_instance_map,
+                variant_attributes,
                 used_attribute_values,
                 variant_attributes_ids,
                 duplicated_sku,
@@ -596,29 +593,6 @@ class ProductVariantBulkUpdate(BaseMutation):
             cls.call_event(manager.product_variant_updated, instance.node)
 
     @classmethod
-    def get_results(cls, instances_data_with_errors_list, reject_everything=False):
-        if reject_everything:
-            return [
-                ProductVariantBulkResult(
-                    product_variant=None, errors=data.get("errors")
-                )
-                for data in instances_data_with_errors_list
-            ]
-        return [
-            ProductVariantBulkResult(
-                product_variant=ChannelContext(
-                    node=data.get("instance"), channel_slug=None
-                ),
-                errors=data.get("errors"),
-            )
-            if data.get("instance")
-            else ProductVariantBulkResult(
-                product_variant=None, errors=data.get("errors")
-            )
-            for data in instances_data_with_errors_list
-        ]
-
-    @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         index_error_map: dict = defaultdict(list)
@@ -648,7 +622,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         # check error policy
         if any([True if error else False for error in index_error_map.values()]):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
-                results = cls.get_results(instances_data_with_errors_list, True)
+                results = get_results(instances_data_with_errors_list, True)
                 return ProductVariantBulkUpdate(count=0, results=results)
 
             if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
@@ -660,7 +634,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         cls.save_variants(instances_data_with_errors_list)
 
         # prepare and return data
-        results = cls.get_results(instances_data_with_errors_list)
+        results = get_results(instances_data_with_errors_list)
         instances = [
             result.product_variant for result in results if result.product_variant
         ]

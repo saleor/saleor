@@ -19098,7 +19098,7 @@ input ProductVariantStocksUpdateInput {
   """List of warehouses to create stocks."""
   create: [StockInput!]
 
-  """List od stocks that should be updated."""
+  """List od stocks to updated."""
   update: [StockUpdateInput!]
 
   """List of stocks to remove."""
@@ -19120,7 +19120,7 @@ input ProductVariantChannelListingUpdateInput {
   """List of channel listings to update."""
   update: [ChannelListingUpdateInput!]
 
-  """List of product variant channel listings to remove."""
+  """List of channel listings to remove."""
   remove: [ID!]
 }
 
