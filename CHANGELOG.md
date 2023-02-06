@@ -13,6 +13,12 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
 - Add meta fields to `ProductMedia` model - #11894 by @zedzior
 
+Add new asynchronous events related to media: #11918 by @zedzior
+  - `PRODUCT_MEDIA CREATED`
+  - `PRODUCT_MEDIA_UPDATED`
+  - `PRODUCT_MEDIA_DELETED`
+  - `THUMBNAIL_CREATED`
+
 ### Other changes
 
 - Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior

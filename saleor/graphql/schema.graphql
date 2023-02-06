@@ -1710,8 +1710,26 @@ enum WebhookEventTypeEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+
+  """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
   PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
   PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
   PRODUCT_MEDIA_DELETED
 
   """
@@ -2242,8 +2260,26 @@ enum WebhookEventTypeAsyncEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+
+  """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
   PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
   PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
   PRODUCT_MEDIA_DELETED
 
   """
@@ -25237,8 +25273,6 @@ type ProductMetadataUpdated implements Event {
 Event sent when new product media is created.
 
 Added in Saleor 3.12.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductMediaCreated implements Event {
   """Time of the event."""
@@ -25261,8 +25295,6 @@ type ProductMediaCreated implements Event {
 Event sent when product media is updated.
 
 Added in Saleor 3.12.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductMediaUpdated implements Event {
   """Time of the event."""
@@ -25285,8 +25317,6 @@ type ProductMediaUpdated implements Event {
 Event sent when product media is deleted.
 
 Added in Saleor 3.12.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductMediaDeleted implements Event {
   """Time of the event."""

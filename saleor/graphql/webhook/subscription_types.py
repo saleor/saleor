@@ -742,11 +742,7 @@ class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new product media is created."
-            + ADDED_IN_312
-            + PREVIEW_FEATURE
-        )
+        description = "Event sent when new product media is created." + ADDED_IN_312
 
 
 class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
@@ -754,9 +750,7 @@ class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product media is updated." + ADDED_IN_312 + PREVIEW_FEATURE
-        )
+        description = "Event sent when product media is updated." + ADDED_IN_312
 
 
 class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
@@ -764,9 +758,7 @@ class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when product media is deleted." + ADDED_IN_312 + PREVIEW_FEATURE
-        )
+        description = "Event sent when product media is deleted." + ADDED_IN_312
 
 
 class ProductVariantBase(AbstractType):
