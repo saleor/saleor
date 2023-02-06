@@ -90,11 +90,14 @@ def generate_payload_from_subscription(
     app_id = app.pk if app else None
 
     request.app = app
+    is_mutation = request.is_mutation if request.is_mutation else False
+    context = get_context_value(request)
+    context.is_mutation = is_mutation
 
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
-        context=get_context_value(request),
+        context=context,
     )
     if hasattr(results, "errors"):
         logger.warning(
