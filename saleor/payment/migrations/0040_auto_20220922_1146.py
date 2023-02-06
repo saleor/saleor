@@ -140,6 +140,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="transactionevent",
+            name="include_in_calculations",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name="transactionevent",
             name="type",
             field=models.CharField(
                 blank=True,
