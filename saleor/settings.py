@@ -697,3 +697,6 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 
 assert hasattr(schema_printer, "_print_object")
 schema_printer._print_object = patched_print_object
+
+# Lock time for request password reset mutation per user (seconds)
+RESET_PASSWORD_LOCK_TIME = int(os.environ.get("RESET_PASSWORD_LOCK_TIME", 15 * 60))
