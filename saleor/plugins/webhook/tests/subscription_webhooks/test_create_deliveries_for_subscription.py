@@ -7,7 +7,7 @@ from freezegun import freeze_time
 
 from .....channel.models import Channel
 from .....giftcard.models import GiftCard
-from .....graphql.webhook.subscription_payload import validate_subscription_query
+from .....graphql.webhook.subscription_query import SubscriptionQuery
 from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
@@ -2187,62 +2187,61 @@ def test_create_deliveries_for_subscriptions_document_executed_with_error(
 
 
 def test_validate_subscription_query_valid():
-    result = validate_subscription_query(
-        subscription_queries.TEST_VALID_SUBSCRIPTION_QUERY
-    )
-    assert result is True
+    query = SubscriptionQuery(subscription_queries.TEST_VALID_SUBSCRIPTION_QUERY)
+    assert query.is_valid
 
 
 def test_validate_subscription_query_invalid():
-    result = validate_subscription_query("invalid_query")
-    assert result is False
+    query = SubscriptionQuery("invalid_query")
+    assert not query.is_valid
 
 
 def test_validate_subscription_query_valid_with_fragment():
-    result = validate_subscription_query(
+    query = SubscriptionQuery(
         subscription_queries.TEST_VALID_SUBSCRIPTION_QUERY_WITH_FRAGMENT
     )
-    assert result is True
+    assert query.is_valid
 
 
 def test_validate_invalid_query_and_subscription():
-    result = validate_subscription_query(
-        subscription_queries.TEST_INVALID_QUERY_AND_SUBSCRIPTION
+    query = SubscriptionQuery(subscription_queries.TEST_INVALID_QUERY_AND_SUBSCRIPTION)
+    assert not query.is_valid
+    assert (
+        "This anonymous operation must be the only defined operation" in query.error_msg
     )
-    assert result is False
 
 
 def test_validate_invalid_subscription_and_query():
-    result = validate_subscription_query(
-        subscription_queries.TEST_INVALID_SUBSCRIPTION_AND_QUERY
+    query = SubscriptionQuery(subscription_queries.TEST_INVALID_SUBSCRIPTION_AND_QUERY)
+    assert not query.is_valid
+    assert (
+        "This anonymous operation must be the only defined operation" in query.error_msg
     )
-    assert result is False
 
 
 def test_validate_invalid_multiple_subscriptions():
-    result = validate_subscription_query(
-        subscription_queries.TEST_INVALID_MULTIPLE_SUBSCRIPTION
+    query = SubscriptionQuery(subscription_queries.TEST_INVALID_MULTIPLE_SUBSCRIPTION)
+    assert not query.is_valid
+    assert (
+        "This anonymous operation must be the only defined operation" in query.error_msg
     )
-    assert result is False
 
 
-def test_vaidate_invalid_multiple_events_in_subscription():
-    result = validate_subscription_query(subscription_queries.INVALID_MULTIPLE_EVENTS)
-    assert result is False
+def test_validate_valid_multiple_events_in_subscription():
+    query = SubscriptionQuery(subscription_queries.INVALID_MULTIPLE_EVENTS)
+    assert query.is_valid
 
 
-def test_vaidate_invalid_multiple_events_and_fragments_in_subscription():
-    result = validate_subscription_query(
+def test_validate_invalid_multiple_events_and_fragments_in_subscription():
+    query = SubscriptionQuery(
         subscription_queries.INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS
     )
-    assert result is False
+    assert query.is_valid
 
 
 def test_validate_query_with_multiple_fragments():
-    result = validate_subscription_query(
-        subscription_queries.QUERY_WITH_MULTIPLE_FRAGMENTS
-    )
-    assert result is True
+    query = SubscriptionQuery(subscription_queries.QUERY_WITH_MULTIPLE_FRAGMENTS)
+    assert query.is_valid
 
 
 def test_generate_payload_from_subscription_return_permission_errors_in_payload(
