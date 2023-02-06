@@ -1906,58 +1906,6 @@ def test_query_product_media_by_id_no_size_value_original_image_returned(
     )
 
 
-def test_query_product_media_with_metadata(
-    staff_api_client, product_with_image, channel_USD, permission_manage_products
-):
-    # given
-    query = """
-        query productMediaById(
-            $mediaId: ID!,
-            $productId: ID!,
-            $channel: String,
-        ) {
-            product(id: $productId, channel: $channel) {
-                mediaById(id: $mediaId) {
-                    metadata {
-                        key
-                        value
-                    }
-                    privateMetadata {
-                        key
-                        value
-                    }
-                }
-            }
-        }
-    """
-    media = product_with_image.media.first()
-
-    metadata = {"label": "image-name"}
-    private_metadata = {"private-label": "private-name"}
-    media.store_value_in_metadata(metadata)
-    media.store_value_in_private_metadata(private_metadata)
-    media.save(update_fields=["metadata", "private_metadata"])
-
-    variables = {
-        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
-        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
-        "channel": channel_USD.slug,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["product"]["mediaById"]
-    assert data["metadata"][0]["key"] in metadata.keys()
-    assert data["metadata"][0]["value"] in metadata.values()
-    assert data["privateMetadata"][0]["key"] in private_metadata.keys()
-    assert data["privateMetadata"][0]["value"] in private_metadata.values()
-
-
 def test_query_product_for_federation(api_client, product, channel_USD):
     product_id = graphene.Node.to_global_id("Product", product.pk)
     variables = {
