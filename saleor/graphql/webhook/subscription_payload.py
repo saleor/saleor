@@ -90,7 +90,7 @@ def generate_payload_from_subscription(
     app_id = app.pk if app else None
 
     request.app = app
-    is_mutation = request.is_mutation if request.is_mutation else False
+    is_mutation = request.is_mutation if hasattr(request, "is_mutation") else False
     context = get_context_value(request)
     context.is_mutation = is_mutation
 
