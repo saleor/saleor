@@ -4,12 +4,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY, patch, sentinel, MagicMock
+from unittest.mock import ANY, patch, sentinel
 
 import graphene
 import pytest
 import pytz
-from django.core.files import File
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from freezegun import freeze_time
@@ -57,16 +56,16 @@ from ..payloads import (
     generate_order_payload,
     generate_order_payload_for_tax_calculation,
     generate_payment_payload,
+    generate_product_media_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
     generate_sale_toggle_payload,
+    generate_thumbnail_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
-    generate_thumbnail_payload,
-    generate_product_media_payload,
 )
 from ..serializers import serialize_checkout_lines
 
@@ -2195,14 +2194,14 @@ def test_generate_thumbnail_payload_collection(collection_with_image, media_root
     expected_payload = {
         "type": "Thumbnail",
         "id": thumbnail_id,
-        "url": "thumbnails/product_thumbnail_128.webp",
+        "url": "collection-backgrounds/product_thumbnail_128.webp",
         "url_origin": "/media/collection-backgrounds/product.jpg",
         "object": {
             "type": "Collection",
             "id": collection_id,
         },
         "size": 128,
-        "format": ThumbnailFormat.WEBP
+        "format": ThumbnailFormat.WEBP,
     }
 
     # when
@@ -2228,14 +2227,14 @@ def test_generate_thumbnail_payload_category(category_with_image, media_root):
     expected_payload = {
         "type": "Thumbnail",
         "id": thumbnail_id,
-        "url": "thumbnails/product_thumbnail_128.webp",
+        "url": "category-backgrounds/product_thumbnail_128.webp",
         "url_origin": "/media/category-backgrounds/product.jpg",
         "object": {
             "type": "Category",
             "id": category_id,
         },
         "size": 128,
-        "format": ThumbnailFormat.WEBP
+        "format": ThumbnailFormat.WEBP,
     }
 
     # when
@@ -2267,7 +2266,7 @@ def test_generate_thumbnail_payload_user(customer_user, image, media_root):
             "id": user_id,
         },
         "size": 128,
-        "format": ThumbnailFormat.WEBP
+        "format": ThumbnailFormat.WEBP,
     }
 
     # when
@@ -2300,7 +2299,7 @@ def test_generate_thumbnail_payload_product_media(product_media_image, media_roo
             "id": media_id,
         },
         "size": 128,
-        "format": ThumbnailFormat.WEBP
+        "format": ThumbnailFormat.WEBP,
     }
 
     # when
