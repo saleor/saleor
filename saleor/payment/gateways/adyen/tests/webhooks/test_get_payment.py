@@ -54,3 +54,18 @@ def test_get_payment_not_active_payment(payment_dummy, caplog):
     )
     assert not result
     assert expected_msg in caplog.text
+
+
+def test_get_payment_for_notification_related_to_transaction_item(payment_dummy):
+    # given
+
+    incorrect_payment_id = graphene.Node.to_global_id(
+        "TransactionItem", payment_dummy.pk
+    )
+    transaction_id = "psp reference"
+
+    # when
+    result = get_payment(incorrect_payment_id, transaction_id)
+
+    # then
+    assert not result
