@@ -17,7 +17,7 @@ documentation = "https://docs.saleor.io/"
   dj-database-url = "^1"
   dj-email-url = "^1"
   django = {version = "^3.2.16", extras = ["bcrypt"]}
-  django-countries = "^7.2"
+  django-countries = "^7.5"
   django-filter = "^22.1"
   django-measurement = "^3.0"
   django-mptt = "^0"
