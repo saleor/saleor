@@ -254,6 +254,7 @@ def trigger_all_webhooks_sync(
     parse_response: Callable[[Any], Optional[R]],
     subscribable_object=None,
     requestor=None,
+    is_mutation=False,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -272,6 +273,8 @@ def trigger_all_webhooks_sync(
                 request_context = initialize_request(
                     requestor, event_type in WebhookEventSyncType.ALL
                 )
+                request_context.is_mutation = is_mutation
+
             delivery = create_delivery_for_subscription_sync_event(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
