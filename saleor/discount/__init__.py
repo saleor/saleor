@@ -15,7 +15,7 @@ class DiscountValueType:
     ]
 
 
-class OrderDiscountType:
+class DiscountType:
     VOUCHER = "voucher"
     MANUAL = "manual"
     CHOICES = [(VOUCHER, "Voucher"), (MANUAL, "Manual")]

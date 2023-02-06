@@ -20,7 +20,7 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...discount import DiscountValueType, OrderDiscountType
+from ...discount import DiscountType, DiscountValueType
 from ...discount.utils import fetch_active_discounts
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import FulfillmentLineData, OrderOrigin
@@ -84,14 +84,14 @@ def order_for_payload(fulfilled_order):
     order.save(update_fields=["origin", "original"])
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("20"),
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
     discount = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("10"),
         amount_value=Decimal("16.5"),

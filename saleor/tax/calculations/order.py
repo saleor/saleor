@@ -5,7 +5,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
-from ...discount import OrderDiscountType
+from ...discount import DiscountType
 from ...order import base_calculations
 from ...order.utils import (
     get_order_country,
@@ -87,7 +87,7 @@ def _calculate_order_total(
         undiscounted_subtotal += line.undiscounted_total_price
     total += order.shipping_price
 
-    order_discount = order.discounts.filter(type=OrderDiscountType.MANUAL).first()
+    order_discount = order.discounts.filter(type=DiscountType.MANUAL).first()
     if order_discount and order_discount.amount > undiscounted_subtotal.gross:
         remaining_amount = order_discount.amount - undiscounted_subtotal.gross
         total -= remaining_amount

@@ -16,7 +16,7 @@ from ...account.models import Address
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
-from ...discount import OrderDiscountType, VoucherType
+from ...discount import DiscountType, VoucherType
 from ...order import base_calculations as base_order_calculations
 from ...order.utils import get_total_order_discount_excluding_shipping
 from ...shipping.models import ShippingMethod
@@ -418,9 +418,7 @@ def get_order_lines_data(
         )
 
     if shipping_price := order.base_shipping_price_amount:
-        shipping_discounted = order.discounts.filter(
-            type=OrderDiscountType.MANUAL
-        ).exists()
+        shipping_discounted = order.discounts.filter(type=DiscountType.MANUAL).exists()
 
         append_shipping_to_data(
             data=data,

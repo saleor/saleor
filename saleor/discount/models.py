@@ -19,7 +19,7 @@ from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.utils.translations import Translation, TranslationProxy
 from ..permission.enums import DiscountPermissions
-from . import DiscountValueType, OrderDiscountType, VoucherType
+from . import DiscountType, DiscountValueType, VoucherType
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -371,8 +371,8 @@ class OrderDiscount(models.Model):
     )
     type = models.CharField(
         max_length=10,
-        choices=OrderDiscountType.CHOICES,
-        default=OrderDiscountType.MANUAL,
+        choices=DiscountType.CHOICES,
+        default=DiscountType.MANUAL,
     )
     value_type = models.CharField(
         max_length=10,
