@@ -11196,6 +11196,7 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
 
 """An enumeration."""
 enum OrderDiscountType @doc(category: "Discounts") {
+  SALE
   VOUCHER
   MANUAL
 }
