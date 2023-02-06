@@ -78,6 +78,8 @@ def test_send_email_changed_notification(
         "user": get_default_user_payload(customer_user),
         "recipient_email": old_email,
         "channel_slug": channel_PLN.slug,
+        "old_email": old_email,
+        "new_email": customer_user.email,
         **get_site_context_payload(site_settings.site),
     }
 
