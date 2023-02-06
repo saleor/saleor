@@ -369,7 +369,7 @@ def test_request_charge_action_missing_active_event(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_request_charge_action_with_transaction_action_requesy(
+def test_request_charge_action_with_transaction_action_request(
     mocked_transaction_request, mocked_is_active, order, staff_user
 ):
     # given
@@ -409,6 +409,7 @@ def test_request_charge_action_with_transaction_action_requesy(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         channel_slug=order.channel.slug,
     )
@@ -462,6 +463,7 @@ def test_request_charge_action_on_order(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         order.channel.slug,
     )
@@ -515,6 +517,7 @@ def test_request_charge_action_by_app(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         order.channel.slug,
     )
@@ -568,6 +571,7 @@ def test_request_charge_action_on_checkout(
             action_type=TransactionAction.CHARGE,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         checkout.channel.slug,
     )
@@ -650,6 +654,7 @@ def test_request_refund_action_with_transaction_action_request(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         channel_slug=order.channel.slug,
     )
@@ -703,6 +708,7 @@ def test_request_refund_action_on_order(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         order.channel.slug,
     )
@@ -756,6 +762,7 @@ def test_request_refund_action_by_app(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         order.channel.slug,
     )
@@ -810,6 +817,7 @@ def test_request_refund_action_on_checkout(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         checkout.channel.slug,
     )
@@ -891,6 +899,7 @@ def test_request_cancelation_action_on_order(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         order.channel.slug,
     )
@@ -941,6 +950,7 @@ def test_request_cancelation_action_with_transaction_action_request(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         channel_slug=order.channel.slug,
     )
@@ -991,6 +1001,7 @@ def test_request_cancelation_action_by_app(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         order.channel.slug,
     )
@@ -1043,6 +1054,7 @@ def test_request_cancelation_action_on_checkout(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=requested_event,
+            transaction_app_owner=None,
         ),
         checkout.channel.slug,
     )

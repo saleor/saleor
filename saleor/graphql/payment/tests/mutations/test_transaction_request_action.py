@@ -114,12 +114,14 @@ def test_transaction_request_charge_action_for_order(
     ).first()
 
     assert mocked_is_active.called
+    assert request_event
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CHARGE,
             action_value=expected_called_charge_amount,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=order_with_lines.channel.slug,
     )
@@ -188,6 +190,7 @@ def test_transaction_request_refund_action_for_order(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -195,6 +198,7 @@ def test_transaction_request_refund_action_for_order(
             action_type=TransactionAction.REFUND,
             action_value=expected_called_refund_amount,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=order_with_lines.channel.slug,
     )
@@ -250,7 +254,7 @@ def test_transaction_request_void_action_for_order(
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.CANCEL_REQUEST,
     ).first()
-
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -258,6 +262,7 @@ def test_transaction_request_void_action_for_order(
             action_type=TransactionAction.VOID,
             action_value=None,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=order_with_lines.channel.slug,
     )
@@ -313,6 +318,7 @@ def test_transaction_request_void_action_for_checkout(
         type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -320,6 +326,7 @@ def test_transaction_request_void_action_for_checkout(
             action_type=TransactionAction.VOID,
             action_value=None,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=checkout.channel.slug,
     )
@@ -383,6 +390,7 @@ def test_transaction_request_charge_action_for_checkout(
         type=TransactionEventType.CHARGE_REQUEST
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -390,6 +398,7 @@ def test_transaction_request_charge_action_for_checkout(
             action_type=TransactionAction.CHARGE,
             action_value=expected_called_charge_amount,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=checkout.channel.slug,
     )
@@ -453,6 +462,7 @@ def test_transaction_request_refund_action_for_checkout(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -460,6 +470,7 @@ def test_transaction_request_refund_action_for_checkout(
             action_type=TransactionAction.REFUND,
             action_value=expected_called_refund_amount,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=checkout.channel.slug,
     )
@@ -513,6 +524,7 @@ def test_transaction_action_request_uses_handle_payment_permission(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -520,6 +532,7 @@ def test_transaction_action_request_uses_handle_payment_permission(
             action_type=TransactionAction.REFUND,
             action_value=refund_amount,
             event=request_event,
+            transaction_app_owner=None,
         ),
         channel_slug=checkout.channel.slug,
     )
@@ -633,6 +646,7 @@ def test_transaction_request_charge_for_order(
     app_api_client,
     permission_manage_payments,
     transaction_request_webhook,
+    app,
 ):
     # given
     transaction_request_webhook.events.create(
@@ -648,7 +662,7 @@ def test_transaction_request_charge_for_order(
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
 
     variables = {
@@ -671,6 +685,7 @@ def test_transaction_request_charge_for_order(
         type=TransactionEventType.CHARGE_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -678,6 +693,7 @@ def test_transaction_request_charge_for_order(
             action_type=TransactionAction.CHARGE,
             action_value=expected_called_charge_amount,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         order_with_lines.channel.slug,
     )
@@ -729,7 +745,7 @@ def test_transaction_request_refund_for_order(
         currency="USD",
         order_id=order_with_lines.pk,
         charged_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
 
     variables = {
@@ -750,6 +766,7 @@ def test_transaction_request_refund_for_order(
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -757,6 +774,7 @@ def test_transaction_request_refund_for_order(
             action_type=TransactionAction.REFUND,
             action_value=expected_called_refund_amount,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         order_with_lines.channel.slug,
     )
@@ -798,7 +816,7 @@ def test_transaction_request_cancelation_for_order(
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -819,6 +837,7 @@ def test_transaction_request_cancelation_for_order(
         type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -826,6 +845,7 @@ def test_transaction_request_cancelation_for_order(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         order_with_lines.channel.slug,
     )
@@ -866,7 +886,7 @@ def test_transaction_request_cancelation_for_checkout(
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -887,6 +907,7 @@ def test_transaction_request_cancelation_for_checkout(
         type=TransactionEventType.CANCEL_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -894,6 +915,7 @@ def test_transaction_request_cancelation_for_checkout(
             action_type=TransactionAction.CANCEL,
             action_value=None,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         checkout.channel.slug,
     )
@@ -940,7 +962,7 @@ def test_transaction_request_charge_for_checkout(
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
 
     variables = {
@@ -962,6 +984,7 @@ def test_transaction_request_charge_for_checkout(
         type=TransactionEventType.CHARGE_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -969,6 +992,7 @@ def test_transaction_request_charge_for_checkout(
             action_type=TransactionAction.CHARGE,
             action_value=expected_called_charge_amount,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         checkout.channel.slug,
     )
@@ -1015,7 +1039,7 @@ def test_transaction_request_refund_for_checkout(
         currency="USD",
         checkout_id=checkout.pk,
         charged_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
 
     variables = {
@@ -1037,6 +1061,7 @@ def test_transaction_request_refund_for_checkout(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -1044,6 +1069,7 @@ def test_transaction_request_refund_for_checkout(
             action_type=TransactionAction.REFUND,
             action_value=expected_called_refund_amount,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         checkout.channel.slug,
     )
@@ -1080,7 +1106,7 @@ def test_transaction_request_uses_handle_payment_permission(
         currency="USD",
         checkout_id=checkout.pk,
         charged_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
     refund_amount = Decimal("1")
     variables = {
@@ -1103,6 +1129,7 @@ def test_transaction_request_uses_handle_payment_permission(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
 
+    assert request_event
     assert mocked_is_active.called
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
@@ -1110,6 +1137,7 @@ def test_transaction_request_uses_handle_payment_permission(
             action_type=TransactionAction.REFUND,
             action_value=refund_amount,
             event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
         ),
         checkout.channel.slug,
     )
@@ -1132,7 +1160,7 @@ def test_transaction_request_missing_permission(
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
-        app=transaction_request_webhook.app,
+        app_identifier=transaction_request_webhook.app.identifier,
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -1168,7 +1196,7 @@ def test_transaction_request_missing_event(
         currency="USD",
         order_id=order.pk,
         authorized_value=authorization_value,
-        app=app,
+        app_identifier=app.identifier,
     )
 
     mocked_get_webhooks.return_value = []

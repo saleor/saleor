@@ -70,6 +70,7 @@ def test_transaction_charge_request(order, webhook_app, permission_manage_paymen
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
         event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(

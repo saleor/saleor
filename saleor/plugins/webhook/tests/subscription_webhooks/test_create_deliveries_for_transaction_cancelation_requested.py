@@ -65,7 +65,10 @@ def test_transaction_void_request(order, webhook_app, permission_manage_payments
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
 
     transaction_data = TransactionActionData(
-        transaction=transaction, action_type=TransactionAction.VOID, event=request_event
+        transaction=transaction,
+        action_type=TransactionAction.VOID,
+        event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(

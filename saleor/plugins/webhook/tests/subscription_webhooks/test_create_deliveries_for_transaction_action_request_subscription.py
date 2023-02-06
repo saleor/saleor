@@ -94,6 +94,7 @@ def test_transaction_refund_action_request(
         action_type=TransactionAction.REFUND,
         action_value=action_value,
         event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -166,6 +167,7 @@ def test_transaction_charge_action_request(
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
         event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -234,7 +236,10 @@ def test_transaction_void_action_request(
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
 
     transaction_data = TransactionActionData(
-        transaction=transaction, action_type=TransactionAction.VOID, event=request_event
+        transaction=transaction,
+        action_type=TransactionAction.VOID,
+        event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(

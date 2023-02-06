@@ -34,13 +34,16 @@ def mocked_webhook_response():
 @freeze_time("2022-06-11 12:50")
 @mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
 def test_trigger_transaction_request(
-    mocked_task, transaction_item_created_by_app, staff_user, permission_manage_payments
+    mocked_task,
+    transaction_item_created_by_app,
+    staff_user,
+    permission_manage_payments,
+    app,
 ):
     # given
     event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.REFUND_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -53,6 +56,7 @@ def test_trigger_transaction_request(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
+        transaction_app_owner=app,
     )
 
     # when
@@ -82,7 +86,11 @@ def test_trigger_transaction_request(
 @freeze_time("2022-06-11 12:50")
 @mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
 def test_trigger_transaction_request_with_webhook_subscription(
-    mocked_task, transaction_item_created_by_app, staff_user, permission_manage_payments
+    mocked_task,
+    transaction_item_created_by_app,
+    staff_user,
+    permission_manage_payments,
+    app,
 ):
     # given
     subscription = """
@@ -104,7 +112,6 @@ def test_trigger_transaction_request_with_webhook_subscription(
     event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.REFUND_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -120,6 +127,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
+        transaction_app_owner=app,
     )
 
     # when
@@ -159,6 +167,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     expected_psp_reference = "psp:ref:123"
@@ -173,7 +182,6 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.REFUND_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -188,6 +196,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
@@ -223,6 +232,7 @@ def test_handle_transaction_request_task_with_server_error(
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     mocked_webhook_response.status_code = status_code
@@ -235,7 +245,6 @@ def test_handle_transaction_request_task_with_server_error(
     event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.CHARGE_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -250,6 +259,7 @@ def test_handle_transaction_request_task_with_server_error(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
@@ -276,6 +286,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     mocked_webhook_response.text = "{}"
@@ -287,7 +298,6 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.REFUND_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -302,6 +312,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
@@ -349,6 +360,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     expected_psp_reference = "psp:123:111"
@@ -365,7 +377,6 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.REFUND_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -380,6 +391,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
@@ -427,6 +439,7 @@ def test_handle_transaction_request_task_with_result_event(
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     request_psp_reference = "psp:123:111"
@@ -455,7 +468,6 @@ def test_handle_transaction_request_task_with_result_event(
     request_event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.CHARGE_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -470,6 +482,7 @@ def test_handle_transaction_request_task_with_result_event(
         action_type="refund",
         action_value=Decimal("10.00"),
         event=request_event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
@@ -522,6 +535,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     request_psp_reference = "psp:123:111"
@@ -539,7 +553,6 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     request_event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.REFUND_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -554,6 +567,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
         action_type="refund",
         action_value=Decimal("10.00"),
         event=request_event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
@@ -612,6 +626,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     permission_manage_payments,
     staff_user,
     mocked_webhook_response,
+    app,
 ):
     # given
     request_psp_reference = "psp:123:111"
@@ -640,7 +655,6 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     request_event = transaction_item_created_by_app.events.create(
         type=TransactionEventType.CHARGE_REQUEST
     )
-    app = transaction_item_created_by_app.app
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -655,6 +669,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
         action_type="charge",
         action_value=Decimal("12.00"),
         event=request_event,
+        transaction_app_owner=app,
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)

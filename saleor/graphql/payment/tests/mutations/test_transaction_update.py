@@ -101,7 +101,7 @@ def test_only_owner_can_update_its_transaction_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
-    transaction.app = external_app
+    transaction.app_identifier = external_app.identifier
     transaction.save()
 
     status = "Captured for 10$"
@@ -900,7 +900,7 @@ def test_creates_transaction_event_for_order_by_app(
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
-    assert event.app == app_api_client.app
+    assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
 
@@ -1705,7 +1705,7 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
-    assert event.app is None
+    assert event.app_identifier is None
     assert event.user == staff_api_client.user
 
 

@@ -17,14 +17,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="transactionitem",
-            name="app",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=models.deletion.SET_NULL,
-                related_name="+",
-                to="app.app",
-            ),
+            name="app_identifier",
+            field=models.CharField(blank=True, max_length=256, null=True),
         ),
         migrations.AddField(
             model_name="transactionitem",
@@ -129,14 +123,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="transactionevent",
-            name="app",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="+",
-                to="app.app",
-            ),
+            name="app_identifier",
+            field=models.CharField(blank=True, max_length=256, null=True),
         ),
         migrations.AddField(
             model_name="transactionevent",

@@ -1244,6 +1244,8 @@ def test_create_event_payload_reference_with_error(
     send_webhook_request_async(delivery.id)
     attempt = EventDeliveryAttempt.objects.first()
 
+    assert delivery
+    assert attempt
     assert delivery.webhook == webhook
     assert delivery.event_type == WebhookEventAsyncType.ORDER_CREATED
     assert attempt.response == "Unknown webhook scheme: ''"
@@ -1387,6 +1389,9 @@ def test_send_webhook_request_async(
     mocked_clear_delivery.assert_called_once_with(event_delivery)
     attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
     delivery = EventDelivery.objects.get(id=event_delivery.pk)
+
+    assert attempt
+    assert delivery
     assert attempt.status == EventDeliveryStatus.SUCCESS
     assert attempt.response == webhook_response.content
     assert attempt.response_headers == json.dumps(webhook_response.response_headers)
@@ -1454,6 +1459,7 @@ def test_transaction_action_request(
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
         event=request_event,
+        transaction_app_owner=None,
     )
 
     # when
@@ -1501,7 +1507,7 @@ def test_transaction_charge_requested(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
-        app=app,
+        app_identifier=app.identifier,
     )
     event = transaction.events.create(type=TransactionEventType.CHARGE_REQUEST)
     action_value = Decimal("5.00")
@@ -1510,6 +1516,7 @@ def test_transaction_charge_requested(
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
         event=event,
+        transaction_app_owner=app,
     )
 
     # when
@@ -1554,7 +1561,7 @@ def test_transaction_refund_requested(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
-        app=app,
+        app_identifier=app.identifier,
     )
     event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
     action_value = Decimal("5.00")
@@ -1563,6 +1570,7 @@ def test_transaction_refund_requested(
         action_type=TransactionAction.REFUND,
         action_value=action_value,
         event=event,
+        transaction_app_owner=app,
     )
 
     # when
@@ -1607,7 +1615,7 @@ def test_transaction_cancelation_requested(
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
-        app=app,
+        app_identifier=app.identifier,
     )
     event = transaction.events.create(type=TransactionEventType.CANCEL_REQUEST)
     action_value = Decimal("5.00")
@@ -1616,6 +1624,7 @@ def test_transaction_cancelation_requested(
         action_type=TransactionAction.CANCEL,
         action_value=action_value,
         event=event,
+        transaction_app_owner=app,
     )
 
     # when

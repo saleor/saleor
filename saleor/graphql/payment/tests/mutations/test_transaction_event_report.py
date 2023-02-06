@@ -119,7 +119,7 @@ def test_transaction_event_report_by_app(
     assert event.created_at == event_time
     assert event.external_url == external_url
     assert event.transaction == transaction_item_created_by_app
-    assert event.app == app_api_client.app
+    assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
 
@@ -189,7 +189,7 @@ def test_transaction_event_report_by_user(
     assert event.created_at == event_time
     assert event.external_url == external_url
     assert event.transaction == transaction_item_created_by_user
-    assert event.app is None
+    assert event.app_identifier is None
     assert event.user == staff_api_client.user
 
     transaction_item_created_by_user.refresh_from_db()
@@ -246,9 +246,10 @@ def test_transaction_event_report_called_by_non_app_owner(
     # given
     second_app = app_api_client.app
     second_app.pk = None
+    second_app.identifier = "different-identifier"
     second_app.save()
-    transaction_item_created_by_app.app = second_app
-    transaction_item_created_by_app.save(update_fields=["app"])
+    transaction_item_created_by_app.app_identifier = second_app.identifier
+    transaction_item_created_by_app.save(update_fields=["app_identifier"])
 
     transaction_id = to_global_id_or_none(transaction_item_created_by_app)
     variables = {

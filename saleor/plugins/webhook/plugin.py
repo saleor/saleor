@@ -1307,7 +1307,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        if not transaction_data.transaction.app_id:
+        if not transaction_data.transaction_app_owner:
             logger.warning(
                 f"Transaction request skipped for "
                 f"{transaction_data.transaction.psp_reference}. "
