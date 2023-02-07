@@ -31,16 +31,16 @@ class PluginManagerByRequestorDataloader(DataLoader):
     context_key = "plugin_manager_by_requestor"
 
     def batch_load(self, keys):
-        return [
-            get_plugins_manager(lambda: key, self.context.is_mutation) for key in keys
-        ]
+        is_mutation = getattr(self.context, "is_mutation", False)
+        return [get_plugins_manager(lambda: key, not is_mutation) for key in keys]
 
 
 class AnonymousPluginManagerLoader(DataLoader):
     context_key = "anonymous_plugin_manager"
 
     def batch_load(self, keys):
-        return [get_plugins_manager(None, self.context.is_mutation) for key in keys]
+        is_mutation = getattr(self.context, "is_mutation", False)
+        return [get_plugins_manager(None, not is_mutation) for key in keys]
 
 
 def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:

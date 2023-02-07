@@ -1478,7 +1478,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             checkout_info.checkout,
             self.requestor,
-            self.is_mutation,
+            self.allow_replica,
         )
 
     def get_taxes_for_order(
@@ -1490,7 +1490,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             order,
             self.requestor,
-            self.is_mutation,
+            self.allow_replica,
         )
 
     def get_shipping_methods_for_checkout(

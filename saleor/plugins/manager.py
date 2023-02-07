@@ -90,7 +90,7 @@ class PluginsManager(PaymentInterface):
         db_configs_map: dict,
         channel: Optional["Channel"] = None,
         requestor_getter=None,
-        is_mutation=False,
+        allow_replica=True,
     ) -> "BasePlugin":
         db_config = None
         if PluginClass.PLUGIN_ID in db_configs_map:
@@ -108,10 +108,10 @@ class PluginsManager(PaymentInterface):
             channel=channel,
             requestor_getter=requestor_getter,
             db_config=db_config,
-            is_mutation=is_mutation,
+            allow_replica=allow_replica,
         )
 
-    def __init__(self, plugins: List[str], requestor_getter=None, is_mutation=False):
+    def __init__(self, plugins: List[str], requestor_getter=None, allow_replica=True):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
             self.all_plugins = []
             self.global_plugins = []
@@ -128,7 +128,7 @@ class PluginsManager(PaymentInterface):
                             PluginClass,
                             global_db_configs,
                             requestor_getter=requestor_getter,
-                            is_mutation=is_mutation,
+                            allow_replica=allow_replica,
                         )
                         self.global_plugins.append(plugin)
                         self.all_plugins.append(plugin)
@@ -140,7 +140,7 @@ class PluginsManager(PaymentInterface):
                                 channel_configs,
                                 channel,
                                 requestor_getter,
-                                is_mutation,
+                                allow_replica,
                             )
                             self.plugins_per_channel[channel.slug].append(plugin)
                             self.all_plugins.append(plugin)
@@ -1662,7 +1662,7 @@ class PluginsManager(PaymentInterface):
 
 def get_plugins_manager(
     requestor_getter: Optional[Callable[[], "Requestor"]] = None,
-    is_mutation=False,
+    allow_replica=True,
 ) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        return PluginsManager(settings.PLUGINS, requestor_getter, is_mutation)
+        return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

@@ -32,7 +32,6 @@ def initialize_request(
         return PluginsManager(settings.PLUGINS, requestor_getter)
 
     request_time = timezone.now()
-
     request = SaleorContext()
     request.path = "/graphql/"
     request.path_info = "/graphql/"
