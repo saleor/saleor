@@ -7,7 +7,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 
 from ..graphql.core.utils import str_to_enum
-from ..graphql.webhook.subscription_payload import validate_subscription_query
+from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
     get_permissions,
     get_permissions_enum_list,
@@ -200,14 +200,6 @@ def clean_webhooks(manifest_data, errors):
     )
 
     for webhook in webhooks:
-        if not validate_subscription_query(webhook["query"]):
-            errors["webhooks"].append(
-                ValidationError(
-                    "Subscription query is not valid.",
-                    code=AppErrorCode.INVALID.value,
-                )
-            )
-
         webhook["events"] = []
         for e_type in webhook.get("asyncEvents", []):
             try:
@@ -229,6 +221,26 @@ def clean_webhooks(manifest_data, errors):
                         code=AppErrorCode.INVALID.value,
                     )
                 )
+
+        subscription_query = SubscriptionQuery(webhook["query"])
+        if not subscription_query.is_valid:
+            errors["webhooks"].append(
+                ValidationError(
+                    "Subscription query is not valid: " + subscription_query.error_msg,
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
+
+        if not webhook["events"]:
+            webhook["events"] = subscription_query.events
+        elif sorted(webhook["events"]) != sorted(subscription_query.events):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Events provided in `syncEvents` and `asyncEvents` does not "
+                    "match events from `query`",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
 
         try:
             target_url_validator(webhook["targetUrl"])

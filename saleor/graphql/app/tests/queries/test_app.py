@@ -316,6 +316,21 @@ def test_app_with_extensions_query(
         assert assigned_permissions in returned_permission_codes
 
 
+def test_app_query_pending_installation(staff_api_client, app):
+    # given
+    app.is_installed = False
+    app.save(update_fields=["is_installed"])
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_APP, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["app"] is None
+
+
 QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
     query ($id: ID){
         app(id: $id){

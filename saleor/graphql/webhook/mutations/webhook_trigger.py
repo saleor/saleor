@@ -10,9 +10,9 @@ from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
 from ...core.utils import raise_validation_error
+from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
-from ..utils import get_event_type_from_subscription
 
 
 class WebhookTrigger(BaseMutation):
@@ -46,26 +46,19 @@ class WebhookTrigger(BaseMutation):
                 code=WebhookTriggerErrorCode.MISSING_QUERY,
             )
 
-        event_types = get_event_type_from_subscription(query)
-        if not event_types:
+        subscription_query = SubscriptionQuery(query)
+        if not subscription_query.is_valid:
             raise_validation_error(
-                message="Can't parse an event type from webhook's subscription query.",
-                code=WebhookTriggerErrorCode.UNABLE_TO_PARSE,
+                message=subscription_query.error_msg,
+                code=subscription_query.error_code,
             )
-        event_type = event_types[0] if event_types else None
-        return event_type
+
+        events = subscription_query.events
+        return events[0] if events else None
 
     @classmethod
     def validate_event_type(cls, event_type, object_id):
-        event = WEBHOOK_TYPES_MAP.get(event_type) if event_type else None
-        if not event and event_type:
-            event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
-            raise_validation_error(
-                message=f"Event type: {event_name}, which was parsed from webhook's "
-                f"subscription query, is not defined in graphql schema.",
-                code=WebhookTriggerErrorCode.GRAPHQL_ERROR,
-            )
-
+        event = WEBHOOK_TYPES_MAP[event_type] if event_type else None
         model, _ = graphene.Node.from_global_id(object_id)
         model_name = event._meta.root_type  # type: ignore[union-attr]
         enable_dry_run = event._meta.enable_dry_run  # type: ignore[union-attr]

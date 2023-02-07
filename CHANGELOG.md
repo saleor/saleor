@@ -38,6 +38,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
+
 # 3.11.0
 
 ### Highlights
@@ -67,6 +69,7 @@ Just so you know, changes mentioned in this section are in a preview state and c
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
 - Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
 - Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
+- Fix send user email change notification - #11840 by @jakubkuc
 
 # 3.10.0 [Unreleased]
 
