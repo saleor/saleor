@@ -7,6 +7,11 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
+  - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
+  - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
+  - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
+
 
 ### Other changes
 
@@ -49,7 +54,6 @@ Just so you know, changes mentioned in this section are in a preview state and c
 ### Breaking changes
 
 ### GraphQL API
-
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`

@@ -150,8 +150,9 @@ def test_handle_fully_paid_order_gift_cards_created(
     """Ensure the non shippable gift card are fulfilled when the flag for automatic
     fulfillment non shippable gift card is set."""
     # given
-    site_settings.automatically_fulfill_non_shippable_gift_card = True
-    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+    channel = order_with_lines.channel
+    channel.automatically_fulfill_non_shippable_gift_card = True
+    channel.save()
 
     order = order_with_lines
 
@@ -221,8 +222,9 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     """Ensure the non shippable gift card are not fulfilled when the flag for
     automatic fulfillment non shippable gift card is not set."""
     # given
-    site_settings.automatically_fulfill_non_shippable_gift_card = False
-    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+    channel = order_with_lines.channel
+    channel.automatically_fulfill_non_shippable_gift_card = False
+    channel.save()
 
     order = order_with_lines
 

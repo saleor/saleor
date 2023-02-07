@@ -233,11 +233,11 @@ type Query {
   shop: Shop!
 
   """
-  Order related settings from site settings.
+  Order related settings from site settings. Returns `orderSettings` for the first `channel` in alphabetical order.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  orderSettings: OrderSettings
+  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` query to fetch the `orderSettings` field instead.")
 
   """
   Gift card related settings from site settings.
@@ -4348,6 +4348,15 @@ type Channel implements Node {
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   stockSettings: StockSettings!
+
+  """
+  Channel-specific order settings.
+  
+  Added in Saleor 3.12.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
+  """
+  orderSettings: OrderSettings!
 }
 
 """
@@ -4746,6 +4755,19 @@ Determine the allocation strategy for the channel.
 enum AllocationStrategyEnum {
   PRIORITIZE_SORTING_ORDER
   PRIORITIZE_HIGH_STOCK
+}
+
+"""Represents the channel-specific order settings."""
+type OrderSettings {
+  """
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  """
+  automaticallyConfirmAllNewOrders: Boolean!
+
+  """
+  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  """
+  automaticallyFulfillNonShippableGiftCard: Boolean!
 }
 
 """Represents shipping method postal code rule."""
@@ -10763,12 +10785,6 @@ type Limits {
   warehouses: Int
 }
 
-"""Order related settings from site settings."""
-type OrderSettings {
-  automaticallyConfirmAllNewOrders: Boolean!
-  automaticallyFulfillNonShippableGiftCard: Boolean!
-}
-
 """Gift card related settings from site settings."""
 type GiftCardSettings {
   """The gift card expiry type settings."""
@@ -12339,14 +12355,14 @@ type Mutation {
   ): ShopAddressUpdate
 
   """
-  Update shop order settings. 
+  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderSettingsUpdate(
     """Fields required to update shop order settings."""
     input: OrderSettingsUpdateInput!
-  ): OrderSettingsUpdate
+  ): OrderSettingsUpdate @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Use `channelUpdate` mutation instead.")
 
   """
   Update gift card settings. 
@@ -15087,9 +15103,10 @@ type Mutation {
   ): ChannelCreate
 
   """
-  Update a channel. 
+  Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
+  Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
   channelUpdate(
     """ID of a channel to update."""
@@ -16899,7 +16916,7 @@ type ShopAddressUpdate {
 }
 
 """
-Update shop order settings. 
+Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -16930,12 +16947,12 @@ enum OrderSettingsErrorCode {
 
 input OrderSettingsUpdateInput {
   """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
   """
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -22354,6 +22371,13 @@ input ChannelCreateInput {
   """
   addWarehouses: [ID!]
 
+  """
+  The channel order settings
+  
+  Added in Saleor 3.12.
+  """
+  orderSettings: OrderSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -22380,10 +22404,23 @@ input StockSettingsInput {
   allocationStrategy: AllocationStrategyEnum!
 }
 
+input OrderSettingsInput {
+  """
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
+  """
+  automaticallyConfirmAllNewOrders: Boolean
+
+  """
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
+  """
+  automaticallyFulfillNonShippableGiftCard: Boolean
+}
+
 """
-Update a channel. 
+Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
+Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
 """
 type ChannelUpdate {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22415,6 +22452,13 @@ input ChannelUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addWarehouses: [ID!]
+
+  """
+  The channel order settings
+  
+  Added in Saleor 3.12.
+  """
+  orderSettings: OrderSettingsInput
 
   """Name of the channel."""
   name: String

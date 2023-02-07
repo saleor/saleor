@@ -2,14 +2,16 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.error_codes import ShopErrorCode
 from ...core.utils.url import validate_storefront_url
 from ...permission.enums import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...site import GiftCardSettingsExpiryType
-from ...site.error_codes import GiftCardSettingsErrorCode
+from ...site.error_codes import GiftCardSettingsErrorCode, OrderSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
+from ..channel.types import OrderSettings
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
@@ -22,7 +24,7 @@ from ..core.types import (
 )
 from ..site.dataloaders import get_site_promise
 from .enums import GiftCardSettingsExpiryTypeEnum
-from .types import GiftCardSettings, OrderSettings, Shop
+from .types import GiftCardSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -372,12 +374,12 @@ class OrderSettingsUpdateInput(graphene.InputObjectType):
         required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
-        "become unfulfilled immediately.",
+        "become unfulfilled immediately. By default set to True",
     )
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
         required=False,
         description="When enabled, all non-shippable gift card orders "
-        "will be fulfilled automatically.",
+        "will be fulfilled automatically. By defualt set to True.",
     )
 
 
@@ -390,7 +392,10 @@ class OrderSettingsUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update shop order settings."
+        description = (
+            "Update shop order settings across all channels. "
+            "Returns `orderSettings` for the first `channel` in alphabetical order. "
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"
@@ -401,18 +406,38 @@ class OrderSettingsUpdate(BaseMutation):
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
         ]
-        site = get_site_promise(info.context).get()
-        instance = site.settings
-        update_fields = []
+
+        channel = (
+            channel_models.Channel.objects.filter(is_active=True)
+            .order_by("slug")
+            .first()
+        )
+
+        if channel is None:
+            raise ValidationError(
+                "There is no active channel available",
+                code=OrderSettingsErrorCode.INVALID.value,
+            )
+
+        update_fields = {}
         for field in FIELDS:
-            value = data["input"].get(field)
-            if value is not None:
-                setattr(instance, field, value)
-                update_fields.append(field)
+            if field in data["input"]:
+                update_fields[field] = data["input"][field]
 
         if update_fields:
-            instance.save(update_fields=update_fields)
-        return OrderSettingsUpdate(order_settings=instance)
+            channel_models.Channel.objects.update(**update_fields)
+
+        channel.refresh_from_db()
+
+        order_settings = OrderSettings(
+            automatically_confirm_all_new_orders=(
+                channel.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                channel.automatically_fulfill_non_shippable_gift_card
+            ),
+        )
+        return OrderSettingsUpdate(order_settings=order_settings)
 
 
 class GiftCardSettingsUpdateInput(graphene.InputObjectType):

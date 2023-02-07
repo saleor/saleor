@@ -540,7 +540,7 @@ def _create_order(
 
     status = (
         OrderStatus.UNFULFILLED
-        if site_settings.automatically_confirm_all_new_orders
+        if checkout_info.channel.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
     order = Order.objects.create(
@@ -1100,7 +1100,7 @@ def _create_order_from_checkout(
     # status
     status = (
         OrderStatus.UNFULFILLED
-        if site_settings.automatically_confirm_all_new_orders
+        if checkout_info.channel.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
     checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)
