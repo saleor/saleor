@@ -44,10 +44,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # This steps is a fix for https://github.com/actions/runner-images/issues/6775
-      - name: Mark working directory as safe in Git
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
       - name: Install system dependencies
         run: apt-get install -y libpq-dev
 
@@ -103,7 +99,9 @@ jobs:
         if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
       # Run linters and Django related checks
+      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
       - name: Run Linters and Checks
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pre-commit run --all
         if: ${{ always() }}
