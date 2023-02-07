@@ -16085,6 +16085,7 @@ enum WebhookErrorCode {
   MISSING_SUBSCRIPTION
   UNABLE_TO_PARSE
   MISSING_EVENT
+  INVALID_CUSTOM_HEADERS
 }
 
 input WebhookCreateInput {
@@ -16128,6 +16129,15 @@ input WebhookCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to http request.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  headers: JSONString
 }
 
 """
@@ -16193,6 +16203,15 @@ input WebhookUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to http request.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  headers: JSONString
 }
 
 """

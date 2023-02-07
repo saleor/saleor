@@ -33,6 +33,14 @@ class Webhook(models.Model):
     def __str__(self):
         return self.name
 
+    def store_headers(self, items: dict):
+        if not self.headers:
+            self.headers = {}
+        self.headers.update(items)
+
+    def clear_headers(self):
+        self.headers = {}
+
 
 class WebhookEvent(models.Model):
     webhook = models.ForeignKey(

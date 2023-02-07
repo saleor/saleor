@@ -8,6 +8,10 @@ HEADERS_LENGTH_LIMIT = 78
 
 
 def custom_headers_validator(headers) -> Dict[str, str]:
+    """Validate headers in accordance with RFC5322.
+
+    https://www.rfc-editor.org/rfc/rfc5322#section-2.2
+    """
     if len(headers) > HEADERS_NUMBER_LIMIT:
         raise ValidationError(
             f"Number of headers exceeds the limit: {HEADERS_NUMBER_LIMIT}."
