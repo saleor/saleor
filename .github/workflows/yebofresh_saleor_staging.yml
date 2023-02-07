@@ -19,8 +19,11 @@ jobs:
   setup-build-publish:
     name: Setup, Build, Publish
     runs-on: ubuntu-latest
-    steps:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
+    steps:
     - name: Checkout
       uses: actions/checkout@v3
 
