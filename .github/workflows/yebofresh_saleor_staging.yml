@@ -11,6 +11,7 @@ on:
 env:
   GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
   GS_JSON: ${{ secrets.GS_JSON_STAGING }}
+  SALEOR_SECRET: ${{ secrets.SALEOR_STAGING_BUILD_SECRET }}
   GAC_FILENAME: gcs_staging.json
   GITHUB_SHA: ${{ github.sha }}
   IMAGE: saleor-staging
@@ -53,7 +54,8 @@ jobs:
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           --build-arg GS_JSON_ARG="$GS_JSON" \
-          --build-arg GAC_FILE="$GAC_FILENAME" .
+          --build-arg GAC_FILE="$GAC_FILENAME" \
+          --build-arg SALEOR_SECRET_ARG="$SALEOR_SECRET" .
 
 
     # Push the Docker image to Google Container Registry
