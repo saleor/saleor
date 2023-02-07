@@ -1,5 +1,6 @@
 import graphene
 
+from .....webhook.error_codes import WebhookErrorCode
 from .....webhook.models import Webhook
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
@@ -10,9 +11,16 @@ WEBHOOK_CREATE = """
         errors {
           field
           message
+          code
         }
         webhook {
           id
+          asyncEvents {
+            eventType
+          }
+          syncEvents {
+            eventType
+          }
         }
       }
     }
@@ -20,6 +28,7 @@ WEBHOOK_CREATE = """
 
 
 def test_webhook_create_by_app(app_api_client, permission_manage_orders):
+    # given
     query = WEBHOOK_CREATE
     variables = {
         "input": {
@@ -31,6 +40,8 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
             ],
         }
     }
+
+    # when
     response = app_api_client.post_graphql(
         query,
         variables=variables,
@@ -38,6 +49,8 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
         check_no_permissions=False,
     )
     get_graphql_content(response)
+
+    # then
     new_webhook = Webhook.objects.get()
     assert new_webhook.name == "New integration"
     assert new_webhook.target_url == "https://www.example.com"
@@ -47,6 +60,7 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
 
 
 def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orders):
+    # given
     app.is_active = False
     app.save()
     query = WEBHOOK_CREATE
@@ -57,14 +71,16 @@ def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orde
             "name": "",
         }
     }
-
+    # when
     response = app_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_orders]
     )
+    # then
     assert_no_permission(response)
 
 
 def test_webhook_create_without_app(app_api_client, app):
+    # given
     app_api_client.app = None
     app_api_client.app_token = None
     query = WEBHOOK_CREATE
@@ -75,13 +91,14 @@ def test_webhook_create_without_app(app_api_client, app):
             "name": "",
         }
     }
+    # when
     response = app_api_client.post_graphql(query, variables=variables)
+    # then
     assert_no_permission(response)
 
 
 def test_webhook_create_app_doesnt_exist(app_api_client, app):
-    app.delete()
-
+    # given
     query = WEBHOOK_CREATE
     variables = {
         "input": {
@@ -90,7 +107,10 @@ def test_webhook_create_app_doesnt_exist(app_api_client, app):
             "name": "",
         }
     }
+    # when
+    app.delete()
     response = app_api_client.post_graphql(query, variables=variables)
+    # then
     assert_no_permission(response)
 
 
@@ -100,6 +120,7 @@ def test_webhook_create_by_staff(
     permission_manage_apps,
     permission_manage_orders,
 ):
+    # given
     query = WEBHOOK_CREATE
     app.permissions.add(permission_manage_orders)
     app_id = graphene.Node.to_global_id("App", app.pk)
@@ -112,8 +133,12 @@ def test_webhook_create_by_staff(
         }
     }
     staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
     response = staff_api_client.post_graphql(query, variables=variables)
     get_graphql_content(response)
+
+    # then
     new_webhook = Webhook.objects.get()
     assert new_webhook.target_url == "https://www.example.com"
     assert new_webhook.app == app
@@ -126,6 +151,7 @@ def test_webhook_create_by_staff(
 
 
 def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
+    # given
     app.is_active = False
     query = WEBHOOK_CREATE
     app_id = graphene.Node.to_global_id("App", app.pk)
@@ -136,12 +162,17 @@ def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
             "app": app_id,
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+    # then
     assert Webhook.objects.count() == 0
 
 
 def test_webhook_create_by_staff_without_permission(staff_api_client, app):
+    # given
     query = WEBHOOK_CREATE
     app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
@@ -151,22 +182,26 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
             "app": app_id,
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(query, variables=variables)
+
+    # then
     assert_no_permission(response)
     assert Webhook.objects.count() == 0
 
 
-def test_webhook_create_inherit_events_from_query(
-    app_api_client, permission_manage_orders, subscription_order_created_webhook
-):
+def test_webhook_create_by_app_invalid_query(app_api_client, permission_manage_orders):
     # given
     query = WEBHOOK_CREATE
-    subscription_query = subscription_order_created_webhook.subscription_query
     variables = {
         "input": {
             "name": "New integration",
             "targetUrl": "https://www.example.com",
-            "query": subscription_query,
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+            ],
+            "query": "invalid_query",
         }
     }
 
@@ -181,42 +216,14 @@ def test_webhook_create_inherit_events_from_query(
 
     # then
     data = content["data"]["webhookCreate"]
-    assert not data["errors"]
-    _, id = graphene.Node.from_global_id(data["webhook"]["id"])
-    new_webhook = Webhook.objects.filter(id=id).get()
-    events = new_webhook.events.all()
-    assert len(events) == 1
-    assert WebhookEventTypeAsyncEnum.ORDER_CREATED.value == events[0].event_type
+    assert not data["webhook"]
+    error = data["errors"][0]
+    assert error["field"] == "query"
+    assert 'Unexpected Name "invalid_query"' in error["message"]
+    assert error["code"] == WebhookErrorCode.SYNTAX.name
 
 
-def test_webhook_create_by_staff_invalid_query(
-    app_api_client, permission_manage_orders
-):
-    query = WEBHOOK_CREATE
-    variables = {
-        "input": {
-            "name": "New integration",
-            "targetUrl": "https://www.example.com",
-            "asyncEvents": [
-                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
-            ],
-            "query": "invalid_query",
-        }
-    }
-    response = app_api_client.post_graphql(
-        query,
-        variables=variables,
-        permissions=[permission_manage_orders],
-        check_no_permissions=False,
-    )
-    content = get_graphql_content(response)
-    expected_errors = [{"field": "query", "message": "Subscription query is not valid"}]
-    content = content["data"]["webhookCreate"]
-    assert not content["webhook"]
-    assert content["errors"] == expected_errors
-
-
-SUBSCRIPTION_QUERY_WITH_MULTIPLE_LVL_FIELDS = """
+SUBSCRIPTION_QUERY_WITH_MULTIPLE_EVENTS = """
 subscription {
   event {
     ... on PaymentListGateways {
@@ -224,41 +231,58 @@ subscription {
         id
       }
     }
-  }
-  ... on CheckoutFilterShippingMethods {
-    checkout {
-      id
-    }
-    shippingMethods {
-      name
-      id
+    ... on OrderCreated {
+      order {
+        id
+      }
     }
   }
-}"""
+}
+"""
 
 
-def test_webhook_create_by_staff_invalid_query_multiple_level_fields(
-    app_api_client, permission_manage_orders
+def test_webhook_create_inherit_events_from_query(
+    staff_api_client,
+    app,
+    permission_manage_apps,
+    permission_manage_orders,
 ):
+    # given
     query = WEBHOOK_CREATE
+    app.permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
         "input": {
-            "name": "New integration",
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [
-                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
-            ],
-            "query": SUBSCRIPTION_QUERY_WITH_MULTIPLE_LVL_FIELDS,
+            "app": app_id,
+            "query": SUBSCRIPTION_QUERY_WITH_MULTIPLE_EVENTS,
         }
     }
-    response = app_api_client.post_graphql(
-        query,
-        variables=variables,
-        permissions=[permission_manage_orders],
-        check_no_permissions=False,
-    )
+
+    # when
+    response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
-    expected_errors = [{"field": "query", "message": "Subscription query is not valid"}]
-    content = content["data"]["webhookCreate"]
-    assert not content["webhook"]
-    assert content["errors"] == expected_errors
+
+    # then
+    new_webhook = Webhook.objects.get()
+    assert new_webhook.target_url == "https://www.example.com"
+    assert new_webhook.app == app
+    events = new_webhook.events.all()
+    assert len(events) == 2
+
+    created_event_types = [event.event_type for event in events]
+    assert WebhookEventTypeAsyncEnum.ORDER_CREATED.value in created_event_types
+    assert WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.value in created_event_types
+
+    data = content["data"]["webhookCreate"]
+    assert not data["errors"]
+    assert data["webhook"]
+    assert (
+        data["webhook"]["asyncEvents"][0]["eventType"]
+        == WebhookEventTypeAsyncEnum.ORDER_CREATED.name
+    )
+    assert (
+        data["webhook"]["syncEvents"][0]["eventType"]
+        == WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.name
+    )

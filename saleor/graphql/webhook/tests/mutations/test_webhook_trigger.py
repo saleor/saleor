@@ -181,44 +181,7 @@ def test_webhook_trigger_missing_subscription_query(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
-def test_webhook_trigger_wrong_subscription_query(
-    mocked_send_webhook_request,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-    subscription_order_created_webhook,
-):
-    # given
-    mocked_send_webhook_request.return_value = None
-    query = WEBHOOK_TRIGGER_MUTATION
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
-
-    webhook.subscription_query = webhook.subscription_query.replace(
-        "subscription", "whatever"
-    )
-    webhook.save(update_fields=["subscription_query"])
-
-    variables = {"webhookId": webhook_id, "objectId": order_id}
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-
-    # then
-    error = content["data"]["webhookTrigger"]["errors"][0]
-    assert not error["field"]
-    assert error["code"] == WebhookTriggerErrorCode.UNABLE_TO_PARSE.name
-    assert (
-        error["message"]
-        == "Can't parse an event type from webhook's subscription query."
-    )
-
-
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
-def test_webhook_trigger_event_type_undefined(
+def test_webhook_trigger_invalid_subscription_query(
     mocked_send_webhook_request,
     staff_api_client,
     permission_manage_orders,
@@ -248,11 +211,7 @@ def test_webhook_trigger_event_type_undefined(
     error = content["data"]["webhookTrigger"]["errors"][0]
     assert not error["field"]
     assert error["code"] == WebhookTriggerErrorCode.GRAPHQL_ERROR.name
-    assert (
-        error["message"]
-        == "Event type: UndefinedEvent, which was parsed from webhook's "
-        "subscription query, is not defined in graphql schema."
-    )
+    assert 'Unknown type "UndefinedEvent"' in error["message"]
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
