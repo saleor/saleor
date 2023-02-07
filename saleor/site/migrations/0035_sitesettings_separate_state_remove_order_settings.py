@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("site", "0034_sitesettings_limit_quantity_per_checkout"),
-        ("channel", "0007_order_settings_per_channel"),
+        ("channel", "0008_update_null_order_settings"),
     ]
 
     operations = [
