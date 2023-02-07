@@ -18,7 +18,9 @@ from ..utils import format_error
 logger = get_task_logger(__name__)
 
 
-def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
+def initialize_request(
+    requestor=None, sync_event=False, is_mutation=False
+) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object.
@@ -43,6 +45,7 @@ def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
     setattr(request, "sync_event", sync_event)
     request.requestor = requestor
     request.request_time = request_time
+    request.is_mutation = is_mutation
 
     return request
 
@@ -88,16 +91,12 @@ def generate_payload_from_subscription(
         ast,
     )
     app_id = app.pk if app else None
-
     request.app = app
-    is_mutation = request.is_mutation if hasattr(request, "is_mutation") else False
-    context = get_context_value(request)
-    context.is_mutation = is_mutation
 
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
-        context=context,
+        context=get_context_value(request),
     )
     if hasattr(results, "errors"):
         logger.warning(

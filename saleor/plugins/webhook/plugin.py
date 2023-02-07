@@ -1303,7 +1303,6 @@ class WebhookPlugin(BasePlugin):
         transaction_kind: str,
         payment_information: "PaymentData",
         previous_value,
-        **kwargs
     ) -> "GatewayResponse":
         """Trigger payment webhook event.
 
@@ -1479,7 +1478,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             checkout_info.checkout,
             self.requestor,
-            is_mutation=True,
+            self.is_mutation,
         )
 
     def get_taxes_for_order(
@@ -1491,7 +1490,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             order,
             self.requestor,
-            is_mutation=True,
+            self.is_mutation,
         )
 
     def get_shipping_methods_for_checkout(

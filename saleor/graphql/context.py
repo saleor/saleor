@@ -17,7 +17,7 @@ from .core import SaleorContext
 def get_context_value(request: HttpRequest) -> SaleorContext:
     request = cast(SaleorContext, request)
     request.dataloaders = {}
-    request.is_mutation = False
+    request.is_mutation = getattr(request, "is_mutation", False)
     request.request_time = timezone.now()
     set_app_on_context(request)
     set_auth_on_context(request)

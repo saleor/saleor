@@ -271,9 +271,8 @@ def trigger_all_webhooks_sync(
         if webhook.subscription_query:
             if request_context is None:
                 request_context = initialize_request(
-                    requestor, event_type in WebhookEventSyncType.ALL
+                    requestor, event_type in WebhookEventSyncType.ALL, is_mutation
                 )
-                request_context.is_mutation = is_mutation
 
             delivery = create_delivery_for_subscription_sync_event(
                 event_type=event_type,

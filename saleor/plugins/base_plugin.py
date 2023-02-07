@@ -132,7 +132,8 @@ class BasePlugin:
         active: bool,
         channel: Optional["Channel"] = None,
         requestor_getter: Optional[Callable[[], "Requestor"]] = None,
-        db_config: Optional["PluginConfiguration"] = None
+        db_config: Optional["PluginConfiguration"] = None,
+        is_mutation: bool = False,
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
@@ -141,6 +142,7 @@ class BasePlugin:
             SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
         )
         self.db_config = db_config
+        self.is_mutation = is_mutation
 
     def __str__(self):
         return self.PLUGIN_NAME
