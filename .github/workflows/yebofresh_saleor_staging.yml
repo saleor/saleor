@@ -10,7 +10,6 @@ on:
 # Environment variables available to all jobs and steps in this workflow
 env:
   GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
-  GCR_EMAIL: ${{ secrets.GCR_EMAIL }}
   GS_JSON: ${{ secrets.GS_JSON_STAGING }}
   GITHUB_SHA: ${{ github.sha }}
   IMAGE: saleor-staging
@@ -25,18 +24,23 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # Setup gcloud CLI
-    - uses: google-github-actions/setup-gcloud@v0
+      # Google WIF Authentication
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
       with:
-        version: '270.0.0'
-        service_account_email: $GCR_EMAIL
-        service_account_key: ${{ secrets.GCR_KEY }}
+        token_format: 'access_token'
+        workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+        service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
 
-    # Configure docker to use the gcloud command-line tool as a credential helper
-    - run: |
-        # Set up docker to authenticate
-        # via gcloud command-line tool.
-        gcloud auth configure-docker
+      # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@v1
+
+      # Login to Docker
+    - uses: 'docker/login-action@v1'
+      with:
+        registry: '${{ env.REGISTRY_HOSTNAME }}'
+        username: 'oauth2accesstoken'
+        password: '${{ steps.auth.outputs.access_token }}'
 
     # Build the Docker image
     - name: Build Core Django App
