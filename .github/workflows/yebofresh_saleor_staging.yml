@@ -11,7 +11,7 @@ on:
 env:
   GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
   GCR_EMAIL: ${{ secrets.GCR_EMAIL }}
-  GS_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_STAGING }}
+  GS_JSON: ${{ secrets.GS_JSON_STAGING }}
   GITHUB_SHA: ${{ github.sha }}
   IMAGE: saleor-staging
   REGISTRY_HOSTNAME: eu.gcr.io
@@ -44,7 +44,7 @@ jobs:
         docker build -t "$REGISTRY_HOSTNAME"/"$GCR_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
-          --build-arg GS_JSON_ARG="$GS_JSON" yeboyes
+          --build-arg GS_JSON_ARG="$GS_JSON" .
 
 
     # Push the Docker image to Google Container Registry
