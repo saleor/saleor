@@ -693,11 +693,37 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
     )
 
 
+def get_correct_event_types_based_on_request_type(request_type: str) -> List[str]:
+    if request_type == TransactionEventType.AUTHORIZATION_REQUEST:
+        return [
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            TransactionEventType.AUTHORIZATION_ADJUSTMENT,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ]
+    elif request_type == TransactionEventType.CHARGE_REQUEST:
+        return [
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.CHARGE_SUCCESS,
+        ]
+    elif request_type == TransactionEventType.REFUND_REQUEST:
+        return [
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.REFUND_SUCCESS,
+        ]
+    elif request_type == TransactionEventType.CANCEL_REQUEST:
+        return [
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.CANCEL_SUCCESS,
+        ]
+    return []
+
+
 def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
-    error_fields: List[str],
+    error_field_msg: List[str],
     psp_reference: str,
+    request_type: str,
 ):
     if not event_data.get("amount") and not event_data.get("result"):
         return
@@ -711,27 +737,33 @@ def parse_transaction_event_data(
 
     parsed_event_data["psp_reference"] = psp_reference
 
-    event_type_types = {
-        str_to_enum(event_results[0]): event_results[0]
-        for event_results in TransactionEventType.CHOICES
+    possible_event_types = {
+        str_to_enum(event_result): event_result
+        for event_result in get_correct_event_types_based_on_request_type(request_type)
     }
+
     result = event_data.get("result")
     if result:
-        if result in event_type_types:
-            parsed_event_data["type"] = event_type_types[result]
+        if result in possible_event_types:
+            parsed_event_data["type"] = possible_event_types[result]
         else:
-            logger.warning(invalid_msg, "result", result)
-            error_fields.append("result")
+            possible_types = ",".join(possible_event_types.keys())
+            msg = (
+                "Incorrect value: %s for field: `result` in the response. Request: %s "
+                "can accept only types: %s"
+            )
+            logger.warning(msg, result, request_type.upper(), possible_types)
+            error_field_msg.append(msg % (result, request_type.upper(), possible_types))
     else:
         logger.warning(missing_msg, "result")
-        error_fields.append("result")
+        error_field_msg.append(missing_msg % "result")
 
     if amount_data := event_data.get("amount"):
         try:
             parsed_event_data["amount"] = decimal.Decimal(amount_data)
         except decimal.DecimalException:
             logger.warning(invalid_msg, "amount", amount_data)
-            error_fields.append("amount")
+            error_field_msg.append(invalid_msg % ("amount", amount_data))
     else:
         parsed_event_data["amount"] = None
 
@@ -742,7 +774,7 @@ def parse_transaction_event_data(
             )
         except ValueError:
             logger.warning(invalid_msg, "time", event_time_data)
-            error_fields.append("time")
+            error_field_msg.append(invalid_msg % ("time", event_time_data))
     else:
         parsed_event_data["time"] = timezone.now()
 
@@ -750,9 +782,12 @@ def parse_transaction_event_data(
     parsed_event_data["message"] = event_data.get("message", "")
 
 
+error_msg = str
+
+
 def parse_transaction_action_data(
-    response_data: Any,
-) -> Optional["TransactionRequestResponse"]:
+    response_data: Any, request_type: str
+) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     """Parse response from transaction action webhook.
 
     It takes the recieved response from sync webhook and
@@ -761,26 +796,37 @@ def parse_transaction_action_data(
     """
     psp_reference: str = response_data.get("pspReference")
     if not psp_reference:
-        logger.error("Missing `pspReference` field in the response.")
-        return None
+        msg: str = "Missing `pspReference` field in the response."
+        logger.error(msg)
+        return None, msg
 
     parsed_event_data: dict = {}
-    error_fields: List[str] = []
+    error_field_msg: List[str] = []
     parse_transaction_event_data(
         event_data=response_data,
         parsed_event_data=parsed_event_data,
-        error_fields=error_fields,
+        error_field_msg=error_field_msg,
         psp_reference=psp_reference,
+        request_type=request_type,
     )
 
-    if not error_fields:
-        return TransactionRequestResponse(
+    if error_field_msg:
+        # error field msg can contain details of the value returned by payment app
+        # which means that we need to confirm that we don't exceed the field limit.
+        msg = "\n".join(error_field_msg)
+        if len(msg) >= 512:
+            msg = msg[:509] + "..."
+        return None, msg
+
+    return (
+        TransactionRequestResponse(
             psp_reference=psp_reference,
             event=TransactionRequestEventResponse(**parsed_event_data)
             if parsed_event_data
             else None,
-        )
-    return None
+        ),
+        None,
+    )
 
 
 def get_failed_transaction_event_type_for_request_event(
@@ -858,9 +904,6 @@ def get_already_existing_event(event: TransactionEvent) -> Optional[TransactionE
     return None
 
 
-error_msg = str
-
-
 def deduplicate_event(
     event: TransactionEvent, app: App
 ) -> tuple[TransactionEvent, Optional[error_msg]]:
@@ -917,13 +960,12 @@ def create_transaction_event_from_request_and_webhook_response(
         return create_failed_transaction_event(
             request_event, cause="Failed to delivery request."
         )
-    transaction_request_response = parse_transaction_action_data(
-        transaction_webhook_response,
+    request_event_type = cast(str, request_event.type)
+    transaction_request_response, error_msg = parse_transaction_action_data(
+        transaction_webhook_response, request_event_type
     )
-    if transaction_request_response is None:
-        return create_failed_transaction_event(
-            request_event, cause="Failed to process recieved action response."
-        )
+    if not transaction_request_response:
+        return create_failed_transaction_event(request_event, cause=error_msg or "")
 
     psp_reference = transaction_request_response.psp_reference
     request_event.psp_reference = psp_reference
