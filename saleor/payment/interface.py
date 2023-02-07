@@ -28,8 +28,8 @@ class TransactionActionData:
 @dataclass
 class TransactionRequestEventResponse:
     psp_reference: str
+    type: "TransactionEventType"
     amount: Optional[Decimal] = None
-    type: Optional["TransactionEventType"] = None
     time: Optional[datetime] = None
     external_url: Optional[str] = ""
     message: Optional[str] = ""

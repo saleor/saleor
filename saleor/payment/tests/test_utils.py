@@ -260,13 +260,11 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-            "message": event_cause,
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
     }
 
     # when
@@ -289,10 +287,9 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     # given
     expected_psp_reference = "psp:122:222"
-
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {"type": TransactionEventType.CHARGE_SUCCESS.upper()},
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
     }
 
     # when
@@ -326,14 +323,8 @@ def test_parse_transaction_action_data_with_missin_psp_reference():
 def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
     # given
     expected_psp_reference = "psp:122:222"
-    event_psp_reference = "psp:111:111"
 
-    response_data = {
-        "pspReference": expected_psp_reference,
-        "event": {
-            "pspReference": event_psp_reference,
-        },
-    }
+    response_data = {"pspReference": expected_psp_reference, "amount": Decimal("1")}
 
     # when
     parsed_data = parse_transaction_action_data(response_data)
@@ -403,11 +394,11 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
         transaction_id=transaction.id,
     )
     expected_psp_reference = "psp:122:222"
+    amount = request_event.amount_value
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "type": TransactionEventType.CHARGE_SUCCESS.upper(),
-        },
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "amount": amount,
     }
 
     # when
@@ -421,7 +412,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert request_event.psp_reference == expected_psp_reference
     assert event
     assert event.psp_reference == expected_psp_reference
-    assert event.amount_value == request_event.amount_value
+    assert event.amount_value == amount
     assert event.created_at == timezone.now()
     assert event.external_url == ""
     assert event.message == ""
@@ -449,10 +440,8 @@ def test_create_transaction_event_from_request_updates_order_charge(
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
     }
 
     # when
@@ -487,10 +476,8 @@ def test_create_transaction_event_from_request_updates_order_authorize(
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
     }
 
     # when
@@ -528,13 +515,11 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-            "message": event_cause,
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
     }
 
     # when
@@ -614,12 +599,10 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
     }
 
     # when
@@ -665,12 +648,10 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
     }
 
     # when
@@ -716,12 +697,10 @@ def test_create_transaction_event_from_request_and_webhook_response_differnt_amo
 
     response_data = {
         "pspReference": expected_psp_reference,
-        "event": {
-            "amount": second_authorize_event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-        },
+        "amount": second_authorize_event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
     }
 
     # when

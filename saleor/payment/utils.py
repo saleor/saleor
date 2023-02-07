@@ -699,6 +699,8 @@ def parse_transaction_event_data(
     error_fields: List[str],
     psp_reference: str,
 ):
+    if not event_data.get("amount") and not event_data.get("result"):
+        return
     missing_msg = (
         "Missing value for field: %s in " "response of transaction action webhook."
     )
@@ -713,16 +715,16 @@ def parse_transaction_event_data(
         str_to_enum(event_results[0]): event_results[0]
         for event_results in TransactionEventType.CHOICES
     }
-    type_data = event_data.get("type")
-    if type_data:
-        if type_data in event_type_types:
-            parsed_event_data["type"] = event_type_types[type_data]
+    result = event_data.get("result")
+    if result:
+        if result in event_type_types:
+            parsed_event_data["type"] = event_type_types[result]
         else:
-            logger.warning(invalid_msg, "type", type_data)
-            error_fields.append("type")
+            logger.warning(invalid_msg, "result", result)
+            error_fields.append("result")
     else:
-        logger.warning(missing_msg, "type")
-        error_fields.append("type")
+        logger.warning(missing_msg, "result")
+        error_fields.append("result")
 
     if amount_data := event_data.get("amount"):
         try:
@@ -761,16 +763,15 @@ def parse_transaction_action_data(
     if not psp_reference:
         logger.error("Missing `pspReference` field in the response.")
         return None
-    event_data = response_data.get("event")
+
     parsed_event_data: dict = {}
     error_fields: List[str] = []
-    if event_data:
-        parse_transaction_event_data(
-            event_data=event_data,
-            parsed_event_data=parsed_event_data,
-            error_fields=error_fields,
-            psp_reference=psp_reference,
-        )
+    parse_transaction_event_data(
+        event_data=response_data,
+        parsed_event_data=parsed_event_data,
+        error_fields=error_fields,
+        psp_reference=psp_reference,
+    )
 
     if not error_fields:
         return TransactionRequestResponse(

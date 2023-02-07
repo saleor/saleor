@@ -364,10 +364,10 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     # given
     expected_psp_reference = "psp:123:111"
     mocked_webhook_response.text = json.dumps(
-        {"pspReference": expected_psp_reference, "event": {"amount": 12.00}}
+        {"pspReference": expected_psp_reference, "amount": 12.00}
     )
     mocked_webhook_response.content = json.dumps(
-        {"pspReference": expected_psp_reference, "event": {"amount": 12.00}}
+        {"pspReference": expected_psp_reference, "amount": 12.00}
     )
     mocked_post_request.return_value = mocked_webhook_response
 
@@ -451,13 +451,11 @@ def test_handle_transaction_request_task_with_result_event(
 
     response_payload = {
         "pspReference": request_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-            "message": event_cause,
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
     }
     mocked_webhook_response.text = json.dumps(response_payload)
     mocked_webhook_response.content = json.dumps(response_payload)
@@ -540,9 +538,12 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     transaction = transaction_item_generator()
     request_psp_reference = "psp:123:111"
 
+    request_event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
+
     response_payload = {
         "pspReference": request_psp_reference,
-        "event": {"type": TransactionEventType.REFUND_SUCCESS.upper()},
+        "result": TransactionEventType.REFUND_SUCCESS.upper(),
+        "amount": str(request_event.amount_value),
     }
     mocked_webhook_response.text = json.dumps(response_payload)
     mocked_webhook_response.content = json.dumps(response_payload)
@@ -550,7 +551,6 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
 
     target_url = "http://localhost:3000/"
 
-    request_event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
     app.permissions.set([permission_manage_payments])
 
     webhook = app.webhooks.create(
@@ -638,13 +638,11 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
 
     response_payload = {
         "pspReference": request_psp_reference,
-        "event": {
-            "amount": event_amount,
-            "type": event_type.upper(),
-            "time": event_time,
-            "externalUrl": event_url,
-            "message": event_cause,
-        },
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
     }
     mocked_webhook_response.text = json.dumps(response_payload)
     mocked_webhook_response.content = json.dumps(response_payload)
