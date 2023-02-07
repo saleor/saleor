@@ -10,5 +10,6 @@
         "preorder",
         "preorders",
         "undiscounted"
-    ]
+    ],
+    "python.linting.enabled": true
 }
