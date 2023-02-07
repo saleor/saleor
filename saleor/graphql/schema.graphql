@@ -26925,6 +26925,32 @@ type WarehouseMetadataUpdated implements Event {
 }
 
 """
+Event sent when thumbnail is created.
+
+Added in Saleor 3.12.
+"""
+type ThumbnailCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Thumbnail's url.
+  
+  Added in Saleor 3.12.
+  """
+  thumbnailUrl: String
+}
+
+"""
 Authorize payment.
 
 Added in Saleor 3.6.

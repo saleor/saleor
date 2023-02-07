@@ -725,7 +725,6 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
 
 
 class ProductMediaBase(AbstractType):
-    # TODO: add product type
     product_media = graphene.Field(
         "saleor.graphql.product.types.ProductMedia",
         description="The product media the event relates to.",
@@ -1919,6 +1918,22 @@ class Subscription(SubscriptionObjectType):
         return Observable.from_([root])
 
 
+class ThumbnailCreated(SubscriptionObjectType):
+    thumbnail_url = graphene.String(description="Thumbnail's url." + ADDED_IN_312)
+
+    class Meta:
+        root_type = "Thumbnail"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when thumbnail is created." + ADDED_IN_312
+
+    @staticmethod
+    def resolve_thumbnail_url(root, info: ResolveInfo):
+        breakpoint()
+        _, thumbnail = root
+        return thumbnail.image.url
+
+
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
@@ -2031,6 +2046,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
+    WebhookEventAsyncType.THUMBNAIL_CREATED: ThumbnailCreated,
     WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
     WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
     WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
