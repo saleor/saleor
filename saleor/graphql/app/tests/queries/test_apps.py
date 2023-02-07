@@ -143,6 +143,23 @@ def test_apps_with_extensions_query(
         assert assigned_permissions in returned_permission_codes
 
 
+def test_apps_query_no_permission(
+    staff_api_client, permission_manage_users, permission_manage_staff, app
+):
+    variables = {"filter": {}}
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_FILTER, variables, permissions=[]
+    )
+    assert_no_permission(response)
+
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_FILTER,
+        variables,
+        permissions=[permission_manage_users, permission_manage_staff],
+    )
+    assert_no_permission(response)
+
+
 QUERY_APPS_WITH_SORT = """
     query ($sort_by: AppSortingInput!) {
         apps(first:5, sortBy: $sort_by) {
@@ -185,21 +202,30 @@ def test_query_apps_with_sort(
         assert apps[order]["node"]["name"] == account_name
 
 
-def test_apps_query_no_permission(
-    staff_api_client, permission_manage_users, permission_manage_staff, app
-):
-    variables = {"filter": {}}
-    response = staff_api_client.post_graphql(
-        QUERY_APPS_WITH_FILTER, variables, permissions=[]
-    )
-    assert_no_permission(response)
+QUERY_APPS = """
+query {
+    apps(first: 5){
+        edges {
+            node {
+                id
+            }
+        }
+    }
+}
+"""
 
-    response = staff_api_client.post_graphql(
-        QUERY_APPS_WITH_FILTER,
-        variables,
-        permissions=[permission_manage_users, permission_manage_staff],
-    )
-    assert_no_permission(response)
+
+def test_apps_query_pending_installation(staff_api_client, app):
+    # given
+    app.is_installed = False
+    app.save(update_fields=["is_installed"])
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_APPS)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["apps"]["edges"] == []
 
 
 QUERY_APPS_FOR_FEDERATION = """

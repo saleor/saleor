@@ -8,22 +8,32 @@ class WebhookErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     DELETE_FAILED = "delete_failed"
+    SYNTAX = "syntax"
+    MISSING_SUBSCRIPTION = "missing_subscription"
+    UNABLE_TO_PARSE = "unable_to_parse"
+    MISSING_EVENT = "missing_event"
 
 
 class WebhookDryRunErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
-    UNABLE_TO_PARSE = "unable_to_parse"
     NOT_FOUND = "not_found"
     INVALID_ID = "invalid_id"
     MISSING_PERMISSION = "missing_permission"
     TYPE_NOT_SUPPORTED = "type_not_supported"
+    SYNTAX = "syntax"
+    MISSING_SUBSCRIPTION = "missing_subscription"
+    UNABLE_TO_PARSE = "unable_to_parse"
+    MISSING_EVENT = "missing_event"
 
 
 class WebhookTriggerErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     INVALID_ID = "invalid_id"
-    MISSING_PERMISSION = "missing_app_permission"
-    MISSING_QUERY = "missing_query"
+    MISSING_PERMISSION = "missing_permission"
     TYPE_NOT_SUPPORTED = "type_not_supported"
+    SYNTAX = "syntax"
+    MISSING_SUBSCRIPTION = "missing_subscription"
     UNABLE_TO_PARSE = "unable_to_parse"
+    MISSING_QUERY = "missing_query"
+    MISSING_EVENT = "missing_event"

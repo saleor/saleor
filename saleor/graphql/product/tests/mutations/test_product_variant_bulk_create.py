@@ -394,6 +394,37 @@ def test_product_variant_bulk_create_variant_selection_and_other_attributes(
     assert product.default_variant == product_variant
 
 
+def test_product_variant_bulk_create_attribute_with_blank_value(
+    staff_api_client,
+    product_with_single_variant,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    product = product_with_single_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variants = [
+        {"sku": str(uuid4())[:12], "attributes": [{"id": attribute_id, "values": [""]}]}
+    ]
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductVariantBulkErrorCode.REQUIRED.name
+    assert error["field"] == "attributes"
+
+
 def test_product_variant_bulk_create_stocks_input(
     staff_api_client, product, permission_manage_products, warehouses, size_attribute
 ):

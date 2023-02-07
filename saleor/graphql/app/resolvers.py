@@ -15,7 +15,7 @@ def resolve_apps_installations(info):
 
 
 def resolve_apps(info):
-    return models.App.objects.all()
+    return models.App.objects.filter(is_installed=True).all()
 
 
 def resolve_access_token_for_app(info, root):
@@ -45,7 +45,7 @@ def resolve_app(_info, id):
     if not id:
         return None
     _, id = from_global_id_or_error(id, "App")
-    return models.App.objects.filter(id=id).first()
+    return models.App.objects.filter(id=id, is_installed=True).first()
 
 
 def resolve_app_extensions(_info):
