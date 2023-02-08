@@ -19,7 +19,7 @@ jobs:
         id: set-domain
         # Set test instance domain based on branch name slug
         run: |
-          echo "::set-output name=domain::${{ env.GITHUB_HEAD_REF_SLUG_URL }}.api.saleor.rocks"
+          echo "domain=${{ env.GITHUB_HEAD_REF_SLUG_URL }}.api.saleor.rocks" >> $GITHUB_OUTPUT
 
       - name: Start deployment
         uses: bobheadxi/deployments@v0.4.2
