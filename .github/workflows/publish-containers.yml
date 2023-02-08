@@ -22,7 +22,7 @@ jobs:
         run: |
           # The name of the owner and of the repository: owner/repository
           IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       # Outputs container tags for tagged pushes starting by 'v'
       # Pushes only to GitHub Container Repository (ghcr.io)

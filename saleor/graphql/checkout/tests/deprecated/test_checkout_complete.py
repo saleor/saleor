@@ -98,8 +98,9 @@ def test_checkout_complete(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -259,8 +260,9 @@ def test_checkout_complete_for_token_as_input(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None

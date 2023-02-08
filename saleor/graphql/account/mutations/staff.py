@@ -233,7 +233,7 @@ class StaffCreate(ModelMutation):
         error_type_field = "staff_errors"
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context, permissions=None, **data):
         app = get_app_promise(context).get()
         if app:
             raise PermissionDenied(

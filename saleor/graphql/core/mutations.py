@@ -484,7 +484,7 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context, permissions=None, **data):
         """Determine whether user or app has rights to perform this mutation.
 
         Default implementation assumes that account is allowed to perform any
@@ -504,7 +504,7 @@ class BaseMutation(graphene.Mutation):
         set_mutation_flag_in_context(info.context)
         setup_context_user(info.context)
 
-        if not cls.check_permissions(info.context):
+        if not cls.check_permissions(info.context, data=data):
             raise PermissionDenied(permissions=cls._meta.permissions)
         manager = get_plugin_manager_promise(info.context).get()
         result = manager.perform_mutation(
