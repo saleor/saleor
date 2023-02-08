@@ -65,7 +65,6 @@ class SiteSettings(models.Model):
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
-    automatically_confirm_all_new_orders = models.BooleanField(default=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
 
@@ -92,7 +91,6 @@ class SiteSettings(models.Model):
         max_length=32, choices=TimePeriodType.CHOICES, null=True, blank=True
     )
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
-    automatically_fulfill_non_shippable_gift_card = models.BooleanField(default=True)
 
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)
