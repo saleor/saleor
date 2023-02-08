@@ -33,6 +33,10 @@ CHANNEL_CREATE_MUTATION = """
                 stockSettings {
                     allocationStrategy
                 }
+                orderSettings {
+                    automaticallyConfirmAllNewOrders
+                    automaticallyFulfillNonShippableGiftCard
+                }
             }
             errors{
                 field
@@ -61,6 +65,10 @@ def test_channel_create_mutation_as_staff_user(
             "currencyCode": currency_code,
             "defaultCountry": default_country,
             "stockSettings": {"allocationStrategy": allocation_strategy},
+            "orderSettings": {
+                "automaticallyConfirmAllNewOrders": False,
+                "automaticallyFulfillNonShippableGiftCard": False,
+            },
         }
     }
 
@@ -86,6 +94,11 @@ def test_channel_create_mutation_as_staff_user(
         == default_country
     )
     assert channel_data["stockSettings"]["allocationStrategy"] == allocation_strategy
+    assert channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        is False
+    )
 
 
 def test_channel_create_mutation_as_app(
@@ -131,6 +144,11 @@ def test_channel_create_mutation_as_app(
         channel_data["stockSettings"]["allocationStrategy"]
         == AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
     )
+    assert channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"] is True
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        is True
+    )
 
 
 def test_channel_create_mutation_as_customer(user_api_client):
@@ -147,6 +165,10 @@ def test_channel_create_mutation_as_customer(user_api_client):
             "currencyCode": currency_code,
             "defaultCountry": default_country,
             "stockSettings": {"allocationStrategy": allocation_strategy},
+            "orderSettings": {
+                "automaticallyConfirmAllNewOrders": False,
+                "automaticallyFulfillNonShippableGiftCard": False,
+            },
         }
     }
 

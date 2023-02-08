@@ -111,7 +111,7 @@ class PermissionGroupCreate(ModelMutation):
                 )
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context, permissions=None, **data):
         app = get_app_promise(context).get()
         if app:
             raise PermissionDenied(
@@ -462,7 +462,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
         cls.check_if_group_can_be_removed(requestor, instance)
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context, permissions=None, **data):
         app = get_app_promise(context).get()
         if app:
             raise PermissionDenied(
