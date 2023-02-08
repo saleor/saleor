@@ -48,6 +48,7 @@ Just so you know, changes mentioned in this section are in a preview state and c
 - Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
 - Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
 - Fix send user email change notification - #11840 by @jakubkuc
+- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11824 by @d-wysocki
 
 # 3.10.0 [Unreleased]
 
