@@ -7,10 +7,16 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
+  - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
+  - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
+  - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
+
 
 ### Other changes
 
-- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11824 by @d-wysocki
+- Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
+- Fix GraphQL playground when the `operationName` is set across different tabs - #11936 by @zaiste
 
 # 3.11.0
 
@@ -41,13 +47,14 @@ Just so you know, changes mentioned in this section are in a preview state and c
 - Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
 - Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
 - Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
+- Fix send user email change notification - #11840 by @jakubkuc
+- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11824 by @d-wysocki
 
 # 3.10.0 [Unreleased]
 
 ### Breaking changes
 
 ### GraphQL API
-
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`

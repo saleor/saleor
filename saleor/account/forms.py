@@ -14,11 +14,9 @@ def get_address_form(
         initial = {}
     if country_code:
         initial["phone"] = "+{}".format(country_code_for_region(country_code))
-
     address_form_class = get_address_form_class(country_code)
 
     if instance is not None:
-        address_form_class = get_address_form_class(instance.country.code)
         address_form = address_form_class(
             data, instance=instance, enable_normalization=enable_normalization, **kwargs
         )

@@ -72,7 +72,9 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         manifest_url=app_installation.manifest_url,
         type=AppType.THIRDPARTY,
         audience=manifest_data.get("audience"),
+        is_installed=False,
     )
+
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
         extension = AppExtension.objects.create(

@@ -113,7 +113,7 @@ class GiftCard(ModelWithMetadata):
 
     objects = GiftCardManager()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("code",)
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),

@@ -7,7 +7,6 @@ from stripe.error import AuthenticationError, StripeError
 from stripe.stripe_object import StripeObject
 
 from .....plugins.models import PluginConfiguration
-from .....site.models import Site
 from .... import TransactionKind
 from ....interface import GatewayResponse, PaymentMethodInfo, StorePaymentMethodEnum
 from ....utils import (
@@ -942,9 +941,8 @@ def test_process_payment_with_disabled_order_auto_confirmation(
     channel_USD,
 ):
 
-    site_settings = Site.objects.get_current().settings
-    site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save(update_fields=["automatically_confirm_all_new_orders"])
+    channel_USD.automatically_confirm_all_new_orders = False
+    channel_USD.save()
 
     payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
