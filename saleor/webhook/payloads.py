@@ -3,17 +3,7 @@ import uuid
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -44,12 +34,11 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
-from ..product.models import Category, Collection, Product, ProductMedia
+from ..product.models import Collection, Product, ProductMedia
 from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
 from ..thumbnail.models import Thumbnail
-from ..thumbnail.utils import prepare_thumbnail_file_name
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -1488,41 +1477,12 @@ def generate_transaction_action_request_payload(
 
 
 @traced_payload_generator
-def generate_thumbnail_payload(
-    thumbnail: Thumbnail,
-    instance: Union["User", "Category", "Collection", "ProductMedia"],
-):
-    thumbnail_url = prepare_thumbnail_file_name(thumbnail.image.name, thumbnail.size, thumbnail.format)
-    type = instance.__class__.__name__
-
-    serializer = PayloadSerializer()
-    object_payload = {
-        "type": type,
-        "id": graphene.Node.to_global_id(type, instance.id)
-    }
-    payload = serializer.serialize(
-        [thumbnail],
-        fields=("size", "format"),
-        extra_dict_data={
-            "url": thumbnail_url,
-            "url_origin": thumbnail.image.url,
-            "object": object_payload,
-        },
-    )
-    return payload
+def generate_thumbnail_payload(thumbnail: Thumbnail):
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    return json.dumps({"id": thumbnail_id})
 
 
 @traced_payload_generator
 def generate_product_media_payload(media: ProductMedia):
-    product_id = graphene.Node.to_global_id("Product", media.product.id) if media.product else None
-    serializer = PayloadSerializer()
-    payload = serializer.serialize(
-        [media],
-        fields=("id", "sort_order", "product_id", "alt", "type"),
-        extra_dict_data={
-            "url": media.image.url,
-            "product_id": product_id,
-            "product_name": media.product.name if media.product else None,
-        },
-    )
-    return payload
+    product_media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    return json.dumps({"id": product_media_id})
