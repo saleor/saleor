@@ -60,6 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
 - Fix stock events triggers - #11714 by @jakubkuc
 - Accept the gift card code provided in the input - by @mociepka
+- Fix `GIFT_CARD_CREATED` event not firing when order with gift cards is fulfilled - #11924 by @rafalp
 
 # 3.9.0
 
