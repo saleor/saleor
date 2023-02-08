@@ -8,7 +8,9 @@ import graphene
 from .....core.models import EventDelivery
 from .....graphql.discount.enums import DiscountValueTypeEnum
 from .....graphql.order.tests.mutations.test_order_discount import ORDER_DISCOUNT_ADD
-from .....graphql.webhook.subscription_payload import initialize_request
+from .....graphql.product.tests.mutations.test_product_create import (
+    CREATE_PRODUCT_MUTATION,
+)
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.models import Webhook
 from ...tasks import trigger_webhook_sync, trigger_webhooks_async
@@ -81,10 +83,8 @@ def test_trigger_webhook_sync_with_subscription(
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch("saleor.plugins.webhook.tasks.get_webhooks_for_event")
-@mock.patch(
-    "saleor.graphql.webhook.subscription_payload.generate_payload_from_subscription"
-)
-def test_trigger_sync_webhook_with_subscription_from_default_database(
+@mock.patch("saleor.plugins.webhook.tasks.generate_payload_from_subscription")
+def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
     mocked_generate_payload,
     mocked_get_webhooks_for_event,
     mocked_request,
@@ -95,7 +95,6 @@ def test_trigger_sync_webhook_with_subscription_from_default_database(
     subscription_calculate_taxes_for_order,
 ):
     # given
-    mocked_request.return_value = None
     webhook = subscription_calculate_taxes_for_order
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     mocked_get_webhooks_for_event.return_value = [webhook]
@@ -107,19 +106,53 @@ def test_trigger_sync_webhook_with_subscription_from_default_database(
         },
     }
     app_api_client.app.permissions.add(permission_manage_orders)
-    allow_replica = False
-    request = initialize_request(
-        None, WebhookEventSyncType.ORDER_CALCULATE_TAXES, allow_replica=allow_replica
-    )
 
     # when
     app_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
 
     # then
-    mocked_generate_payload.assert_called_once_with(
-        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-        draft_order,
-        webhook.subscription_query,
-        request,
-        webhook.app,
+    mocked_generate_payload.assert_called_once()
+    assert mocked_generate_payload.call_args[1]["request"].is_mutation
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async")
+@mock.patch("saleor.plugins.webhook.tasks.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.tasks.generate_payload_from_subscription")
+def test_trigger_webhook_async_with_subscription_use_replica_db(
+    mocked_generate_payload,
+    mocked_get_webhooks_for_event,
+    mocked_request,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    subscription_product_created_webhook,
+    settings,
+):
+    # given
+    webhook = subscription_product_created_webhook
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_get_webhooks_for_event.return_value = [webhook]
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+        }
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
     )
+
+    # then
+    mocked_generate_payload.assert_called_once()
+    assert not mocked_generate_payload.call_args[1]["request"].is_mutation
