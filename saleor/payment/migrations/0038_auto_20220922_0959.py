@@ -25,4 +25,14 @@ class Migration(migrations.Migration):
             name="reference",
             field=models.CharField(blank=True, max_length=512, null=True),
         ),
+        migrations.AlterField(
+            model_name="transactionitem",
+            name="type",
+            field=models.CharField(blank=True, default="", max_length=512, null=True),
+        ),
+        migrations.AlterField(
+            model_name="transactionevent",
+            name="name",
+            field=models.CharField(blank=True, default="", max_length=512, null=True),
+        ),
     ]

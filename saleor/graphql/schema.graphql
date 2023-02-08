@@ -9380,10 +9380,16 @@ type TransactionItem implements Node & ObjectWithMetadata {
   chargePendingAmount: Money!
 
   """Status of transaction."""
-  status: String!
+  status: String! @deprecated(reason: "This field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.")
 
   """Type of transaction."""
-  type: String!
+  type: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `name` or `message` instead.")
+
+  """Name of the transaction."""
+  name: String!
+
+  """Message related to the transaction."""
+  message: String!
 
   """Reference of transaction."""
   reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
@@ -10791,7 +10797,7 @@ type TransactionEvent implements Node {
   name: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `message` instead.")
 
   """Message related to the transaction's event."""
-  message: String
+  message: String!
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
@@ -19713,11 +19719,25 @@ enum TransactionCreateErrorCode {
 }
 
 input TransactionCreateInput {
-  """Status of the transaction."""
-  status: String!
+  """
+  Status of the transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.
+  """
+  status: String
 
-  """Payment type used for this transaction."""
-  type: String!
+  """
+  Payment type used for this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `name` and `message` instead.
+  """
+  type: String
+
+  """Payment name of the transaction."""
+  name: String
+
+  """The message of the transaction."""
+  message: String
 
   """
   Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
@@ -19768,8 +19788,12 @@ input TransactionCreateInput {
 }
 
 input TransactionEventInput {
-  """Current status of the payment transaction."""
-  status: TransactionEventStatus!
+  """
+  Current status of the payment transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Status will be calculated by Saleor.
+  """
+  status: TransactionEventStatus
 
   """
   Reference of the transaction. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
@@ -19783,8 +19807,15 @@ input TransactionEventInput {
   """
   pspReference: String
 
-  """Name of the transaction."""
+  """
+  Name of the transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `message` instead. `name` field will be added to `message`.
+  """
   name: String
+
+  """The message related to the event."""
+  message: String
 }
 
 """
@@ -19825,11 +19856,25 @@ enum TransactionUpdateErrorCode {
 }
 
 input TransactionUpdateInput {
-  """Status of the transaction."""
+  """
+  Status of the transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.
+  """
   status: String
 
-  """Payment type used for this transaction."""
+  """
+  Payment type used for this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `name` and `message` instead.
+  """
   type: String
+
+  """Payment name of the transaction."""
+  name: String
+
+  """The message of the transaction."""
+  message: String
 
   """
   Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.

@@ -5476,7 +5476,8 @@ def payment_dummy_credit_card(db, order_with_lines):
 def transaction_item_created_by_app(order, app):
     return TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
+        message="Transasction details",
         psp_reference="PSP ref1",
         available_actions=["refund"],
         currency="USD",
@@ -5490,7 +5491,8 @@ def transaction_item_created_by_app(order, app):
 def transaction_item_created_by_user(order, staff_user):
     return TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
+        message="Transasction details",
         psp_reference="PSP ref2",
         available_actions=["refund"],
         currency="USD",

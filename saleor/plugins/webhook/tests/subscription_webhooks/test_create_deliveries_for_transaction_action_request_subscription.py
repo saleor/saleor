@@ -66,7 +66,7 @@ def test_transaction_refund_action_request(
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
@@ -139,7 +139,7 @@ def test_transaction_charge_action_request(
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["charge"],
         currency="USD",
@@ -212,7 +212,7 @@ def test_transaction_void_action_request(
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["void"],
         currency="USD",

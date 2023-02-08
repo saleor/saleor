@@ -280,7 +280,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `message` instead."),
     )
     message = graphene.String(
-        description="Message related to the transaction's event.",
+        description="Message related to the transaction's event.", required=True
     )
     external_url = graphene.String(
         description=(
@@ -323,7 +323,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     @staticmethod
     def resolve_name(root: models.TransactionEvent, info):
-        return root.message
+        return root.message or ""
+
+    @staticmethod
+    def resolve_message(root: models.TransactionEvent, info):
+        return root.message or ""
 
     @staticmethod
     def resolve_created_by(root: models.TransactionItem, info):
@@ -406,8 +410,28 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
             + ADDED_IN_310
         ),
     )
-    status = graphene.String(description="Status of transaction.", required=True)
-    type = graphene.String(description="Type of transaction.", required=True)
+    status = graphene.String(
+        description="Status of transaction.",
+        deprecation_reason=(
+            DEPRECATED_IN_3X_FIELD
+            + " The `status` is not needed. The amounts can be used to define "
+            "the current status of transactions."
+        ),
+        required=True,
+    )
+
+    type = graphene.String(
+        description="Type of transaction.",
+        deprecation_reason=(
+            DEPRECATED_IN_3X_FIELD + " Use `name` or `message` instead."
+        ),
+        required=True,
+    )
+    name = graphene.String(description="Name of the transaction.", required=True)
+    message = graphene.String(
+        description="Message related to the transaction.", required=True
+    )
+
     reference = graphene.String(
         description="Reference of transaction.",
         required=True,
@@ -524,3 +548,15 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     @staticmethod
     def resolve_external_url(root: models.TransactionItem, info):
         return root.external_url or ""
+
+    @staticmethod
+    def resolve_type(root: models.TransactionItem, info) -> str:
+        return root.name or ""
+
+    @staticmethod
+    def resolve_name(root: models.TransactionItem, info) -> str:
+        return root.name or ""
+
+    @staticmethod
+    def resolve_message(root: models.TransactionItem, info) -> str:
+        return root.message or ""

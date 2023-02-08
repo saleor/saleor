@@ -2030,7 +2030,7 @@ def test_generate_transaction_action_request_payload_for_order(
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -2067,7 +2067,9 @@ def test_generate_transaction_action_request_payload_for_order(
         },
         "transaction": {
             "status": transaction.status,
-            "type": transaction.type,
+            "type": transaction.name,
+            "name": transaction.name,
+            "message": transaction.message,
             "reference": transaction.psp_reference,
             "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
@@ -2122,7 +2124,7 @@ def test_generate_transaction_action_request_payload_for_checkout(
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
+        name="Credit card",
         psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
@@ -2159,7 +2161,9 @@ def test_generate_transaction_action_request_payload_for_checkout(
         },
         "transaction": {
             "status": transaction.status,
-            "type": transaction.type,
+            "type": transaction.name,
+            "name": transaction.name,
+            "message": transaction.message,
             "reference": transaction.psp_reference,
             "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
