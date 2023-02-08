@@ -12,7 +12,7 @@ from promise import Promise
 from ...channel import models
 from ...core.models import ModelWithMetadata
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import ChannelPermissions
+from ...permission.enums import ChannelPermissions, OrderPermissions
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
@@ -20,6 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_36,
     ADDED_IN_37,
+    ADDED_IN_312,
     PREVIEW_FEATURE,
 )
 from ..core.fields import PermissionsField
@@ -161,7 +162,28 @@ class StockSettings(ObjectType):
         )
 
 
-class Channel(ModelObjectType[models.Channel]):
+class OrderSettings(ObjectType):
+    automatically_confirm_all_new_orders = graphene.Boolean(
+        required=True,
+        description=(
+            "When disabled, all new orders from checkout "
+            "will be marked as unconfirmed. When enabled orders from checkout will "
+            "become unfulfilled immediately."
+        ),
+    )
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
+        required=True,
+        description=(
+            "When enabled, all non-shippable gift card orders "
+            "will be fulfilled automatically."
+        ),
+    )
+
+    class Meta:
+        description = "Represents the channel-specific order settings."
+
+
+class Channel(ModelObjectType):
     id = graphene.GlobalID(required=True)
     slug = graphene.String(
         required=True,
@@ -250,6 +272,15 @@ class Channel(ModelObjectType[models.Channel]):
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
+    order_settings = PermissionsField(
+        OrderSettings,
+        description="Channel-specific order settings." + ADDED_IN_312,
+        required=True,
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+            OrderPermissions.MANAGE_ORDERS,
         ],
     )
 
@@ -385,3 +416,14 @@ class Channel(ModelObjectType[models.Channel]):
     @staticmethod
     def resolve_stock_settings(root: models.Channel, _info: ResolveInfo):
         return StockSettings(allocation_strategy=root.allocation_strategy)
+
+    @staticmethod
+    def resolve_order_settings(root: models.Channel, _info):
+        return OrderSettings(
+            automatically_confirm_all_new_orders=(
+                root.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                root.automatically_fulfill_non_shippable_gift_card
+            ),
+        )

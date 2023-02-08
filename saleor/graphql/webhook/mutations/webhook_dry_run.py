@@ -60,8 +60,8 @@ class WebhookDryRun(BaseMutation):
     def validate_event_type(cls, event_type, object_id):
         event = WEBHOOK_TYPES_MAP[event_type]
         model, _ = graphene.Node.from_global_id(object_id)
-        model_name = event._meta.root_type  # type: ignore[attr-defined]
-        enable_dry_run = event._meta.enable_dry_run  # type: ignore[attr-defined]
+        model_name = event._meta.root_type
+        enable_dry_run = event._meta.enable_dry_run
 
         if not (model_name or enable_dry_run) and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]

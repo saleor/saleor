@@ -30,7 +30,7 @@ def test_query_channel_as_staff_user(staff_api_client, channel_USD):
     variables = {"id": channel_id}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
+    response = staff_api_client.post_graphql(QUERY_CHANNEL, variables=variables)
     content = get_graphql_content(response)
 
     # then
@@ -52,7 +52,7 @@ def test_query_channel_as_app(app_api_client, channel_USD):
     variables = {"id": channel_id}
 
     # when
-    response = app_api_client.post_graphql(QUERY_CHANNEL, variables)
+    response = app_api_client.post_graphql(QUERY_CHANNEL, variables=variables)
     content = get_graphql_content(response)
 
     # then
@@ -273,3 +273,131 @@ def test_query_channel_returns_supported_shipping_methods_with_countries_input(
     assert sm_per_country[0]["countryCode"] == "PL"
     assert len(sm_per_country[0]["shippingMethods"]) == 1
     assert sm_per_country[0]["shippingMethods"][0]["id"] == expected_shipping_method_id
+
+
+QUERY_CHANNEL_ORDER_SETTINGS = """
+    query getChannel($id: ID){
+        channel(id: $id){
+            id
+            name
+            slug
+            currencyCode
+            stockSettings{
+                allocationStrategy
+            }
+            orderSettings {
+                automaticallyConfirmAllNewOrders
+                automaticallyFulfillNonShippableGiftCard
+            }
+        }
+    }
+"""
+
+
+def test_query_channel_order_settings_as_staff_user(
+    permission_manage_channels, staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_ORDER_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert channel_data["name"] == channel_USD.name
+    assert channel_data["slug"] == channel_USD.slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code
+    allocation_strategy = channel_data["stockSettings"]["allocationStrategy"]
+    assert (
+        AllocationStrategyEnum[allocation_strategy].value
+        == channel_USD.allocation_strategy
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"]
+        == channel_USD.automatically_confirm_all_new_orders
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        == channel_USD.automatically_fulfill_non_shippable_gift_card
+    )
+
+
+def test_query_channel_order_settings_as_app(
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL_ORDER_SETTINGS,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_data = content["data"]["channel"]
+    assert channel_data["id"] == channel_id
+    assert channel_data["name"] == channel_USD.name
+    assert channel_data["slug"] == channel_USD.slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code
+    allocation_strategy = channel_data["stockSettings"]["allocationStrategy"]
+    assert (
+        AllocationStrategyEnum[allocation_strategy].value
+        == channel_USD.allocation_strategy
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"]
+        == channel_USD.automatically_confirm_all_new_orders
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        == channel_USD.automatically_fulfill_non_shippable_gift_card
+    )
+
+
+def test_query_channel_order_settings_as_staff_user_no_permission(
+    staff_api_client, channel_USD
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL_ORDER_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_channel_order_settings_as_app_no_permission(
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL_ORDER_SETTINGS,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)

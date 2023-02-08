@@ -1,7 +1,9 @@
 import graphene
 
+from ...channel import models as channel_models
 from ...permission.enums import GiftcardPermissions, OrderPermissions
-from ..core.descriptions import DEPRECATED_IN_3X_MUTATION
+from ..channel.types import OrderSettings
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_MUTATION
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
@@ -16,7 +18,7 @@ from .mutations import (
     StaffNotificationRecipientDelete,
     StaffNotificationRecipientUpdate,
 )
-from .types import GiftCardSettings, OrderSettings, Shop
+from .types import GiftCardSettings, Shop
 
 
 class ShopQueries(graphene.ObjectType):
@@ -27,7 +29,15 @@ class ShopQueries(graphene.ObjectType):
     )
     order_settings = PermissionsField(
         OrderSettings,
-        description="Order related settings from site settings.",
+        description=(
+            "Order related settings from site settings. "
+            "Returns `orderSettings` for the first `channel` in "
+            "alphabetical order."
+        ),
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `channel` query to fetch the `orderSettings` field instead."
+        ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
     gift_card_settings = PermissionsField(
@@ -40,9 +50,22 @@ class ShopQueries(graphene.ObjectType):
     def resolve_shop(self, _info):
         return Shop()
 
-    @load_site_callback
-    def resolve_order_settings(self, _info, site):
-        return site.settings
+    def resolve_order_settings(self, _info):
+        channel = (
+            channel_models.Channel.objects.filter(is_active=True)
+            .order_by("slug")
+            .first()
+        )
+        if channel is None:
+            return None
+        return OrderSettings(
+            automatically_confirm_all_new_orders=(
+                channel.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                channel.automatically_fulfill_non_shippable_gift_card
+            ),
+        )
 
     @load_site_callback
     def resolve_gift_card_settings(self, _info, site):
@@ -62,5 +85,9 @@ class ShopMutations(graphene.ObjectType):
     shop_settings_translate = ShopSettingsTranslate.Field()
     shop_address_update = ShopAddressUpdate.Field()
 
-    order_settings_update = OrderSettingsUpdate.Field()
+    order_settings_update = OrderSettingsUpdate.Field(
+        deprecation_reason=(
+            DEPRECATED_IN_3X_MUTATION + " Use `channelUpdate` mutation instead."
+        )
+    )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
