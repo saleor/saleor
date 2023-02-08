@@ -2085,9 +2085,11 @@ def test_fulfillment_approve_when_stock_is_exceeded_and_flag_disabled(
         assert expected_error in errors
 
 
+@patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_fulfillment_approve_partial_order_fulfill(
     mock_email_fulfillment,
+    mock_fulfillment_approved,
     staff_api_client,
     fulfillment_awaiting_approval,
     permission_manage_orders,
@@ -2133,6 +2135,7 @@ def test_fulfillment_approve_partial_order_fulfill(
     assert fulfillment_awaiting_approval.status == FulfillmentStatus.FULFILLED
 
     assert mock_email_fulfillment.call_count == 0
+    mock_fulfillment_approved.assert_called_once_with(fulfillment_awaiting_approval)
 
 
 def test_fulfillment_approve_invalid_status(
