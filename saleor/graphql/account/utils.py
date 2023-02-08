@@ -83,7 +83,7 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def check_permissions(cls, context: SaleorContext, permissions=None):
+    def check_permissions(cls, context: SaleorContext, permissions=None, **data):
         if get_app_promise(context).get():
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."

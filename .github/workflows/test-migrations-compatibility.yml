@@ -44,11 +44,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # sphinxcontrib-applehelp added due to https://github.com/coddingtonbear/python-measurement/issues/75.
       # To remove once the issue is resolved.
       - name: Install dependencies
         run: |
-          python -m pip install sphinxcontrib-applehelp==1.0.2
           python -m pip install wheel
           python -m pip install -r requirements_dev.txt
 
