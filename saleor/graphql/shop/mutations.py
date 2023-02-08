@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.error_codes import ShopErrorCode
 from ...core.utils.url import validate_storefront_url
 from ...permission.enums import GiftcardPermissions, OrderPermissions, SitePermissions
@@ -403,15 +404,16 @@ class OrderSettingsUpdate(BaseMutation):
         ]
         site = get_site_promise(info.context).get()
         instance = site.settings
-        update_fields = []
+        update_fields = {}
         for field in FIELDS:
             value = data["input"].get(field)
             if value is not None:
                 setattr(instance, field, value)
-                update_fields.append(field)
+                update_fields[field] = value
 
         if update_fields:
-            instance.save(update_fields=update_fields)
+            instance.save(update_fields=update_fields.keys())
+            channel_models.Channel.objects.update(**update_fields)
         return OrderSettingsUpdate(order_settings=instance)
 
 
