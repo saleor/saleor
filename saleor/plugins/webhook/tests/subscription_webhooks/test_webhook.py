@@ -79,6 +79,7 @@ def test_trigger_webhook_sync_with_subscription(
     mock_request.assert_called_once_with(payment_app.name, event_delivery)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch("saleor.plugins.webhook.tasks.get_webhooks_for_event")
 @mock.patch(
     "saleor.graphql.webhook.subscription_payload.generate_payload_from_subscription"
@@ -86,6 +87,7 @@ def test_trigger_webhook_sync_with_subscription(
 def test_trigger_sync_webhook_with_subscription_from_default_database(
     mocked_generate_payload,
     mocked_get_webhooks_for_event,
+    mocked_request,
     draft_order,
     app_api_client,
     permission_manage_orders,
@@ -93,6 +95,7 @@ def test_trigger_sync_webhook_with_subscription_from_default_database(
     subscription_calculate_taxes_for_order,
 ):
     # given
+    mocked_request.return_value = None
     webhook = subscription_calculate_taxes_for_order
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     mocked_get_webhooks_for_event.return_value = [webhook]
@@ -106,7 +109,7 @@ def test_trigger_sync_webhook_with_subscription_from_default_database(
     app_api_client.app.permissions.add(permission_manage_orders)
     allow_replica = False
     request = initialize_request(
-        None, WebhookEventSyncType.ORDER_CALCULATE_TAXES, is_mutation=not allow_replica
+        None, WebhookEventSyncType.ORDER_CALCULATE_TAXES, allow_replica=allow_replica
     )
 
     # when

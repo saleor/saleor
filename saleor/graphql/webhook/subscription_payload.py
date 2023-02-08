@@ -19,7 +19,7 @@ logger = get_task_logger(__name__)
 
 
 def initialize_request(
-    requestor=None, sync_event=False, is_mutation=False
+    requestor=None, sync_event=False, allow_replica=True
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
@@ -44,7 +44,7 @@ def initialize_request(
     setattr(request, "sync_event", sync_event)
     request.requestor = requestor
     request.request_time = request_time
-    request.is_mutation = is_mutation
+    request.is_mutation = not allow_replica
 
     return request
 
