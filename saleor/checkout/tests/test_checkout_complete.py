@@ -1030,8 +1030,9 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     is_anonymous_user,
     non_shippable_gift_card_product,
 ):
-    site_settings.automatically_fulfill_non_shippable_gift_card = False
-    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+    channel = checkout_with_gift_card_items.channel
+    channel.automatically_fulfill_non_shippable_gift_card = False
+    channel.save()
 
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card_items

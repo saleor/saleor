@@ -7,7 +7,13 @@ from ....permission.enums import ChannelPermissions
 from ....tax.models import TaxConfiguration
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_37, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    ADDED_IN_37,
+    ADDED_IN_312,
+    PREVIEW_FEATURE,
+)
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -22,6 +28,20 @@ class StockSettingsInput(graphene.InputObjectType):
             "of warehouses for allocations and reservations."
         ),
         required=True,
+    )
+
+
+class OrderSettingsInput(graphene.InputObjectType):
+    automatically_confirm_all_new_orders = graphene.Boolean(
+        required=False,
+        description="When disabled, all new orders from checkout "
+        "will be marked as unconfirmed. When enabled orders from checkout will "
+        "become unfulfilled immediately. By default set to True",
+    )
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
+        required=False,
+        description="When enabled, all non-shippable gift card orders "
+        "will be fulfilled automatically. By defualt set to True.",
     )
 
 
@@ -42,6 +62,11 @@ class ChannelInput(graphene.InputObjectType):
         description="List of warehouses to assign to the channel."
         + ADDED_IN_35
         + PREVIEW_FEATURE,
+        required=False,
+    )
+    order_settings = graphene.Field(
+        OrderSettingsInput,
+        description="The channel order settings" + ADDED_IN_312,
         required=False,
     )
 
@@ -90,7 +115,21 @@ class ChannelCreate(ModelMutation):
             cleaned_input["slug"] = slugify(slug)
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
-
+        if order_settings := cleaned_input.get("order_settings"):
+            automatically_confirm_all_new_orders = order_settings.get(
+                "automatically_confirm_all_new_orders"
+            )
+            if automatically_confirm_all_new_orders is not None:
+                cleaned_input[
+                    "automatically_confirm_all_new_orders"
+                ] = automatically_confirm_all_new_orders
+            automatically_fulfill_non_shippable_gift_card = order_settings.get(
+                "automatically_fulfill_non_shippable_gift_card"
+            )
+            if automatically_fulfill_non_shippable_gift_card is not None:
+                cleaned_input[
+                    "automatically_fulfill_non_shippable_gift_card"
+                ] = automatically_fulfill_non_shippable_gift_card
         return cleaned_input
 
     @classmethod

@@ -233,7 +233,6 @@ def test_checkout_complete_with_inactive_channel(
 def test_checkout_complete(
     order_confirmed_mock,
     _recalculate_order_prices_mock,
-    site_settings,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -266,8 +265,9 @@ def test_checkout_complete(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -347,7 +347,6 @@ def test_checkout_complete(
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_with_metadata(
     order_confirmed_mock,
-    site_settings,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -375,8 +374,9 @@ def test_checkout_complete_with_metadata(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -451,8 +451,9 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -645,9 +646,10 @@ def test_checkout_complete_gift_card_bought(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.automatically_fulfill_non_shippable_gift_card = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.automatically_fulfill_non_shippable_gift_card = True
+    channel.save()
 
     payment = payment_txn_captured
     payment.is_active = True
@@ -736,8 +738,9 @@ def test_checkout_complete_with_variant_without_sku(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -811,8 +814,9 @@ def test_checkout_complete_requires_confirmation(
     payment_dummy,
     checkout_ready_to_complete,
 ):
-    site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save()
+    channel = checkout_ready_to_complete.channel
+    channel.automatically_confirm_all_new_orders = False
+    channel.save()
     Site.objects.clear_cache()
     payment = payment_dummy
     payment.checkout = checkout_ready_to_complete
@@ -1451,8 +1455,9 @@ def test_checkout_complete_checkout_without_lines(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -2728,8 +2733,9 @@ def test_checkout_complete_with_preorder_variant(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -3754,8 +3760,9 @@ def test_checkout_complete_reservations_drop(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -3805,8 +3812,9 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None

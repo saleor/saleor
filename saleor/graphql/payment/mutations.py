@@ -1153,7 +1153,7 @@ class TransactionRequestAction(BaseMutation):
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context, permissions=None, **data):
         required_permissions = permissions or cls._meta.permissions
         requestor = get_user_or_app_from_context(context)
         for required_permission in required_permissions:
