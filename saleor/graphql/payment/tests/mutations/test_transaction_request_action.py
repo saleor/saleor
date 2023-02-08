@@ -127,7 +127,7 @@ def test_transaction_request_charge_action_for_order(
     )
 
     event = order_with_lines.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
     assert event.parameters["reference"] == transaction.psp_reference
 
@@ -268,7 +268,7 @@ def test_transaction_request_void_action_for_order(
     )
 
     event = order_with_lines.events.first()
-    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CANCEL_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
 
     assert TransactionEvent.objects.get(
@@ -699,7 +699,7 @@ def test_transaction_request_charge_for_order(
     )
 
     event = order_with_lines.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
     assert event.parameters["reference"] == transaction.psp_reference
 
@@ -851,7 +851,7 @@ def test_transaction_request_cancelation_for_order(
     )
 
     event = order_with_lines.events.first()
-    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CANCEL_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
 
     assert TransactionEvent.objects.get(

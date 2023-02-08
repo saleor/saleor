@@ -7,9 +7,9 @@ from ..app.models import App
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.events import (
-    event_transaction_capture_requested,
+    event_transaction_cancel_requested,
+    event_transaction_charge_requested,
     event_transaction_refund_requested,
-    event_transaction_void_requested,
 )
 from ..payment.interface import (
     CustomerSource,
@@ -108,7 +108,7 @@ def request_charge_action(
         plugin_func_name="transaction_charge_requested",
     )
     if order_id := transaction.order_id:
-        event_transaction_capture_requested(
+        event_transaction_charge_requested(
             order_id=order_id,
             reference=transaction.psp_reference or "",
             amount=quantize_price(charge_value, transaction.currency),
@@ -180,7 +180,7 @@ def request_cancelation_action(
     )
 
     if order_id := transaction.order_id:
-        event_transaction_void_requested(
+        event_transaction_cancel_requested(
             order_id=order_id,
             reference=transaction.psp_reference or "",
             user=user,

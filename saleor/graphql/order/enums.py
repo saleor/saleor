@@ -11,9 +11,21 @@ from ...order import (
     OrderStatus,
     error_codes,
 )
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+
+
+def order_event_enum_description(enum):
+    if enum is None:
+        return "The different order event types. "
+    if enum == OrderEventsEnum.TRANSACTION_VOID_REQUESTED:
+        return f"{DEPRECATED_IN_3X_FIELD} Use `TRANSACTION_CANCEL_REQUESTED` instead."
+    if enum == OrderEventsEnum.TRANSACTION_CAPTURE_REQUESTED:
+        return f"{DEPRECATED_IN_3X_FIELD} Use `TRANSACTION_CHARGE_REQUESTED` instead."
+    return None
+
 
 FulfillmentStatusEnum = to_enum(FulfillmentStatus, type_name="FulfillmentStatus")
-OrderEventsEnum = to_enum(OrderEvents)
+OrderEventsEnum = to_enum(OrderEvents, description=order_event_enum_description)
 OrderEventsEmailsEnum = to_enum(OrderEventsEmails)
 OrderOriginEnum = to_enum(OrderOrigin)
 OrderStatusEnum = to_enum(OrderStatus, type_name="OrderStatus")

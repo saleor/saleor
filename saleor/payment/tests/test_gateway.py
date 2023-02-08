@@ -415,7 +415,7 @@ def test_request_charge_action_with_transaction_action_request(
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
     assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
@@ -469,7 +469,7 @@ def test_request_charge_action_on_order(
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
     assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
@@ -523,7 +523,7 @@ def test_request_charge_action_by_app(
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
     assert event.parameters["reference"] == transaction.psp_reference
     assert event.app == app
@@ -905,7 +905,7 @@ def test_request_cancelation_action_on_order(
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CANCEL_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
 
@@ -956,7 +956,7 @@ def test_request_cancelation_action_with_transaction_action_request(
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CANCEL_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
     assert event.user == staff_user
 
@@ -1007,7 +1007,7 @@ def test_request_cancelation_action_by_app(
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CANCEL_REQUESTED
     assert event.parameters["reference"] == transaction.psp_reference
     assert event.app == app
     assert not event.user

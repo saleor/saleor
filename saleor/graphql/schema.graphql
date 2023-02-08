@@ -10533,7 +10533,7 @@ type OrderEvent implements Node {
   reference: String
 }
 
-"""An enumeration."""
+"""The different order event types."""
 enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
@@ -10564,9 +10564,19 @@ enum OrderEventsEnum {
   PAYMENT_VOIDED
   PAYMENT_FAILED
   TRANSACTION_EVENT
+  TRANSACTION_CHARGE_REQUESTED
+
+  """
+  This field will be removed in Saleor 4.0. Use `TRANSACTION_CHARGE_REQUESTED` instead.
+  """
   TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
+
+  """
+  This field will be removed in Saleor 4.0. Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  """
   TRANSACTION_VOID_REQUESTED
+  TRANSACTION_CANCEL_REQUESTED
   INVOICE_REQUESTED
   INVOICE_GENERATED
   INVOICE_UPDATED
