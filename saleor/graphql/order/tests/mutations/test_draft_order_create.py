@@ -159,6 +159,10 @@ def test_draft_order_create(
     assert order.shipping_address
     assert order.search_vector
     assert order.external_reference == external_reference
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -254,6 +258,10 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
     assert order.billing_address
     assert order.shipping_address
     assert order.search_vector
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -342,6 +350,10 @@ def test_draft_order_create_with_inactive_channel(
     assert not order.billing_address
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -425,6 +437,10 @@ def test_draft_order_create_without_sku(
     assert order.shipping_method == shipping_method
     assert order.billing_address
     assert order.shipping_address
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
 
     order_line = order.lines.get(variant=variant)
     assert order_line.product_sku is None
@@ -490,6 +506,11 @@ def test_draft_order_create_variant_with_0_price(
     assert not order.billing_address
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
+
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -948,6 +969,83 @@ def test_draft_order_create_with_channel(
     assert not order.billing_address
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    assert order.base_shipping_price == shipping_total
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+
+def test_draft_order_create_product_without_shipping(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant = product_without_shipping.variants.first()
+
+    variant.quantity = 2
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "channel": channel_id,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher.code
+    assert data["customerNote"] == customer_note
+
+    order = Order.objects.first()
+    assert order.user == customer_user
+    assert order.channel.id == channel_USD.id
+    # billing address should be copied
+    assert not order.billing_address
+    assert order.shipping_method == shipping_method
+    assert order.shipping_address.first_name == graphql_address_data["firstName"]
+    assert order.base_shipping_price == Money(0, "USD")
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
