@@ -87,7 +87,10 @@ def handle_thumbnail(
     thumbnail.image.save(thumbnail_file_name, thumbnail_file)
     thumbnail.save()
 
+    # set additional `instance` attribute, to easily get instance data
+    # for ThumbnailCreated subscription type
+    setattr(thumbnail, "instance", instance)
     manager = get_plugins_manager()
-    call_event(manager.thumbnail_created, thumbnail, instance)
+    call_event(manager.thumbnail_created, thumbnail)
 
     return HttpResponseRedirect(thumbnail.image.url)

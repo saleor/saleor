@@ -19,6 +19,7 @@ from ...product.models import (
     ProductVariantTranslation,
 )
 from ...shipping.models import ShippingMethodTranslation
+from ...thumbnail.views import TYPE_TO_MODEL_DATA_MAPPING
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
@@ -1919,19 +1920,42 @@ class Subscription(SubscriptionObjectType):
 
 
 class ThumbnailCreated(SubscriptionObjectType):
-    thumbnail_url = graphene.String(description="Thumbnail's url." + ADDED_IN_312)
+    id = graphene.ID(description="Thumbnail id." + ADDED_IN_312)
+    url = graphene.String(description="Thumbnail url." + ADDED_IN_312)
+    object_id = graphene.ID(
+        description="Object the thumbnail refers to." + ADDED_IN_312
+    )
+    media_url = graphene.String(description="Original media url." + ADDED_IN_312)
 
     class Meta:
-        root_type = "Thumbnail"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when thumbnail is created." + ADDED_IN_312
 
     @staticmethod
-    def resolve_thumbnail_url(root, info: ResolveInfo):
-        breakpoint()
+    def resolve_id(root, info: ResolveInfo):
+        _, thumbnail = root
+        return graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+
+    @staticmethod
+    def resolve_url(root, info: ResolveInfo):
         _, thumbnail = root
         return thumbnail.image.url
+
+    @staticmethod
+    def resolve_object_id(root, info: ResolveInfo):
+        _, thumbnail = root
+        type = thumbnail.instance.__class__.__name__
+        return graphene.Node.to_global_id(type, thumbnail.instance.id)
+
+    @staticmethod
+    def resolve_media_url(root, info: ResolveInfo):
+        _, thumbnail = root
+        type = thumbnail.instance.__class__.__name__
+        image_field = TYPE_TO_MODEL_DATA_MAPPING[type].image_field
+        image = getattr(thumbnail.instance, image_field, None)
+        return image.url if image else None
 
 
 WEBHOOK_TYPES_MAP = {

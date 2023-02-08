@@ -6679,6 +6679,13 @@ type ProductMedia implements Node & ObjectWithMetadata {
     """
     format: ThumbnailFormatEnum
   ): String!
+
+  """
+  Product id the media refers to.
+  
+  Added in Saleor 3.12.
+  """
+  productId: ID
 }
 
 """An enumeration."""
@@ -26943,11 +26950,32 @@ type ThumbnailCreated implements Event {
   recipient: App
 
   """
-  Thumbnail's url.
+  Thumbnail id.
   
   Added in Saleor 3.12.
   """
-  thumbnailUrl: String
+  id: ID
+
+  """
+  Thumbnail url.
+  
+  Added in Saleor 3.12.
+  """
+  url: String
+
+  """
+  Object the thumbnail refers to.
+  
+  Added in Saleor 3.12.
+  """
+  objectId: ID
+
+  """
+  Original media url.
+  
+  Added in Saleor 3.12.
+  """
+  mediaUrl: String
 }
 
 """

@@ -1154,11 +1154,10 @@ class PluginsManager(PaymentInterface):
     def thumbnail_created(
         self,
         thumbnail: "Thumbnail",
-        instance: Union["User", "Category", "Collection", "ProductMedia"],
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "thumbnail_created", default_value, thumbnail, instance
+            "thumbnail_created", default_value, thumbnail
         )
 
     def warehouse_created(self, warehouse: "Warehouse"):

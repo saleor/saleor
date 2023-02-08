@@ -948,6 +948,14 @@ def subscription_order_filter_shipping_methods_webhook_with_available_ship_metho
 
 
 @pytest.fixture
+def subscription_thumbnail_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.THUMBNAIL_CREATED,
+        WebhookEventAsyncType.THUMBNAIL_CREATED,
+    )
+
+
+@pytest.fixture
 def subscription_calculate_taxes_for_order(
     subscription_webhook,
 ):

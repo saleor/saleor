@@ -1222,15 +1222,19 @@ class WebhookPlugin(BasePlugin):
     def thumbnail_created(
         self,
         thumbnail: Thumbnail,
-        instance: Union["User", "Category", "Collection", "ProductMedia"],
         previous_value: None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
         if webhooks := get_webhooks_for_event(event_type):
-            thumbnail_data = generate_thumbnail_payload(thumbnail, instance)
-            trigger_webhooks_async(thumbnail_data, event_type, webhooks, thumbnail)
+            thumbnail_data = generate_thumbnail_payload(thumbnail)
+            trigger_webhooks_async(
+                data=thumbnail_data,
+                event_type=event_type,
+                webhooks=webhooks,
+                subscribable_object=thumbnail,
+            )
 
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:

@@ -695,6 +695,7 @@ PRODUCT_MEDIA_CREATED = """
           productMedia{
             id
             url
+            productId
           }
         }
       }
@@ -708,6 +709,7 @@ PRODUCT_MEDIA_UPDATED = """
           productMedia{
             id
             url
+            productId
           }
         }
       }
@@ -721,6 +723,7 @@ PRODUCT_MEDIA_DELETED = """
           productMedia{
             id
             url
+            productId
           }
         }
       }
@@ -2119,6 +2122,19 @@ QUERY_WITH_MULTIPLE_FRAGMENTS = (
     }
     """
 )
+
+THUMBNAIL_CREATED = """
+    subscription {
+      event {
+        ... on ThumbnailCreated {
+          url
+          id
+          objectId
+          mediaUrl
+        }
+      }
+    }
+"""
 
 
 ORDER_CALCULATE_TAXES = """
