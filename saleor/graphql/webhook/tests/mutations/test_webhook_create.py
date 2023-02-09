@@ -32,7 +32,7 @@ WEBHOOK_CREATE = """
 def test_webhook_create_by_app(app_api_client, permission_manage_orders):
     # given
     query = WEBHOOK_CREATE
-    headers = {"X-Key": "Value", "Authorization-Key": "Value"}
+    custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
     variables = {
         "input": {
             "name": "New integration",
@@ -41,7 +41,7 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
                 WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
                 WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
             ],
-            "headers": json.dumps(headers),
+            "customHeaders": json.dumps(custom_headers),
         }
     }
 
@@ -58,7 +58,7 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
     new_webhook = Webhook.objects.get()
     assert new_webhook.name == "New integration"
     assert new_webhook.target_url == "https://www.example.com"
-    assert new_webhook.headers == headers
+    assert new_webhook.custom_headers == custom_headers
     events = new_webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
@@ -296,12 +296,12 @@ def test_webhook_create_inherit_events_from_query(
 def test_webhook_create_invalid_custom_headers(app_api_client):
     # given
     query = WEBHOOK_CREATE
-    headers = {"DisallowedKey": "Value"}
+    custom_headers = {"DisallowedKey": "Value"}
     variables = {
         "input": {
             "name": "New integration",
             "targetUrl": "https://www.example.com",
-            "headers": json.dumps(headers),
+            "customHeaders": json.dumps(custom_headers),
         }
     }
 
@@ -313,7 +313,7 @@ def test_webhook_create_invalid_custom_headers(app_api_client):
     data = content["data"]["webhookCreate"]
     assert not data["webhook"]
     error = data["errors"][0]
-    assert error["field"] == "headers"
+    assert error["field"] == "customHeaders"
     assert (
         error["message"] == '"DisallowedKey" does not match allowed key pattern: '
         '"X-*" or "Authorization*".'

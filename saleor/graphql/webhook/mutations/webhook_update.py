@@ -58,7 +58,7 @@ class WebhookUpdateInput(graphene.InputObjectType):
         + PREVIEW_FEATURE,
         required=False,
     )
-    headers = JSONString(
+    custom_headers = JSONString(
         description="Custom headers, which will be added to http request."
         + ADDED_IN_312
         + PREVIEW_FEATURE,

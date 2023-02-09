@@ -1490,7 +1490,7 @@ type Webhook implements Node {
   
   Added in Saleor 3.12.
   """
-  headers: JSONString
+  customHeaders: JSONString
 }
 
 """An object with an ID"""
@@ -16144,7 +16144,7 @@ input WebhookCreateInput {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  headers: JSONString
+  customHeaders: JSONString
 }
 
 """
@@ -16218,7 +16218,7 @@ input WebhookUpdateInput {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  headers: JSONString
+  customHeaders: JSONString
 }
 
 """

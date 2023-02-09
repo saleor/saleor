@@ -187,7 +187,7 @@ class Webhook(ModelObjectType[models.Webhook]):
     subscription_query = graphene.String(
         description="Used to define payloads for specific events."
     )
-    headers = JSONString(
+    custom_headers = JSONString(
         description="Custom headers, which will be added to http request."
         + ADDED_IN_312
     )

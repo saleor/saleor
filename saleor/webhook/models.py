@@ -19,7 +19,7 @@ class Webhook(models.Model):
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
     subscription_query = models.TextField(null=True, blank=True)
-    headers = models.JSONField(
+    custom_headers = models.JSONField(
         blank=True,
         null=True,
         default=dict,
@@ -32,14 +32,6 @@ class Webhook(models.Model):
 
     def __str__(self):
         return self.name
-
-    def store_headers(self, items: dict):
-        if not self.headers:
-            self.headers = {}
-        self.headers.update(items)
-
-    def clear_headers(self):
-        self.headers = {}
 
 
 class WebhookEvent(models.Model):

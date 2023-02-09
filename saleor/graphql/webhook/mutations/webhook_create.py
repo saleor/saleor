@@ -62,7 +62,7 @@ class WebhookCreateInput(graphene.InputObjectType):
         + PREVIEW_FEATURE,
         required=False,
     )
-    headers = JSONString(
+    custom_headers = JSONString(
         description="Custom headers, which will be added to http request."
         + ADDED_IN_312
         + PREVIEW_FEATURE,
@@ -123,12 +123,12 @@ class WebhookCreate(ModelMutation):
                 )
             instance.subscription_query = query
 
-        if headers := cleaned_data.get("headers"):
+        if headers := cleaned_data.get("custom_headers"):
             try:
                 custom_headers_validator(headers)
             except ValidationError as err:
                 raise_validation_error(
-                    field="headers",
+                    field="customHeaders",
                     message=err.message,
                     code=WebhookErrorCode.INVALID_CUSTOM_HEADERS,
                 )
