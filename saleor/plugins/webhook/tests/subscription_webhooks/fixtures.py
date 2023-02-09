@@ -924,3 +924,13 @@ def subscription_order_filter_shipping_methods_webhook_with_available_ship_metho
         queries.ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
+
+
+@pytest.fixture
+def subscription_calculate_taxes_for_order(
+    subscription_webhook,
+):
+    return subscription_webhook(
+        queries.ORDER_CALCULATE_TAXES,
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+    )

@@ -18,7 +18,9 @@ from ..utils import format_error
 logger = get_task_logger(__name__)
 
 
-def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
+def initialize_request(
+    requestor=None, sync_event=False, allow_replica=True
+) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object.
@@ -30,7 +32,6 @@ def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
         return PluginsManager(settings.PLUGINS, requestor_getter)
 
     request_time = timezone.now()
-
     request = SaleorContext()
     request.path = "/graphql/"
     request.path_info = "/graphql/"
@@ -43,6 +44,7 @@ def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
     setattr(request, "sync_event", sync_event)
     request.requestor = requestor
     request.request_time = request_time
+    request.allow_replica = allow_replica
 
     return request
 
@@ -88,7 +90,6 @@ def generate_payload_from_subscription(
         ast,
     )
     app_id = app.pk if app else None
-
     request.app = app
 
     results = document.execute(
