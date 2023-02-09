@@ -1,3 +1,5 @@
+import json
+
 import graphene
 
 from .....webhook.error_codes import WebhookErrorCode
@@ -39,7 +41,7 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
                 WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
                 WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
             ],
-            "headers": headers,
+            "headers": json.dumps(headers),
         }
     }
 
@@ -289,3 +291,31 @@ def test_webhook_create_inherit_events_from_query(
         data["webhook"]["syncEvents"][0]["eventType"]
         == WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.name
     )
+
+
+def test_webhook_create_invalid_custom_headers(app_api_client):
+    # given
+    query = WEBHOOK_CREATE
+    headers = {"DisallowedKey": "Value"}
+    variables = {
+        "input": {
+            "name": "New integration",
+            "targetUrl": "https://www.example.com",
+            "headers": json.dumps(headers),
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["webhookCreate"]
+    assert not data["webhook"]
+    error = data["errors"][0]
+    assert error["field"] == "headers"
+    assert (
+        error["message"] == '"DisallowedKey" does not match allowed key pattern: '
+        '"X-*" or "Authorization*".'
+    )
+    assert error["code"] == WebhookErrorCode.INVALID_CUSTOM_HEADERS.name

@@ -1484,6 +1484,13 @@ type Webhook implements Node {
 
   """Used to define payloads for specific events."""
   subscriptionQuery: String
+
+  """
+  Custom headers, which will be added to http request.
+  
+  Added in Saleor 3.12.
+  """
+  headers: JSONString
 }
 
 """An object with an ID"""

@@ -1,3 +1,5 @@
+import json
+
 import graphene
 
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -18,6 +20,7 @@ WEBHOOK_UPDATE = """
             eventType
           }
           isActive
+          headers
         }
       }
     }
@@ -46,6 +49,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
     # given
     query = WEBHOOK_UPDATE
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    headers = {"X-Key": "Value", "Authorization-Key": "Value"}
     variables = {
         "id": webhook_id,
         "input": {
@@ -54,6 +58,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
                 WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
             ],
             "isActive": False,
+            "headers": json.dumps(headers),
         },
     }
     staff_api_client.user.user_permissions.add(permission_manage_apps)
@@ -65,6 +70,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
 
     # then
     assert webhook.is_active is False
+    assert webhook.headers == headers
     events = webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.value
@@ -76,6 +82,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
         == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name
     )
     assert data["webhook"]["isActive"] is False
+    assert data["webhook"]["headers"] == json.dumps(headers)
 
 
 def test_webhook_update_by_staff_without_permission(staff_api_client, app, webhook):

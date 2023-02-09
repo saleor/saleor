@@ -12,8 +12,8 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.fields import FilterConnectionField
+from ..core.descriptions import ADDED_IN_312, DEPRECATED_IN_3X_FIELD
+from ..core.fields import FilterConnectionField, JSONString
 from ..core.types import ModelObjectType, NonNullList
 from ..webhook.enums import EventDeliveryStatusEnum, WebhookEventTypeEnum
 from ..webhook.filters import EventDeliveryFilterInput
@@ -186,6 +186,10 @@ class Webhook(ModelObjectType[models.Webhook]):
     )
     subscription_query = graphene.String(
         description="Used to define payloads for specific events."
+    )
+    headers = JSONString(
+        description="Custom headers, which will be added to http request."
+        + ADDED_IN_312
     )
 
     class Meta:

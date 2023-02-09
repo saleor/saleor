@@ -130,7 +130,7 @@ class WebhookCreate(ModelMutation):
                 raise_validation_error(
                     field="headers",
                     message=err.message,
-                    code=subscription_query.error_code,
+                    code=WebhookErrorCode.INVALID_CUSTOM_HEADERS,
                 )
 
         cls._clean_webhook_events(cleaned_data, subscription_query)
