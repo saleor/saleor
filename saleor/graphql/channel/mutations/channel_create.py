@@ -130,6 +130,7 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
+
         return cleaned_input
 
     @classmethod

@@ -752,6 +752,39 @@ def test_channel_update_order_settings_manage_orders(
     )
 
 
+def test_channel_update_order_settings_empty_order_settings(
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    assert channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"] is True
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        is True
+    )
+
+
 def test_channel_update_order_settings_manage_orders_as_app(
     permission_manage_orders,
     app_api_client,
