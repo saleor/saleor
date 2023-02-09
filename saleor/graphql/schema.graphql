@@ -4774,6 +4774,29 @@ type OrderSettings {
   When enabled, all non-shippable gift card orders will be fulfilled automatically.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean!
+
+  """
+  Determine what strategy will be used to mark the order as paid. Based on the choosen option the proper object will be created and attached to the order, when order is manualy marked as paid.
+  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
+  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  markAsPaidStrategy: MarkAsPaidStrategyEnum!
+}
+
+"""
+Determine the mark as paid strategy for the channel.
+
+    TRANSACTION_FLOW - new orders marked as paid will receive a
+    `TransactionItem` object, that will cover the `order.total`.
+
+    PAYMENT_FLOW - new orders marked as paid will receive a
+    `Payment` object, that will cover the `order.total`.
+"""
+enum MarkAsPaidStrategyEnum {
+  TRANSACTION_FLOW
+  PAYMENT_FLOW
 }
 
 """Represents shipping method postal code rule."""
@@ -10599,6 +10622,7 @@ enum OrderEventsEnum {
   """
   TRANSACTION_VOID_REQUESTED
   TRANSACTION_CANCEL_REQUESTED
+  TRANSACTION_MARK_AS_PAID_FAILED
   INVOICE_REQUESTED
   INVOICE_GENERATED
   INVOICE_UPDATED
@@ -10755,6 +10779,7 @@ enum OrderErrorCode {
   ORDER_NO_SHIPPING_ADDRESS
   PAYMENT_ERROR
   PAYMENT_MISSING
+  TRANSACTION_ERROR
   REQUIRED
   SHIPPING_METHOD_NOT_APPLICABLE
   SHIPPING_METHOD_REQUIRED
@@ -23008,6 +23033,15 @@ input OrderSettingsInput {
   When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
+
+  """
+  Determine what strategy will be used to mark the order as paid. Based on the choosen option the proper object will be created and attached to the order, when order is manualy marked as paid.
+  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
+  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  markAsPaidStrategy: MarkAsPaidStrategyEnum
 }
 
 """

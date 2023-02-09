@@ -878,7 +878,9 @@ def update_order_charge_status(order: Order):
     total_gross = order.total_gross_amount or Decimal(0)
     total_gross = quantize_price(total_gross, order.currency)
 
-    if total_charged <= 0:
+    if total_charged == 0 and total_gross == Decimal(0):
+        order.charge_status = OrderChargeStatus.FULL
+    elif total_charged <= 0:
         order.charge_status = OrderChargeStatus.NONE
     elif total_charged < total_gross:
         order.charge_status = OrderChargeStatus.PARTIAL
@@ -945,11 +947,13 @@ def update_order_authorize_status(order: Order):
     The order is not authorized when total_authorized and total_charged funds are 0.
     """
     total_covered = order.total_authorized_amount or Decimal("0")
-    if order.total_charged_amount and total_covered > order.total_charged_amount:
+    if order.total_charged_amount and total_covered < order.total_charged_amount:
         total_covered = order.total_charged_amount
     total_gross = order.total_gross_amount or Decimal("0")
 
-    if total_covered == 0:
+    if total_covered == 0 and order.total.gross.amount == Decimal(0):
+        order.authorize_status = OrderAuthorizeStatus.FULL
+    elif total_covered == 0:
         order.authorize_status = OrderAuthorizeStatus.NONE
     elif total_covered >= total_gross:
         order.authorize_status = OrderAuthorizeStatus.FULL
