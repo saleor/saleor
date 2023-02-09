@@ -492,6 +492,7 @@ def test_create_transaction_event_from_request_updates_order_charge(
     order.refresh_from_db()
     assert order.total_charged_amount == Decimal(event_amount)
     assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.search_vector
 
 
 @freeze_time("2018-05-31 12:00:01")
