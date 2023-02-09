@@ -106,6 +106,10 @@ class ChannelUpdate(ModelMutation):
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
 
+            expire_orders_after = order_settings.get("expire_orders_after")
+            if expire_orders_after is not None:
+                cleaned_input["expire_orders_after"] = expire_orders_after
+
         return cleaned_input
 
     @classmethod

@@ -130,6 +130,7 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "automatically_confirm_all_new_orders"
                 ] = automatically_confirm_all_new_orders
+
             automatically_fulfill_non_shippable_gift_card = order_settings.get(
                 "automatically_fulfill_non_shippable_gift_card"
             )
@@ -137,6 +138,10 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
+
+            expire_orders_after = order_settings.get("expire_orders_after")
+            if expire_orders_after is not None:
+                cleaned_input["expire_orders_after"] = expire_orders_after
 
         return cleaned_input
 

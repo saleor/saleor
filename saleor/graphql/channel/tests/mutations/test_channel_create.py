@@ -36,6 +36,7 @@ CHANNEL_CREATE_MUTATION = """
                 orderSettings {
                     automaticallyConfirmAllNewOrders
                     automaticallyFulfillNonShippableGiftCard
+                    expireOrdersAfter
                 }
             }
             errors{
@@ -68,6 +69,7 @@ def test_channel_create_mutation_as_staff_user(
             "orderSettings": {
                 "automaticallyConfirmAllNewOrders": False,
                 "automaticallyFulfillNonShippableGiftCard": False,
+                "expireOrdersAfter": 10,
             },
         }
     }
@@ -99,6 +101,7 @@ def test_channel_create_mutation_as_staff_user(
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         is False
     )
+    assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
 
 
 def test_channel_create_mutation_as_app(
@@ -149,6 +152,7 @@ def test_channel_create_mutation_as_app(
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         is True
     )
+    assert channel_data["orderSettings"]["expireOrdersAfter"] is None
 
 
 def test_channel_create_mutation_as_customer(user_api_client):

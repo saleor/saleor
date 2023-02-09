@@ -1623,6 +1623,8 @@ enum WebhookEventTypeEnum {
 
   """An order is cancelled."""
   ORDER_CANCELLED
+
+  """An order is expired."""
   ORDER_EXPIRED
 
   """An order is fulfilled."""
@@ -2174,6 +2176,8 @@ enum WebhookEventTypeAsyncEnum {
 
   """An order is cancelled."""
   ORDER_CANCELLED
+
+  """An order is expired."""
   ORDER_EXPIRED
 
   """An order is fulfilled."""
@@ -4834,8 +4838,10 @@ type OrderSettings {
 
   """
   Expiration time in minutes. Default null - means do not expire any orders
+  
+  Added in Saleor 3.12.
   """
-  expireOrdersAfter: Minute!
+  expireOrdersAfter: Minute
 }
 
 """

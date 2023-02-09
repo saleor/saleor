@@ -25,6 +25,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - `THUMBNAIL_CREATED`
 - CORS is now handled in the ASGI layer - #11415 by @patrys
 - Added native support for gzip compression - #11833 by @patrys
+- Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
+  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
+  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
 
 # 3.11.0
 
