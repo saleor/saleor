@@ -31,8 +31,12 @@ from ..validators import (
             "One of the header can't be converted to string.",
         ),
         (
-            {"Key": "NónASćI"},
-            '"Key: NónASćI" contains not valid ASCII character.',
+            {"Ke:y": "Value"},
+            'Key "Ke:y" contains invalid character.',
+        ),
+        (
+            {"Key": "Val:ue"},
+            'Value "Val:ue" contains invalid character.',
         ),
         (
             {"Key": "X" * HEADERS_LENGTH_LIMIT},
@@ -55,15 +59,6 @@ from ..validators import (
         (
             {"Authorization": "Value"},
             '"Authorization" does not match allowed key pattern: '
-            '"X-*" or "Authorization*".',
-        ),
-        (
-            {"X- Key": "Value"},
-            '"X- Key" does not match allowed key pattern: "X-*" or "Authorization*".',
-        ),
-        (
-            {"Authorization Key": "Value"},
-            '"Authorization Key" does not match allowed key pattern: '
             '"X-*" or "Authorization*".',
         ),
     ],

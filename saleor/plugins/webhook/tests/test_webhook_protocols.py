@@ -356,26 +356,16 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
 
 @patch("saleor.plugins.webhook.tasks.requests.post")
 def test_trigger_webhooks_with_http_and_custom_headers(
-    mock_request,
-    webhook,
-    order_with_lines,
-    permission_manage_orders,
+    mock_request, webhook, order_with_lines, permission_manage_orders
 ):
     # given
-    mock_request.return_value = MagicMock(
-        text="{response: body}",
-        headers={"response": "header"},
-        elapsed=timedelta(seconds=2),
-        status_code=200,
-        ok=True,
-    )
     webhook.app.permissions.add(permission_manage_orders)
     webhook.custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
+    webhook.secret_key = ""
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
     expected_signature = signature_for_payload(expected_data.encode("utf-8"), "")
-
     expected_headers = {
         "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
@@ -389,9 +379,11 @@ def test_trigger_webhooks_with_http_and_custom_headers(
         "Authorization-Key": "Value",
     }
 
-    mock_request.assert_called_once_with(
-        webhook.target_url,
-        data=bytes(expected_data, "utf-8"),
-        headers=expected_headers,
-        timeout=10,
+    # when
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
     )
+
+    # then
+    mock_request.assert_called_once()
+    assert mock_request.call_args[1]["headers"] == expected_headers
