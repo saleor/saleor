@@ -44,7 +44,7 @@ def initialize_request(
     setattr(request, "sync_event", sync_event)
     request.requestor = requestor
     request.request_time = request_time
-    request.is_mutation = not allow_replica
+    request.allow_replica = allow_replica
 
     return request
 
