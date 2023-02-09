@@ -878,6 +878,20 @@ ORDER_CANCELLED = """
     }
 """
 
+
+ORDER_EXPIRED = """
+    subscription{
+      event{
+        ...on OrderExpired{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
 ORDER_FULFILLED = """
     subscription{
       event{

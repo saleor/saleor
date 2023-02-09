@@ -183,3 +183,8 @@ class EventDeliveryAttempt(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+
+
+class CeleryTask(models.Model):
+    task_name = models.CharField(max_length=255, primary_key=True)
+    created_at = models.DateTimeField(auto_now_add=True)

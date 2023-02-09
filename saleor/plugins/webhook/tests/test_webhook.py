@@ -768,6 +768,31 @@ def test_order_cancelled(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_expired(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.order_expired(order_with_lines)
+    expected_data = generate_order_payload(order_with_lines)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.ORDER_EXPIRED,
+        [any_webhook],
+        order_with_lines,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_order_metadata_updated(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,

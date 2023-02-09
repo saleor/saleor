@@ -4558,6 +4558,14 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def unconfirmed_order_with_lines(order_with_lines):
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    return order
+
+
+@pytest.fixture
 def fulfilled_order_without_inventory_tracking(
     order_with_line_without_inventory_tracking,
 ):

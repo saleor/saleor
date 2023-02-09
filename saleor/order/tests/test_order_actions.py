@@ -20,6 +20,7 @@ from ..actions import (
     cancel_fulfillment,
     cancel_order,
     clean_mark_order_as_paid,
+    expire_order,
     fulfill_order_lines,
     handle_fully_paid_order,
     mark_order_as_paid,
@@ -375,6 +376,30 @@ def test_cancel_order(
     send_order_canceled_confirmation_mock.assert_called_once_with(
         order, None, None, manager
     )
+
+
+def test_expire_order(unconfirmed_order_with_lines, voucher):
+    # given
+    order = unconfirmed_order_with_lines
+    voucher.used = 1
+    voucher.usage_limit = 1
+    voucher.save()
+    order.voucher = voucher
+    order.save()
+    manager = get_plugins_manager()
+
+    assert Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
+
+    # when
+    expire_order(order, None, manager)
+
+    # then
+    assert order.status == OrderStatus.EXPIRED
+    assert not Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
 
 
 @patch("saleor.order.actions.send_order_refunded_confirmation")

@@ -407,6 +407,9 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def is_unconfirmed(self):
         return self.status == OrderStatus.UNCONFIRMED
 
+    def is_expired(self):
+        return self.status == OrderStatus.EXPIRED
+
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses

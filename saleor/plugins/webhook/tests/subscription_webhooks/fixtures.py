@@ -437,6 +437,13 @@ def subscription_order_cancelled_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_order_expired_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_EXPIRED, WebhookEventAsyncType.ORDER_EXPIRED
+    )
+
+
+@pytest.fixture
 def subscription_order_fulfilled_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_FULFILLED, WebhookEventAsyncType.ORDER_FULFILLED

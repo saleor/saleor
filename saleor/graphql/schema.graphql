@@ -1623,6 +1623,7 @@ enum WebhookEventTypeEnum {
 
   """An order is cancelled."""
   ORDER_CANCELLED
+  ORDER_EXPIRED
 
   """An order is fulfilled."""
   ORDER_FULFILLED
@@ -2173,6 +2174,7 @@ enum WebhookEventTypeAsyncEnum {
 
   """An order is cancelled."""
   ORDER_CANCELLED
+  ORDER_EXPIRED
 
   """An order is fulfilled."""
   ORDER_FULFILLED
@@ -2979,6 +2981,7 @@ enum WebhookSampleEventTypeEnum {
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
+  ORDER_EXPIRED
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
   DRAFT_ORDER_CREATED
@@ -25060,6 +25063,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderCancelled implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is expired.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderExpired implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
