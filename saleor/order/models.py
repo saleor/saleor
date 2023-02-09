@@ -85,7 +85,9 @@ class OrderQueryset(models.QuerySet["Order"]):
             is_active=True, charge_status=ChargeStatus.NOT_CHARGED
         ).values("id")
         qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
-        return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
+        return qs.exclude(
+            status={OrderStatus.DRAFT, OrderStatus.CANCELED, OrderStatus.EXPIRED}
+        )
 
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
@@ -426,14 +428,22 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             not self.fulfillments.exclude(
                 status__in=statuses_allowed_to_cancel
             ).exists()
-        ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
+        ) and self.status not in {
+            OrderStatus.CANCELED,
+            OrderStatus.DRAFT,
+            OrderStatus.EXPIRED,
+        }
 
     def can_capture(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
         if not payment:
             return False
-        order_status_ok = self.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED}
+        order_status_ok = self.status not in {
+            OrderStatus.DRAFT,
+            OrderStatus.CANCELED,
+            OrderStatus.EXPIRED,
+        }
         return payment.can_capture() and order_status_ok
 
     def can_void(self, payment=None):
