@@ -325,6 +325,27 @@ def subscription_product_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_product_media_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_CREATED, WebhookEventAsyncType.PRODUCT_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_product_media_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_UPDATED, WebhookEventAsyncType.PRODUCT_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_product_media_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_DELETED, WebhookEventAsyncType.PRODUCT_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_product_variant_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PRODUCT_VARIANT_CREATED,
@@ -923,6 +944,14 @@ def subscription_order_filter_shipping_methods_webhook_with_available_ship_metho
     return subscription_webhook(
         queries.ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+
+@pytest.fixture
+def subscription_thumbnail_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.THUMBNAIL_CREATED,
+        WebhookEventAsyncType.THUMBNAIL_CREATED,
     )
 
 

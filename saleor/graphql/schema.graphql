@@ -1712,6 +1712,27 @@ enum WebhookEventTypeEnum {
   PRODUCT_DELETED
 
   """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
   A product metadata is updated.
   
   Added in Saleor 3.8.
@@ -1904,6 +1925,13 @@ enum WebhookEventTypeEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 
   """Authorize payment."""
   PAYMENT_AUTHORIZE
@@ -2234,6 +2262,27 @@ enum WebhookEventTypeAsyncEnum {
   PRODUCT_DELETED
 
   """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
   A product metadata is updated.
   
   Added in Saleor 3.8.
@@ -2426,6 +2475,13 @@ enum WebhookEventTypeAsyncEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 }
 
 """Represents app data."""
@@ -2946,6 +3002,9 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
   PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
@@ -2994,6 +3053,7 @@ enum WebhookSampleEventTypeEnum {
   VOUCHER_DELETED
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
+  THUMBNAIL_CREATED
 }
 
 """Represents warehouse."""
@@ -6619,6 +6679,13 @@ type ProductMedia implements Node & ObjectWithMetadata {
     """
     format: ThumbnailFormatEnum
   ): String!
+
+  """
+  Product id the media refers to.
+  
+  Added in Saleor 3.12.
+  """
+  productId: ID
 }
 
 """An enumeration."""
@@ -25210,6 +25277,72 @@ type ProductMetadataUpdated implements Event {
 }
 
 """
+Event sent when new product media is created.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is updated.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is deleted.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
@@ -26796,6 +26929,53 @@ type WarehouseMetadataUpdated implements Event {
 
   """The warehouse the event relates to."""
   warehouse: Warehouse
+}
+
+"""
+Event sent when thumbnail is created.
+
+Added in Saleor 3.12.
+"""
+type ThumbnailCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Thumbnail id.
+  
+  Added in Saleor 3.12.
+  """
+  id: ID
+
+  """
+  Thumbnail url.
+  
+  Added in Saleor 3.12.
+  """
+  url: String
+
+  """
+  Object the thumbnail refers to.
+  
+  Added in Saleor 3.12.
+  """
+  objectId: ID
+
+  """
+  Original media url.
+  
+  Added in Saleor 3.12.
+  """
+  mediaUrl: String
 }
 
 """

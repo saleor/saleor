@@ -964,6 +964,75 @@ def test_product_metadata_updated(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_product_media_created(
+    product_media_image, subscription_product_media_created_webhook
+):
+    media = product_media_image
+    webhooks = [subscription_product_media_created_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_MEDIA_CREATED
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, media, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productMedia": {
+                "id": media_id,
+                "url": f"http://mirumee.com{media.image.url}",
+                "productId": graphene.Node.to_global_id("Product", media.product_id),
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_media_updated(
+    product_media_image, subscription_product_media_updated_webhook
+):
+    media = product_media_image
+    webhooks = [subscription_product_media_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, media, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productMedia": {
+                "id": media_id,
+                "url": f"http://mirumee.com{media.image.url}",
+                "productId": graphene.Node.to_global_id("Product", media.product_id),
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_media_deleted(
+    product_media_image, subscription_product_media_deleted_webhook
+):
+    media = product_media_image
+    webhooks = [subscription_product_media_deleted_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_MEDIA_DELETED
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, media, webhooks)
+    expected_payload = json.dumps(
+        {
+            "productMedia": {
+                "id": media_id,
+                "url": f"http://mirumee.com{media.image.url}",
+                "productId": graphene.Node.to_global_id("Product", media.product_id),
+            }
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_product_variant_created(variant, subscription_product_variant_created_webhook):
     webhooks = [subscription_product_variant_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_CREATED
@@ -2264,5 +2333,113 @@ def test_generate_payload_from_subscription_return_permission_errors_in_payload(
 
     assert not payload["giftCard"]
     assert payload["errors"][0]["extensions"]["exception"]["code"] == error_code
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_thumbnail_created_product_media(
+    thumbnail_product_media, subscription_thumbnail_created_webhook
+):
+    # given
+    thumbnail = thumbnail_product_media
+    webhooks = [subscription_thumbnail_created_webhook]
+    event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    setattr(thumbnail, "instance", thumbnail.product_media)
+    expected_payload = json.dumps(
+        {
+            "url": thumbnail.image.url,
+            "id": thumbnail_id,
+            "objectId": graphene.Node.to_global_id(
+                "ProductMedia", thumbnail.instance.id
+            ),
+            "mediaUrl": thumbnail.instance.image.url,
+        }
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, thumbnail, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_thumbnail_created_category(
+    thumbnail_category, subscription_thumbnail_created_webhook
+):
+    # given
+    thumbnail = thumbnail_category
+    webhooks = [subscription_thumbnail_created_webhook]
+    event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    setattr(thumbnail, "instance", thumbnail.category)
+    expected_payload = json.dumps(
+        {
+            "url": thumbnail.image.url,
+            "id": thumbnail_id,
+            "objectId": graphene.Node.to_global_id("Category", thumbnail.instance.id),
+            "mediaUrl": thumbnail.instance.background_image.url,
+        }
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, thumbnail, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_thumbnail_created_collection(
+    thumbnail_collection, subscription_thumbnail_created_webhook
+):
+    # given
+    thumbnail = thumbnail_collection
+    webhooks = [subscription_thumbnail_created_webhook]
+    event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    setattr(thumbnail, "instance", thumbnail.collection)
+    expected_payload = json.dumps(
+        {
+            "url": thumbnail.image.url,
+            "id": thumbnail_id,
+            "objectId": graphene.Node.to_global_id("Collection", thumbnail.instance.id),
+            "mediaUrl": thumbnail.instance.background_image.url,
+        }
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, thumbnail, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_thumbnail_created_user(thumbnail_user, subscription_thumbnail_created_webhook):
+    # given
+    thumbnail = thumbnail_user
+    webhooks = [subscription_thumbnail_created_webhook]
+    event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+    setattr(thumbnail, "instance", thumbnail.user)
+    expected_payload = json.dumps(
+        {
+            "url": thumbnail.image.url,
+            "id": thumbnail_id,
+            "objectId": graphene.Node.to_global_id("User", thumbnail.instance.id),
+            "mediaUrl": thumbnail.instance.avatar.url,
+        }
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, thumbnail, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

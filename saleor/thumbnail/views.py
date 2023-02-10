@@ -6,7 +6,9 @@ from django.http import HttpResponseNotFound, HttpResponseRedirect
 from graphql.error import GraphQLError
 
 from ..account.models import User
+from ..core.utils.events import call_event
 from ..graphql.core.utils import from_global_id_or_error
+from ..plugins.manager import get_plugins_manager
 from ..product.models import Category, Collection, ProductMedia
 from ..thumbnail.models import Thumbnail
 from . import ThumbnailFormat
@@ -84,5 +86,11 @@ def handle_thumbnail(
     )
     thumbnail.image.save(thumbnail_file_name, thumbnail_file)
     thumbnail.save()
+
+    # set additional `instance` attribute, to easily get instance data
+    # for ThumbnailCreated subscription type
+    setattr(thumbnail, "instance", instance)
+    manager = get_plugins_manager()
+    call_event(manager.thumbnail_created, thumbnail)
 
     return HttpResponseRedirect(thumbnail.image.url)

@@ -1759,6 +1759,9 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     type = ProductMediaType(required=True)
     oembed_data = JSONString(required=True)
     url = ThumbnailField(graphene.String, required=True)
+    product_id = graphene.ID(
+        description="Product id the media refers to." + ADDED_IN_312
+    )
 
     class Meta:
         description = "Represents a product media."
@@ -1797,6 +1800,10 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         return resolve_federation_references(
             ProductMedia, roots, models.ProductMedia.objects
         )
+
+    @staticmethod
+    def resolve_product_id(root: models.ProductMedia, info):
+        return graphene.Node.to_global_id("Product", root.product_id)
 
 
 class ProductImage(graphene.ObjectType):

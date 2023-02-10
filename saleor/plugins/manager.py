@@ -64,12 +64,14 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..tax.models import TaxClass
+    from ..thumbnail.models import Thumbnail
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
@@ -618,6 +620,24 @@ class PluginsManager(PaymentInterface):
             "product_deleted", default_value, product, variants
         )
 
+    def product_media_created(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_created", default_value, media
+        )
+
+    def product_media_updated(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_updated", default_value, media
+        )
+
+    def product_media_deleted(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_deleted", default_value, media
+        )
+
     def product_metadata_updated(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1130,6 +1150,15 @@ class PluginsManager(PaymentInterface):
     def staff_deleted(self, staff_user: "User"):
         default_value = None
         return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+
+    def thumbnail_created(
+        self,
+        thumbnail: "Thumbnail",
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "thumbnail_created", default_value, thumbnail
+        )
 
     def warehouse_created(self, warehouse: "Warehouse"):
         default_value = None

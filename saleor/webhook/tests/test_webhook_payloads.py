@@ -53,12 +53,14 @@ from ..payloads import (
     generate_order_payload,
     generate_order_payload_for_tax_calculation,
     generate_payment_payload,
+    generate_product_media_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
     generate_sale_toggle_payload,
+    generate_thumbnail_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
 )
@@ -2171,3 +2173,31 @@ def test_generate_warehouse_metadata_updated_payload(
         "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
+
+
+def test_generate_thumbnail_payload(thumbnail_product_media):
+    # given
+    thumbnail = thumbnail_product_media
+    thumbnail_id = graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+
+    expected_payload = {"id": thumbnail_id}
+
+    # when
+    payload = json.loads(generate_thumbnail_payload(thumbnail))
+
+    # then
+    assert payload == expected_payload
+
+
+def test_generate_product_media_payload(product_media_image):
+    # given
+    media = product_media_image
+    media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+
+    expected_payload = {"id": media_id}
+
+    # when
+    payload = json.loads(generate_product_media_payload(media))
+
+    # then
+    assert payload == expected_payload

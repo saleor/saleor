@@ -91,7 +91,6 @@ def generate_payload_from_subscription(
     )
     app_id = app.pk if app else None
     request.app = app
-
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
