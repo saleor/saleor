@@ -28,7 +28,7 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo
-from ...core.context import set_mutation_flag_in_context
+from ...core.context import disallow_replica_in_context
 from ...core.descriptions import ADDED_IN_310
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
@@ -87,7 +87,7 @@ class SetPassword(CreateToken):
     def mutate(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, email, password, token
     ):
-        set_mutation_flag_in_context(info.context)
+        disallow_replica_in_context(info.context)
         manager = get_plugin_manager_promise(info.context).get()
         result = manager.perform_mutation(
             mutation_cls=cls,
