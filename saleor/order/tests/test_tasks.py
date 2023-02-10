@@ -144,7 +144,7 @@ def test_expire_orders_task_locked_over_hour(logger_mock, order_list, allocation
 
     now = timezone.now()
 
-    lock = CeleryTask.objects.create(task_name=task_name)
+    lock = CeleryTask.objects.create(name=task_name)
     lock.created_at = now - timezone.timedelta(hours=2)
     lock.save()
 

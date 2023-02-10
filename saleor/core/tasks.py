@@ -15,7 +15,7 @@ def celery_task_lock(task_name):
     lock = None
     created = False
     try:
-        lock, created = CeleryTask.objects.get_or_create(task_name=task_name)
+        lock, created = CeleryTask.objects.get_or_create(name=task_name)
         yield lock, created
     finally:
         if lock and created:
