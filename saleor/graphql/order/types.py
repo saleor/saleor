@@ -981,9 +981,6 @@ class Order(ModelObjectType[models.Order]):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
-    shipping_price = graphene.Field(
-        TaxedMoney, description="Total price of shipping.", required=True
-    )
     shipping_method = graphene.Field(
         ShippingMethod,
         description="Shipping method for this order.",
