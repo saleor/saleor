@@ -1,6 +1,6 @@
 from email.headerregistry import Address
 from email.utils import parseaddr
-from typing import TYPE_CHECKING, Final, Optional
+from typing import Final, Optional
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -15,9 +15,6 @@ from ..permission.enums import SitePermissions
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
-
-if TYPE_CHECKING:
-    from ..settings import DEFAULT_FROM_EMAIL
 
 patch_contrib_sites()
 
@@ -114,7 +111,7 @@ class SiteSettings(models.Model):
         sender_address: Optional[str] = self.default_mail_sender_address
 
         if not sender_address:
-            sender_address = DEFAULT_FROM_EMAIL
+            sender_address = settings.DEFAULT_FROM_EMAIL
 
             if not sender_address:
                 raise ImproperlyConfigured("No sender email address has been set-up")
