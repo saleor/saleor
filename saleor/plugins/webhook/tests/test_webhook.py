@@ -53,8 +53,8 @@ from ....webhook.payloads import (
 )
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
-from ...webhook.tasks import send_webhook_request_async, trigger_webhooks_async
 from .. import signature_for_payload
+from ..tasks import send_webhook_request_async, trigger_webhooks_async
 from .utils import generate_request_headers
 
 first_url = "http://www.example.com/first/"
@@ -1383,6 +1383,7 @@ def test_send_webhook_request_async(
         event_delivery.webhook.secret_key,
         event_delivery.event_type,
         event_delivery.payload.payload,
+        event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
     attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
@@ -1395,6 +1396,26 @@ def test_send_webhook_request_async(
     assert attempt.duration == webhook_response.duration
     assert delivery.status == EventDeliveryStatus.SUCCESS
     mocked_observability.assert_called_once_with(attempt)
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_send_webhook_request_async_with_custom_headers(
+    mocked_send_response,
+    event_delivery,
+    webhook_response,
+):
+    # given
+    mocked_send_response.return_value = webhook_response
+    custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
+    event_delivery.webhook.custom_headers = custom_headers
+    event_delivery.webhook.save(update_fields=["custom_headers"])
+
+    # when
+    send_webhook_request_async(event_delivery.pk)
+
+    # then
+    mocked_send_response.assert_called_once()
+    assert custom_headers in mocked_send_response.call_args[0]
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")

@@ -12,7 +12,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_312, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_312, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, JSONString
 from ..core.types import ModelObjectType, NonNullList
 from ..webhook.enums import EventDeliveryStatusEnum, WebhookEventTypeEnum
@@ -190,6 +190,7 @@ class Webhook(ModelObjectType[models.Webhook]):
     custom_headers = JSONString(
         description="Custom headers, which will be added to http request."
         + ADDED_IN_312
+        + PREVIEW_FEATURE
     )
 
     class Meta:

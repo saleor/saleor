@@ -8,9 +8,11 @@ from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
 from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
 
+from ....core import EventDeliveryStatus
 from ....webhook.event_types import WebhookEventAsyncType
 from ...webhook import signature_for_payload
 from ...webhook.tasks import trigger_webhooks_async
+from ..tasks import send_webhook_using_http
 
 
 @pytest.mark.parametrize(
@@ -387,3 +389,26 @@ def test_trigger_webhooks_with_http_and_custom_headers(
     # then
     mock_request.assert_called_once()
     assert mock_request.call_args[1]["headers"] == expected_headers
+
+
+def test_send_webhooks_with_http_and_invalid_custom_headers():
+    # given
+    custom_headers = {"InvalidKey": "Value"}
+
+    # when
+    response = send_webhook_using_http(
+        target_url="http://www.example.com/test",
+        message='{"some": "payload"}',
+        domain="mirumee.com",
+        signature="signature",
+        event_type=WebhookEventAsyncType.ORDER_CREATED,
+        timeout=10,
+        custom_headers=custom_headers,
+    )
+
+    # then
+    assert response.status == EventDeliveryStatus.FAILED
+    assert (
+        response.content == '"InvalidKey" does not match allowed key pattern: '
+        '"X-*" or "Authorization*".'
+    )

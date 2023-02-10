@@ -308,7 +308,7 @@ def send_webhook_using_http(
     signature,
     event_type,
     timeout=settings.WEBHOOK_TIMEOUT,
-    custom_headers=None,
+    custom_headers: Optional[Dict[str, str]] = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -334,15 +334,16 @@ def send_webhook_using_http(
         AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
 
-    try:
-        custom_headers_validator(custom_headers)
-        headers.update(custom_headers)
-    except ValidationError as e:
-        return WebhookResponse(
-            content=str(e.message),
-            status=EventDeliveryStatus.FAILED,
-            request_headers=headers,
-        )
+    if custom_headers:
+        try:
+            custom_headers_validator(custom_headers)
+            headers.update(custom_headers)
+        except ValidationError as e:
+            return WebhookResponse(
+                content=str(e.message),
+                status=EventDeliveryStatus.FAILED,
+                request_headers=headers,
+            )
 
     try:
         response = requests.post(
@@ -476,6 +477,7 @@ def send_webhook_using_scheme_method(
         WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
         WebhookSchemes.GOOGLE_CLOUD_PUBSUB: send_webhook_using_google_cloud_pubsub,
     }
+
     if send_method := scheme_matrix.get(parts.scheme.lower()):
         # try:
         return send_method(
