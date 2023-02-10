@@ -11,7 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
   - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
   - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
-
+- Add meta fields to `ProductMedia` model - #11894 by @zedzior
 
 ### Other changes
 

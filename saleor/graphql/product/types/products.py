@@ -52,6 +52,7 @@ from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
     ADDED_IN_310,
+    ADDED_IN_312,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
@@ -1761,8 +1762,9 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
 
     class Meta:
         description = "Represents a product media."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
+        metadata_since = ADDED_IN_312
 
     @staticmethod
     def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
