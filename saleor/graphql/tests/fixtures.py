@@ -18,10 +18,6 @@ from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
 API_PATH = reverse("api")
-ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
-ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials"
-ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers"
-ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods"
 
 
 class ApiClient(Client):

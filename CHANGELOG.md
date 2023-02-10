@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `PRODUCT_MEDIA_UPDATED`
   - `PRODUCT_MEDIA_DELETED`
   - `THUMBNAIL_CREATED`
+- CORS is now handled in the ASGI layer - #11415 by @patrys
 
 # 3.11.0
 
