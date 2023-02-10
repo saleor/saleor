@@ -71,7 +71,9 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
     return len(subscriptions) == 1
 
 
-def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
+def initialize_request(
+    requestor=None, sync_event=False, allow_replica=True
+) -> HttpRequest:
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object.
@@ -96,6 +98,7 @@ def initialize_request(requestor=None, sync_event=False) -> HttpRequest:
     request.sync_event = sync_event  # type: ignore
     request.requestor = requestor  # type: ignore
     request.request_time = request_time  # type: ignore
+    request.allow_replica = allow_replica  # type: ignore
 
     return request
 

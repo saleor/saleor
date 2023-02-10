@@ -6,7 +6,7 @@ from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...channel import ChannelContext
-from ...core.context import set_mutation_flag_in_context
+from ...core.context import disallow_replica_in_context
 from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import NonNullList, ProductError, Upload
@@ -161,7 +161,7 @@ class DigitalContentDelete(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        set_mutation_flag_in_context(info.context)
+        disallow_replica_in_context(info.context)
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
         manager = get_plugin_manager_promise(info.context).get()

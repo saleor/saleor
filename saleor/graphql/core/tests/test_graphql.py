@@ -1,4 +1,5 @@
 from functools import partial
+from unittest import mock
 from unittest.mock import Mock
 
 import graphene
@@ -363,3 +364,27 @@ def test_from_global_id_or_error_wth_type(product):
 
     assert product_id == str(product.id)
     assert product_type == expected_product_type
+
+
+@mock.patch("saleor.graphql.order.schema.create_connection_slice")
+def test_query_allow_replica(
+    mocked_resolver, staff_api_client, order, permission_manage_orders
+):
+    # given
+    query = """
+        query {
+          orders(first: 5){
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+    """
+
+    # when
+    staff_api_client.post_graphql(query, permissions=[permission_manage_orders])
+
+    # then
+    assert mocked_resolver.call_args[0][1].context.allow_replica
