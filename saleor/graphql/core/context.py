@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class SaleorContext(HttpRequest):
     _cached_user: Optional[User]
     decoded_auth_token: Optional[Dict[str, Any]]
-    is_mutation: bool
+    allow_replica: bool = True
     dataloaders: Dict[str, "DataLoader"]
     app: Optional[App]
     user: Optional[User]  # type: ignore[assignment]
@@ -23,19 +23,18 @@ class SaleorContext(HttpRequest):
     request_time: datetime.datetime
 
 
-def set_mutation_flag_in_context(context: SaleorContext) -> None:
-    """Set information in context to don't use database replicas.
+def disallow_replica_in_context(context: SaleorContext) -> None:
+    """Set information in context to use database replicas or not.
 
     Part of the database read replicas in Saleor.
     When Saleor builds a response for mutation `context` stores information
-    `is_mutation=True`. That means that all data should be provided from
+    `allow_replica=False`. That means that all data should be provided from
     the master database.
-    When Saleor build a response for query `context` doesn't have the
-    `is_mutation` field.
+    When Saleor builds a response for query, set `allow_replica`=True in `context`.
     That means that all data should be provided from reading replica of the database.
     Database read replica couldn't be used to save any data.
     """
-    context.is_mutation = True
+    context.allow_replica = False
 
 
 def get_database_connection_name(context: SaleorContext) -> str:
@@ -43,13 +42,13 @@ def get_database_connection_name(context: SaleorContext) -> str:
 
     Part of the database read replicas in Saleor.
     Return proper connection name based on `context`.
-    For more info check `set_mutation_flag_in_context`
+    For more info check `disallow_replica_in_context`
     Add `.using(connection_name)` to use connection name in QuerySet.
     Queryset to main database: `User.objects.all()`.
     Queryset to read replica: `User.objects.using(connection_name).all()`.
     """
-    is_mutation = getattr(context, "is_mutation", False)
-    if not is_mutation:
+    allow_replica = getattr(context, "allow_replica", False)
+    if allow_replica:
         return settings.DATABASE_CONNECTION_REPLICA_NAME
     return settings.DATABASE_CONNECTION_DEFAULT_NAME
 

@@ -31,14 +31,16 @@ class PluginManagerByRequestorDataloader(DataLoader):
     context_key = "plugin_manager_by_requestor"
 
     def batch_load(self, keys):
-        return [get_plugins_manager(lambda: key) for key in keys]
+        allow_replica = getattr(self.context, "allow_replica", True)
+        return [get_plugins_manager(lambda: key, allow_replica) for key in keys]
 
 
 class AnonymousPluginManagerLoader(DataLoader):
     context_key = "anonymous_plugin_manager"
 
     def batch_load(self, keys):
-        return [get_plugins_manager() for key in keys]
+        allow_replica = getattr(self.context, "allow_replica", True)
+        return [get_plugins_manager(None, allow_replica) for key in keys]
 
 
 def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:
