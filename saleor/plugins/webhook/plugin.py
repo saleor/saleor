@@ -1291,6 +1291,7 @@ class WebhookPlugin(BasePlugin):
         transaction_kind: str,
         payment_information: "PaymentData",
         previous_value,
+        **kwargs,
     ) -> "GatewayResponse":
         """Trigger payment webhook event.
 
