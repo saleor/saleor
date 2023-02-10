@@ -271,6 +271,7 @@ def get_products_voucher_discount(
 
 def fetch_categories(
     sale_pks: Iterable[str],
+    lines_info: Iterable["CheckoutLineInfo"] = [],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Dict[int, Set[int]]:
     from ..product.models import Category
@@ -284,60 +285,85 @@ def fetch_categories(
     category_map: Dict[int, Set[int]] = defaultdict(set)
     for sale_pk, category_pk in categories:
         category_map[sale_pk].add(category_pk)
+
+    used_category_pks = {line_info.product.category_id for line_info in lines_info}
+
     subcategory_map: Dict[int, Set[int]] = defaultdict(set)
     for sale_pk, category_pks in category_map.items():
-        subcategory_map[sale_pk] = set(
-            Category.tree.filter(pk__in=category_pks)
-            .get_descendants(include_self=True)
-            .values_list("pk", flat=True)
+        subcategories = Category.tree.filter(pk__in=category_pks).get_descendants(
+            include_self=True
         )
+
+        if used_category_pks:
+            subcategories = subcategories.filter(pk__in=used_category_pks)
+
+        subcategory_map[sale_pk] = set(subcategories.values_list("pk", flat=True))
     return subcategory_map
 
 
 def fetch_collections(
     sale_pks: Iterable[str],
+    lines_info: Iterable["CheckoutLineInfo"] = [],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Dict[int, Set[int]]:
-    collections = (
-        Sale.collections.through.objects.using(database_connection_name)
-        .filter(sale_id__in=sale_pks)
-        .order_by("id")
-        .values_list("sale_id", "collection_id")
-    )
+    collections = Sale.collections.through.objects.using(
+        database_connection_name
+    ).filter(sale_id__in=sale_pks)
+
+    if lines_info:
+        collection_pks = [
+            collection.pk
+            for line_info in lines_info
+            for collection in line_info.collections
+        ]
+        collections = collections.filter(collection_id__in=collection_pks)
+
     collection_map: Dict[int, Set[int]] = defaultdict(set)
-    for sale_pk, collection_pk in collections:
+    for sale_pk, collection_pk in collections.order_by("id").values_list(
+        "sale_id", "collection_id"
+    ):
         collection_map[sale_pk].add(collection_pk)
     return collection_map
 
 
 def fetch_products(
     sale_pks: Iterable[str],
+    lines_info: Iterable["CheckoutLineInfo"] = [],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Dict[int, Set[int]]:
-    products = (
-        Sale.products.through.objects.using(database_connection_name)
-        .filter(sale_id__in=sale_pks)
-        .order_by("id")
-        .values_list("sale_id", "product_id")
+    product_qs = Sale.products.through.objects.using(database_connection_name).filter(
+        sale_id__in=sale_pks
     )
+
+    if lines_info:
+        product_pks = [line_info.product.pk for line_info in lines_info]
+        product_qs = product_qs.filter(product_id__in=product_pks)
+
     product_map: Dict[int, Set[int]] = defaultdict(set)
-    for sale_pk, product_pk in products:
+    for sale_pk, product_pk in product_qs.order_by("id").values_list(
+        "sale_id", "product_id"
+    ):
         product_map[sale_pk].add(product_pk)
     return product_map
 
 
 def fetch_variants(
     sale_pks: Iterable[str],
+    lines_info: Iterable["CheckoutLineInfo"] = [],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Dict[int, Set[int]]:
-    variants = (
-        Sale.variants.through.objects.using(database_connection_name)
-        .filter(sale_id__in=sale_pks)
-        .order_by("id")
-        .values_list("sale_id", "productvariant_id")
+    variant_qs = Sale.variants.through.objects.using(database_connection_name).filter(
+        sale_id__in=sale_pks
     )
+
+    if lines_info:
+        variant_pks = [line_info.variant.pk for line_info in lines_info]
+        variant_qs = variant_qs.filter(productvariant_id__in=variant_pks)
+
     variants_map: Dict[int, Set[int]] = defaultdict(set)
-    for sale_pk, variant_pk in variants:
+    for sale_pk, variant_pk in variant_qs.order_by("id").values_list(
+        "sale_id", "productvariant_id"
+    ):
         variants_map[sale_pk].add(variant_pk)
     return variants_map
 
@@ -412,3 +438,46 @@ def apply_discount_to_value(
         **discount_kwargs,
     )
     return discount(price_to_discount)
+
+
+def fetch_active_sales_for_checkout(
+    lines_info: Iterable["CheckoutLineInfo"],
+) -> List[DiscountInfo]:
+    """Return list of `DiscountInfo` applicable for list of `CheckoutLineInfo`.
+
+    Return list of `DiscountInfo` applicable for list of `CheckoutLineInfo`.
+    This function returns only a list of `DiscountInfo` for `Sale` which
+    are able to be applied on specified lines. When the function receives empty
+    lines in input we return an empty list of applicable `DiscountInfo`.
+    """
+    if not lines_info:
+        return []
+
+    sales = list(Sale.objects.active(timezone.now()))
+
+    pks = {s.pk for s in sales}
+    channel_listings = fetch_sale_channel_listings(pks)
+    product_pks_by_sale_pk_map = fetch_products(pks, lines_info)
+    variant_pks_by_sale_pk_map = fetch_variants(pks, lines_info)
+    category_pks_by_sale_pk_map = fetch_categories(pks, lines_info)
+    collection_pks_by_sale_pk_map = fetch_collections(pks, lines_info)
+
+    discounts_info = []
+    for sale in sales:
+        category_ids = category_pks_by_sale_pk_map[sale.pk]
+        collection_ids = collection_pks_by_sale_pk_map[sale.pk]
+        product_ids = product_pks_by_sale_pk_map[sale.pk]
+        variants_ids = variant_pks_by_sale_pk_map[sale.pk]
+        if category_ids or collection_ids or product_ids or variants_ids:
+            discounts_info.append(
+                DiscountInfo(
+                    sale=sale,
+                    category_ids=category_ids,
+                    channel_listings=channel_listings[sale.pk],
+                    collection_ids=collection_ids,
+                    product_ids=product_ids,
+                    variants_ids=variants_ids,
+                )
+            )
+
+    return discounts_info

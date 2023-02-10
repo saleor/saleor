@@ -2001,6 +2001,13 @@ def category_with_image(db, image, media_root):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def categories(db):
+    category1 = Category.objects.create(name="Category1", slug="cat1")
+    category2 = Category.objects.create(name="Category2", slug="cat2")
+    return [category1, category2]
+
+
+@pytest.fixture
 def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
     parent = Category.objects.create(name="Parent", slug="parent")
     parent.children.create(name="Child", slug="child")
@@ -5154,6 +5161,41 @@ def published_collection(db, channel_USD):
         published_at=timezone.now(),
     )
     return collection
+
+
+@pytest.fixture
+def published_collections(db, channel_USD):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(
+                name="Collection1",
+                slug="coll1",
+            ),
+            Collection(
+                name="Collection2",
+                slug="coll2",
+            ),
+            Collection(
+                name="Collection3",
+                slug="coll3",
+            ),
+        ]
+    )
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD,
+                collection=collection,
+                is_published=True,
+                published_at=datetime.datetime(
+                    2019, 4, 10, tzinfo=timezone.get_current_timezone()
+                ),
+            )
+            for collection in collections
+        ]
+    )
+
+    return collections
 
 
 @pytest.fixture

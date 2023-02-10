@@ -35,13 +35,21 @@ class DiscountsByDateTimeLoader(DataLoader):
             for datetime in keys
         }
         pks = {s.pk for d, ss in sales_map.items() for s in ss}
-        collections = fetch_collections(pks, self.database_connection_name)
+        collections = fetch_collections(
+            pks, database_connection_name=self.database_connection_name
+        )
         channel_listings = fetch_sale_channel_listings(
             pks, self.database_connection_name
         )
-        products = fetch_products(pks, self.database_connection_name)
-        categories = fetch_categories(pks, self.database_connection_name)
-        variants = fetch_variants(pks, self.database_connection_name)
+        products = fetch_products(
+            pks, database_connection_name=self.database_connection_name
+        )
+        categories = fetch_categories(
+            pks, database_connection_name=self.database_connection_name
+        )
+        variants = fetch_variants(
+            pks, database_connection_name=self.database_connection_name
+        )
 
         return [
             [
