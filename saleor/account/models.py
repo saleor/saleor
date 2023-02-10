@@ -93,15 +93,6 @@ class Address(ModelWithMetadata):
             ),
         ]
 
-    @property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
-    def __str__(self):
-        if self.company_name:
-            return f"{self.company_name} - {self.full_name}"
-        return self.full_name
-
     def __eq__(self, other):
         if not isinstance(other, Address):
             return False
@@ -231,6 +222,11 @@ class User(
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._effective_permissions = None
+
+    def __str__(self):
+        # Override the default __str__ of AbstractUser that returns username, which may
+        # lead to leaking sensitive data in logs.
+        return str(self.uuid)
 
     @property
     def effective_permissions(self) -> models.QuerySet[Permission]:
