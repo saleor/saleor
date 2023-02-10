@@ -1,8 +1,9 @@
-from datetime import timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.utils import timezone
 
+from ...core.models import CeleryTask
 from ...warehouse.models import Allocation
 from .. import OrderStatus
 from ..tasks import expire_orders_task
@@ -103,13 +104,13 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.created_at = now - timedelta(minutes=120)
+    order_2.created_at = now - timezone.timedelta(minutes=120)
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.total_charged_amount = Decimal(0)
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timedelta(minutes=120)
+    order_3.created_at = now - timezone.timedelta(minutes=120)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.total_charged_amount = Decimal(0)
     order_3.save()
@@ -133,3 +134,22 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     assert Allocation.objects.filter(
         order_line__order=order_3, quantity_allocated__gt=0
     ).exists()
+
+
+@patch("logging.Logger.error")
+def test_expire_orders_task_locked_over_hour(logger_mock, order_list, allocations):
+    # given
+    task_name = "expire_orders"
+    error_msg = "%s task exceeded 1h working time."
+
+    now = timezone.now()
+
+    lock = CeleryTask.objects.create(task_name=task_name)
+    lock.created_at = now - timezone.timedelta(hours=2)
+    lock.save()
+
+    # when
+    expire_orders_task()
+
+    # then
+    logger_mock.assert_called_once_with(error_msg, [task_name])

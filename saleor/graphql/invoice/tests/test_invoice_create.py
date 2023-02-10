@@ -94,7 +94,9 @@ def test_create_invoice_no_billing_address(
     assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize(
+    "status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED, OrderStatus.EXPIRED)
+)
 def test_create_invoice_invalid_order_status(
     status, staff_api_client, permission_manage_orders, order
 ):
