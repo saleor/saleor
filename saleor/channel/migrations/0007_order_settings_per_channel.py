@@ -7,14 +7,20 @@ def set_order_settings(apps, schema_editor):
 
     site_settings = SiteSettings.objects.first()
 
-    Channel.objects.update(
-        automatically_confirm_all_new_orders=(
-            site_settings.automatically_confirm_all_new_orders
-        ),
-        automatically_fulfill_non_shippable_gift_card=(
-            site_settings.automatically_fulfill_non_shippable_gift_card
-        ),
-    )
+    if site_settings:
+        Channel.objects.update(
+            automatically_confirm_all_new_orders=(
+                site_settings.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                site_settings.automatically_fulfill_non_shippable_gift_card
+            ),
+        )
+    else:
+        Channel.objects.update(
+            automatically_confirm_all_new_orders=True,
+            automatically_fulfill_non_shippable_gift_card=True,
+        )
 
 
 class Migration(migrations.Migration):
