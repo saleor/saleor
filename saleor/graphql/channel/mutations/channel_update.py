@@ -91,12 +91,20 @@ class ChannelUpdate(ModelMutation):
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
         if order_settings := cleaned_input.get("order_settings"):
-            cleaned_input["automatically_confirm_all_new_orders"] = order_settings[
+            automatically_confirm_all_new_orders = order_settings.get(
                 "automatically_confirm_all_new_orders"
-            ]
-            cleaned_input[
+            )
+            if automatically_confirm_all_new_orders is not None:
+                cleaned_input[
+                    "automatically_confirm_all_new_orders"
+                ] = automatically_confirm_all_new_orders
+            automatically_fulfill_non_shippable_gift_card = order_settings.get(
                 "automatically_fulfill_non_shippable_gift_card"
-            ] = order_settings["automatically_fulfill_non_shippable_gift_card"]
+            )
+            if automatically_fulfill_non_shippable_gift_card is not None:
+                cleaned_input[
+                    "automatically_fulfill_non_shippable_gift_card"
+                ] = automatically_fulfill_non_shippable_gift_card
 
         return cleaned_input
 
