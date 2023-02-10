@@ -2074,3 +2074,24 @@ QUERY_WITH_MULTIPLE_FRAGMENTS = (
     }
     """
 )
+
+
+ORDER_CALCULATE_TAXES = """
+    subscription {
+      event {
+        ... on CalculateTaxes {
+          taxBase {
+            sourceObject {
+              ...on Order{
+                discounts {
+                  amount {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+"""
