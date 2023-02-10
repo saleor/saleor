@@ -38,9 +38,9 @@ class Decimal(graphene.Float):
 
 
 class PositiveDecimal(Decimal):
-    """Positive Decimal scalar implementation.
+    """Nonnegative Decimal scalar implementation.
 
-    Should be used in places where value must be positive.
+    Should be used in places where value must be nonnegative (0 or greater).
     """
 
     @staticmethod

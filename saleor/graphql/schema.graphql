@@ -10095,9 +10095,9 @@ type OrderLine implements Node & ObjectWithMetadata {
 }
 
 """
-Positive Decimal scalar implementation.
+Nonnegative Decimal scalar implementation.
 
-Should be used in places where value must be positive.
+Should be used in places where value must be nonnegative (0 or greater).
 """
 scalar PositiveDecimal
 
