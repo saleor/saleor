@@ -1925,8 +1925,32 @@ enum WebhookEventTypeEnum {
 
   """Void payment."""
   PAYMENT_VOID
+
+  """
+  Event called when charge has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CHARGE_REQUESTED
+
+  """
+  Event called when refund has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_REFUND_REQUESTED
+
+  """
+  Event called when cancel has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CANCELATION_REQUESTED
 
   """
@@ -1988,8 +2012,32 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+
+  """
+  Event called when charge has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CHARGE_REQUESTED
+
+  """
+  Event called when refund has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_REFUND_REQUESTED
+
+  """
+  Event called when cancel has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CANCELATION_REQUESTED
 
   """
@@ -9385,7 +9433,7 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing authorization requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   authorizePendingAmount: Money!
 
@@ -9395,22 +9443,24 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing refund requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   refundPendingAmount: Money!
 
-  """
-  Total amount voided for this payment. This field will be removed in Saleor 4.0.Use `canceledAmount` instead.
-  """
-  voidedAmount: Money!
+  """Total amount voided for this payment."""
+  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `canceledAmount` instead.")
 
-  """Total amount canceled for this payment."""
+  """
+  Total amount canceled for this payment.
+  
+  Added in Saleor 3.12.
+  """
   canceledAmount: Money!
 
   """
   Total amount of ongoing cancel requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   cancelPendingAmount: Money!
 
@@ -9420,29 +9470,37 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing charge requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   chargePendingAmount: Money!
 
   """Status of transaction."""
-  status: String! @deprecated(reason: "This field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.")
+  status: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
 
   """Type of transaction."""
-  type: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `name` or `message` instead.")
+  type: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). Use `name` or `message` instead.")
 
-  """Name of the transaction."""
+  """
+  Name of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   name: String!
 
-  """Message related to the transaction."""
+  """
+  Message related to the transaction.
+  
+  Added in Saleor 3.12.
+  """
   message: String!
 
   """Reference of transaction."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String!
 
@@ -9459,14 +9517,14 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   User or App that created the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   createdBy: UserOrApp
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   externalUrl: String!
 }
@@ -9477,9 +9535,9 @@ Represents possible actions on payment transaction.
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action. DEPRECATED: this enum value will be removed
-    in Saleor 3.9 (Feature Preview). Use `CANCEL` instead.
-    CANCEL - Represents a cancel action.
+    VOID - Represents a void action. This field will be removed
+    in Saleor 3.13 (Preview Feature). Use `CANCEL` instead.
+    CANCEL - Represents a cancel action. Added in Saleor 3.12.
 """
 enum TransactionActionEnum {
   CHARGE
@@ -9723,15 +9781,21 @@ type Order implements Node & ObjectWithMetadata {
   """Amount authorized for the order."""
   totalAuthorized: Money!
 
-  """
-  Amount captured for the order. This field will be removed in Saleor 4.0.Use `totalCharged` instead
-  """
-  totalCaptured: Money!
+  """Amount captured for the order."""
+  totalCaptured: Money! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `totalCharged` instead.")
 
-  """Amount charged for the order."""
+  """
+  Amount charged for the order.
+  
+  Added in Saleor 3.12.
+  """
   totalCharged: Money!
 
-  """Amount canceled for the order."""
+  """
+  Amount canceled for the order.
+  
+  Added in Saleor 3.12.
+  """
   totalCanceled: Money!
 
   """
@@ -9806,7 +9870,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   List of granted refunds.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9817,7 +9881,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of granted refund.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9828,7 +9892,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total refund amount for the order.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9837,7 +9901,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing refund requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9848,7 +9912,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing authorize requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9859,7 +9923,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing charge requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9870,7 +9934,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing cancel requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9881,7 +9945,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   The difference amount between granted refund and the amounts that are pending and refunded.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -10572,7 +10636,7 @@ type OrderEvent implements Node {
   discount: OrderEventDiscountObject
 
   """The status of payment's transaction."""
-  status: TransactionEventStatus
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
 
   """The reference of payment's transaction."""
   reference: String
@@ -10612,13 +10676,13 @@ enum OrderEventsEnum {
   TRANSACTION_CHARGE_REQUESTED
 
   """
-  This field will be removed in Saleor 4.0. Use `TRANSACTION_CHARGE_REQUESTED` instead.
+  This field will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
   """
   TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
 
   """
-  This field will be removed in Saleor 4.0. Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  This field will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
   """
   TRANSACTION_VOID_REQUESTED
   TRANSACTION_CANCEL_REQUESTED
@@ -10697,7 +10761,7 @@ Represents a status of payment transaction.
     FAILURE - Represents a failure action.
     PENDING - Represents a pending action.
 """
-enum TransactionEventStatus {
+enum TransactionStatus {
   PENDING
   SUCCESS
   FAILURE
@@ -10803,7 +10867,7 @@ enum AddressTypeEnum {
 """
 The details of granted refund.
 
-Added in Saleor 3.8.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -10838,55 +10902,61 @@ type TransactionEvent implements Node {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionEventStatus! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `type` instead.")
+  status: TransactionStatus! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). Use `type` instead.")
 
   """Reference of transaction's event."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String!
 
   """Name of the transaction's event."""
-  name: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `message` instead.")
+  name: String @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). Use `message` instead.")
 
-  """Message related to the transaction's event."""
+  """
+  Message related to the transaction's event.
+  
+  Added in Saleor 3.12.
+  """
   message: String!
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   externalUrl: String!
 
   """
   The amount related to this event.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   amount: Money!
 
   """
   The type of action related to this event.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   type: TransactionEventTypeEnum
 
   """
   User or App that created the transaction event.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   createdBy: UserOrApp
 }
 
 """
 Represents possible event types.
+
+    Added in Saleor 3.12.
 
     The following types are possible:
     AUTHORIZATION_SUCCESS - represents success authorization.
@@ -13701,7 +13771,7 @@ type Mutation {
   """
   Report the event for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -14112,7 +14182,11 @@ type Mutation {
   ): FulfillmentReturnProducts
 
   """
-  Adds granted refund to the order. 
+  Adds granted refund to the order.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14125,7 +14199,11 @@ type Mutation {
   ): OrderGrantRefundCreate
 
   """
-  Updates granted refund. 
+  Updates granted refund.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -19774,32 +19852,42 @@ input TransactionCreateInput {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
-  """Payment name of the transaction."""
+  """
+  Payment name of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   name: String
 
-  """The message of the transaction."""
+  """
+  The message of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   message: String
 
   """
-  Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
   """
-  PSP Reference of the transaction. The PSP reference must be unique across all `transactionItem` objects.
+  PSP Reference of the transaction. 
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String
 
@@ -19818,11 +19906,15 @@ input TransactionCreateInput {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
-  """Amount canceled by this transaction."""
+  """
+  Amount canceled by this transaction.
+  
+  Added in Saleor 3.12.
+  """
   amountCanceled: MoneyInput
 
   """Payment public metadata."""
@@ -19834,7 +19926,7 @@ input TransactionCreateInput {
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   externalUrl: String
 }
@@ -19843,30 +19935,36 @@ input TransactionEventInput {
   """
   Current status of the payment transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Status will be calculated by Saleor.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Status will be calculated by Saleor.
   """
-  status: TransactionEventStatus
+  status: TransactionStatus
 
   """
-  Reference of the transaction. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
   """
   PSP Reference related to this action.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   pspReference: String
 
   """
   Name of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `message` instead. `name` field will be added to `message`.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
   """
   name: String
 
-  """The message related to the event."""
+  """
+  The message related to the event.
+  
+  Added in Saleor 3.12.
+  """
   message: String
 }
 
@@ -19911,32 +20009,42 @@ input TransactionUpdateInput {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
-  """Payment name of the transaction."""
+  """
+  Payment name of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   name: String
 
-  """The message of the transaction."""
+  """
+  The message of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   message: String
 
   """
-  Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
   """
-  PSP Reference of the transaction. The PSP reference must be unique across all `transactionItem` objects.
+  PSP Reference of the transaction. 
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String
 
@@ -19955,11 +20063,15 @@ input TransactionUpdateInput {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
-  """Amount canceled by this transaction."""
+  """
+  Amount canceled by this transaction.
+  
+  Added in Saleor 3.12.
+  """
   amountCanceled: MoneyInput
 
   """Payment public metadata."""
@@ -19971,7 +20083,7 @@ input TransactionUpdateInput {
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   externalUrl: String
 }
@@ -20014,7 +20126,7 @@ enum TransactionRequestActionErrorCode {
 """
 Report the event for the transaction.
 
-Added in Saleor 3.10.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
@@ -20811,7 +20923,11 @@ input OrderReturnFulfillmentLineInput {
 }
 
 """
-Adds granted refund to the order. 
+Adds granted refund to the order.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -20860,7 +20976,11 @@ parses float to the Decimal on the way back.
 scalar Decimal
 
 """
-Updates granted refund. 
+Updates granted refund.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -27044,7 +27164,7 @@ Event sent when transaction action is requested.
 
 Added in Saleor 3.4.
 
-DEPRECATED: This subscription will be removed in 3.10 release. Use `TransactionRequestCapture`, `TransactionRequestRefund`, `TransactionRequestCancel` instead.
+DEPRECATED: this subscription will be removed in Saleor 3.13 (Preview Feature). Use `TransactionRequestCapture`, `TransactionRequestRefund`, `TransactionRequestCancel` instead.
 """
 type TransactionActionRequest implements Event {
   """Time of the event."""
@@ -27527,7 +27647,7 @@ type PaymentListGateways implements Event {
 """
 Event sent when transaction cancelation is requested.
 
-Added in Saleor 3.9.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -27554,7 +27674,7 @@ type TransactionCancelationRequested implements Event {
 """
 Event sent when transaction charge is requested.
 
-Added in Saleor 3.9.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -27581,7 +27701,7 @@ type TransactionChargeRequested implements Event {
 """
 Event sent when transaction refund is requested.
 
-Added in Saleor 3.9.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
