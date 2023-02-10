@@ -17,6 +17,11 @@ class Channel(models.Model):
         choices=AllocationStrategy.CHOICES,
         default=AllocationStrategy.PRIORITIZE_SORTING_ORDER,
     )
+    automatically_confirm_all_new_orders = models.BooleanField(default=True, null=True)
+    automatically_fulfill_non_shippable_gift_card = models.BooleanField(
+        default=True,
+        null=True,
+    )
 
     class Meta:
         ordering = ("slug",)
