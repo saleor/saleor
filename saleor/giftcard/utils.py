@@ -11,6 +11,7 @@ from django.utils import timezone
 from ..checkout.models import Checkout
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.events import call_event
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
@@ -198,6 +199,9 @@ def gift_cards_create(
 
     gift_cards = GiftCard.objects.bulk_create(gift_cards)
     events.gift_cards_bought_event(gift_cards, order, requestor_user, app)
+
+    for gift_card in gift_cards:
+        call_event(manager.gift_card_created, gift_card)
 
     channel_slug = order.channel.slug
     # send to customer all non-shippable gift cards
