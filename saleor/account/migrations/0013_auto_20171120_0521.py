@@ -22,7 +22,6 @@ def convert_phone_number_to_phonenumberfield(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("account", "0012_auto_20171117_0846")]
 
     replaces = [("userprofile", "0013_auto_20171120_0521")]

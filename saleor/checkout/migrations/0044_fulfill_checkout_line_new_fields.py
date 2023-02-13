@@ -24,7 +24,6 @@ def set_checkout_line_old_id(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0043_add_token_old_id_created_at_to_checkout_line"),
     ]

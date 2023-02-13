@@ -85,7 +85,6 @@ def request_charge_action(
     user: Optional[User],
     app: Optional[App],
 ):
-
     if charge_value is None:
         charge_value = transaction.authorized_value
 

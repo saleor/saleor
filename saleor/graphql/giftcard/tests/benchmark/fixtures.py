@@ -15,7 +15,6 @@ def gift_cards_for_benchmarks(
     gift_card,
     customer_user,
 ):
-
     gift_cards = [
         GiftCard(
             code=secrets.token_hex(8),

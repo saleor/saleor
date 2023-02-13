@@ -796,7 +796,6 @@ SEARCH_PRODUCTS_QUERY = """
 
 
 def test_search_product_by_description(user_api_client, product_list, channel_USD):
-
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)

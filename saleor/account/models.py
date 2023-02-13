@@ -233,7 +233,6 @@ class User(
         if self._effective_permissions is None:
             self._effective_permissions = get_permissions()
             if not self.is_superuser:
-
                 UserPermission = User.user_permissions.through
                 user_permission_queryset = UserPermission.objects.filter(
                     user_id=self.pk

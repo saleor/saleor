@@ -2542,7 +2542,6 @@ def test_preprocess_order_creation(
     discount_info,
     plugin_configuration,
 ):
-
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -2573,7 +2572,6 @@ def test_preprocess_order_creation_no_lines_data(
     discount_info,
     plugin_configuration,
 ):
-
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -2841,7 +2839,6 @@ def test_get_checkout_tax_data_with_single_point(
 
 
 def test_taxes_need_new_fetch_uses_cached_data(checkout_with_item, address):
-
     checkout_with_item.shipping_address = address
     config = AvataxConfiguration(
         username_or_account="wrong_data",

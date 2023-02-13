@@ -15,7 +15,6 @@ def create_uuid(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("account", "0020_user_token")]
 
     operations = [

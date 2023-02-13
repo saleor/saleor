@@ -2031,7 +2031,6 @@ def test_checkout_filter_shipping_methods_with_circular_call_for_shipping_method
     checkout_ready_to_complete,
     subscription_checkout_filter_shipping_method_webhook_with_shipping_methods,
 ):
-
     # given
     webhooks = [
         subscription_checkout_filter_shipping_method_webhook_with_shipping_methods
@@ -2058,7 +2057,6 @@ def test_checkout_filter_shipping_methods_with_available_shipping_methods_field(
     checkout_ready_to_complete,
     subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods,
 ):
-
     # given
     webhooks = [
         subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods
@@ -2085,7 +2083,6 @@ def test_checkout_filter_shipping_methods_with_circular_call_for_available_gatew
     checkout_ready_to_complete,
     subscription_checkout_filter_shipping_method_webhook_with_payment_gateways,
 ):
-
     # given
     webhooks = [
         subscription_checkout_filter_shipping_method_webhook_with_payment_gateways
@@ -2172,7 +2169,6 @@ def test_order_filter_shipping_methods_with_circular_call_for_available_methods(
     order_line_with_one_allocation,
     subscription_order_filter_shipping_methods_webhook_with_available_ship_methods,
 ):
-
     # given
     webhooks = [
         subscription_order_filter_shipping_methods_webhook_with_available_ship_methods
@@ -2197,7 +2193,6 @@ def test_order_filter_shipping_methods_with_circular_call_for_shipping_methods(
     order_line_with_one_allocation,
     subscription_order_filter_shipping_methods_webhook_with_shipping_methods,
 ):
-
     # given
     webhooks = [
         subscription_order_filter_shipping_methods_webhook_with_shipping_methods

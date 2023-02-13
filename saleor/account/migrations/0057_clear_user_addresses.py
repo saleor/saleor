@@ -31,7 +31,6 @@ def clear_addresses(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0056_merge_20210903_0640"),
     ]

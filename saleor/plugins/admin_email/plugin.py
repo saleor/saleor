@@ -190,7 +190,6 @@ class AdminEmailPlugin(BasePlugin):
         def map_templates_to_configuration(
             email_templates: List["EmailTemplate"],
         ) -> PluginConfigurationType:
-
             email_template_by_name = {
                 email_template.name: email_template
                 for email_template in email_templates

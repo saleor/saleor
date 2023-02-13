@@ -44,7 +44,6 @@ def convert_paritally_charged_and_partially_refunded_to_charged(apps, schema_edi
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("payment", "0008_merge_20190214_0447")]
 
     operations = [

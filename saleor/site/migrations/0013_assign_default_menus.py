@@ -19,7 +19,6 @@ def assign_default_menus(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("menu", "0003_auto_20180405_0854"),
         ("site", "0012_auto_20180405_0757"),

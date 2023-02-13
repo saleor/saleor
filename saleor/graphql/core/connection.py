@@ -98,7 +98,6 @@ def _prepare_filter_expression(
     sorting_fields: List[str],
     sorting_direction: str,
 ) -> Tuple[Q, Dict[str, Union[str, bool]]]:
-
     field_expression: Dict[str, Union[str, bool]] = {}
     extra_expression = Q()
     for cursor_id, cursor_value in enumerate(cursor[:index]):

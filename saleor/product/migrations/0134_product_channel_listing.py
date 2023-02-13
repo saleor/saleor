@@ -35,7 +35,6 @@ def migrate_products_publishable_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("product", "0133_product_variant_channel_listing"),

@@ -5,6 +5,7 @@ from django.db.models import Q
 # could have happen to create `Channel` with null site settings.
 # This migration makes sure to covers such cases.
 
+
 # Small note: Filtering null values is only for performance.
 # Updating all channells would have ended up with the same result.
 def set_order_settings(apps, schema_editor):
@@ -27,7 +28,6 @@ def set_order_settings(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0007_order_settings_per_channel"),
     ]

@@ -13,7 +13,6 @@ def migrate_gift_card_data(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0005_auto_20210719_1116"),
     ]

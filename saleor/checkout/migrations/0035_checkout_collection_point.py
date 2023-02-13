@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0015_auto_20210713_0904"),
         ("checkout", "0034_remove_checkout_quantity"),

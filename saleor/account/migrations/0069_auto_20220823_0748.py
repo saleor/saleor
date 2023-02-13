@@ -9,7 +9,6 @@ def fill_missing_uuid_on_users(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0068_user_uuid"),
     ]

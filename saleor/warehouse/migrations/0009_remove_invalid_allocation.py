@@ -15,7 +15,6 @@ def remove_invalid_allocations(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0008_auto_20200430_0239"),
     ]

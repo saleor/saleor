@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tax", "0001_initial"),
         ("shipping", "0031_alter_shippingmethodtranslation_language_code"),

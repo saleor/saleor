@@ -41,7 +41,6 @@ def generate_unique_slug(instance, slug_values_list):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("menu", "0018_auto_20200709_1102"),
     ]

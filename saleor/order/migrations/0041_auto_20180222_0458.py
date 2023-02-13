@@ -21,7 +21,6 @@ def assign_delivery_group_to_lines(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0040_auto_20180210_0422")]
 
     operations = [

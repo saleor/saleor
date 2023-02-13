@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("shipping", "0016_shippingmethod_meta")]
 
     operations = [

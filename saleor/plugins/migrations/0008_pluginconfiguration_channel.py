@@ -66,7 +66,6 @@ def populate_plugin_configurations_for_channels(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("plugins", "0007_add_user_emails_configuration"),

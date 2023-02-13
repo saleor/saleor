@@ -147,7 +147,6 @@ class ProductVariantBulkCreate(BaseMutation):
         variant_index,
         index_error_map,
     ):
-
         attributes_errors_count = 0
         if attributes := cleaned_input.get("attributes"):
             attributes_ids = {attr["id"] for attr in attributes or []}

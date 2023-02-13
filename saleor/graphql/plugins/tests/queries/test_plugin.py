@@ -64,7 +64,6 @@ def test_query_plugin_hides_secret_fields(
     permission_manage_plugins,
     settings,
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
@@ -117,7 +116,6 @@ def test_query_plugin_hides_secret_fields_for_channel_configurations(
     settings,
     channel_PLN,
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
     manager = get_plugins_manager()
 

@@ -11,7 +11,6 @@ def create_default_page_type(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("page", "0027_alter_page_created_at"),
     ]
