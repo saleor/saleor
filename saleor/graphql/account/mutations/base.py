@@ -303,8 +303,8 @@ class PasswordChange(BaseMutation):
 
         if old_password is None:
             # Spend time hashing useless password
-            # This prevents outside actors telling if user has unusable
-            # password set or not by measuring API's response time
+            # This prevents the outside actors from telling if user has
+            # unusable password set or not by measuring API's response time
             make_password("waste-time")
 
             if user.has_usable_password():
