@@ -4448,7 +4448,7 @@ def test_password_change_invalid_new_password(user_api_client, settings):
     assert errors[1]["message"] == "This password is entirely numeric."
 
 
-def test_password_change_user_unusable_password_fails_if_old_password_is_given(
+def test_password_change_user_unusable_password_fails_if_old_password_is_set(
     user_api_client
 ):
     customer_user = user_api_client.user
@@ -4490,6 +4490,25 @@ def test_password_change_user_unusable_password_if_old_password_is_omitted(
     password_change_event = account_events.CustomerEvent.objects.get()
     assert password_change_event.type == account_events.CustomerEvents.PASSWORD_CHANGED
     assert password_change_event.user == customer_user
+
+
+def test_password_change_user_usable_password_fails_if_old_password_is_omitted(
+    user_api_client
+):
+    customer_user = user_api_client.user
+
+    new_password = "spanish-inquisition"
+
+    variables = {"newPassword": new_password}
+    response = user_api_client.post_graphql(CHANGE_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["passwordChange"]
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "oldPassword"
+
+    customer_user.refresh_from_db()
+    assert customer_user.has_usable_password()
+    assert not customer_user.check_password(new_password)
 
 
 ADDRESS_CREATE_MUTATION = """
