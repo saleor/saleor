@@ -105,9 +105,6 @@ class SiteSettings(models.Model):
             (SitePermissions.MANAGE_TRANSLATIONS.codename, "Manage translations."),
         )
 
-    def __str__(self):
-        return self.site.name
-
     @property
     def default_from_email(self) -> str:
         sender_name: str = self.default_mail_sender_name
@@ -147,9 +144,6 @@ class SiteSettingsTranslation(Translation):
             self.pk,
             self.site_settings_id,
         )
-
-    def __str__(self):
-        return self.site_settings.site.name
 
     def get_translated_object_id(self):
         return "Shop", self.site_settings_id
