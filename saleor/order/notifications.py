@@ -8,7 +8,7 @@ from ..account.models import StaffNotificationRecipient
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.prices import quantize_price, quantize_price_fields
-from ..core.utils.url import prepare_url
+from ..core.utils.url import build_absolute_uri, prepare_url
 from ..discount import OrderDiscountType
 from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
@@ -27,8 +27,8 @@ def get_image_payload(instance: ProductMedia):
         # This is temporary solution, the get_product_image_thumbnail_url
         # should be optimize - we should fetch all thumbnails at once instead of
         # fetching thumbnails by one for each size
-        str(size): get_image_or_proxy_url(
-            None, str(instance.id), "ProductMedia", size, None
+        str(size): build_absolute_uri(
+            get_image_or_proxy_url(None, str(instance.id), "ProductMedia", size, None)
         )
         for size in THUMBNAIL_SIZES
     }
