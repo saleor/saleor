@@ -17,7 +17,7 @@
   "homepage": "http://saleor.io/",
   "devDependencies": {
     "@release-it/bumper": "^4.0.0",
-    "release-it": "^15.4.2"
+    "release-it": "^15.6.0"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
