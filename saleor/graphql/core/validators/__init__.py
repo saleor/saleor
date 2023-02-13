@@ -40,7 +40,11 @@ def validate_one_of_args_is_in_query(*args):
         raise GraphQLError(f"At least one of arguments is required: {required_args}.")
 
 
-def validate_price_precision(value: Optional["Decimal"], currency: str):
+def validate_price_precision(
+    value: Optional["Decimal"],
+    currency: str,
+    currency_fractions=None,
+):
     """Validate if price amount does not have too many decimal places.
 
     Price amount can't have more decimal places than currency allow to.
@@ -50,7 +54,15 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
     # check no needed when there is no value
     if not value:
         return
-    currency_fraction = get_currency_fraction(currency)
+
+    if currency_fractions:
+        try:
+            currency_fraction = currency_fractions[currency][0]
+        except KeyError:
+            currency_fraction = currency_fractions["DEFAULT"][0]
+    else:
+        currency_fraction = get_currency_fraction(currency)
+
     value = value.normalize()
     if value.as_tuple().exponent < -currency_fraction:
         raise ValidationError(

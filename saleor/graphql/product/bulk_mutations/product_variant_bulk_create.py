@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import cast
 
 import graphene
+from babel.core import get_global
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from graphene.types import InputObjectType
@@ -43,12 +44,13 @@ def clean_price(
     field_name,
     currency,
     channel_id,
+    currency_fractions,
     variant_index,
     errors,
     index_error_map,
 ):
     try:
-        validate_price_precision(price, currency)
+        validate_price_precision(price, currency, currency_fractions)
     except ValidationError as error:
         index_error_map[variant_index].append(
             ProductVariantBulkError(
@@ -270,10 +272,44 @@ class ProductVariantBulkCreate(BaseMutation):
         return attributes_errors_count
 
     @classmethod
+    def clean_prices(
+        cls,
+        price,
+        cost_price,
+        currency_code,
+        channel_id,
+        currency_fractions,
+        variant_index,
+        errors,
+        index_error_map,
+    ):
+        clean_price(
+            price,
+            "price",
+            currency_code,
+            channel_id,
+            currency_fractions,
+            variant_index,
+            errors,
+            index_error_map,
+        )
+        clean_price(
+            cost_price,
+            "cost_price",
+            currency_code,
+            channel_id,
+            currency_fractions,
+            variant_index,
+            errors,
+            index_error_map,
+        )
+
+    @classmethod
     def clean_channel_listings(
         cls,
         channel_listings,
         product_channel_global_id_to_instance_map,
+        currency_fractions,
         errors,
         variant_index,
         index_error_map,
@@ -347,20 +383,13 @@ class ProductVariantBulkCreate(BaseMutation):
             currency_code = channel_listing["channel"].currency_code
 
             errors_count_before_prices = len(index_error_map[variant_index])
-            clean_price(
+
+            cls.clean_prices(
                 price,
-                "price",
-                currency_code,
-                channel_id,
-                variant_index,
-                errors,
-                index_error_map,
-            )
-            clean_price(
                 cost_price,
-                "cost_price",
                 currency_code,
                 channel_id,
+                currency_fractions,
                 variant_index,
                 errors,
                 index_error_map,
@@ -552,6 +581,7 @@ class ProductVariantBulkCreate(BaseMutation):
         info,
         variant_data,
         product_channel_global_id_to_instance_map,
+        currency_fractions,
         warehouse_global_id_to_instance_map,
         variant_attributes,
         used_attribute_values,
@@ -596,6 +626,7 @@ class ProductVariantBulkCreate(BaseMutation):
             cleaned_input["channel_listings"] = cls.clean_channel_listings(
                 listings_data,
                 product_channel_global_id_to_instance_map,
+                currency_fractions,
                 errors,
                 index,
                 index_error_map,
@@ -612,8 +643,8 @@ class ProductVariantBulkCreate(BaseMutation):
 
         if base_fields_errors_count > 0 or attributes_errors_count > 0:
             return None
-        else:
-            return cleaned_input if cleaned_input else None
+
+        return cleaned_input if cleaned_input else None
 
     @classmethod
     def clean_variants(cls, info, variants, product, errors, index_error_map):
@@ -643,6 +674,7 @@ class ProductVariantBulkCreate(BaseMutation):
         duplicated_sku = get_duplicated_values(
             [variant.sku for variant in variants if variant.sku]
         )
+        currency_fractions = get_global("currency_fractions")
 
         for index, variant_data in enumerate(variants):
             variant_data["product_type"] = product_type
@@ -652,6 +684,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 info,
                 variant_data,
                 product_channel_global_id_to_instance_map,
+                currency_fractions,
                 warehouse_global_id_to_instance_map,
                 variant_attributes,
                 used_attribute_values,
@@ -711,23 +744,25 @@ class ProductVariantBulkCreate(BaseMutation):
         for variant_data in variants_data_with_errors_list:
             variant = variant_data["instance"]
 
-            if variant:
-                variants_to_create.append(variant)
-                cleaned_input = variant_data["cleaned_input"]
+            if not variant:
+                continue
 
-                if stocks_input := cleaned_input.get("stocks"):
-                    cls.prepare_stocks(variant, stocks_input, stocks_to_create)
+            variants_to_create.append(variant)
+            cleaned_input = variant_data["cleaned_input"]
 
-                if listings_input := cleaned_input.get("channel_listings"):
-                    cls.prepare_channel_listings(
-                        variant, listings_input, listings_to_create
-                    )
+            if stocks_input := cleaned_input.get("stocks"):
+                cls.prepare_stocks(variant, stocks_input, stocks_to_create)
 
-                if attributes := variant_data["cleaned_input"].get("attributes"):
-                    attributes_to_save.append((variant, attributes))
+            if listings_input := cleaned_input.get("channel_listings"):
+                cls.prepare_channel_listings(
+                    variant, listings_input, listings_to_create
+                )
 
-                if not variant.name:
-                    cls.set_variant_name(variant, cleaned_input)
+            if attributes := variant_data["cleaned_input"].get("attributes"):
+                attributes_to_save.append((variant, attributes))
+
+            if not variant.name:
+                cls.set_variant_name(variant, cleaned_input)
 
         models.ProductVariant.objects.bulk_create(variants_to_create)
 

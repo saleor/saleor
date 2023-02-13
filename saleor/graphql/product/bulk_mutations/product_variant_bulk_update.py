@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import cast
 
 import graphene
+from babel.core import get_global
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from graphene.utils.str_converters import to_camel_case
@@ -14,7 +15,7 @@ from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
 from ...attribute.utils import AttributeAssignmentMixin
-from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import NonNullList, ProductVariantBulkError
@@ -82,13 +83,13 @@ class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
     )
     stocks = graphene.Field(
         ProductVariantStocksUpdateInput,
-        description="Stocks input.",
+        description="Stocks input." + ADDED_IN_312 + PREVIEW_FEATURE,
         required=False,
     )
 
     channel_listings = graphene.Field(
         ProductVariantChannelListingUpdateInput,
-        description="Channel listings input.",
+        description="Channel listings input." + ADDED_IN_312 + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -149,10 +150,43 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
     @classmethod
+    def clean_prices(
+        cls,
+        price,
+        cost_price,
+        currency_code,
+        channel_id,
+        currency_fractions,
+        variant_index,
+        index_error_map,
+    ):
+        clean_price(
+            price,
+            "price",
+            currency_code,
+            channel_id,
+            currency_fractions,
+            variant_index,
+            None,
+            index_error_map,
+        )
+        clean_price(
+            cost_price,
+            "cost_price",
+            currency_code,
+            channel_id,
+            currency_fractions,
+            variant_index,
+            None,
+            index_error_map,
+        )
+
+    @classmethod
     def clean_channel_listings(
         cls,
         cleaned_input,
         product_channel_global_id_to_instance_map,
+        currency_fractions,
         listings_global_id_to_instance_map,
         variant_index,
         index_error_map,
@@ -165,6 +199,7 @@ class ProductVariantBulkUpdate(BaseMutation):
             ] = ProductVariantBulkCreate.clean_channel_listings(
                 listings_data,
                 product_channel_global_id_to_instance_map,
+                currency_fractions,
                 None,
                 variant_index,
                 index_error_map,
@@ -184,22 +219,14 @@ class ProductVariantBulkUpdate(BaseMutation):
                 currency_code = channel_listing.currency
                 channel_id = channel_listing.channel_id
                 errors_count_before_prices = len(index_error_map[variant_index])
-                clean_price(
+
+                cls.clean_prices(
                     price,
-                    "price",
-                    currency_code,
-                    channel_id,
-                    variant_index,
-                    None,
-                    index_error_map,
-                )
-                clean_price(
                     cost_price,
-                    "cost_price",
                     currency_code,
                     channel_id,
+                    currency_fractions,
                     variant_index,
-                    None,
                     index_error_map,
                 )
 
@@ -289,6 +316,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         info,
         variant_data,
         product_channel_global_id_to_instance_map,
+        currency_fractions,
         warehouse_global_id_to_instance_map,
         stock_global_id_to_instance_map,
         listings_global_id_to_instance_map,
@@ -334,6 +362,7 @@ class ProductVariantBulkUpdate(BaseMutation):
             cls.clean_channel_listings(
                 cleaned_input,
                 product_channel_global_id_to_instance_map,
+                currency_fractions,
                 listings_global_id_to_instance_map,
                 index,
                 index_error_map,
@@ -350,8 +379,8 @@ class ProductVariantBulkUpdate(BaseMutation):
 
         if base_fields_errors_count > 0 or attributes_errors_count > 0:
             return None
-        else:
-            return cleaned_input if cleaned_input else None
+
+        return cleaned_input if cleaned_input else None
 
     @classmethod
     def clean_variants(
@@ -401,6 +430,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         duplicated_sku = get_duplicated_values(
             [variant.sku for variant in variants if variant.sku]
         )
+        currency_fractions = get_global("currency_fractions")
 
         # clean variants inputs
         for index, variant_data in enumerate(variants):
@@ -421,6 +451,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 info,
                 variant_data,
                 product_channel_global_id_to_instance_map,
+                currency_fractions,
                 warehouse_global_id_to_instance_map,
                 stock_global_id_to_instance_map,
                 listings_global_id_to_instance_map,
@@ -534,26 +565,29 @@ class ProductVariantBulkUpdate(BaseMutation):
         # prepare instances
         for variant_data in variants_data_with_errors_list:
             variant = variant_data["instance"]
-            if variant:
-                cleaned_input = variant_data.pop("cleaned_input")
-                variants_to_update.append(variant)
 
-                if stocks_input := cleaned_input.get("stocks"):
-                    cls.prepare_stocks(
-                        variant, stocks_input, stocks_to_create, stocks_to_update
-                    )
-                    if to_remove := stocks_input.get("remove"):
-                        stocks_to_remove += to_remove
+            if not variant:
+                continue
 
-                if listings_input := cleaned_input.get("channel_listings"):
-                    cls.prepare_channel_listings(
-                        variant, listings_input, listings_to_create, listings_to_update
-                    )
-                    if to_remove := listings_input.get("remove"):
-                        listings_to_remove += to_remove
+            cleaned_input = variant_data.pop("cleaned_input")
+            variants_to_update.append(variant)
 
-                if attributes := cleaned_input.get("attributes"):
-                    AttributeAssignmentMixin.save(variant, attributes)
+            if stocks_input := cleaned_input.get("stocks"):
+                cls.prepare_stocks(
+                    variant, stocks_input, stocks_to_create, stocks_to_update
+                )
+                if to_remove := stocks_input.get("remove"):
+                    stocks_to_remove += to_remove
+
+            if listings_input := cleaned_input.get("channel_listings"):
+                cls.prepare_channel_listings(
+                    variant, listings_input, listings_to_create, listings_to_update
+                )
+                if to_remove := listings_input.get("remove"):
+                    listings_to_remove += to_remove
+
+            if attributes := cleaned_input.get("attributes"):
+                AttributeAssignmentMixin.save(variant, attributes)
 
         # perform db queries
         models.ProductVariant.objects.bulk_update(

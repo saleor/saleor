@@ -18838,10 +18838,18 @@ type ProductVariantBulkError {
   """List of warehouse IDs which causes the error."""
   warehouses: [ID!]
 
-  """List of stocks IDs which causes the error."""
+  """
+  List of stocks IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
   stocks: [ID!]
 
-  """List of channel IDs which causes the error."""
+  """
+  List of channel IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
   channels: [ID!]
 
   """List of channel listings IDs which causes the error."""
@@ -19084,10 +19092,22 @@ input ProductVariantBulkUpdateInput {
   """
   externalReference: String
 
-  """Stocks input."""
+  """
+  Stocks input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   stocks: ProductVariantStocksUpdateInput
 
-  """Channel listings input."""
+  """
+  Channel listings input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   channelListings: ProductVariantChannelListingUpdateInput
 
   """ID of the product variant to update."""
