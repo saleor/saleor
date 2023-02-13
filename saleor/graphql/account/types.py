@@ -488,7 +488,7 @@ class User(ModelObjectType[models.User]):
         if not root.avatar:
             return
 
-        if not size:
+        if size == 0:
             return Image(url=root.avatar.url, alt=None)
 
         format = get_thumbnail_format(format)

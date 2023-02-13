@@ -570,16 +570,16 @@ class TimePeriod(graphene.ObjectType):
 class ThumbnailField(graphene.Field):
     size = graphene.Int(
         description=(
-            "Size of the image. If not provided, the original image "
-            "will be returned."
-        )
+            "Desired longest side the image in pixels. Defaults to 4096. "
+            "Images are never cropped. "
+            "Pass 0 to retrieve the original size (not recommended)."
+        ),
     )
     format = ThumbnailFormatEnum(
         default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used. Must be provided together with the size value, "
-            "otherwise original image will be returned." + ADDED_IN_36 + PREVIEW_FEATURE
+            "image will be used." + ADDED_IN_36 + PREVIEW_FEATURE
         ),
     )
 

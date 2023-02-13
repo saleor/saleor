@@ -24,7 +24,7 @@ def test_product_media_delete(
                 productMediaDelete(id: $id) {
                     media {
                         id
-                        url
+                        url(size: 0)
                     }
                 }
             }

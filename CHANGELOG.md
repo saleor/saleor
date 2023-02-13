@@ -33,7 +33,7 @@ All notable, unreleased changes to this project will be documented in this file.
        }
     ```
 
-
+- Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
 
 ### GraphQL API
 - Add possibility  to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
