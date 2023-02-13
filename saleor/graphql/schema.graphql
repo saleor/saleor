@@ -4961,7 +4961,7 @@ type Product implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -5986,7 +5986,7 @@ type Category implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -6246,6 +6246,8 @@ type Image {
 
 """An enumeration."""
 enum ThumbnailFormatEnum {
+  ORIGINAL
+  AVIF
   WEBP
 }
 
@@ -6595,7 +6597,7 @@ type ProductImage {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 }
 
@@ -6677,7 +6679,7 @@ type ProductMedia implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
   """
@@ -7045,7 +7047,7 @@ type Collection implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -8858,7 +8860,7 @@ type User implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -10007,7 +10009,7 @@ type OrderLine implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Price of the single item in the order line."""

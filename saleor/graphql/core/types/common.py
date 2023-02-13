@@ -575,11 +575,12 @@ class ThumbnailField(graphene.Field):
         )
     )
     format = ThumbnailFormatEnum(
+        default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
             "image will be used. Must be provided together with the size value, "
             "otherwise original image will be returned." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+        ),
     )
 
     def __init__(self, of_type=Image, *args, **kwargs):

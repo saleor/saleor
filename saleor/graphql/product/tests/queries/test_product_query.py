@@ -1880,6 +1880,60 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
     )
 
 
+def test_query_product_media_by_id_original_format(
+    user_api_client, product_with_image, channel_USD, site_settings
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.ORIGINAL.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+        "size": 128,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_avif_format(
+    user_api_client, product_with_image, channel_USD, site_settings
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.AVIF.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+        "size": 128,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/avif/"
+    )
+
+
 def test_query_product_media_by_id_no_size_value_original_image_returned(
     user_api_client, product_with_image, channel_USD, site_settings
 ):

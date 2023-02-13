@@ -42,7 +42,11 @@ from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
-from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ...thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import (
@@ -638,11 +642,13 @@ class OrderLine(ModelObjectType[models.OrderLine]):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
+    def resolve_thumbnail(
+        root: models.OrderLine, info, *, size: int = 256, format: Optional[str] = None
+    ):
         if not root.variant_id:
             return None
 
-        format = format.lower() if format else None
+        format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
 
         def _get_image_from_media(image):
