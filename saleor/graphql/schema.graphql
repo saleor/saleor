@@ -15698,7 +15698,7 @@ type Mutation {
     newPassword: String!
 
     """Current user password."""
-    oldPassword: String!
+    oldPassword: String
   ): PasswordChange
 
   """
