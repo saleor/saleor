@@ -9,7 +9,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("discount", "0006_auto_20171129_1004")]
 
     operations = [

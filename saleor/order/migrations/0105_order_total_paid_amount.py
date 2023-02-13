@@ -22,7 +22,6 @@ def update_orders_total_paid_in_db(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0104_auto_20210506_0835"),
     ]

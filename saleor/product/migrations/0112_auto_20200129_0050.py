@@ -83,7 +83,6 @@ def update_slug_to_unique_value(slug_value, slugs_counter):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0111_auto_20191209_0437"),
     ]

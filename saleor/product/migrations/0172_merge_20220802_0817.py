@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0171_alter_versatile_images"),
         ("product", "0171_product_search_index_dirty"),

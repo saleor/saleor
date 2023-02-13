@@ -191,7 +191,6 @@ ORDERS_WITH_EVENTS = """
 def test_related_order_events_query(
     staff_api_client, permission_manage_orders, order, payment_dummy, staff_user
 ):
-
     new_order = deepcopy(order)
     new_order.id = None
     new_order.number = get_order_number()

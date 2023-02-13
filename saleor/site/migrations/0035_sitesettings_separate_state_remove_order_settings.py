@@ -33,7 +33,6 @@ def update_order_settings_values_to_match_first_channel(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("site", "0034_sitesettings_limit_quantity_per_checkout"),
         ("channel", "0008_update_null_order_settings"),

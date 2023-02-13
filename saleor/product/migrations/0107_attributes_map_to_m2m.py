@@ -79,7 +79,6 @@ def migrate_variant_attribute_map_to_m2m(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0106_django_prices_2")]
 
     operations = [

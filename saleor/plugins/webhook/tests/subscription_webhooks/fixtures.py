@@ -910,7 +910,6 @@ def subscription_checkout_filter_shipping_method_webhook_with_shipping_methods(
 def subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods(
     subscription_webhook,
 ):
-
     return subscription_webhook(
         queries.CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,

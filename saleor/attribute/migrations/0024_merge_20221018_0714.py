@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0023_extend_reference_attr_with_variant"),
         ("attribute", "0023_lstrip_slash_from_value_file_url"),

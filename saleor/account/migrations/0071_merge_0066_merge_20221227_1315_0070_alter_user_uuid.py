@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0066_merge_20221227_1315"),
         ("account", "0070_alter_user_uuid"),

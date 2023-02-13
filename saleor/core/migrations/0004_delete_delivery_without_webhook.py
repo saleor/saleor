@@ -9,7 +9,6 @@ def remove_event_deliveries_without_webhook(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0003_eventdeliveryattempt_response_status_code"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("payment", "0003_rename_payment_method_to_payment")]
 
     operations = [

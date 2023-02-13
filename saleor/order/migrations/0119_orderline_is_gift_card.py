@@ -30,7 +30,6 @@ def set_is_gift_card_field(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0118_auto_20210913_0731"),
         ("product", "0148_producttype_type"),

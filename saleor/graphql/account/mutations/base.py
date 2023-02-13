@@ -161,7 +161,6 @@ class RequestPasswordReset(BaseMutation):
 
     @classmethod
     def clean_user(cls, email, redirect_url):
-
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:

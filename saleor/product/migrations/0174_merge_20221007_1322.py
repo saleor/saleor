@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0172_alter_product_search_index_dirty"),
         ("product", "0173_create_default_category_and_product_type"),

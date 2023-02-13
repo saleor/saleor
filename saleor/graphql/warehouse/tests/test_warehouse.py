@@ -1397,7 +1397,6 @@ def test_delete_warehouse_mutation_with_webhooks_for_many_product_variants(
     permission_manage_products,
     product_with_two_variants,
 ):
-
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     assert Warehouse.objects.count() == 1
     assert Stock.objects.count() == 2

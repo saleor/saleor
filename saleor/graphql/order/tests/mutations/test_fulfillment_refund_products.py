@@ -153,7 +153,6 @@ def test_fulfillment_refund_products_with_back_in_stock_webhook(
     order_with_lines,
     payment_dummy,
 ):
-
     Allocation.objects.update(quantity_allocated=5)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total

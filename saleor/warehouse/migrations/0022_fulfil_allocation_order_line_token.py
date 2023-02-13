@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0021_allocation_order_line_token"),
         ("order", "0140_alter_orderline_old_id_and_created_at"),

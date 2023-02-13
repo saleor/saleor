@@ -12,7 +12,6 @@ def add_relations_between_existing_channels_and_warehouses(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0029_warehouse_channels"),
     ]

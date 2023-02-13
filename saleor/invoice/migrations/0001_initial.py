@@ -10,7 +10,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

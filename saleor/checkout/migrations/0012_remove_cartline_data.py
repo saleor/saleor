@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "0011_auto_20180913_0817")]
 
     operations = [migrations.RemoveField(model_name="cartline", name="data")]

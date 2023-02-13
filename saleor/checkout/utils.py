@@ -400,7 +400,6 @@ def _get_shipping_voucher_discount_for_checkout(
 def get_discounted_lines(
     lines: Iterable["CheckoutLineInfo"], voucher_info: "VoucherInfo"
 ) -> Iterable["CheckoutLineInfo"]:
-
     discounted_lines = []
     if (
         voucher_info.product_pks

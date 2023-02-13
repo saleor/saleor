@@ -14,7 +14,6 @@ def set_all_published_products_as_searchable_and_available_for_purchase(
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0121_auto_20200810_1415"),
     ]

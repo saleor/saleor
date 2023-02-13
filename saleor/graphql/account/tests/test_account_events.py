@@ -61,7 +61,6 @@ def _model_to_node_id(instance: models.Model) -> str:
 def _get_event_from_graphql(
     staff_api_client, requested_user: User, permissions
 ) -> dict:
-
     staff_api_client.user.user_permissions.add(*permissions)
     received_events = get_graphql_content(
         staff_api_client.post_graphql(

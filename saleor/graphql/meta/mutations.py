@@ -398,7 +398,6 @@ class DeletePrivateMetadata(BaseMetadataMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
     ):
-
         instance = cls.get_instance(info, id=id)
 
         if instance:

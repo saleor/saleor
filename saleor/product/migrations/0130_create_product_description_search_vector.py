@@ -30,7 +30,6 @@ def parse_description_json_field(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0129_add_product_types_and_attributes_perm"),
     ]

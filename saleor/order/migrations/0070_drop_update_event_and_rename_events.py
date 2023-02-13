@@ -51,7 +51,6 @@ def _move_updated_events_to_other(apps, *_args, **_kwargs):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0069_auto_20190225_2305")]
 
     operations = [

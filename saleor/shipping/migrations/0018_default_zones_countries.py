@@ -23,7 +23,6 @@ def assign_countries_in_default_shipping_zone(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("shipping", "0017_django_price_2"),
     ]

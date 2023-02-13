@@ -105,7 +105,6 @@ def test_update_products_discounted_prices_of_catalogues_for_collection(
 
 
 def test_update_products_discounted_prices_task(product_list):
-
     price = Money("0.01", "USD")
     for product in product_list:
         product_channel_listing = product.channel_listings.get()
