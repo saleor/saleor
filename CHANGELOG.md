@@ -5,7 +5,10 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.12.0 [Unreleased]
 
 ### Breaking changes
-- `stocks` and `channelListings` inputs in `ProductVariantBulkUpdate` mutation has been changed.
+- `stocks` and `channelListings` inputs for preview `ProductVariantBulkUpdate` mutation has been changed. Both inputs have been extended by:
+    - `create` input - list of items that should be created
+    - `update` input - list of items that should be updated
+    - `remove` input - list of objects ID's that should be removed
 
 ### GraphQL API
 - Add possibility  to remove `stocks` and `channe listings` in `ProductVariantBulkUpdate` mutation.
