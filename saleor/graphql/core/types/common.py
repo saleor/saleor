@@ -6,7 +6,12 @@ from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
 from ...account.enums import AddressTypeEnum
-from ..descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -336,9 +341,19 @@ class ProductVariantBulkError(Error):
         description="List of warehouse IDs which causes the error.",
         required=False,
     )
+    stocks = NonNullList(
+        graphene.ID,
+        description="List of stocks IDs which causes the error." + ADDED_IN_312,
+        required=False,
+    )
     channels = NonNullList(
         graphene.ID,
-        description="List of channel IDs which causes the error.",
+        description="List of channel IDs which causes the error." + ADDED_IN_312,
+        required=False,
+    )
+    channel_listings = NonNullList(
+        graphene.ID,
+        description="List of channel listings IDs which causes the error.",
         required=False,
     )
 

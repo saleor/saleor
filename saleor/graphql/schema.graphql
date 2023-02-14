@@ -18838,8 +18838,22 @@ type ProductVariantBulkError {
   """List of warehouse IDs which causes the error."""
   warehouses: [ID!]
 
-  """List of channel IDs which causes the error."""
+  """
+  List of stocks IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
+  stocks: [ID!]
+
+  """
+  List of channel IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
   channels: [ID!]
+
+  """List of channel listings IDs which causes the error."""
+  channelListings: [ID!]
 }
 
 """An enumeration."""
@@ -19078,14 +19092,70 @@ input ProductVariantBulkUpdateInput {
   """
   externalReference: String
 
-  """Stocks of a product available for sale."""
-  stocks: [StockInput!]
+  """
+  Stocks input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stocks: ProductVariantStocksUpdateInput
 
-  """List of prices assigned to channels."""
-  channelListings: [ProductVariantChannelListingAddInput!]
+  """
+  Channel listings input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  channelListings: ProductVariantChannelListingUpdateInput
 
   """ID of the product variant to update."""
   id: ID!
+}
+
+input ProductVariantStocksUpdateInput {
+  """List of warehouses to create stocks."""
+  create: [StockInput!]
+
+  """List of stocks to update."""
+  update: [StockUpdateInput!]
+
+  """List of stocks to remove."""
+  remove: [ID!]
+}
+
+input StockUpdateInput {
+  """Stock."""
+  stock: ID!
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+input ProductVariantChannelListingUpdateInput {
+  """List of channels to create variant channel listings."""
+  create: [ProductVariantChannelListingAddInput!]
+
+  """List of channel listings to update."""
+  update: [ChannelListingUpdateInput!]
+
+  """List of channel listings to remove."""
+  remove: [ID!]
+}
+
+input ChannelListingUpdateInput {
+  """ID of a channel listing."""
+  channelListing: ID!
+
+  """Price of the particular variant in channel."""
+  price: PositiveDecimal
+
+  """Cost price of the variant in channel."""
+  costPrice: PositiveDecimal
+
+  """The threshold for preorder variant in channel."""
+  preorderThreshold: Int
 }
 
 """
