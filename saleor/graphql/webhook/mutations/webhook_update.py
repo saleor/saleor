@@ -2,6 +2,7 @@ import graphene
 
 from ....permission.enums import AppPermission
 from ....webhook import models
+from ....webhook.validators import HEADERS_LENGTH_LIMIT, HEADERS_NUMBER_LIMIT
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_32,
@@ -59,7 +60,10 @@ class WebhookUpdateInput(graphene.InputObjectType):
         required=False,
     )
     custom_headers = JSONString(
-        description="Custom headers, which will be added to http request."
+        description=f"Custom headers, which will be added to HTTP request. "
+        f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
+        f"and {HEADERS_LENGTH_LIMIT} characters per header."
+        f'Only "X-*" and "Authorization*" keys are allowed.'
         + ADDED_IN_312
         + PREVIEW_FEATURE,
         required=False,

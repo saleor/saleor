@@ -27,8 +27,8 @@ from ..validators import (
             '"Key" does not match allowed key pattern: "X-*" or "Authorization*".',
         ),
         (
-            {None: "Value"},
-            "One of the header can't be converted to string.",
+            {"X-Key": 123},
+            'Header with "X-Key" can\'t be converted to string.',
         ),
         (
             {"Ke:y": "Value"},

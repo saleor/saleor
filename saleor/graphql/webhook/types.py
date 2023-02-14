@@ -188,7 +188,7 @@ class Webhook(ModelObjectType[models.Webhook]):
         description="Used to define payloads for specific events."
     )
     custom_headers = JSONString(
-        description="Custom headers, which will be added to http request."
+        description="Custom headers, which will be added to HTTP request."
         + ADDED_IN_312
         + PREVIEW_FEATURE
     )

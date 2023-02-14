@@ -7,7 +7,11 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
 from ....webhook.error_codes import WebhookErrorCode
-from ....webhook.validators import custom_headers_validator
+from ....webhook.validators import (
+    HEADERS_LENGTH_LIMIT,
+    HEADERS_NUMBER_LIMIT,
+    custom_headers_validator,
+)
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import (
@@ -63,7 +67,10 @@ class WebhookCreateInput(graphene.InputObjectType):
         required=False,
     )
     custom_headers = JSONString(
-        description="Custom headers, which will be added to http request."
+        description=f"Custom headers, which will be added to HTTP request. "
+        f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
+        f"and {HEADERS_LENGTH_LIMIT} characters per header."
+        f'Only "X-*" and "Authorization*" keys are allowed.'
         + ADDED_IN_312
         + PREVIEW_FEATURE,
         required=False,

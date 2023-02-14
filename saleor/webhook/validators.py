@@ -7,7 +7,7 @@ HEADERS_NUMBER_LIMIT = 5
 HEADERS_LENGTH_LIMIT = 78
 
 
-def custom_headers_validator(headers) -> Dict[str, str]:
+def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
     """Validate headers in accordance with RFC5322.
 
     https://www.rfc-editor.org/rfc/rfc5322#section-2.2
@@ -24,7 +24,7 @@ def custom_headers_validator(headers) -> Dict[str, str]:
         try:
             header = ": ".join([key, value])
         except TypeError:
-            raise ValidationError("One of the header can't be converted to string.")
+            raise ValidationError(f'Header with "{key}" can\'t be converted to string.')
 
         if not set(key).issubset(set(key_chars_allowed)):
             raise ValidationError(f'Key "{key}" contains invalid character.')

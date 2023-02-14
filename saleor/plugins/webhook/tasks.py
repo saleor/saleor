@@ -13,7 +13,6 @@ from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
@@ -35,7 +34,6 @@ from ...webhook import observability
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.observability import WebhookData
 from ...webhook.utils import get_webhooks_for_event
-from ...webhook.validators import custom_headers_validator
 from . import signature_for_payload
 from .utils import (
     attempt_update,
@@ -335,15 +333,7 @@ def send_webhook_using_http(
     }
 
     if custom_headers:
-        try:
-            custom_headers_validator(custom_headers)
-            headers.update(custom_headers)
-        except ValidationError as e:
-            return WebhookResponse(
-                content=str(e.message),
-                status=EventDeliveryStatus.FAILED,
-                request_headers=headers,
-            )
+        headers.update(custom_headers)
 
     try:
         response = requests.post(

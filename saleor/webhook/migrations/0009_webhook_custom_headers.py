@@ -6,7 +6,6 @@ import saleor.webhook.validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("webhook", "0008_webhook_subscription_query"),
     ]
