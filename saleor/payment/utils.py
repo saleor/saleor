@@ -21,6 +21,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
 from ..order.models import Order
+from ..order.search import update_order_search_vector
 from ..order.utils import (
     update_order_authorize_data,
     update_order_charge_data,
@@ -992,7 +993,18 @@ def create_transaction_event_from_request_and_webhook_response(
     recalculate_transaction_amounts(transaction_item)
     if transaction_item.order_id:
         order = cast(Order, transaction_item.order)
-        updates_amounts_for_order(order)
+        update_order_search_vector(order, save=False)
+        updates_amounts_for_order(order, save=False)
+        order.save(
+            update_fields=[
+                "total_charged_amount",
+                "charge_status",
+                "updated_at",
+                "total_authorized_amount",
+                "authorize_status",
+                "search_vector",
+            ]
+        )
     return event
 
 

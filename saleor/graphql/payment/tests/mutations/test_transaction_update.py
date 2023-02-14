@@ -376,6 +376,8 @@ def test_transaction_update_psp_reference_by_app(
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["pspReference"] == psp_peference
     assert transaction.psp_reference == psp_peference
+    assert transaction.order
+    assert transaction.order.search_vector
 
 
 def test_transaction_update_available_actions_by_app(

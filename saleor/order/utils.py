@@ -981,7 +981,7 @@ def update_order_authorize_data(
         )
 
 
-def updates_amounts_for_order(order: Order):
+def updates_amounts_for_order(order: Order, save: bool = True):
     order_payments = order.payments.all()
     order_transactions = order.payment_transactions.all()
     update_order_charge_data(
@@ -996,15 +996,16 @@ def updates_amounts_for_order(order: Order):
         order_transactions=order_transactions,
         with_save=False,
     )
-    order.save(
-        update_fields=[
-            "total_charged_amount",
-            "charge_status",
-            "updated_at",
-            "total_authorized_amount",
-            "authorize_status",
-        ]
-    )
+    if save:
+        order.save(
+            update_fields=[
+                "total_charged_amount",
+                "charge_status",
+                "updated_at",
+                "total_authorized_amount",
+                "authorize_status",
+            ]
+        )
 
 
 def update_order_display_gross_prices(order: "Order"):

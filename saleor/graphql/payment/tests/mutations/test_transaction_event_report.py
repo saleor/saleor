@@ -657,6 +657,61 @@ def test_transaction_event_updates_order_total_authorized(
     assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
 
 
+def test_transaction_event_updates_search_vector(
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
+    transaction_item_generator(
+        app=app_api_client.app,
+        order_id=order.pk,
+        authorized_value=order.total.gross.amount,
+    )
+    transaction_id = to_global_id_or_none(transaction)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.AUTHORIZATION_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert order.search_vector
+
+
 def test_transaction_event_report_authorize_event_already_exists(
     app_api_client, permission_manage_payments, transaction_item_generator
 ):

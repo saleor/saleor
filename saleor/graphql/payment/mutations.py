@@ -21,6 +21,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
+from ...order.search import update_order_search_vector
 from ...order.utils import updates_amounts_for_order
 from ...payment import (
     PaymentError,
@@ -87,6 +88,7 @@ from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 if TYPE_CHECKING:
     from ...account.models import User
     from ...app.models import App
+    from ...order.models import Order
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -975,7 +977,18 @@ class TransactionCreate(BaseMutation):
             recalculate_transaction_amounts(new_transaction)
         if transaction_data.get("order_id") and money_data:
             order = cast(order_models.Order, new_transaction.order)
-            updates_amounts_for_order(order)
+            update_order_search_vector(order, save=False)
+            updates_amounts_for_order(order, save=False)
+            order.save(
+                update_fields=[
+                    "total_charged_amount",
+                    "charge_status",
+                    "updated_at",
+                    "total_authorized_amount",
+                    "authorize_status",
+                    "search_vector",
+                ]
+            )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)
@@ -1088,9 +1101,33 @@ class TransactionUpdate(TransactionCreate):
                 transaction=instance, money_data=money_data, user=user, app=app
             )
             recalculate_transaction_amounts(instance)
-        if instance.order_id and money_data:
+        if instance.order_id:
             order = cast(order_models.Order, instance.order)
+            cls.update_order(order, money_data, psp_reference)
+
+    @classmethod
+    def update_order(
+        cls, order: "Order", money_data: dict, psp_reference: Optional[str]
+    ) -> None:
+        update_fields = []
+        if money_data:
             updates_amounts_for_order(order)
+            update_fields.extend(
+                [
+                    "total_charged_amount",
+                    "charge_status",
+                    "total_authorized_amount",
+                    "authorize_status",
+                ]
+            )
+        if psp_reference:
+            update_order_search_vector(order, save=False)
+            update_fields.append(
+                "search_vector",
+            )
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -1424,7 +1461,18 @@ class TransactionEventReport(ModelMutation):
             recalculate_transaction_amounts(transaction)
             if transaction.order_id:
                 order = cast(order_models.Order, transaction.order)
-                updates_amounts_for_order(order)
+                update_order_search_vector(order, save=False)
+                updates_amounts_for_order(order, save=False)
+                order.save(
+                    update_fields=[
+                        "total_charged_amount",
+                        "charge_status",
+                        "updated_at",
+                        "total_authorized_amount",
+                        "authorize_status",
+                        "search_vector",
+                    ]
+                )
 
         return cls(
             already_processed=already_processed,

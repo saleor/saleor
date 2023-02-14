@@ -137,6 +137,7 @@ def test_transaction_create_updates_order_authorize_amounts(
     order_with_lines.refresh_from_db()
     assert order_with_lines.total_authorized.amount == authorized_value
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order_with_lines.search_vector
 
 
 def test_transaction_create_for_order_by_app(
