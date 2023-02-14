@@ -1522,8 +1522,8 @@ class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
             "Event sent when transaction action is requested."
             + ADDED_IN_34
             + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.13 "
-            + "(Preview Feature). Use `TransactionRequestCapture`, "
-            + "`TransactionRequestRefund`, `TransactionRequestCancel` instead."
+            + "(Preview Feature). Use `TransactionChargeRequested`, "
+            + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
         )
 
 
