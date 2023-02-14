@@ -10,8 +10,33 @@ All notable, unreleased changes to this project will be documented in this file.
     - `update` input - list of items that should be updated
     - `remove` input - list of objects ID's that should be removed
 
+  If your platform relies on this [Preview] feature, make sure you update your mutations stocks and channel listings inputs from:
+    ```
+       {
+        "stocks/channelListings": [
+          {
+            ...
+          }
+        ]
+       }
+    ```
+    to:
+    ```
+       {
+        "stocks/channelListings": {
+          "create": [
+            {
+             ...
+            }
+          ]
+        }
+       }
+    ```
+
+
+
 ### GraphQL API
-- Add possibility  to remove `stocks` and `channe listings` in `ProductVariantBulkUpdate` mutation.
+- Add possibility  to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
 - Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
   - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
   - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
