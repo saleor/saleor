@@ -1,6 +1,6 @@
 from email.headerregistry import Address
 from email.utils import parseaddr
-from typing import TYPE_CHECKING, Final, Optional
+from typing import Final, Optional
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -12,12 +12,10 @@ from ..core import TimePeriodType
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation, TranslationProxy
 from ..permission.enums import SitePermissions
+from ..settings import DEFAULT_FROM_EMAIL
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
-
-if TYPE_CHECKING:
-    from ..settings import DEFAULT_FROM_EMAIL
 
 patch_contrib_sites()
 

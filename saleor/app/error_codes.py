@@ -9,6 +9,7 @@ class AppErrorCode(Enum):
     INVALID_PERMISSION = "invalid_permission"
     INVALID_URL_FORMAT = "invalid_url_format"
     INVALID_MANIFEST_FORMAT = "invalid_manifest_format"
+    INVALID_CUSTOM_HEADERS = "invalid_custom_headers"
     MANIFEST_URL_CANT_CONNECT = "manifest_url_cant_connect"
     NOT_FOUND = "not_found"
     REQUIRED = "required"

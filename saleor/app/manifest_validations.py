@@ -15,6 +15,7 @@ from ..permission.enums import (
 )
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
@@ -251,6 +252,17 @@ def clean_webhooks(manifest_data, errors):
                     code=AppErrorCode.INVALID_URL_FORMAT.value,
                 )
             )
+
+        if custom_headers := webhook.get("customHeaders"):
+            try:
+                custom_headers_validator(custom_headers)
+            except ValidationError as err:
+                errors["webhooks"].append(
+                    ValidationError(
+                        f"Invalid custom headers: {err.message}",
+                        code=AppErrorCode.INVALID_CUSTOM_HEADERS.value,
+                    )
+                )
 
 
 def validate_required_fields(manifest_data, errors):
