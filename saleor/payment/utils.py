@@ -694,28 +694,26 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
 
 
 def get_correct_event_types_based_on_request_type(request_type: str) -> List[str]:
-    if request_type == TransactionEventType.AUTHORIZATION_REQUEST:
-        return [
+    type_map = {
+        TransactionEventType.AUTHORIZATION_REQUEST: [
             TransactionEventType.AUTHORIZATION_FAILURE,
             TransactionEventType.AUTHORIZATION_ADJUSTMENT,
             TransactionEventType.AUTHORIZATION_SUCCESS,
-        ]
-    elif request_type == TransactionEventType.CHARGE_REQUEST:
-        return [
+        ],
+        TransactionEventType.CHARGE_REQUEST: [
             TransactionEventType.CHARGE_FAILURE,
             TransactionEventType.CHARGE_SUCCESS,
-        ]
-    elif request_type == TransactionEventType.REFUND_REQUEST:
-        return [
+        ],
+        TransactionEventType.REFUND_REQUEST: [
             TransactionEventType.REFUND_FAILURE,
             TransactionEventType.REFUND_SUCCESS,
-        ]
-    elif request_type == TransactionEventType.CANCEL_REQUEST:
-        return [
+        ],
+        TransactionEventType.CANCEL_REQUEST: [
             TransactionEventType.CANCEL_FAILURE,
             TransactionEventType.CANCEL_SUCCESS,
-        ]
-    return []
+        ],
+    }
+    return type_map.get(request_type, [])
 
 
 def parse_transaction_event_data(
