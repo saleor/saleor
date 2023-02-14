@@ -1848,7 +1848,11 @@ enum WebhookEventTypeEnum {
   """A staff user is deleted."""
   STAFF_DELETED
 
-  """An action requested for transaction."""
+  """
+  An action requested for transaction.
+  
+  DEPRECATED: this subscription will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  """
   TRANSACTION_ACTION_REQUEST
 
   """
@@ -2424,7 +2428,11 @@ enum WebhookEventTypeAsyncEnum {
   """A staff user is deleted."""
   STAFF_DELETED
 
-  """An action requested for transaction."""
+  """
+  An action requested for transaction.
+  
+  DEPRECATED: this subscription will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  """
   TRANSACTION_ACTION_REQUEST
 
   """

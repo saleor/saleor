@@ -146,6 +146,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: (
         "An action requested for transaction."
+        + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.13 "
+        + "(Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, "
+        + "`TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead."
     ),
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         "Transaction item metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
