@@ -9800,7 +9800,7 @@ type Invoice implements ObjectWithMetadata & Job & Node {
   """
   Order related to the invoice.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.8.
   """
   order: Order
 }
@@ -24629,7 +24629,7 @@ type InvoiceRequested implements Event {
   """
   Order related to the invoice.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.8.
   """
   order: Order!
 }
@@ -24660,7 +24660,7 @@ type InvoiceDeleted implements Event {
   """
   Order related to the invoice.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.8.
   """
   order: Order
 }
@@ -24691,7 +24691,7 @@ type InvoiceSent implements Event {
   """
   Order related to the invoice.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.8.
   """
   order: Order
 }

@@ -31,7 +31,6 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_37,
     ADDED_IN_38,
-    ADDED_IN_310,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -794,7 +793,7 @@ class InvoiceBase(AbstractType):
     )
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        description="Order related to the invoice." + ADDED_IN_310,
+        description="Order related to the invoice." + ADDED_IN_38,
     )
 
     @staticmethod
@@ -812,7 +811,7 @@ class InvoiceRequested(ObjectType, InvoiceBase):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         required=True,
-        description="Order related to the invoice." + ADDED_IN_310,
+        description="Order related to the invoice." + ADDED_IN_38,
     )
 
     class Meta:
