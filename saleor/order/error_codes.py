@@ -45,3 +45,8 @@ class OrderGrantRefundUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
+
+
+class OrderBulkCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    REQUIRED = "required"

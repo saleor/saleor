@@ -46,6 +46,7 @@ from ..enums import (
     LanguageCodeEnum,
     MenuErrorCode,
     MetadataErrorCode,
+    OrderBulkCreateErrorCode,
     OrderErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
@@ -326,6 +327,10 @@ class OrderError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
+
+
+class OrderBulkCreateError(Error):
+    code = OrderBulkCreateErrorCode(description="The error code.", required=True)
 
 
 class InvoiceError(Error):
