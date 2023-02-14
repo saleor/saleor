@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, cast, overload
+from typing import Any, Dict, Optional, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -153,7 +153,7 @@ def create_order_payment_lines_information(order: Order) -> PaymentLinesData:
     )
 
 
-def generate_transactions_data(payment: Payment) -> List[TransactionData]:
+def generate_transactions_data(payment: Payment) -> list[TransactionData]:
     return [
         TransactionData(
             token=t.token,
@@ -466,7 +466,7 @@ def validate_gateway_response(response: GatewayResponse):
 
 @traced_atomic_transaction()
 def gateway_postprocess(transaction, payment: Payment):
-    changed_fields: List[str] = []
+    changed_fields: list[str] = []
 
     if not transaction.is_success or transaction.already_processed:
         if changed_fields:
@@ -582,7 +582,7 @@ def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
 def update_payment_method_details(
     payment: "Payment",
     payment_method_info: Optional["PaymentMethodInfo"],
-    changed_fields: List[str],
+    changed_fields: list[str],
 ):
     if not payment_method_info:
         return
@@ -693,7 +693,7 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
     )
 
 
-def get_correct_event_types_based_on_request_type(request_type: str) -> List[str]:
+def get_correct_event_types_based_on_request_type(request_type: str) -> list[str]:
     type_map = {
         TransactionEventType.AUTHORIZATION_REQUEST: [
             TransactionEventType.AUTHORIZATION_FAILURE,
@@ -719,11 +719,11 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> List[str
 def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
-    error_field_msg: List[str],
+    error_field_msg: list[str],
     psp_reference: str,
     request_type: str,
 ):
-    if not event_data.get("amount") and not event_data.get("result"):
+    if event_data.get("amount") is None and not event_data.get("result"):
         return
     missing_msg = (
         "Missing value for field: %s in " "response of transaction action webhook."
@@ -799,7 +799,7 @@ def parse_transaction_action_data(
         return None, msg
 
     parsed_event_data: dict = {}
-    error_field_msg: List[str] = []
+    error_field_msg: list[str] = []
     parse_transaction_event_data(
         event_data=response_data,
         parsed_event_data=parsed_event_data,
@@ -1023,7 +1023,7 @@ def create_manual_adjustment_events(
     money_data: Dict[str, Decimal],
     user: Optional["User"],
     app: Optional["App"],
-) -> List[TransactionEvent]:
+) -> list[TransactionEvent]:
     """Create TransactionEvent used to recalculate the transaction amounts.
 
     The transaction amounts are calculated based on the amounts stored in
