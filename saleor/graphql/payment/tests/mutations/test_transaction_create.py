@@ -3,9 +3,9 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from .....order import OrderEvents
+from .....order import OrderAuthorizeStatus, OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionEventStatus
+from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
@@ -133,10 +133,10 @@ def test_transaction_create_updates_order_authorize_amounts(
     )
 
     # then
-    transaction = order_with_lines.payment_transactions.first()
     get_graphql_content(response)
-    transaction.order.total_authorized.amount == authorized_value
-    transaction.order.authorize_status == ""
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_authorized.amount == authorized_value
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
 
 
 def test_transaction_create_for_order_by_app(
@@ -775,7 +775,7 @@ def test_creates_transaction_event_for_checkout_by_app(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal("0")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1463,7 +1463,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
-    event_status = TransactionEventStatus.FAILURE
+    event_status = TransactionEventStatus.SUCCESS
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
 
@@ -1482,7 +1482,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
             "privateMetadata": [private_metadata],
         },
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
+            "status": TransactionEventStatusEnum.SUCCESS.name,
             "pspReference": event_psp_reference,
             "message": event_name,
         },
@@ -1499,16 +1499,20 @@ def test_creates_transaction_event_for_checkout_by_staff(
     data = content["data"]["transactionCreate"]["transaction"]
 
     events_data = data["events"]
-    assert len(events_data) == 1
-    event_data = events_data[0]
+    assert len(events_data) == 2
+    event_data = [
+        event for event in events_data if event["pspReference"] == event_psp_reference
+    ][0]
     assert event_data["message"] == event_name
     assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
+    assert event_data["status"] == TransactionEventStatusEnum.SUCCESS.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
-    assert transaction.events.count() == 1
-    event = transaction.events.first()
+    assert transaction.events.count() == 2
+    event = transaction.events.exclude(
+        type=TransactionEventType.AUTHORIZATION_SUCCESS
+    ).first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_psp_reference
@@ -1560,3 +1564,80 @@ def test_transaction_create_external_url_incorrect_url_format_by_app(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == TransactionCreateErrorCode.INVALID.name
+
+
+def test_transaction_create_creates_calculation_events(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    psp_reference = "PSP reference - 123"
+    available_actions = []
+    authorized_value = Decimal("10")
+    charged_value = Decimal("8")
+    refunded_value = Decimal("5")
+    canceled_value = Decimal("2")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+            "amountRefunded": {
+                "amount": refunded_value,
+                "currency": "USD",
+            },
+            "amountCanceled": {
+                "amount": canceled_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.first()
+    assert order_with_lines.total_authorized.amount == authorized_value
+    assert order_with_lines.total_charged.amount == charged_value
+
+    assert transaction.authorized_value == authorized_value
+    assert transaction.charged_value == charged_value
+    assert transaction.refunded_value == refunded_value
+    assert transaction.canceled_value == canceled_value
+
+    assert transaction.events.count() == 4
+    authorize_event = transaction.events.filter(
+        type=TransactionEventType.AUTHORIZATION_SUCCESS
+    ).first()
+    assert authorize_event
+    assert authorize_event.amount.amount == authorized_value
+    charge_event = transaction.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert charge_event
+    assert charge_event.amount.amount == charged_value
+
+    refund_event = transaction.events.filter(
+        type=TransactionEventType.REFUND_SUCCESS
+    ).first()
+    assert refund_event
+    assert refund_event.amount.amount == refunded_value
+
+    cancel_event = transaction.events.filter(
+        type=TransactionEventType.CANCEL_SUCCESS
+    ).first()
+    assert cancel_event
+    assert cancel_event.amount.amount == canceled_value

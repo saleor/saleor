@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -18,6 +19,7 @@ from ..interface import (
 from ..models import TransactionEvent
 from ..utils import (
     create_failed_transaction_event,
+    create_manual_adjustment_events,
     create_payment_lines_information,
     create_transaction_event_from_request_and_webhook_response,
     get_channel_slug_from_payment,
@@ -340,14 +342,15 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
     assert parsed_data is None
 
 
-def test_create_failed_transaction_event(transaction_item_created_by_app):
+def test_create_failed_transaction_event(transaction_item_generator):
     # given
+    transaction = transaction_item_generator()
     cause = "Test failure"
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     # when
@@ -357,19 +360,20 @@ def test_create_failed_transaction_event(transaction_item_created_by_app):
     assert failed_event.type == TransactionEventType.CHARGE_FAILURE
     assert failed_event.amount_value == request_event.amount_value
     assert failed_event.currency == request_event.currency
-    assert failed_event.transaction_id == transaction_item_created_by_app.id
+    assert failed_event.transaction_id == transaction.id
 
 
 def test_create_transaction_event_from_request_and_webhook_response_with_psp_reference(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
     expected_psp_reference = "psp:122:222"
     response_data = {"pspReference": expected_psp_reference}
@@ -387,15 +391,16 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_part_event(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
     expected_psp_reference = "psp:122:222"
     response_data = {
@@ -425,17 +430,16 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_updates_order_charge(
-    transaction_item_created_by_app, app, order_with_lines
+    transaction_item_generator, app, order_with_lines
 ):
     # given
     order = order_with_lines
-    transaction_item_created_by_app.order = order
-    transaction_item_created_by_app.save()
+    transaction = transaction_item_generator(order_id=order.pk)
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     event_amount = 12.00
@@ -464,17 +468,16 @@ def test_create_transaction_event_from_request_updates_order_charge(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_updates_order_authorize(
-    transaction_item_created_by_app, app, order_with_lines
+    transaction_item_generator, app, order_with_lines
 ):
     # given
     order = order_with_lines
-    transaction_item_created_by_app.order = order
-    transaction_item_created_by_app.save()
+    transaction = transaction_item_generator(order_id=order.pk)
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.AUTHORIZATION_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     event_amount = 12.00
@@ -503,15 +506,16 @@ def test_create_transaction_event_from_request_updates_order_authorize(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_full_event(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     event_amount = 12.00
@@ -552,15 +556,16 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
+    transaction = transaction_item_generator()
     request_event = TransactionEvent.objects.create(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
     response_data = {"wrong-data": "psp:122:222"}
 
@@ -577,16 +582,17 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
     assert failed_event.type == TransactionEventType.CHARGE_FAILURE
     assert failed_event.amount_value == request_event.amount_value
     assert failed_event.currency == request_event.currency
-    assert failed_event.transaction_id == transaction_item_created_by_app.id
+    assert failed_event.transaction_id == transaction.id
 
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
-    transaction_item_created_by_app.events.create(
+    transaction = transaction_item_generator()
+    transaction.events.create(
         type=TransactionEventType.AUTHORIZATION_SUCCESS,
         amount_value=Decimal(22.00),
         currency="USD",
@@ -596,7 +602,7 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
         type=TransactionEventType.AUTHORIZATION_REQUEST,
         amount_value=Decimal(11.00),
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     event_amount = 12.00
@@ -632,7 +638,7 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_same_event(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
@@ -642,7 +648,8 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
 
-    existing_authorize_success = transaction_item_created_by_app.events.create(
+    transaction = transaction_item_generator()
+    existing_authorize_success = transaction.events.create(
         type=event_type,
         amount_value=event_amount,
         currency="USD",
@@ -653,7 +660,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
         type=TransactionEventType.AUTHORIZATION_REQUEST,
         amount_value=event_amount,
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     response_data = {
@@ -681,7 +688,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_differnt_amout(
-    transaction_item_created_by_app,
+    transaction_item_generator,
     app,
 ):
     # given
@@ -691,7 +698,8 @@ def test_create_transaction_event_from_request_and_webhook_response_differnt_amo
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
 
-    transaction_item_created_by_app.events.create(
+    transaction = transaction_item_generator()
+    transaction.events.create(
         type=event_type,
         amount_value=authorize_event_amount,
         currency="USD",
@@ -703,7 +711,7 @@ def test_create_transaction_event_from_request_and_webhook_response_differnt_amo
         type=TransactionEventType.AUTHORIZATION_REQUEST,
         amount_value=second_authorize_event_amount,
         currency="USD",
-        transaction_id=transaction_item_created_by_app.id,
+        transaction_id=transaction.id,
     )
 
     response_data = {
@@ -728,3 +736,117 @@ def test_create_transaction_event_from_request_and_webhook_response_differnt_amo
     assert failed_event
     assert failed_event.psp_reference == expected_psp_reference
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
+
+
+@pytest.mark.parametrize(
+    "db_field_name, value, event_type",
+    [
+        ("authorized_value", Decimal("12"), TransactionEventType.AUTHORIZATION_SUCCESS),
+        ("charged_value", Decimal("13"), TransactionEventType.CHARGE_SUCCESS),
+        ("canceled_value", Decimal("14"), TransactionEventType.CANCEL_SUCCESS),
+        ("refunded_value", Decimal("15"), TransactionEventType.REFUND_SUCCESS),
+    ],
+)
+def test_create_manual_adjustment_events_creates_calculation_events(
+    db_field_name, value, event_type, transaction_item_generator, app
+):
+    # given
+    transaction = transaction_item_generator(app=app)
+    money_data = {db_field_name: value}
+
+    # when
+    create_manual_adjustment_events(
+        transaction=transaction, money_data=money_data, app=app, user=None
+    )
+
+    # then
+    event = transaction.events.filter(type=event_type).get()
+    assert event.amount_value == value
+    assert event.include_in_calculations is True
+
+
+def test_create_manual_adjustment_events_additional_authorization(
+    transaction_item_generator, app
+):
+    # given
+    authorized_value = Decimal("10")
+    transaction = transaction_item_generator(app=app, authorized_value=Decimal("2"))
+    money_data = {"authorized_value": authorized_value}
+
+    # when
+    create_manual_adjustment_events(
+        transaction=transaction, money_data=money_data, app=app, user=None
+    )
+
+    # then
+    event = transaction.events.filter(
+        type=TransactionEventType.AUTHORIZATION_ADJUSTMENT
+    ).get()
+    assert event.amount_value == authorized_value
+    assert event.include_in_calculations is True
+
+
+def test_create_manual_adjustment_events_additional_charge(
+    transaction_item_generator, app
+):
+    # given
+    charged_value = Decimal("10")
+    current_charge_value = Decimal("2")
+    transaction = transaction_item_generator(
+        app=app, charged_value=current_charge_value
+    )
+    money_data = {"charged_value": charged_value}
+
+    # when
+    create_manual_adjustment_events(
+        transaction=transaction, money_data=money_data, app=app, user=None
+    )
+
+    # then
+    event = transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).last()
+    assert event.amount_value == charged_value - current_charge_value
+    assert event.include_in_calculations is True
+
+
+def test_create_manual_adjustment_events_additional_refund(
+    transaction_item_generator, app
+):
+    # given
+    refunded_value = Decimal("10")
+    current_refunded_value = Decimal("2")
+    transaction = transaction_item_generator(
+        app=app, refunded_value=current_refunded_value
+    )
+    money_data = {"refunded_value": refunded_value}
+
+    # when
+    create_manual_adjustment_events(
+        transaction=transaction, money_data=money_data, app=app, user=None
+    )
+
+    # then
+    event = transaction.events.filter(type=TransactionEventType.REFUND_SUCCESS).last()
+    assert event.amount_value == refunded_value - current_refunded_value
+    assert event.include_in_calculations is True
+
+
+def test_create_manual_adjustment_events_additional_cancel(
+    transaction_item_generator, app
+):
+    # given
+    canceled_value = Decimal("10")
+    current_canceled_value = Decimal("2")
+    transaction = transaction_item_generator(
+        app=app, canceled_value=current_canceled_value
+    )
+    money_data = {"canceled_value": canceled_value}
+
+    # when
+    create_manual_adjustment_events(
+        transaction=transaction, money_data=money_data, app=app, user=None
+    )
+
+    # then
+    event = transaction.events.filter(type=TransactionEventType.CANCEL_SUCCESS).last()
+    assert event.amount_value == canceled_value - current_canceled_value
+    assert event.include_in_calculations is True

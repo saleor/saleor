@@ -4,8 +4,7 @@ import graphene
 import pytest
 
 from .....order import OrderEvents
-from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionEventStatus
+from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
 from ....core.utils import to_global_id_or_none
@@ -421,12 +420,21 @@ def test_transaction_update_amounts_by_app(
     response_field,
     db_field_name,
     value,
-    transaction_item_created_by_app,
     permission_manage_payments,
     app_api_client,
+    transaction_item_generator,
+    order,
+    app,
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app=app,
+        authorized_value=Decimal("1"),
+        charged_value=Decimal("2"),
+        canceled_value=Decimal("3"),
+        refunded_value=Decimal("4"),
+    )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {field_name: {"amount": value, "currency": "USD"}},
@@ -442,30 +450,27 @@ def test_transaction_update_amounts_by_app(
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data[response_field]["amount"] == value
-    assert getattr(transaction_item_created_by_app, db_field_name) == value
+    assert getattr(transaction, db_field_name) == value
 
 
 def test_transaction_update_for_order_increases_order_total_authorized_by_app(
     order_with_lines,
     permission_manage_payments,
     app_api_client,
-    transaction_item_created_by_app,
+    transaction_item_generator,
+    app,
 ):
     # given
-    transaction = transaction_item_created_by_app
-    transaction.authorized_value = Decimal("10")
-    transaction.order_id = order_with_lines.pk
-    transaction.save()
-    previously_authorized_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=Decimal("10"),
     )
-
-    update_order_authorize_data(order_with_lines)
-
-    assert (
-        order_with_lines.total_authorized_amount
-        == previously_authorized_value + transaction.authorized_value
+    previously_authorized_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=previously_authorized_value,
     )
 
     authorized_value = transaction.authorized_value + Decimal("10")
@@ -487,9 +492,7 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_app(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
 
     data = content["data"]["transactionUpdate"]["transaction"]
@@ -505,20 +508,20 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_app(
     order_with_lines,
     permission_manage_payments,
     app_api_client,
-    transaction_item_created_by_app,
+    transaction_item_generator,
+    app,
 ):
     # given
-    transaction = transaction_item_created_by_app
-    transaction.authorized_value = Decimal("10")
-    transaction.save()
-    previously_authorized_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=Decimal("10"),
     )
-    update_order_authorize_data(order_with_lines)
-    assert (
-        order_with_lines.total_authorized_amount
-        == previously_authorized_value + transaction.authorized_value
+    previously_authorized_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=previously_authorized_value,
     )
 
     authorized_value = transaction.authorized_value - Decimal("5")
@@ -540,9 +543,7 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_app(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
 
     data = content["data"]["transactionUpdate"]["transaction"]
@@ -558,18 +559,20 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
     order_with_lines,
     permission_manage_payments,
     app_api_client,
-    transaction_item_created_by_app,
+    app,
+    transaction_item_generator,
 ):
     # given
-    transaction = transaction_item_created_by_app
-    previously_authorized_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=Decimal("10"),
     )
-    update_order_authorize_data(order_with_lines)
-    assert (
-        order_with_lines.total_authorized_amount
-        == previously_authorized_value + transaction.authorized_value
+    previously_authorized_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=previously_authorized_value,
     )
 
     authorized_value = Decimal("0")
@@ -591,9 +594,7 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
 
     data = content["data"]["transactionUpdate"]["transaction"]
@@ -606,19 +607,20 @@ def test_transaction_update_for_order_increases_order_total_charged_by_app(
     order_with_lines,
     permission_manage_payments,
     app_api_client,
-    transaction_item_created_by_app,
+    transaction_item_generator,
+    app,
 ):
     # given
-    transaction = transaction_item_created_by_app
-    previously_charged_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        charged_value=previously_charged_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        charged_value=Decimal("10"),
     )
-
-    update_order_charge_data(order_with_lines)
-    assert (
-        order_with_lines.total_charged_amount
-        == previously_charged_value + transaction.charged_value
+    previously_charged_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        charged_value=previously_charged_value,
     )
 
     charged_value = transaction.charged_value + Decimal("10")
@@ -640,9 +642,7 @@ def test_transaction_update_for_order_increases_order_total_charged_by_app(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["chargedAmount"]["amount"] == charged_value
@@ -657,21 +657,20 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_app(
     order_with_lines,
     permission_manage_payments,
     app_api_client,
-    transaction_item_created_by_app,
+    transaction_item_generator,
+    app,
 ):
     # given
-    transaction = transaction_item_created_by_app
-    previously_charged_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        charged_value=previously_charged_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        charged_value=Decimal("30"),
     )
-    transaction.charged_value = Decimal("30")
-    transaction.save()
-
-    update_order_charge_data(order_with_lines)
-    assert (
-        order_with_lines.total_charged_amount
-        == previously_charged_value + transaction.charged_value
+    previously_charged_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        charged_value=previously_charged_value,
     )
 
     charged_value = transaction.charged_value - Decimal("5")
@@ -693,9 +692,7 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_app(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["chargedAmount"]["amount"] == charged_value
@@ -710,21 +707,20 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_app
     order_with_lines,
     permission_manage_payments,
     app_api_client,
-    transaction_item_created_by_app,
+    transaction_item_generator,
+    app,
 ):
     # given
-    transaction = transaction_item_created_by_app
-    previously_charged_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        charged_value=previously_charged_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        charged_value=Decimal("30"),
     )
-    transaction.charged_value = Decimal("30")
-    transaction.save()
-
-    update_order_charge_data(order_with_lines)
-    assert (
-        order_with_lines.total_charged_amount
-        == previously_charged_value + transaction.charged_value
+    previously_charged_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        charged_value=previously_charged_value,
     )
 
     charged_value = Decimal("0")
@@ -746,9 +742,7 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_app
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["chargedAmount"]["amount"] == charged_value
@@ -757,10 +751,18 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_app
 
 
 def test_transaction_update_multiple_amounts_provided_by_app(
-    transaction_item_created_by_app, permission_manage_payments, app_api_client
+    permission_manage_payments, app_api_client, order, transaction_item_generator, app
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app=app,
+        charged_value=Decimal("1"),
+        authorized_value=Decimal("2"),
+        refunded_value=Decimal("3"),
+        canceled_value=Decimal("4"),
+    )
+
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
     refunded_value = Decimal("12")
@@ -948,19 +950,19 @@ def test_creates_transaction_event_for_order_by_app(
     data = content["data"]["transactionUpdate"]["transaction"]
 
     events_data = data["events"]
-    assert len(events_data) == 1
-    event_data = events_data[0]
+    assert len(events_data) == 2
+    event_data = [
+        event for event in events_data if event["pspReference"] == event_reference
+    ][0]
     assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
-    assert event_data["pspReference"] == event_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
-    assert transaction.events.count() == 1
-    event = transaction.events.first()
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(psp_reference=event_reference).first()
     assert event.message == event_name
     assert event.status == event_status
-    assert event.psp_reference == event_reference
     assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
@@ -1287,12 +1289,13 @@ def test_transaction_update_amounts_by_staff(
     response_field,
     db_field_name,
     value,
-    transaction_item_created_by_user,
     permission_manage_payments,
     staff_api_client,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
+    transaction = transaction_item_generator(user=staff_user)
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {field_name: {"amount": value, "currency": "USD"}},
@@ -1308,27 +1311,28 @@ def test_transaction_update_amounts_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data[response_field]["amount"] == value
-    assert getattr(transaction_item_created_by_user, db_field_name) == value
+    assert getattr(transaction, db_field_name) == value
 
 
 def test_transaction_update_for_order_increases_order_total_authorized_by_staff(
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
-    transaction_item_created_by_user,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
     previously_authorized_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        authorized_value=Decimal("10"),
     )
-    update_order_authorize_data(
-        order_with_lines,
-    )
-    assert (
-        order_with_lines.total_authorized_amount
-        == previously_authorized_value + transaction.authorized_value
+    previously_authorized_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        authorized_value=previously_authorized_value,
     )
 
     authorized_value = transaction.authorized_value + Decimal("10")
@@ -1350,9 +1354,7 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_staff(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
 
     data = content["data"]["transactionUpdate"]["transaction"]
@@ -1368,20 +1370,20 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_staff(
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
-    transaction_item_created_by_user,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
-    transaction.authorized_value = Decimal("10")
-    transaction.save()
-    previously_authorized_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        authorized_value=Decimal("10"),
     )
-    update_order_authorize_data(order_with_lines)
-    assert (
-        order_with_lines.total_authorized_amount
-        == previously_authorized_value + transaction.authorized_value
+    previously_authorized_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        authorized_value=previously_authorized_value,
     )
 
     authorized_value = transaction.authorized_value - Decimal("5")
@@ -1403,9 +1405,7 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_staff(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
 
     data = content["data"]["transactionUpdate"]["transaction"]
@@ -1422,17 +1422,20 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
     permission_manage_payments,
     staff_api_client,
     transaction_item_created_by_user,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
-    previously_authorized_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        authorized_value=Decimal("10"),
     )
-    update_order_authorize_data(order_with_lines)
-    assert (
-        order_with_lines.total_authorized_amount
-        == previously_authorized_value + transaction.authorized_value
+    previously_authorized_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        authorized_value=previously_authorized_value,
     )
 
     authorized_value = Decimal("0")
@@ -1454,9 +1457,7 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
 
     data = content["data"]["transactionUpdate"]["transaction"]
@@ -1469,21 +1470,21 @@ def test_transaction_update_for_order_increases_order_total_charged_by_staff(
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
-    transaction_item_created_by_user,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        charged_value=Decimal("10"),
+    )
     previously_charged_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        charged_value=previously_charged_value, currency=order_with_lines.currency
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        charged_value=previously_charged_value,
     )
-
-    update_order_charge_data(order_with_lines)
-    assert (
-        order_with_lines.total_charged_amount
-        == previously_charged_value + transaction.charged_value
-    )
-
     charged_value = transaction.charged_value + Decimal("10")
 
     variables = {
@@ -1503,9 +1504,7 @@ def test_transaction_update_for_order_increases_order_total_charged_by_staff(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["chargedAmount"]["amount"] == charged_value
@@ -1520,23 +1519,22 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_staff(
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
-    transaction_item_created_by_user,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
+
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        charged_value=Decimal("30"),
+    )
     previously_charged_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        charged_value=previously_charged_value, currency=order_with_lines.currency
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        charged_value=previously_charged_value,
     )
-    transaction.charged_value = Decimal("30")
-    transaction.save()
-
-    update_order_charge_data(order_with_lines)
-    assert (
-        order_with_lines.total_charged_amount
-        == previously_charged_value + transaction.charged_value
-    )
-
     charged_value = transaction.charged_value - Decimal("5")
 
     variables = {
@@ -1556,9 +1554,7 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_staff(
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["chargedAmount"]["amount"] == charged_value
@@ -1573,21 +1569,20 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_sta
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
-    transaction_item_created_by_user,
+    transaction_item_generator,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
-    previously_charged_value = Decimal("90")
-    old_transaction = order_with_lines.payment_transactions.create(
-        charged_value=previously_charged_value, currency=order_with_lines.currency
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        charged_value=Decimal("30"),
     )
-    transaction.charged_value = Decimal("30")
-    transaction.save()
-
-    update_order_charge_data(order_with_lines)
-    assert (
-        order_with_lines.total_charged_amount
-        == previously_charged_value + transaction.charged_value
+    previously_charged_value = Decimal("90")
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+        charged_value=previously_charged_value,
     )
 
     charged_value = Decimal("0")
@@ -1609,9 +1604,7 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_sta
 
     # then
     order_with_lines.refresh_from_db()
-    transaction = order_with_lines.payment_transactions.exclude(
-        id=old_transaction.id
-    ).last()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["chargedAmount"]["amount"] == charged_value
@@ -1811,16 +1804,17 @@ def test_creates_transaction_event_for_order_by_staff(
     data = content["data"]["transactionUpdate"]["transaction"]
 
     events_data = data["events"]
-    assert len(events_data) == 1
-    event_data = events_data[0]
+    assert len(events_data) == 2
+    event_data = [
+        event for event in events_data if event["pspReference"] == event_reference
+    ][0]
     assert event_data["message"] == event_name
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
-    assert event_data["pspReference"] == event_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
-    assert transaction.events.count() == 1
-    event = transaction.events.first()
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(psp_reference=event_reference).first()
     assert event.message == event_name
     assert event.status == event_status
     assert event.psp_reference == event_reference
@@ -1829,18 +1823,26 @@ def test_creates_transaction_event_for_order_by_staff(
 
 
 def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
-    transaction_item_created_by_user,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
+    staff_user,
 ):
     # given
-    transaction = transaction_item_created_by_user
+    psp_reference = "psp-ref"
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk, user=staff_user, psp_reference=psp_reference
+    )
+    second_transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        user=staff_user,
+    )
+
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", second_transaction.pk),
         "transaction": {
-            "pspReference": transaction_item_created_by_app.psp_reference,
+            "pspReference": psp_reference,
         },
     }
 
@@ -1865,19 +1867,26 @@ def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
 
 
 def test_transaction_raises_error_when_psp_reference_already_exists_by_app(
-    transaction_item_created_by_user,
-    transaction_item_created_by_app,
+    transaction_item_generator,
     order_with_lines,
     permission_manage_payments,
     app_api_client,
+    app,
 ):
     # given
 
-    transaction = transaction_item_created_by_app
+    psp_reference = "psp-ref"
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk, app=app, psp_reference=psp_reference
+    )
+    second_transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+    )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", second_transaction.pk),
         "transaction": {
-            "pspReference": transaction_item_created_by_user.psp_reference,
+            "pspReference": psp_reference,
         },
     }
 
@@ -2009,3 +2018,97 @@ def test_transaction_update_external_url_incorrect_url_format_by_staff(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == TransactionUpdateErrorCode.INVALID.name
+
+
+def test_transaction_update_creates_calculation_event(
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    order,
+    app,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    current_canceled_value = Decimal("3")
+    current_refunded_value = Decimal("4")
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+        canceled_value=current_canceled_value,
+        refunded_value=current_refunded_value,
+    )
+    authorized_value = Decimal("12")
+    charged_value = Decimal("13")
+    canceled_value = Decimal("14")
+    refunded_value = Decimal("15")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+            "amountRefunded": {
+                "amount": refunded_value,
+                "currency": "USD",
+            },
+            "amountCanceled": {
+                "amount": canceled_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    get_graphql_content(response)
+
+    order.refresh_from_db()
+    transaction = order.payment_transactions.first()
+    assert order.total_authorized.amount == authorized_value
+    assert order.total_charged.amount == charged_value
+
+    assert transaction.authorized_value == authorized_value
+    assert transaction.charged_value == charged_value
+    assert transaction.refunded_value == refunded_value
+    assert transaction.canceled_value == canceled_value
+
+    # 4 existing events and 4 newly created for new amounts
+    assert transaction.events.count() == 8
+
+    authorize_event = transaction.events.filter(
+        type=TransactionEventType.AUTHORIZATION_ADJUSTMENT,
+        amount_value=authorized_value,
+    ).first()
+    assert authorize_event
+
+    charge_event = transaction.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS,
+        amount_value=charged_value - current_charged_value,
+    ).first()
+    assert charge_event
+
+    refund_event = transaction.events.filter(
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=refunded_value - current_refunded_value,
+    ).first()
+    assert refund_event
+
+    cancel_event = transaction.events.filter(
+        type=TransactionEventType.CANCEL_SUCCESS,
+        amount_value=canceled_value - current_canceled_value,
+    ).first()
+    assert cancel_event

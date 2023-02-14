@@ -129,7 +129,7 @@ def test_transaction_created_by_app_query_by_app(
     app_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
-    event = TransactionEvent.objects.create(transaction=transaction_item_created_by_app)
+    event = transaction_item_created_by_app.events.get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
 
@@ -155,7 +155,7 @@ def test_transaction_creted_by_app_query_no_order(
     transaction_item_created_by_app.order = None
     transaction_item_created_by_app.save(update_fields=["order"])
 
-    event = TransactionEvent.objects.create(transaction=transaction_item_created_by_app)
+    event = transaction_item_created_by_app.events.get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
 
@@ -178,7 +178,7 @@ def test_transaction_created_by_app_query_by_staff(
     staff_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
-    event = TransactionEvent.objects.create(transaction=transaction_item_created_by_app)
+    event = transaction_item_created_by_app.events.get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
 
@@ -217,9 +217,7 @@ def test_transaction_created_by_user_query_by_app(
     permission_manage_staff,
 ):
     # given
-    event = TransactionEvent.objects.create(
-        transaction=transaction_item_created_by_user
-    )
+    event = transaction_item_created_by_user.events.get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
 
@@ -250,9 +248,7 @@ def test_transaction_creted_by_user_query_no_order(
     transaction_item_created_by_user.order = None
     transaction_item_created_by_user.save(update_fields=["order"])
 
-    event = TransactionEvent.objects.create(
-        transaction=transaction_item_created_by_user
-    )
+    event = transaction_item_created_by_user.events.get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
 
@@ -280,9 +276,7 @@ def test_transaction_created_by_user_query_by_staff(
     permission_manage_staff,
 ):
     # given
-    event = TransactionEvent.objects.create(
-        transaction=transaction_item_created_by_user
-    )
+    event = transaction_item_created_by_user.events.get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
 
@@ -362,9 +356,10 @@ def test_transaction_event_by_user(
     staff_api_client,
 ):
     # given
+    psp_reference = "psp-ref-123"
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_user,
-        psp_reference="psp-ref-123",
+        psp_reference=psp_reference,
         message="Sucesfull charge",
         currency="USD",
         type=TransactionEventType.CHARGE_SUCCESS,
@@ -385,8 +380,10 @@ def test_transaction_event_by_user(
     # then
     content = get_graphql_content(response)
     events = content["data"]["transaction"]["events"]
-    assert len(events) == 1
-    event_data = events[0]
+    assert len(events) == 2
+    event_data = [event for event in events if event["pspReference"] == psp_reference][
+        0
+    ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
     assert event_data["status"] == event.status.upper()
@@ -407,10 +404,11 @@ def test_transaction_event_by_app(
     app_api_client,
 ):
     # given
+    psp_reference = "psp-ref-123"
     event = TransactionEvent.objects.create(
         transaction=transaction_item_created_by_app,
         status=TransactionEventStatus.SUCCESS,
-        psp_reference="psp-ref-123",
+        psp_reference=psp_reference,
         message="Sucesfull charge",
         currency="USD",
         type=TransactionEventType.CHARGE_SUCCESS,
@@ -431,8 +429,10 @@ def test_transaction_event_by_app(
     # then
     content = get_graphql_content(response)
     events = content["data"]["transaction"]["events"]
-    assert len(events) == 1
-    event_data = events[0]
+    assert len(events) == 2
+    event_data = [event for event in events if event["pspReference"] == psp_reference][
+        0
+    ]
     assert event_data["id"] == to_global_id_or_none(event)
     assert event_data["createdAt"] == event.created_at.isoformat()
     assert event_data["status"] == event.status.upper()

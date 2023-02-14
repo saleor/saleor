@@ -11,16 +11,14 @@ from ..transaction_item_calculations import recalculate_transaction_amounts
 
 
 @pytest.fixture
-def transaction_events_generator(
-    transaction_item_created_by_app,
-) -> Callable[
+def transaction_events_generator() -> Callable[
     [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
 ]:
     def factory(
         psp_references: List[str],
         types: List[str],
         amounts: List[Decimal],
-        transaction: TransactionItem = transaction_item_created_by_app,
+        transaction: TransactionItem,
     ):
         return TransactionEvent.objects.bulk_create(
             TransactionEvent(
@@ -58,12 +56,13 @@ def _assert_amounts(
 
 
 def test_with_only_authorize_success_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorized_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -84,12 +83,13 @@ def test_with_only_authorize_success_event(
 
 
 def test_with_only_authorize_request_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -110,12 +110,13 @@ def test_with_only_authorize_request_event(
 
 
 def test_with_only_authorize_failure_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -138,12 +139,13 @@ def test_with_only_authorize_failure_event(
 
 
 def test_with_authorize_request_and_success_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.AUTHORIZATION_REQUEST,
@@ -165,12 +167,13 @@ def test_with_authorize_request_and_success_events(
 
 
 def test_with_authorize_request_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.AUTHORIZATION_REQUEST,
@@ -190,12 +193,13 @@ def test_with_authorize_request_and_failure_events(
 
 
 def test_with_authorize_success_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
@@ -215,12 +219,13 @@ def test_with_authorize_success_and_failure_events(
 
 
 def test_with_authorize_success_and_older_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_value = Decimal("11.00")
     events = transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
@@ -246,13 +251,14 @@ def test_with_authorize_success_and_older_failure_events(
 
 
 def test_with_authorize_adjustment(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_value = Decimal("11.00")
     authorize_adjustment_value = Decimal("100")
     events = transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "3", "4"],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
@@ -287,13 +293,14 @@ def test_with_authorize_adjustment(
 
 
 def test_with_authorize_request_and_success_events_different_psp_references(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_authorize_value = Decimal("11.00")
     second_authorize_value = Decimal("12.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "2"],
         types=[
             TransactionEventType.AUTHORIZATION_REQUEST,
@@ -316,12 +323,13 @@ def test_with_authorize_request_and_success_events_different_psp_references(
 
 
 def test_with_only_charge_success_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charged_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -342,12 +350,13 @@ def test_with_only_charge_success_event(
 
 
 def test_with_only_charge_request_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charge_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -368,12 +377,13 @@ def test_with_only_charge_request_event(
 
 
 def test_with_only_charge_failure_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charge_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -396,12 +406,13 @@ def test_with_only_charge_failure_event(
 
 
 def test_with_charge_request_and_success_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charge_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CHARGE_REQUEST,
@@ -423,12 +434,13 @@ def test_with_charge_request_and_success_events(
 
 
 def test_with_charge_request_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charge_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CHARGE_REQUEST,
@@ -448,12 +460,13 @@ def test_with_charge_request_and_failure_events(
 
 
 def test_with_charge_success_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charge_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CHARGE_SUCCESS,
@@ -473,12 +486,13 @@ def test_with_charge_success_and_failure_events(
 
 
 def test_with_charge_success_and_older_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     charge_value = Decimal("11.00")
     events = transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CHARGE_SUCCESS,
@@ -504,13 +518,14 @@ def test_with_charge_success_and_older_failure_events(
 
 
 def test_with_charge_request_and_success_events_different_psp_references(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_charge_value = Decimal("11.00")
     second_charge_value = Decimal("12.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "2"],
         types=[
             TransactionEventType.CHARGE_REQUEST,
@@ -532,15 +547,14 @@ def test_with_charge_request_and_success_events_different_psp_references(
     )
 
 
-def test_with_charge_back(
-    transaction_item_created_by_app, transaction_events_generator
-):
+def test_with_charge_back(transaction_item_generator, transaction_events_generator):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_charge_value = Decimal("11.00")
     second_charge_value = Decimal("12.00")
     charge_back_value = Decimal("10.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "3"],
         types=[
             TransactionEventType.CHARGE_SUCCESS,
@@ -563,12 +577,13 @@ def test_with_charge_back(
 
 
 def test_with_only_refund_success_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refunded_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -589,12 +604,13 @@ def test_with_only_refund_success_event(
 
 
 def test_with_only_refund_request_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refund_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -615,12 +631,13 @@ def test_with_only_refund_request_event(
 
 
 def test_with_only_refund_failure_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refund_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -643,12 +660,13 @@ def test_with_only_refund_failure_event(
 
 
 def test_with_refund_request_and_success_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refund_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.REFUND_REQUEST,
@@ -670,12 +688,13 @@ def test_with_refund_request_and_success_events(
 
 
 def test_with_refund_request_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refund_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.REFUND_REQUEST,
@@ -695,12 +714,13 @@ def test_with_refund_request_and_failure_events(
 
 
 def test_with_refund_success_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refund_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.REFUND_SUCCESS,
@@ -720,12 +740,13 @@ def test_with_refund_success_and_failure_events(
 
 
 def test_with_refund_success_and_older_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     refund_value = Decimal("11.00")
     events = transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.REFUND_SUCCESS,
@@ -751,13 +772,14 @@ def test_with_refund_success_and_older_failure_events(
 
 
 def test_with_refund_request_and_success_events_different_psp_references(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_refund_value = Decimal("11.00")
     second_refund_value = Decimal("12.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "2"],
         types=[
             TransactionEventType.REFUND_REQUEST,
@@ -779,15 +801,14 @@ def test_with_refund_request_and_success_events_different_psp_references(
     )
 
 
-def test_with_refund_reverse(
-    transaction_item_created_by_app, transaction_events_generator
-):
+def test_with_refund_reverse(transaction_item_generator, transaction_events_generator):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_refund_value = Decimal("11.00")
     second_refund_value = Decimal("12.00")
     reverse_refund = Decimal("10.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "3"],
         types=[
             TransactionEventType.REFUND_SUCCESS,
@@ -810,12 +831,13 @@ def test_with_refund_reverse(
 
 
 def test_with_only_cancel_success_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     canceled_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -836,12 +858,13 @@ def test_with_only_cancel_success_event(
 
 
 def test_with_only_cancel_request_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     cancel_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -862,12 +885,13 @@ def test_with_only_cancel_request_event(
 
 
 def test_with_only_cancel_failure_event(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     cancel_pending_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             "1",
         ],
@@ -890,12 +914,13 @@ def test_with_only_cancel_failure_event(
 
 
 def test_with_cancel_request_and_success_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     cancel_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CANCEL_REQUEST,
@@ -917,12 +942,13 @@ def test_with_cancel_request_and_success_events(
 
 
 def test_with_cancel_request_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     cancel_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CANCEL_REQUEST,
@@ -942,12 +968,13 @@ def test_with_cancel_request_and_failure_events(
 
 
 def test_with_cancel_success_and_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     cancel_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CANCEL_SUCCESS,
@@ -967,12 +994,13 @@ def test_with_cancel_success_and_failure_events(
 
 
 def test_with_cancel_success_and_older_failure_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     cancel_value = Decimal("11.00")
     events = transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "1"],
         types=[
             TransactionEventType.CANCEL_SUCCESS,
@@ -998,13 +1026,14 @@ def test_with_cancel_success_and_older_failure_events(
 
 
 def test_with_cancel_request_and_success_events_different_psp_references(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_cancel_value = Decimal("11.00")
     second_cancel_value = Decimal("12.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "2"],
         types=[
             TransactionEventType.CANCEL_REQUEST,
@@ -1027,15 +1056,16 @@ def test_with_cancel_request_and_success_events_different_psp_references(
 
 
 def test_event_without_psp_reference(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     authorize_value = Decimal("110.00")
     charge_value = Decimal("100.00")
     first_refund_value = Decimal("30.0")
     second_refund_value = Decimal("11.00")
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[None, None, None, None, "5"],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
@@ -1067,10 +1097,10 @@ def test_event_without_psp_reference(
 
 
 def test_event_multiple_events(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
 
     authorize_value = Decimal("200.00")
     authorize_adjustment_value = Decimal("250.00")
@@ -1089,6 +1119,7 @@ def test_event_multiple_events(
     refund_reverse_value = Decimal("3.00")
 
     transaction_events_generator(
+        transaction=transaction,
         psp_references=[
             None,
             "authorization-adjustment",
@@ -1146,13 +1177,14 @@ def test_event_multiple_events(
 
 
 def test_skips_event_that_should_not_be_taken_into_account(
-    transaction_item_created_by_app, transaction_events_generator
+    transaction_item_generator, transaction_events_generator
 ):
     # given
-    transaction = transaction_item_created_by_app
+    transaction = transaction_item_generator()
     first_value = Decimal("11.00")
     second_value = Decimal("12.00")
     transaction_events = transaction_events_generator(
+        transaction=transaction,
         psp_references=["1", "2", "2"],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
